@@ -24,7 +24,7 @@ from fairdm.core.sample.models import Sample
 from django.db import models
 
 class WaterSample(Sample):
-    location = models.CharField(max_length=200)
+    site_name = models.CharField(max_length=200)
     ph_level = models.FloatField()
     temperature = models.FloatField()
     collected_at = models.DateTimeField()
@@ -33,6 +33,10 @@ class WaterSample(Sample):
         verbose_name = "Water Sample"
         verbose_name_plural = "Water Samples"
 ```
+
+Every sample already has `location`, `location_elevation` and `location_uncertainty`, so a sample
+type does not define a field of its own for where it was taken, and a field named `location`
+clashes with the inherited one. See [Locations](locations.md).
 
 ## Measurement Models
 

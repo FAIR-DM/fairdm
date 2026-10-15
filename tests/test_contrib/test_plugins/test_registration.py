@@ -14,7 +14,6 @@ from fairdm.core.sample.models import Sample
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
-    PointFactory,
     ProjectFactory,
     UserFactory,
 )
@@ -245,21 +244,3 @@ class TestAnAddonCanExtendARecordItDoesNotOwn:
 
         for name in ("Plugin", "register", "registry", "is_instance_of", "has_perm"):
             assert hasattr(api, name), name
-
-
-@pytest.mark.django_db
-class TestARecordWithoutAUuid:
-    def test_a_location_plugin_resolves_and_reverses(self):
-        from django.urls import reverse as django_reverse
-
-        from fairdm.contrib.location.models import Point
-        from fairdm.contrib.plugins import reverse as plugin_reverse
-
-        django_reverse("point:point-overview", kwargs={"lon": "1", "lat": "2"})
-
-        point = PointFactory()
-        url = plugin_reverse(point, "point-overview")
-        assert str(point.x) in url
-        assert str(point.y) in url
-
-        assert plugins.registry.lookup_for(Point) == {"lon": "x", "lat": "y"}

@@ -43,8 +43,8 @@ its list. The same fields appear in both.
 |------|-------------------|------------|
 | Project | `url`, `html_url`, `uuid`, `name`, `image`, `status`, `visibility`, `funding`, `added`, `modified` | `owner`, the organization that owns it |
 | Dataset | `url`, `html_url`, `uuid`, `name`, `image`, `visibility`, `published`, `added`, `modified` | `project`, and `license` as `{"name", "url"}` |
-| Sample | `url`, `html_url`, `uuid`, `name`, `local_id`, `status`, `added`, `modified`, then every field its type declares | `dataset` |
-| Measurement | `url`, `html_url`, `uuid`, `name`, `added`, `modified`, then every field its type declares, measured values included | `sample` and `dataset` |
+| Sample | `url`, `html_url`, `uuid`, `name`, `local_id`, `status`, `location`, `location_uncertainty`, `added`, `modified`, then every field its type declares | `dataset` |
+| Measurement | `url`, `html_url`, `uuid`, `name`, `location`, `location_uncertainty`, `added`, `modified`, then every field its type declares, measured values included | `sample` and `dataset` |
 
 Every one of the four also carries its metadata, which is read-only:
 
@@ -75,6 +75,8 @@ A rock sample looks like this:
     "uuid": "dV4DYUk6ohGJdizhxJotoZ8",
     "url": "https://portal.example.org/api/v1/datasets/dV4DYUk6ohGJdizhxJotoZ8/"
   },
+  "location": {"type": "Point", "coordinates": [8.4115, 49.0094, 112.5]},
+  "location_uncertainty": 25.0,
   "added": "2026-10-08T23:25:13.384580Z",
   "modified": "2026-10-08T23:25:13.385372Z",
   "rock_type": "igneous",
@@ -86,6 +88,48 @@ A rock sample looks like this:
   "contributors": []
 }
 ```
+
+### A record's location
+
+`location` is the record's own place as a [GeoJSON](https://datatracker.ietf.org/doc/html/rfc7946)
+`Point` in WGS 84. The coordinates are longitude, then latitude, which is the order GIS software
+and GeoJSON readers expect. The record's elevation in metres above mean sea level is the third
+coordinate when one is recorded, and a negative number lies below it. `location_uncertainty` is the
+distance in metres from the point within which the true place lies, and sits beside the geometry
+because GeoJSON has no place for it.
+
+```json
+{
+  "location": {"type": "Point", "coordinates": [8.4115, 49.0094, 112.5]},
+  "location_uncertainty": 25.0
+}
+```
+
+A record with no location returns `null` for both. A point with no elevation has two coordinates.
+
+A measurement returns the location it holds itself. A measurement with none of its own returns
+`null`, even where its sample has one, because the answer would otherwise change whenever the
+sample's did. To read where such a measurement was made, follow its `sample` address and read the
+sample's `location`. An organization's `location` is a point of its own without an elevation or an
+uncertainty, and a person has no `location`.
+
+`location`, `location_elevation` and `location_uncertainty` are read-only. A value sent for one on
+a create or a change is ignored, and the record keeps the place it had.
+
+A serializer of your own that subclasses `BaseSampleSerializer` or `BaseMeasurementSerializer`
+inherits both fields. To give a model of your own that holds a `location` point the same shape,
+declare `fairdm.api.serializers.GeoJSONPointField` on its serializer:
+
+```python
+from fairdm.api.serializers import GeoJSONPointField
+
+
+class SiteSerializer(serializers.ModelSerializer):
+    location = GeoJSONPointField()
+```
+
+The field is read-only and reads `location`, and `location_elevation` where the model has one,
+from the record it is given.
 
 ## A credit on a record
 
@@ -212,8 +256,8 @@ A record's own fields, its visibility and its parent are writable. Everything el
 |------|----------|-----------|
 | Project | `name`, `status`, `visibility`, `funding`, `owner` | `image`, `url`, `html_url`, `uuid`, `added`, `modified` and the metadata |
 | Dataset | `name`, `visibility`, `project` | `image`, `published`, `license`, `url`, `html_url`, `uuid`, `added`, `modified` and the metadata |
-| Sample | `name`, `local_id`, `status`, `dataset` and every field its type declares | `url`, `html_url`, `uuid`, `added`, `modified` and the metadata |
-| Measurement | `name`, `sample`, `dataset` and every field its type declares, measured values included | `url`, `html_url`, `uuid`, `added`, `modified` and the metadata |
+| Sample | `name`, `local_id`, `status`, `dataset` and every field its type declares | `url`, `html_url`, `uuid`, `location`, `location_elevation`, `location_uncertainty`, `added`, `modified` and the metadata |
+| Measurement | `name`, `sample`, `dataset` and every field its type declares, measured values included | `url`, `html_url`, `uuid`, `location`, `location_elevation`, `location_uncertainty`, `added`, `modified` and the metadata |
 
 The metadata (`descriptions`, `dates`, `identifiers`, `keywords` and `contributors`) is edited in the
 portal. A value sent for a read-only field is ignored, not refused: the request succeeds and the
@@ -408,6 +452,7 @@ A list entry holds what identifies an organization:
 | `name` | The name it is known by |
 | `type` | The kind of organization as its stored code, such as `education`, or `null` |
 | `country` | The two-letter country code, or `null` |
+| `location` | The organization's point as a GeoJSON `Point`, longitude first, or `null`. See [A record's location](#a-records-location) |
 | `identifiers` | `{"type", "value", "link"}` for each identifier, such as a ROR ID |
 
 `added` and `modified` are not returned, and are available for ordering and for `modified_after`

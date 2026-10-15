@@ -6,6 +6,11 @@ from django.db import models
 from ordered_model.models import OrderedModelManager, OrderedModelQuerySet
 
 from fairdm.db.models import PrefetchPolymorphicManager, PrefetchPolymorphicQuerySet
+from fairdm.utils.location.managers import LocatedQuerySet
+
+
+class OrganizationQuerySet(LocatedQuerySet, PrefetchPolymorphicQuerySet):
+    """Organization queryset with the lookups that find organizations by where they are."""
 
 
 class PersonQuerySet(PrefetchPolymorphicQuerySet):

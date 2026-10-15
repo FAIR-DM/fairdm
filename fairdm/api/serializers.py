@@ -379,6 +379,62 @@ class PortalPageField(serializers.ReadOnlyField):
         return address
 
 
+@extend_schema_field(
+    {
+        "type": "object",
+        "nullable": True,
+        "description": (
+            "A GeoJSON Point in WGS 84: longitude, then latitude, then the elevation in "
+            "metres above mean sea level where one is recorded."
+        ),
+        "properties": {
+            "type": {"type": "string", "enum": ["Point"]},
+            "coordinates": {
+                "type": "array",
+                "items": {"type": "number"},
+                "minItems": 2,
+                "maxItems": 3,
+            },
+        },
+        "required": ["type", "coordinates"],
+    }
+)
+class GeoJSONPointField(serializers.Field):
+    """A record's location as a GeoJSON Point, longitude first, in WGS 84.
+
+    The record's elevation is the third coordinate where it holds one. A record with no
+    location gives ``None``. The uncertainty is not part of GeoJSON and is a field of its own.
+    """
+
+    def __init__(self, **kwargs):
+        """Read the whole record, as the elevation sits beside the point, and never write.
+
+        Args:
+            **kwargs: Passed to ``Field``.
+        """
+        kwargs["source"] = "*"
+        kwargs["read_only"] = True
+        super().__init__(**kwargs)
+
+    def to_representation(self, value) -> dict | None:
+        """Give the record's point as a GeoJSON geometry.
+
+        Args:
+            value: The sample, measurement or organization.
+
+        Returns:
+            The geometry, or None when the record has no location.
+        """
+        point = value.location
+        if point is None:
+            return None
+        coordinates = [point.x, point.y]
+        elevation = getattr(value, "location_elevation", None)
+        if elevation is not None:
+            coordinates.append(elevation)
+        return {"type": "Point", "coordinates": coordinates}
+
+
 class RecordListSerializer(serializers.ListSerializer):
     """List serializer that checks every reference on a page of records at once."""
 
@@ -758,12 +814,15 @@ class BaseSampleSerializer(RecordSerializer):
         "local_id",
         "status",
         "dataset",
+        "location",
+        "location_uncertainty",
         "added",
         "modified",
     )
     parents = ("dataset",)
 
     dataset = RecordReferenceField(queryset=Dataset.all_objects.all())
+    location = GeoJSONPointField()
 
     class Meta(RecordSerializer.Meta):
         model = Sample
@@ -775,10 +834,13 @@ class BaseSampleSerializer(RecordSerializer):
             "local_id",
             "status",
             "dataset",
+            "location",
+            "location_uncertainty",
             "added",
             "modified",
             *RecordSerializer.metadata_fields,
         ]
+        read_only_fields = ["location", "location_elevation", "location_uncertainty"]
 
 
 class BaseMeasurementSerializer(RecordSerializer):
@@ -801,6 +863,8 @@ class BaseMeasurementSerializer(RecordSerializer):
         "name",
         "sample",
         "dataset",
+        "location",
+        "location_uncertainty",
         "added",
         "modified",
     )
@@ -808,6 +872,7 @@ class BaseMeasurementSerializer(RecordSerializer):
 
     sample = RecordReferenceField(queryset=Sample.objects.non_polymorphic())
     dataset = RecordReferenceField(queryset=Dataset.all_objects.all())
+    location = GeoJSONPointField()
 
     class Meta(RecordSerializer.Meta):
         model = Measurement
@@ -818,10 +883,13 @@ class BaseMeasurementSerializer(RecordSerializer):
             "name",
             "sample",
             "dataset",
+            "location",
+            "location_uncertainty",
             "added",
             "modified",
             *RecordSerializer.metadata_fields,
         ]
+        read_only_fields = ["location", "location_elevation", "location_uncertainty"]
 
 
 class ContributorIdentifierSerializer(serializers.Serializer):
@@ -1024,6 +1092,7 @@ class OrganizationListSerializer(serializers.ModelSerializer):
     html_url = PortalPageField()
     identifiers = ContributorIdentifierSerializer(many=True, read_only=True)
     country = serializers.SerializerMethodField()
+    location = GeoJSONPointField()
 
     class Meta:
         model = Organization
@@ -1034,6 +1103,7 @@ class OrganizationListSerializer(serializers.ModelSerializer):
             "name",
             "type",
             "country",
+            "location",
             "identifiers",
         )
         read_only_fields = fields

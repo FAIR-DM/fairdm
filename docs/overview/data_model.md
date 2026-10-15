@@ -74,7 +74,7 @@ Each sample by default includes:
 - **Keywords and tags**: Help make the sample more searchable and easier to categorize.
 - **A local ID**: A custom identifier used internally by the researchers, often printed on labels or containers.
 - **A status**: Such as "available", "in use", "stored", or "unknown" to indicate where the specimen physically is, not what has been done with its data.
-- **A location**: If the sample has a known geographic origin, you can link it to a location record.
+- **A location**: The point where the sample was taken, with an optional elevation and uncertainty, held on the sample itself.
 - **Time stamps**: Automatically track when the sample was created and last updated.
 - **Contributors**: You can list who helped collect, prepare, or manage the sample.
 - **Descriptions**: Structured descriptions explaining what the sample is and how it was collected.

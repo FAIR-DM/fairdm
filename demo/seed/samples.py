@@ -11,8 +11,8 @@ Development only. Creates the standard sign-in accounts, one project and three d
 - a soil sample with nothing but a name;
 - a rock sample in an unpublished dataset, which only the dataset's team can open.
 
-The core and the water sample share one location and the unpublished sample has another, so a
-location's page can be opened with two sample types and with nothing a visitor may see.
+The core and the water sample are at the same coordinates and the unpublished sample is at
+another place, each holding its own copy of its location.
 
 Safe to run twice: it removes what it created before creating it again.
 """
@@ -20,7 +20,7 @@ Safe to run twice: it removes what it created before creating it again.
 import random
 from datetime import date
 
-from django.apps import apps
+from django.contrib.gis.geos import Point
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import transaction
@@ -90,17 +90,14 @@ class SampleSeed(BaseCommand):
         soil = SoilSampleFactory(
             dataset=cores, name="Bruchsal soil, transect B, point 7"
         )
-        # Two sample types at the core's location, and a second location whose only sample
-        # is unpublished, so a location's page can be opened in both states.
-        water.location = core.location
+        # Two sample types at the same coordinates, and a second place whose only sample is
+        # unpublished.
+        water.location = core.location.clone()
         water.save()
-        Point = apps.get_model("fairdm_location", "Point")
         hidden = RockSampleFactory(
             dataset=pending,
             name="EPS-1 core, 1840 m",
-            location=Point.objects.get_or_create(
-                x=7.8672, y=48.9306, defaults={"crs": "EPSG:4326"}
-            )[0],
+            location=Point(7.8672, 48.9306, srid=4326),
         )
 
         for label, sample in [
@@ -110,11 +107,6 @@ class SampleSeed(BaseCommand):
             ("Rock sample in an unpublished dataset", hidden),
         ]:
             self.stdout.write(f"{label}: {sample.get_absolute_url()}")
-        for label, sample in [
-            ("Location with two sample types", core),
-            ("Location whose only sample is unpublished", hidden),
-        ]:
-            self.stdout.write(f"{label}: {sample.location.get_absolute_url()}")
 
     def person(self, first, last):
         email = f"{first.lower()}.{last.lower().replace(' ', '')}@example.org"
@@ -137,7 +129,6 @@ class SampleSeed(BaseCommand):
         )
 
     def core(self, cores, lab):
-        Point = apps.get_model("fairdm_location", "Point")
         core = RockSampleFactory(
             dataset=cores,
             name="GPK-2 core, 3512 m",
@@ -146,9 +137,9 @@ class SampleSeed(BaseCommand):
             rock_type="igneous",
             collection_date=date(2025, 4, 3),
             mineral_content="K-feldspar, quartz, plagioclase, biotite; altered to illite along fractures.",
-            location=Point.objects.get_or_create(
-                x=7.8656, y=48.9353, defaults={"crs": "EPSG:4326"}
-            )[0],
+            location=Point(7.8656, 48.9353, srid=4326),
+            location_elevation=155,
+            location_uncertainty=10,
         )
         SampleIdentifier.objects.create(
             related=core, type="IGSN", value="10.60510/FDM.GPK2C143512"

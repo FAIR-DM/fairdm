@@ -3,6 +3,44 @@
 Step-by-step instructions for upgrading past a breaking change. Each section covers one change;
 read the one that matches what changed under you.
 
+## 030 - Upgrading to a location held on each record
+
+A sample's `location` used to be a link to a `Point` record that samples at the same coordinates
+shared. A sample and a measurement now each hold their own `location` (a WGS 84 point),
+`location_elevation` and `location_uncertainty`, and the `Point` model is gone. A contributor has no
+`location`, and an organization has a point of its own. See [Locations](../portal-development/locations.md)
+for the new fields, the input and the lookups.
+
+Existing locations are not carried across the upgrade. Follow these steps in order:
+
+1. **Rename a field of your own that clashes.** A sample type or a measurement type that declares
+   a field called `location`, `location_elevation` or `location_uncertainty` fails to load once
+   the upgrade is in place, because it now clashes with the field it inherits. A measurement did
+   not carry a `location` before, so a `location` text field or foreign key on a measurement type
+   is the usual case. Rename the field, and move its data with a migration of your own, before you
+   upgrade.
+2. **Search your code and templates** for what read the old record, and change each hit:
+
+   - `location.latitude` and `location.longitude` read `location.y` and `location.x`. A template
+     that still writes `{{ sample.location.latitude }}` renders nothing, with no error.
+   - Filters on `location__x`, `location__y` and `location__crs` no longer apply. Use `inside`,
+     `within_distance` and `nearest`, or filter on `location` itself.
+   - `select_related("location")`, `prefetch_related("location")`, `autocomplete_fields` or
+     `raw_id_fields` listing `location`, and a form or admin that lists `location` for a person,
+     raise when they run or when Django checks them.
+   - `PointFactory` is removed. Give a sample factory `location=Point(longitude, latitude, srid=4326)`.
+   - Links to `/location/<lon>/<lat>/` and `Dataset.bbox` are gone. Use
+     `Dataset.spatial_coverage(user)`.
+   - Remove `FAIRDM_CRS`, `FAIRDM_X_COORD` and `FAIRDM_Y_COORD` from your settings.
+3. **Export the coordinates you need to keep.** The migrations drop the table behind `Point`, and
+   its rows are not copied to the samples. Export the old coordinates from your database before
+   you migrate if you want a record of them.
+4. **Run `migrate`**, then enter the locations again. A sample's form takes them when its
+   registration lists `location` in its fields, and an import file takes them in `latitude` and
+   `longitude` columns, with the optional `location_elevation` and `location_uncertainty`.
+5. **Check your registrations.** A sample type or a measurement type shows the location input only
+   when its `fields` list `location`. A type that listed no fields shows it already.
+
 ## Identifier resolvers are keyed by the stored type
 
 `IdentifierLookup` (`fairdm.contrib.contributors.choices`) maps an identifier type to its

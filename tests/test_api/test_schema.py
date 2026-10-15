@@ -590,6 +590,7 @@ class TestOrganizationComponents:
         "type",
         "country",
         "identifiers",
+        "location",
     }
     RECORD_ONLY_KEYS = {
         "alternative_names",
@@ -660,3 +661,55 @@ class TestOrganizationComponents:
         offered = {parameter["name"] for parameter in operation.get("parameters", [])}
 
         assert offered.isdisjoint(self.FILTERS)
+
+
+@pytest.mark.django_db
+class TestLocationComponents:
+    @staticmethod
+    def component(schema, reference):
+        return schema["components"]["schemas"][reference["$ref"].rsplit("/", 1)[-1]]
+
+    @staticmethod
+    def assert_geojson_point(location):
+        assert location["readOnly"] is True
+        assert location["type"] == "object"
+        assert location["nullable"] is True
+        assert location["properties"]["type"]["enum"] == ["Point"]
+        coordinates = location["properties"]["coordinates"]
+        assert coordinates["type"] == "array"
+        assert coordinates["items"] == {"type": "number"}
+        assert (coordinates["minItems"], coordinates["maxItems"]) == (2, 3)
+
+    @pytest.mark.parametrize("name", ["RockSample", "ExampleMeasurement"])
+    def test_a_records_location_is_described_as_a_read_only_geojson_point(
+        self, schema, name
+    ):
+        properties = schema["components"]["schemas"][name]["properties"]
+
+        self.assert_geojson_point(properties["location"])
+
+    @pytest.mark.parametrize("name", ["RockSample", "ExampleMeasurement"])
+    def test_the_uncertainty_is_a_read_only_number(self, schema, name):
+        properties = schema["components"]["schemas"][name]["properties"]
+
+        assert properties["location_uncertainty"]["readOnly"] is True
+        assert properties["location_uncertainty"]["type"] == "number"
+
+    @pytest.mark.parametrize("route", ["list", "detail"])
+    def test_an_organizations_location_is_described_as_a_geojson_point(
+        self, schema, route
+    ):
+        path = (
+            reverse("api:organization-list")
+            if route == "list"
+            else detail_path("organization")
+        )
+        operation = schema["paths"][path]["get"]
+        response = operation["responses"]["200"]["content"]["application/json"][
+            "schema"
+        ]
+        record = self.component(schema, response)
+        if route == "list":
+            record = self.component(schema, record["properties"]["results"]["items"])
+
+        self.assert_geojson_point(record["properties"]["location"])

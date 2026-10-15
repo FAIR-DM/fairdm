@@ -64,7 +64,7 @@ form = RockSampleForm(request=request, data=request.POST)
 ```
 
 **Optimized widget settings**: the mixin sets a Select2 widget with an "add another" link for
-`dataset`, a plain `Select` for `status`, and a Select2 widget for `location`, whenever those
+`dataset`, a plain `Select` for `status`, and the location input for `location`, whenever those
 field names are present on the form. Add your own widgets for your own fields the normal Django
 way:
 

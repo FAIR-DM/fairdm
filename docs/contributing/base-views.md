@@ -167,15 +167,15 @@ picked up by `MetadataMixin` to populate `meta.title` and friends.
 ```python
 from fairdm.views import FairDMDetailView
 
-from .models import Point
+from .models import Station
 
 
-class PointDetailView(FairDMDetailView):
-    model = Point
-    template_name = "locations/location_detail.html"
+class StationDetailView(FairDMDetailView):
+    model = Station
+    template_name = "stations/station_detail.html"
 
     def get_object(self, queryset=None):
-        return Point.objects.get(x=self.kwargs["lon"], y=self.kwargs["lat"])
+        return Station.objects.get(code=self.kwargs["code"])
 ```
 
 **Context keys**: `meta`, `page`, `object`
@@ -189,7 +189,7 @@ delete, descriptions — hang off that same registration and share its one
 navigation entry. See [Create a
 plugin](../portal-development/create_a_plugin.md) for that pattern —
 reach for a standalone `FairDMDetailView` when a record's page needs no
-extra views and no navigation entry of its own, as `Point` above does.
+extra views and no navigation entry of its own, as `Station` above does.
 
 ---
 

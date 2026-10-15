@@ -19,7 +19,8 @@
   Measurement blocks: overview.result (in the figures' place; shown when the type declares a
   `value`, otherwise the block a type fills first), then in the wide column overview.properties
   (empty here), overview.procedure, overview.notes, overview.sample, overview.siblings; in the
-  facts column, overview.location (the sample's map, when it has a location and is visible).
+  facts column, overview.location (the measurement's own map, else its sample's when the viewer may
+  open the sample and it has a location).
   What the registry says about the type opens from the type badge in the header. Every other
   block is listed in `overview/page.html`.
 {% endcomment %}
@@ -146,8 +147,14 @@
 
 {% block overview.record_facts %}
   {% block overview.location %}
-    {% if sample_visible %}
-      <c-card.location :location="sample.location" title="{% translate 'Sample location' %}" empty="{% translate 'No location has been recorded for the sample.' %}" />
+    {% if effective_location.source == "own" %}
+      <c-card.location :location="effective_location.point" :elevation="effective_location.elevation" :uncertainty="effective_location.uncertainty"
+                       title="{% translate 'Measurement location' %}"
+                       label="{% blocktranslate with x=effective_location.point.x y=effective_location.point.y %}Map of where the measurement was made, at longitude {{ x }} and latitude {{ y }}{% endblocktranslate %}" />
+    {% elif effective_location %}
+      <c-card.location :location="effective_location.point" :elevation="effective_location.elevation" :uncertainty="effective_location.uncertainty" title="{% translate 'Sample location' %}" />
+    {% elif sample_visible %}
+      <c-card.location title="{% translate 'Sample location' %}" empty="{% translate 'No location has been recorded for the sample.' %}" />
     {% else %}
       <c-card.location title="{% translate 'Sample location' %}" empty="{% translate 'The sample belongs to a dataset that has not been published, so its location is not shown.' %}" />
     {% endif %}
@@ -156,5 +163,5 @@
 
 {% block extra_js %}
   {{ block.super }}
-  {% if sample_visible and sample.location %}{% include "overview/includes/map_library.html" %}{% endif %}
+  {% if effective_location %}{% include "overview/includes/map_library.html" %}{% endif %}
 {% endblock extra_js %}

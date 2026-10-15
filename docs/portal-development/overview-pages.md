@@ -294,7 +294,7 @@ dataset is shown only when the viewer may see that dataset. One they may not see
 never named, linked or mapped: the related samples card says how many belong to datasets that are
 not published yet, and the measurement list leaves them out of its count.
 
-### The sample card and the location page
+### The sample card
 
 A sample of any type is drawn in a listing as one card, the component `c-sample.card`. The card
 is one link to the sample and shows its image or an icon, its type, its name, the dataset it
@@ -308,11 +308,6 @@ belongs to, its portal identifier and its local ID.
 
 Load the samples with `select_related("dataset")`, or every card costs a query for its dataset.
 Limit them to what the viewer may see first, with `Sample.objects.visible_to(request.user)`.
-
-A location's own page, at `/location/<longitude>/<latitude>/`, draws this card for each sample
-taken there that the viewer may see. A sample in a dataset the viewer may not read is left out,
-and a location with nothing to show them says so. An address that names no location answers
-"not found".
 
 ## The measurement page
 
@@ -351,14 +346,15 @@ is the block a measurement type fills with its own fields.
 - *Other measurements on this sample* lists up to eight, most recent first, and counts the rest.
 
 **Side column.** Details (its project, dataset, licence, and when it was added and last updated),
-People, Identifiers, the citation and the location of the sample.
+People, Identifiers, the citation and the location.
 
 - *The citation* names the contributors credited with the measurement role, and points at the
   measurement's DOI when it has one. Most measurements have none, so the page points at itself and
   suggests citing the dataset instead.
-- *The location* is a map of the sample's location when the sample has one and the viewer may see
-  the sample. Otherwise the card says that no location is recorded, or that the sample's dataset has
-  not been published, and shows no coordinates.
+- *The location* is a map of the measurement's own location when it has one, and the card says it is
+  the measurement's. Otherwise it is the sample's location, titled as the sample's, when the sample
+  has one and the viewer may see the sample. Otherwise the card says that no location is recorded,
+  or that the sample's dataset has not been published, and shows no coordinates.
 
 **Who can open it.** A measurement follows its own dataset, not its sample's. Its page opens for
 everyone once the measurement's dataset is public and published, whatever the state of the sample's
@@ -734,8 +730,12 @@ the contributor role that performs it, the description type that explains it and
 shows. A portal can subclass `Overview` and replace the list.
 
 The blocks read `record`, `measurement`, `measurement_type`, `type_info`, `result`, `procedure`,
-`notes`, `sample`, `sample_type`, `sample_status`, `sample_visible`, `other_dataset`, `siblings`,
-`project`, `citation`, `identifiers`, `people` and `details`.
+`notes`, `sample`, `sample_type`, `sample_status`, `sample_visible`, `effective_location`,
+`other_dataset`, `siblings`, `project`, `citation`, `identifiers`, `people` and `details`.
+
+`effective_location` is what `Measurement.effective_location_for(request.user)` returns, so a
+template that fills `overview.location` reads `effective_location.point`, `.elevation`,
+`.uncertainty` and `.source`.
 
 ## What the plugins work out
 

@@ -5,6 +5,8 @@ from datetime import timedelta
 
 import pytest
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.gis.geos import Point
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, connection
 from django.test import override_settings
@@ -14,6 +16,7 @@ from django.utils import timezone
 from django.utils.functional import Promise
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.dataset.models import (
     DATACITE_RELATIONSHIP_TYPES,
     Dataset,
@@ -32,6 +35,7 @@ from fairdm.factories import (
 )
 from fairdm.factories.contributors import ContributionFactory
 from fairdm.utils.choices import Visibility
+from fairdm.utils.location.coverage import Coverage
 
 # `DatasetFactory()` defaults to PRIVATE, so tests unrelated to visibility use
 # `Dataset.all_objects`.
@@ -1564,12 +1568,6 @@ class TestDatasetModel:
         has_data = dataset.has_data
         assert isinstance(has_data, bool)
 
-    def test_dataset_bbox_property(self):
-        dataset = DatasetFactory()
-
-        bbox = dataset.bbox
-        assert bbox is None or isinstance(bbox, (dict, tuple, list))
-
     def test_dataset_descriptions_relationship(self):
         dataset = DatasetFactory()
         descriptions = DatasetDescription.objects.filter(related=dataset)
@@ -1737,3 +1735,134 @@ class TestMoveKeepsManager:
         dataset.project = ProjectFactory()
 
         assert self.refusal_code(dataset) == "no_manager"
+
+
+@pytest.mark.django_db
+class TestDatasetSpatialCoverage:
+    """AS 2.9 to 2.10 and FR-023: the box holds what the viewer may open, measurements included."""
+
+    @pytest.fixture
+    def dataset(self):
+        return DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+
+    @staticmethod
+    def at(longitude, latitude):
+        return Point(longitude, latitude, srid=4326)
+
+    def test_it_holds_every_location_of_the_samples_and_measurements(self, dataset):
+        sample = RockSampleFactory(dataset=dataset, location=self.at(10.0, 10.0))
+        RockSampleFactory(dataset=dataset, location=self.at(-5.0, 20.0))
+        ExampleMeasurementFactory(
+            sample=sample, dataset=dataset, location=self.at(40.0, -30.0)
+        )
+
+        found = dataset.spatial_coverage()
+
+        assert found == Coverage(west=-5.0, south=-30.0, east=40.0, north=20.0)
+
+    def test_a_measurement_with_none_is_placed_by_its_sample(self, dataset):
+        sample = RockSampleFactory(dataset=dataset, location=self.at(10.0, 10.0))
+        ExampleMeasurementFactory(sample=sample, dataset=dataset)
+
+        assert dataset.spatial_coverage() == Coverage(10.0, 10.0, 10.0, 10.0)
+
+    def test_a_measurement_placed_by_a_sample_in_another_dataset_widens_the_box(
+        self, dataset
+    ):
+        RockSampleFactory(dataset=dataset, location=self.at(10.0, 10.0))
+        elsewhere = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        distant = RockSampleFactory(dataset=elsewhere, location=self.at(50.0, 40.0))
+        ExampleMeasurementFactory(sample=distant, dataset=dataset)
+
+        assert dataset.spatial_coverage() == Coverage(10.0, 10.0, 50.0, 40.0)
+
+    def test_it_is_none_when_nothing_is_located(self, dataset):
+        RockSampleFactory(dataset=dataset)
+
+        assert dataset.spatial_coverage() is None
+
+    def test_it_is_none_for_a_dataset_with_no_records(self, dataset):
+        assert dataset.spatial_coverage() is None
+
+    def test_locations_either_side_of_the_180th_meridian_make_a_narrow_box(
+        self, dataset
+    ):
+        RockSampleFactory(dataset=dataset, location=self.at(176.0, 0.0))
+        RockSampleFactory(dataset=dataset, location=self.at(-176.0, 0.0))
+
+        found = dataset.spatial_coverage()
+
+        assert found.west > found.east
+        assert (found.east - found.west) % 360 < 10
+
+    def test_another_datasets_locations_are_not_counted(self, dataset):
+        RockSampleFactory(dataset=dataset, location=self.at(10.0, 10.0))
+        RockSampleFactory(
+            dataset=DatasetFactory(visibility=Visibility.PUBLIC, published=True),
+            location=self.at(50.0, 50.0),
+        )
+
+        assert dataset.spatial_coverage() == Coverage(10.0, 10.0, 10.0, 10.0)
+
+    def test_a_visitor_does_not_count_what_they_may_not_open(self):
+        unpublished = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        RockSampleFactory(dataset=unpublished, location=self.at(10.0, 10.0))
+
+        assert unpublished.spatial_coverage() is None
+        assert unpublished.spatial_coverage(AnonymousUser()) is None
+        assert unpublished.spatial_coverage(PersonFactory(is_active=True)) is None
+
+    def test_a_member_of_the_team_counts_it(self):
+        unpublished = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        RockSampleFactory(dataset=unpublished, location=self.at(10.0, 10.0))
+        member = PersonFactory(is_active=True)
+        ContributionFactory(
+            content_object=unpublished,
+            contributor=member,
+            level=ContributionLevel.VIEW,
+        )
+
+        assert unpublished.spatial_coverage(member) == Coverage(10.0, 10.0, 10.0, 10.0)
+
+    def test_a_person_holding_one_sample_counts_that_sample_and_nothing_else(self):
+        unpublished = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        held = RockSampleFactory(dataset=unpublished, location=self.at(10.0, 10.0))
+        RockSampleFactory(dataset=unpublished, location=self.at(50.0, 50.0))
+        person = PersonFactory(is_active=True)
+        ContributionFactory(
+            content_object=held, contributor=person, level=ContributionLevel.VIEW
+        )
+
+        found = unpublished.spatial_coverage(person)
+
+        assert found == Coverage(10.0, 10.0, 10.0, 10.0)
+
+    def test_a_measurement_placed_only_by_a_hidden_sample_adds_nothing(self):
+        hidden = DatasetFactory(visibility=Visibility.PRIVATE, published=False)
+        released = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        sample = RockSampleFactory(dataset=hidden, location=self.at(10.0, 10.0))
+        ExampleMeasurementFactory(sample=sample, dataset=released)
+
+        assert released.spatial_coverage() is None
+
+    def test_a_measurement_with_its_own_location_counts_whatever_its_sample(self):
+        hidden = DatasetFactory(visibility=Visibility.PRIVATE, published=False)
+        released = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        sample = RockSampleFactory(dataset=hidden, location=self.at(10.0, 10.0))
+        ExampleMeasurementFactory(
+            sample=sample, dataset=released, location=self.at(20.0, 20.0)
+        )
+
+        assert released.spatial_coverage() == Coverage(20.0, 20.0, 20.0, 20.0)
+
+    def test_a_measurement_in_a_hidden_dataset_is_not_counted(self):
+        hidden = DatasetFactory(visibility=Visibility.PRIVATE, published=False)
+        sample = RockSampleFactory(dataset=hidden)
+        ExampleMeasurementFactory(
+            sample=sample, dataset=hidden, location=self.at(20.0, 20.0)
+        )
+
+        assert hidden.spatial_coverage() is None
+
+    def test_the_bounding_box_property_is_gone(self, dataset):
+        assert not hasattr(dataset, "bbox")

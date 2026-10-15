@@ -1,0 +1,81 @@
+{
+ "story": "FIX-2",
+ "repo": "FAIR-DM/fairdm",
+ "worktree": "/home/sam/projects/fairdm/fairdm-worktrees/030-geospatial-locations",
+ "required_skills": [
+  {
+   "name": "craft-tdd",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+   "receipt": "craft-tdd/2026-09-28/b19e4d07"
+  },
+  {
+   "name": "craft-increments",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+   "receipt": "craft-increments/2026-10-12/7c41e9a6"
+  }
+ ],
+ "tasks": [
+  "T041"
+ ],
+ "context": {
+  "why": "Merge-gate change to FS-030 from the maintainer, in two parts. (1) 'All coordinate input MUST be declared in WGS84' \u2014 no reference-system input; other systems are issue #512. (2) 'Decimal degrees only for now' \u2014 degrees and minutes, degrees/minutes/seconds and hemisphere letters go too; issue #513. A previous worker already did part 1 in the code (commit e9a2f984: reference-system input, conversion and their tests removed) and started the spec/docs updates (next commit, marked unfinished). Read `git show e9a2f984 --stat` and the last commit, then finish both parts with the smallest orthodox change: latitude and longitude are plain signed decimal-degree numbers in WGS 84, latitude -90..90, longitude -180..180, refused outside with a message, using ordinary Django number fields and validators (e.g. FloatField with MinValueValidator/MaxValueValidator) rather than custom parsing. Keep: the elevation and uncertainty rules, both coordinates go together, elevation/uncertainty need coordinates, the approved layout (latitude then longitude, elevation and uncertainty with their units), escaping. Remove: parse_coordinate's notation handling (or parse_coordinate itself if number fields do the job), the lat-lon-parser dependency from pyproject.toml and uv.lock (`uv lock`), the 'Reads as' hint and the widget script if nothing else needs it, and the 64-character cap if number inputs make it moot. Tabular import reads latitude and longitude as numbers with the same range rules, reporting a bad row and not saving it. Delete tests that only served notations, hemispheres or reference systems; keep and adapt range, pairing, elevation/uncertainty, organization and import-row tests. Update to match: spec.md (FR-006 and FR-007 become decimal degrees in WGS 84; User Story 1 text and its acceptance scenarios; Clarifications; Edge Cases; SC-001; Key Entities; Boundary points at #512 and #513), decisions.md (D6 and D11 updated to say what changed, plus one entry D29 'Coordinates are entered as decimal degrees in WGS 84' with an **ADR:** verdict line), sketch.md 'What was ruled by eye' (record the maintainer's change), plan.md D3, research.md survey rows, docs/portal-development/locations.md and every other page mentioning notations or reference systems for input (grep docs/ for 'minutes', 'EPSG', 'notation', 'lat-lon-parser', 'reference system'), CONTEXT.md, CHANGELOG.md, ADR 0032 if it mentions either.",
+  "spec_sections": [
+   "User Story 1",
+   "FR-006",
+   "FR-007",
+   "FR-008",
+   "SC-001",
+   "Edge Cases",
+   "Key Entities"
+  ],
+  "plan_sections": [
+   "D3"
+  ],
+  "prior_decisions": [
+   "D1: a location is a value on each record, never a shared row. No Location model, no get_or_create.",
+   "D8: no data migration \u2014 existing Point data is not carried across.",
+   "D12: field names are location, location_elevation, location_uncertainty.",
+   "FR-009: a sample type shows the location input only when its registration's fields list location. The demo's RockSample registration is to list location (as the approved prototype did); WaterSample does not.",
+   "D3 (decisions): a measurement falls back to its sample's location only for a viewer who may open the sample (Sample.objects.visible_to(user)); for anyone else a measurement with no location of its own has none.",
+   "D16: location constraints are listed in each concrete model's own Meta (location_constraints()), not on LocatedRecord.Meta.",
+   "Remedies are the smallest edit that fixes the named failure; add no mechanism beyond what the task says.",
+   "Out of this cycle (do not do): TST-002 declare_addressing, TST-003, TST-004, COR-005 \u2014 they are carried to the maintainer."
+  ],
+  "environment": "uv-managed; `uv sync` after adding lat-lon-parser. GDAL/GEOS/PROJ come from a micromamba env: before ANY python/pytest/manage.py command run `. /tmp/fs494/scripts/env.sh` (sets LD_LIBRARY_PATH, PROJ_DATA, GDAL_LIBRARY_PATH, GEOS_LIBRARY_PATH, DJANGO_ENV=development). PostGIS runs in Docker on localhost:5432 (postgres/postgres), already up; stack.development.env points at it. Narrow tests: `uv run pytest -q -n0 <path>::<Class>` (add --create-db once after a model change). Migrations: `uv run python manage.py makemigrations <app> --settings=config.settings`. Lint gate: `uv run pre-commit run --files <changed files>` (stage new files first). Full verify, once, at the end: `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/030-geospatial-locations --base origin/main`. The full suite takes about 6 minutes here. A dev server is running from this worktree on port 8000 and will autoreload; ignore it. Git identity is bound to the repo's bot. Commit normally, never push.",
+  "verified_base": {
+   "commit": "d6f693ae",
+   "verified_at": "2026-10-15T09:38:04Z",
+   "steps": [],
+   "note": "Not verified: a previous worker stopped partway through part 1. Run the narrow suites you touch as you go and the full verify at the end."
+  },
+  "acceptance": [
+   {
+    "task": "T041",
+    "given_when_then": "The sample, measurement and organization location inputs and the import columns take latitude and longitude as signed decimal degrees in WGS 84 and nothing else; out-of-range values and one coordinate without the other are refused; elevation and uncertainty rules hold; lat-lon-parser is no longer a dependency; no reference-system or notation code remains; spec, docs, changelog and decisions describe this and point at #512 and #513; full verify green."
+   }
+  ]
+ },
+ "budgets": {
+  "attempts_per_task": 5,
+  "wallclock_minutes": 180
+ },
+ "rituals": [
+  "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+  "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+  "Read this brief in full, then your own tasks in specs/030-geospatial-locations/tasks.md (Phase 9 only).",
+  "Read the plan.md sections named in context.plan_sections and the spec sections in context.spec_sections. Read the repo's docs/contributing/standards/testing.md before writing a test.",
+  "git log --oneline -10. Confirm HEAD equals context.verified_base.commit or differs from it only under specs/030-geospatial-locations/.",
+  "Do not run the suite to check your starting point; context.verified_base is that assurance.",
+  "Record each finished task with `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge ledger-task --repo FAIR-DM/fairdm --feature 030-geospatial-locations --path /home/sam/projects/fairdm/fairdm-worktrees/030-geospatial-locations --stage S4 --done T0nn ...` and each progress entry with `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge progress --feature 030-geospatial-locations --who 'Implementer FIX-2' --task T0nn`, exactly as your protocol gives them.",
+  "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/fairdm/fairdm-worktrees/030-geospatial-locations/specs/030-geospatial-locations/report-fix-2.json, commit it, and give a short plain summary as your final reply."
+ ],
+ "prohibitions": [
+  "Never weaken a test that does not concern other coordinate systems. You may delete tests whose only subject is reference systems, projected input or conversion, and change tests that pass a '4326' reference-system value to the input so they pass only latitude and longitude. Name each change in progress.md.",
+  "Never touch files outside what this change needs.",
+  "Never edit feature-state.json by hand; use kit/forge ledger-task for your own tasks only.",
+  "Never push, merge, open or comment on anything on GitHub. You hold no tokens and must not obtain one.",
+  "Never weaken an assertion, add a skip or xfail, or special-case code to make a test pass.",
+  "Never test wording or appearance (testing standard section 1).",
+  "No new dependencies, no new settings, no compatibility aliases, no leading-underscore names. Reusable template pieces are Cotton components."
+ ]
+}

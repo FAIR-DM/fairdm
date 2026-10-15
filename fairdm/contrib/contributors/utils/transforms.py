@@ -4,8 +4,9 @@ This module provides bidirectional transformations between Contributor objects
 and various external metadata formats (DataCite, Schema.org, CSL-JSON, ORCID, ROR, etc.).
 """
 
-import decimal
 from typing import Any
+
+from django.contrib.gis.geos import Point
 
 from fairdm.contrib.contributors.models import (
     Contributor,
@@ -245,7 +246,7 @@ class SchemaOrgTransform(BaseTransform):
             if ror := contributor.get_default_identifier():
                 data["@id"] = f"https://ror.org/{ror.value}"
 
-        if hasattr(contributor, "location") and contributor.location:  # type: ignore[attr-defined]
+        if getattr(contributor, "location", None) is not None:
             data["address"] = {
                 "@type": "PostalAddress",
             }
@@ -756,9 +757,9 @@ class RORTransform(BaseTransform):
         if hasattr(contributor, "city") and contributor.city:  # type: ignore[attr-defined]
             address = {"city": contributor.city}  # type: ignore[attr-defined]
 
-            if hasattr(contributor, "location") and contributor.location:  # type: ignore[attr-defined]
-                address["lat"] = float(contributor.location.latitude)  # type: ignore[attr-defined]
-                address["lng"] = float(contributor.location.longitude)  # type: ignore[attr-defined]
+            if getattr(contributor, "location", None) is not None:
+                address["lat"] = contributor.location.y  # type: ignore[attr-defined]
+                address["lng"] = contributor.location.x  # type: ignore[attr-defined]
 
             addresses.append(address)
 
@@ -848,12 +849,7 @@ class RORTransform(BaseTransform):
         org.country = place.get("country_code") or ""
         lat, lng = place.get("lat"), place.get("lng")
         if lat is not None and lng is not None:
-            from fairdm.contrib.location.models import Point
-
-            org.location, _created = Point.objects.get_or_create(
-                x=decimal.Decimal(str(lng)),
-                y=decimal.Decimal(str(lat)),
-            )
+            org.location = Point(float(lng), float(lat), srid=4326)
 
     @classmethod
     def update_or_create(

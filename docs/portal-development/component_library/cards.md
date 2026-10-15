@@ -171,17 +171,22 @@ only to the month as the month.
 
 Where a sample was taken: a map with the point marked and the coordinates written out, so the
 position is in the page as text as well. The map is drawn by the script the page loads when it has
-a location.
+a location. Latitude and longitude are shown to five decimal places, in WGS 84.
 
 | Attribute | What it takes |
 | --- | --- |
-| `location` | A location point with `x` (longitude), `y` (latitude) and `crs`. |
+| `location` | A point with `x` (longitude) and `y` (latitude) in WGS 84, such as a sample's `location`. |
+| `elevation` | Metres above mean sea level. Left out of the card when it is not given. |
+| `uncertainty` | Metres. Left out of the card when it is not given. |
 | `title` | The card's title. Defaults to "Location". |
 | `empty` | What to say when there is no location. Without it, the component draws nothing. |
 | `label` | The map's name for assistive technology. Defaults to a name written for a sample. |
 
 ```django
-<c-card.location :location="sample.location" empty="No location recorded." />
+<c-card.location :location="sample.location"
+                 :elevation="sample.location_elevation"
+                 :uncertainty="sample.location_uncertainty"
+                 empty="No location recorded." />
 ```
 
 ### `c-card.readiness`

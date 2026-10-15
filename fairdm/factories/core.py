@@ -672,20 +672,3 @@ class SampleRelationFactory(DjangoModelFactory):
         model = SampleRelation
 
     type = "child_of"
-
-
-class PointFactory(DjangoModelFactory):
-    """Factory for creating Point (location) instances.
-
-    A location has no uuid; it is identified by its coordinate pair, which is why the plugin
-    machinery had to stop assuming one.
-    """
-
-    class Meta:
-        model = "fairdm_location.Point"
-        django_get_or_create = ("x", "y")
-
-    # Five decimal places, as the fields store: a sixth is rounded away on save, and the
-    # instance would then name an address no stored point has.
-    x = Faker("pydecimal", left_digits=2, right_digits=5, positive=True)
-    y = Faker("pydecimal", left_digits=2, right_digits=5, positive=True)

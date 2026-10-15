@@ -1,0 +1,54 @@
+{% load i18n %}
+{% comment %}
+  The location input: a latitude and a longitude in decimal degrees, WGS 84, and with widget.full an elevation and
+  an uncertainty. widget.parts holds the subwidgets by name: first, second, elevation, uncertainty.
+  `first` is the latitude, `second` the longitude.
+{% endcomment %}
+{% with parts=widget.parts %}
+<div class="grid gap-4 rounded-box border border-base-300 bg-base-200/40 p-4">
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div class="fieldset p-0">
+      <label class="fieldset-legend pt-0" for="{{ parts.first.attrs.id }}">
+        {% translate "Latitude" %}
+      </label>
+      <input type="number" step="any" min="-90" max="90" inputmode="decimal" name="{{ parts.first.name }}" id="{{ parts.first.attrs.id }}" value="{{ parts.first.value|default_if_none:'' }}"
+             class="input w-full font-mono" aria-describedby="{{ widget.attrs.id|default:parts.first.attrs.id }}_format">
+    </div>
+    <div class="fieldset p-0">
+      <label class="fieldset-legend pt-0" for="{{ parts.second.attrs.id }}">
+        {% translate "Longitude" %}
+      </label>
+      <input type="number" step="any" min="-180" max="180" inputmode="decimal" name="{{ parts.second.name }}" id="{{ parts.second.attrs.id }}" value="{{ parts.second.value|default_if_none:'' }}"
+             class="input w-full font-mono" aria-describedby="{{ widget.attrs.id|default:parts.first.attrs.id }}_format">
+    </div>
+  </div>
+  <p class="text-sm text-base-content/70 -mt-2" id="{{ widget.attrs.id|default:parts.first.attrs.id }}_format">
+    {% translate "Decimal degrees in WGS 84, as a GPS receiver records them. South and west are negative: 48.9353, -8.4115." %}
+  </p>
+
+  {% if widget.full %}
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div class="fieldset p-0">
+        <label class="fieldset-legend pt-0" for="{{ parts.elevation.attrs.id }}">{% translate "Elevation" %}</label>
+        <label class="input w-full">
+          <input type="number" step="any" name="{{ parts.elevation.name }}" id="{{ parts.elevation.attrs.id }}"
+                 value="{{ parts.elevation.value|default_if_none:'' }}" aria-describedby="{{ parts.elevation.attrs.id }}_hint">
+          <span class="label">m</span>
+        </label>
+        <p class="label text-wrap" id="{{ parts.elevation.attrs.id }}_hint">{% translate "Above sea level. Below it, a negative number, as on the seafloor." %}</p>
+      </div>
+      <div class="fieldset p-0">
+        <label class="fieldset-legend pt-0" for="{{ parts.uncertainty.attrs.id }}">{% translate "Uncertainty" %}</label>
+        <label class="input w-full">
+          <span class="label">±</span>
+          <input type="number" step="any" min="0" name="{{ parts.uncertainty.name }}" id="{{ parts.uncertainty.attrs.id }}"
+                 value="{{ parts.uncertainty.value|default_if_none:'' }}" aria-describedby="{{ parts.uncertainty.attrs.id }}_hint">
+          <span class="label">m</span>
+        </label>
+        <p class="label text-wrap" id="{{ parts.uncertainty.attrs.id }}_hint">{% translate "How far from the point the true place may lie." %}</p>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endwith %}

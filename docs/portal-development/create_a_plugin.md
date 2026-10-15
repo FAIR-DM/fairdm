@@ -315,9 +315,9 @@ how, and the plugin machinery resolves and reverses it without further help:
 
 ```python
 registry.declare_addressing(
-    Point,
-    route="<str:lon>/<str:lat>",
-    lookup={"lon": "x", "lat": "y"},
+    Station,
+    route="<str:code>",
+    lookup={"code": "code"},
 )
 ```
 

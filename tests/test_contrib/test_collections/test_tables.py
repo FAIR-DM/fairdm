@@ -1,14 +1,16 @@
 """Tests for the collections tables."""
 
 import pytest
+from django.contrib.gis.geos import Point
 from django.urls import reverse
 from django.utils import timezone
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from demo.models import ExampleMeasurement, RockSample
 from fairdm.contrib.collections.views import DataTableView
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.sample.models import Sample
-from fairdm.factories import DatasetFactory, PointFactory
+from fairdm.factories import ContributionFactory, DatasetFactory, PersonFactory
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
 
@@ -60,33 +62,10 @@ class TestFalseyHeadersRenderEmpty:
         assert header == ""
         assert "False" not in response.content.decode()
 
-    def test_the_sample_tables_location_columns_header_is_empty_not_the_word_false(
-        self, client, published_dataset
-    ):
-        RockSampleFactory(dataset=published_dataset)
-        slug = registry.get_for_model(RockSample).get_slug()
-
-        response = client.get(reverse(f"{slug}-list"))
-
-        header = str(response.context["table"].columns["location"].header)
-        assert header == ""
-
-    def test_the_measurement_tables_location_columns_header_is_empty_not_the_word_false(
-        self, client, published_dataset
-    ):
-        sample = RockSampleFactory(dataset=published_dataset)
-        ExampleMeasurementFactory(sample=sample, dataset=published_dataset)
-        slug = registry.get_for_model(ExampleMeasurement).get_slug()
-
-        response = client.get(reverse(f"{slug}-list"))
-
-        header = str(response.context["table"].columns["location"].header)
-        assert header == ""
-
 
 @pytest.mark.django_db
 class TestSampleListingLeadsWithIconColumns:
-    def test_the_first_two_visible_columns_are_dataset_then_location(
+    def test_the_first_visible_column_is_the_dataset(
         self, client, published_dataset
     ):
         RockSampleFactory(dataset=published_dataset)
@@ -95,7 +74,7 @@ class TestSampleListingLeadsWithIconColumns:
         response = client.get(reverse(f"{slug}-list"))
 
         names = [c.name for c in response.context["table"].columns]
-        assert names[:2] == ["dataset", "location"]
+        assert names[0] == "dataset"
 
     def test_measurement_listing_column_order_is_unchanged(
         self, client, published_dataset
@@ -108,35 +87,6 @@ class TestSampleListingLeadsWithIconColumns:
 
         names = [c.name for c in response.context["table"].columns]
         assert names[:2] != ["dataset", "location"]
-
-
-@pytest.mark.django_db
-class TestLocationColumnRendering:
-    def test_a_sample_with_no_location_renders_no_location_icon(
-        self, client, published_dataset
-    ):
-        RockSampleFactory(dataset=published_dataset, location=None)
-        slug = registry.get_for_model(RockSample).get_slug()
-
-        response = client.get(reverse(f"{slug}-list"))
-
-        table = response.context["table"]
-        row = next(iter(table.rows))
-        cell = row.get_cell("location")
-        assert cell == ""
-
-    def test_a_sample_with_a_location_renders_an_icon_linking_to_it(
-        self, client, published_dataset
-    ):
-        RockSampleFactory(dataset=published_dataset, location=PointFactory())
-        slug = registry.get_for_model(RockSample).get_slug()
-
-        response = client.get(reverse(f"{slug}-list"))
-
-        table = response.context["table"]
-        row = next(iter(table.rows))
-        cell = row.get_cell("location")
-        assert row.record.location.get_absolute_url() in cell
 
 
 @pytest.mark.django_db
@@ -272,3 +222,147 @@ class TestOrdering:
         order_by = first_page.context["table"].order_by
         assert order_by
         assert any(str(alias).lstrip("-") == "id" for alias in order_by)
+
+
+@pytest.mark.django_db
+class TestLocationColumns:
+    """AS 2.12 to 2.14 and FR-027: latitude and longitude read the record's location."""
+
+    @pytest.fixture
+    def released(self):
+        return DatasetFactory(published=True, visibility=Visibility.PUBLIC)
+
+    @pytest.fixture
+    def hidden(self):
+        return DatasetFactory(published=False, visibility=Visibility.PRIVATE)
+
+    @staticmethod
+    def cells(response, record):
+        table = response.context["table"]
+        row = next(r for r in table.rows if r.record == record)
+        return row.get_cell_value("latitude"), row.get_cell_value("longitude")
+
+    def test_a_sample_row_reads_latitude_and_longitude_from_its_location(
+        self, client, released
+    ):
+        sample = RockSampleFactory(
+            dataset=released, location=Point(12.5, 41.9, srid=4326)
+        )
+        slug = registry.get_for_model(RockSample).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        assert self.cells(response, sample) == (41.9, 12.5)
+
+    def test_a_listing_has_no_location_column(self, client, released):
+        RockSampleFactory(dataset=released, location=Point(12.5, 41.9, srid=4326))
+        slug = registry.get_for_model(RockSample).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        names = [c.name for c in response.context["table"].columns]
+        assert "location" not in names
+        assert {"latitude", "longitude"} <= set(names)
+
+    def test_a_sample_with_no_location_still_lists(self, client, released):
+        sample = RockSampleFactory(dataset=released)
+        slug = registry.get_for_model(RockSample).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        assert response.status_code == 200
+        assert self.cells(response, sample) == (None, None)
+
+    def test_a_measurements_own_location_is_shown_before_its_samples(
+        self, client, released
+    ):
+        sample = RockSampleFactory(
+            dataset=released, location=Point(12.5, 41.9, srid=4326)
+        )
+        measurement = ExampleMeasurementFactory(
+            sample=sample, dataset=released, location=Point(13.4, 52.5, srid=4326)
+        )
+        slug = registry.get_for_model(ExampleMeasurement).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        assert self.cells(response, measurement) == (52.5, 13.4)
+
+    def test_a_measurement_with_none_shows_its_samples_location(
+        self, client, released
+    ):
+        sample = RockSampleFactory(
+            dataset=released, location=Point(12.5, 41.9, srid=4326)
+        )
+        measurement = ExampleMeasurementFactory(sample=sample, dataset=released)
+        slug = registry.get_for_model(ExampleMeasurement).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        assert self.cells(response, measurement) == (41.9, 12.5)
+
+    def test_a_samples_location_is_not_shown_to_a_viewer_who_may_not_open_it(
+        self, client, released, hidden
+    ):
+        sample = RockSampleFactory(
+            dataset=hidden, location=Point(12.5, 41.9, srid=4326)
+        )
+        measurement = ExampleMeasurementFactory(sample=sample, dataset=released)
+        slug = registry.get_for_model(ExampleMeasurement).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        assert self.cells(response, measurement) == (None, None)
+
+    def test_a_samples_location_is_shown_to_a_viewer_who_may_open_it(
+        self, client, released, hidden
+    ):
+        sample = RockSampleFactory(
+            dataset=hidden, location=Point(12.5, 41.9, srid=4326)
+        )
+        measurement = ExampleMeasurementFactory(sample=sample, dataset=released)
+        member = PersonFactory(is_active=True)
+        ContributionFactory(
+            content_object=hidden, contributor=member, level=ContributionLevel.VIEW
+        )
+        client.force_login(member)
+        slug = registry.get_for_model(ExampleMeasurement).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        assert self.cells(response, measurement) == (41.9, 12.5)
+
+    @pytest.mark.parametrize("model", [RockSample, ExampleMeasurement])
+    def test_sorting_by_another_column_still_answers(self, client, released, model):
+        # Plain names, so the database's collation and Python's sort agree on the order.
+        sample = RockSampleFactory(
+            name="Beta", dataset=released, location=Point(12.5, 41.9, srid=4326)
+        )
+        if model is RockSample:
+            RockSampleFactory(name="Alpha", dataset=released)
+        else:
+            ExampleMeasurementFactory(name="Alpha", sample=sample, dataset=released)
+            ExampleMeasurementFactory(name="Beta", sample=sample, dataset=released)
+        slug = registry.get_for_model(model).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"), {"sort": "name"})
+
+        names = [row.record.name for row in response.context["table"].rows]
+        assert response.status_code == 200
+        assert names == sorted(names)
+
+    @pytest.mark.parametrize("model", [RockSample, ExampleMeasurement])
+    @pytest.mark.parametrize("column", ["latitude", "longitude"])
+    def test_a_coordinate_column_is_not_orderable(
+        self, client, released, model, column
+    ):
+        sample = RockSampleFactory(dataset=released)
+        if model is ExampleMeasurement:
+            ExampleMeasurementFactory(sample=sample, dataset=released)
+        slug = registry.get_for_model(model).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"), {"sort": column})
+
+        table = response.context["table"]
+        assert response.status_code == 200
+        assert table.columns[column].orderable is False

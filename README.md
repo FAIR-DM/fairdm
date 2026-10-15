@@ -182,6 +182,9 @@ class RockSampleConfig(BaseSampleConfiguration):
     fields = ["name", "rock_type", "collection_date", "weight_grams", "location"]
 ```
 
+Listing `location` gives the type's form the location input, which reads signed decimal
+degrees in WGS 84.
+
 `BaseSampleConfiguration` is the recommended base for a specimen type's registry configuration —
 it declares the shared `fields` list every generated component falls back to, so you only state it
 once. A configuration that relies on the registry auto-detecting a different field list per

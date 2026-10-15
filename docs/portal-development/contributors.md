@@ -308,9 +308,18 @@ for the admin-facing behaviour.
 memberships = org.get_memberships()  # All affiliations with person prefetched
 owner = org.owner()  # Returns Person or None
 
+# The point where the organization is, in WGS 84, or None
+org.location
+org.lat, org.lon
+
 # GeoJSON export (if location set)
 geojson = org.as_geojson()
 ```
+
+`location` is an optional point of the organization's own, with no elevation and no uncertainty.
+`Person.as_geojson()` places a person at the point of their primary affiliation's organization
+and returns `None` when that organization has no point, because a person has no location of their
+own. See [Locations](locations.md#placing-an-organization).
 
 An organization's page reads who belongs to it and where it sits from four more methods:
 
@@ -1148,11 +1157,14 @@ for an error on a field the form lacks, and the editing page answers with a serv
 ### The organization form
 
 `OrganizationProfileForm`, in the same module, edits `image` (the logo), `name`,
-`alternative_names`, `type`, `parent`, `city`, `country`, `profile` (the description), `website`
-and `links`, and nothing else. The ROR identifier, the members and the owner are never on it.
+`alternative_names`, `type`, `parent`, `city`, `country`, `location` (the coordinates),
+`profile` (the description), `website` and `links`, and nothing else. The ROR identifier, the members and the owner are never on it.
 
 - `image`, `name` and `alternative_names` behave as on the person form.
 - `type` and `country` are choices, and a value outside their lists is refused.
+- `location` is a latitude and a longitude as signed decimal degrees in WGS 84, as a sample's
+  location input reads them, and shown under the city and country. It is stored as the organization's `location`
+  point. Leaving both empty removes the point. See [Locations](locations.md#placing-an-organization).
 - `parent` is a search over every organization, the same picker the affiliation form uses.
 - `website` and `links` are two fields over the one stored list `Organization.links`. The website
   is stored first and the other links follow it, so an address typed in both places is stored
@@ -1215,7 +1227,7 @@ FAIRDM_PROFILE_FORMS = {
 }
 ```
 
-This form adds the person's location, which the shipped form leaves out. It is a field of
+This form adds the person's `config` field, which the shipped form leaves out. It is a field of
 `Person`, so the model form saves it with no further code:
 
 ```python
@@ -1225,7 +1237,7 @@ from fairdm.contrib.contributors.forms.profile import PersonProfileForm as BaseP
 
 class PersonProfileForm(BasePersonProfileForm):
     class Meta(BasePersonProfileForm.Meta):
-        fields = [*BasePersonProfileForm.Meta.fields, "location"]
+        fields = [*BasePersonProfileForm.Meta.fields, "config"]
 ```
 
 The page then shows the extra input after the last section and stores what is chosen. To drop a field, leave it out
@@ -1344,7 +1356,7 @@ data = RORTransform.fetch_from_api("04z8jg394")
 # The name ROR displays for the organization: "GFZ Helmholtz Centre for Geosciences"
 name = transform.display_name(data)
 
-# Set city, country and location from the record's first location, without saving
+# Set city, country and the point from the record's first location, without saving
 transform.import_location(data, org)
 org.save()
 ```

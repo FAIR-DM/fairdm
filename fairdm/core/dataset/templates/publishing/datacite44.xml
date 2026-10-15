@@ -102,7 +102,8 @@
     <description xml:lang="{{ description.lang|default:"en"}}" descriptionType="{{ description.type }}">{{ description.value }}</description>{% endfor %}
   </descriptions>
 
-  {% if dataset.bbox or dataset.centroid %}
+  {% with coverage=dataset.spatial_coverage %}
+  {% if coverage or dataset.centroid %}
   <geoLocations>
     <geoLocation>
       {% if dataset.centroid %}
@@ -111,17 +112,18 @@
         <pointLatitude>{{ point.y }}</pointLatitude>{% endwith %}
       </geoLocationPoint>
       {% endif %}
-      {% if dataset.bbox %}
+      {% if coverage %}
       <geoLocationBox>
-        <westBoundLongitude>{{dataset.bbox.min_x}}</westBoundLongitude>
-        <eastBoundLongitude>{{dataset.bbox.max_x}}</eastBoundLongitude>
-        <southBoundLatitude>{{dataset.bbox.min_y}}</southBoundLatitude>
-        <northBoundLatitude>{{dataset.bbox.max_y}}</northBoundLatitude>
+        <westBoundLongitude>{{ coverage.west }}</westBoundLongitude>
+        <eastBoundLongitude>{{ coverage.east }}</eastBoundLongitude>
+        <southBoundLatitude>{{ coverage.south }}</southBoundLatitude>
+        <northBoundLatitude>{{ coverage.north }}</northBoundLatitude>
       </geoLocationBox>
       {% endif %}
     </geoLocation>
   </geoLocations>
   {% endif %}
+  {% endwith %}
 
   {% if dataset.funding %}
   <fundingReferences>{% for funder in dataset.funding.all %}

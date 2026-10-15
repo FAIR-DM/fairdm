@@ -3,6 +3,7 @@
 import re
 
 from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.gis.db.models import PointField
 from django.core.exceptions import ValidationError
 from django.db import models as django_models
 from django.db.models.signals import pre_save
@@ -14,6 +15,7 @@ from research_vocabs.fields import ConceptField
 from shortuuid.django_fields import ShortUUIDField
 
 from fairdm.db import models
+from fairdm.utils.location.db import geography_index, location_constraints
 
 from ..abstract import (
     AbstractDate,
@@ -64,7 +66,9 @@ class Sample(BasePolymorphicModel):
         uuid: Unique short identifier with an ``s`` prefix.
         local_id: The creator's own identifier for the sample within its dataset.
         status: The sample's custody status, such as available or destroyed.
-        location: The sample's location.
+        location: The point where the sample was taken, in WGS 84.
+        location_elevation: Metres above mean sea level.
+        location_uncertainty: Metres within which the true place lies.
         contributors: Generic relation to contributor records.
         related: Samples related through ``SampleRelation``.
         objects: The manager, with the ``SampleQuerySet`` helpers.
@@ -108,11 +112,27 @@ class Sample(BasePolymorphicModel):
         default="unknown",
     )
 
-    location = models.ForeignKey(
-        "fairdm_location.Point",
+    location = PointField(
+        srid=4326,
         verbose_name=_("location"),
-        help_text=_("The location of the sample."),
-        on_delete=models.PROTECT,
+        help_text=_("Where the record is, as a point in WGS 84."),
+        null=True,
+        blank=True,
+    )
+    location_elevation = models.FloatField(
+        verbose_name=_("elevation"),
+        help_text=_(
+            "Metres above mean sea level, and a negative number below it. Needs a location."
+        ),
+        null=True,
+        blank=True,
+    )
+    location_uncertainty = models.FloatField(
+        verbose_name=_("uncertainty"),
+        help_text=_(
+            "The distance in metres from the location within which the true place lies. "
+            "Needs a location."
+        ),
         null=True,
         blank=True,
     )
@@ -134,7 +154,11 @@ class Sample(BasePolymorphicModel):
         verbose_name_plural = _("samples")
         ordering = ["added"]
         default_related_name = "samples"
-        indexes = [models.Index(fields=["modified"], name="sample_modified_idx")]
+        indexes = [
+            models.Index(fields=["modified"], name="sample_modified_idx"),
+            geography_index("sample_location_geog_idx"),
+        ]
+        constraints = location_constraints()
         permissions = [
             *CORE_PERMISSIONS,
             ("import_data", "Can import sample data"),

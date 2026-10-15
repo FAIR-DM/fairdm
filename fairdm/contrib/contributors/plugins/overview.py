@@ -249,7 +249,7 @@ class Overview(OverviewPlugin):
                 },
                 "hierarchy": organization.get_hierarchy(),
                 "location_text": organization.get_location_display(),
-                "has_map": organization.location_id is not None,
+                "has_map": organization.location is not None,
             }
         )
         if can_manage:

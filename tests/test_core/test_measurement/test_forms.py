@@ -3,10 +3,17 @@
 import pytest
 from django import forms
 from django.contrib.auth import get_user_model
-from django.test import RequestFactory
+from django.contrib.gis.geos import Point as GEOSPoint
+from django.test import Client, RequestFactory
+from django.urls import reverse
 
-from demo.factories import ExampleMeasurementFactory, RockSampleFactory
-from demo.models import ExampleMeasurement, XRFMeasurement
+from demo.factories import (
+    ExampleMeasurementFactory,
+    ICP_MS_MeasurementFactory,
+    RockSampleFactory,
+    XRFMeasurementFactory,
+)
+from demo.models import ExampleMeasurement, ICP_MS_Measurement, XRFMeasurement
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.measurement.forms import MeasurementFormMixin
 from fairdm.factories import (
@@ -16,6 +23,10 @@ from fairdm.factories import (
     ProjectFactory,
     UserFactory,
 )
+from fairdm.registry import registry
+from fairdm.utils.choices import Visibility
+from fairdm.utils.location.forms import LocationField
+from tests.test_core.test_editing import form_payload, main_form
 
 User = get_user_model()
 
@@ -404,3 +415,141 @@ class TestMeasurementFormDatasetAddAnotherUrl:
         # here.
         add_url = str(form.fields["dataset"].widget.add_related_url)
         assert add_url == reverse("admin:dataset_dataset_add")
+
+
+@pytest.mark.django_db
+class TestRegisteredMeasurementTypeLocationInput:
+    def test_a_type_listing_location_gets_the_location_input(self):
+        form_class = registry.get_for_model(XRFMeasurement).get_form_class()
+
+        field = form_class(request=None).fields["location"]
+
+        assert isinstance(field, LocationField)
+        assert field.full
+
+    def test_a_type_not_listing_location_has_no_location_input(self):
+        form_class = registry.get_for_model(ICP_MS_Measurement).get_form_class()
+
+        assert "location" not in form_class(request=None).fields
+
+
+@pytest.fixture
+def measurement_editor(db):
+    """An XRF measurement in a public dataset, with a client signed in as a person who may edit it."""
+    dataset = DatasetFactory(
+        project=ProjectFactory(visibility=Visibility.PUBLIC),
+        visibility=Visibility.PUBLIC,
+        published=True,
+    )
+    sample = RockSampleFactory(
+        dataset=dataset, location=GEOSPoint(8.5, 49.5, srid=4326)
+    )
+    measurement = XRFMeasurementFactory(dataset=dataset, sample=sample)
+    editor = PersonFactory(is_active=True, is_claimed=True, password="x")
+    ContributionFactory(
+        content_object=measurement, contributor=editor, level=ContributionLevel.EDIT
+    )
+    client = Client()
+    client.force_login(editor)
+    return measurement, client, editor
+
+
+def measurement_edit_page(client, measurement):
+    """Open a measurement's edit page and return its address and what a browser would send."""
+    url = reverse("measurement:edit", kwargs={"uuid": measurement.uuid})
+    response = client.get(url)
+    assert response.status_code == 200
+    return url, form_payload(main_form(response))
+
+
+@pytest.mark.django_db
+class TestMeasurementEditPageLocation:
+    def test_a_typed_location_is_saved_as_the_wgs84_point_with_its_extras(
+        self, measurement_editor
+    ):
+        measurement, client, _ = measurement_editor
+        url, payload = measurement_edit_page(client, measurement)
+        payload.update(
+            location_first="49.0094",
+            location_second="8.4115",
+            location_elevation="112",
+            location_uncertainty="25",
+        )
+
+        response = client.post(url, payload)
+
+        assert response.status_code == 302
+        stored = XRFMeasurement.objects.get(pk=measurement.pk)
+        assert stored.location.srid == 4326
+        assert stored.location.x == pytest.approx(8.4115, abs=1e-5)
+        assert stored.location.y == pytest.approx(49.0094, abs=1e-5)
+        assert (stored.location_elevation, stored.location_uncertainty) == (112, 25)
+
+    def test_a_value_that_cannot_be_used_is_refused_and_nothing_is_saved(
+        self, measurement_editor
+    ):
+        measurement, client, _ = measurement_editor
+        url, payload = measurement_edit_page(client, measurement)
+        payload.update(
+            location_first="91", location_second="8.4115", location_elevation="5"
+        )
+
+        response = client.post(url, payload)
+
+        assert response.status_code == 200
+        assert "location" in response.context["form"].errors
+        stored = XRFMeasurement.objects.get(pk=measurement.pk)
+        assert stored.location is None
+        assert stored.location_elevation is None
+
+    def test_clearing_the_location_clears_the_elevation_and_uncertainty(
+        self, measurement_editor
+    ):
+        measurement, client, _ = measurement_editor
+        measurement.location = GEOSPoint(8.4115, 49.0094, srid=4326)
+        measurement.location_elevation = 112.0
+        measurement.location_uncertainty = 5.0
+        measurement.save()
+        url, payload = measurement_edit_page(client, measurement)
+        payload.update(
+            location_first="",
+            location_second="",
+            location_elevation="",
+            location_uncertainty="",
+        )
+
+        client.post(url, payload)
+
+        stored = XRFMeasurement.objects.get(pk=measurement.pk)
+        assert stored.location is None
+        assert stored.location_elevation is None
+        assert stored.location_uncertainty is None
+
+    def test_saving_the_measurements_location_leaves_its_samples_alone(
+        self, measurement_editor
+    ):
+        measurement, client, _ = measurement_editor
+        url, payload = measurement_edit_page(client, measurement)
+        payload.update(location_first="49.0094", location_second="8.4115")
+
+        client.post(url, payload)
+
+        own = XRFMeasurement.objects.get(pk=measurement.pk).location
+        sample = measurement.sample
+        sample.refresh_from_db()
+        assert (own.x, own.y) == (8.4115, 49.0094)
+        assert (sample.location.x, sample.location.y) == (8.5, 49.5)
+
+    def test_a_type_not_listing_location_has_no_location_input_on_its_page(
+        self, measurement_editor
+    ):
+        xrf, client, editor = measurement_editor
+        icp = ICP_MS_MeasurementFactory(dataset=xrf.dataset, sample=xrf.sample)
+        ContributionFactory(
+            content_object=icp, contributor=editor, level=ContributionLevel.EDIT
+        )
+
+        response = client.get(reverse("measurement:edit", kwargs={"uuid": icp.uuid}))
+
+        assert response.status_code == 200
+        assert main_form(response).select('[name^="location"]') == []

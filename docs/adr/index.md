@@ -38,4 +38,6 @@ do not restate earlier ones, only build past them.
 0029-people-and-organizations-have-their-own-api-endpoints
 0030-a-credit-carries-what-datacite-asks-of-a-creator
 0031-portals-run-on-postgis
+0032-a-location-is-a-value-on-each-record
+0033-a-measurement-borrows-its-samples-location-only-for-a-viewer-who-may-open-the-sample
 ```
