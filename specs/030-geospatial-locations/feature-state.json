@@ -3,7 +3,7 @@
   "feature": "030-geospatial-locations",
   "branch": "030-geospatial-locations",
   "repo": "FAIR-DM/fairdm",
-  "state": "PR_READY",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "QUEUED",
@@ -59,6 +59,11 @@
       "state": "PR_READY",
       "at": "2026-10-15T10:40:46Z",
       "note": "merge-gate change T042, T043 verified"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-10-15T11:24:08Z",
+      "note": "PR #501 merged; approved by SamuelJennings"
     }
   ],
   "gates": {
@@ -83,8 +88,8 @@
       "at": "2026-10-14T22:01:13Z"
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-10-15T11:09:56Z"
     },
     "design_review": {
       "approved_by": "design-reviewer",
@@ -108,8 +113,8 @@
       ]
     },
     "walkthrough": {
-      "approved_by": null,
-      "at": "2026-10-15T10:02:48Z",
+      "approved_by": "SamuelJennings",
+      "at": "2026-10-15T11:09:56Z",
       "self_resolved": []
     }
   },
@@ -888,7 +893,7 @@
       "max": 1
     },
     "tokens": {
-      "used": 64.94,
+      "used": 102.96,
       "max": 120
     },
     "design_review_cycles": {
@@ -898,6 +903,6 @@
   },
   "pr": {
     "number": 501,
-    "draft": true
+    "draft": false
   }
 }
