@@ -1,32 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-{% load contributor_tags partials %}
-
-{% partialdef name_identifier %}
-<nameIdentifier nameIdentifierScheme="{{ id.type }}" {% if id.get_root_url %}schemeURI="{{ id.get_root_url }}"{% endif %}>{% if id.get_root_url %}{{ id.get_absolute_url }}{% else %}{{id.value}}{% endif %}</nameIdentifier>
-{% endpartialdef name_identifier %}
-
-{% partialdef affiliation %}
-{% with id=affiliation.get_default_identifier %}
-<affiliation affiliationIdentifier="{{ id.get_absolute_url }}" affiliationIdentifierScheme="{{ id.type }}" schemeURI="{{ id.get_root_url }}">{{ affiliation }}</affiliation>
-{% endwith %}
-{% endpartialdef affiliation %}
-
-{% partialdef contributor_inner %}
-{% if contributor.type == "person" %}
-  <givenName>{{ contributor.given }}</givenName>
-  <familyName>{{ contributor.family }}</familyName>
-{% endif %}
-{% for id in contributor.identifiers.all %}
-  {% partial name_identifier %}
-{% endfor %}
-{% with contributor.get_default_affiliation as affiliation %}
-  {# Known limitation: this should be the affiliation at the time of creation, which would need storing on the Contribution. #}
-  {% if affiliation %}
-    {% partial affiliation %}
-  {% endif %}
-{% endwith %}
-{% endpartialdef contributor_inner %}
-
+{% load contributor_tags %}
 
 {% spaceless %}
 <resource {% block resource_attrs %} xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://datacite.org/schema/kernel-4" xsi:schemaLocation="http://datacite.org/schema/kernel-4 https://schema.datacite.org/meta/kernel-4.4/metadata.xsd" {% endblock resource_attrs %}>
@@ -47,7 +20,7 @@
   <creators>{% for c in dataset.contributors.all|by_role:"Creator" %}{% with c.contributor as contributor %}
     <creator>
       <creatorName nameType="{{ contributor.type|capfirst }}">{{ contributor.name }}</creatorName>
-      {% partial contributor_inner %}
+      {% include "publishing/datacite/contributor.xml" %}
     </creator>
     {% endwith %}{% endfor %}
   </creators>
@@ -55,12 +28,12 @@
   {% if dataset.contributors.exists %}
   <contributors>
     {% for c in dataset.contributors.all %}
-      {% for role in c.roles %}
-        {% if role != "Creator" %}
+      {% for role in c.roles.all %}
+        {% if role.name != "Creator" %}
           {% with c.contributor as contributor %}
-          <contributor contributorType="{{ role }}">
+          <contributor contributorType="{{ role.name }}">
             <contributorName>{{ contributor.name }}</contributorName>
-            {% partial contributor_inner %}
+            {% include "publishing/datacite/contributor.xml" %}
           </contributor>
           {% endwith %}
         {% endif %}
@@ -103,23 +76,15 @@
   </descriptions>
 
   {% with coverage=dataset.spatial_coverage %}
-  {% if coverage or dataset.centroid %}
+  {% if coverage %}
   <geoLocations>
     <geoLocation>
-      {% if dataset.centroid %}
-      <geoLocationPoint>{% with dataset.centroid as point %}
-        <pointLongitude>{{ point.x }}</pointLongitude>
-        <pointLatitude>{{ point.y }}</pointLatitude>{% endwith %}
-      </geoLocationPoint>
-      {% endif %}
-      {% if coverage %}
       <geoLocationBox>
         <westBoundLongitude>{{ coverage.west }}</westBoundLongitude>
         <eastBoundLongitude>{{ coverage.east }}</eastBoundLongitude>
         <southBoundLatitude>{{ coverage.south }}</southBoundLatitude>
         <northBoundLatitude>{{ coverage.north }}</northBoundLatitude>
       </geoLocationBox>
-      {% endif %}
     </geoLocation>
   </geoLocations>
   {% endif %}

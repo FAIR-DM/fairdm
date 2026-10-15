@@ -227,6 +227,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A dataset's DataCite metadata can be produced, and describes the area the dataset covers.**
+  `build_metadata()` raised `TemplateSyntaxError` for every dataset, because the DataCite
+  template loaded a `partials` tag library that FairDM does not install. The template now
+  renders, a contributor's roles reach `contributorType`, and the `geoLocationBox` holds the
+  dataset's spatial coverage for a visitor. A dataset with no public location carries no
+  `geoLocations`. The template no longer reads `dataset.centroid`, which no dataset has. See
+  [Locations](docs/portal-development/locations.md#in-datacite-metadata).
 - **Organizations made or synced from ROR get their name, city, country and location.** ROR
   now answers in version 2 of its schema, and `RORTransform` and the background sync still read
   version 1. Creating an organization from a ROR ID raised `decimal.InvalidOperation` for every

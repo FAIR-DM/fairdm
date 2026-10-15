@@ -1,0 +1,13 @@
+{% if contributor.type == "person" %}
+  <givenName>{{ contributor.given }}</givenName>
+  <familyName>{{ contributor.family }}</familyName>
+{% endif %}
+{% for id in contributor.identifiers.all %}
+  <nameIdentifier nameIdentifierScheme="{{ id.type }}" {% if id.get_root_url %}schemeURI="{{ id.get_root_url }}"{% endif %}>{% if id.get_root_url %}{{ id.get_absolute_url }}{% else %}{{id.value}}{% endif %}</nameIdentifier>
+{% endfor %}
+{% with contributor.get_default_affiliation as affiliation %}
+  {# Known limitation: this should be the affiliation at the time of creation, which would need storing on the Contribution. #}
+  {% if affiliation %}{% with id=affiliation.get_default_identifier %}
+  <affiliation affiliationIdentifier="{{ id.get_absolute_url }}" affiliationIdentifierScheme="{{ id.type }}" schemeURI="{{ id.get_root_url }}">{{ affiliation }}</affiliation>
+  {% endwith %}{% endif %}
+{% endwith %}
