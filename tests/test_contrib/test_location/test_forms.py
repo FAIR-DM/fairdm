@@ -381,6 +381,19 @@ class TestLocationWidgetRendering:
         assert by_code[25832]["geographic"] is False
         assert by_code[25832]["name"] == SpatialReference(25832).name
 
+    def test_a_reference_system_typed_back_is_escaped_in_an_attribute_and_nowhere_else(self):
+        typed = "4326');alert(1);//<b>x</b>"
+        widget = LocationWidget()
+
+        html = widget.render("location", [typed, "49", "8", None, None], attrs={"id": "id_location"})
+
+        page = BeautifulSoup(html, "html.parser")
+        root = page.select_one("[x-data]")
+        assert root["data-srid"] == typed
+        assert "alert(1)" not in root["x-data"]
+        assert "<b>" not in html
+        assert not any("alert(1)" in (script.string or "") for script in page.select("script"))
+
     def test_every_suggested_system_is_offered_in_the_list_the_input_points_at(self):
         page = rendered(LocationWidget())
 

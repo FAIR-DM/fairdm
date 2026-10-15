@@ -36,7 +36,8 @@
   };
 </script>
 <div class="grid gap-4 rounded-box border border-base-300 bg-base-200/40 p-4"
-     x-data="fairdmLocationInput('{% if widget.full %}{{ parts.srid.value|default:'4326' }}{% else %}4326{% endif %}', '{{ widget.systems_id }}')"
+     data-srid="{% if widget.full %}{{ parts.srid.value|default:'4326' }}{% else %}4326{% endif %}"
+     x-data="fairdmLocationInput($el.dataset.srid, '{{ widget.systems_id }}')"
      x-init="first = $refs.first.value; second = $refs.second.value">
 
   {% if widget.full %}
