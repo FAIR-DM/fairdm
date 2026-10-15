@@ -55,9 +55,9 @@ After this feature:
 - **Typing coordinates as degrees and minutes, or degrees, minutes and seconds**, with or without
   hemisphere letters, is #513. Until then a coordinate is a signed decimal number of degrees.
 - **Filtering API lists by area or distance** is not part of this feature.
-- **A dataset's DataCite metadata describing its spatial coverage** is #511. The DataCite export
-  cannot be produced today, so it is delivered with that issue. The spatial coverage it needs is
-  part of this feature.
+- **A dataset's DataCite metadata describing its spatial coverage** was delivered with #511, once
+  the DataCite export could be rendered. It writes the spatial coverage this feature provides, for
+  a visitor, as a `geoLocationBox`.
 - **Import and export becoming reachable and dependable** is R21. This feature makes a location go
   in and come out with the rest of a sample's or measurement's row wherever tabular import and
   export exist.
