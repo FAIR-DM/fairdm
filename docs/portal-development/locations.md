@@ -304,6 +304,16 @@ A resource that derives from `fairdm.contrib.import_export.resources.BaseFairDMR
 same columns where its fields list `location`. A `ModelResource` of your own gets them by
 inheriting `fairdm.contrib.location.resources.LocatedResourceMixin` ahead of `ModelResource`.
 
+The columns are built from these pieces in `fairdm.contrib.location.resources`, which a resource
+that declares its columns by hand can use directly:
+
+| Name | Is |
+|---|---|
+| `location_fields()` | The four import-export fields, keyed by column name, in column order |
+| `CoordinateField` | The `latitude` or `longitude` field: `CoordinateField("lat")` or `CoordinateField("lon")` |
+| `CoordinateWidget` | Reads one coordinate with `parse_coordinate`, and refuses it with the input's message |
+| `MeasureWidget` | Reads a number cell, and writes the number itself, or an empty cell for none |
+
 ## What the input reads
 
 The input takes a reference system, two coordinates, an elevation and an uncertainty. The
