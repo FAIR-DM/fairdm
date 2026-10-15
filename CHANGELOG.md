@@ -120,6 +120,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **The `c-description-section` component and the `core/date.html` template.** Both used
+  `{% partialdef %}`, a tag FairDM does not install, so neither could load, and nothing in FairDM
+  used them.
 - **The `Point` model and everything around it.** A sample's `location` is no longer a foreign key
   to a row that samples share, and existing locations are not carried across the upgrade. Removed
   with it: the page at `/location/<lon>/<lat>/` and the link to it in the sample and measurement
