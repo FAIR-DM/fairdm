@@ -18,7 +18,7 @@
   "T041"
  ],
  "context": {
-  "why": "Merge-gate change to FS-030, asked for by the maintainer after the walkthrough: 'all coordinate input MUST be declared in WGS84. The onus for now is on the person inputting data to make a conversion if necessary.' Accepting other coordinate reference systems is now enhancement issue #512. The feature is otherwise complete, reviewed and green. Simplify the location input in fairdm/contrib/location/forms.py and its template fairdm/contrib/location/templates/location/widgets/location.html so that a location is always typed as a latitude and a longitude in WGS 84 (any of the three notations, via parse_coordinate), plus optional elevation and uncertainty on the full input. Remove: the reference-system subwidget and its EPSG box, SUGGESTED_SYSTEMS, get_systems, the json_script systems list, the script's geographic/Northing/Easting switching, the projected branch of read_point and the magnitude (1e9) and converted-range checks that only guarded conversion, any CoordTransform/SpatialReference use. Keep: parse_coordinate and its checks, the 64-character cap, the elevation/uncertainty rules, the 'Reads as' hint, the data-attribute escaping (if the srid attribute goes, no user text may enter a JS string), the approved layout otherwise. The point-only (full=False) and full inputs may now differ only by elevation and uncertainty; collapse anything that becomes redundant (smallest change, orthodox Django). Delete the tests that only served other systems; keep every other assertion. Update: spec.md (FR-007, User Story 1 text and AS 1.3, Clarifications, Edge Cases line on projected systems, SC-001, Key Entities 'Reference system', Boundary gains a line pointing at #512), decisions.md D6 (record the change, with a new D29 entry 'Coordinates are entered in WGS 84 only' with an **ADR:** verdict line), sketch.md 'What was ruled by eye' (record the maintainer's change), plan.md D3, research.md conversion row, docs/portal-development/locations.md, CONTEXT.md (Reference system term), CHANGELOG.md entry, ADR 0032 if it mentions conversion. Tabular import already takes WGS 84 only; check its docs say so.",
+  "why": "Merge-gate change to FS-030 from the maintainer, in two parts. (1) 'All coordinate input MUST be declared in WGS84' \u2014 no reference-system input; other systems are issue #512. (2) 'Decimal degrees only for now' \u2014 degrees and minutes, degrees/minutes/seconds and hemisphere letters go too; issue #513. A previous worker already did part 1 in the code (commit e9a2f984: reference-system input, conversion and their tests removed) and started the spec/docs updates (next commit, marked unfinished). Read `git show e9a2f984 --stat` and the last commit, then finish both parts with the smallest orthodox change: latitude and longitude are plain signed decimal-degree numbers in WGS 84, latitude -90..90, longitude -180..180, refused outside with a message, using ordinary Django number fields and validators (e.g. FloatField with MinValueValidator/MaxValueValidator) rather than custom parsing. Keep: the elevation and uncertainty rules, both coordinates go together, elevation/uncertainty need coordinates, the approved layout (latitude then longitude, elevation and uncertainty with their units), escaping. Remove: parse_coordinate's notation handling (or parse_coordinate itself if number fields do the job), the lat-lon-parser dependency from pyproject.toml and uv.lock (`uv lock`), the 'Reads as' hint and the widget script if nothing else needs it, and the 64-character cap if number inputs make it moot. Tabular import reads latitude and longitude as numbers with the same range rules, reporting a bad row and not saving it. Delete tests that only served notations, hemispheres or reference systems; keep and adapt range, pairing, elevation/uncertainty, organization and import-row tests. Update to match: spec.md (FR-006 and FR-007 become decimal degrees in WGS 84; User Story 1 text and its acceptance scenarios; Clarifications; Edge Cases; SC-001; Key Entities; Boundary points at #512 and #513), decisions.md (D6 and D11 updated to say what changed, plus one entry D29 'Coordinates are entered as decimal degrees in WGS 84' with an **ADR:** verdict line), sketch.md 'What was ruled by eye' (record the maintainer's change), plan.md D3, research.md survey rows, docs/portal-development/locations.md and every other page mentioning notations or reference systems for input (grep docs/ for 'minutes', 'EPSG', 'notation', 'lat-lon-parser', 'reference system'), CONTEXT.md, CHANGELOG.md, ADR 0032 if it mentions either.",
   "spec_sections": [
    "User Story 1",
    "FR-006",
@@ -43,22 +43,15 @@
   ],
   "environment": "uv-managed; `uv sync` after adding lat-lon-parser. GDAL/GEOS/PROJ come from a micromamba env: before ANY python/pytest/manage.py command run `. /tmp/fs494/scripts/env.sh` (sets LD_LIBRARY_PATH, PROJ_DATA, GDAL_LIBRARY_PATH, GEOS_LIBRARY_PATH, DJANGO_ENV=development). PostGIS runs in Docker on localhost:5432 (postgres/postgres), already up; stack.development.env points at it. Narrow tests: `uv run pytest -q -n0 <path>::<Class>` (add --create-db once after a model change). Migrations: `uv run python manage.py makemigrations <app> --settings=config.settings`. Lint gate: `uv run pre-commit run --files <changed files>` (stage new files first). Full verify, once, at the end: `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/030-geospatial-locations --base origin/main`. The full suite takes about 6 minutes here. A dev server is running from this worktree on port 8000 and will autoreload; ignore it. Git identity is bound to the repo's bot. Commit normally, never push.",
   "verified_base": {
-   "commit": "ce311e50",
-   "verified_at": "2026-10-15T09:33:31Z",
-   "steps": [
-    "conformance",
-    "docs",
-    "lint",
-    "typecheck",
-    "test",
-    "build"
-   ],
-   "note": "Feature complete and green (CI green on PR #501 at fd11b133-era head; only spec-directory commits since)."
+   "commit": "d6f693ae",
+   "verified_at": "2026-10-15T09:38:04Z",
+   "steps": [],
+   "note": "Not verified: a previous worker stopped partway through part 1. Run the narrow suites you touch as you go and the full verify at the end."
   },
   "acceptance": [
    {
     "task": "T041",
-    "given_when_then": "The sample, measurement and organization location inputs take a latitude and longitude in WGS 84 in any of the three notations and nothing else; no reference-system input exists; out-of-range, wrong-hemisphere, unreadable and over-long values are still refused; the spec, docs, changelog and decisions describe WGS 84-only input and point at #512; full verify green."
+    "given_when_then": "The sample, measurement and organization location inputs and the import columns take latitude and longitude as signed decimal degrees in WGS 84 and nothing else; out-of-range values and one coordinate without the other are refused; elevation and uncertainty rules hold; lat-lon-parser is no longer a dependency; no reference-system or notation code remains; spec, docs, changelog and decisions describe this and point at #512 and #513; full verify green."
    }
   ]
  },
