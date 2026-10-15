@@ -480,8 +480,23 @@
         },
         {
           "id": "T038",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_dataset/test_models.py::TestDatasetSpatialCoverage::test_a_measurement_placed_by_a_sample_in_another_dataset_widens_the_box",
+              "tests/test_core/test_project/test_models.py::TestProjectSpatialCoverage::test_a_measurement_placed_by_a_sample_in_another_project_widens_the_box"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_core/test_dataset/test_models.py::TestDatasetSpatialCoverage tests/test_core/test_project/test_models.py::TestProjectSpatialCoverage (22 passed)",
+              "mutation: change (measurements, \"effective_location\") to (measurements, \"location\") in Dataset.spatial_coverage and rerun: the dataset test fails (1 failed, 21 passed)",
+              "mutation: the same change in Project.spatial_coverage and rerun: the project test fails (1 failed, 21 passed)"
+            ],
+            "code": [
+              "tests/test_core/test_dataset/test_models.py:1769",
+              "tests/test_core/test_project/test_models.py:1305"
+            ]
+          }
         }
       ]
     },

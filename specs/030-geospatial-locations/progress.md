@@ -252,3 +252,10 @@ Did: Spatial.polygon reads a (west, south, east, north) tuple with west greater 
 Verified: pytest -n0 test_managers.py and test_coverage.py, 46 passed. With the west > east branch replaced by False the new test fails: the sample at longitude 0 comes back and the two at 178 and -178 do not.
 Next: T038.
 Watch: Measurement.inside shares Spatial.polygon, so it reads the same tuple the same way.
+
+## 2026-10-15T07:59:33Z · Implementer FIX-1 · T038
+
+Did: two tests where a measurement with no location of its own is placed by a visible sample in another dataset (and another project), at a point outside every other located record. Coverage must include that point.
+Verified: pytest -n0 TestDatasetSpatialCoverage and TestProjectSpatialCoverage, 22 passed on the unchanged code. Reading location instead of effective_location in Dataset.spatial_coverage turns the dataset test red, and the same change in Project.spatial_coverage turns the project test red; each alone.
+Next: T039.
+Watch: the brief names the dataset only; the finding says the project has the same gap, so a project test is added beside it.
