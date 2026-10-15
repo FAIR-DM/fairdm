@@ -168,3 +168,24 @@ Did: restful-api.md gains the location in the sample and measurement rows, the s
 Verified: the shapes on both pages are the ones TestLocation asserts; pre-commit clean. Docs build not run in the narrow scope; the full verify has it.
 Next: full verify once, report.
 Watch: the user-guide page reading-records-with-a-script.md does not mention location and was left alone.
+
+## 2026-10-15T01:10:25Z · Implementer US5 · T026
+
+Did: tests/test_contrib/test_import_export/test_resources.py. TestExport: a sample's four columns with its own values, empty cells for a record with none, a measurement exports only its own location while its sample is placed. TestImport: export then import into another dataset keeps each location, four notations of one place import as the same decimal degrees, six refused rows (unreadable, latitude 91, longitude 181, one coordinate alone, elevation without a point, negative uncertainty) are reported as invalid and not saved with the good row beside them, a file without the columns leaves the point, empty cells clear it, a file with only the elevation column leaves the point, a measurement row sets its own location. TestHandWrittenResources: SampleResource and MeasurementResource subclasses listing location export the same columns.
+Verified: red first, 16 failed for the right reason (no four columns; the location cell was a WKT string, and import ignored the columns), then 20 passed. With the factory change switched off 15 of the first 16 fail again. The three tests added after the code (empty cell, elevation-only file, hand-written resources' second case) are characterisations of behaviour the docs state; the hand-written pair was red before the base class changed.
+Next: T027 is built with this task, T028 docs.
+Watch: the generated resource's dataset column cannot be used as generated for a dataset: the factory gives a foreign key to a model with natural_key a widget on the field name natural_key, and Dataset.objects hides private datasets from the widget's lookup. The tests declare the dataset column themselves with a primary-key widget on a public dataset. Import views are not routed, so nothing outside these tests meets it today.
+
+## 2026-10-15T01:10:25Z · Implementer US5 · T027
+
+Did: fairdm/contrib/location/resources.py with CoordinateWidget, CoordinateField, location_fields and LocatedResourceMixin. The mixin replaces location by latitude, longitude, location_elevation and location_uncertainty when the resource is built (an explicit column of the same name wins), places them in the export and import order where location stood, and on import sets the point by passing the row's coordinates, elevation and uncertainty to LocationField.compress, so the form's rules and messages apply and a refused row is a validation error. ResourceFactory puts the mixin ahead of ModelResource where fields list location. BaseFairDMResource carries it. decisions.md D25.
+Verified: uv run pytest -q -n0 tests/test_contrib/test_import_export tests/test_registry tests/test_contrib/test_location -> 434 passed; pre-commit (ruff, ruff-format, mypy, deptry) clean on the changed files. No pre-existing test changed.
+Next: T028 docs.
+Watch: elevation and uncertainty cells are read with FloatWidget, so a cell such as "12 m" is an import error row, not a validation row, and the row is not saved either way.
+
+## 2026-10-15T01:10:25Z · Implementer US5 · T028
+
+Did: locations.md gains "In import and export" (the four columns, the rules for export, a CSV example, notations, the rows that are refused, files with some or none of the columns, how a resource of your own gets the columns). model_configuration.md says location becomes four columns in the file. CHANGELOG.md gets the added entry.
+Verified: every claim on the page is one a test in test_resources.py asserts (own values, empty cells, notations, refused rows, absent columns, empty cells clearing, measurement own location). Docs build not run in the narrow scope; the full verify has it.
+Next: full verify once, report.
+Watch: nothing else under docs/ describes the import file's columns.

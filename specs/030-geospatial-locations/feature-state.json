@@ -506,18 +506,53 @@
       "tasks": [
         {
           "id": "T026",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_import_export/test_resources.py::TestExport",
+              "tests/test_contrib/test_import_export/test_resources.py::TestImport",
+              "tests/test_contrib/test_import_export/test_resources.py::TestHandWrittenResources"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_import_export tests/test_registry tests/test_contrib/test_location"
+            ],
+            "code": [
+              "fairdm/contrib/location/resources.py:97"
+            ]
+          }
         },
         {
           "id": "T027",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_import_export/test_resources.py::TestExport",
+              "tests/test_contrib/test_import_export/test_resources.py::TestImport"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_import_export tests/test_registry tests/test_contrib/test_location"
+            ],
+            "code": [
+              "fairdm/contrib/location/resources.py:97",
+              "fairdm/registry/factories.py:985",
+              "fairdm/contrib/import_export/resources.py:11"
+            ]
+          }
         },
         {
           "id": "T028",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "uv run pre-commit run --files docs/portal-development/locations.md docs/portal-development/model_configuration.md CHANGELOG.md"
+            ],
+            "code": [
+              "docs/portal-development/locations.md:262"
+            ]
+          }
         }
       ]
     },

@@ -355,3 +355,21 @@ twice. An organization has no such attribute, so the same field gives it a two-c
 without a separate class.
 
 **Revisit if:** a portal needs to write locations through the API (D14).
+
+## D25. A resource expands `location` when it is built, and the point is read by the input's own field
+
+**Decision:** `LocatedResourceMixin` replaces `location` in a resource's fields with the four
+columns when the resource is created, and sets the point on import by passing the row's two
+coordinates, elevation and uncertainty to `LocationField.compress`. The registry's resource
+factory puts the mixin ahead of `ModelResource` only where the type's fields list `location`, and
+`BaseFairDMResource` carries it for the hand-written resources.
+
+**Why:** Import-export's field list is fixed when the class is defined, and a registered type's
+field list is not known until the factory runs, so the one place that sees both is the
+constructor. Reading the point through `LocationField` gives the import every rule and message of
+the form (both coordinates or neither, no elevation without a point, no negative uncertainty)
+without a second copy of them, and a refused row reaches import-export as a validation error, so
+it is reported and not saved.
+
+**Revisit if:** a resource needs a reference-system column (the import then needs the input's
+first part, which `compress` already takes).
