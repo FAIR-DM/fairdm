@@ -242,6 +242,31 @@ class TestImport:
             assert value in " ".join(invalid.error.messages)
         assert not RockSample.objects.filter(dataset=dataset, name="bad").exists()
 
+    @pytest.mark.parametrize(
+        "cell",
+        [
+            {"location_elevation": "nan"},
+            {"location_elevation": "inf"},
+            {"location_elevation": "-inf"},
+            {"location_uncertainty": "nan"},
+            {"location_uncertainty": "inf"},
+        ],
+    )
+    def test_an_elevation_or_uncertainty_that_is_not_finite_is_reported_and_not_saved(
+        self, dataset, cell
+    ):
+        result = self.load(
+            sample_resource(dataset),
+            self.row(dataset, name="good", latitude="49.0", longitude="8.4"),
+            self.row(dataset, name="bad", latitude="49.0", longitude="8.4", **cell),
+        )
+
+        assert result.has_validation_errors()
+        (invalid,) = result.invalid_rows
+        assert invalid.number == 2
+        assert RockSample.objects.filter(dataset=dataset, name="good").exists()
+        assert not RockSample.objects.filter(dataset=dataset, name="bad").exists()
+
     @pytest.mark.parametrize("column", ["latitude", "longitude"])
     def test_a_coordinate_cell_of_more_than_64_characters_is_reported_and_not_saved(
         self, dataset, column

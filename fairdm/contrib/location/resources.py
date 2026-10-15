@@ -1,5 +1,7 @@
 """The location as four columns in tabular import and export."""
 
+import math
+
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 from import_export.fields import Field
@@ -17,6 +19,28 @@ class MeasureWidget(FloatWidget):
 
     def __init__(self):
         super().__init__(coerce_to_string=False)
+
+    def clean(self, value, row=None, **kwargs):
+        """Read one cell as a number.
+
+        Args:
+            value: The cell.
+            row: The row the cell is in.
+            **kwargs: Passed through by import-export.
+
+        Returns:
+            The number, or None for an empty cell.
+
+        Raises:
+            ValueError: The cell is not a number, or is ``nan`` or infinite.
+        """
+        number = super().clean(value, row=row, **kwargs)
+        if number is not None and not math.isfinite(number):
+            raise ValueError(
+                _("“%(value)s” is not a number a measurement can have.")
+                % {"value": value}
+            )
+        return number
 
     def render(self, value, obj=None, **kwargs):
         """Return the number, or an empty cell when the record has none."""
