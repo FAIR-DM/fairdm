@@ -81,7 +81,7 @@ In `fairdm/utils/location/forms.py`:
   notation other than decimal degrees (#513). A value outside the range, one coordinate without
   the other, and an elevation or uncertainty without coordinates are refused (FR-005, FR-008).
 - `LocationWidget(MultiWidget)` with the prototype's template, moved to
-  `fairdm/utils/templates/location/widgets/location.html` as it was approved.
+  `fairdm/templates/location/widgets/location.html` as it was approved.
   `decompress()` takes a `Location`. The boxes are always Latitude and Longitude.
 - `LocationFormMixin` for a `ModelForm` whose model has a `location`. When `location` is in
   the form's fields, it replaces it with a full `LocationField`, starts it from the instance's

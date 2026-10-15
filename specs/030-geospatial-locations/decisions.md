@@ -457,7 +457,7 @@ escaping of what is typed.
 `location_elevation` and `location_uncertainty` themselves and call `location_constraints()` and
 `geography_index()` in their own `Meta`. The form field and widget, form mixin, queryset lookups,
 coverage, import columns and widget template move to `fairdm/utils/location/` and
-`fairdm/utils/templates/location/`. `fairdm.contrib.location` stays installed with only
+`fairdm/templates/location/`. `fairdm.contrib.location` stays installed with only
 `__init__.py`, `apps.py` and `migrations/`. The tests moved to `tests/test_utils/test_location/`.
 
 **Why:** The maintainer, at the merge gate: the code is utilities, not an app, and nothing but two
