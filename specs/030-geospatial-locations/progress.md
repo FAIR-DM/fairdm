@@ -189,3 +189,24 @@ Did: locations.md gains "In import and export" (the four columns, the rules for 
 Verified: every claim on the page is one a test in test_resources.py asserts (own values, empty cells, notations, refused rows, absent columns, empty cells clearing, measurement own location). Docs build not run in the narrow scope; the full verify has it.
 Next: full verify once, report.
 Watch: nothing else under docs/ describes the import file's columns.
+
+## 2026-10-15T01:30:08Z · Implementer US6 · T029
+
+Did: tests/test_contrib/test_contributors/test_models.py TestPersonPlacedOnAMap: a person is placed at their primary affiliation organization point, only the primary one, and not placed when that organization has no point. The ROR tests (test_transforms.py TestRORRoundTrip) already read the point and assert no change was needed; the overview map tests (test_overview.py) already cover has_map. The profile-form tests are in T030: any notation, moving one organization leaves another, clearing, refused input, unchanged round trip.
+Verified: TestPersonPlacedOnAMap 3 passed; probe: with as_geojson forced to return None two of the three fail. pre-commit clean.
+Next: T030.
+Watch: AS 6.1 and the overview map were already satisfied by US1 and US-overview work; no new ROR or overview test was written.
+
+## 2026-10-15T01:30:08Z · Implementer US6 · T030
+
+Did: OrganizationProfileForm (forms/profile.py), OrganizationCreateForm and the older OrganizationProfileForm (forms/organization.py) declare LocationField(full=False) labelled Coordinates and keep the cleaned point in clean_location. Profile form lists location in the Location section after city and country. decisions.md D26. Changed pre-existing tests that list exactly the organization form fields: test_profile.py TestOrganizationProfileForm field set gains location; test_update.py the page offers no way to change... control names gain location_first and location_second. Nothing else was edited.
+Verified: uv run pytest -q -n0 tests/test_contrib/test_contributors/test_forms tests/test_contrib/test_contributors/test_plugins/test_update.py tests/test_contrib/test_contributors/test_plugins/test_overview.py -> all passed (82 in test_forms); red first, 16 failed for the missing field, then the field names location_first/location_second corrected in my own tests. pre-commit clean.
+Next: T031.
+Watch: the widget names its inputs location_first and location_second, not location_0 and location_1.
+
+## 2026-10-15T01:30:08Z · Implementer US6 · T031
+
+Did: locations.md gains Placing an organization; contributors.md names location on Organization, the profile form field list and the person placed at the organization point; FS-019 spec text (entity list, scenario 9, the assumption about a person) matches; CHANGELOG.md gets the added entry.
+Verified: each claim on the pages is one a test in the story asserts; docs build not run in the narrow scope, the full verify has it.
+Next: full verify, report.
+Watch: docs/data_models/contributors.md already described the point.
