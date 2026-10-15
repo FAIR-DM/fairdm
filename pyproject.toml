@@ -1,6 +1,6 @@
 [project]
 name = "fairdm"
-description = ""
+description = "A Django framework for building FAIR research data portals with minimal code"
 license = "MIT"
 keywords = [
     "research",
