@@ -266,3 +266,11 @@ Did: a migration guide section for the location change (clashing field names on 
 Verified: pre-commit on the four pages passed. No test: documentation only.
 Next: full verify, then the completion report.
 Watch: the brief limits this task to these pages; the ADR consequence and special_fields.md that DOC-001 also named for measurement types are untouched.
+
+## 2026-10-15T09:48:52Z · Implementer FIX-2 · T041
+
+Did: latitude and longitude are FloatFields with -90..90 and -180..180 validators; parse_coordinate, the notation handling, the 64-character cap, the "Reads as" hint, the widget script and lat-lon-parser are gone. Import reads the two cells through LocationField. Spec, decisions (D6, D11, D28, D29), plan, research, sketch, docs, changelog updated, pointing at #512 and #513.
+Tests deleted: the parse_coordinate notation, hemisphere, minutes-letter and unreadable-text tests; the every-notation sample and import tests; the 64-character import and form tests. Changed: the organization, sample and measurement tests that typed notations now type decimals; refusal codes read min_value/max_value.
+Verified: narrow suites for location, import, contributors, sample and measurement forms green.
+Next: full verify.
+Watch: none.
