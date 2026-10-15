@@ -1,0 +1,82 @@
+{
+  "story": "US4",
+  "skills_loaded": [
+    {
+      "name": "craft-tdd",
+      "receipt": "craft-tdd/2026-09-28/b19e4d07",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-increments",
+      "receipt": "craft-increments/2026-10-12/7c41e9a6",
+      "loaded_via": "path-read"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T023",
+      "status": "done",
+      "evidence": {
+        "tests_added": [
+          "tests/test_api/test_viewsets.py::TestLocation",
+          "tests/test_api/test_schema.py::TestLocationComponents"
+        ],
+        "criteria": [
+          "SC-004"
+        ],
+        "commands": [
+          "uv run pytest -q -n0 --create-db tests/test_api/test_viewsets.py::TestLocation tests/test_api/test_schema.py::TestLocationComponents tests/test_api/test_schema.py::TestOrganizationComponents (red: 20 failed, 4 passed)",
+          "uv run pytest -q -n0 tests/test_api/test_viewsets.py::TestLocation tests/test_api/test_schema.py (58 passed)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/030-geospatial-locations --base origin/main (exit 0)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "7a6b5963"
+      ]
+    },
+    {
+      "id": "T024",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "criteria": [
+          "SC-004"
+        ],
+        "commands": [
+          "uv run pytest -q -n auto --dist loadscope tests/test_api (1327 passed)",
+          "uv run pre-commit run --files fairdm/api/serializers.py tests/test_api/test_schema.py tests/test_api/test_serializers.py tests/test_api/test_viewsets.py (passed)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/030-geospatial-locations --base origin/main (exit 0)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "7a6b5963"
+      ]
+    },
+    {
+      "id": "T025",
+      "status": "done",
+      "evidence": {
+        "tests_added": [],
+        "criteria": [],
+        "commands": [
+          "uv run pre-commit run --files docs/portal-development/restful-api.md docs/portal-development/locations.md CHANGELOG.md specs/011-restful-api/spec.md (passed)",
+          "/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/fairdm/fairdm-worktrees/030-geospatial-locations --base origin/main (exit 0; first run failed the docs step on the undocumented name GeoJSONPointField, fixed in de689219 and the whole verify re-run)"
+        ],
+        "exit_code": 0
+      },
+      "commits": [
+        "39f507e6",
+        "de689219"
+      ]
+    }
+  ],
+  "deviations": [],
+  "concerns": [
+    "specs/030-geospatial-locations/progress.md and decisions.md D24 were written for this story; D24 records that GeoJSONPointField reads location_elevation from the record and the API gains no elevation field of its own.",
+    "Existing tests edited as the brief allows: ORGANIZATION_LIST_KEYS in tests/test_api/test_viewsets.py, TestOrganizationComponents.LIST_KEYS in tests/test_api/test_schema.py, and test_meta_fields_exact for the sample and measurement serializers in tests/test_api/test_serializers.py each gain location (and location_uncertainty for the two base serializers). The 'located sample' case already passed a GEOS point from US1.",
+    "docs/user-guide/reading-records-with-a-script.md does not mention location and was left alone as outside the task wording."
+  ],
+  "blocked": []
+}
