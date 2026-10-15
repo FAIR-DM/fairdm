@@ -224,3 +224,10 @@ Did: LocationField takes at most 64 characters in the reference system and each 
 Verified: pytest -n0 TestLocationField + TestImport 51 passed. Removing the field max_length turns three form cases red; removing the set_location check turns both import cases red.
 Next: T034.
 Watch: the brief put the import cap in CoordinateWidget.clean, but import never calls it (the coordinate fields have no attribute); a 65-character cell imported with the cap there. Placed in set_location instead, see decisions.md D28.
+
+## 2026-10-15T07:54:15Z · Implementer FIX-1 · T034
+
+Did: when LocationFormMixin swaps in the location input it removes the plain location_elevation and location_uncertainty fields, so a registration with no field list renders one input of each name.
+Verified: pytest -n0 TestLocationFormMixin plus the sample and measurement form modules, 75 passed. With the two pops deleted both new tests fail: two inputs of each name, and an elevation typed in the widget saves as None.
+Next: T035.
+Watch: none.

@@ -292,8 +292,21 @@
         },
         {
           "id": "T034",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_location/test_forms.py::TestLocationFormMixin::test_each_part_of_the_location_has_one_input",
+              "tests/test_contrib/test_location/test_forms.py::TestLocationFormMixin::test_an_elevation_typed_in_the_location_input_is_saved"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_location/test_forms.py::TestLocationFormMixin tests/test_core/test_sample/test_forms.py tests/test_core/test_measurement/test_forms.py (75 passed)",
+              "mutation: delete the two self.fields.pop lines in LocationFormMixin.__init__ and rerun TestLocationFormMixin: both tests fail (2 failed; 2 inputs named location_elevation, elevation saved as None)"
+            ],
+            "code": [
+              "fairdm/contrib/location/forms.py:383"
+            ]
+          }
         },
         {
           "id": "T035",
