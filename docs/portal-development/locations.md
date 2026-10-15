@@ -223,7 +223,9 @@ the point to a geography, and the index they use is built on that same cast, whi
 `geography_index` returns. A measurement's `inside` and `within_distance` are two subqueries, one
 on the measurement table and one on the sample table, each using its own index. A model of your own
 that mixes in `LocatedQuerySet` from `fairdm.utils.location.managers` and lists the index in its
-`Meta` gets the same.
+`Meta` gets the same. `location_constraints()` in `fairdm.utils.location.db` returns the two checks
+that keep an elevation or an uncertainty from standing without a point and an uncertainty from
+being negative, and `Sample` and `Measurement` list both helpers in their own `Meta`.
 
 ## Spatial coverage
 

@@ -401,8 +401,19 @@
         },
         {
           "id": "T042",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_utils/test_location"
+            ],
+            "commands": [
+              ". /tmp/fs494/scripts/env.sh && uv run pytest -q -n0 tests/test_utils/test_location tests/test_core/test_sample/test_forms.py tests/test_core/test_measurement/test_forms.py tests/test_core/test_sample/test_models.py tests/test_contrib/test_contributors/test_forms"
+            ],
+            "code": [
+              "fairdm/core/sample/models.py:115"
+            ]
+          }
         }
       ]
     },

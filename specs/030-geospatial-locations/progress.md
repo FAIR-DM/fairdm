@@ -274,3 +274,10 @@ Tests deleted: the parse_coordinate notation, hemisphere, minutes-letter and unr
 Verified: narrow suites for location, import, contributors, sample and measurement forms green.
 Next: full verify.
 Watch: none.
+
+## 2026-10-15T10:26:53Z · Implementer FIX-3 · T042
+
+Did: Removed LocatedRecord; Sample and Measurement declare location, location_elevation and location_uncertainty and call location_constraints()/geography_index() (now in fairdm/utils/location/db.py). Moved forms, managers, coverage, resources to fairdm/utils/location/ and the widget template to fairdm/utils/templates/location/widgets/location.html. fairdm.contrib.location keeps __init__.py, apps.py, migrations/. Moved tests tests/test_contrib/test_location/{__init__,test_forms,test_managers,test_coverage}.py to tests/test_utils/test_location/ (imports only). Updated locations.md (Station section removed), CHANGELOG, CONTEXT, ADR 0032, plan, decisions D30.
+Verified: makemigrations --check --dry-run shows only orbit; pytest on tests/test_utils/test_location plus sample/measurement/contributor form and model tests: 397 passed, 3 skipped.
+Next: full verify.
+Watch: none.
