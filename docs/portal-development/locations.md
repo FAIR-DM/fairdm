@@ -273,6 +273,36 @@ spatial_coverage(
 A dataset no longer has a bounding-box property. Use `spatial_coverage()`, whose `west` and `east`
 stand where the property's `min_x` and `max_x` did.
 
+### In DataCite metadata
+
+A dataset's DataCite metadata describes its spatial coverage as one `geoLocationBox`, so a
+repository receiving the metadata can index the dataset by place. `build_metadata` in
+`fairdm.contrib.import_export.utils` renders it:
+
+```python
+from fairdm.contrib.import_export.utils import build_metadata
+
+xml = build_metadata(dataset, request)
+```
+
+```xml
+<geoLocations>
+  <geoLocation>
+    <geoLocationBox>
+      <westBoundLongitude>-5.0</westBoundLongitude>
+      <eastBoundLongitude>40.0</eastBoundLongitude>
+      <southBoundLatitude>-30.0</southBoundLatitude>
+      <northBoundLatitude>20.0</northBoundLatitude>
+    </geoLocationBox>
+  </geoLocation>
+</geoLocations>
+```
+
+The box is `spatial_coverage()` for a visitor, whoever asks for the metadata, because the metadata
+is published. A location the public may not see does not count towards it. A box across the 180th
+meridian keeps `west` greater than `east`. A dataset with nothing a visitor may see located carries
+no `geoLocations` at all.
+
 ## In the API
 
 A sample and a measurement return `location` and `location_uncertainty`, and an organization
