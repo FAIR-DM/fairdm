@@ -7,6 +7,12 @@ from bs4 import BeautifulSoup
 from django.contrib.gis.gdal import CoordTransform, SpatialReference
 from django.contrib.gis.geos import GEOSGeometry, Point
 from django.core.exceptions import ValidationError
+from django.http import QueryDict
+from django.test import RequestFactory
+
+from demo.factories import RockSampleFactory
+from demo.models import RockSample
+from fairdm.contrib.contributors.choices import ContributionLevel
 
 from fairdm.contrib.location.forms import (
     SUGGESTED_SYSTEMS,
@@ -15,6 +21,9 @@ from fairdm.contrib.location.forms import (
     LocationWidget,
     parse_coordinate,
 )
+from fairdm.factories import ContributionFactory, UserFactory
+from fairdm.registry.config import ModelConfiguration
+from tests.test_core.test_editing import form_payload
 
 # One place, 48 degrees 56 minutes 7 seconds north, written every way the input accepts.
 LATITUDE_FORMS = [
@@ -378,3 +387,55 @@ class TestLocationWidgetRendering:
         listed = page.select_one("input[name='location_srid']")["list"]
         options = [o["value"] for o in page.select(f"datalist#{listed} option")]
         assert options == [str(code) for code in SUGGESTED_SYSTEMS]
+
+
+def browser_submission(page, **typed):
+    """What a browser sends for a rendered form, with a value typed into the first control of a name.
+
+    A name that appears on several controls is sent once for each, in page order.
+    """
+    data = QueryDict(mutable=True)
+    for name, value in form_payload(page).items():
+        data.setlist(name, value if isinstance(value, list) else [value])
+    for name, value in typed.items():
+        values = [control.get("value", "") for control in page.select(f"[name='{name}']")]
+        values[0] = value
+        data.setlist(name, values)
+    return data
+
+
+@pytest.mark.django_db
+class TestLocationFormMixin:
+    """A registration that lists no fields still gets one input for each part of the location."""
+
+    @pytest.fixture
+    def form_for_unlisted_fields(self):
+        sample = RockSampleFactory()
+        editor = UserFactory()
+        ContributionFactory(content_object=sample, contributor=editor, level=ContributionLevel.EDIT)
+        request = RequestFactory().get("/")
+        request.user = editor
+        form_class = ModelConfiguration(model=RockSample).get_form_class()
+        return form_class, sample, request
+
+    def test_each_part_of_the_location_has_one_input(self, form_for_unlisted_fields):
+        form_class, sample, request = form_for_unlisted_fields
+
+        page = BeautifulSoup(form_class(instance=sample, request=request).as_div(), "html.parser")
+
+        names = [control["name"] for control in page.select("input[name]")]
+        assert names.count("location_elevation") == 1
+        assert names.count("location_uncertainty") == 1
+
+    def test_an_elevation_typed_in_the_location_input_is_saved(self, form_for_unlisted_fields):
+        form_class, sample, request = form_for_unlisted_fields
+        page = BeautifulSoup(form_class(instance=sample, request=request).as_div(), "html.parser")
+        data = browser_submission(
+            page, location_first="49.0094", location_second="8.4115", location_elevation="112.5"
+        )
+        data["status"] = sample.status
+
+        form = form_class(data, instance=sample, request=request)
+
+        assert form.is_valid(), form.errors
+        assert form.save().location_elevation == 112.5

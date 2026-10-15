@@ -379,6 +379,9 @@ class LocationFormMixin:
         self.fields["location"] = LocationField(
             label=current.label, help_text=current.help_text
         )
+        # The input holds these two itself; a registration with no field list adds them again.
+        self.fields.pop("location_elevation", None)
+        self.fields.pop("location_uncertainty", None)
         instance = self.instance
         stored = getattr(instance, "location", None)
         self.initial["location"] = (
