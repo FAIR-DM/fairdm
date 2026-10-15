@@ -310,8 +310,23 @@
         },
         {
           "id": "T035",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_location/test_forms.py::TestLocationWidgetRendering::test_a_reference_system_typed_back_is_escaped_in_an_attribute_and_nowhere_else"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_location/test_forms.py::TestLocationWidgetRendering tests/test_core/test_sample/test_forms.py (52 passed)",
+              "mutation: put the reference system back inside the fairdmLocationInput('...') string in location.html and rerun TestLocationWidgetRendering: the new test fails on the x-data attribute holding alert(1)",
+              "mutation: add |safe to the data-srid value and rerun: the new test fails on a raw <b> in the output",
+              "uv lock --offline (only the lat-lon-parser specifier changed)"
+            ],
+            "code": [
+              "fairdm/contrib/location/templates/location/widgets/location.html:39",
+              "pyproject.toml:118"
+            ]
+          }
         },
         {
           "id": "T039",

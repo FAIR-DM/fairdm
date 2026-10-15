@@ -231,3 +231,10 @@ Did: when LocationFormMixin swaps in the location input it removes the plain loc
 Verified: pytest -n0 TestLocationFormMixin plus the sample and measurement form modules, 75 passed. With the two pops deleted both new tests fail: two inputs of each name, and an elevation typed in the widget saves as None.
 Next: T035.
 Watch: none.
+
+## 2026-10-15T07:55:32Z · Implementer FIX-1 · T035
+
+Did: the widget passes the reference system to the script as data-srid and reads it with $el.dataset.srid; no typed text sits inside a JavaScript string. lat-lon-parser is declared (>=1.3.1,<2.0) and uv.lock records the specifier.
+Verified: pytest -n0 TestLocationWidgetRendering plus the sample form module, 52 passed. Putting the value back in the string, or marking the attribute safe, turns the new test red.
+Next: T036.
+Watch: the $el.dataset read in x-data was not exercised in a browser; no test here runs the script.
