@@ -595,6 +595,11 @@
               "tests/test_contrib/test_collections/test_tables.py:338"
             ]
           }
+        },
+        {
+          "id": "T043",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     },
