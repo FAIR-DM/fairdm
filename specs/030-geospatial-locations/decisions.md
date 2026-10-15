@@ -61,6 +61,7 @@ registers it that way. A portal that needs sites declares that sample type. A sh
 coordinates gives the grouping without anything that makes a site a site.
 
 *Revisit if:* a portal needs places with properties of their own that a parent sample cannot carry.
+**ADR:** docs/adr/0032-a-location-is-a-value-on-each-record.md
 
 ## D2. Organizations hold a plain point, and people hold none
 
@@ -76,6 +77,7 @@ way to type a latitude, but only in WGS 84. Every organization's point comes fro
 reading a map, and neither uses a projected system.
 
 *Revisit if:* a portal needs to place a person somewhere other than where they work.
+**ADR:** none — stated on the locations and contributors pages; it follows from the spec's boundary
 
 ## D3. A measurement falls back to its sample's location, but only for a viewer who may open the sample
 
@@ -92,6 +94,7 @@ no map.
 
 *Revisit if:* a measurement's location needs to be set to its sample's, rather than inherited from
 it, so that later edits to the sample do not move it.
+**ADR:** docs/adr/0033-a-measurement-borrows-its-samples-location-only-for-a-viewer-who-may-open-the-sample.md
 
 ## D4. The API returns what a record holds, and no fallback
 
@@ -107,6 +110,7 @@ coordinate. The uncertainty is not part of GeoJSON, so it sits beside the geomet
 metres. Darwin Core calls the same value `coordinateUncertaintyInMeters`.
 
 *Revisit if:* callers routinely request every measurement's sample only to read its location.
+**ADR:** none — the API page documents what a measurement returns
 
 ## D5. A location is a point
 
@@ -115,6 +119,7 @@ a depth interval. The maintainer agreed to keep the core to a point. A borehole 
 collar, and a sample type that needs a depth interval, or a line, declares fields of its own.
 
 *Revisit if:* several portals declare the same line or area field on their own sample types.
+**ADR:** none — the spec's boundary states it
 
 ## D6. Coordinates are stored in WGS 84, entered in any EPSG system, and shown to five places
 
@@ -134,6 +139,7 @@ geographic systems used for typing coordinates are two-dimensional, so convertin
 never changes the elevation.
 
 *Revisit if:* a portal needs the coordinates exactly as recorded for provenance.
+**ADR:** none — the locations page states what is stored and how it is shown
 
 ## D7. A location has no page of its own
 
@@ -142,6 +148,7 @@ nothing for it to be the page of, and "what else is near here" is a question for
 within-distance lookup. The page, its address, its plugin and the collection tables' link to it go.
 
 *Revisit if:* #497 needs an address for the records near a point.
+**ADR:** none — a removal recorded in the changelog
 
 ## D8. Existing locations are not carried across the upgrade
 
@@ -149,6 +156,7 @@ The maintainer said no portal holds location data yet. The migration that replac
 new fields need not copy coordinates across.
 
 *Revisit if:* a portal with location data upgrades before this lands.
+**ADR:** none — local to this upgrade, nothing downstream inherits it
 
 ## D9. The move to PostGIS is its own issue
 
@@ -158,6 +166,7 @@ describe a setup that does not exist, gives no developer or user a new way to do
 tracked in #500, which lands first. It can be merged and proven on its own, before any location code
 exists, and the suite passing on PostGIS is the proof. The shared test workflow starts no database
 service, so FairDM gets a test workflow of its own.
+**ADR:** none — a delivery decision; the PostGIS move has ADR 0031
 
 ## D10. DataCite gets a box, and a box may cross the 180th meridian
 
@@ -171,6 +180,7 @@ The box is what the export already writes. The dataset metadata template also re
 the dataset model has never had, and that reference goes.
 
 *Revisit if:* a repository the portals publish to indexes `geoLocationPolygon`.
+**ADR:** none — moved to #511 with the DataCite story
 
 ## D11. Coordinates are read by `lat-lon-parser`
 
@@ -245,6 +255,7 @@ constraint that cannot be created. Declared on the two concrete models they exis
 table that holds the columns.
 
 **Revisit if:** a third concrete model gains the three fields.
+**ADR:** none — a model-layout detail stated in the model's docstring
 
 ## D17. `Dataset.bbox` reads the samples' points until the spatial coverage replaces it
 
@@ -255,6 +266,7 @@ the four bounds, or None. `fairdm/contrib/location/utils.py` is deleted as plann
 removed `Point` rows. The spatial coverage of plan D6 is a later story.
 
 **Revisit if:** the spatial coverage story lands, which deletes `bbox`.
+**ADR:** none — temporary, and `bbox` was removed in a later story
 
 ## D18. Existing tests whose subject the story removes
 
@@ -274,6 +286,7 @@ beyond that:
 
 **Revisit if:** the plugin system gains another record without a uuid, which would take the
 addressing test back.
+**ADR:** none — test housekeeping, local to this feature
 
 ## D19. Migration 0023 does not read the contributor's location column
 
@@ -286,6 +299,7 @@ person selected a column that does not exist and all twenty-one cases failed. Th
 in that column, so a migration run in order behaves as it did.
 
 **Revisit if:** the test is rewritten to build its database at the historical state.
+**ADR:** none — local to one historical migration
 
 ## D20. The measurement page reads one named tuple, and an own location needs no query
 
@@ -302,6 +316,7 @@ query. Names read better in the template than positions.
 
 **Revisit if:** a location has a third source, or a measurement's own location becomes hidden from
 some viewers, which would put the own branch behind the annotation too.
+**ADR:** none — a template-context detail, local to the measurement page
 
 ## D21. Measurement lookups are two `pk__in` subqueries joined by a SQL `UNION`
 
@@ -315,6 +330,7 @@ subplans, which reads no spatial index. The `UNION` form lets each branch use it
 
 **Revisit if:** a viewer's `visible_to()` subquery makes a plan slow enough on a large portal that
 the sample branch should be narrowed by dataset first.
+**ADR:** none — a query-shape detail stated in the lookup's docstring
 
 ## D22. A project's coverage counts public datasets and those the viewer holds a level on
 
@@ -329,6 +345,7 @@ because they may not open the dataset.
 
 **Revisit if:** #510 changes what a project's visibility hides, since this builds on `visible_to`
 as it is.
+**ADR:** none — follows the rule the project overview already uses
 
 ## D23. The geometry helpers sit on one class, and the DataCite template reads the coverage
 
@@ -342,6 +359,7 @@ signatures differ by the viewer. The template change is the least that removes t
 `Dataset.bbox`.
 
 **Revisit if:** a third queryset needs them, which would still be this class.
+**ADR:** none — an internal code layout choice
 
 ## D24. One GeoJSON field reads the elevation from the record, and the API gains no elevation field
 
@@ -355,6 +373,7 @@ twice. An organization has no such attribute, so the same field gives it a two-c
 without a separate class.
 
 **Revisit if:** a portal needs to write locations through the API (D14).
+**ADR:** none — the API page documents the field
 
 ## D25. A resource expands `location` when it is built, and the point is read by the input's own field
 
@@ -373,6 +392,7 @@ it is reported and not saved.
 
 **Revisit if:** a resource needs a reference-system column (the import then needs the input's
 first part, which `compress` already takes).
+**ADR:** none — the locations page documents the columns
 
 ## D26. Each organization form declares the point-only field and keeps its point
 
@@ -387,6 +407,7 @@ caller would have to inherit. The field is declared, not swapped in `__init__`, 
 subclass can replace it like any other declared field.
 
 **Revisit if:** a fourth organization form needs the same pair.
+**ADR:** none — a form-layout detail, local to the organization forms
 
 ## D27. The DataCite story moved out of this feature
 

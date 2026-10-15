@@ -3,7 +3,7 @@
   "feature": "030-geospatial-locations",
   "branch": "030-geospatial-locations",
   "repo": "FAIR-DM/fairdm",
-  "state": "IMPLEMENT",
+  "state": "CONVERGE",
   "state_history": [
     {
       "state": "QUEUED",
@@ -24,6 +24,11 @@
       "state": "IMPLEMENT",
       "at": "2026-10-14T22:01:15Z",
       "note": "plan gate open; design review approved"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-10-15T07:22:26Z",
+      "note": "all six stories accepted; US7 moved to #511"
     }
   ],
   "gates": {
@@ -614,7 +619,7 @@
   ],
   "budgets": {
     "converge_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 2
     },
     "review_cycles": {
