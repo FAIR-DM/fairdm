@@ -1,13 +1,18 @@
 # FairDM
 
 [![Tests](https://github.com/FAIR-DM/fairdm/actions/workflows/tests.yml/badge.svg)](https://github.com/FAIR-DM/fairdm/actions/workflows/tests.yml)
+[![Build](https://github.com/FAIR-DM/fairdm/actions/workflows/build.yml/badge.svg)](https://github.com/FAIR-DM/fairdm/actions/workflows/build.yml)
+[![Publish](https://github.com/FAIR-DM/fairdm/actions/workflows/publish.yml/badge.svg)](https://github.com/FAIR-DM/fairdm/actions/workflows/publish.yml)
 [![Documentation](https://readthedocs.org/projects/fairdm/badge/?version=latest)](https://fairdm.readthedocs.io/en/latest/)
+[![Coverage](https://codecov.io/gh/FAIR-DM/fairdm/branch/main/graph/badge.svg?token=0Q18CLIKZE)](https://codecov.io/gh/FAIR-DM/fairdm)
 [![PyPI](https://img.shields.io/pypi/v/fairdm)](https://pypi.org/project/fairdm/)
-[![codecov](https://codecov.io/gh/FAIR-DM/fairdm/branch/main/graph/badge.svg?token=0Q18CLIKZE)](https://codecov.io/gh/FAIR-DM/fairdm)
-![GitHub](https://img.shields.io/github/license/FAIR-DM/fairdm)
-![GitHub last commit](https://img.shields.io/github/last-commit/FAIR-DM/fairdm)
+[![Development status](https://img.shields.io/pypi/status/fairdm)](https://pypi.org/project/fairdm/)
+[![Python](https://img.shields.io/pypi/pyversions/fairdm)](https://pypi.org/project/fairdm/)
+[![Django](https://img.shields.io/pypi/djversions/fairdm)](https://pypi.org/project/fairdm/)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Licence](https://img.shields.io/github/license/FAIR-DM/fairdm)](https://github.com/FAIR-DM/fairdm/blob/main/LICENSE)
 
-> **A Django-based framework for building FAIR research data portals with minimal code**
+A Django framework for building FAIR research data portals with minimal code.
 
 FairDM makes it trivial for research teams to define domain-specific sample and measurement models and run a fully functional data portal without writing views, URL routing, or frontend code.
 
@@ -64,6 +69,11 @@ Where the framework is headed is a separate question from what it is. That lives
 [GOALS.md](https://github.com/FAIR-DM/fairdm/blob/main/GOALS.md).
 
 ---
+
+## Requirements
+
+- Python 3.13 or later.
+- Django 5.2.
 
 ## 🚀 Quick Start
 
@@ -133,7 +143,7 @@ fairdm.setup(apps=["myportal"], addons=["fairdm_discussions"])
 
 FairDM's settings are production-grade in every environment. Each environment is an override layered on top, named by `DJANGO_ENV` and applied only if it exists — so `config/development.py` beside your settings module tunes development, and an environment nobody ships a module for simply gets the production baseline. In production, configuration that would leave the portal unsafe stops it starting.
 
-See [Configuration](docs/portal-development/configuration.md) for the layer order, the environment variables and `manage.py show_config`.
+See [Configuration](https://github.com/FAIR-DM/fairdm/blob/main/docs/portal-development/configuration.md) for the layer order, the environment variables and `manage.py show_config`.
 
 ### Model Registration
 
@@ -347,19 +357,23 @@ uv run invoke docs
 - **django-cotton** — Component-based templates
 - **celery** — Background task processing
 
-See [pyproject.toml](pyproject.toml) for the complete dependency list.
+See [pyproject.toml](https://github.com/FAIR-DM/fairdm/blob/main/pyproject.toml) for the complete dependency list.
 
 ---
 
+## Changelog
+
+See [CHANGELOG.md](https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md).
+
 ## 📄 License
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** — see the [LICENSE](https://github.com/FAIR-DM/fairdm/blob/main/LICENSE) file for details.
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for:
+We welcome contributions! See our [Contributing Guide](https://github.com/FAIR-DM/fairdm/blob/main/CONTRIBUTING.md) for:
 
 - **Quick setup**: Run `bash scripts/dev-setup.sh` to get started
 - **Development workflow**: Install git hooks to prevent CI failures
