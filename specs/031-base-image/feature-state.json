@@ -3,7 +3,7 @@
   "feature": "031-base-image",
   "branch": "031-base-image",
   "repo": "FAIR-DM/fairdm",
-  "state": "DESIGN_REVIEW",
+  "state": "IMPLEMENT",
   "state_history": [
     {
       "state": "QUEUED",
@@ -19,6 +19,11 @@
       "state": "DESIGN_REVIEW",
       "at": "2026-10-16T10:37:57Z",
       "note": "plan, research and tasks written"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-10-16T10:50:41Z",
+      "note": "plan gate open; design review applied"
     }
   ],
   "gates": {
@@ -30,8 +35,8 @@
       ]
     },
     "plan": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "open",
+      "at": "2026-10-16T10:50:41Z"
     },
     "merge": {
       "approved_by": null,
