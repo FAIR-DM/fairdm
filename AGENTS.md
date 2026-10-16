@@ -23,8 +23,10 @@ datasets, samples, measurements, contributors) plus a demo application in `demo`
 Development tooling comes from the `mvp-shared[dev,test]` bundle pinned in `pyproject.toml`,
 so `uv run <tool>` and the pre-commit hooks always agree on versions.
 
-The `docker-compose.yml` local development environment is not currently working and is not part
-of any verification path.
+`docker compose up` runs the development stack: PostGIS, Redis, the development server on
+<http://localhost:8000> and a Celery worker, built on the development image (`docker/Dockerfile`,
+target `development`) with the checkout mounted at `/app`. It is not part of any verification path.
+`docker/smoke-test.sh` checks the images themselves.
 
 ## Agent skills
 

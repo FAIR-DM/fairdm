@@ -1,0 +1,73 @@
+{
+  "stage": "design",
+  "lens": "spec-compliance",
+  "verdict": "request_changes",
+  "risk": "medium",
+  "skills_loaded": [
+    {"name": "craft-review", "receipt": "craft-review/2026-10-15/6b8372b4", "loaded_via": "path-read"},
+    {"name": "craft-security", "receipt": "craft-security/2026-08-04/ea3d6742", "loaded_via": "path-read"},
+    {"name": "craft-simplify", "receipt": "craft-simplify/2026-08-04/69038ce1", "loaded_via": "path-read"}
+  ],
+  "scope": "S3R design review of specs/031-base-image (spec.md, plan.md, research.md, tasks.md, decisions.md, planning-notes.md) against CONSTITUTION.md, CONTEXT.md, docs/contributing/standards/testing.md and targeted reads: compose/django/Dockerfile, docker-compose.yml, .dockerignore, .github/workflows/{test-suite,tests,tag-release,publish,build}.yml, config/*.py, manage.py, fairdm/conf/{environment,setup,development,celery}.py, fairdm/conf/settings/{static_media,security}.py, tests/settings.py, pyproject.toml, uv.lock, and django-mvp/shared tag-release.yml read from the v0.6.0 tag object. FR against tasks: 19 of 19 traced, 12 of 19 with a planned check that fails when unmet (FR-001, FR-002 in part, FR-003, FR-009 in part, FR-012, FR-013, FR-014 lack one). SC against tasks: 5 of 5 traced, 4 of 5 demonstrable at or before merge (SC-003 has no demonstration). Acceptance scenarios against tasks: 19 of 19 traced. Research dependency claims checked in .venv site-packages: 5 of 5 hold (gunicorn PORT bind default config.py:670-673 and GUNICORN_CMD_ARGS config.py:87-89; celery --app envvar APP celery/bin/celery.py:59 with prefix CELERY at :228; Django find_library libgdal.py:5, :59; and the other side, celery find_app on the `config` package, celery/app/utils.py:378-410, falls through `config.celery` ImportError to scanning vars and finds `celery_app`). Research static-files claim checked both sides: package side holds (static_media.py:42), project side does not (DR-001). Release-event premise verified at the pinned tag: RELEASE_TOKEN creates the release (shared tag-release.yml@v0.6.0:62, :79). New code against the tree: 6 of 6 checked (entrypoint.sh, smoke-test.sh, test_entrypoint.py, portal.Dockerfile, docker/Dockerfile, image.yml), none already provided; image.yml is missing from research's list. P2 start-steps loop probed under dash and bash --posix with an empty, missing, passing, failing, and last-file-not-executable step directory: 5 of 5 behave as the plan needs (a failing step exits with its own status and the server line never runs; the other four reach the server). uv probed locally: it creates a venv inside an existing empty /opt/venv whose parent is not writable, and `uv pip install` finds that environment through UV_PROJECT_ENVIRONMENT, so P3 and P5 hold on that point. P5 keeps the required check name: test-suite.yml job `name:` and tests.yml `call-tests` stay. With --network host, the container reaches the PostGIS service on localhost:5432. P6 traced for moved tags, overwritten tags and partial sets (DR-003).",
+  "findings": [
+    {
+      "id": "DR-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[spec-compliance] The demo portal turns offline compression off, so the image's default start fails at `compress` on the very demo that plan P3/P6/P7 build and smoke-test. T005, T006 and T015 cannot go green as planned, and the fix lies in a file the plan does not touch.",
+      "evidence": "config/settings.py:10 sets `COMPRESS_OFFLINE = False` after fairdm.setup(), which overrides the baseline `COMPRESS_OFFLINE = True` at fairdm/conf/settings/static_media.py:42. research.md (\"Static files\") read only the package side. django-compressor 4.6.0 compressor/management/commands/compress.py:389-394 raises CommandError \"Offline compression is disabled\" unless --force. Plan P2's web branch runs `python manage.py compress` under `set -eu`, so the container exits before gunicorn. AS 1.2, FR-005 and SC-005 fail on the demo, and the Image check (T015) is red from its first run. The line dates from the repository's initial commit (91555867) with no recorded reason. The baseline's own comment at static_media.py:41 says WhiteNoise requires offline compression, so the override is also wrong for the demo in production.",
+      "reproduction": "Build the demo with docker/portal.Dockerfile and start it with production settings and a reachable PostGIS: the log ends at `CommandError: Offline compression is disabled. Set COMPRESS_OFFLINE or use the --force to override.` and the container exits non-zero.",
+      "suggested_fix": "Add to T005 (and to P3's prose): delete `COMPRESS_OFFLINE = False` from config/settings.py, so the demo inherits the baseline's offline compression. Nothing else moves. tests/settings.py:68-69 sets its own COMPRESS_ENABLED/COMPRESS_OFFLINE, so the suite is unaffected. fairdm/conf/development.py sets COMPRESS_ENABLED = False, so the compose development server is unaffected: compressor/templatetags/compress.py:64 needs both settings on before it reads the offline manifest."
+    },
+    {
+      "id": "DR-002",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[security / package-versus-project] The runtime image sets neither DJANGO_ENV nor DJANGO_SETTINGS_MODULE. As a result the start steps, the server and the worker resolve their environment from three different defaults, and with the demo's own manage.py the start sequence fails at migrate.",
+      "evidence": "manage.py:7 does `setdefault(\"DJANGO_ENV\", \"development\")`, while config/wsgi.py sets none and fairdm/conf/setup.py:203 defaults to production. In the planned runtime image, `python manage.py migrate/collectstatic/compress` therefore run under development settings while gunicorn serves production. Under development settings, fairdm/conf/development.py:11-13 installs `django_browser_reload`, which comes only from mvp-shared[dev] (uv.lock, the mvp-shared optional `dev` list) and is absent after P3's `uv sync --no-dev`, so `migrate` fails on import. Were it present, development.py sets COMPRESS_ENABLED = False and compress.py:384-388 refuses. For the worker, fairdm/conf/celery.py sets no DJANGO_SETTINGS_MODULE, and Celery's Django fixup only installs when that variable is set (celery/fixups/django.py:52), so `docker run <image> worker` (AS 1.5, FR-007) starts Celery with Django unconfigured. Plan P1 sets neither variable, and P7 leaves the environment for the implementer to discover. That leaves the image unsafe by default for any portal laid out like the demo, against SC-005.",
+      "reproduction": "Run the demo runtime image with only the database and secret variables set: migrate fails with ModuleNotFoundError: No module named 'django_browser_reload'.",
+      "suggested_fix": "In plan P1, runtime stage: add `DJANGO_ENV=production DJANGO_SETTINGS_MODULE=config.settings` to the ENV line, matching the image's existing `config.wsgi:application` and `config` Celery defaults. In the development stage: add `ENV DJANGO_ENV=development`. The suite is unaffected because pytest takes `--ds=tests.settings` from addopts (pyproject.toml:302) and pytest-env sets DJANGO_ENV=development (pyproject.toml:289). docker-compose.yml already sets both. Leave both variables out of the smoke test's environment so T006 proves the defaults."
+    },
+    {
+      "id": "DR-003",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[correctness] The publish step can leave a release with only one of its two images, permanently. Two runs on the same tag can also both pass the existence check, and the second then moves the tag.",
+      "evidence": "plan P6 step 4 checks once that neither `:$version` nor `:$version-dev` exists, exits 1 if either does, then tags and pushes both. The two are separate pushes. A registry or network failure after the first push leaves `<version>` published without `<version>-dev`. Every retry or re-run then finds one tag present and exits 1, so the pair can never be completed. That breaks FR-014/AS 4.3 (a partly published set) and SC-003. P6 declares no `concurrency`, and its triggers include both `release: published` and `workflow_dispatch` on a release tag (the v0.1.0 path). Two such runs can both inspect before either pushes, and the later push overwrites the first with a rebuilt digest, which FR-013 forbids.",
+      "reproduction": "Run step 4 and fail the second `docker push` (for example, revoke the token between pushes), then re-run the job: the guard exits 1 on the runtime tag, and `<version>-dev` never appears.",
+      "suggested_fix": "In plan P6 step 4 (and T017): check each tag on its own, push only the tags that do not exist, and never re-push one that does. A retry then completes a partial set without moving anything. Add `concurrency: { group: image-${{ github.ref }}, cancel-in-progress: false }` to image.yml so two runs on one tag cannot interleave."
+    },
+    {
+      "id": "DR-004",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[spec-compliance] No task demonstrates the publish path at all. AS 4.1, AS 4.2, FR-012 and FR-013 (both images published, pullable without signing in, a published tag never moved) have no test seam, and the step only runs on a tag ref that a pull request never has.",
+      "evidence": "tasks.md T017 builds step 4 with no verification, while T015/T016 cover steps 1 to 3 only. plan P6 step 4 runs only on `refs/tags/v*`, so the pull request, main and every local run skip the version computation, the existence guard, the login and the push. plan P6 already names the first real run, a dispatch on v0.1.0 after merge, and P9 already raises the package access at the merge gate. spec.md US4 Independent Test: \"publish a release and pull both images by that release's version number\".",
+      "suggested_fix": "Extend T017 with its acceptance evidence, taken at the merge gate after P9's access grant: dispatch image.yml on `v0.1.0`; signed out, `docker pull ghcr.io/fair-dm/fairdm:0.1.0` and `:0.1.0-dev`; dispatch again and record that no tag's digest changed. Record the commands and output, as T016 does."
+    },
+    {
+      "id": "DR-005",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[spec-compliance] Parts of FR-002, FR-003 and FR-009 have no check that fails when they are unmet. Removing libpq5 or uv from the runtime stage, or build-essential from the development stage, leaves every planned check green. Nothing observes that the runtime image contains no FairDM.",
+      "evidence": "plan P7 and research R8 run every check against the built demo portal image, which by construction contains FairDM, and the demo depends on psycopg2-binary (pyproject.toml), which bundles its own libpq. Nothing in the runtime path calls uv, because P3 copies the built venv. T005 exercises git (git dependencies in uv.lock) but no compiled dependency, so build-essential goes untested.",
+      "suggested_fix": "Add to T006, in docker/smoke-test.sh, a few one-line checks against the bare images. In the runtime image: `uv --version`; `ldconfig -p | grep -q libpq.so.5`; and `python -c 'import fairdm'` must fail. In the development image: `gcc --version` and `git --version`."
+    }
+  ],
+  "notes": [
+    "The schema has one top-level `lens`, so each finding's lens is written as a [lens] prefix in its claim.",
+    "research.md \"What already exists\" omits `.github/workflows/image.yml` as a new piece.",
+    "plan P2: the outline has no stderr line for a non-executable step, which the prose below it and T008 require. The loop shape itself is correct under dash (probed).",
+    "plan P5: `-e POSTGRES_*` is not a docker form, since docker does not expand globs. Name each variable. It would pass by accident: under --network host, the mounted stack.development.env supplies POSTGRES_HOST=localhost in development mode.",
+    "plan P5: `UV_NO_SYNC=1 for any uv run after the pin` refers to job env, which does not reach the container, and the command uses bare `pytest`. Drop the clause.",
+    "plan P5: the matrix `python-version` no longer selects Python, because the image fixes 3.13. The job name would claim a version the job did not run if one were added.",
+    "plan Risks: 'adds about a minute' covers the image build only. `uv sync --locked` in a `--rm` container is uncached on every run, because setup-uv's cache (test-suite.yml:63-66) goes, and that includes re-cloning four git dependencies.",
+    "plan P7: the production baseline redirects HTTP to HTTPS (fairdm/conf/settings/security.py:36, proxy header :38). The '/ answers 200' check needs `X-Forwarded-Proto: https` or DJANGO_SECURE_SSL_REDIRECT=False, and the guide should say which a portal behind a proxy relies on.",
+    "plan P6: `docker buildx imagetools inspect` exits non-zero on auth or network errors as well as on absence. Treat only a not-found answer as absent.",
+    "plan P6 publishes on any `v*` tag ref, including a hand-made tag with no release. This is acceptable while write access is trusted. Worth one sentence in P6.",
+    "plan P3: `COPY ... README.md` fails for a portal that has no README. The guide should say the file is needed only if the portal's build backend reads it.",
+    "plan P3: the runtime `COPY --chown=fairdm:fairdm . /app` makes portal code writable by the server process, when only /app/static and /app/media need to be. This is defence in depth. FR-004 does not require it.",
+    "plan P8 says four contributor pages mention `compose/django/Dockerfile`, but none does (grep). They describe the compose stack and the CI GDAL install, so the scope is right and only the stated reason is off. AGENTS.md:26 says the compose environment 'is not currently working'. T013 should correct that.",
+    "Tag Release falls back to GITHUB_TOKEN when RELEASE_TOKEN is empty (django-mvp/shared tag-release.yml@v0.6.0:62). In that case no release event fires, no image run starts, and nothing fails. Worth a line in the guide's release notes or P9."
+  ]
+}

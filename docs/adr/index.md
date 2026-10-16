@@ -40,4 +40,6 @@ do not restate earlier ones, only build past them.
 0031-portals-run-on-postgis
 0032-a-location-is-a-value-on-each-record
 0033-a-measurement-borrows-its-samples-location-only-for-a-viewer-who-may-open-the-sample
+0034-portals-build-on-the-published-base-images
+0035-fairdm-does-not-compress-static-files
 ```

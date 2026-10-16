@@ -1,9 +1,10 @@
 name: Test suite
 
 # The suite needs PostgreSQL with PostGIS and the GDAL, GEOS and PROJ libraries, which the
-# shared test workflow does not provide, so FairDM keeps its own. It is called from tests.yml
-# as a reusable workflow so the check keeps its required name,
-# "call-tests / Test Python 3.13, Django 5.2".
+# shared test workflow does not provide, so FairDM keeps its own. The libraries come from the
+# development image, built from the branch, so a change to the image is tested by the suite
+# that depends on it. It is called from tests.yml as a reusable workflow so the check keeps its
+# required name, "call-tests / Test Python 3.13, Django 5.2".
 
 on:
   workflow_call:
@@ -23,7 +24,7 @@ jobs:
     strategy:
       matrix:
         # Django 6.0 is outside this package's supported range (see the django
-        # constraint in pyproject.toml).
+        # constraint in pyproject.toml). The Python version is the image's.
         python-version: ["3.13"]
         django-version: ["5.2"]
       fail-fast: false
@@ -43,43 +44,61 @@ jobs:
           --health-timeout 5s
           --health-retries 20
 
-    env:
-      # `uv run` would otherwise re-sync to uv.lock and undo the Django pinned below.
-      UV_NO_SYNC: "1"
-      POSTGRES_HOST: localhost
-      POSTGRES_PORT: "5432"
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: fairdm
-
     steps:
       - name: Check out
         uses: actions/checkout@v7
 
-      - name: Install GDAL, GEOS and PROJ
-        run: |
-          sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends gdal-bin
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v10.2.0
+      - name: Build the development image
+        uses: docker/build-push-action@v7
         with:
-          python-version: ${{ matrix.python-version }}
-          enable-cache: true
-          cache-suffix: ${{ matrix.django-version }}
+          context: .
+          file: docker/Dockerfile
+          target: development
+          load: true
+          push: false
+          tags: fairdm-dev:ci
+          cache-from: type=gha,scope=development
+          cache-to: type=gha,scope=development,mode=max
 
-      - name: Sync dependencies
-        run: uv sync --locked
+      # The image has the uv cache's directory but not its contents, so dependencies and git
+      # dependencies are downloaded once per lock file.
+      - name: Cache uv downloads
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-${{ matrix.django-version }}-${{ hashFiles('uv.lock') }}
+          restore-keys: |
+            uv-${{ runner.os }}-${{ matrix.django-version }}-
 
-      - name: Pin Django version
+      # Root inside the container lets it write coverage.xml into the runner's checkout. The
+      # host network reaches the PostGIS service on the runner's localhost. `uv run` is not
+      # used, because it would re-sync to uv.lock and undo the Django version pinned here.
+      - name: Run tests
         env:
           DJANGO_VERSION: ${{ matrix.django-version }}
+          POSTGRES_HOST: localhost
+          POSTGRES_PORT: "5432"
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: fairdm
         run: |
-          uv pip install "django~=${DJANGO_VERSION}.0"
-          uv run python -c "import django, os, sys; want = os.environ['DJANGO_VERSION']; got = '.'.join(map(str, django.VERSION[:2])); print(f'Django {django.__version__}'); sys.exit(0 if got == want else f'expected Django {want}, got {got}')"
-
-      - name: Run tests
-        run: uv run pytest --cov=fairdm --cov-report=xml
+          mkdir -p "$HOME/.cache/uv"
+          docker run --rm --network host --user root \
+            -v "$PWD:/app" \
+            -v "$HOME/.cache/uv:/root/.cache/uv" \
+            -e POSTGRES_HOST -e POSTGRES_PORT -e POSTGRES_USER -e POSTGRES_PASSWORD -e POSTGRES_DB \
+            -e DJANGO_VERSION \
+            fairdm-dev:ci \
+            sh -c '
+              set -e
+              uv sync --locked
+              uv pip install --python /opt/venv/bin/python "django~=${DJANGO_VERSION}.0"
+              python -c "import django, os, sys; want = os.environ[\"DJANGO_VERSION\"]; got = \".\".join(map(str, django.VERSION[:2])); print(f\"Django {django.__version__}\"); sys.exit(0 if got == want else f\"expected Django {want}, got {got}\")"
+              pytest --cov=fairdm --cov-report=xml
+            '
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v7

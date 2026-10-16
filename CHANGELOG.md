@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Base images for building a portal's production container.** `docker/Dockerfile` builds a
+  runtime image (Python 3.13, uv, the PostgreSQL client library, GDAL, GEOS and PROJ, and a
+  non-root user) and a development image (the same, plus git and build tools). Neither contains
+  FairDM: a portal installs its locked dependencies on the development image and copies them onto
+  the runtime image, as `docker/portal.Dockerfile` shows. A container's default command applies
+  migrations, collects static files, then serves with gunicorn, and stops at the
+  first step that fails. `PORT` changes the port, and the command `worker` starts a Celery worker
+  instead. Executable files in `/docker-entrypoint.d/` run as start steps after `collectstatic`
+  and before the server, in name order. `docker/smoke-test.sh` checks the images and a portal
+  built on them, on every pull request, and the test suite runs inside the development image.
+  Each release publishes `ghcr.io/fair-dm/fairdm:<version>` and `ghcr.io/fair-dm/fairdm:<version>-dev`
+  and never moves a tag it has published. See
+  [How to deploy a portal in a container](docs/portal-development/production.md).
+- **The `docker-compose.yml` development stack works again.** It builds the development image,
+  mounts the checkout, and starts PostGIS, Redis, the development server and a Celery worker with
+  `docker compose up`. `compose/django/Dockerfile` is gone. The deployment guide shows a portal's
+  own compose file on the same image.
+
+### Removed
+
+- **django-compressor and django-libsass are no longer dependencies.** No template in FairDM used
+  `{% compress %}`, so the `compress` step could only fail, and the container start sequence no
+  longer runs it. FairDM drops the `compressor` app, the `CompressorFinder` static finder, every
+  `COMPRESS_*` setting and the `compress` step of the production setup sequence. A portal that
+  uses `{% compress %}` or `django_libsass` adds `django-compressor` (and `django-libsass`) to its
+  own dependencies, adds `compressor` to its `INSTALLED_APPS`, adds
+  `compressor.finders.CompressorFinder` to `STATICFILES_FINDERS`, sets its own `COMPRESS_*`
+  settings, and runs `python manage.py compress` before it serves.
+
 ## [v0.1.0] - 2026-10-16
 
 ### Added

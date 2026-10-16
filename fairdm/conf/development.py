@@ -78,8 +78,6 @@ STORAGES = {
     },
 }
 
-COMPRESS_ENABLED = False
-
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

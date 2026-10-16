@@ -1,0 +1,105 @@
+{
+ "story": "US1",
+ "repo": "FAIR-DM/fairdm",
+ "issue": 527,
+ "worktree": "/home/sam/projects/worktrees/fairdm-031-base-image",
+ "required_skills": [
+  {
+   "name": "craft-tdd",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+   "receipt": "craft-tdd/2026-09-28/b19e4d07"
+  },
+  {
+   "name": "craft-increments",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+   "receipt": "craft-increments/2026-10-15/1ffa47c3"
+  }
+ ],
+ "tasks": [
+  "T019",
+  "T006"
+ ],
+ "context": {
+  "why": "Continuation of US1 of FS-031. T001-T005 and T007 are done and committed by you (HEAD 30143fd9 plus the orchestrator's spec/plan commit after it). T006 was blocked because `manage.py compress` fails: no template uses {% compress %}. The maintainer decided: FairDM stops depending on django-compressor (and django-libsass, whose only use was compressor's precompiler), and the start sequence drops the compress step. Do T019 per plan P10, then finish T006: the smoke test must pass against the demo image built from docker/portal.Dockerfile.",
+  "spec_sections": [
+   "FR-005",
+   "FR-020",
+   "User Story 1",
+   "Clarifications",
+   "Breaking changes"
+  ],
+  "plan_sections": [
+   "P2",
+   "P7",
+   "P10"
+  ],
+  "research_sections": [
+   "R1",
+   "R2",
+   "R3",
+   "R4",
+   "R6",
+   "R7",
+   "R8"
+  ],
+  "prior_decisions": [
+   "D1: the images contain no FairDM and no portal code.",
+   "D3: a production portal installs its dependencies on the development image and runs on the runtime image.",
+   "D4: the start sequence is migrate --noinput, collectstatic --noinput, compress, then gunicorn. Not django-setup-tools.",
+   "D6: no image exists for any release yet; portal.Dockerfile's FAIRDM_VERSION ARG has no default.",
+   "D8: delete COMPRESS_ENABLED = True and COMPRESS_OFFLINE = False from config/settings.py (lines 9-10).",
+   "D9 watch items: name every env var passed to docker run; smoke-test requests send X-Forwarded-Proto: https because production redirects to HTTPS (fairdm/conf/settings/security.py:36).",
+   "D11: remove django-compressor and django-libsass; start sequence is migrate, collectstatic, the portal's steps, gunicorn. Leave demo/static/scss/ and docs/portal-development/theme*.md untouched."
+  ],
+  "constitution": [
+   "Article I: every change follows docs/contributing/standards/testing.md: what gets a test and what does not, test-first, structure and fixtures. Tests are grouped into Test<Subject> classes. A test whose subject is not a Python module is exempt from mirroring only when declared in [tool.forge.conformance] non-mirror-paths in pyproject.toml; add \"tests/test_docker/\" there (T001). Wording and appearance get no tests.",
+   "Article II: start with the simplest design that satisfies the spec. Article III: no wrapper layers or future-proofing indirection without a present second use.",
+   "Article VI: public changes ship their docs in the same pull request. Every documented example must work against the branch. Documentation describes behaviour in testable terms."
+  ],
+  "environment": [
+   "Docker: use docker.exe (Docker Desktop on Windows, reachable from this WSL shell). The plain docker CLI gets permission denied on the socket. docker.exe accepts WSL paths for build contexts and bind mounts under /home.",
+   "Docker Desktop does not give containers the host's network like a Linux CI runner does. Make docker/smoke-test.sh work in both places: in CI it will run with a PostGIS service container on the runner's localhost (US5 wires that); locally, start postgis/postgis:17-3.5 on a user-defined docker network and run the portal container on the same network. Have the script take the database host and the network from environment variables with CI-suitable defaults, and document the local invocation in a comment at the top of the script.",
+   "Python tests: run with `uv run pytest -n0 tests/test_docker/` for your own tests. The full suite needs GDAL and the local PostGIS: export GDAL_LIBRARY_PATH=/home/sam/.local/opt/micromamba/root/envs/gis/lib/libgdal.so GEOS_LIBRARY_PATH=/home/sam/.local/opt/micromamba/root/envs/gis/lib/libgeos_c.so (the local PostGIS is already running on port 5432, socket in /tmp). The full verify at your section 5 is: `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/worktrees/fairdm-031-base-image --base origin/main` with those two variables exported.",
+   "Entrypoint tests (T001, T002): run docker/entrypoint.sh with subprocess under /bin/sh, with PATH starting with a tmp_path directory of stand-in python, gunicorn and celery scripts that append their argv to a log file and exit with a status the test controls. No Docker in the Python tests."
+  ],
+  "verified_base": {
+   "commit": "30143fd9",
+   "at": "2026-10-16T14:30:00Z",
+   "steps": [
+    "conformance",
+    "docs",
+    "lint",
+    "typecheck",
+    "test",
+    "build"
+   ],
+   "note": "verified by the implementer's own section-5 run on 30143fd9; the orchestrator's later commit touches specs/031-base-image only"
+  },
+  "acceptance": [
+   "T019: no import, setting, template tag, dependency or doc example in the package refers to django-compressor or django-libsass (git grep -i 'compress' finds only gzip/brotli/decompress senses, the changelog, specs and the untouched SCSS/theme files); uv.lock updated with `uv lock`; the entrypoint tests changed to the new sequence (you authored them, so editing them is allowed); full verify green.",
+   "T006: docker/smoke-test.sh passes against the demo image, every check printed; paste the output into the T006 evidence."
+  ]
+ },
+ "budgets": {
+  "attempts_per_task": 5,
+  "wallclock_minutes": 240
+ },
+ "rituals": [
+  "Load craft-tdd and craft-increments by reading the path in required_skills (or by name through the Skill tool). Copy each RECEIPT line verbatim into skills_loaded. If neither route works, stop and report blocked.",
+  "Read /home/sam/.openclaw/workspaces/forge/skills/forge-feature-request/references/implement-story.md in full: it is your protocol.",
+  "Read this brief in full, then your own tasks in specs/031-base-image/tasks.md (Phase 1 only).",
+  "Read the plan.md and research.md sections named in context, and the spec sections. Read docs/contributing/standards/testing.md before writing a test.",
+  "git log --oneline -5. Confirm HEAD equals context.verified_base.commit or differs from it only under specs/031-base-image/.",
+  "Do not run the suite to check your starting point; context.verified_base is that assurance.",
+  "Record each finished task with `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge ledger-task --repo FAIR-DM/fairdm --feature 031-base-image --path /home/sam/projects/worktrees/fairdm-031-base-image --stage S4 --done T0nn ...` and each progress entry with `/home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge progress --feature 031-base-image --who 'Implementer US1' --task T0nn`, exactly as your protocol gives them.",
+  "Write your completion report as JSON per /home/sam/.openclaw/workspaces/forge/engineering-org/kit/schemas/completion-report.schema.json to /home/sam/projects/worktrees/fairdm-031-base-image/specs/031-base-image/report-us1.json, commit it, and give a short plain summary as your final reply."
+ ],
+ "prohibitions": [
+  "Never modify or delete a test you did not author in this story.",
+  "Never touch files outside this story's scope: docker/, tests/test_docker/, pyproject.toml and uv.lock, config/settings.py, fairdm/conf/settings/apps.py, fairdm/conf/settings/static_media.py, fairdm/conf/development.py, tests/settings.py (its COMPRESS lines only), fairdm/templates/pages/spectacular.html, fairdm/contrib/theme/README.md, docs/portal-development/production.md, CONTEXT.md, CHANGELOG.md, and your own records under specs/031-base-image/. Do not touch .github/, docker-compose.yml or compose/.",
+  "Never edit feature-state.json by hand; use kit/forge ledger-task for your own tasks only.",
+  "Never push, merge, open or comment on anything on GitHub. No gh, no tokens.",
+  "Never weaken an assertion, add a skip, or special-case code to make a test pass.",
+  "Never push an image to any registry."
+ ]
+}

@@ -6,9 +6,6 @@ fairdm.setup(
     apps=["demo"],
 )
 
-COMPRESS_ENABLED = True
-COMPRESS_OFFLINE = False
-
 # Set `logo`, `title` or `lead` to False to hide it. `title` accepts a {site_name} placeholder.
 HOME_PAGE_CONFIG = {
     "logo": True,

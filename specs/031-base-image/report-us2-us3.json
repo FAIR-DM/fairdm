@@ -1,0 +1,133 @@
+{
+ "story": "US2",
+ "skills_loaded": [
+  {
+   "name": "craft-tdd",
+   "receipt": "craft-tdd/2026-09-28/b19e4d07",
+   "loaded_via": "path-read"
+  },
+  {
+   "name": "craft-increments",
+   "receipt": "craft-increments/2026-10-15/1ffa47c3",
+   "loaded_via": "path-read"
+  }
+ ],
+ "tasks": [
+  {
+   "id": "T008",
+   "status": "done",
+   "evidence": {
+    "commands": [
+     "uv run pytest -n0 tests/test_docker/test_entrypoint.py::TestStartSteps -> 4 failed, 3 passed before docker/entrypoint.sh changed (no step ran); 7 passed after"
+    ],
+    "exit_code": 0,
+    "criteria": [],
+    "tests_added": [
+     "tests/test_docker/test_entrypoint.py::TestStartSteps"
+    ]
+   },
+   "commits": [
+    "80ddfae7"
+   ]
+  },
+  {
+   "id": "T009",
+   "status": "done",
+   "evidence": {
+    "commands": [
+     "uv run pytest -n0 tests/test_docker/ -> 17 passed"
+    ],
+    "exit_code": 0,
+    "criteria": []
+   },
+   "commits": [
+    "80ddfae7"
+   ]
+  },
+  {
+   "id": "T010",
+   "status": "done",
+   "evidence": {
+    "commands": [
+     "DOCKER=docker.exe SMOKE_NETWORK=fairdm-smoke SMOKE_DB_HOST=fairdm-smoke-db SMOKE_REDIS_URL=redis://fairdm-smoke-redis:6379/0 bash docker/smoke-test.sh fairdm-base:local fairdm-base:local-dev fairdm-demo:local, on a fresh PostGIS -> exit 0: ok   the runtime image has the PostgreSQL client library | ok   the runtime image has uv | ok   fairdm-base:local does not contain FairDM | ok   fairdm-base:local-dev does not contain FairDM | ok   the development image has gcc and git | ok   the database is reachable from a container on network fairdm-smoke | ok   the portal migrated, collected static files and answered 200 on port 8000 | ok   a start step in /docker-entrypoint.d saw the migrated database and ran before the server answered | ok   the server does not run as root | ok   GDAL and GEOS load with no library path set | ok   PORT=8123 makes the portal answer on port 8123 | ok   the worker command started Celery and ran none of the web start sequence | ok   with the database unreachable the container exits 1 and the server never starts | all checks passed",
+     "Probe: moved the start-steps loop before migrate in docker/entrypoint.sh, rebuilt the images, ran the smoke test on a fresh database -> exit 1, the step's django_migrations assertion failed; entrypoint restored"
+    ],
+    "exit_code": 0,
+    "criteria": []
+   },
+   "commits": [
+    "8db33e1d"
+   ]
+  },
+  {
+   "id": "T011",
+   "status": "done",
+   "evidence": {
+    "commands": [
+     "Built a throwaway image on fairdm-demo:local with the guide's step (COPY --chmod=755) and a second file (COPY --chmod=644), ran it against PostGIS: the step ran, 'skipping /docker-entrypoint.d/20-plain: not executable' was printed, the server started"
+    ],
+    "exit_code": 0,
+    "criteria": []
+   },
+   "commits": [
+    "d1deb09d"
+   ]
+  },
+  {
+   "id": "T012",
+   "status": "done",
+   "evidence": {
+    "commands": [
+     "docker.exe compose -p fairdm031 up -d --build -> all four services up",
+     "curl http://localhost:8000/ -> 200",
+     "touch fairdm/__init__.py; docker.exe compose -p fairdm031 logs django -> '/app/fairdm/__init__.py changed, reloading.' then 'Watching for file changes with StatReloader'",
+     "docker.exe compose -p fairdm031 logs celeryworker -> 'Connected to redis://redis:6379/0' and 'celery@a27c63c0b006 ready.'",
+     "docker.exe compose -p fairdm031 down -v --rmi local -> exit 0",
+     "compose/django/Dockerfile deleted (git rm)"
+    ],
+    "exit_code": 0,
+    "criteria": []
+   },
+   "commits": [
+    "6eef4d39"
+   ]
+  },
+  {
+   "id": "T013",
+   "status": "done",
+   "evidence": {
+    "commands": [
+     "docker.exe compose -p fairdm031 run --rm --no-deps django sh -c 'uv sync --locked >/dev/null 2>&1 && pytest -n0 tests/test_core/test_project -q -x' -> 346 passed (the command the testing page documents, with -n0)",
+     "The guide's portal compose file, run against fairdm-base:local-dev with the checkout as the portal: GET / -> 200, celery 'ready.'",
+     "forge verify --repo /home/sam/projects/worktrees/fairdm-031-base-image --base origin/main (GDAL_LIBRARY_PATH and GEOS_LIBRARY_PATH exported) -> conformance, docs, uv:lint, uv:typecheck, uv:test (178s), uv:build all passed, exit 0"
+    ],
+    "exit_code": 0,
+    "criteria": []
+   },
+   "commits": [
+    "9309d64d"
+   ]
+  }
+ ],
+ "deviations": [
+  {
+   "what": "The smoke test copies the start step into the container with docker cp instead of mounting it.",
+   "why": "Docker Desktop with docker.exe gives the container an empty directory when a WSL path is bind-mounted.",
+   "decision_ref": "D12"
+  },
+  {
+   "what": "In docker-compose.yml the worker waits for django to be healthy, and django has a healthcheck. The plan has neither.",
+   "why": "Both services ran uv sync into the shared venv volume at once; the web service failed and the worker started without celery.",
+   "decision_ref": "D13"
+  }
+ ],
+ "concerns": [
+  "Docker Desktop resolves a relative bind mount (.:/app) to a \\\\wsl.localhost path, but an absolute WSL path in -v arrives empty. The documented compose files use the relative form, which works.",
+  "One smoke-test run exited early with a 'WSL ... accept4 failed 110' line and the web container gone before it answered. It did not recur in four later runs, including the final one on a fresh database. Not diagnosed.",
+  "I ran the compose stack under project name fairdm031 (docker.exe compose -p) so the existing fairdm_postgres volume was untouched by down -v. The network fairdm-smoke could not be removed: another container (youthful_lovelace) is attached to it; I left it.",
+  "docs/portal-development/getting_started.md still tells the reader to use `poetry`, which the repository no longer uses. Its compose sentence (`docker compose up postgres redis`) is still true, so I did not touch the file.",
+  "The testing page says the Test suite workflow runs in the development image; test-suite.yml still installs GDAL until US5 (T014) lands. Both ship in the same pull request.",
+  "docs/contributing/before_you_start.md says a user-id override works with `user:` in a docker-compose.override.yml; I could not try it because this host's user is uid 1000."
+ ],
+ "blocked": []
+}

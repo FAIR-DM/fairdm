@@ -1,4 +1,4 @@
-"""Static and media file settings: WhiteNoise, compressor, storages and thumbnails.
+"""Static and media file settings: WhiteNoise, storages and thumbnails.
 
 Owns static serving via WhiteNoise and media storage. Media storage is the local filesystem,
 switching to S3 when ``S3_ACCESS_KEY_ID``, ``S3_SECRET_ACCESS_KEY`` and ``S3_BUCKET_NAME``
@@ -15,9 +15,9 @@ SITE_DOMAIN = globals()["SITE_DOMAIN"]
 
 logger = logging.getLogger(__name__)
 
-STATIC_ROOT = COMPRESS_ROOT = str(BASE_DIR / "static")
+STATIC_ROOT = str(BASE_DIR / "static")
 
-STATIC_URL = COMPRESS_URL = "/static/"
+STATIC_URL = "/static/"
 
 if os.path.exists(str(BASE_DIR / "assets")):
     STATICFILES_DIRS = [
@@ -27,7 +27,6 @@ if os.path.exists(str(BASE_DIR / "assets")):
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-    "compressor.finders.CompressorFinder",
 ]
 
 MEDIA_ROOT = str(BASE_DIR / "media")
@@ -35,19 +34,6 @@ MEDIA_ROOT = str(BASE_DIR / "media")
 MEDIA_URL = "/media/"
 
 WHITENOISE_MANIFEST_STRICT = False
-
-COMPRESS_ENABLED = True
-COMPRESS_STORAGE = "compressor.storage.GzipCompressorFileStorage"
-# Whitenoise requires offline compression.
-COMPRESS_OFFLINE = True
-COMPRESS_FILTERS = {
-    "css": [
-        "compressor.filters.css_default.CssAbsoluteFilter",
-        "compressor.filters.cssmin.rCSSMinFilter",
-    ],
-    "js": ["compressor.filters.jsmin.JSMinFilter"],
-}
-COMPRESS_PRECOMPILERS = (("text/x-scss", "django_libsass.SassCompiler"),)
 
 STORAGES = {
     "staticfiles": {
