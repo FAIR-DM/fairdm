@@ -3,6 +3,26 @@
 Step-by-step instructions for upgrading past a breaking change. Each section covers one change;
 read the one that matches what changed under you.
 
+## 031 - FairDM no longer compresses static files
+
+FairDM no longer installs django-compressor or django-libsass, and its settings no longer set up
+compression. Static files are collected with `collectstatic` and served by WhiteNoise, as before.
+See [How to deploy a portal in a container](../portal-development/production.md) for the start
+sequence the base images run.
+
+1. **Remove `compress` from your own start command.** A container or deployment script that runs
+   `python manage.py compress` stops with `Unknown command: 'compress'` after the upgrade. Delete
+   the step. If you build on FairDM's base images, their start sequence no longer runs it either.
+2. **Search your templates for `{% load compress %}` and `{% compress %}`.** If you find none, you
+   are done. If you find them, keep compression in your portal:
+   - add `django-compressor` (and `django-libsass` if you compile SCSS) to your portal's
+     dependencies
+   - add `"compressor"` to `INSTALLED_APPS`, `"compressor.finders.CompressorFinder"` to
+     `STATICFILES_FINDERS`, and the `COMPRESS_*` settings your templates rely on
+   - run `python manage.py compress` before the server starts, as a
+     [start step](../portal-development/production.md#add-your-own-start-steps) when you build on
+     the base images
+
 ## 030 - Upgrading to a location held on each record
 
 A sample's `location` used to be a link to a `Point` record that samples at the same coordinates

@@ -349,7 +349,7 @@ Now that you understand the basics, explore:
 - **[Defining Models](defining_models.md)**: Learn more about Sample and Measurement model patterns
 - **[Model Configuration](model_configuration.md)**: Customize auto-generated forms, tables, and filters
 - **[Using the Registry](using_the_registry.md)**: Deep dive into registration options
-- **[Deployment](deployment_guide/production.md)**: Deploy your portal to production
+- **[Deployment](production.md)**: Deploy your portal to production
 
 ```{seealso}
 For more advanced topics like custom views, plugins, and integration with external services, see the [How-to Guides](create_a_plugin.md) section.

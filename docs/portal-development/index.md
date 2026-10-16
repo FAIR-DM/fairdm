@@ -112,6 +112,7 @@ restful-api
 :maxdepth: 1
 :hidden:
 
+production
 configuration
 emails
 social_accounts

@@ -63,7 +63,13 @@ uv run pytest --cov --cov-report=html            # report in htmlcov/
 Every pull request runs the `Image` workflow. It builds the runtime image, the development image and
 the demo portal on top of them, then runs `docker/smoke-test.sh` against all three. A change to
 `docker/`, to the system libraries FairDM needs, or to the code that starts the portal can fail it,
-even when every test passes. Releases are published by the same workflow, but only on a release tag.
+even when every test passes. Releases are published by the same workflow, in a separate job that runs only on a release tag
+named `v<major>.<minor>.<patch>` and only after the images have passed the smoke test.
+
+Publishing pushes to `ghcr.io/fair-dm/fairdm`. That package was first created by another
+repository, so before the first release an organisation owner gives this repository the Write role
+under the package's *Manage Actions access* settings. Until then the publish job is refused by the
+registry, and nothing else in the workflow is affected.
 
 To run the same check on your machine, build the three images, start PostGIS and Redis on a network
 of their own, and run the script on that network:

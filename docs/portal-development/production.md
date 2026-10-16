@@ -29,8 +29,9 @@ FairDM `v0.2.0`:
 | Development image | `ghcr.io/fair-dm/fairdm:0.2.0-dev` |
 
 There is no `latest` tag. Write the release your portal depends on, so that moving the portal to a
-new FairDM release and moving its images happen in the same change. A published tag is never
-replaced.
+new FairDM release and moving its images happen in the same change. FairDM's release workflow
+never replaces a published tag. A portal that needs an image that cannot change at all writes the
+digest the registry shows for the release into its `FROM` lines by hand.
 
 A portal that pins FairDM to a commit between two releases uses the images of the last release
 before that commit. This holds as long as that commit has not changed FairDM's system
@@ -74,6 +75,21 @@ docker build --build-arg FAIRDM_VERSION=<release> -t my-portal .
 Your repository needs a `pyproject.toml` and a `uv.lock`. The Dockerfile copies `README.md` because
 the `hatchling` build backend reads it, so a portal whose build backend does not can leave it out.
 
+### Keep secrets out of the image
+
+The Dockerfile copies your whole repository into the image, and anyone who can pull the image can
+read every file in it. Production secrets come from the container's environment when it starts,
+never from a file in the repository. Add a `.dockerignore` next to the Dockerfile so that
+environment files and local state stay out of the build:
+
+```text
+.env
+stack*.env
+.git
+.venv
+media/
+```
+
 ## Start the portal
 
 The image's default command is `web`. It runs these steps, in this order, and stops at the first one
@@ -87,18 +103,23 @@ that fails, exiting with that step's status without starting the server:
 Static files are collected when the container starts, not when it is built, so settings that
 arrive through the environment apply to them.
 
-Run it against a PostGIS database and a Redis server:
+Run it against a PostGIS database and a Redis server, with the configuration in a file kept
+outside the repository, so the secrets stay out of the image and out of your shell history:
 
 ```bash
-docker run --rm --publish 8000:8000 \
-    --env DJANGO_SECRET_KEY=<at least 50 random characters> \
-    --env DJANGO_SITE_DOMAIN=portal.example.org \
-    --env POSTGRES_HOST=<database host> \
-    --env POSTGRES_DB=<database name> \
-    --env POSTGRES_USER=<database user> \
-    --env POSTGRES_PASSWORD=<database password> \
-    --env REDIS_URL=redis://<redis host>:6379/0 \
-    my-portal
+docker run --rm --publish 8000:8000 --env-file /etc/my-portal/portal.env my-portal
+```
+
+`portal.env` holds one variable per line:
+
+```text
+DJANGO_SECRET_KEY=<at least 50 random characters>
+DJANGO_SITE_DOMAIN=portal.example.org
+POSTGRES_HOST=<database host>
+POSTGRES_DB=<database name>
+POSTGRES_USER=<database user>
+POSTGRES_PASSWORD=<database password>
+REDIS_URL=redis://<redis host>:6379/0
 ```
 
 ### Environment variables
@@ -113,6 +134,7 @@ environment. These variables are the ones a production portal needs:
 | `DJANGO_SITE_DOMAIN` | The domain the portal answers on. It is added to `ALLOWED_HOSTS`. Set `DJANGO_ALLOWED_HOSTS` to a comma-separated list for more. |
 | `POSTGRES_HOST`, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` | The PostGIS database. `POSTGRES_PORT` defaults to 5432. Alternatively set `DATABASE_URL`. |
 | `REDIS_URL` | The Redis server used for the cache and as the Celery broker. |
+| `WSGI_APP` | The WSGI application gunicorn serves. Defaults to `config.wsgi:application`. |
 
 Without them the container refuses to start, naming what is missing. See
 [Configuration checks](../portal-administration/configuration-checks.md) for the full list of checks
@@ -227,12 +249,15 @@ services:
         condition: service_healthy
     environment:
       POSTGRES_HOST: postgres
+      POSTGRES_DB: fairdm
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
       REDIS_URL: redis://redis:6379/0
     volumes:
       - .:/app
       - venv:/opt/venv
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     command: sh -c "uv sync --locked && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
@@ -258,7 +283,8 @@ volumes:
 Write the FairDM release your portal depends on in place of `<release>`. Then run `docker compose
 up`. The first start installs your locked dependencies into the `venv` volume, and the portal
 answers on <http://localhost:8000> once it has. The development image sets `DJANGO_ENV=development`,
-so the portal runs with its development settings.
+so the portal runs with its development settings. Those settings show Django's debug pages, so the
+port is published on your own machine only.
 
 The worker waits for the web container to be healthy, so the two never install into the volume at
 once. On Linux, the containers run as user id 1000. If yours has another id, add `user:
