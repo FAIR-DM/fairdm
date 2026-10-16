@@ -170,6 +170,75 @@ environment variables as the web container.
 Anything else is run as given, so `docker run ... my-portal python manage.py shell` and a Compose
 `command:` line work without a wrapper.
 
+## Develop your portal on the development image
+
+The development image also runs your portal on your own machine, with no Dockerfile of your own.
+Your code is mounted from the checkout and your dependencies are installed into a volume, so an
+edit to a Python file reloads the server. Save this as `docker-compose.yml` in your portal's
+repository:
+
+```yaml
+services:
+  postgres:
+    image: postgis/postgis:17-3.5
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fairdm
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 20
+
+  redis:
+    image: redis:7
+
+  django: &django
+    image: ghcr.io/fair-dm/fairdm:<release>-dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: postgres
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - .:/app
+      - venv:/opt/venv
+    ports:
+      - "8000:8000"
+    command: sh -c "uv sync --locked && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
+      interval: 5s
+      timeout: 10s
+      retries: 240
+
+  celeryworker:
+    <<: *django
+    ports: []
+    healthcheck:
+      disable: true
+    depends_on:
+      django:
+        condition: service_healthy
+    command: sh -c "uv sync --locked && celery --app config worker --loglevel INFO"
+
+volumes:
+  postgres: {}
+  venv: {}
+```
+
+Write the FairDM release your portal depends on in place of `<release>`. Then run `docker compose
+up`. The first start installs your locked dependencies into the `venv` volume, and the portal
+answers on <http://localhost:8000> once it has. The development image sets `DJANGO_ENV=development`,
+so the portal runs with its development settings.
+
+The worker waits for the web container to be healthy, so the two never install into the volume at
+once. On Linux, the containers run as user id 1000. If yours has another id, add `user:
+"<your id>:<your group id>"` to the `django` service so it can write to your checkout.
+
 ## Validate before you deploy
 
 Run Django's deployment checks against the same configuration:

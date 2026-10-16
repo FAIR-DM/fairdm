@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and before the server, in name order. `docker/smoke-test.sh` checks the images and a portal
   built on them. See
   [How to deploy a portal in a container](docs/portal-development/production.md).
+- **The `docker-compose.yml` development stack works again.** It builds the development image,
+  mounts the checkout, and starts PostGIS, Redis, the development server and a Celery worker with
+  `docker compose up`. `compose/django/Dockerfile` is gone. The deployment guide shows a portal's
+  own compose file on the same image.
 
 ### Removed
 
