@@ -23,7 +23,7 @@
 #   docker run -d --name fairdm-smoke-redis --network fairdm-smoke redis:7
 #   SMOKE_NETWORK=fairdm-smoke SMOKE_DB_HOST=fairdm-smoke-db \
 #       SMOKE_REDIS_URL=redis://fairdm-smoke-redis:6379/0 \
-#       docker/smoke-test.sh fairdm-base:local fairdm-base:local-dev fairdm-demo:local
+#       DOCKER=docker.exe docker/smoke-test.sh fairdm-base:local fairdm-base:local-dev fairdm-demo:local
 #
 # Each check prints one line. The script stops at the first failure.
 
@@ -48,8 +48,10 @@ db_password=${POSTGRES_PASSWORD:-postgres}
 
 run_id=$$
 containers=()
+step_dir=$(mktemp -d)
 
 cleanup() {
+    rm -rf "$step_dir"
     if [ "${#containers[@]}" -gt 0 ]; then
         "$docker" rm --force "${containers[@]}" >/dev/null 2>&1 || true
     fi
@@ -83,7 +85,10 @@ portal_env() {
 }
 
 # start_portal NAME [-e VAR=value ...] [-- COMMAND...]: start a detached portal container and
-# leave its name in $started. Not called in a subshell, so cleanup knows the container.
+# leave its name in $started. Not called in a subshell, so cleanup knows the container. When
+# $copy_into_start_dir is set, the files in that directory are copied into /docker-entrypoint.d
+# before the container starts. They are copied, not bind-mounted, because Docker Desktop cannot
+# mount a path from the WSL filesystem.
 start_portal() {
     local name="smoke-$1-$run_id" args=() env_args=() line
     shift
@@ -96,8 +101,12 @@ start_portal() {
         env_args+=(-e "$line")
     done < <(portal_env)
     containers+=("$name")
-    "$docker" run --detach --name "$name" --network "$network" "${env_args[@]}" "${args[@]}" \
+    "$docker" create --name "$name" --network "$network" "${env_args[@]}" "${args[@]}" \
         "$portal_image" "$@" >/dev/null
+    if [ -n "${copy_into_start_dir:-}" ]; then
+        "$docker" cp "$copy_into_start_dir/." "$name:/docker-entrypoint.d" >/dev/null
+    fi
+    "$docker" start "$name" >/dev/null
     started=$name
 }
 
@@ -166,10 +175,30 @@ until "$docker" run --rm --network "$network" --entrypoint python "$runtime_imag
 done
 pass "the database is reachable from a container on network $network"
 
-start_portal web
+# A start step a portal would add: it fails unless the migrations have already run.
+cat >"$step_dir/10-check-migrations" <<'STEP'
+#!/bin/sh
+set -eu
+python manage.py shell -c "
+from django.db import connection
+assert 'django_migrations' in connection.introspection.table_names()
+"
+echo "start step: django_migrations exists" >&2
+STEP
+chmod 755 "$step_dir/10-check-migrations"
+
+copy_into_start_dir=$step_dir start_portal web
 web=$started
 wait_for_200 "$web" 8000
 pass "the portal migrated, collected static files and answered 200 on port 8000"
+
+web_log=$("$docker" logs "$web" 2>&1)
+step_line=$(printf '%s\n' "$web_log" | grep -n "start step: django_migrations exists" | head -1 | cut -d: -f1 || true)
+server_line=$(printf '%s\n' "$web_log" | grep -n "Listening at" | head -1 | cut -d: -f1 || true)
+[ -n "$step_line" ] || fail "the start step did not run" "$web"
+[ -n "$server_line" ] || fail "no 'Listening at' line from the server" "$web"
+[ "$step_line" -lt "$server_line" ] || fail "the start step ran after the server started" "$web"
+pass "a start step in /docker-entrypoint.d saw the migrated database and ran before the server answered"
 
 uids=$("$docker" exec "$web" sh -c '
     for dir in /proc/[0-9]*; do
