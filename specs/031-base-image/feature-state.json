@@ -335,8 +335,18 @@
         },
         {
           "id": "T015",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "check-jsonschema --builtin-schema vendor.github-workflows .github/workflows/image.yml: exit 0",
+              "actionlint .github/workflows/image.yml: exit 0",
+              "docker.exe build of runtime and development, docker buildx build --builder default of docker/portal.Dockerfile, then docker/smoke-test.sh fairdm-base:ci fairdm-base:ci-dev fairdm-demo:ci against postgis and redis on a user network: all checks passed, exit 0"
+            ],
+            "code": [
+              ".github/workflows/image.yml:24"
+            ]
+          }
         },
         {
           "id": "T016",

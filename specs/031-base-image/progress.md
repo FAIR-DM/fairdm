@@ -58,3 +58,10 @@ Did: test-suite.yml now builds the development target from the branch (buildx, l
 Verified: check-jsonschema (vendor.github-workflows) exit 0; actionlint 1.7.12 exit 0; the workflow's run step executed locally with docker.exe against a postgis container (network fs031-ci, bind mount via wslpath -w): Django 5.2.17 printed by the version check, `pytest --cov=fairdm --cov-report=xml tests/test_smoke.py tests/test_docker` 21 passed, exit 0, coverage.xml written into the checkout. `uv pip install` needed `--python /opt/venv/bin/python`: UV_PROJECT_ENVIRONMENT does not apply to the pip interface.
 Next: T015 image.yml.
 Watch: the full suite was not run in the image here; CI is the first full run. coverage.xml is written by root in the checkout, which the Codecov step reads.
+
+## 2026-10-16T17:16:34Z · Implementer US5 · T015
+
+Did: .github/workflows/image.yml, job `Image`, triggers pull_request, push to main, release published, workflow_dispatch, concurrency image-${{ github.ref }} without cancel-in-progress, PostGIS and Redis services on the runner. It builds runtime and development (buildx, load, gha cache, linux/amd64, VERSION build arg: tag without v, else dev), builds docker/portal.Dockerfile with `docker buildx build --builder default`, then runs docker/smoke-test.sh on the three images. Nothing is published yet.
+Verified: check-jsonschema exit 0 and actionlint exit 0. The same three builds and the smoke test run locally with docker.exe: 13 checks, "all checks passed", exit 0. A probe showed why the portal build uses the engine's builder: a docker-container builder fails `FROM fairdm-dev:ci` with "pull access denied", the `default` (docker driver) builder builds it.
+Next: T016, the broken-image evidence.
+Watch: `--builder default` and the runner's builder being named `default` are assumed from how Buildx lists builders; the first CI run is the first time it runs on a runner. Services and smoke-test defaults (SMOKE_NETWORK=host, localhost) are the runner case, which cannot be run here.
