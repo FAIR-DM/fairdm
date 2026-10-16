@@ -75,7 +75,6 @@ start_dir="${FAIRDM_START_DIR:-/docker-entrypoint.d}"
 case "${1:-web}" in
   web)    python manage.py migrate --noinput
           python manage.py collectstatic --noinput
-          python manage.py compress
           for step in "$start_dir"/*; do
             [ -f "$step" ] || continue
             if [ -x "$step" ]; then "$step"; else echo "skipping $step: not executable" >&2; fi
@@ -230,3 +229,21 @@ the workflow US5 creates.
 - **The development image runs as `fairdm`.** On a Linux host whose user is not uid 1000, a mounted
   checkout may not be writable from inside. The guide says so, and that `user:` in the compose file
   changes it.
+
+### P10. Removing django-compressor (decisions D11)
+
+- `pyproject.toml`: drop `django-compressor` and `django-libsass` from the dependencies and from
+  deptry's DEP002 list, then `uv lock`.
+- `fairdm/conf/settings/apps.py`: drop `compressor` from the installed apps and the `("compress",)`
+  entry from the setup-tools production list.
+- `fairdm/conf/settings/static_media.py`: drop `COMPRESS_ROOT`, `COMPRESS_URL`, the
+  `CompressorFinder`, `COMPRESS_ENABLED`, `COMPRESS_OFFLINE`, `COMPRESS_FILTERS` and
+  `COMPRESS_PRECOMPILERS`, and the module docstring's mention of compressor.
+- `fairdm/conf/development.py` and `tests/settings.py`: drop their `COMPRESS_*` lines.
+- `fairdm/templates/pages/spectacular.html`: drop `compress` from its `{% load %}`.
+- `fairdm/contrib/theme/README.md`: the snippet that compresses the theme stylesheet goes.
+- The entrypoint, its tests, the smoke test, the guide and `CONTEXT.md` drop the step.
+- Changelog: a Removed entry, with what a portal that used `{% compress %}` has to do.
+
+The SCSS files under `demo/static/scss/` and the Bootstrap-era theme pages
+(`docs/portal-development/theme.md`, `theme-migration.md`) are already stale and are not touched.

@@ -32,7 +32,7 @@ them needs git and build tools, which have no place in a production container. T
 image carries them, so it serves as the stage where a portal installs its dependencies, as well as
 the local development image. The runtime image carries only what FairDM needs to run.
 
-## D4. The start sequence is the one portals run today
+## D4. The start sequence is the one portals run today, without compression
 
 The GHFDB portal starts with migrate, collectstatic, compress, then gunicorn. The setup pipeline
 configured through `django-setup-tools` lists different steps (`preload`, `sync_site_id`) and is
@@ -95,3 +95,15 @@ database and Redis hosts differ between the two places, so those are the script'
 network inputs.
 
 **Revisit if.** A check needs to reach the container from outside, for instance through a proxy.
+
+## D11. FairDM stops depending on django-compressor
+
+The `compress` step failed on the demo with `No 'compress' template tags found in templates`. No
+template in FairDM, the demo, the django-mvp packages or the GHFDB portal uses `{% compress %}`, and
+`COMPRESS_OFFLINE` is on in production, so the step could never succeed. Asked during the build,
+the maintainer decided to remove django-compressor and the `compress` step. django-libsass goes
+with it, because its only use was as compressor's SCSS precompiler. The start sequence is migrate,
+collectstatic, the portal's steps, then gunicorn. This amends FR-005 and adds FR-020, approved by
+the maintainer in the session on 2026-10-16.
+
+**Reopen if** a portal needs offline compression back, in which case it belongs to that portal.

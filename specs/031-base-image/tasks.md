@@ -15,7 +15,7 @@ back. Wording and appearance get no tests.
 
 - [ ] T001 [US1] `tests/test_docker/test_entrypoint.py`, `TestWebStart`: with stand-in `python`
   and `gunicorn` on `PATH`, `entrypoint.sh web` runs `migrate --noinput`, `collectstatic
-  --noinput` and `compress` in that order, then `gunicorn config.wsgi:application`. With no
+  --noinput` in that order, then `gunicorn config.wsgi:application`. With no
   argument it does the same. `WSGI_APP` changes the application gunicorn is given. A failing
   `migrate` exits non-zero and gunicorn never runs (AS 1.2, AS 1.6, FR-005). Add
   `tests/test_docker/` to `non-mirror-paths` in `pyproject.toml`.
@@ -32,6 +32,9 @@ back. Wording and appearance get no tests.
   including the image-contents checks. Run it
   against the demo image and a local PostGIS until it passes (AS 1.1 to 1.7, FR-001 to FR-007,
   FR-009, SC-001, SC-005).
+- [ ] T019 [US1] Remove django-compressor and django-libsass per plan P10, and the `compress`
+  step from the entrypoint, its tests, the smoke test, the guide and `CONTEXT.md` (FR-005,
+  FR-020). The suite stays green. Then finish T006 against the demo image.
 - [ ] T007 [US1] Documentation: rewrite `docs/portal-development/production.md` per plan P8 for
   everything US1 delivers, including the example by `literalinclude`, the environment variables
   the smoke test needed, and the worker. `CONTEXT.md` terms. Changelog entry (FR-018).
@@ -39,7 +42,7 @@ back. Wording and appearance get no tests.
 ## Phase 2: US-2, a portal developer adds their own steps to the start sequence (P2)
 
 - [ ] T008 [US2] `tests/test_docker/test_entrypoint.py`, `TestStartSteps`: executable files in
-  `FAIRDM_START_DIR` run after `compress` and before gunicorn, in name order. A failing step exits
+  `FAIRDM_START_DIR` run after `collectstatic` and before gunicorn, in name order. A failing step exits
   non-zero and gunicorn never runs. A file that is not executable is skipped and named on stderr.
   An empty or missing directory runs the default sequence alone (AS 2.1, AS 2.2, AS 2.3, FR-008).
 - [ ] T009 [US2] The start-steps loop in `docker/entrypoint.sh`, to green.

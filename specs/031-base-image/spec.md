@@ -84,8 +84,12 @@ putting it to him again. The longer reasoning is in [decisions.md](decisions.md)
   This needs FairDM's GitHub releases to run (#525).
 - Q: Which architectures are built? → A: amd64 only.
 - Q: Does the default start run the `django-setup-tools` pipeline? → A: No. It runs the sequence
-  portals use today: apply migrations, collect static files, compress, then serve. #193 decides
-  whether that changes.
+  portals use today, without its compression step: apply migrations, collect static files, then
+  serve. #193 decides whether that changes.
+- Q: Does the start sequence compress static files? → A: No. Nothing in FairDM uses
+  django-compressor, and its `compress` command fails when no template uses `{% compress %}`, so
+  the start could never succeed. FairDM stops depending on django-compressor, and its settings and
+  the `compress` step go with it. The maintainer decided this during the build.
 - Q: Does a portal's production image need the development image? → A: Yes, as the stage where
   its dependencies are installed. Portals install FairDM and its addons from git, and some
   dependencies compile, so that stage needs git and build tools that the runtime image leaves out.
@@ -96,8 +100,8 @@ putting it to him again. The longer reasoning is in [decisions.md](decisions.md)
 
 A portal developer writes a short production Dockerfile. It installs the portal's locked
 dependencies on the development image, then copies them and the portal's code onto the runtime
-image. The container they build applies migrations, collects and compresses static files and
-serves the portal. They install no system packages and choose no user, paths or start command.
+image. The container they build applies migrations, collects static files and serves the
+portal. They install no system packages and choose no user, paths or start command.
 
 **Why this priority**: this is the whole point of the feature. Without it every portal keeps
 writing and repairing its own image.
@@ -111,7 +115,7 @@ deployment guide, start it against a PostGIS database, and request a page.
    and runs on the runtime image of the same release, **When** the developer builds it, **Then**
    the build succeeds without the Dockerfile installing any system package.
 2. **Given** that image and a reachable PostGIS database, **When** the container starts, **Then**
-   migrations are applied, static files are collected and compressed, and the portal answers HTTP
+   migrations are applied, static files are collected, and the portal answers HTTP
    requests.
 3. **Given** a running container, **When** the portal uses GeoDjango, **Then** GDAL, GEOS and PROJ
    load without any library path being set.
@@ -227,7 +231,7 @@ see the check fail.
   and the deployment guide says so.
 - **A portal needs a system library FairDM does not.** It installs the library in its own
   Dockerfile on top of the image. The image does not prevent that.
-- **Static files depend on settings injected at runtime.** Collecting and compressing static files
+- **Static files depend on settings injected at runtime.** Collecting static files
   happens when the container starts, not when it is built.
 
 ## Requirements *(mandatory)*
@@ -247,8 +251,10 @@ see the check fail.
   as the portal's working directory, and MUST keep the virtual environment outside `/app`.
   *(US1, US3)*
 - **FR-005**: The runtime image's default start MUST apply migrations, collect static files,
-  compress them, then serve the portal with gunicorn. If any step fails, it MUST exit with a
+  then serve the portal with gunicorn. If any step fails, it MUST exit with a
   failure and not start the server. *(US1)*
+- **FR-020**: FairDM MUST NOT depend on django-compressor or django-libsass, and its settings MUST
+  carry no compression configuration. *(US1)*
 - **FR-006**: The port the server listens on MUST be changeable without rebuilding the image.
   *(US1)*
 - **FR-007**: The same image MUST be able to start a background worker instead of the web server,
@@ -301,7 +307,7 @@ see the check fail.
 - **Development image**: the runtime image plus git and build tools. A portal installs its
   dependencies in it, and developers run a local development server on it.
 - **Start sequence**: what the runtime image does when a container starts in its default mode:
-  apply migrations, collect and compress static files, run any steps the portal added, then serve.
+  apply migrations, collect static files, run any steps the portal added, then serve.
 
 ## Success Criteria *(mandatory)*
 
@@ -329,6 +335,9 @@ see the check fail.
 
 ## Breaking changes
 
-- None for portals. A portal adopts the images when it chooses to.
+- A portal adopts the images when it chooses to.
+- FairDM no longer installs django-compressor or django-libsass. A portal whose templates use
+  `{% load compress %}` or `{% compress %}` adds django-compressor to its own dependencies and
+  `INSTALLED_APPS`, and adds `compress` to its own start steps.
 - `compose/django/Dockerfile` is replaced by the image definition, and `docker-compose.yml` is
   changed to use it.
