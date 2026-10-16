@@ -30,3 +30,17 @@ Did: rebuilt fairdm-base:local, fairdm-base:local-dev and fairdm-demo:local from
 Verified: smoke test exit 0, 10 checks plus "all checks passed": libpq present, uv present, neither base image contains FairDM, dev image has gcc and git, database reachable, portal migrated+collected and answered 200 on 8000, server not root, GDAL/GEOS load with no library path, PORT=8123 answers, worker starts Celery without the web sequence, unreachable database exits 1 and the server never starts. The remaining containers and the network were removed afterwards.
 Next: full verify, then the report.
 Watch: the portal Dockerfile build prints two InvalidDefaultArgInFrom warnings because FAIRDM_VERSION has no default by design.
+
+## 2026-10-16T16:13:29Z · Implementer US2 · T008-T009
+
+Did: wrote TestStartSteps first (7 tests), saw 4 fail because no step ran, then added the start-steps loop to docker/entrypoint.sh.
+Verified: uv run pytest -n0 tests/test_docker/ -> 17 passed; ruff check and format clean on tests/test_docker.
+Next: T010 smoke-test check for a mounted step.
+Watch: none.
+
+## 2026-10-16T16:33:37Z · Implementer US2 · T010-T011
+
+Did: added a start step to docker/smoke-test.sh, copied into the web container with docker create, cp and start, that asserts django_migrations exists and logs a line; the script compares that line's position in the container log with gunicorn's 'Listening at'. Wrote the Add your own start steps section of production.md and a changelog sentence.
+Verified: smoke test on a fresh PostGIS, exit 0, 13 checks. Probe: moved the start-steps loop before migrate in the entrypoint, rebuilt, smoke test failed on the step's assertion; restored. Built a throwaway image with the guide's example step (COPY --chmod=755): it ran and the server started; a 644 file was skipped with the documented stderr line.
+Next: US3 compose.
+Watch: a bind mount of a WSL path under Docker Desktop arrives empty, so the script copies the step in instead. One earlier run exited before answering with a WSL accept4 error in the output; the next three runs were green.

@@ -209,23 +209,64 @@
       "tasks": [
         {
           "id": "T008",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_docker/test_entrypoint.py::TestStartSteps"
+            ],
+            "commands": [
+              "uv run pytest -n0 tests/test_docker/test_entrypoint.py::TestStartSteps (4 failed before docker/entrypoint.sh changed, 7 passed after)"
+            ],
+            "code": [
+              "tests/test_docker/test_entrypoint.py:79"
+            ]
+          }
         },
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_docker/test_entrypoint.py::TestStartSteps"
+            ],
+            "commands": [
+              "uv run pytest -n0 tests/test_docker/"
+            ],
+            "code": [
+              "docker/entrypoint.sh:24"
+            ]
+          }
         },
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 3,
+          "evidence": {
+            "tests": [
+              "docker/smoke-test.sh"
+            ],
+            "commands": [
+              "DOCKER=docker.exe SMOKE_NETWORK=fairdm-smoke SMOKE_DB_HOST=fairdm-smoke-db SMOKE_REDIS_URL=redis://fairdm-smoke-redis:6379/0 bash docker/smoke-test.sh fairdm-base:local fairdm-base:local-dev fairdm-demo:local -> exit 0, 13 checks and all checks passed"
+            ],
+            "code": [
+              "docker/smoke-test.sh:179"
+            ]
+          }
         },
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "built a throwaway image adding the documented example step with COPY --chmod=755 and a second file with --chmod=644 on fairdm-demo:local, ran it against PostGIS: the step ran, the 644 file was named on stderr, the server started"
+            ],
+            "code": [
+              "docs/portal-development/production.md:111"
+            ]
+          }
         }
       ]
     },
