@@ -132,3 +132,42 @@ and returns at once.
 
 **Revisit if.** The development image ships an environment of its own, which would make the first
 `uv sync` unnecessary.
+
+## D14. publish.sh asks about both tags before it pushes either
+
+**Decision.** `docker/publish.sh VERSION [REPOSITORY]` runs `docker buildx imagetools inspect` on
+`<version>` and `<version>-dev` first, and only then tags and pushes whichever is missing. The local
+images come from `RUNTIME_IMAGE` and `DEVELOPMENT_IMAGE` (defaults `fairdm-base:ci` and
+`fairdm-base:ci-dev`, the names image.yml builds), the docker command from `DOCKER`.
+
+**Why.** Plan P6 says an authentication or network error stops the script before anything is
+pushed. Checking and pushing one tag at a time would push the first tag and then stop on an error
+asking about the second. Environment variables for the image names keep the argument list the plan
+gives, and match how smoke-test.sh takes `DOCKER`.
+
+**Revisit if.** A third image joins the release, which would make a loop over images worth its lines.
+
+## D15. The demo portal is built with the engine's own builder
+
+**Decision.** In image.yml the runtime and development images are built with
+`docker/build-push-action` (container builder, GitHub Actions cache, `load: true`), and the portal
+with `docker buildx build --builder default --load`.
+
+**Why.** The portal Dockerfile starts `FROM fairdm-base:ci-dev`, an image that exists only in the
+engine's image store. A container builder cannot see that store: a probe with `FROM fairdm-dev:ci`
+failed with "pull access denied", and the engine's builder built it. The portal build needs no cache.
+
+**Revisit if.** The runner's builder is not named `default`, which the first run on a runner shows,
+or the images are pushed to a registry before the portal is built.
+
+## D16. publish.sh has tests, and they sit in tests/test_docker
+
+**Decision.** `tests/test_docker/test_publish.py` runs the script with a stand-in `docker` command
+and checks which pushes it makes: both tags, one tag, none, and none when the registry cannot be
+asked. The brief's scope list names no test directory.
+
+**Why.** Skipping a published tag and pushing nothing on an error are the script's contract, and a
+registry run in the brief's evidence shows them once. The tests keep showing them. The directory
+is declared in `[tool.forge.conformance] non-mirror-paths`.
+
+**Revisit if.** The reviewer would rather the script's evidence stay a one-time run.

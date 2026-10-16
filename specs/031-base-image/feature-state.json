@@ -378,8 +378,25 @@
       "tasks": [
         {
           "id": "T017",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_docker/test_publish.py"
+            ],
+            "commands": [
+              "uv run pytest -n0 tests/test_docker/test_publish.py: 10 passed (red first: 9 failed with exit 2 before docker/publish.sh existed)",
+              "docker.exe run registry:2 on localhost:5000; DOCKER=docker.exe RUNTIME_IMAGE=fairdm-base:ci DEVELOPMENT_IMAGE=fairdm-base:ci-dev docker/publish.sh 9.9.9 localhost:5000/fairdm: pushed both tags, exit 0",
+              "second run: both left alone, digests unchanged; third run with different local images: digests unchanged",
+              "registry holding only 9.9.9: publish.sh pushed only 9.9.9-dev, 9.9.9 digest unchanged",
+              "registry stopped: publish.sh 9.9.8 exit 1, tag list afterwards only 9.9.9 and 9.9.9-dev",
+              "check-jsonschema and actionlint on .github/workflows/image.yml: exit 0"
+            ],
+            "code": [
+              "docker/publish.sh:26",
+              ".github/workflows/image.yml:117"
+            ]
+          }
         },
         {
           "id": "T018",
