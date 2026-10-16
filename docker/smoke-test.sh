@@ -185,7 +185,7 @@ assert 'django_migrations' in connection.introspection.table_names()
 "
 echo "start step: django_migrations exists" >&2
 STEP
-chmod 755 "$step_dir/10-check-migrations"
+chmod 755 "$step_dir" "$step_dir/10-check-migrations"
 
 copy_into_start_dir=$step_dir start_portal web
 web=$started

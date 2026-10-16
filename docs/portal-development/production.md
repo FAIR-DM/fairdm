@@ -170,6 +170,9 @@ mount a directory of steps when you run it:
 docker run ... --volume "$PWD/docker-entrypoint.d:/docker-entrypoint.d:ro" my-portal
 ```
 
+The server runs as the `fairdm` user, uid 1000, so the mounted directory and its files have to be
+readable by that user. A directory only its owner can read is treated as empty, and no step runs.
+
 Set `FAIRDM_START_DIR` to read the steps from another directory. If the directory is missing or
 empty, the container runs the sequence above and nothing more. The `worker` command and any
 other command run no start steps.

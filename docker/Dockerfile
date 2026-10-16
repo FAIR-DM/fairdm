@@ -22,7 +22,7 @@ RUN apt-get update \
 
 RUN groupadd --gid 1000 fairdm \
     && useradd --uid 1000 --gid fairdm --create-home fairdm \
-    && mkdir -p /app/static /app/media /opt/venv \
+    && mkdir -p /app/static /app/media /opt/venv /docker-entrypoint.d \
     && chown -R fairdm:fairdm /app /opt/venv
 
 COPY --from=ghcr.io/astral-sh/uv:0.11 /uv /usr/local/bin/uv
