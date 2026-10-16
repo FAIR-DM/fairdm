@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.1.0] - 2026-10-16
+
 ### Added
 
 - **A location on every sample and measurement, typed as decimal degrees in WGS 84.**
