@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.1.0] - 2026-10-16
+
 ### Added
 
 - **A location on every sample and measurement, typed as decimal degrees in WGS 84.**
@@ -389,6 +391,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   used to generate on its own, and `image=<file>` still takes a specific one.
 
 ### Changed
+
+- **FairDM is released on GitHub, and a portal pins it to a release tag.** A merged release pull
+  request creates the tag and the GitHub release. FairDM is not published to PyPI, because
+  django-literature and django-research-vocabs are installed from git. A portal installs FairDM
+  with a git source pinned to a tag, for example
+  `fairdm = { git = "https://github.com/FAIR-DM/fairdm", tag = "v0.1.0" }` under
+  `[tool.uv.sources]`, rather than to a commit.
 
 - **FairDM runs on PostgreSQL with the PostGIS extension, and installs GeoDjango.** The database
   engine is `django.contrib.gis.db.backends.postgis` in every environment, whatever scheme
