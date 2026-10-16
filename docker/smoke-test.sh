@@ -202,7 +202,7 @@ pass "a start step in /docker-entrypoint.d saw the migrated database and ran bef
 
 uids=$("$docker" exec "$web" sh -c '
     for dir in /proc/[0-9]*; do
-        if tr "\0" " " < "$dir/cmdline" 2>/dev/null | grep -q gunicorn; then
+        if [ "$(cat "$dir/comm" 2>/dev/null)" = gunicorn ]; then
             awk "/^Uid:/ {print \$2}" "$dir/status"
         fi
     done')
