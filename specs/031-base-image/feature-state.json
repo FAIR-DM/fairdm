@@ -3,7 +3,7 @@
   "feature": "031-base-image",
   "branch": "031-base-image",
   "repo": "FAIR-DM/fairdm",
-  "state": "IMPLEMENT",
+  "state": "REVIEW",
   "state_history": [
     {
       "state": "QUEUED",
@@ -24,6 +24,11 @@
       "state": "IMPLEMENT",
       "at": "2026-10-16T10:50:41Z",
       "note": "plan gate open; design review applied"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-10-16T20:19:01Z",
+      "note": "all stories built; US4/US5 acceptance pending CI"
     }
   ],
   "gates": {
@@ -194,6 +199,41 @@
             "code": [
               "docker/entrypoint.sh:15",
               "fairdm/conf/settings/static_media.py:36"
+            ]
+          }
+        },
+        {
+          "id": "T021",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "docs build (verify docs step)"
+            ],
+            "commands": [
+              "guide's portal docker-compose.yml run from a copy of the repo with no stack*.env: home page 200, celery ready"
+            ],
+            "code": [
+              "docs/portal-development/production.md:224",
+              "docs/more/migration-guides.md:6",
+              "docs/portal-development/index.md:110"
+            ]
+          }
+        },
+        {
+          "id": "T022",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "docker/smoke-test.sh (server does not run as root)"
+            ],
+            "commands": [
+              "old cmdline guard reports uid 1000 with no gunicorn running; new comm guard finds 1000 for a process named gunicorn and nothing under the mutation gunicornX",
+              "smoke test against fairdm-demo:verify: all checks passed"
+            ],
+            "code": [
+              "docker/smoke-test.sh:205"
             ]
           }
         }
@@ -429,6 +469,22 @@
               "docs/contributing/testing/index.md:61"
             ]
           }
+        },
+        {
+          "id": "T023",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "check-jsonschema vendor.github-workflows; actionlint"
+            ],
+            "commands": [
+              "uvx --from check-jsonschema check-jsonschema --builtin-schema vendor.github-workflows .github/workflows/image.yml .github/workflows/test-suite.yml"
+            ],
+            "code": [
+              ".github/workflows/image.yml:130"
+            ]
+          }
         }
       ]
     }
@@ -439,7 +495,7 @@
       "max": 2
     },
     "review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "tokens": {
