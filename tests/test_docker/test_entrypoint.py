@@ -26,13 +26,17 @@ class TestWebStart:
         assert process.returncode == 0
         assert calls[-1] == "gunicorn portal.wsgi:app"
 
-    def test_a_failing_migrate_stops_the_start_and_the_server_never_runs(self, run_entrypoint):
+    def test_a_failing_migrate_stops_the_start_and_the_server_never_runs(
+        self, run_entrypoint
+    ):
         process, calls = run_entrypoint("web", fail_on=WEB_STEPS[0], status=3)
 
         assert process.returncode == 3
         assert calls == [WEB_STEPS[0]]
 
-    def test_a_failing_collectstatic_stops_the_start_before_compress(self, run_entrypoint):
+    def test_a_failing_collectstatic_stops_the_start_before_compress(
+        self, run_entrypoint
+    ):
         process, calls = run_entrypoint("web", fail_on=WEB_STEPS[1], status=4)
 
         assert process.returncode == 4
@@ -59,7 +63,9 @@ class TestWorkerAndPassThrough:
         assert calls == ["celery --app portal.celery worker"]
 
     def test_extra_arguments_reach_celery(self, run_entrypoint):
-        process, calls = run_entrypoint("worker", "--loglevel", "INFO", "--concurrency", "2")
+        process, calls = run_entrypoint(
+            "worker", "--loglevel", "INFO", "--concurrency", "2"
+        )
 
         assert process.returncode == 0
         assert calls == ["celery --app config worker --loglevel INFO --concurrency 2"]

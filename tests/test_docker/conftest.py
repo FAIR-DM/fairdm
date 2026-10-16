@@ -9,8 +9,9 @@ import pytest
 ENTRYPOINT = Path(__file__).resolve().parents[2] / "docker" / "entrypoint.sh"
 
 STAND_IN = """#!/bin/sh
-echo "{name} $*" >> "$STAND_IN_LOG"
-if [ "$*" = "${{STAND_IN_FAIL_ON:-}}" ]; then
+line="{name} $*"
+echo "$line" >> "$STAND_IN_LOG"
+if [ "$line" = "${{STAND_IN_FAIL_ON:-}}" ]; then
     exit "${{STAND_IN_STATUS:-1}}"
 fi
 """
@@ -38,7 +39,7 @@ def run_entrypoint(tmp_path, stand_in_log):
         stand_in.chmod(0o755)
 
     def run(*args, fail_on="", status=1, **env):
-        process = subprocess.run(
+        process = subprocess.run(  # noqa: S603
             ["/bin/sh", str(ENTRYPOINT), *args],
             cwd=tmp_path,
             env={
