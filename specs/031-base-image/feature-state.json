@@ -400,8 +400,17 @@
         },
         {
           "id": "T018",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "docs/portal-development/production.md: section Choose the image version; docs/contributing/testing/index.md: section Checking the images, whose commands were run as written with docker.exe (smoke test: all checks passed)"
+            ],
+            "code": [
+              "docs/portal-development/production.md:21",
+              "docs/contributing/testing/index.md:61"
+            ]
+          }
         }
       ]
     }
