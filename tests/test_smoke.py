@@ -15,6 +15,7 @@ from django.db.migrations.loader import MigrationLoader
 from django.db.migrations.questioner import NonInteractiveMigrationQuestioner
 from django.db.migrations.state import ProjectState
 from django.test import override_settings
+from django.utils import translation
 
 # The suite runs with --no-migrations, so these tests need the real migration modules back.
 REAL_MIGRATION_MODULES: dict[str, str] = {}
@@ -84,24 +85,38 @@ def run_migrate(databases, *arguments):
     )
 
 
+@override_settings(MIGRATION_MODULES=REAL_MIGRATION_MODULES)
+# makemigrations runs with translations off, so a translated verbose_name reads as its source.
+@translation.override(None)
+def first_party_apps_missing_a_migration():
+    """Return the labels of first-party apps whose models differ from their migrations."""
+    loader = MigrationLoader(None, ignore_no_migrations=True)
+    autodetector = MigrationAutodetector(
+        loader.project_state(),
+        ProjectState.from_apps(global_apps),
+        NonInteractiveMigrationQuestioner(specified_apps=set(), dry_run=True),
+    )
+    changes = autodetector.changes(graph=loader.graph)
+    return sorted(set(changes) & first_party_app_labels())
+
+
 class TestMigrations:
-    @override_settings(MIGRATION_MODULES=REAL_MIGRATION_MODULES)
     def test_every_model_change_has_a_migration(self):
         # Nothing in CI ran `makemigrations --check`, so #229 shipped model changes with no migration.
-        loader = MigrationLoader(None, ignore_no_migrations=True)
-        autodetector = MigrationAutodetector(
-            loader.project_state(),
-            ProjectState.from_apps(global_apps),
-            NonInteractiveMigrationQuestioner(specified_apps=set(), dry_run=True),
-        )
-        changes = autodetector.changes(graph=loader.graph)
+        ours = first_party_apps_missing_a_migration()
 
-        ours = sorted(set(changes) & first_party_app_labels())
         assert not ours, (
             f"These apps have model changes with no migration: {', '.join(ours)}. "
             "Run `python manage.py makemigrations <app> --settings=config.settings` "
             "and commit the result."
         )
+
+    def test_the_language_left_active_by_another_test_changes_nothing(self):
+        # A test that left German active made every app look unmigrated, now and then (#416).
+        with translation.override("de"):
+            in_german = first_party_apps_missing_a_migration()
+
+        assert in_german == first_party_apps_missing_a_migration()
 
     @pytest.mark.slow
     def test_migrations_apply_to_an_empty_database(self, empty_databases):
