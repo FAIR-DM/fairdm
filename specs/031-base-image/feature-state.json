@@ -350,8 +350,21 @@
         },
         {
           "id": "T016",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_smoke.py"
+            ],
+            "commands": [
+              "scratch branch, sed removes gdal-bin from docker/Dockerfile, rebuild runtime, development and portal images",
+              "SMOKE_NETWORK=fairdm-smoke SMOKE_DB_HOST=fairdm-smoke-db SMOKE_REDIS_URL=redis://fairdm-smoke-redis:6379/0 DOCKER=docker.exe docker/smoke-test.sh fairdm-broken:ci fairdm-broken:ci-dev fairdm-broken-demo:ci: exit 1",
+              "docker.exe run fairdm-broken:ci-dev sh -c 'uv sync --locked; pytest -n0 tests/test_smoke.py': exit 1"
+            ],
+            "code": [
+              "docker/Dockerfile:20"
+            ]
+          }
         }
       ]
     },

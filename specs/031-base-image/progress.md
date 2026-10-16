@@ -65,3 +65,11 @@ Did: .github/workflows/image.yml, job `Image`, triggers pull_request, push to ma
 Verified: check-jsonschema exit 0 and actionlint exit 0. The same three builds and the smoke test run locally with docker.exe: 13 checks, "all checks passed", exit 0. A probe showed why the portal build uses the engine's builder: a docker-container builder fails `FROM fairdm-dev:ci` with "pull access denied", the `default` (docker driver) builder builds it.
 Next: T016, the broken-image evidence.
 Watch: `--builder default` and the runner's builder being named `default` are assumed from how Buildx lists builders; the first CI run is the first time it runs on a runner. Services and smoke-test defaults (SMOKE_NETWORK=host, localhost) are the runner case, which cannot be run here.
+
+## 2026-10-16T17:21:41Z · Implementer US5 · T016
+
+Did: on throwaway branch scratch-t016-no-gdal (never committed to, deleted afterwards) removed gdal-bin from the apt install line of docker/Dockerfile (`sed -i 's/--no-recommends gdal-bin libpq5/--no-recommends libpq5/'`), rebuilt runtime, development and the portal image as image.yml builds them (tags fairdm-broken:ci, fairdm-broken:ci-dev, fairdm-broken-demo:ci). `ogrinfo` is absent from the broken runtime image.
+Verified, smoke test: `SMOKE_NETWORK=fairdm-smoke SMOKE_DB_HOST=fairdm-smoke-db SMOKE_REDIS_URL=redis://fairdm-smoke-redis:6379/0 DOCKER=docker.exe docker/smoke-test.sh fairdm-broken:ci fairdm-broken:ci-dev fairdm-broken-demo:ci` exit 1. Six checks pass, then: `FAIL smoke-web-3178645 exited before answering on port 8000`; the log of that container ends in django/contrib/gis/gdal/driver.py failing to import (GDAL absent).
+Verified, test in the development image: `docker.exe run --rm --network fairdm-smoke --user root -v <checkout>:/app -e POSTGRES_HOST=fairdm-smoke-db ... fairdm-broken:ci-dev sh -c 'uv sync --locked -q; pytest -n0 tests/test_smoke.py'` exit 1 with `django.core.exceptions.ImproperlyConfigured: Could not find the GDAL library (tried "gdal", "GDAL", "gdal3.10.0", ...). Is GDAL installed?`. The same test file passed in the image with gdal-bin (T014: 21 passed).
+Next: US4, publish.sh.
+Watch: branch deleted, Dockerfile identical to 031-base-image (git status clean), broken images removed.
