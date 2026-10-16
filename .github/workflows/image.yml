@@ -2,7 +2,8 @@ name: Image
 
 # Builds the runtime and development images and the demo portal on top of them, then runs
 # docker/smoke-test.sh against all three. The check fails on a pull request when a change to the
-# Dockerfile, the entrypoint or the code breaks what a portal builds on.
+# Dockerfile, the entrypoint or the code breaks what a portal builds on. On a release tag a second
+# job, the only one allowed to write packages, publishes the two images.
 
 on:
   pull_request:
@@ -27,7 +28,6 @@ jobs:
     timeout-minutes: 45
     permissions:
       contents: read
-      packages: write
 
     services:
       postgres:
@@ -56,13 +56,21 @@ jobs:
     steps:
       - name: Check out
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
-      # The release the images are labelled with: the tag without its v, or "dev" elsewhere.
+      # The release the images are labelled with: the tag without its v, or "dev" elsewhere. A tag
+      # that is not a release version fails here, so it can never be published.
       - name: Work out the version
         id: version
         run: |
           if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            echo "release=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+            release="${GITHUB_REF_NAME#v}"
+            if [[ ! "$release" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "::error::$GITHUB_REF_NAME is not a release tag of the form v<major>.<minor>.<patch>"
+              exit 1
+            fi
+            echo "release=$release" >> "$GITHUB_OUTPUT"
           else
             echo "release=dev" >> "$GITHUB_OUTPUT"
           fi
@@ -115,10 +123,57 @@ jobs:
       - name: Smoke test
         run: docker/smoke-test.sh fairdm-base:ci fairdm-base:ci-dev fairdm-demo:ci
 
-      # Only a release tag publishes, and only after every step above has passed. The script
-      # pushes whichever of the two tags the registry does not have yet and leaves the rest.
+    outputs:
+      release: ${{ steps.version.outputs.release }}
+
+  # Only a release tag publishes, and only after the images above passed the smoke test. This job
+  # alone can write packages. It rebuilds the two images from the cache the first job filled, then
+  # pushes whichever of the two tags the registry does not have yet and leaves the rest.
+  Publish:
+    needs: Image
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build the runtime image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/Dockerfile
+          target: runtime
+          platforms: linux/amd64
+          build-args: VERSION=${{ needs.Image.outputs.release }}
+          load: true
+          push: false
+          tags: fairdm-base:ci
+          cache-from: type=gha,scope=runtime
+
+      - name: Build the development image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/Dockerfile
+          target: development
+          platforms: linux/amd64
+          build-args: VERSION=${{ needs.Image.outputs.release }}
+          load: true
+          push: false
+          tags: fairdm-base:ci-dev
+          cache-from: type=gha,scope=development
+
       - name: Log in to the registry
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: docker/login-action@v4
         with:
           registry: ghcr.io
@@ -126,5 +181,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish the images
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: docker/publish.sh "${GITHUB_REF_NAME#v}"
+        env:
+          RELEASE: ${{ needs.Image.outputs.release }}
+        run: docker/publish.sh "$RELEASE"
