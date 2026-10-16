@@ -44,3 +44,10 @@ Did: added a start step to docker/smoke-test.sh, copied into the web container w
 Verified: smoke test on a fresh PostGIS, exit 0, 13 checks. Probe: moved the start-steps loop before migrate in the entrypoint, rebuilt, smoke test failed on the step's assertion; restored. Built a throwaway image with the guide's example step (COPY --chmod=755): it ran and the server started; a 644 file was skipped with the documented stderr line.
 Next: US3 compose.
 Watch: a bind mount of a WSL path under Docker Desktop arrives empty, so the script copies the step in instead. One earlier run exited before answering with a WSL accept4 error in the output; the next three runs were green.
+
+## 2026-10-16T16:48:20Z · Implementer US3 · T012-T013
+
+Did: docker-compose.yml builds docker/Dockerfile target development, mounts the checkout and a venv volume, and runs uv sync then migrate and runserver, or the Celery worker, through the entrypoint's pass-through. Deleted compose/django/Dockerfile. Updated AGENTS.md, before_you_start.md, testing/index.md, production.md (a portal's own compose file) and the changelog.
+Verified: docker.exe compose -p fairdm031 up -d --build: GET / 200 from this shell; touching fairdm/__init__.py logs '/app/fairdm/__init__.py changed, reloading.'; the worker logs 'celery@... ready.'; torn down with down -v --rmi local. The first attempt failed because both services synced into the venv volume at once, so the worker now waits for a healthy django (D13). Ran the suite the way the contributor page says: pytest -n0 tests/test_core/test_project -> 346 passed. Ran the guide's portal compose file against fairdm-base:local-dev: GET / 200 and the worker ready.
+Next: full verify and the report.
+Watch: a project name other than fairdm was used for the run (-p fairdm031) so the existing fairdm_postgres volume was untouched. docker.exe only translates the relative .:/app mount; an absolute WSL path mounts an empty directory.

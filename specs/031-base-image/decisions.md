@@ -107,3 +107,28 @@ collectstatic, the portal's steps, then gunicorn. This amends FR-005 and adds FR
 the maintainer in the session on 2026-10-16.
 
 **Reopen if** a portal needs offline compression back, in which case it belongs to that portal.
+
+## D12. The smoke test copies its start step into the container
+
+**Decision.** `docker/smoke-test.sh` creates the web container, copies the start step into
+`/docker-entrypoint.d` with `docker cp`, then starts it. It does not bind-mount the step.
+
+**Why.** Docker Desktop with `docker.exe` receives an empty directory when a WSL path is bind-mounted
+by `docker run --volume`, so the step never ran locally. Copying works the same on Docker Desktop
+and on a CI runner. The step logs a line to stderr, the same stream as gunicorn, so the script can
+compare their order in the container log.
+
+**Revisit if.** The script only ever runs on Linux runners and a mount reads more simply.
+
+## D13. In the compose stack the worker waits for the web service to be healthy
+
+**Decision.** `django` has a healthcheck that requests the home page, and `celeryworker` depends on it
+being healthy. Both still run `uv sync --locked`, as the plan says.
+
+**Why.** Both services mount the same `venv` volume. Started together, the two installs raced: the web
+service failed with "failed to remove directory /opt/venv: Permission denied" and the worker started
+without a `celery` executable. With the worker waiting, its `uv sync` finds the environment complete
+and returns at once.
+
+**Revisit if.** The development image ships an environment of its own, which would make the first
+`uv sync` unnecessary.

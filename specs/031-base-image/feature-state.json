@@ -280,13 +280,29 @@
       "tasks": [
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "commands": [
+              "docker.exe compose -p fairdm031 up -d --build; curl http://localhost:8000/ -> 200; touch fairdm/__init__.py -> django logs '/app/fairdm/__init__.py changed, reloading.'; celeryworker logs 'celery@a27c63c0b006 ready.'; docker.exe compose -p fairdm031 down -v --rmi local"
+            ],
+            "code": [
+              "docker-compose.yml:33"
+            ]
+          }
         },
         {
           "id": "T013",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "docker.exe compose -p fairdm031 run --rm --no-deps django sh -c 'uv sync --locked && pytest -n0 tests/test_core/test_project -q' -> 346 passed; the guide's portal compose file run against fairdm-base:local-dev: home page 200, worker ready"
+            ],
+            "code": [
+              "docs/portal-development/production.md:173"
+            ]
+          }
         }
       ]
     },
