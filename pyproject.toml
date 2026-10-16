@@ -397,4 +397,4 @@ theme = "pydata_sphinx_theme" # Sphinx theme to use (default: "alabaster")
 
 # Suites that test templates and static assets have no Python module to mirror.
 [tool.forge.conformance]
-non-mirror-paths = ["tests/test_templates/"]
+non-mirror-paths = ["tests/test_templates/", "tests/test_docker/"]
