@@ -147,8 +147,21 @@
         },
         {
           "id": "T006",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "docker/smoke-test.sh"
+            ],
+            "commands": [
+              "docker.exe build -f docker/Dockerfile --target runtime -t fairdm-base:local .",
+              "docker.exe build -f docker/portal.Dockerfile --build-arg FAIRDM_IMAGE=fairdm-base --build-arg FAIRDM_VERSION=local -t fairdm-demo:local .",
+              "DOCKER=docker.exe SMOKE_NETWORK=fairdm-smoke SMOKE_DB_HOST=fairdm-smoke-db docker/smoke-test.sh fairdm-base:local fairdm-base:local-dev fairdm-demo:local"
+            ],
+            "code": [
+              "docker/smoke-test.sh:172"
+            ]
+          }
         },
         {
           "id": "T007",

@@ -23,3 +23,10 @@ Did: removed django-compressor and django-libsass (dependencies, compressor app,
 Verified: entrypoint tests red (2 failed) before the change, 10 passed after; ruff check and format clean on touched files; manage.py check clean; uv lock --check ok.
 Next: T006, build images and run the smoke test.
 Watch: the local uv writes lock revision 3; restored revision 5 by hand so the lock diff is removals only.
+
+## 2026-10-16T15:58:34Z · Implementer US1 · T006
+
+Did: rebuilt fairdm-base:local, fairdm-base:local-dev and fairdm-demo:local from docker/ on the branch; started postgis/postgis:17-3.5 and redis:7 on a user-defined network; ran docker/smoke-test.sh.
+Verified: smoke test exit 0, 10 checks plus "all checks passed": libpq present, uv present, neither base image contains FairDM, dev image has gcc and git, database reachable, portal migrated+collected and answered 200 on 8000, server not root, GDAL/GEOS load with no library path, PORT=8123 answers, worker starts Celery without the web sequence, unreachable database exits 1 and the server never starts. The remaining containers and the network were removed afterwards.
+Next: full verify, then the report.
+Watch: the portal Dockerfile build prints two InvalidDefaultArgInFrom warnings because FAIRDM_VERSION has no default by design.
