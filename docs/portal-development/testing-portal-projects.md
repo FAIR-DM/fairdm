@@ -19,17 +19,19 @@ When building a portal with FairDM, your custom features often depend on FairDM'
 
 ## Installation
 
-Add FairDM as a development dependency to your portal project:
+The factories ship with FairDM, so a portal that depends on FairDM already has them. FairDM is
+released on GitHub rather than PyPI. Pin it to a release tag in your portal's `pyproject.toml`:
 
-```bash
-# Using Poetry (recommended)
-poetry add --group dev fairdm
+```toml
+[project]
+dependencies = ["fairdm"]
 
-# Using pip
-pip install fairdm
+[tool.uv.sources]
+fairdm = { git = "https://github.com/FAIR-DM/fairdm", tag = "v0.1.0" }
 ```
 
-This makes FairDM's factories available in your test suite without including them in production.
+Use the tag of the release you want from the [releases page](https://github.com/FAIR-DM/fairdm/releases),
+then run `uv lock`.
 
 ## Basic Usage
 
@@ -576,11 +578,8 @@ class TestProjectSharing:
 
 **Problem**: Import error when running tests.
 
-**Solution**: Install FairDM as dev dependency:
-
-```bash
-poetry add --group dev fairdm
-```
+**Solution**: Add FairDM to the portal's dependencies, pinned to a release tag as shown under
+[Installation](#installation), then run `uv sync`.
 
 ### "UserFactory has no attribute 'create_user'"
 

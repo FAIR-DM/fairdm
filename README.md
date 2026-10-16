@@ -2,13 +2,9 @@
 
 [![Tests](https://github.com/FAIR-DM/fairdm/actions/workflows/tests.yml/badge.svg)](https://github.com/FAIR-DM/fairdm/actions/workflows/tests.yml)
 [![Build](https://github.com/FAIR-DM/fairdm/actions/workflows/build.yml/badge.svg)](https://github.com/FAIR-DM/fairdm/actions/workflows/build.yml)
-[![Publish](https://github.com/FAIR-DM/fairdm/actions/workflows/publish.yml/badge.svg)](https://github.com/FAIR-DM/fairdm/actions/workflows/publish.yml)
 [![Documentation](https://readthedocs.org/projects/fairdm/badge/?version=latest)](https://fairdm.readthedocs.io/en/latest/)
 [![Coverage](https://codecov.io/gh/FAIR-DM/fairdm/branch/main/graph/badge.svg?token=0Q18CLIKZE)](https://codecov.io/gh/FAIR-DM/fairdm)
-[![PyPI](https://img.shields.io/pypi/v/fairdm)](https://pypi.org/project/fairdm/)
-[![Development status](https://img.shields.io/pypi/status/fairdm)](https://pypi.org/project/fairdm/)
-[![Python](https://img.shields.io/pypi/pyversions/fairdm)](https://pypi.org/project/fairdm/)
-[![Django](https://img.shields.io/pypi/djversions/fairdm)](https://pypi.org/project/fairdm/)
+[![Release](https://img.shields.io/github/v/release/FAIR-DM/fairdm)](https://github.com/FAIR-DM/fairdm/releases)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Licence](https://img.shields.io/github/license/FAIR-DM/fairdm)](https://github.com/FAIR-DM/fairdm/blob/main/LICENSE)
 
