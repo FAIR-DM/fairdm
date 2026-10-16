@@ -82,3 +82,16 @@ From the design review, carried into the briefs rather than re-planned:
   require otherwise, so it stays as planned
 - the matrix's Python version no longer selects Python inside the image; it stays at 3.13, which
   the image provides
+
+## D10. The smoke test asks the container for its own pages
+
+**Decision.** `docker/smoke-test.sh` requests `/` with `docker exec` and Python's standard library,
+inside the portal container, and passes the database and Redis hosts in by environment variable.
+It publishes no port.
+
+**Why.** Docker Desktop does not give containers the host's network, and a CI runner does. A
+request made from inside works the same on both, and the image already has Python. Only the
+database and Redis hosts differ between the two places, so those are the script's only
+network inputs.
+
+**Revisit if.** A check needs to reach the container from outside, for instance through a proxy.

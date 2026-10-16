@@ -1,0 +1,149 @@
+{
+ "story": "US1",
+ "skills_loaded": [
+  {
+   "name": "craft-tdd",
+   "receipt": "craft-tdd/2026-09-28/b19e4d07",
+   "loaded_via": "path-read"
+  },
+  {
+   "name": "craft-increments",
+   "receipt": "craft-increments/2026-10-15/1ffa47c3",
+   "loaded_via": "path-read"
+  }
+ ],
+ "tasks": [
+  {
+   "id": "T001",
+   "status": "done",
+   "evidence": {
+    "commands": [
+     "uv run pytest -n0 tests/test_docker/ (11 failed first: docker/entrypoint.sh did not exist)"
+    ],
+    "exit_code": 0,
+    "criteria": [],
+    "tests_added": [
+     "tests/test_docker/test_entrypoint.py::TestWebStart"
+    ]
+   },
+   "commits": [
+    "bdcd1886"
+   ]
+  },
+  {
+   "id": "T002",
+   "status": "done",
+   "evidence": {
+    "commands": [
+     "uv run pytest -n0 tests/test_docker/ (failed first for the same reason)"
+    ],
+    "exit_code": 0,
+    "criteria": [],
+    "tests_added": [
+     "tests/test_docker/test_entrypoint.py::TestWorkerAndPassThrough"
+    ]
+   },
+   "commits": [
+    "3f25f88f"
+   ]
+  },
+  {
+   "id": "T003",
+   "status": "done",
+   "evidence": {
+    "commands": [
+     "uv run pytest -n0 tests/test_docker/ -> 11 passed; removing `set -e` from the entrypoint fails the three failing-step tests"
+    ],
+    "exit_code": 0,
+    "criteria": []
+   },
+   "commits": [
+    "9c44c7e9"
+   ]
+  },
+  {
+   "id": "T004",
+   "status": "done",
+   "evidence": {
+    "commands": [
+     "docker.exe build -f docker/Dockerfile --target runtime -t fairdm-base:runtime .",
+     "docker.exe build -f docker/Dockerfile --target development -t fairdm-base:development .",
+     "docker.exe run --rm --entrypoint sh <image> -c 'id -u; python --version; uv --version; ls libpq.so.5; python -c \"import fairdm\"; command -v gcc; command -v git'"
+    ],
+    "exit_code": 0,
+    "criteria": []
+   },
+   "commits": [
+    "a1e419f6"
+   ]
+  },
+  {
+   "id": "T005",
+   "status": "done",
+   "evidence": {
+    "commands": [
+     "docker.exe build -f docker/portal.Dockerfile --build-arg FAIRDM_IMAGE=fairdm-base --build-arg FAIRDM_VERSION=local -t fairdm-demo:local ."
+    ],
+    "exit_code": 0,
+    "criteria": []
+   },
+   "commits": [
+    "ac5cba63"
+   ]
+  },
+  {
+   "id": "T006",
+   "status": "blocked",
+   "evidence": {
+    "commands": [
+     "SMOKE_NETWORK=fairdm-smoke SMOKE_DB_HOST=fairdm-smoke-db SMOKE_REDIS_URL=redis://fairdm-smoke-redis:6379/0 DOCKER=docker.exe docker/smoke-test.sh fairdm-base:local fairdm-base:local-dev fairdm-demo:local -> exit 1 at the web start (compress)",
+     "same script against fairdm-demo:probe (the demo plus one template using {% compress %}) -> exit 0, all 12 checks"
+    ],
+    "exit_code": 1,
+    "criteria": []
+   },
+   "commits": [
+    "f21f0cdb"
+   ]
+  },
+  {
+   "id": "T007",
+   "status": "done",
+   "evidence": {
+    "commands": [
+     "forge verify --repo /home/sam/projects/worktrees/fairdm-031-base-image --base origin/main -> conformance, docs, lint, typecheck, test, build all passed"
+    ],
+    "exit_code": 0,
+    "criteria": []
+   },
+   "commits": [
+    "bc22d97b"
+   ]
+  }
+ ],
+ "deviations": [
+  {
+   "what": "decisions.md gained D10: the smoke test requests pages with docker exec inside the container and publishes no port.",
+   "why": "Works the same on Docker Desktop and on a CI runner; only the database and Redis hosts differ.",
+   "decision_ref": "D10"
+  }
+ ],
+ "concerns": [
+  "BLOCKING DESIGN FINDING. The start sequence's `compress` step fails on the demo: `python manage.py compress` raises compressor.exceptions.OfflineGenerationError ('No compress template tags found in templates') because no template in fairdm/, demo/ or the django-mvp packages uses {% compress %}. Plan P3 and decision D8 assumed removing the two COMPRESS lines was enough; it is not. With COMPRESS_OFFLINE on and zero compress blocks the command exits 1, so FR-005's start sequence cannot succeed for the demo or any portal laid out like it. Confirmed three ways: (1) the smoke test's web start fails at compress with that error; (2) the same container with migrate, collectstatic and gunicorn only answers 200 on / with X-Forwarded-Proto: https; (3) a throwaway image adding one template `{% load compress static %}{% compress css %}<link ...>{% endcompress %}` makes compress exit 0 and the whole smoke test pass (12 ok lines, exit 0). Choices for Forge/Sam: add a compress block to a FairDM template (a product change outside this story's files), drop `compress` from D4/FR-005/the entrypoint, or make the step conditional. I did none of them. Smoke test output against the demo image: ok x6 (runtime has libpq, uv; neither image contains FairDM; dev has gcc and git; database reachable) then FAIL: smoke-web exited before answering on port 8000, last log line compressor.exceptions.OfflineGenerationError.",
+  "docs/portal-development/production.md carries a note that `compress` stops with an error when no template uses {% compress %}, because that is what the branch does today. Remove or reword it once the compress question is settled.",
+  "Smoke test with all checks, passing run against the probe image: ok the runtime image has the PostgreSQL client library / has uv / fairdm-base:local does not contain FairDM / fairdm-base:local-dev does not contain FairDM / the development image has gcc and git / the database is reachable from a container on network fairdm-smoke / the portal migrated, collected, compressed and answered 200 on port 8000 / the server does not run as root / GDAL and GEOS load with no library path set / PORT=8123 makes the portal answer on port 8123 / the worker command started Celery and ran none of the web start sequence / with the database unreachable the container exits 1 and the server never starts / all checks passed.",
+  "The production environment needed exactly: DJANGO_SECRET_KEY (50+ chars), DJANGO_SITE_DOMAIN, POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD, REDIS_URL (fairdm.E200 refuses the placeholder cache), plus X-Forwarded-Proto: https on requests. The guide lists them.",
+  "Celery logs 'ready.' only at INFO, so the smoke test starts the worker with `worker --loglevel INFO --concurrency 1`, which also exercises argument pass-through.",
+  "Seen once in the migrate output inside the demo image, not investigated: a message ending \"Run 'manage.py makemigrations' to make new migrations, and then re-run 'manage.py migrate'\". It may mean a model change without a migration.",
+  "docker build prints two InvalidDefaultArgInFrom warnings for docker/portal.Dockerfile because FAIRDM_VERSION has no default, as D6 requires. Expected.",
+  "Not touched, outside this story: docker-compose.yml and compose/django/Dockerfile (US3), AGENTS.md line 26 and the contributor pages named in plan P8 (US3/US5), docs/portal-development/getting_started.md line 352 links to deployment_guide/production.md, which does not exist (left alone).",
+  "Throwaway artefacts created outside the repo and removed at the end: containers fairdm-smoke-db and fairdm-smoke-redis, network fairdm-smoke, images fairdm-base:*, fairdm-demo:*, directory /home/sam/projects/worktrees/probe-compress."
+ ],
+ "blocked": [
+  {
+   "task": "T006",
+   "reason": "docker/smoke-test.sh is written and every check works, but it cannot pass against the demo image: the start sequence's compress step fails with OfflineGenerationError because no template uses {% compress %}. See the first concern. Needs a decision on compress outside this story's scope.",
+   "attempts_used": 3
+  }
+ ]
+}

@@ -114,13 +114,36 @@
         },
         {
           "id": "T004",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_docker/test_entrypoint.py"
+            ],
+            "commands": [
+              "docker.exe build -f docker/Dockerfile --target runtime -t fairdm-base:runtime .",
+              "docker.exe build -f docker/Dockerfile --target development -t fairdm-base:development ."
+            ],
+            "code": [
+              "docker/Dockerfile:1"
+            ]
+          }
         },
         {
           "id": "T005",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_docker/test_entrypoint.py"
+            ],
+            "commands": [
+              "docker.exe build -f docker/portal.Dockerfile --build-arg FAIRDM_IMAGE=fairdm-base --build-arg FAIRDM_VERSION=local -t fairdm-demo:local ."
+            ],
+            "code": [
+              "docker/portal.Dockerfile:1"
+            ]
+          }
         },
         {
           "id": "T006",
@@ -129,8 +152,19 @@
         },
         {
           "id": "T007",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_docker/test_entrypoint.py"
+            ],
+            "commands": [
+              "forge verify --repo /home/sam/projects/worktrees/fairdm-031-base-image --base origin/main"
+            ],
+            "code": [
+              "docs/portal-development/production.md:1"
+            ]
+          }
         }
       ]
     },
