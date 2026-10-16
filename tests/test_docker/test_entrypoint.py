@@ -44,3 +44,34 @@ class TestWebStart:
         assert process.returncode == 5
         assert calls == WEB_STEPS
 
+
+class TestWorkerAndPassThrough:
+    def test_worker_runs_celery_and_none_of_the_web_steps(self, run_entrypoint):
+        process, calls = run_entrypoint("worker")
+
+        assert process.returncode == 0
+        assert calls == ["celery --app config worker"]
+
+    def test_celery_app_sets_the_application_the_worker_runs(self, run_entrypoint):
+        process, calls = run_entrypoint("worker", CELERY_APP="portal.celery")
+
+        assert process.returncode == 0
+        assert calls == ["celery --app portal.celery worker"]
+
+    def test_extra_arguments_reach_celery(self, run_entrypoint):
+        process, calls = run_entrypoint("worker", "--loglevel", "INFO", "--concurrency", "2")
+
+        assert process.returncode == 0
+        assert calls == ["celery --app config worker --loglevel INFO --concurrency 2"]
+
+    def test_any_other_command_runs_as_given_with_its_arguments(self, run_entrypoint):
+        process, calls = run_entrypoint("tool", "shell", "--no-startup")
+
+        assert process.returncode == 0
+        assert calls == ["tool shell --no-startup"]
+
+    def test_any_other_command_keeps_its_exit_status(self, run_entrypoint):
+        process, calls = run_entrypoint("tool", "check", fail_on="tool check", status=7)
+
+        assert process.returncode == 7
+        assert calls == ["tool check"]
