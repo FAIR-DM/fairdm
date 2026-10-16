@@ -13,6 +13,8 @@ portal currently repeats.
 
 **Reopen if** FairDM is published to a package index and portals stop pinning it from git.
 
+**ADR:** docs/adr/0034-portals-build-on-the-published-base-images.md
+
 ## D2. Tags follow releases, not commits
 
 The maintainer's choice, given at agreement: once GitHub releases run (#525), portals pin FairDM to
@@ -25,12 +27,16 @@ building on it broke without warning, because a moving tag gives no signal when 
 
 **Reopen if** releases stay rare enough that portals keep needing unreleased commits.
 
+**ADR:** docs/adr/0034-portals-build-on-the-published-base-images.md
+
 ## D3. A production portal uses both images
 
 Portals install FairDM and its addons from git, and some of their dependencies compile. Installing
 them needs git and build tools, which have no place in a production container. The development
 image carries them, so it serves as the stage where a portal installs its dependencies, as well as
 the local development image. The runtime image carries only what FairDM needs to run.
+
+**ADR:** docs/adr/0034-portals-build-on-the-published-base-images.md
 
 ## D4. The start sequence is the one portals run today, without compression
 
@@ -41,12 +47,16 @@ is known to run a portal in production.
 
 **Reopen when** #193 settles the sequence.
 
+**ADR:** none — the start sequence is recorded in ADR 0034 and is #193's to settle
+
 ## D5. amd64 only
 
 The deployed portal and the people developing on FairDM today all run on amd64. Building for arm64
 doubles the build and is not needed by anyone yet.
 
 **Reopen when** a portal or a contributor needs arm64.
+
+**ADR:** none — a build setting to change when someone needs arm64, nothing depends on it
 
 ## D6. v0.1.0 gets no images
 
@@ -57,6 +67,8 @@ example Dockerfile carries no default version.
 
 **Reopen if** a portal needs an image for v0.1.0 before the next release.
 
+**ADR:** none — a one-off about a release that predates the images
+
 ## D7. Publishing completes a partial set instead of refusing it
 
 The design review found that refusing to publish when either tag exists leaves a release with one
@@ -64,12 +76,16 @@ image for good if the second push fails. Publishing pushes only the tags that ar
 leaves existing ones alone, which keeps every published tag fixed and lets a rerun finish the
 pair. A concurrency group stops two runs on the same tag from racing.
 
+**ADR:** docs/adr/0034-portals-build-on-the-published-base-images.md
+
 ## D8. The demo stops overriding its environment's compression settings
 
 `config/settings.py` set `COMPRESS_ENABLED = True` and `COMPRESS_OFFLINE = False` after
 `fairdm.setup()`, from the repository's first commit. With them the start sequence's `compress`
 refuses to run, so the example Dockerfile could not build a working demo. Both lines go and the
 framework's per-environment values apply.
+
+**ADR:** none — a demo settings cleanup, superseded in effect by D11
 
 ## D9. Design review watch items
 
@@ -82,6 +98,8 @@ From the design review, carried into the briefs rather than re-planned:
   require otherwise, so it stays as planned
 - the matrix's Python version no longer selects Python inside the image; it stays at 3.13, which
   the image provides
+
+**ADR:** none — implementation watch items for this feature only
 
 ## D10. The smoke test asks the container for its own pages
 
@@ -96,6 +114,8 @@ network inputs.
 
 **Revisit if.** A check needs to reach the container from outside, for instance through a proxy.
 
+**ADR:** none — local to the smoke test
+
 ## D11. FairDM stops depending on django-compressor
 
 The `compress` step failed on the demo with `No 'compress' template tags found in templates`. No
@@ -107,6 +127,8 @@ collectstatic, the portal's steps, then gunicorn. This amends FR-005 and adds FR
 the maintainer in the session on 2026-10-16.
 
 **Reopen if** a portal needs offline compression back, in which case it belongs to that portal.
+
+**ADR:** docs/adr/0035-fairdm-does-not-compress-static-files.md
 
 ## D12. The smoke test copies its start step into the container
 
@@ -120,6 +142,8 @@ compare their order in the container log.
 
 **Revisit if.** The script only ever runs on Linux runners and a mount reads more simply.
 
+**ADR:** none — local to the smoke test
+
 ## D13. In the compose stack the worker waits for the web service to be healthy
 
 **Decision.** `django` has a healthcheck that requests the home page, and `celeryworker` depends on it
@@ -132,6 +156,8 @@ and returns at once.
 
 **Revisit if.** The development image ships an environment of its own, which would make the first
 `uv sync` unnecessary.
+
+**ADR:** none — local to the development compose file
 
 ## D14. publish.sh asks about both tags before it pushes either
 
@@ -147,6 +173,8 @@ gives, and match how smoke-test.sh takes `DOCKER`.
 
 **Revisit if.** A third image joins the release, which would make a loop over images worth its lines.
 
+**ADR:** none — local to the publish script
+
 ## D15. The demo portal is built with the engine's own builder
 
 **Decision.** In image.yml the runtime and development images are built with
@@ -160,6 +188,8 @@ failed with "pull access denied", and the engine's builder built it. The portal 
 **Revisit if.** The runner's builder is not named `default`, which the first run on a runner shows,
 or the images are pushed to a registry before the portal is built.
 
+**ADR:** none — local to the image workflow
+
 ## D16. publish.sh has tests, and they sit in tests/test_docker
 
 **Decision.** `tests/test_docker/test_publish.py` runs the script with a stand-in `docker` command
@@ -171,3 +201,5 @@ registry run in the brief's evidence shows them once. The tests keep showing the
 is declared in `[tool.forge.conformance] non-mirror-paths`.
 
 **Revisit if.** The reviewer would rather the script's evidence stay a one-time run.
+
+**ADR:** none — test placement for one script, covered by the testing standard
