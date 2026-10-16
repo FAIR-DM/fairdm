@@ -1,0 +1,140 @@
+{
+ "story": "US5",
+ "skills_loaded": [
+  {
+   "name": "craft-tdd",
+   "receipt": "craft-tdd/2026-09-28/b19e4d07",
+   "loaded_via": "path-read"
+  },
+  {
+   "name": "craft-increments",
+   "receipt": "craft-increments/2026-10-15/1ffa47c3",
+   "loaded_via": "path-read"
+  }
+ ],
+ "tasks": [
+  {
+   "id": "T014",
+   "status": "done",
+   "commits": [
+    "e51bd315"
+   ],
+   "evidence": {
+    "commands": [
+     "uvx --from check-jsonschema check-jsonschema --builtin-schema vendor.github-workflows .github/workflows/test-suite.yml -> ok",
+     "uvx --from actionlint-py actionlint .github/workflows/test-suite.yml -> no findings",
+     "the workflow's docker run step executed locally with docker.exe against postgis/postgis:17-3.5 on a user network (checkout mounted via wslpath -w): uv sync --locked, uv pip install django~=5.2.0, version check printed Django 5.2.17, pytest --cov=fairdm --cov-report=xml tests/test_smoke.py tests/test_docker -> 21 passed"
+    ],
+    "exit_code": 0,
+    "criteria": [
+     "SC-004"
+    ],
+    "tests_added": []
+   }
+  },
+  {
+   "id": "T015",
+   "status": "done",
+   "commits": [
+    "f69fc822"
+   ],
+   "evidence": {
+    "commands": [
+     "check-jsonschema --builtin-schema vendor.github-workflows .github/workflows/image.yml -> ok; actionlint .github/workflows/image.yml -> no findings",
+     "docker.exe build -f docker/Dockerfile --target runtime / development (VERSION=dev), docker buildx build --builder default -f docker/portal.Dockerfile (FAIRDM_IMAGE=fairdm-base FAIRDM_VERSION=ci), then SMOKE_NETWORK=fairdm-smoke SMOKE_DB_HOST=fairdm-smoke-db SMOKE_REDIS_URL=redis://fairdm-smoke-redis:6379/0 DOCKER=docker.exe docker/smoke-test.sh fairdm-base:ci fairdm-base:ci-dev fairdm-demo:ci -> 13 ok lines, 'all checks passed'"
+    ],
+    "exit_code": 0,
+    "criteria": [
+     "SC-004"
+    ],
+    "tests_added": []
+   }
+  },
+  {
+   "id": "T016",
+   "status": "done",
+   "commits": [
+    "6b1321ac"
+   ],
+   "evidence": {
+    "commands": [
+     "scratch branch scratch-t016-no-gdal (deleted afterwards): sed removes gdal-bin from docker/Dockerfile; rebuilt runtime, development and portal images as fairdm-broken:ci, fairdm-broken:ci-dev, fairdm-broken-demo:ci",
+     "docker/smoke-test.sh fairdm-broken:ci fairdm-broken:ci-dev fairdm-broken-demo:ci -> exit 1: 'FAIL smoke-web-3178645 exited before answering on port 8000', container log ends in django/contrib/gis/gdal import failure",
+     "docker.exe run --rm fairdm-broken:ci-dev sh -c 'uv sync --locked; pytest -n0 tests/test_smoke.py' -> exit 1: django.core.exceptions.ImproperlyConfigured: Could not find the GDAL library (tried \"gdal\", \"GDAL\", \"gdal3.10.0\", ...). Is GDAL installed?",
+     "full text of both failures is in progress.md under the T016 entry"
+    ],
+    "exit_code": 0,
+    "criteria": [
+     "SC-004"
+    ],
+    "tests_added": []
+   }
+  },
+  {
+   "id": "T017",
+   "status": "done",
+   "commits": [
+    "d7d4712a"
+   ],
+   "evidence": {
+    "commands": [
+     "uv run pytest -n0 tests/test_docker/test_publish.py -> 9 failed, 1 passed before docker/publish.sh existed (exit status 2); 10 passed after; mutating 'only not found counts as absent' failed 2 tests, restored",
+     "registry:2 on localhost:5000 (docker.exe): DOCKER=docker.exe RUNTIME_IMAGE=fairdm-base:ci DEVELOPMENT_IMAGE=fairdm-base:ci-dev docker/publish.sh 9.9.9 localhost:5000/fairdm -> exit 0, pushed 9.9.9 sha256:51d2b8a2...5565 and 9.9.9-dev sha256:3a8bf295...a4cd",
+     "second run -> both 'exists, left alone', exit 0, digests unchanged; third run with different local images -> digests unchanged",
+     "fresh registry holding only 9.9.9, run with a different local runtime image -> pushed only 9.9.9-dev, 9.9.9 digest unchanged",
+     "registry stopped, publish.sh 9.9.8 localhost:5000/fairdm -> exit 1 'cannot tell whether ... exists: ... connection refused'; after restart the tag list was [9.9.9-dev, 9.9.9]",
+     "check-jsonschema and actionlint on .github/workflows/image.yml -> clean"
+    ],
+    "exit_code": 0,
+    "criteria": [],
+    "tests_added": [
+     "tests/test_docker/test_publish.py::TestPublishing",
+     "tests/test_docker/test_publish.py::TestWhenTheRegistryCannotBeAsked",
+     "tests/test_docker/test_publish.py::TestArguments"
+    ]
+   }
+  },
+  {
+   "id": "T018",
+   "status": "done",
+   "commits": [
+    "f82fcd47"
+   ],
+   "evidence": {
+    "commands": [
+     "docs/portal-development/production.md 'Choose the image version' and docs/contributing/testing/index.md 'Checking the images' written; the commands on the testing page are those run for T015",
+     "forge verify --repo /home/sam/projects/worktrees/fairdm-031-base-image --base origin/main (GDAL_LIBRARY_PATH and GEOS_LIBRARY_PATH exported) -> conformance, docs, uv:lint, uv:typecheck, uv:test (173s), uv:build all passed, exit 0"
+    ],
+    "exit_code": 0,
+    "criteria": [],
+    "tests_added": []
+   }
+  }
+ ],
+ "deviations": [
+  {
+   "what": "docker/publish.sh takes the local image names from RUNTIME_IMAGE and DEVELOPMENT_IMAGE (and the docker command from DOCKER), and asks about both tags before pushing either.",
+   "why": "Keeps the plan's argument list (VERSION [REPOSITORY]) and makes a registry error on the second tag stop the script before the first is pushed.",
+   "decision_ref": "decisions.md#d14-publishsh-asks-about-both-tags-before-it-pushes-either"
+  },
+  {
+   "what": "image.yml builds the demo portal with `docker buildx build --builder default` instead of build-push-action.",
+   "why": "The portal builds FROM images that exist only in the engine's store; a container builder cannot see them (probed locally: pull access denied).",
+   "decision_ref": "decisions.md#d15-the-demo-portal-is-built-with-the-engines-own-builder"
+  },
+  {
+   "what": "Added tests/test_docker/test_publish.py, a path the brief's scope list does not name.",
+   "why": "publish.sh's skip-and-never-move and push-nothing-on-error behaviour is a contract; the directory is declared in non-mirror-paths.",
+   "decision_ref": "decisions.md#d16-publishsh-has-tests-and-they-sit-in-teststest_docker"
+  }
+ ],
+ "concerns": [
+  "Nothing in the two workflows has run on a GitHub runner. First-run assumptions: a Buildx builder named `default` exists beside the one setup-buildx-action creates; `--network host` reaches the PostGIS and Redis service containers on the runner's localhost; coverage.xml written as root inside the container is readable by the Codecov step.",
+  "The full suite was not run inside the development image here (only tests/test_smoke.py and tests/test_docker, 21 passed); the first CI run is the first full run there. `uv pip install` needed `--python /opt/venv/bin/python` because UV_PROJECT_ENVIRONMENT does not reach the pip interface.",
+  "Publishing needs write access for this repository on the ghcr.io/fair-dm/fairdm package (plan P9) and a release created with RELEASE_TOKEN; neither can be shown before the first release (SC-003, AS 4.1).",
+  "The test-suite and image workflows share the gha cache scope `development`; both build with VERSION=dev on pull requests, so they share layers there, and a release build misses the cache once per release.",
+  "Locally the bind mount for docker.exe needs `wslpath -w $PWD`; the workflow uses plain $PWD on Linux. A dangling anonymous docker volume created at 17:01Z predates this session and was left alone. The images fairdm-demo:verify, fairdm-demo:local, fairdm-base:local, fairdm-base:local-dev and fairdm-base:verify* were already present and were left alone.",
+  "check-jsonschema covers the workflow schema and actionlint 1.7.12 (via actionlint-py, since `uvx actionlint` is not on PyPI) found nothing; shellcheck is not installed, so actionlint did not lint the run scripts with it."
+ ],
+ "blocked": []
+}
