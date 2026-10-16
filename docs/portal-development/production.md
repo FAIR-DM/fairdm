@@ -59,16 +59,10 @@ that fails, exiting with that step's status without starting the server:
 
 1. `python manage.py migrate --noinput`
 2. `python manage.py collectstatic --noinput`
-3. `python manage.py compress`
-4. `gunicorn config.wsgi:application`
+3. `gunicorn config.wsgi:application`
 
-Static files are collected and compressed when the container starts, not when it is built, so
-settings that arrive through the environment apply to them.
-
-```{note}
-`compress` stops with an error when no template in the portal uses the `{% compress %}` tag. A
-portal that compresses nothing therefore does not start.
-```
+Static files are collected when the container starts, not when it is built, so settings that
+arrive through the environment apply to them.
 
 Run it against a PostGIS database and a Redis server:
 

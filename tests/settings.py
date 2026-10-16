@@ -65,9 +65,6 @@ CACHES = {
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
 
-COMPRESS_ENABLED = False
-COMPRESS_OFFLINE = False
-
 # A per-process fallback for code that reads these settings outside a test. The
 # `_media_root_under_tmp_path` fixture in the root conftest.py points every test at its own
 # tmp_path, so the suite never writes here (#323).

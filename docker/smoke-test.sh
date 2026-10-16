@@ -169,7 +169,7 @@ pass "the database is reachable from a container on network $network"
 start_portal web
 web=$started
 wait_for_200 "$web" 8000
-pass "the portal migrated, collected, compressed and answered 200 on port 8000"
+pass "the portal migrated, collected static files and answered 200 on port 8000"
 
 uids=$("$docker" exec "$web" sh -c '
     for dir in /proc/[0-9]*; do

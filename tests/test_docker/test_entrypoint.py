@@ -3,7 +3,6 @@
 WEB_STEPS = [
     "python manage.py migrate --noinput",
     "python manage.py collectstatic --noinput",
-    "python manage.py compress",
 ]
 
 
@@ -34,18 +33,12 @@ class TestWebStart:
         assert process.returncode == 3
         assert calls == [WEB_STEPS[0]]
 
-    def test_a_failing_collectstatic_stops_the_start_before_compress(
+    def test_a_failing_collectstatic_stops_the_start_before_the_server(
         self, run_entrypoint
     ):
         process, calls = run_entrypoint("web", fail_on=WEB_STEPS[1], status=4)
 
         assert process.returncode == 4
-        assert calls == WEB_STEPS[:2]
-
-    def test_a_failing_compress_stops_the_start_before_the_server(self, run_entrypoint):
-        process, calls = run_entrypoint("web", fail_on=WEB_STEPS[2], status=5)
-
-        assert process.returncode == 5
         assert calls == WEB_STEPS
 
 

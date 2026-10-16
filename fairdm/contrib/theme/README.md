@@ -101,11 +101,7 @@ Load theme template tags in your templates:
 Theme static files are automatically collected during `collectstatic`. Reference them in templates:
 
 ```django
-{% load static compress %}
-
-{% compress css file fairdm %}
-  <link rel="stylesheet" type="text/x-scss" href="{% static 'fairdm/fairdm.scss' %}" />
-{% endcompress %}
+{% load static %}
 
 <script src="{% static 'js/navbar.js' %}"></script>
 <img src="{% static 'img/brand/fairdm.svg' %}" alt="Logo">

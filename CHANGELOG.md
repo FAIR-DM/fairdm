@@ -14,17 +14,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   non-root user) and a development image (the same, plus git and build tools). Neither contains
   FairDM: a portal installs its locked dependencies on the development image and copies them onto
   the runtime image, as `docker/portal.Dockerfile` shows. A container's default command applies
-  migrations, collects and compresses static files, then serves with gunicorn, and stops at the
+  migrations, collects static files, then serves with gunicorn, and stops at the
   first step that fails. `PORT` changes the port, and the command `worker` starts a Celery worker
   instead. `docker/smoke-test.sh` checks the images and a portal built on them. See
   [How to deploy a portal in a container](docs/portal-development/production.md).
 
-### Changed
+### Removed
 
-- **The demo portal no longer overrides the compression settings of its environment.** Its
-  `settings.py` set `COMPRESS_ENABLED` and `COMPRESS_OFFLINE` after `fairdm.setup()`, which stopped
-  `python manage.py compress` from running. Production now compresses offline and development does
-  not compress.
+- **django-compressor and django-libsass are no longer dependencies.** No template in FairDM used
+  `{% compress %}`, so the `compress` step could only fail, and the container start sequence no
+  longer runs it. FairDM drops the `compressor` app, the `CompressorFinder` static finder, every
+  `COMPRESS_*` setting and the `compress` step of the production setup sequence. A portal that
+  uses `{% compress %}` or `django_libsass` adds `django-compressor` (and `django-libsass`) to its
+  own dependencies, adds `compressor` to its `INSTALLED_APPS`, adds
+  `compressor.finders.CompressorFinder` to `STATICFILES_FINDERS`, sets its own `COMPRESS_*`
+  settings, and runs `python manage.py compress` before it serves.
 
 ## [v0.1.0] - 2026-10-16
 

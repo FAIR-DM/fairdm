@@ -223,7 +223,7 @@ also run a local development server on it. Built from the `development` target o
 ### Start sequence
 
 What the runtime image does when a container starts in its default mode: apply migrations, collect
-static files, compress them, then serve with gunicorn. A step that fails stops the start with its
+static files, then serve with gunicorn. A step that fails stops the start with its
 exit status and the server never runs. Given `worker`, the same image starts a Celery worker
 and runs none of those steps. Implemented by `docker/entrypoint.sh`.
 
