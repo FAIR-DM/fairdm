@@ -16,33 +16,22 @@
   }
  ],
  "tasks": [
-  "T001",
-  "T002",
-  "T003",
-  "T004",
-  "T005",
-  "T006",
-  "T007"
+  "T019",
+  "T006"
  ],
  "context": {
-  "why": "First story of FS-031, the FairDM base images. This story delivers docker/Dockerfile (runtime and development targets), docker/entrypoint.sh (web start sequence, worker, pass-through; NOT yet the /docker-entrypoint.d start-steps loop, which is US2), docker/portal.Dockerfile (the example a portal copies, also used to build FairDM's demo), docker/smoke-test.sh (all checks except the start step), removal of COMPRESS_ENABLED and COMPRESS_OFFLINE from config/settings.py (decisions D8), and the rewrite of docs/portal-development/production.md for what this story delivers, plus CONTEXT.md terms and a changelog Added entry. No workflow files in this story: .github/ is US5 and US4.",
+  "why": "Continuation of US1 of FS-031. T001-T005 and T007 are done and committed by you (HEAD 30143fd9 plus the orchestrator's spec/plan commit after it). T006 was blocked because `manage.py compress` fails: no template uses {% compress %}. The maintainer decided: FairDM stops depending on django-compressor (and django-libsass, whose only use was compressor's precompiler), and the start sequence drops the compress step. Do T019 per plan P10, then finish T006: the smoke test must pass against the demo image built from docker/portal.Dockerfile.",
   "spec_sections": [
-   "What exists, and what this specification changes",
+   "FR-005",
+   "FR-020",
    "User Story 1",
-   "Edge Cases",
-   "FR-001..FR-007",
-   "FR-009",
-   "FR-018",
-   "Key Entities",
-   "SC-001",
-   "SC-005"
+   "Clarifications",
+   "Breaking changes"
   ],
   "plan_sections": [
-   "P1",
    "P2",
-   "P3",
    "P7",
-   "P8"
+   "P10"
   ],
   "research_sections": [
    "R1",
@@ -59,7 +48,8 @@
    "D4: the start sequence is migrate --noinput, collectstatic --noinput, compress, then gunicorn. Not django-setup-tools.",
    "D6: no image exists for any release yet; portal.Dockerfile's FAIRDM_VERSION ARG has no default.",
    "D8: delete COMPRESS_ENABLED = True and COMPRESS_OFFLINE = False from config/settings.py (lines 9-10).",
-   "D9 watch items: name every env var passed to docker run; smoke-test requests send X-Forwarded-Proto: https because production redirects to HTTPS (fairdm/conf/settings/security.py:36)."
+   "D9 watch items: name every env var passed to docker run; smoke-test requests send X-Forwarded-Proto: https because production redirects to HTTPS (fairdm/conf/settings/security.py:36).",
+   "D11: remove django-compressor and django-libsass; start sequence is migrate, collectstatic, the portal's steps, gunicorn. Leave demo/static/scss/ and docs/portal-development/theme*.md untouched."
   ],
   "constitution": [
    "Article I: every change follows docs/contributing/standards/testing.md: what gets a test and what does not, test-first, structure and fixtures. Tests are grouped into Test<Subject> classes. A test whose subject is not a Python module is exempt from mirroring only when declared in [tool.forge.conformance] non-mirror-paths in pyproject.toml; add \"tests/test_docker/\" there (T001). Wording and appearance get no tests.",
@@ -73,8 +63,8 @@
    "Entrypoint tests (T001, T002): run docker/entrypoint.sh with subprocess under /bin/sh, with PATH starting with a tmp_path directory of stand-in python, gunicorn and celery scripts that append their argv to a log file and exit with a status the test controls. No Docker in the Python tests."
   ],
   "verified_base": {
-   "commit": "ea998dc8f13d79710b692531d01e9d70d4b2a1d7",
-   "at": "2026-10-16T12:55:00Z",
+   "commit": "30143fd9",
+   "at": "2026-10-16T14:30:00Z",
    "steps": [
     "conformance",
     "docs",
@@ -82,12 +72,12 @@
     "typecheck",
     "test",
     "build"
-   ]
+   ],
+   "note": "verified by the implementer's own section-5 run on 30143fd9; the orchestrator's later commit touches specs/031-base-image only"
   },
   "acceptance": [
-   "T001-T003: entrypoint tests written first, seen to fail, then green; failing migrate stops the start and gunicorn never runs.",
-   "T004-T006: both targets and the demo portal image build with docker.exe; docker/smoke-test.sh passes against them, every check printed. Paste its output into the T006 evidence.",
-   "T007: production.md describes the images, the example Dockerfile (by literalinclude of docker/portal.Dockerfile), the environment variables the smoke test needed, the worker, and the port; no mention of compose/production/django; the docs build passes (verify's docs step)."
+   "T019: no import, setting, template tag, dependency or doc example in the package refers to django-compressor or django-libsass (git grep -i 'compress' finds only gzip/brotli/decompress senses, the changelog, specs and the untouched SCSS/theme files); uv.lock updated with `uv lock`; the entrypoint tests changed to the new sequence (you authored them, so editing them is allowed); full verify green.",
+   "T006: docker/smoke-test.sh passes against the demo image, every check printed; paste the output into the T006 evidence."
   ]
  },
  "budgets": {
@@ -106,7 +96,7 @@
  ],
  "prohibitions": [
   "Never modify or delete a test you did not author in this story.",
-  "Never touch files outside this story's scope: docker/, tests/test_docker/, pyproject.toml (non-mirror-paths only), config/settings.py (the two COMPRESS lines only), docs/portal-development/production.md, CONTEXT.md, CHANGELOG.md, and your own records under specs/031-base-image/. Do not touch .github/, docker-compose.yml or compose/.",
+  "Never touch files outside this story's scope: docker/, tests/test_docker/, pyproject.toml and uv.lock, config/settings.py, fairdm/conf/settings/apps.py, fairdm/conf/settings/static_media.py, fairdm/conf/development.py, tests/settings.py (its COMPRESS lines only), fairdm/templates/pages/spectacular.html, fairdm/contrib/theme/README.md, docs/portal-development/production.md, CONTEXT.md, CHANGELOG.md, and your own records under specs/031-base-image/. Do not touch .github/, docker-compose.yml or compose/.",
   "Never edit feature-state.json by hand; use kit/forge ledger-task for your own tasks only.",
   "Never push, merge, open or comment on anything on GitHub. No gh, no tokens.",
   "Never weaken an assertion, add a skip, or special-case code to make a test pass.",
