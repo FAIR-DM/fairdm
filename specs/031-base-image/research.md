@@ -11,9 +11,10 @@ to the resolved virtual environment of this branch, `.venv/lib/python3.13/site-p
 Tag Release flow. Tag Release creates the release with `RELEASE_TOKEN`, a personal access token,
 so the `release: published` event reaches other workflows (GitHub suppresses that event only for
 releases created with `GITHUB_TOKEN`). The image workflow publishes on that event, tagged
-`<version>` and `<version>-dev`, where `<version>` is the release tag without its `v`. It can
-also be started by hand on a release tag, which is how v0.1.0, released before this feature,
-gets its images.
+`<version>` and `<version>-dev`, where `<version>` is the release tag without its `v`. v0.1.0
+was released before this feature and gets no images: a run on its tag would use the tree of that
+tag, which has no image definition. The first images come with the first release that carries
+this feature.
 
 ## What the code and the environment already give
 
@@ -162,8 +163,8 @@ which the runner's user owns, receive `coverage.xml`.
 `.github/workflows/image.yml` runs on every pull request, on pushes to `main`, on
 `release: published`, and by hand. One job builds both targets and the demo portal, runs
 `docker/smoke-test.sh`, and only then, and only when the ref is a `v*` tag, logs in to the
-registry with `GITHUB_TOKEN` (`packages: write`) and pushes both tags. Before pushing it checks
-that neither tag already exists, and fails if one does (FR-013). A failure anywhere before the
+registry with `GITHUB_TOKEN` (`packages: write`) and pushes whichever of the two tags does not
+exist yet, leaving any that does untouched (FR-013, plan P6). A failure anywhere before the
 push publishes nothing (FR-014). Images are built for `linux/amd64` only (FR-015).
 
 The check is named `Image`. Making it required on the ruleset is a tightening that follows once
@@ -184,3 +185,5 @@ the check has reported on `main`.
 | Image smoke checks | new code: `docker/smoke-test.sh` |
 | Entrypoint tests | new code: `tests/test_docker/test_entrypoint.py` |
 | Example portal Dockerfile | new file: `docker/portal.Dockerfile`, which is also the guide's example |
+| Image workflow | new file: `.github/workflows/image.yml` |
+| Publishing without moving a tag | new code: `docker/publish.sh`, using `docker buildx imagetools` |

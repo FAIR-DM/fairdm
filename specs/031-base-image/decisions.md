@@ -47,3 +47,38 @@ The deployed portal and the people developing on FairDM today all run on amd64. 
 doubles the build and is not needed by anyone yet.
 
 **Reopen when** a portal or a contributor needs arm64.
+
+## D6. v0.1.0 gets no images
+
+A workflow run on a tag uses the workflow and the Dockerfile at that tag, and v0.1.0 has neither.
+Building v0.1.0's images from a later tree would label an image with a release it was not built
+from. The first images are published by the first release that carries this feature, so the
+example Dockerfile carries no default version.
+
+**Reopen if** a portal needs an image for v0.1.0 before the next release.
+
+## D7. Publishing completes a partial set instead of refusing it
+
+The design review found that refusing to publish when either tag exists leaves a release with one
+image for good if the second push fails. Publishing pushes only the tags that are missing and
+leaves existing ones alone, which keeps every published tag fixed and lets a rerun finish the
+pair. A concurrency group stops two runs on the same tag from racing.
+
+## D8. The demo stops overriding its environment's compression settings
+
+`config/settings.py` set `COMPRESS_ENABLED = True` and `COMPRESS_OFFLINE = False` after
+`fairdm.setup()`, from the repository's first commit. With them the start sequence's `compress`
+refuses to run, so the example Dockerfile could not build a working demo. Both lines go and the
+framework's per-environment values apply.
+
+## D9. Design review watch items
+
+From the design review, carried into the briefs rather than re-planned:
+
+- name each environment variable passed to `docker run`; docker does not expand `POSTGRES_*`
+- requests in the smoke test send `X-Forwarded-Proto: https`
+- `docker buildx imagetools inspect` exits non-zero on errors as well as on absence
+- the runtime image's `COPY --chown` makes portal code writable by the server; FR-004 does not
+  require otherwise, so it stays as planned
+- the matrix's Python version no longer selects Python inside the image; it stays at 3.13, which
+  the image provides

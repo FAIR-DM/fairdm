@@ -25,9 +25,11 @@ back. Wording and appearance get no tests.
   FR-007).
 - [ ] T003 [US1] `docker/entrypoint.sh` per plan P2, without the start-steps loop, to green.
 - [ ] T004 [US1] `docker/Dockerfile` per plan P1, both targets. Build both locally.
-- [ ] T005 [US1] `docker/portal.Dockerfile` per plan P3. Build FairDM's demo with it on the local
+- [ ] T005 [US1] `docker/portal.Dockerfile` per plan P3. Remove `COMPRESS_ENABLED` and
+  `COMPRESS_OFFLINE` from `config/settings.py` (plan P3). Build FairDM's demo with it on the local
   images.
-- [ ] T006 [US1] `docker/smoke-test.sh` per plan P7, every check except the start step. Run it
+- [ ] T006 [US1] `docker/smoke-test.sh` per plan P7, every check except the start step,
+  including the image-contents checks. Run it
   against the demo image and a local PostGIS until it passes (AS 1.1 to 1.7, FR-001 to FR-007,
   FR-009, SC-001, SC-005).
 - [ ] T007 [US1] Documentation: rewrite `docs/portal-development/production.md` per plan P8 for
@@ -65,8 +67,11 @@ back. Wording and appearance get no tests.
 
 ## Phase 5: US-4, a portal developer moves FairDM and its images to a new release together (P2)
 
-- [ ] T017 [US4] `image.yml` step 4 per plan P6: publish both tags on a `v*` tag ref, refusing a
-  tag that already exists, nothing pushed if anything before it fails, amd64 only (AS 4.1 to 4.3,
-  FR-012 to FR-015, SC-003).
+- [ ] T017 [US4] `docker/publish.sh` and `image.yml` step 4 per plan P6, amd64 only. Evidence,
+  against a local registry (`registry:2` on localhost): a first run pushes both tags; a second run
+  leaves both digests unchanged; with only `<version>` present, a run pushes `<version>-dev` and
+  leaves `<version>` unchanged; with the registry unreachable, the script exits non-zero and
+  pushes nothing (AS 4.2, AS 4.3, FR-012 to FR-015). SC-003 and AS 4.1 are shown on the first
+  release after the merge.
 - [ ] T018 [US4] Documentation: image versions against FairDM versions, and what a portal pinned
   to a commit between releases uses (FR-019).

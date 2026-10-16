@@ -3,7 +3,7 @@
   "feature": "031-base-image",
   "branch": "031-base-image",
   "repo": "FAIR-DM/fairdm",
-  "state": "PLAN",
+  "state": "DESIGN_REVIEW",
   "state_history": [
     {
       "state": "QUEUED",
@@ -14,6 +14,11 @@
       "state": "PLAN",
       "at": "2026-10-16T10:37:14Z",
       "note": "research and plan written against v0.1.0"
+    },
+    {
+      "state": "DESIGN_REVIEW",
+      "at": "2026-10-16T10:37:57Z",
+      "note": "plan, research and tasks written"
     }
   ],
   "gates": {
@@ -31,6 +36,18 @@
     "merge": {
       "approved_by": null,
       "at": null
+    },
+    "design_review": {
+      "approved_by": "design-reviewer",
+      "at": "2026-10-16T10:50:13Z",
+      "self_resolved": [
+        "5 findings: 0 critical, 1 high, 3 medium, 1 low; verdict request_changes",
+        "DR-001 high remedied in plan P3 and T005 (demo compression settings removed), verified against config/settings.py:9-10",
+        "DR-002 remedied in plan P1 (DJANGO_ENV, DJANGO_SETTINGS_MODULE set in the image)",
+        "DR-003 remedied in plan P6 (publish.sh pushes missing tags only, concurrency group)",
+        "DR-004 remedied in T017 (local-registry evidence)",
+        "DR-005 remedied in plan P7 (image-contents checks)"
+      ]
     }
   },
   "stories": [
@@ -189,7 +206,7 @@
       "max": 120
     },
     "design_review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     }
   },

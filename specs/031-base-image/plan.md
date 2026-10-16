@@ -45,6 +45,7 @@ FROM python:3.13-slim AS runtime
 # gdal-bin, libpq5; fairdm user 1000; /app, /app/static, /app/media, /opt/venv owned by fairdm
 # uv from ghcr.io/astral-sh/uv:<minor>; ENV UV_PROJECT_ENVIRONMENT=/opt/venv PATH=/opt/venv/bin:$PATH
 #     UV_LINK_MODE=copy UV_PYTHON_DOWNLOADS=never PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 PORT=8000
+#     DJANGO_ENV=production DJANGO_SETTINGS_MODULE=config.settings
 # COPY entrypoint.sh /usr/local/bin/fairdm-entrypoint; mkdir /docker-entrypoint.d
 # WORKDIR /app; USER fairdm; EXPOSE 8000
 ENTRYPOINT ["fairdm-entrypoint"]
@@ -53,8 +54,13 @@ CMD ["web"]
 FROM runtime AS development
 USER root
 # build-essential, libpq-dev, git
+ENV DJANGO_ENV=development
 USER fairdm
 ```
+
+`DJANGO_ENV` and `DJANGO_SETTINGS_MODULE` are set in the image because a portal's `manage.py`
+defaults to development, and the worker never reads `manage.py` at all. A portal whose settings
+module is not `config.settings` sets it in its own Dockerfile or environment.
 
 The build context is the repository root, and the Dockerfile copies only `docker/entrypoint.sh`.
 OCI labels: `org.opencontainers.image.source` set to the repository URL, plus title, description,
@@ -70,7 +76,10 @@ case "${1:-web}" in
   web)    python manage.py migrate --noinput
           python manage.py collectstatic --noinput
           python manage.py compress
-          for step in "$start_dir"/*; do [ -f "$step" ] && [ -x "$step" ] && "$step"; done
+          for step in "$start_dir"/*; do
+            [ -f "$step" ] || continue
+            if [ -x "$step" ]; then "$step"; else echo "skipping $step: not executable" >&2; fi
+          done
           exec gunicorn "${WSGI_APP:-config.wsgi:application}" ;;
   worker) shift; exec celery --app "${CELERY_APP:-config}" worker "$@" ;;
   *)      exec "$@" ;;
@@ -87,7 +96,7 @@ Research R6.
 
 ```dockerfile
 ARG FAIRDM_IMAGE=ghcr.io/fair-dm/fairdm
-ARG FAIRDM_VERSION=0.1.0
+ARG FAIRDM_VERSION
 FROM ${FAIRDM_IMAGE}:${FAIRDM_VERSION}-dev AS build
 COPY --chown=fairdm:fairdm pyproject.toml uv.lock README.md ./
 RUN uv sync --locked --no-dev --no-install-project
@@ -99,9 +108,17 @@ COPY --from=build /opt/venv /opt/venv
 COPY --chown=fairdm:fairdm . /app
 ```
 
-It installs no system package (SC-001). `FAIRDM_VERSION`'s default is the latest release, and
-release preparation does not bump it: the guide tells a portal to set it to its own FairDM
-version. CI overrides both arguments to point at the images just built.
+It installs no system package (SC-001). `FAIRDM_VERSION` has no default: no release has images
+yet, and the guide tells a portal to write its own FairDM version there. CI sets both arguments to
+point at the images just built. `README.md` is copied because hatchling reads it, and the guide
+says a portal whose build backend does not can leave it out.
+
+FairDM's demo builds with this file only once the demo's settings stop overriding the
+environment's compression settings. `config/settings.py:9-10` sets `COMPRESS_ENABLED = True` and
+`COMPRESS_OFFLINE = False` after `fairdm.setup()`, a leftover from the first commit in 2025 that
+predates the environment profiles. With it, `compress` in the start sequence refuses to run. Both
+lines go, so production compresses offline (`fairdm/conf/settings/static_media.py:42`) and
+development does not compress (`fairdm/conf/development.py:81`).
 
 ### P4. FairDM's compose stack
 
@@ -121,10 +138,12 @@ dependencies", "Pin Django version" and "Run tests" with:
 1. `docker/setup-buildx-action`
 2. `docker/build-push-action` with `target: development`, `load: true`, `push: false`,
    `tags: fairdm-dev:ci`, `cache-from/to: type=gha,scope=development`
-3. one `docker run --rm --network host --user root -v "$PWD:/app" -e POSTGRES_* -e DJANGO_VERSION
-   fairdm-dev:ci sh -c "uv sync --locked && uv pip install django~=$DJANGO_VERSION.0 && <version
-   check> && pytest --cov=fairdm --cov-report=xml"`, with `UV_NO_SYNC=1` for any `uv run` after
-   the pin, as today
+3. one `docker run --rm --network host --user root -v "$PWD:/app" -v "$HOME/.cache/uv:/root/.cache/uv"`
+   with `-e POSTGRES_HOST -e POSTGRES_PORT -e POSTGRES_USER -e POSTGRES_PASSWORD -e POSTGRES_DB
+   -e DJANGO_VERSION`, running `sh -c "uv sync --locked && uv pip install django~=$DJANGO_VERSION.0
+   && <version check> && pytest --cov=fairdm --cov-report=xml"`. The uv cache directory is kept
+   between runs with `actions/cache`, keyed on `uv.lock`, so dependencies are not downloaded and
+   the git dependencies not cloned on every run
 
 The job name, the matrix and the Codecov step stay, so the required check keeps its name.
 
@@ -136,20 +155,38 @@ packages: write`, with a PostGIS service on 5432.
 1. Build `runtime` and `development` from `docker/Dockerfile` (load, cached).
 2. Build `docker/portal.Dockerfile` with `FAIRDM_IMAGE` and `FAIRDM_VERSION` pointing at them.
 3. Run `docker/smoke-test.sh <portal image>`.
-4. Only on a `refs/tags/v*` ref: compute `version=${GITHUB_REF_NAME#v}`, check with
-   `docker buildx imagetools inspect` that neither `ghcr.io/fair-dm/fairdm:$version` nor
-   `:$version-dev` exists (exit 1 if one does), log in with `GITHUB_TOKEN`, tag and push both.
+4. Only on a `refs/tags/v*` ref: log in with `GITHUB_TOKEN` and run `docker/publish.sh
+   ${GITHUB_REF_NAME#v}`.
 
-Triggers: `pull_request`, `push` to `main`, `release: published`, `workflow_dispatch`. A dispatch
-on a release tag publishes that release's images, which is how v0.1.0 gets them.
+`docker/publish.sh <version> [<repository>]` (default `ghcr.io/fair-dm/fairdm`) handles both
+tags, `<version>` and `<version>-dev`, one at a time: a tag that already exists is left alone, and
+a missing one is pushed. A published tag is therefore never moved (FR-013), and a run that failed
+after pushing one tag is completed by running again, rather than refused forever. Existence is
+read with `docker buildx imagetools inspect`, and only a not-found answer counts as absent: an
+authentication or network error stops the script before anything is pushed. Nothing is pushed if
+any earlier step fails, because the script runs last (FR-014).
+
+The job has `concurrency: image-${{ github.ref }}` with `cancel-in-progress: false`, so two runs on
+the same tag never check and push at the same time.
+
+Triggers: `pull_request`, `push` to `main`, `release: published`, `workflow_dispatch`. Any `v*` tag
+ref publishes, including a tag pushed by hand. Only people with write access can push one.
+
+**v0.1.0 gets no images.** A dispatch on a tag runs the workflow and the Dockerfile as they were at
+that tag, and v0.1.0 has neither. The first images are published by the first release that
+carries this feature. SC-003 is shown on that release, not before the merge.
 
 ### P7. `docker/smoke-test.sh`
 
-Research R8. Takes the portal image name. Uses `docker run` against the job's PostGIS service
+Research R8, plus what only the image's contents can show: `libpq.so.5` and `uv` are present in
+the runtime image, `import fairdm` fails in the runtime image itself, and `gcc` and `git` are
+present in the development image. Takes the runtime, development and portal image names. Uses `docker run` against the job's PostGIS service
 through the host network. Each check prints one line, and the script exits non-zero on the first
 failure. The settings the demo needs in production mode come from the environment the script
 sets: a throwaway secret key, allowed hosts, the database, and whatever else the production
-configuration checks require. The implementer reads them from `fairdm/conf/` and
+configuration checks require. Production redirects HTTP to HTTPS
+(`fairdm/conf/settings/security.py:36`), so requests send `X-Forwarded-Proto: https`, as a proxy in
+front of a portal would. The implementer reads them from `fairdm/conf/` and
 `config/production.py` and lists them in the guide, since a portal needs the same.
 
 ### P8. Documentation
@@ -160,9 +197,12 @@ configuration checks require. The implementer reads them from `fairdm/conf/` and
   `literalinclude` of `docker/portal.Dockerfile`, start steps, the worker, the port and the
   environment variables, and the development image in a portal's own compose file (FR-018). The
   description of `compose/production/django` goes.
-- Contributor pages that mention `compose/django/Dockerfile` or describe the compose stack
+- Contributor pages that describe the compose stack or the GDAL install in CI
   (`docs/contributing/before_you_start.md`, `docs/contributing/testing/index.md`,
-  `docs/portal-development/getting_started.md`, `AGENTS.md`) are brought up to date.
+  `docs/portal-development/getting_started.md`, `AGENTS.md`, which still calls the compose stack
+  broken at line 26) are brought up to date.
+- The guide's release note says images appear only when Tag Release runs with `RELEASE_TOKEN`,
+  since a release created with `GITHUB_TOKEN` starts no other workflow.
 - `CONTEXT.md` gains *base image*, *runtime image*, *development image* and *start sequence*, as
   the spec's key entities define them.
 - The changelog gets one Added entry.
