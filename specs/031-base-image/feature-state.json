@@ -316,8 +316,22 @@
       "tasks": [
         {
           "id": "T014",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_smoke.py",
+              "tests/test_docker"
+            ],
+            "commands": [
+              "check-jsonschema --builtin-schema vendor.github-workflows .github/workflows/test-suite.yml: exit 0",
+              "actionlint .github/workflows/test-suite.yml: exit 0",
+              "docker.exe run of the workflow's run step against a postgis container: pytest tests/test_smoke.py tests/test_docker, 21 passed, exit 0"
+            ],
+            "code": [
+              ".github/workflows/test-suite.yml:69"
+            ]
+          }
         },
         {
           "id": "T015",

@@ -51,3 +51,10 @@ Did: docker-compose.yml builds docker/Dockerfile target development, mounts the 
 Verified: docker.exe compose -p fairdm031 up -d --build: GET / 200 from this shell; touching fairdm/__init__.py logs '/app/fairdm/__init__.py changed, reloading.'; the worker logs 'celery@... ready.'; torn down with down -v --rmi local. The first attempt failed because both services synced into the venv volume at once, so the worker now waits for a healthy django (D13). Ran the suite the way the contributor page says: pytest -n0 tests/test_core/test_project -> 346 passed. Ran the guide's portal compose file against fairdm-base:local-dev: GET / 200 and the worker ready.
 Next: full verify and the report.
 Watch: a project name other than fairdm was used for the run (-p fairdm031) so the existing fairdm_postgres volume was untouched. docker.exe only translates the relative .:/app mount; an absolute WSL path mounts an empty directory.
+
+## 2026-10-16T17:10:01Z · Implementer US5 · T014
+
+Did: test-suite.yml now builds the development target from the branch (buildx, load, gha cache scoped "development"), caches ~/.cache/uv on uv.lock, and runs `uv sync --locked`, the Django pin and its version check, and pytest with coverage in one `docker run --network host --user root` with the checkout mounted at /app. The GDAL, setup-uv, host sync and host pytest steps are gone. Job name, matrix, caller job id and the Codecov step are unchanged.
+Verified: check-jsonschema (vendor.github-workflows) exit 0; actionlint 1.7.12 exit 0; the workflow's run step executed locally with docker.exe against a postgis container (network fs031-ci, bind mount via wslpath -w): Django 5.2.17 printed by the version check, `pytest --cov=fairdm --cov-report=xml tests/test_smoke.py tests/test_docker` 21 passed, exit 0, coverage.xml written into the checkout. `uv pip install` needed `--python /opt/venv/bin/python`: UV_PROJECT_ENVIRONMENT does not apply to the pip interface.
+Next: T015 image.yml.
+Watch: the full suite was not run in the image here; CI is the first full run. coverage.xml is written by root in the checkout, which the Codecov step reads.
