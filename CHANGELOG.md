@@ -18,7 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   first step that fails. `PORT` changes the port, and the command `worker` starts a Celery worker
   instead. Executable files in `/docker-entrypoint.d/` run as start steps after `collectstatic`
   and before the server, in name order. `docker/smoke-test.sh` checks the images and a portal
-  built on them. See
+  built on them, on every pull request, and the test suite runs inside the development image.
+  Each release publishes `ghcr.io/fair-dm/fairdm:<version>` and `ghcr.io/fair-dm/fairdm:<version>-dev`
+  and never moves a tag it has published. See
   [How to deploy a portal in a container](docs/portal-development/production.md).
 - **The `docker-compose.yml` development stack works again.** It builds the development image,
   mounts the checkout, and starts PostGIS, Redis, the development server and a Celery worker with

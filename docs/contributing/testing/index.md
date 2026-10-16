@@ -57,3 +57,37 @@ afterwards, so the database user needs the right to create databases.
 uv run pytest --cov --cov-report=term-missing
 uv run pytest --cov --cov-report=html            # report in htmlcov/
 ```
+
+## Checking the images
+
+Every pull request runs the `Image` workflow. It builds the runtime image, the development image and
+the demo portal on top of them, then runs `docker/smoke-test.sh` against all three. A change to
+`docker/`, to the system libraries FairDM needs, or to the code that starts the portal can fail it,
+even when every test passes. Releases are published by the same workflow, but only on a release tag.
+
+To run the same check on your machine, build the three images, start PostGIS and Redis on a network
+of their own, and run the script on that network:
+
+```bash
+docker build -f docker/Dockerfile --target runtime -t fairdm-base:local .
+docker build -f docker/Dockerfile --target development -t fairdm-base:local-dev .
+docker build -f docker/portal.Dockerfile --build-arg FAIRDM_IMAGE=fairdm-base \
+    --build-arg FAIRDM_VERSION=local -t fairdm-demo:local .
+
+docker network create fairdm-smoke
+docker run -d --name fairdm-smoke-db --network fairdm-smoke -e POSTGRES_PASSWORD=postgres \
+    -e POSTGRES_DB=fairdm postgis/postgis:17-3.5
+docker run -d --name fairdm-smoke-redis --network fairdm-smoke redis:7
+SMOKE_NETWORK=fairdm-smoke SMOKE_DB_HOST=fairdm-smoke-db \
+    SMOKE_REDIS_URL=redis://fairdm-smoke-redis:6379/0 \
+    docker/smoke-test.sh fairdm-base:local fairdm-base:local-dev fairdm-demo:local
+```
+
+The script prints one line per check and stops at the first failure. It needs an empty database, so
+remove and recreate `fairdm-smoke-db` before running it again. Remove the containers and the
+network when you are done:
+
+```bash
+docker rm -f fairdm-smoke-db fairdm-smoke-redis
+docker network rm fairdm-smoke
+```

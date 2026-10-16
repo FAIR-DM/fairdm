@@ -18,8 +18,30 @@ In both images your portal lives in `/app`, its virtual environment in `/opt/ven
 runs as the user `fairdm` (uid 1000). GeoDjango finds GDAL, GEOS and PROJ without
 `GDAL_LIBRARY_PATH` or `GEOS_LIBRARY_PATH` being set.
 
-Both images are published as `ghcr.io/fair-dm/fairdm:<version>` and
-`ghcr.io/fair-dm/fairdm:<version>-dev`.
+## Choose the image version
+
+Every FairDM release is published as two images, and the tag is the release without its `v`. For
+FairDM `v0.2.0`:
+
+| Image | Tag |
+| --- | --- |
+| Runtime image | `ghcr.io/fair-dm/fairdm:0.2.0` |
+| Development image | `ghcr.io/fair-dm/fairdm:0.2.0-dev` |
+
+There is no `latest` tag. Write the release your portal depends on, so that moving the portal to a
+new FairDM release and moving its images happen in the same change. A published tag is never
+replaced.
+
+A portal that pins FairDM to a commit between two releases uses the images of the last release
+before that commit. This holds as long as that commit has not changed FairDM's system
+requirements: the Python version, the system packages and the libraries the images carry. When it
+has, the images of the last release no longer match what the commit needs, and the portal builds
+its own base images from `docker/Dockerfile` at that commit, as the next section shows.
+
+The images are built when a release is created. FairDM's release workflow creates it with
+`RELEASE_TOKEN`, because GitHub starts no other workflow for a release created with the default
+`GITHUB_TOKEN`, and so no images would appear. Releases made before the images existed, such as
+`v0.1.0`, have none.
 
 ## Build the images from a FairDM checkout
 
