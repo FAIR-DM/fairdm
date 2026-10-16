@@ -267,6 +267,24 @@
               "docs/portal-development/production.md:111"
             ]
           }
+        },
+        {
+          "id": "T020",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "docker/smoke-test.sh (start-step check)"
+            ],
+            "commands": [
+              "docker.exe run --user root fairdm-demo:verify: a 0700 step folder owned by uid 1001 is not seen by fairdm; at 755 the step runs",
+              "DOCKER=docker.exe SMOKE_NETWORK=fairdm-verify ... bash docker/smoke-test.sh fairdm-base:verify fairdm-base:verify-dev fairdm-demo:verify -> all checks passed"
+            ],
+            "code": [
+              "docker/Dockerfile:24",
+              "docker/smoke-test.sh:188"
+            ]
+          }
         }
       ]
     },
