@@ -1,24 +1,18 @@
 name: Publish
 
-# Publishes to PyPI when a release is published (or a v* tag is pushed by a
-# user). Release creation itself is owned by the Tag Release workflow; the
-# CHANGELOG section is written before release by Prepare Release.
+# Publishes to PyPI, and runs only when started by hand.
 #
-# Note: releases/tags created by the Tag Release workflow with the default
-# GITHUB_TOKEN do not trigger this workflow — set the RELEASE_TOKEN org secret
-# (see django-mvp/shared README, Release Flow) or run this manually via
-# workflow_dispatch.
+# FairDM is released on GitHub: Prepare Release opens the release pull request,
+# and Tag Release creates the tag and the GitHub release when it merges. Portals
+# pin FairDM to a release tag. FairDM is not published to PyPI yet, because two
+# of its dependencies, django-literature and django-research-vocabs, are
+# installed from git, and PyPI refuses a package that depends on a git URL.
+# Once both come from PyPI, add the `release: published` trigger back here.
 #
-# PyPI trusted publishing watches this filename. This package has not been
-# published yet, so the trusted publisher must be configured against
-# `publish.yml` before the first release.
+# PyPI trusted publishing watches this filename, so the trusted publisher must
+# be configured against `publish.yml` before the first PyPI release.
 
 on:
-  push:
-    tags:
-      - "v*"
-  release:
-    types: [published]
   workflow_dispatch:
 
 jobs:
