@@ -59,7 +59,8 @@ that fails, exiting with that step's status without starting the server:
 
 1. `python manage.py migrate --noinput`
 2. `python manage.py collectstatic --noinput`
-3. `gunicorn config.wsgi:application`
+3. Your [start steps](#add-your-own-start-steps), if you have any
+4. `gunicorn config.wsgi:application`
 
 Static files are collected when the container starts, not when it is built, so settings that
 arrive through the environment apply to them.
@@ -107,9 +108,54 @@ The server listens on port 8000. Set `PORT` to change it, with no rebuild:
 docker run --env PORT=8123 --publish 8123:8123 ... my-portal
 ```
 
+## Add your own start steps
+
+A portal often has work of its own to do before the server starts: loading reference data,
+clearing expired sessions, warming a cache. Put each piece of work in an executable file in
+`/docker-entrypoint.d/`. The `web` command runs the files there after `collectstatic` and before
+`gunicorn`, one at a time, in name order. Prefix the names with numbers to choose the order.
+
+A step is any executable: a shell script, or a Python script with a `#!/usr/bin/env python` first
+line. It runs as the user `fairdm` in `/app`, with the container's environment, and it can use
+`python manage.py` because the database has already been migrated. This one removes expired
+sessions:
+
+```sh
+#!/bin/sh
+set -eu
+python manage.py clearsessions
+```
+
+Save it in your portal's repository as `docker-entrypoint.d/10-clear-sessions` and add one line to
+your portal's Dockerfile, after the `COPY` that puts your code in `/app`:
+
+```dockerfile
+COPY --chmod=755 docker-entrypoint.d/ /docker-entrypoint.d/
+```
+
+`--chmod=755` is what makes the file executable. A file that is not executable is skipped, and the
+container's log has a line naming it:
+
+```text
+skipping /docker-entrypoint.d/10-clear-sessions: not executable
+```
+
+A step that exits with a non-zero status stops the start. The container exits with that status and
+the server never starts, the same as for `migrate`. To try a step without rebuilding the image,
+mount a directory of steps when you run it:
+
+```bash
+docker run ... --volume "$PWD/docker-entrypoint.d:/docker-entrypoint.d:ro" my-portal
+```
+
+Set `FAIRDM_START_DIR` to read the steps from another directory. If the directory is missing or
+empty, the container runs the sequence above and nothing more. The `worker` command and any
+other command run no start steps.
+
 ## Start a background worker
 
-The same image starts a Celery worker when its command is `worker`. It runs none of the steps above.
+The same image starts a Celery worker when its command is `worker`. It runs none of the steps
+above, start steps included.
 
 ```bash
 docker run ... my-portal worker --loglevel INFO
