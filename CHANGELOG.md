@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Base images for building a portal's production container.** `docker/Dockerfile` builds a
+  runtime image (Python 3.13, uv, the PostgreSQL client library, GDAL, GEOS and PROJ, and a
+  non-root user) and a development image (the same, plus git and build tools). Neither contains
+  FairDM: a portal installs its locked dependencies on the development image and copies them onto
+  the runtime image, as `docker/portal.Dockerfile` shows. A container's default command applies
+  migrations, collects and compresses static files, then serves with gunicorn, and stops at the
+  first step that fails. `PORT` changes the port, and the command `worker` starts a Celery worker
+  instead. `docker/smoke-test.sh` checks the images and a portal built on them. See
+  [How to deploy a portal in a container](docs/portal-development/production.md).
+
+### Changed
+
+- **The demo portal no longer overrides the compression settings of its environment.** Its
+  `settings.py` set `COMPRESS_ENABLED` and `COMPRESS_OFFLINE` after `fairdm.setup()`, which stopped
+  `python manage.py compress` from running. Production now compresses offline and development does
+  not compress.
+
 ## [v0.1.0] - 2026-10-16
 
 ### Added

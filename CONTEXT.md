@@ -201,6 +201,32 @@ above it, and gains nothing over those records from it.
 Some docstrings in the dataset layer still refer to an `INTERNAL` visibility. No such value
 exists; treat those mentions as stale.
 
+### Base image
+
+An image FairDM publishes for portals to build their containers on. There are two, the runtime
+image and the development image, and neither contains FairDM or any portal code. The portal's own
+locked dependencies decide which FairDM it runs. Defined by `docker/Dockerfile`.
+
+### Runtime image
+
+The base image a portal's production container runs on: Python, uv, the PostgreSQL client library,
+GDAL, GEOS and PROJ, a non-root `fairdm` user, `/app` as the working directory and the start
+sequence. It carries no build tools. Built from the `runtime` target of `docker/Dockerfile`.
+
+### Development image
+
+The runtime image plus git and the tools that build Python packages which compile. A portal
+installs its locked dependencies on it, then copies the result onto the runtime image. Developers
+also run a local development server on it. Built from the `development` target of
+`docker/Dockerfile`.
+
+### Start sequence
+
+What the runtime image does when a container starts in its default mode: apply migrations, collect
+static files, compress them, then serve with gunicorn. A step that fails stops the start with its
+exit status and the server never runs. Given `worker`, the same image starts a Celery worker
+and runs none of those steps. Implemented by `docker/entrypoint.sh`.
+
 ## Standing principles
 
 1. **Configuration over code.** The registry handles plumbing; research teams write model classes.
