@@ -168,8 +168,21 @@
         },
         {
           "id": "T019",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_docker/test_entrypoint.py::TestWebStart"
+            ],
+            "commands": [
+              "uv run pytest -n0 tests/test_docker/",
+              "uv lock --check"
+            ],
+            "code": [
+              "docker/entrypoint.sh:15",
+              "fairdm/conf/settings/static_media.py:36"
+            ]
+          }
         }
       ]
     },
