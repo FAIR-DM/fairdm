@@ -3,7 +3,7 @@
   "feature": "031-base-image",
   "branch": "031-base-image",
   "repo": "FAIR-DM/fairdm",
-  "state": "CONVERGE",
+  "state": "REVIEW",
   "state_history": [
     {
       "state": "QUEUED",
@@ -34,6 +34,11 @@
       "state": "CONVERGE",
       "at": "2026-10-16T20:38:35Z",
       "note": "all stories done"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-10-16T20:39:31Z",
+      "note": "two reviewers; fixes applied as T021-T023"
     }
   ],
   "gates": {
@@ -62,6 +67,19 @@
         "DR-003 remedied in plan P6 (publish.sh pushes missing tags only, concurrency group)",
         "DR-004 remedied in T017 (local-registry evidence)",
         "DR-005 remedied in plan P7 (image-contents checks)"
+      ]
+    },
+    "review": {
+      "approved_by": "code-reviewer",
+      "at": "2026-10-16T20:39:31Z",
+      "self_resolved": [
+        "two reviewers (correctness+docs, security); 14 findings: 2 high, 4 medium, 8 low; both request changes",
+        "REV-001 high remedied (T021): portal compose example sets the database settings; ran from a copy with no env files, 200 and worker ready",
+        "SEC-001 high remedied (T021): guide adds Keep secrets out of the image with a .dockerignore, and an --env-file run example",
+        "SEC-002 medium remedied (T023): Publish job, release tags only, sole packages: write, persist-credentials false",
+        "REV-002, REV-003, REV-004 medium remedied (T021): toctree and link, migration guide section, package access note",
+        "REV-005 low remedied (T023): non-release tags fail; REV-006 low remedied (T022), mutation shown; REV-007, SEC-003, SEC-005, SEC-006 low remedied (T021)",
+        "SEC-004, SEC-007 low declined: repo pins actions by major version; writable code was accepted in the plan (D9)"
       ]
     }
   },
