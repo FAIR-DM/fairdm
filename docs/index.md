@@ -6,7 +6,7 @@
 
 ______________________________________________________________________
 
-[![PyPI](https://badge.fury.io/py/fairdm.svg)](https://badge.fury.io/py/fairdm)
+[![Release](https://img.shields.io/github/v/release/FAIR-DM/fairdm)](https://github.com/FAIR-DM/fairdm/releases)
 [![Build status](https://travis-ci.org/SSJenny90/fairdm.svg?branch=master)](https://travis-ci.org/SSJenny90/fairdm)
 [![Code coverage](https://codecov.io/gh/SSJenny90/fairdm/branch/master/graph/badge.svg)](https://codecov.io/gh/SSJenny90/fairdm)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
