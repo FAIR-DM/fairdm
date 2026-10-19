@@ -3,7 +3,7 @@
   "feature": "031-base-image",
   "branch": "031-base-image",
   "repo": "FAIR-DM/fairdm",
-  "state": "PR_READY",
+  "state": "MERGED",
   "state_history": [
     {
       "state": "QUEUED",
@@ -44,6 +44,11 @@
       "state": "PR_READY",
       "at": "2026-10-19T09:58:06Z",
       "note": "review fixed, image versioning changed at the maintainer's request, CI green"
+    },
+    {
+      "state": "MERGED",
+      "at": "2026-10-19T10:24:28Z",
+      "note": "PR #526 merged; approved by SamuelJennings"
     }
   ],
   "gates": {
@@ -59,8 +64,8 @@
       "at": "2026-10-16T10:50:41Z"
     },
     "merge": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "SamuelJennings",
+      "at": "2026-10-19T10:24:19Z"
     },
     "design_review": {
       "approved_by": "design-reviewer",
@@ -86,6 +91,11 @@
         "REV-005 low remedied (T023): non-release tags fail; REV-006 low remedied (T022), mutation shown; REV-007, SEC-003, SEC-005, SEC-006 low remedied (T021)",
         "SEC-004, SEC-007 low declined: repo pins actions by major version; writable code was accepted in the plan (D9)"
       ]
+    },
+    "walkthrough": {
+      "approved_by": "SamuelJennings",
+      "at": "2026-10-19T10:24:19Z",
+      "self_resolved": []
     }
   },
   "stories": [
@@ -557,6 +567,6 @@
   },
   "pr": {
     "number": 526,
-    "draft": true
+    "draft": false
   }
 }
