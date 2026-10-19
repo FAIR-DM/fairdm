@@ -65,7 +65,6 @@ INSTALLED_APPS = [
     "allauth.socialaccount.providers.orcid",
     "allauth.mfa",
     "allauth.usersessions",
-    "compressor",
     "dbbackup",
     "django_celery_beat",
     "django_cotton",
@@ -222,12 +221,6 @@ DJANGO_SETUP_TOOLS = {
             ("preload",),
             ("seed_licenses",),
             "django_setup_tools.scripts.sync_site_id",
-        ],
-    },
-    "production": {
-        "merge": True,
-        "always_run": [
-            ("compress",),
         ],
     },
 }

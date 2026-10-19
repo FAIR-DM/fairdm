@@ -1,0 +1,95 @@
+{
+  "lens": "correctness",
+  "stage": "code",
+  "verdict": "request_changes",
+  "risk": "medium",
+  "scope": "feature branch 031-base-image vs origin/main (git diff origin/main...HEAD), excluding specs/031-base-image records other than spec.md and decisions.md. Read past the diff: COMPRESS_* settings 0 live references outside ADR 0035 and CHANGELOG; 'compressor' app / CompressorFinder / django_libsass / {% compress %} / {% load compress %} 0 references in package, settings, templates, demo or docs (git grep over the tree, uv.lock clean and `uv lock --check --offline` consistent); compose/django/Dockerfile 1 reference (CHANGELOG removal note, correct); DJANGO_SETUP_TOOLS 'production' profile 4 test references read, none depend on it; DJANGO_ENV / DJANGO_SETTINGS_MODULE moved from compose into the image: 3 readers (tests/settings.py, pyproject addopts --ds=tests.settings, stack.development.env), none broken. Required check name: test-suite.yml job name and matrix unchanged, tests.yml caller job still `call-tests`, so 'call-tests / Test Python 3.13, Django 5.2' is preserved. Tests swept: 27 (17 in test_entrypoint.py, 10 in test_publish.py) plus 11 smoke-test checks in docker/smoke-test.sh; one vacuous guard found (REV-006), every other test goes red under the mutation of the behaviour it names. Every example in docs/portal-development/production.md and docs/contributing/testing/index.md run against the branch: one fails (REV-001).",
+  "skills_loaded": [
+    {
+      "name": "craft-review",
+      "receipt": "RECEIPT: craft-review/2026-10-15/6b8372b4",
+      "loaded_via": "path-read"
+    },
+    {
+      "name": "craft-simplify",
+      "receipt": "RECEIPT: craft-simplify/2026-08-04/69038ce1",
+      "loaded_via": "path-read"
+    }
+  ],
+  "findings": [
+    {
+      "id": "REV-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "The portal docker-compose.yml example in the deployment guide cannot connect to its database: the django and celeryworker services set POSTGRES_HOST and REDIS_URL only, so POSTGRES_PASSWORD and POSTGRES_DB fall back to empty strings, and the page never says a stack.development.env must supply them.",
+      "evidence": "docs/portal-development/production.md:228-230 sets only `POSTGRES_HOST: postgres` and `REDIS_URL`. fairdm/conf/environment.py:29-30 defaults POSTGRES_DB and POSTGRES_PASSWORD to \"\"; fairdm/conf/settings/database.py:19-22 builds `postgresql://postgres:@postgres:5432/` from them. FairDM's own docker-compose.yml works only because the repository carries stack.development.env (POSTGRES_PASSWORD=postgres, POSTGRES_DB=fairdm), read by fairdm/conf/setup.py:235-245. The guide's `docker run` example (production.md:96-99) passes all four POSTGRES_* variables, and the compose example drops two of them.",
+      "reproduction": "In a portal repository with no stack.development.env, save the compose file from production.md:205-256 with a real release and run `docker compose up`. `python manage.py migrate` connects as postgres with no password to the postgis container (which sets POSTGRES_PASSWORD=postgres and uses password auth for network connections) and raises OperationalError 'fe_sendauth: no password supplied'. The django service never becomes healthy and the worker never starts.",
+      "suggested_fix": "Add `POSTGRES_PASSWORD: postgres` and `POSTGRES_DB: fairdm` to the django service's `environment:` in the example (the celeryworker inherits them through the anchor), matching the postgres service above it."
+    },
+    {
+      "id": "REV-002",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "The rewritten deployment guide, FR-018's deliverable, is reachable from no table of contents, and the one link to it points at a path that does not exist, so it ships as a file and never as a page in the built documentation.",
+      "evidence": "docs/portal-development/index.md:110-119, the 'Deployment' toctree, lists configuration, emails and social_accounts but not production. No other toctree names it (git grep for 'production' in toctrees). docs/portal-development/getting_started.md:352 links to `deployment_guide/production.md`, which does not exist. CHANGELOG.md links to docs/portal-development/production.md, but the changelog page is not where a portal developer looks for a how-to. The orphaning predates the branch; this branch rewrote the page to satisfy FR-018 and left it orphaned.",
+      "reproduction": "Build the docs: Sphinx reports 'docs/portal-development/production.md: WARNING: document isn't included in any toctree', and the page appears in no navigation.",
+      "suggested_fix": "Add `production` to the Deployment toctree in docs/portal-development/index.md, and point getting_started.md:352 at `production.md`."
+    },
+    {
+      "id": "REV-003",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "The breaking changes in this feature (django-compressor and django-libsass removed, compose/django/Dockerfile deleted) get no section in the repository's migration guide, which the constitution requires. The CHANGELOG steps also miss the portal that runs `manage.py compress` in its own start command without using the tag, the GHFDB sequence decisions.md D4 describes, which fails at startup after the upgrade.",
+      "evidence": "CONSTITUTION.md:70 and :205 require a migration guide with step-by-step instructions for every breaking change; the repository keeps them in docs/more/migration-guides.md (sections for 030, 024, 022, 005), which this branch does not touch. spec.md 'Breaking changes' lists the compressor removal. CHANGELOG.md 'Removed' covers a portal that uses `{% compress %}`, but nowhere tells a portal whose own Dockerfile or start script runs `python manage.py compress` to delete that step. With compressor gone from INSTALLED_APPS (fairdm/conf/settings/apps.py), that command is unknown.",
+      "reproduction": "A portal whose start command is `migrate && collectstatic && compress && gunicorn` upgrades FairDM to the first release carrying this branch, without moving onto the images: `python manage.py compress` exits 1 with \"Unknown command: 'compress'\", and the container never serves.",
+      "suggested_fix": "Add a section to docs/more/migration-guides.md for this change with three steps: remove `compress` from your own start command unless you add django-compressor back; if your templates use `{% load compress %}`, add django-compressor (and django-libsass), `compressor` in INSTALLED_APPS, `compressor.finders.CompressorFinder` in STATICFILES_FINDERS and your COMPRESS_* settings; and if you used `compose/django/Dockerfile`, use docker/Dockerfile's development target."
+    },
+    {
+      "id": "REV-004",
+      "severity": "medium",
+      "confidence": "likely",
+      "claim": "The first release's publish step will probably be refused by the registry. `ghcr.io/fair-dm/fairdm` already exists, published from the archived repository, and a workflow's GITHUB_TOKEN can push to an existing package only if that package grants the repository write access under 'Manage Actions access'. Neither the guide, the ADR nor the contributor pages say so, so SC-003 (images within an hour of the release) fails on the first release.",
+      "evidence": "spec.md 'What exists' and Assumptions: the image was published as ghcr.io/fair-dm/fairdm:latest from a separate, archived repository, and the name 'can be reused'. .github/workflows/image.yml:113-123 logs in with `secrets.GITHUB_TOKEN` and `packages: write`, and docker/publish.sh pushes `ghcr.io/fair-dm/fairdm:<version>`. GitHub's package access model links a package to the repository that first published it. Grants to other repositories are made in the package settings, and no file in the branch mentions that step. Not verified against the registry: no network in this review.",
+      "reproduction": "Publish the first release after merge. 'Publish the images': inspect answers 'not found' for both tags, `docker push ghcr.io/fair-dm/fairdm:<version>` fails with 'denied: permission_denied: write_package', and the release run fails with no images. The failure is visible (FR-014 holds), but no image exists until a maintainer changes the package settings and reruns.",
+      "suggested_fix": "Before the first release, a maintainer gives FAIR-DM/fairdm the Write role under the package's 'Manage Actions access' (or deletes the old package). Record that one-time step where the release process is documented for contributors, or in ADR 0034's decision."
+    },
+    {
+      "id": "REV-005",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "image.yml publishes on any `v*` tag a workflow_dispatch is run from, release or not, and takes whatever follows the `v` as the version unchecked. Because publish.sh never moves a published tag, a mistaken dispatch publishes a permanent tag that no release names.",
+      "evidence": ".github/workflows/image.yml:13 (`workflow_dispatch:`), :115 and :123 (`if: startsWith(github.ref, 'refs/tags/v')`), :125 (`docker/publish.sh \"${GITHUB_REF_NAME#v}\"`). Tag pushes do not trigger the workflow (`push` is limited to main), so the release event and a manual dispatch from a tag are the only publishing paths. The dispatch path is intended as the rerun that completes a partial release (decisions.md D7). Nothing checks that the tag's version matches pyproject.toml or has a release.",
+      "reproduction": "Push a tag `v0.2.0-test` (or `vendor-check`) and run the Image workflow from it with workflow_dispatch: the smoke test passes and `ghcr.io/fair-dm/fairdm:0.2.0-test` (or `:endor-check`) is published, and publish.sh will never replace it.",
+      "suggested_fix": "In 'Work out the version', fail the run when a tag ref's version does not match `^[0-9]+\\.[0-9]+\\.[0-9]+` (or does not equal the version in pyproject.toml at that ref). The repaired gate must go red when dispatched from a tag named `v0.2.0-test`."
+    },
+    {
+      "id": "REV-006",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "The smoke test's 'no gunicorn process found' guard can never fail. The `sh -c` it execs, and the grep it runs, both carry the word 'gunicorn' in their own command lines, so `uids` is never empty and holds the checker's own uid whether or not gunicorn is running.",
+      "evidence": "docker/smoke-test.sh:206-213: the loop greps every /proc/*/cmdline for 'gunicorn', including the process running the loop (`sh -c '... grep -q gunicorn ...'`) and its `grep -q gunicorn` child. The root check that follows still works, because the matched gunicorn processes would report uid 0, but the line `[ -n \"$uids\" ] || fail \"no gunicorn process found\"` is vacuous.",
+      "reproduction": "Mutation: replace `exec gunicorn ...` in docker/entrypoint.sh with `exec python -m http.server \"$PORT\"`. / answers 200 (a directory listing), and `uids` still holds 1000 from the checker's own shell, so 'the server does not run as root' passes with no gunicorn in the container.",
+      "suggested_fix": "Match on `/proc/$pid/comm` (or skip `$$` and the grep's own process) so only processes whose program is gunicorn count. The repaired guard must fail under the mutation above."
+    },
+    {
+      "id": "REV-007",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "The entrypoint lets `WSGI_APP` choose the application gunicorn serves, and a test covers it, but the deployment guide never mentions it. The guide tells a portal with its settings elsewhere to set DJANGO_SETTINGS_MODULE, which still leaves gunicorn loading `config.wsgi`.",
+      "evidence": "docker/entrypoint.sh:27 `exec gunicorn \"${WSGI_APP:-config.wsgi:application}\"`; tests/test_docker/test_entrypoint.py:28-32 tests it. docs/portal-development/production.md:85 states the server step as `gunicorn config.wsgi:application`, and :106-108 covers only DJANGO_SETTINGS_MODULE. The page documents CELERY_APP for the worker (:189-190) but no counterpart for the web server.",
+      "reproduction": "A portal laid out by `django-admin startproject myportal` (wsgi at myportal/wsgi.py) follows production.md and sets DJANGO_SETTINGS_MODULE=myportal.settings. gunicorn fails with ModuleNotFoundError: No module named 'config', and the guide gives no way out.",
+      "suggested_fix": "One sentence under 'Environment variables' or 'Start the portal': set `WSGI_APP` (default `config.wsgi:application`) when the portal's WSGI application is elsewhere."
+    }
+  ],
+  "notes": [
+    "CONTEXT.md 'Start sequence' omits the portal's start steps, which spec.md's key entity of the same name includes (migrate, collectstatic, the portal's steps, serve).",
+    "ADR 0035's re-adoption steps for {% compress %} omit `compressor.finders.CompressorFinder` in STATICFILES_FINDERS, which the CHANGELOG entry includes.",
+    "fairdm/contrib/theme/README.md 'Custom Styles' still shows an SCSS example, but nothing in FairDM compiles SCSS now. Nothing did before either, since no template used {% compress %}, so this staleness predates the branch.",
+    "docs/portal-development/theme-migration.md:103 references `fairdm/fairdm.scss`, which does not exist. This predates the branch.",
+    "gunicorn starts with its default single sync worker. research.md lists GUNICORN_CMD_ARGS as the knob for worker count, but the guide does not mention it.",
+    "test-suite.yml writes coverage.xml from inside the container, so its paths are rooted at /app. Codecov's automatic path fixing normally maps these, but check the first upload's file list.",
+    "FR-020 (no compression configuration in settings) has no test. Removing a dependency and its settings is configuration, so no test is acceptable under the testing standard.",
+    "Diff is ~1,480 changed lines across five stories, past the one-sitting size. The per-task commits are the seam, and the size is noted here, not counted as a finding.",
+    "Brief questions answered: the required check name 'call-tests / Test Python 3.13, Django 5.2' is preserved. image.yml cannot move a published tag: publish.sh pushes only tags the registry answers 'not found' for, and stops before pushing on any other answer. It can publish from a non-release `v*` tag through workflow_dispatch (REV-005). No compressor, libsass, {% compress %} or `compress` step remains in the package, settings, templates, demo or docs."
+  ]
+}

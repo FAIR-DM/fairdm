@@ -39,7 +39,10 @@ Before setting up the development environment, ensure you have the following ins
 
 4. **Docker**
    - FairDM runs on PostgreSQL with the PostGIS extension, and `docker-compose.yml` starts one
-     for you, along with Redis
+     for you, along with Redis, the development server and a Celery worker
+   - On Linux, the container runs as user id 1000. If your user has another id, add `user:
+     "<your id>:<your group id>"` to the `django` and `celeryworker` services in a
+     `docker-compose.override.yml`, so the container can write to your checkout
    - Download from [docker.com](https://www.docker.com/products/docker-desktop/)
 
 5. **GDAL, GEOS and PROJ**, only if you run Django on your own machine rather than in Docker
@@ -63,8 +66,10 @@ Before setting up the development environment, ensure you have the following ins
 **The quickest start is Docker.** After cloning, `docker compose up` builds the development
 image and starts PostGIS, Redis, a Celery worker and the development server on
 <http://localhost:8000>, with your checkout mounted so edits reload. It needs nothing installed
-but Docker, on Windows the same as anywhere else. The rest of this page describes running Django
-on your own machine against the same databases.
+but Docker, on Windows the same as anywhere else. The first start installs the locked dependencies
+into a Docker volume, so it takes a few minutes. `docker compose down --volumes` removes the volume
+and the database, to start again from nothing. The rest of this page describes running Django on
+your own machine against the same databases.
 ```
 
 Follow these steps to set up a local FairDM development environment:

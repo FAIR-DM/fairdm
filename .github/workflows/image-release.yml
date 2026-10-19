@@ -1,0 +1,146 @@
+name: Image Release
+
+# Releases a new version of the base images. Start it from the Actions tab with "Run workflow" on
+# main, choosing a bump. The images have a version of their own, separate from FairDM's, and are
+# released only when the image changes: a new Python, new system libraries, a new uv, or a change
+# to the start sequence.
+#
+# The run works out the next version from the image-v<version> tags, builds and checks both images
+# with the Image workflow, then publishes them as ghcr.io/fair-dm/fairdm:<version> and
+# :<version>-dev, and creates the image-v<version> tag and its GitHub release. Nothing is published
+# and no release is created unless every check passes. The tag is created last, so a run that
+# stopped after publishing works out the same version when it is run again, and completes it.
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump level (patch | minor | major) or an explicit version like 1.2.3'
+        type: string
+        required: true
+        default: 'patch'
+
+permissions:
+  contents: read
+
+# Image releases happen one at a time, so two runs never work out the same version.
+concurrency:
+  group: image-release
+  cancel-in-progress: false
+
+jobs:
+  Version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.next.outputs.version }}
+    steps:
+      - name: Refuse anything but main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "::error::Image releases are made from main, not $GITHUB_REF"
+          exit 1
+
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Work out the next version
+        id: next
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          version=$(docker/next-version.sh "$BUMP")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Releasing base images $version" >> "$GITHUB_STEP_SUMMARY"
+
+  Check:
+    needs: Version
+    uses: ./.github/workflows/image.yml
+    with:
+      version: ${{ needs.Version.outputs.version }}
+
+  # The only job that can write packages or create a release. It rebuilds the two images from the
+  # cache the check filled, publishes whichever tag the registry does not have yet, then tags the
+  # commit and creates the release.
+  Publish:
+    needs: [Version, Check]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      packages: write
+    env:
+      VERSION: ${{ needs.Version.outputs.version }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build the runtime image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/Dockerfile
+          target: runtime
+          platforms: linux/amd64
+          build-args: VERSION=${{ needs.Version.outputs.version }}
+          load: true
+          push: false
+          tags: fairdm-base:ci
+          cache-from: type=gha,scope=runtime
+
+      - name: Build the development image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/Dockerfile
+          target: development
+          platforms: linux/amd64
+          build-args: VERSION=${{ needs.Version.outputs.version }}
+          load: true
+          push: false
+          tags: fairdm-base:ci-dev
+          cache-from: type=gha,scope=development
+
+      - name: Log in to the registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish the images
+        run: docker/publish.sh "$VERSION"
+
+      # The notes list the commits that changed docker/ since the previous image release.
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="image-v$VERSION"
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "$tag already has a release"
+            exit 0
+          fi
+          previous=$(git tag --list 'image-v*' --sort=-version:refname | head -n 1)
+          range=${previous:+$previous..}HEAD
+          {
+            echo "Base images for portals built on FairDM:"
+            echo
+            echo "- \`ghcr.io/fair-dm/fairdm:$VERSION\` (runtime)"
+            echo "- \`ghcr.io/fair-dm/fairdm:$VERSION-dev\` (development)"
+            echo
+            echo "## Changes"
+            echo
+            git log --format='- %s' "$range" -- docker/
+          } > notes.md
+          gh release create "$tag" --target "$GITHUB_SHA" --title "Base images $VERSION" \
+            --notes-file notes.md --latest=false

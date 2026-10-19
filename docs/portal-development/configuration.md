@@ -317,6 +317,6 @@ LANGUAGES = [("en", "English"), ("de", "German")]
 ## See Also
 
 - {doc}`/portal-administration/configuration-checks` - production-critical checks and the deployment check command
-- {doc}`/developer-guide/production` - Docker deployment guide
+- {doc}`/portal-development/production` - Docker deployment guide
 - {doc}`/developer-guide/setting_up` - Initial portal setup
 - {doc}`/portal-development/testing-portal-projects` - Testing your configuration
