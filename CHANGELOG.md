@@ -52,7 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   generated filterset carries a `q` filter over them. A configuration that overrides
   `get_filterset_class()` and builds the set with `FilterFactory` passes
   `search_fields=self.get_search_fields()`. See
-  [How to move a list view's search and sort into its filterset](docs/portal-development/list-search-and-sort.md).
+  [How to move a list view's search and sort into its filterset](docs/how-to/list-search-and-sort.md).
 - **Range filters on registered types use a pair of range inputs.** Number and date range
   filters in a generated filterset draw django-mvp-forms' `RangeInput`, `DateRangeInput` and
   `DateTimeRangeInput`. Their query parameters are `<field>_0` and `<field>_1`, where they were

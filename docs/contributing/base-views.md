@@ -142,7 +142,7 @@ The search is a `mvp.filters.SearchFilter` and the sort is a `mvp.filters.SortFi
 both declared on the filterset. A view that declares `search_fields` or `order_by`, or that
 composes django-filter's `FilterView`, raises `ImproperlyConfigured` when its module is
 imported. See
-[Move a list view's search and sort into its filterset](../portal-development/list-search-and-sort.md).
+[Move a list view's search and sort into its filterset](../how-to/list-search-and-sort.md).
 
 ```python
 import django_filters
