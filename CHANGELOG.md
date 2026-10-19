@@ -60,6 +60,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Image fields use django-mvp-forms' `ImageInput`.** The project, dataset, sample,
   measurement, person and organisation forms show the stored image and the newly chosen one,
   in place of easy-thumbnails' clearable input.
+- **The sample and measurement filter sets search on `q`.** The search in `SampleFilter` and
+  `MeasurementFilterMixin` is now the `q` parameter, a `mvp.filters.SearchFilter`, where it was
+  `search`. A listing draws it as the one search box in its toolbar, and a filter set built on
+  either class no longer shows a second search field in the Filter dialog.
 
 ### Removed
 

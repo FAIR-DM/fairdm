@@ -559,7 +559,7 @@ class TestFormFactoryMeasurementBranch:
 
 @pytest.mark.django_db
 class TestFilterFactoryMeasurementBranch:
-    # A plain FilterSet base would lack "search", because it names no model field.
+    # A plain FilterSet base would lack "q", because it names no model field.
     def test_generated_filterset_carries_the_measurement_filter_mixins_search_filter(
         self,
     ):
@@ -569,7 +569,7 @@ class TestFilterFactoryMeasurementBranch:
             XRFMeasurement, fields=["name", "dataset"]
         ).generate()
 
-        assert "search" in filterset_class.base_filters
+        assert "q" in filterset_class.base_filters
         assert "sample" in filterset_class.base_filters
 
 

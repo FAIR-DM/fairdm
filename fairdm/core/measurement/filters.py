@@ -2,8 +2,8 @@
 
 import django_filters
 from django import forms
-from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
+from mvp.filters import SearchFilter
 from partial_date import PartialDate
 
 from fairdm.contrib.contributors.choices import ContributionLevel
@@ -53,7 +53,7 @@ class MeasurementFilterMixin(django_filters.FilterSet):
         dataset: Filter by parent dataset.
         sample: Filter by associated sample.
         polymorphic_ctype: Filter by measurement type.
-        search: Search across name and uuid.
+        q: Search across name and uuid.
         description: Search in the description text.
         date_after: Filter to dates on or after a partial date.
         date_before: Filter to dates on or before a partial date.
@@ -88,10 +88,7 @@ class MeasurementFilterMixin(django_filters.FilterSet):
         empty_label=_("Any type"),
     )
 
-    search = django_filters.CharFilter(
-        method="filter_search",
-        label=_("Search"),
-    )
+    q = SearchFilter(fields=["name", "uuid"], label=_("Search"))
 
     description = django_filters.CharFilter(
         field_name="descriptions__value",
@@ -112,22 +109,6 @@ class MeasurementFilterMixin(django_filters.FilterSet):
         lookup_expr="lte",
         label=_("Date before"),
     )
-
-    def filter_search(self, queryset, name, value):
-        """Filter by a search term matching the name or uuid.
-
-        Args:
-            queryset: The queryset to filter.
-            name: The filter name (unused).
-            value: The search term.
-
-        Returns:
-            The queryset matching the name or uuid, unchanged when there is no term.
-        """
-        if not value:
-            return queryset
-
-        return queryset.filter(Q(name__icontains=value) | Q(uuid__icontains=value))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

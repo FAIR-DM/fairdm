@@ -22,6 +22,7 @@ from demo.factories import (
     RockSampleFactory,
     SoilSampleFactory,
     WaterSampleFactory,
+    XRFMeasurementFactory,
 )
 from demo.models import (
     CustomSample,
@@ -29,6 +30,7 @@ from demo.models import (
     RockSample,
     SoilSample,
     WaterSample,
+    XRFMeasurement,
 )
 from fairdm.contrib.collections.views import DataTableView
 from fairdm.core.sample.models import Sample
@@ -669,3 +671,30 @@ class TestToolbar:
 
         assert soup.select_one('input[name="depth_cm_0"]')
         assert soup.select_one('input[name="depth_cm_1"]')
+
+
+@pytest.mark.django_db
+class TestOneSearchControl:
+    def test_a_measurement_table_has_one_search_in_the_toolbar(
+        self, client, published_dataset, filter_placement
+    ):
+        sample = RockSampleFactory(dataset=published_dataset)
+        XRFMeasurementFactory(sample=sample, dataset=published_dataset)
+        slug = registry.get_for_model(XRFMeasurement).get_slug()
+
+        toolbar, dialog = filter_placement(client.get(reverse(f"{slug}-list")))
+
+        assert "q" in toolbar
+        assert "search" not in toolbar | dialog
+        assert "q" not in dialog
+
+    def test_a_custom_sample_filterset_has_the_search_in_the_toolbar(
+        self, client, published_dataset, filter_placement
+    ):
+        CustomSampleFactory(dataset=published_dataset)
+        slug = registry.get_for_model(CustomSample).get_slug()
+
+        toolbar, dialog = filter_placement(client.get(reverse(f"{slug}-list")))
+
+        assert "q" in toolbar
+        assert "search" not in toolbar | dialog
