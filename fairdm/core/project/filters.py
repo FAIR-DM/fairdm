@@ -4,6 +4,7 @@ import django_filters as df
 from django import forms
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext_lazy as _
+from mvp.filters import SearchFilter, SortFilter
 
 from fairdm.contrib.autocomplete.fields import ConceptMultiSelect
 from fairdm.core.filters import BaseListFilter
@@ -15,8 +16,21 @@ from .models import Project
 class ProjectFilter(BaseListFilter):
     """Filter for the project list, by status, owner, tag, contributor and keywords.
 
-    Keyword filters are created from the ``FAIRDM_PROJECT["keywords"]`` setting.
+    The search matches the name, the uuid and the identifiers. The sort offers name and
+    date created. Keyword filters are created from the ``FAIRDM_PROJECT["keywords"]``
+    setting.
     """
+
+    search = SearchFilter(fields=["uuid", "name", "identifiers__value"])
+
+    sort = SortFilter(
+        options=[
+            ("name", _("Name (A-Z)"), "name"),
+            ("-name", _("Name (Z-A)"), "-name"),
+            ("added", _("Date created (oldest first)"), "added"),
+            ("-added", _("Date created (newest first)"), "-added"),
+        ]
+    )
 
     status = df.ChoiceFilter(
         choices=Project.STATUS_CHOICES,

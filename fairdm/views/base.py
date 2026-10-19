@@ -4,14 +4,13 @@ from __future__ import annotations
 
 from django.db.models import RestrictedError
 from django.utils.http import url_has_allowed_host_and_scheme
-from django_filters.views import FilterView
 from meta.views import MetadataMixin
-from mvp.integrations.django_filters.views import MVPFilteredListView
-from mvp.integrations.django_tables.views import MVPTableViewMixin
+from mvp.integrations.django_tables.views import MVPTableView
 from mvp.views import (
     MVPCreateView,
     MVPDeleteView,
     MVPDetailView,
+    MVPListView,
     MVPTemplateView,
     MVPUpdateView,
 )
@@ -52,14 +51,13 @@ class FairDMTemplateView(MetadataMixin, MVPTemplateView):
     template_name = "page_view.html"
 
 
-class FairDMListView(MetadataMixin, MVPFilteredListView):
+class FairDMListView(MetadataMixin, MVPListView):
     """Paginated, filterable list page with card layout and SEO metadata support.
 
-    Extends :class:`mvp.views.list.MVPFilteredListView` (which composes
-    ``MVPListViewMixin`` with ``django_filters.views.FilterView``) with
+    Extends :class:`mvp.views.MVPListView` with
     :class:`meta.views.MetadataMixin`. Use this as the base class for any
-    FairDM list page that displays objects as cards or custom list items and
-    supports filtering via a ``filterset_class``.
+    FairDM list page that displays objects as cards or custom list items. The
+    search, the sort and the filters all come from one ``filterset_class``.
 
     For tabular data display (rows and columns), use
     :class:`FairDMTableView` instead.
@@ -73,10 +71,11 @@ class FairDMListView(MetadataMixin, MVPFilteredListView):
             rendered for each list item. When ``None``, auto-derived from the
             model as ``"<app_label>/<model_name>_list_item.html"``.
             Default: ``None``.
-        search_fields (list[str] | None): Model field paths searched by the
-            ``?q=`` query parameter. Default: ``None`` (search disabled).
-        filterset_class: A ``django_filters.FilterSet`` subclass for
-            advanced filtering. Default: ``None``.
+        filterset_class: A ``django_filters.FilterSet`` subclass holding the
+            page's search (``mvp.filters.SearchFilter``), sort
+            (``mvp.filters.SortFilter``) and filters. Default: ``None``.
+        toolbar_filters (list[str]): Names of the filterset fields drawn in
+            the toolbar. The others sit in the Filter dialog. Default: ``[]``.
 
     Override hooks:
         get_queryset(): Return the base queryset (add ``select_related`` /
@@ -97,15 +96,26 @@ class FairDMListView(MetadataMixin, MVPFilteredListView):
 
     Example::
 
+        import django_filters
+        from mvp.filters import SearchFilter, SortFilter
+
         from fairdm.views import FairDMListView
-        from .filters import ProjectFilter
         from .models import Project
+
+
+        class ProjectFilter(django_filters.FilterSet):
+            search = SearchFilter(fields=["name", "uuid"])
+            sort = SortFilter(options=[("name", "Name (A-Z)", ["name", "pk"])])
+
+            class Meta:
+                model = Project
+                fields = ["status"]
 
 
         class ProjectListView(FairDMListView):
             model = Project
             filterset_class = ProjectFilter
-            search_fields = ["name", "uuid"]
+            toolbar_filters = ["search", "status"]
             grid = {"cols": 1, "sm": 2, "lg": 3}
     """
 
@@ -257,11 +267,10 @@ class FairDMDeleteView(MetadataMixin, MVPDeleteView):
         return self.resolve_crud_url("list") or ""
 
 
-class FairDMTableView(MetadataMixin, MVPTableViewMixin, FilterView):
+class FairDMTableView(MetadataMixin, MVPTableView):
     """Filtered table list page with AdminLTE layout and SEO metadata support.
 
-    Composes :class:`mvp.views.table.MVPTableViewMixin`,
-    :class:`django_filters.views.FilterView`, and
+    Extends :class:`mvp.integrations.django_tables.views.MVPTableView` with
     :class:`meta.views.MetadataMixin`. Use this when objects should be
     displayed in a rows-and-columns table (powered by ``django-tables2``)
     rather than as cards or custom list items.
@@ -279,7 +288,7 @@ class FairDMTableView(MetadataMixin, MVPTableViewMixin, FilterView):
             table — no automatic table rendering is provided.
         paginate_by (int): Number of rows per page. Default: ``100``.
             ``paginate_by`` is the only page-size control a table view has —
-            ``MVPTableViewMixin`` switches pagination off entirely when it is
+            ``MVPTableView`` switches pagination off entirely when it is
             unset, and passes it explicitly when it is set, which takes
             precedence over ``Table.Meta.per_page``.
 

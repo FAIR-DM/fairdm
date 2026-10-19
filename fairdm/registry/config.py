@@ -217,7 +217,7 @@ class ModelConfiguration:
             own. Names may use Django's double-underscore paths, and may be grouped
             in tuples for layout. An empty list means the framework decides.
         exclude: Names to leave out of every component.
-        search_fields: Field paths ``SearchMixin`` searches with ``?q=``. ``None``
+        search_fields: Field paths the listing's ``search`` filter matches. ``None``
             (the default) resolves to ``["name"]`` via ``get_search_fields()``.
             Every entry must resolve to a text field, ``CharField`` or
             ``TextField``, the same test ``AdminFactory._get_search_fields`` applies
@@ -522,14 +522,15 @@ class ModelConfiguration:
         return [name for name in flatten_fields(chosen) if name not in excluded]
 
     def get_search_fields(self) -> list[str]:
-        """Return the fields `SearchMixin` searches on `?q=`, `["name"]` by default."""
+        """Return the fields the listing's search filter searches, `["name"]` by default."""
         return self.search_fields or ["name"]
 
-    def _component_class(self, component: str) -> type:
+    def _component_class(self, component: str, **factory_kwargs: Any) -> type:
         """Resolve or build one component's class, never cached.
 
         Args:
             component: The component name, a key of ``COMPONENTS``.
+            **factory_kwargs: Extra keyword arguments for the generating factory.
 
         Returns:
             The supplied class, or one generated from the resolved field list.
@@ -543,7 +544,9 @@ class ModelConfiguration:
 
         factory = getattr(factories, spec.factory)
         generated = factory(
-            model=self.model, fields=self.resolve_fields(component)
+            model=self.model,
+            fields=self.resolve_fields(component),
+            **factory_kwargs,
         ).generate()
         return cast(type, generated)
 
@@ -556,8 +559,13 @@ class ModelConfiguration:
         return self._component_class("table")
 
     def get_filterset_class(self) -> type[FilterSet]:
-        """Return the django-filter FilterSet for this model. Override to replace it."""
-        return self._component_class("filterset")
+        """Return the django-filter FilterSet for this model, searching `get_search_fields()`.
+
+        Override to replace it.
+        """
+        return self._component_class(
+            "filterset", search_fields=self.get_search_fields()
+        )
 
     def get_serializer_class(self) -> "type[ModelSerializer]":
         """Return the REST serializer for this model. Override to build your own."""

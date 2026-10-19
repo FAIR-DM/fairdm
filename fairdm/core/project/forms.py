@@ -4,7 +4,7 @@ from crispy_forms.bootstrap import InlineRadios
 from crispy_forms.helper import FormHelper, Layout
 from django import forms
 from django.utils.translation import gettext_lazy as _
-from easy_thumbnails.widgets import ImageClearableFileInput
+from mvp_forms.widgets import ImageInput
 
 from fairdm.contrib.contributors.models import Organization
 from fairdm.core.choices import ProjectStatus
@@ -40,9 +40,7 @@ class ProjectForm(ManagerOnlyFieldsMixin, ModelForm):
         label="",
         help_text=IMAGE_HELP_TEXT,
         validators=[validate_image_file_size],
-        widget=ImageClearableFileInput(
-            thumbnail_options={"size": (150, 100), "crop": True}
-        ),
+        widget=ImageInput(aspect_ratio=3 / 2),
     )
     name = forms.CharField(
         label=_("Project name"),

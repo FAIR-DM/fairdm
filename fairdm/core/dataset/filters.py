@@ -1,6 +1,8 @@
 """Filters for the dataset list page."""
 
 import django_filters
+from django.utils.translation import gettext_lazy as _
+from mvp.filters import SearchFilter, SortFilter
 
 from fairdm.core.filters import BaseListFilter
 
@@ -14,13 +16,16 @@ class DatasetFilter(BaseListFilter):
     level on. An anonymous visitor gets the public projects. A filterset built without a request
     offers every project. All filters combine with AND.
 
-    The list's text search is the page's own ``?q=`` control, not a filter on this class.
+    The search matches the name, uuid, identifiers, descriptions and keywords. The sort
+    offers date created, last update and name.
 
     Args:
         *args: Positional arguments passed to ``FilterSet``.
         **kwargs: Keyword arguments passed to ``FilterSet``.
 
     Attributes:
+        search: Match any word against the fields above.
+        sort: Order the list.
         project: Filter by the dataset's project.
         description_type: Filter by the type of a description the dataset carries.
         date_type: Filter by the type of a date the dataset carries.
@@ -33,6 +38,26 @@ class DatasetFilter(BaseListFilter):
         )
         ```
     """
+
+    search = SearchFilter(
+        fields=[
+            "name",
+            "uuid",
+            "identifiers__value",
+            "descriptions__value",
+            "keywords__name",
+        ]
+    )
+
+    sort = SortFilter(
+        options=[
+            ("-added", _("Date created (newest first)"), "-added"),
+            ("added", _("Date created (oldest first)"), "added"),
+            ("-modified", _("Recently Updated"), "-modified"),
+            ("name", _("Name A-Z"), "name"),
+            ("-name", _("Name Z-A"), "-name"),
+        ]
+    )
 
     project = django_filters.ModelChoiceFilter(
         field_name="project",

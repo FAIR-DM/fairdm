@@ -15,21 +15,9 @@ class OrganizationListView(FairDMListView):
     model = Organization
     filterset_class = OrganizationFilter
     title = _("Organizations")
-    heading_config = {
-        "icon": "organization",
-        "title": _("Organizations"),
-        "description": _(
-            "Organizations are entities that contribute to the Global Heat Flow Database. "
-            "This section lists all organizations that have contributed data or resources."
-        ),
-    }
-    grid_config = {
-        "responsive": {"md": 3},
-        "card": "contributor.card.organization",
-    }
-    card_template = "contributors/contributor_card.html"
     list_item_template = "contributors/contributor_card.html"
     grid = {"md": 2, "xl": 3}
+    toolbar_filters = ["search", "country"]
 
 
 class OrganizationCreateView(FairDMCreateView):

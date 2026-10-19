@@ -771,3 +771,17 @@ class TestOrganizationProfileFormLocation:
         resubmitted.save()
         organization.refresh_from_db()
         assert organization.location.equals(here)
+
+
+class TestProfileImageWidget:
+    @pytest.mark.parametrize(
+        "form_name", ["PersonProfileForm", "OrganizationProfileForm"]
+    )
+    def test_the_image_field_uses_the_image_input(self, form_name):
+        from mvp_forms.widgets import ImageInput
+
+        from fairdm.contrib.contributors.forms import profile
+
+        form_class = getattr(profile, form_name)
+
+        assert isinstance(form_class.base_fields["image"].widget, ImageInput)

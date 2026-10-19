@@ -22,13 +22,7 @@ class ProjectListView(FairDMListView):
     filterset_class = ProjectFilter
     list_item_template = "project/project_card.html"
     grid = {"cols": 1, "gap": 4}
-    search_fields = ["uuid", "name", "identifiers__value"]
-    order_by = [
-        ("name", _("Name (A-Z)"), "name"),
-        ("-name", _("Name (Z-A)"), "-name"),
-        ("added", _("Date created (oldest first)"), "added"),
-        ("-added", _("Date created (newest first)"), "-added"),
-    ]
+    toolbar_filters = ["search", "status"]
     image = static("img/stock/project.jpg")
     show_list_action = True
 

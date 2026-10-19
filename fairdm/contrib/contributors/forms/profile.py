@@ -7,7 +7,7 @@ from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.core.validators import FileExtensionValidator, URLValidator
 from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy as _
-from easy_thumbnails.widgets import ImageClearableFileInput
+from mvp_forms.widgets import ImageInput
 
 from fairdm.core import image_utils
 from fairdm.forms import ModelForm
@@ -225,9 +225,7 @@ class PersonProfileForm(ProfileForm):
             image_utils.validate_image_file_size,
             FileExtensionValidator(["jpg", "jpeg", "png", "webp"]),
         ],
-        widget=ImageClearableFileInput(
-            thumbnail_options={"size": (150, 150), "crop": True}
-        ),
+        widget=ImageInput(aspect_ratio=1),
     )
     alternative_names = LinesField(
         required=False,
@@ -326,9 +324,7 @@ class OrganizationProfileForm(ProfileForm):
             image_utils.validate_image_file_size,
             FileExtensionValidator(["jpg", "jpeg", "png", "webp"]),
         ],
-        widget=ImageClearableFileInput(
-            thumbnail_options={"size": (150, 150), "crop": True}
-        ),
+        widget=ImageInput(aspect_ratio=1),
     )
     alternative_names = LinesField(
         required=False,

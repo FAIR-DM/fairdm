@@ -364,7 +364,11 @@ class WaterSampleConfig(BaseSampleConfiguration):
         filterable = [
             f for f in self.resolve_fields("filterset") if f in self.FILTERABLE
         ]
-        return FilterFactory(model=self.model, fields=filterable).generate()
+        return FilterFactory(
+            model=self.model,
+            fields=filterable,
+            search_fields=self.get_search_fields(),
+        ).generate()
 
 
 DEMO_REGISTERED_MODELS = [

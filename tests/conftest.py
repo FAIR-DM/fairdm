@@ -1,6 +1,7 @@
 """Root-level pytest configuration for FairDM tests."""
 
 import pytest
+from bs4 import BeautifulSoup
 from django.core.management import call_command
 
 from fairdm.factories import DatasetFactory, ProjectFactory, UserFactory
@@ -15,6 +16,29 @@ def django_db_setup(django_db_setup, django_db_blocker):
         from research_vocabs.models import Concept
 
         Concept.preload()
+
+
+@pytest.fixture
+def filter_placement():
+    """Return a function sorting a list page's filter fields into toolbar and dialog."""
+
+    def place(response):
+        """Return the field names drawn in the toolbar and those in the Filter dialog.
+
+        Args:
+            response: The rendered list or table page.
+
+        Returns:
+            A ``(toolbar, dialog)`` pair of sets of field names.
+        """
+        soup = BeautifulSoup(response.content, "html.parser")
+        form = soup.select_one("form#filterForm")
+        dialog = form.select_one("#filterModal")
+        in_dialog = {tag["name"] for tag in dialog.select("[name]")}
+        in_form = {tag["name"] for tag in form.select("[name]")}
+        return in_form - in_dialog, in_dialog
+
+    return place
 
 
 @pytest.fixture

@@ -142,7 +142,7 @@ class TestProjectListing:
         other = ProjectFactory(
             name="Basalt Petrology Atlas", visibility=Visibility.PUBLIC
         )
-        response = client.get(reverse("project-list"), {"q": "Thermochronology"})
+        response = client.get(reverse("project-list"), {"search": "Thermochronology"})
         entries = list(response.context["object_list"])
         assert target in entries
         assert other not in entries
@@ -150,14 +150,14 @@ class TestProjectListing:
     def test_listing_search_by_identifier_value_returns_the_project(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         identifier = ProjectIdentifierFactory(related=project)
-        response = client.get(reverse("project-list"), {"q": identifier.value})
+        response = client.get(reverse("project-list"), {"search": identifier.value})
         entries = list(response.context["object_list"])
         assert project in entries
 
     def test_listing_ordered_by_name_returns_alphabetical_order(self, client):
         bravo = ProjectFactory(name="Bravo Project", visibility=Visibility.PUBLIC)
         alpha = ProjectFactory(name="Alpha Project", visibility=Visibility.PUBLIC)
-        response = client.get(reverse("project-list"), {"o": "name"})
+        response = client.get(reverse("project-list"), {"sort": "name"})
         entries = list(response.context["object_list"])
         assert entries.index(alpha) < entries.index(bravo)
 
@@ -168,7 +168,7 @@ class TestProjectListing:
         # would pass one.
         bravo = ProjectFactory(name="Bravo Project", visibility=Visibility.PUBLIC)
         alpha = ProjectFactory(name="Alpha Project", visibility=Visibility.PUBLIC)
-        response = client.get(reverse("project-list"), {"o": "-name"})
+        response = client.get(reverse("project-list"), {"sort": "-name"})
         entries = list(response.context["object_list"])
         assert entries.index(bravo) < entries.index(alpha)
 
@@ -176,7 +176,7 @@ class TestProjectListing:
         older = ProjectFactory(visibility=Visibility.PUBLIC)
         time.sleep(0.01)
         newer = ProjectFactory(visibility=Visibility.PUBLIC)
-        response = client.get(reverse("project-list"), {"o": "added"})
+        response = client.get(reverse("project-list"), {"sort": "added"})
         entries = list(response.context["object_list"])
         assert entries.index(older) < entries.index(newer)
 
@@ -184,7 +184,7 @@ class TestProjectListing:
         older = ProjectFactory(visibility=Visibility.PUBLIC)
         time.sleep(0.01)
         newer = ProjectFactory(visibility=Visibility.PUBLIC)
-        response = client.get(reverse("project-list"), {"o": "-added"})
+        response = client.get(reverse("project-list"), {"sort": "-added"})
         entries = list(response.context["object_list"])
         assert entries.index(newer) < entries.index(older)
 
@@ -236,7 +236,7 @@ class TestProjectListing:
         self, client, public_project
     ):
         response = client.get(
-            reverse("project-list"), {"q": "no-project-should-match-this-term"}
+            reverse("project-list"), {"search": "no-project-should-match-this-term"}
         )
         assert response.status_code == 200
         assert list(response.context["object_list"]) == []
@@ -1037,3 +1037,16 @@ class TestDeletionPageBackControl:
         back_href = match.group(1)
         assert back_href != ""
         resolve(back_href)
+
+
+@pytest.mark.django_db
+class TestProjectListToolbar:
+    def test_the_search_and_status_are_in_the_toolbar_and_the_rest_in_the_dialog(
+        self, client, filter_placement
+    ):
+        ProjectFactory(visibility=Visibility.PUBLIC)
+
+        toolbar, dialog = filter_placement(client.get(reverse("project-list")))
+
+        assert {"search", "status"} <= toolbar
+        assert {"owner", "contributor", "tags", "image"} <= dialog

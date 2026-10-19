@@ -249,7 +249,7 @@ class TestQueryCount:
 @pytest.mark.django_db
 class TestSearch:
     def _search(self, client, slug, term):
-        return client.get(reverse(f"{slug}-list"), {"q": term})
+        return client.get(reverse(f"{slug}-list"), {"search": term})
 
     def test_with_no_search_fields_declared_a_word_from_the_name_matches(
         self, client, published_dataset
@@ -336,7 +336,7 @@ class TestFilters:
         slug = registry.get_for_model(SoilSample).get_slug()
         response = client.get(
             reverse(f"{slug}-list"),
-            {"ph_level_min": "6.00", "ph_level_max": "7.00"},
+            {"ph_level_0": "6.00", "ph_level_1": "7.00"},
         )
 
         assert response.status_code == 200
@@ -350,7 +350,7 @@ class TestFilters:
 
         slug = registry.get_for_model(SoilSample).get_slug()
         response = client.get(
-            reverse(f"{slug}-list"), {"depth_cm_min": "0", "depth_cm_max": "20"}
+            reverse(f"{slug}-list"), {"depth_cm_0": "0", "depth_cm_1": "20"}
         )
 
         assert response.status_code == 200
@@ -501,7 +501,7 @@ class TestSwitcher:
         expected_url = reverse(f"{measurement_slug}-list")
 
         response = client.get(
-            reverse(f"{rock_slug}-list"), {"q": "Basalt", "rock_type": "Granite"}
+            reverse(f"{rock_slug}-list"), {"search": "Basalt", "rock_type": "Granite"}
         )
 
         measurement_entry = next(
@@ -646,3 +646,26 @@ class TestNothingUnreachable:
         content = response.content.decode()
         for term in (".csv", ".xlsx", ".json", ".yaml", ".latex", ".ods", ".tsv"):
             assert term not in content
+
+
+@pytest.mark.django_db
+class TestToolbar:
+    def test_the_search_is_in_the_toolbar_and_a_range_filter_in_the_dialog(
+        self, client, published_dataset, filter_placement
+    ):
+        SoilSampleFactory(dataset=published_dataset)
+        slug = registry.get_for_model(SoilSample).get_slug()
+
+        toolbar, dialog = filter_placement(client.get(reverse(f"{slug}-list")))
+
+        assert "search" in toolbar
+        assert "depth_cm_0" in dialog
+
+    def test_a_range_filter_renders_a_pair_of_inputs(self, client, published_dataset):
+        SoilSampleFactory(dataset=published_dataset)
+        slug = registry.get_for_model(SoilSample).get_slug()
+
+        soup = BeautifulSoup(client.get(reverse(f"{slug}-list")).content, "html.parser")
+
+        assert soup.select_one('input[name="depth_cm_0"]')
+        assert soup.select_one('input[name="depth_cm_1"]')

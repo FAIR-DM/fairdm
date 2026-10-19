@@ -55,3 +55,33 @@ class TestPersonListViewQueryCount:
             response = client.get(reverse("people-list"))
 
         assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestPersonListToolbar:
+    def test_the_search_is_in_the_toolbar_and_the_rest_in_the_dialog(
+        self, client, filter_placement
+    ):
+        from fairdm.factories import PersonFactory
+
+        PersonFactory()
+
+        toolbar, dialog = filter_placement(client.get(reverse("people-list")))
+
+        assert "search" in toolbar
+        assert {"city", "country"} <= dialog
+
+
+@pytest.mark.django_db
+class TestOrganizationListToolbar:
+    def test_the_search_and_country_are_in_the_toolbar_and_the_city_in_the_dialog(
+        self, client, filter_placement
+    ):
+        from fairdm.factories import OrganizationFactory
+
+        OrganizationFactory()
+
+        toolbar, dialog = filter_placement(client.get(reverse("organization-list")))
+
+        assert {"search", "country"} <= toolbar
+        assert "city" in dialog
