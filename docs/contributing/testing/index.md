@@ -88,6 +88,12 @@ publishing is completed by running it again.
 When a FairDM change needs something only a newer image has, release the image first and say in
 FairDM's changelog which image version the change needs.
 
+After a release, set `image` under `[tool.fairdm.platform]` in `pyproject.toml` to the new version.
+That table is what a portal that installs FairDM runs on: the image version, and the
+`postgis/postgis` tag FairDM is tested against. The `Test suite` and `Image` workflows read the
+PostGIS tag from it, so a new database version is a change to the table, and to
+`docker-compose.yml`, which cannot read it.
+
 Publishing pushes to `ghcr.io/fair-dm/fairdm`. That package was first created by another
 repository, so before the first release an organisation owner gives this repository the Write role
 under the package's *Manage Actions access* settings. Until then the publish step is refused by the

@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **FairDM declares the image and database a portal runs on.** `[tool.fairdm.platform]` in
+  `pyproject.toml` records the base image version (`image`) and the `postgis/postgis` tag
+  (`postgis`) this FairDM is tested on. A portal uses the versions declared by the FairDM it pins,
+  and moves its image and database when it moves FairDM. FairDM's own test and image workflows read
+  the PostGIS tag from the same table. See
+  [How to deploy a portal in a container](docs/portal-development/production.md#choose-the-image-version)
+  and [ADR 0036](docs/adr/0036-fairdm-declares-the-image-and-database-a-portal-runs-on.md).
 - **Base images for building a portal's production container.** `docker/Dockerfile` builds a
   runtime image (Python 3.13, uv, the PostgreSQL client library, GDAL, GEOS and PROJ, and a
   non-root user) and a development image (the same, plus git and build tools). Neither contains
