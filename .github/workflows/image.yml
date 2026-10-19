@@ -2,25 +2,29 @@ name: Image
 
 # Builds the runtime and development images and the demo portal on top of them, then runs
 # docker/smoke-test.sh against all three. The check fails on a pull request when a change to the
-# Dockerfile, the entrypoint or the code breaks what a portal builds on. On a release tag a second
-# job, the only one allowed to write packages, publishes the two images.
+# Dockerfile, the entrypoint or the code breaks what a portal builds on. It publishes nothing:
+# image-release.yml calls it before it publishes an image release.
 
 on:
   pull_request:
   push:
     branches:
       - main
-  release:
-    types: [published]
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      version:
+        description: The version the images are labelled with
+        type: string
+        required: true
 
 permissions:
   contents: read
 
-# Two runs on the same ref never build and check at the same time.
+# A newer push to a pull request replaces the check still running for it.
 concurrency:
-  group: image-${{ github.ref }}
-  cancel-in-progress: false
+  group: image-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   Image:
@@ -59,22 +63,6 @@ jobs:
         with:
           persist-credentials: false
 
-      # The release the images are labelled with: the tag without its v, or "dev" elsewhere. A tag
-      # that is not a release version fails here, so it can never be published.
-      - name: Work out the version
-        id: version
-        run: |
-          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            release="${GITHUB_REF_NAME#v}"
-            if [[ ! "$release" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-              echo "::error::$GITHUB_REF_NAME is not a release tag of the form v<major>.<minor>.<patch>"
-              exit 1
-            fi
-            echo "release=$release" >> "$GITHUB_OUTPUT"
-          else
-            echo "release=dev" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4
 
@@ -85,7 +73,7 @@ jobs:
           file: docker/Dockerfile
           target: runtime
           platforms: linux/amd64
-          build-args: VERSION=${{ steps.version.outputs.release }}
+          build-args: VERSION=${{ inputs.version || 'dev' }}
           load: true
           push: false
           tags: fairdm-base:ci
@@ -99,7 +87,7 @@ jobs:
           file: docker/Dockerfile
           target: development
           platforms: linux/amd64
-          build-args: VERSION=${{ steps.version.outputs.release }}
+          build-args: VERSION=${{ inputs.version || 'dev' }}
           load: true
           push: false
           tags: fairdm-base:ci-dev
@@ -114,7 +102,7 @@ jobs:
           docker buildx build --builder default --load \
             --file docker/portal.Dockerfile \
             --build-arg FAIRDM_IMAGE=fairdm-base \
-            --build-arg FAIRDM_VERSION=ci \
+            --build-arg FAIRDM_IMAGE_VERSION=ci \
             --tag fairdm-demo:ci \
             .
 
@@ -122,65 +110,3 @@ jobs:
       # reaches by default.
       - name: Smoke test
         run: docker/smoke-test.sh fairdm-base:ci fairdm-base:ci-dev fairdm-demo:ci
-
-    outputs:
-      release: ${{ steps.version.outputs.release }}
-
-  # Only a release tag publishes, and only after the images above passed the smoke test. This job
-  # alone can write packages. It rebuilds the two images from the cache the first job filled, then
-  # pushes whichever of the two tags the registry does not have yet and leaves the rest.
-  Publish:
-    needs: Image
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Check out
-        uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-
-      - name: Build the runtime image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: docker/Dockerfile
-          target: runtime
-          platforms: linux/amd64
-          build-args: VERSION=${{ needs.Image.outputs.release }}
-          load: true
-          push: false
-          tags: fairdm-base:ci
-          cache-from: type=gha,scope=runtime
-
-      - name: Build the development image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: docker/Dockerfile
-          target: development
-          platforms: linux/amd64
-          build-args: VERSION=${{ needs.Image.outputs.release }}
-          load: true
-          push: false
-          tags: fairdm-base:ci-dev
-          cache-from: type=gha,scope=development
-
-      - name: Log in to the registry
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Publish the images
-        env:
-          RELEASE: ${{ needs.Image.outputs.release }}
-        run: docker/publish.sh "$RELEASE"
