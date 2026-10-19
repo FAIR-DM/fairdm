@@ -78,3 +78,7 @@ back. Wording and appearance get no tests.
   release after the merge.
 - [ ] T018 [US4] Documentation: image versions against FairDM versions, and what a portal pinned
   to a commit between releases uses (FR-019).
+- [ ] T024 [US4] Image releases of their own per plan P11: `docker/next-version.sh` test-first,
+  `image-release.yml`, `image.yml` without publishing, `FAIRDM_IMAGE_VERSION`, and the docs
+  (FR-012, FR-013, FR-014, FR-019).
+

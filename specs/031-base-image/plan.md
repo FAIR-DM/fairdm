@@ -247,3 +247,21 @@ the workflow US5 creates.
 
 The SCSS files under `demo/static/scss/` and the Bootstrap-era theme pages
 (`docs/portal-development/theme.md`, `theme-migration.md`) are already stale and are not touched.
+
+### P11. Image releases of their own (decisions D2, D17)
+
+Changed during the build at the maintainer's request. The images are versioned separately from
+FairDM and released from the Actions tab:
+
+- `.github/workflows/image-release.yml`: `workflow_dispatch` with a `bump` input, on `main` only.
+  Jobs: `Version` (`docker/next-version.sh`), `Check` (calls `image.yml`), `Publish` (rebuild from
+  cache, `docker/publish.sh`, then `gh release create image-v<version>`). Only `Publish` has
+  `contents: write` and `packages: write`.
+- `.github/workflows/image.yml`: builds and smoke-tests only, callable with a `version` input. The
+  release trigger and the publish job go.
+- `docker/next-version.sh BUMP`: next version from the `image-v*` tags, tested in
+  `tests/test_docker/test_next_version.py`.
+- `docker/portal.Dockerfile`'s build argument is `FAIRDM_IMAGE_VERSION`.
+- The guide's version section, the contributor page's release section, ADR 0034 and the
+  changelog describe image versions.
+

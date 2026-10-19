@@ -15,17 +15,21 @@ portal currently repeats.
 
 **ADR:** docs/adr/0034-portals-build-on-the-published-base-images.md
 
-## D2. Tags follow releases, not commits
+## D2. The images have a version of their own
 
-The maintainer's choice, given at agreement: once GitHub releases run (#525), portals pin FairDM to
-a release, and the image should carry the same number. A portal then moves FairDM and its image
-with one decision.
+The images change only when the Python version, the system libraries, uv or the start sequence
+changes, a few times a year, while FairDM releases often. The maintainer first chose tags that
+follow FairDM's releases, then on 2026-10-19 chose a separate semantic version, released from the
+GitHub interface with an Image Release workflow that takes a patch, minor or major bump the way
+FairDM's package release does. A FairDM release that needs a newer image says so in its changelog.
+Image releases are tagged `image-v<version>` so they never collide with FairDM's `v<version>`.
 
 No tag moves once published, and there is no `latest`. The image last published as
 `ghcr.io/fair-dm/fairdm:latest` stopped being updated when its repository was archived. Portals
 building on it broke without warning, because a moving tag gives no signal when it stops moving.
 
-**Reopen if** releases stay rare enough that portals keep needing unreleased commits.
+**Reopen if** most FairDM releases start changing the image, which would make the two versions
+move together.
 
 **ADR:** docs/adr/0034-portals-build-on-the-published-base-images.md
 
@@ -58,16 +62,13 @@ doubles the build and is not needed by anyone yet.
 
 **ADR:** none — a build setting to change when someone needs arm64, nothing depends on it
 
-## D6. v0.1.0 gets no images
+## D6. The first image release can be made as soon as this merges
 
-A workflow run on a tag uses the workflow and the Dockerfile at that tag, and v0.1.0 has neither.
-Building v0.1.0's images from a later tree would label an image with a release it was not built
-from. The first images are published by the first release that carries this feature, so the
-example Dockerfile carries no default version.
+The images are no longer tied to FairDM's releases, so v0.1.0 needs no images of its own. The
+first image release is made from the Actions tab after the merge, with an explicit version
+(`1.0.0`). The example Dockerfile carries no default version, so a portal always writes one.
 
-**Reopen if** a portal needs an image for v0.1.0 before the next release.
-
-**ADR:** none — a one-off about a release that predates the images
+**ADR:** none — a one-off about the first release
 
 ## D7. Publishing completes a partial set instead of refusing it
 
@@ -203,3 +204,25 @@ is declared in `[tool.forge.conformance] non-mirror-paths`.
 **Revisit if.** The reviewer would rather the script's evidence stay a one-time run.
 
 **ADR:** none — test placement for one script, covered by the testing standard
+
+## D17. Image releases come from a dispatched workflow, and their version from the tags
+
+**Decision.** `.github/workflows/image-release.yml` runs from the Actions tab on `main` with a bump
+input. `docker/next-version.sh` works out the version from the `image-v<version>` tags. The run
+calls `image.yml` to build and check, then one job publishes with `docker/publish.sh` and creates
+the tag and the GitHub release last, with notes listing the commits that changed `docker/`.
+`image.yml` publishes nothing and no longer runs on releases.
+
+**Why.** The maintainer asked to release images from the GitHub interface the way he releases a
+package. FairDM's package release goes through a pull request because the version lives in
+`pyproject.toml`. The image's version lives only in its tags, so there is nothing to review and
+the release can be one run. Creating the tag last means a run that stopped after publishing
+works out the same version again and completes. The orchestrator wrote this change directly
+rather than dispatching it: it rewires two workflows and one small script, and the context was
+already in hand.
+
+**Revisit if.** The image gains a version file or a changelog of its own that should be reviewed
+before a release.
+
+**ADR:** none — recorded in ADR 0034's decision
+

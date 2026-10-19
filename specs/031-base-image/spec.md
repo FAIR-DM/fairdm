@@ -43,8 +43,9 @@ on it broke, with no warning.
 
 After this feature:
 
-- Each FairDM release publishes two images: a runtime image for production and a development
-  image for building and for local work. Both are tagged with the release's version.
+- FairDM publishes two images: a runtime image for production and a development image for
+  building and for local work. They have a version of their own, separate from FairDM's, and a
+  maintainer releases a new version from the GitHub interface when the image changes.
 - A portal's production Dockerfile installs its dependencies on the development image and runs
   on the runtime image. It installs no system packages of its own.
 - The runtime image starts a portal with the usual sequence, and a portal can add its own steps
@@ -60,8 +61,8 @@ After this feature:
   backups, upgrades, log access and the first-run path from an empty database.
 - **#193**: whether the setup pipeline configured through `django-setup-tools` should run at start.
   The image runs the sequence portals use today. If #193 changes the sequence, the image follows.
-- **#525**: GitHub releases for FairDM. This feature tags its images by release and depends on
-  releases working.
+- **#525**: GitHub releases for FairDM. The images are versioned on their own and do not depend
+  on FairDM's releases.
 - **Shared CI workflows for portals**: proposed separately, as a shared workflow repository built
   on these images.
 - **Moving an existing portal onto the images**: each portal's own work. That includes the GHFDB
@@ -79,9 +80,13 @@ putting it to him again. The longer reasoning is in [decisions.md](decisions.md)
 - Q: Does the image contain FairDM itself? → A: No. It contains Python, uv, the system libraries
   and the start sequence. The portal's own lock file installs FairDM, so a portal that pins FairDM
   to a commit can still use the image.
-- Q: Are images tagged by commit or by release? → A: By release only. Each release publishes both
-  images under its version number, and no tag moves once published. There is no `latest` tag.
-  This needs FairDM's GitHub releases to run (#525).
+- Q: Are images tagged by commit or by release? → A: By image release only. The images have a
+  semantic version of their own, separate from FairDM's, because they change far less often than
+  FairDM does: only when the Python version, the system libraries, uv or the start sequence
+  changes. A maintainer releases a new version from the GitHub interface, choosing a patch, minor
+  or major bump, as a FairDM package release is started. No tag moves once published, and there is
+  no `latest` tag. FairDM's changelog says when a FairDM release needs a newer image. The
+  maintainer changed this from per-FairDM-release tags during the build, on 2026-10-19.
 - Q: Which architectures are built? → A: amd64 only.
 - Q: Does the default start run the `django-setup-tools` pipeline? → A: No. It runs the sequence
   portals use today, without its compression step: apply migrations, collect static files, then
@@ -178,27 +183,33 @@ development server reload with the change.
 
 ---
 
-### User Story 4 - A portal developer moves FairDM and its images to a new release together (Priority: P2)
+### User Story 4 - A maintainer releases a new version of the images (Priority: P2)
 
-A portal developer moves their portal to a new FairDM release. They change the FairDM version in
-their dependencies and the image version in their Dockerfile to the same number. Images for that
-number exist as soon as the release is announced.
+A maintainer changes the image definition and wants portals to have it. In the repository's
+Actions tab they run the image release workflow and choose a patch, minor or major bump, the same
+way they start a FairDM package release. The workflow works out the next image version, builds and
+checks both images, publishes them under that version, and creates a GitHub release for it. A
+portal developer then moves to the new version by changing the image version in their Dockerfile.
 
-**Why this priority**: tying FairDM's version to the image's version means a change to FairDM's
-system requirements reaches a portal at the moment it upgrades, and never between upgrades.
+**Why this priority**: the images change a few times a year, while FairDM releases often. A version
+of their own means a new image exists only when something in it changed, and an image can be
+rebuilt for security updates without a FairDM release.
 
-**Independent Test**: publish a release and pull both images by that release's version number.
+**Independent Test**: run the image release workflow with a patch bump and pull both images by the
+version it reports.
 
 **Acceptance Scenarios**:
 
-1. **Given** a published FairDM release, **When** a developer pulls the runtime and development
-   images by that release's version, **Then** both exist and anyone can pull them without signing
-   in.
-2. **Given** a published image tag, **When** later releases are published, **Then** that tag still
-   names the same image.
-3. **Given** a release whose images fail to build, **When** the release workflow runs, **Then** the
-   failure is visible on the release run, and no partly built image is published under that
-   version.
+1. **Given** the image release workflow, **When** a maintainer runs it from the GitHub interface
+   with a bump, **Then** both images are published under the next version and a GitHub release
+   names that version.
+2. **Given** a published image release, **When** a developer pulls the runtime and development
+   images by its version, **Then** both exist and anyone can pull them without signing in.
+3. **Given** a published image tag, **When** later image releases are published, **Then** that tag
+   still names the same image.
+4. **Given** an image release whose images fail to build or fail their checks, **When** the
+   workflow runs, **Then** the failure is visible on the run, nothing is published under that
+   version, and no release is created.
 
 ---
 
@@ -226,9 +237,9 @@ see the check fail.
 
 ### Edge Cases
 
-- **A portal pins FairDM to a commit between releases.** It uses the images of the latest release
-  before that commit. This works while the commit has not changed FairDM's system requirements,
-  and the deployment guide says so.
+- **A portal pins FairDM to a commit between releases.** It uses the newest image release. The
+  image version does not depend on the FairDM version, so a commit needs nothing special unless it
+  changed FairDM's system requirements before an image release carried the change.
 - **A portal needs a system library FairDM does not.** It installs the library in its own
   Dockerfile on top of the image. The image does not prevent that.
 - **Static files depend on settings injected at runtime.** Collecting static files
@@ -275,12 +286,15 @@ see the check fail.
 
 **Versions and publishing**
 
-- **FR-012**: Each FairDM release MUST publish both images tagged with the release's version.
+- **FR-012**: The images MUST have a semantic version of their own. A maintainer MUST be able to
+  release a new version from the GitHub interface by choosing a patch, minor or major bump, and the
+  release MUST publish both images under that version and create a GitHub release for it.
   *(US4)*
 - **FR-013**: A published tag MUST NOT be moved or reused. FairDM MUST NOT publish a tag that
   follows the newest release. *(US4)*
-- **FR-014**: A release whose images fail to build MUST fail visibly and MUST NOT publish a partly
-  built image under its version. *(US4)*
+- **FR-014**: An image release whose images fail to build or fail their checks MUST fail visibly,
+  MUST NOT publish a partly built image under its version, and MUST NOT create its release.
+  *(US4)*
 - **FR-015**: Images MUST be built for amd64. *(US4)*
 
 **Checks**
@@ -295,8 +309,8 @@ see the check fail.
   images, with a complete example Dockerfile, how to add start steps, how to start a worker, and
   how to use the development image for local work. It MUST no longer describe
   `compose/production/django`. *(US1, US2, US3)*
-- **FR-019**: The deployment guide MUST say which image version goes with which FairDM version,
-  and what a portal pinned to a commit between releases should use. *(US4)*
+- **FR-019**: The deployment guide MUST say how image versions are numbered, how a portal chooses
+  one, and how it learns that a FairDM release needs a newer image. *(US4)*
 
 ### Key Entities
 
@@ -315,10 +329,10 @@ see the check fail.
 
 - **SC-001**: A portal's production Dockerfile built on the images, as the deployment guide shows
   it, installs no system package.
-- **SC-002**: Moving a portal to a new FairDM release changes one image version in its Dockerfile,
-  plus the FairDM version in its dependencies and lock file. Nothing else changes.
-- **SC-003**: Both images for a release can be pulled within one hour of the release being
-  published.
+- **SC-002**: Moving a portal to a new image version changes one version in its Dockerfile.
+  Nothing else changes.
+- **SC-003**: Both images of an image release can be pulled within one hour of the maintainer
+  starting the release.
 - **SC-004**: A pull request that leaves either image unable to run FairDM's test suite fails a
   check every time.
 - **SC-005**: A portal following the deployment guide, starting from an empty database, answers
@@ -331,7 +345,8 @@ see the check fail.
   archived image name, `ghcr.io/fair-dm/fairdm`, can be reused.
 - The database, the cache and object storage are never in the image. Portals run them as separate
   services.
-- FairDM's releases are published as GitHub releases (#525). Publishing to PyPI is not needed.
+- Image releases are tagged `image-v<version>` in the FairDM repository, so they never collide
+  with FairDM's own `v<version>` tags.
 
 ## Breaking changes
 
