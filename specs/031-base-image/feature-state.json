@@ -3,7 +3,7 @@
   "feature": "031-base-image",
   "branch": "031-base-image",
   "repo": "FAIR-DM/fairdm",
-  "state": "REVIEW",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "QUEUED",
@@ -39,6 +39,11 @@
       "state": "REVIEW",
       "at": "2026-10-16T20:39:31Z",
       "note": "two reviewers; fixes applied as T021-T023"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-10-19T09:58:06Z",
+      "note": "review fixed, image versioning changed at the maintainer's request, CI green"
     }
   ],
   "gates": {
