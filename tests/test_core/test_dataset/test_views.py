@@ -162,6 +162,7 @@ class TestDatasetListingSearch:
         response = client.get(reverse("dataset-list"))
         content = response.content.decode()
         assert content.count('name="q"') == 1
+        assert 'name="search"' not in content
 
 
 @pytest.mark.django_db
