@@ -12,11 +12,11 @@ class PersonFilter(df.FilterSet):
     """Filter people by status, name, city, country and affiliation."""
 
     is_active = df.BooleanFilter(
-        label=_("Active Only"),
+        label=_("Active"),
         initial=False,
     )
     is_staff = df.BooleanFilter(
-        label=_("Staff Only"),
+        label=_("Staff"),
         initial=False,
     )
     q = SearchFilter(fields=["name"], label=_("Contributor Name"))
