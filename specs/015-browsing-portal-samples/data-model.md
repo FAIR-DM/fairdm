@@ -92,9 +92,9 @@ unfiltered) — see research.md R1 for why this is a queryset method, not a mana
 
 This is not one of the six `COMPONENTS` entries (form/table/filterset/serializer/resource/admin) —
 it generates no class, so it does not fit that table's `Component(fields_attr, class_attr, base,
-factory)` shape. It is a plain declared list consumed directly by the view layer, mirroring how
-`ProjectListView.search_fields` and `DatasetListView.search_fields` are already plain view
-attributes (`fairdm/core/project/views.py`, `fairdm/core/dataset/views.py`) — the registry's job is
+factory)` shape. It is a plain declared list read into the generated filter set's `search` filter, the way
+`ProjectFilter.search` and `DatasetFilter.search` are declared on their filter sets
+(`fairdm/core/project/filters.py`, `fairdm/core/dataset/filters.py`) — the registry's job is
 only to let a *type* declare it once instead of a portal author subclassing the view.
 
 ## Index requirement (FR-027, SC-007)
@@ -118,8 +118,8 @@ place to smuggle it in.
 `BaseModel`, so `db_index=True` there indexes **four** concrete models, not two: `Sample` and
 `Measurement`, and also `Project` (`fairdm/core/project/models.py:62`) and `Dataset`
 (`fairdm/core/dataset/models.py:186`). That is deliberate, not incidental — both of the latter
-already search `name` from their own listings (`ProjectListView.search_fields`,
-`DatasetListView.search_fields` at `fairdm/core/dataset/views.py:111`), so the index serves exactly
+already search `name` from their own listings (`ProjectFilter.search`,
+`DatasetFilter.search`), so the index serves exactly
 the query it exists for. The alternative, moving `db_index=True` off the base onto two concrete
 declarations, would state the same decision twice and leave two live listings searching an
 unindexed column. Four migrations follow — sample, measurement, project, dataset — and all four are
