@@ -225,7 +225,7 @@ class PersonProfileForm(ProfileForm):
             image_utils.validate_image_file_size,
             FileExtensionValidator(["jpg", "jpeg", "png", "webp"]),
         ],
-        widget=ImageInput(aspect_ratio=1),
+        widget=ImageInput(aspect_ratio=1, show_input=False, height=9, mask="circle"),
     )
     alternative_names = LinesField(
         required=False,
@@ -324,7 +324,7 @@ class OrganizationProfileForm(ProfileForm):
             image_utils.validate_image_file_size,
             FileExtensionValidator(["jpg", "jpeg", "png", "webp"]),
         ],
-        widget=ImageInput(aspect_ratio=1),
+        widget=ImageInput(aspect_ratio=1, show_input=False, height=9),
     )
     alternative_names = LinesField(
         required=False,

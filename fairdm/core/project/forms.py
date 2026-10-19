@@ -40,7 +40,7 @@ class ProjectForm(ManagerOnlyFieldsMixin, ModelForm):
         label="",
         help_text=IMAGE_HELP_TEXT,
         validators=[validate_image_file_size],
-        widget=ImageInput(aspect_ratio=3 / 2),
+        widget=ImageInput(aspect_ratio=3 / 2, show_input=False, height=9),
     )
     name = forms.CharField(
         label=_("Project name"),

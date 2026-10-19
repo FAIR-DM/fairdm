@@ -63,6 +63,26 @@ class TestImageFieldWidgetAndValidation:
             f"{class_name}.image.widget is {type(widget).__name__}, expected ImageInput"
         )
 
+    @pytest.mark.django_db
+    @pytest.mark.parametrize(
+        "import_path",
+        [
+            "fairdm.core.project.forms.ProjectForm",
+            "fairdm.core.dataset.forms.DatasetForm",
+            "fairdm.core.sample.forms.SampleForm",
+            "fairdm.core.measurement.forms.MeasurementForm",
+        ],
+    )
+    def test_image_thumbnail_opens_the_file_picker_and_is_larger(self, import_path):
+        import importlib
+
+        module_path, class_name = import_path.rsplit(".", 1)
+        form = getattr(importlib.import_module(module_path), class_name)()
+        widget = form.fields["image"].widget
+        assert widget.show_input is False
+        assert widget.height == 9
+        assert widget.mask is None
+
     def test_image_field_rejects_oversized_file(self):
         from fairdm.core.project.forms import ProjectForm
 
