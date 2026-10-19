@@ -3,7 +3,7 @@
 #
 #   docker/publish.sh VERSION [REPOSITORY]
 #
-# VERSION is the FairDM release without its v. REPOSITORY defaults to ghcr.io/fair-dm/fairdm.
+# VERSION is the image release's version, such as 1.2.0. REPOSITORY defaults to ghcr.io/fair-dm/fairdm.
 # These environment variables name the local images to publish and the docker command:
 #
 #   RUNTIME_IMAGE      the runtime image (default: fairdm-base:ci)

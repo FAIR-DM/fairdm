@@ -20,29 +20,32 @@ runs as the user `fairdm` (uid 1000). GeoDjango finds GDAL, GEOS and PROJ withou
 
 ## Choose the image version
 
-Every FairDM release is published as two images, and the tag is the release without its `v`. For
-FairDM `v0.2.0`:
+The images have a version of their own, separate from FairDM's. They change far less often than
+FairDM does: only when the Python version, the system libraries, uv or the start sequence changes.
+Each image release is published as two tags. For image version `1.0.0`:
 
 | Image | Tag |
 | --- | --- |
-| Runtime image | `ghcr.io/fair-dm/fairdm:0.2.0` |
-| Development image | `ghcr.io/fair-dm/fairdm:0.2.0-dev` |
+| Runtime image | `ghcr.io/fair-dm/fairdm:1.0.0` |
+| Development image | `ghcr.io/fair-dm/fairdm:1.0.0-dev` |
 
-There is no `latest` tag. Write the release your portal depends on, so that moving the portal to a
-new FairDM release and moving its images happen in the same change. FairDM's release workflow
-never replaces a published tag. A portal that needs an image that cannot change at all writes the
-digest the registry shows for the release into its `FROM` lines by hand.
+The version says what kind of change a release is:
 
-A portal that pins FairDM to a commit between two releases uses the images of the last release
-before that commit. This holds as long as that commit has not changed FairDM's system
-requirements: the Python version, the system packages and the libraries the images carry. When it
-has, the images of the last release no longer match what the commit needs, and the portal builds
-its own base images from `docker/Dockerfile` at that commit, as the next section shows.
+- a new **major** version changes something a portal may have to adapt to, such as the Python
+  version, the paths, the user or the start command
+- a new **minor** version adds something, such as a system library
+- a new **patch** version changes nothing a portal relies on, such as a rebuild that picks up
+  security updates
 
-The images are built when a release is created. FairDM's release workflow creates it with
-`RELEASE_TOKEN`, because GitHub starts no other workflow for a release created with the default
-`GITHUB_TOKEN`, and so no images would appear. Releases made before the images existed, such as
-`v0.1.0`, have none.
+The releases and their changes are listed on the repository's
+[releases page](https://github.com/FAIR-DM/fairdm/releases), as `image-v<version>`. Use the newest
+image version. FairDM's changelog says when a FairDM release needs a newer image than before, so
+read it when you move your portal to a new FairDM release. A portal that pins FairDM to a commit
+needs nothing different.
+
+There is no `latest` tag, so a portal's image changes only when its Dockerfile does. FairDM's
+image release workflow never replaces a published tag. A portal that needs an image that cannot
+change at all writes the digest the registry shows into its `FROM` lines by hand.
 
 ## Build the images from a FairDM checkout
 
@@ -54,7 +57,7 @@ docker build -f docker/Dockerfile --target development -t fairdm-base:local-dev 
 ```
 
 Use these names in place of the published images in the next section by passing
-`--build-arg FAIRDM_IMAGE=fairdm-base --build-arg FAIRDM_VERSION=local`.
+`--build-arg FAIRDM_IMAGE=fairdm-base --build-arg FAIRDM_IMAGE_VERSION=local`.
 
 ## Build your portal's production image
 
@@ -66,10 +69,11 @@ package.
 :language: dockerfile
 ```
 
-`FAIRDM_VERSION` has no default. Write the FairDM release your portal depends on there:
+`FAIRDM_IMAGE_VERSION` has no default. Write the image version your portal builds on there, as
+[Choose the image version](#choose-the-image-version) explains:
 
 ```bash
-docker build --build-arg FAIRDM_VERSION=<release> -t my-portal .
+docker build --build-arg FAIRDM_IMAGE_VERSION=1.0.0 -t my-portal .
 ```
 
 Your repository needs a `pyproject.toml` and a `uv.lock`. The Dockerfile copies `README.md` because
@@ -243,7 +247,7 @@ services:
     image: redis:7
 
   django: &django
-    image: ghcr.io/fair-dm/fairdm:<release>-dev
+    image: ghcr.io/fair-dm/fairdm:<image version>-dev
     depends_on:
       postgres:
         condition: service_healthy
@@ -280,7 +284,7 @@ volumes:
   venv: {}
 ```
 
-Write the FairDM release your portal depends on in place of `<release>`. Then run `docker compose
+Write the image version your portal builds on in place of `<image version>`. Then run `docker compose
 up`. The first start installs your locked dependencies into the `venv` volume, and the portal
 answers on <http://localhost:8000> once it has. The development image sets `DJANGO_ENV=development`,
 so the portal runs with its development settings. Those settings show Django's debug pages, so the

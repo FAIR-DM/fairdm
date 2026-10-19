@@ -63,13 +63,35 @@ uv run pytest --cov --cov-report=html            # report in htmlcov/
 Every pull request runs the `Image` workflow. It builds the runtime image, the development image and
 the demo portal on top of them, then runs `docker/smoke-test.sh` against all three. A change to
 `docker/`, to the system libraries FairDM needs, or to the code that starts the portal can fail it,
-even when every test passes. Releases are published by the same workflow, in a separate job that runs only on a release tag
-named `v<major>.<minor>.<patch>` and only after the images have passed the smoke test.
+even when every test passes. It publishes nothing.
+
+## Releasing the images
+
+The images have a version of their own, separate from FairDM's, and are released only when the
+image changes: a new Python, new system libraries, a new uv, or a change to the start sequence. A
+release that only picks up security updates from the base system is a patch release.
+
+To release, open the repository's *Actions* tab, choose **Image Release**, and run it on `main`
+with a bump: `patch`, `minor`, `major`, or an explicit version such as `1.0.0`. The run works out
+the next version from the `image-v<version>` tags, builds and checks both images the way the
+`Image` workflow does, publishes `ghcr.io/fair-dm/fairdm:<version>` and `:<version>-dev`, and
+creates the `image-v<version>` tag with a GitHub release listing the changes under `docker/`.
+Nothing is published and no release is created unless every check passes. A run that stopped after
+publishing is completed by running it again.
+
+| Change | Bump |
+| --- | --- |
+| A new Python version, different paths or user, a changed start command | `major` |
+| A new system library or tool, a new start-sequence feature | `minor` |
+| A rebuild for security updates, a fix that changes no behaviour | `patch` |
+
+When a FairDM change needs something only a newer image has, release the image first and say in
+FairDM's changelog which image version the change needs.
 
 Publishing pushes to `ghcr.io/fair-dm/fairdm`. That package was first created by another
 repository, so before the first release an organisation owner gives this repository the Write role
-under the package's *Manage Actions access* settings. Until then the publish job is refused by the
-registry, and nothing else in the workflow is affected.
+under the package's *Manage Actions access* settings. Until then the publish step is refused by the
+registry, and nothing is released.
 
 To run the same check on your machine, build the three images, start PostGIS and Redis on a network
 of their own, and run the script on that network:
@@ -78,7 +100,7 @@ of their own, and run the script on that network:
 docker build -f docker/Dockerfile --target runtime -t fairdm-base:local .
 docker build -f docker/Dockerfile --target development -t fairdm-base:local-dev .
 docker build -f docker/portal.Dockerfile --build-arg FAIRDM_IMAGE=fairdm-base \
-    --build-arg FAIRDM_VERSION=local -t fairdm-demo:local .
+    --build-arg FAIRDM_IMAGE_VERSION=local -t fairdm-demo:local .
 
 docker network create fairdm-smoke
 docker run -d --name fairdm-smoke-db --network fairdm-smoke -e POSTGRES_PASSWORD=postgres \
