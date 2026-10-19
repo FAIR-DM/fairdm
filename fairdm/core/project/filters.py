@@ -21,9 +21,9 @@ class ProjectFilter(BaseListFilter):
     setting.
     """
 
-    search = SearchFilter(fields=["uuid", "name", "identifiers__value"])
+    q = SearchFilter(fields=["uuid", "name", "identifiers__value"])
 
-    sort = SortFilter(
+    o = SortFilter(
         options=[
             ("name", _("Name (A-Z)"), "name"),
             ("-name", _("Name (Z-A)"), "-name"),

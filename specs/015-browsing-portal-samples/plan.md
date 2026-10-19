@@ -10,7 +10,7 @@
 gives every listing a single, uniform test for what it may show. `DataTableView` is rebuilt on the
 registry's generated table and filterset classes, filtered through that flag by dataset-owning
 queryset methods so the filter runs once per model rather than once per row. Search and filtering
-are declared per type via a new `ModelConfiguration.search_fields` attribute (read into the generated filter set's `search` filter), defaulting to `["name"]`. Navigation entries and the
+are declared per type via a new `ModelConfiguration.search_fields` attribute (read into the generated filter set's `q` filter), defaulting to `["name"]`. Navigation entries and the
 cross-listing switcher are both built from `registry.samples` / `registry.measurements` at render
 time, so a new registration needs no per-type wiring. US-6 is a deletion story: the redirect view,
 the three overview views with their routes and templates, the unreached plugin, the unused

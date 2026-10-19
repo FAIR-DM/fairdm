@@ -22,7 +22,7 @@ class ProjectListView(FairDMListView):
     filterset_class = ProjectFilter
     list_item_template = "project/project_card.html"
     grid = {"cols": 1, "gap": 4}
-    toolbar_filters = ["search", "status"]
+    toolbar_filters = ["q", "status"]
     image = static("img/stock/project.jpg")
     show_list_action = True
 

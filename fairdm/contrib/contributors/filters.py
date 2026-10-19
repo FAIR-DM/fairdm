@@ -19,7 +19,7 @@ class PersonFilter(df.FilterSet):
         label=_("Staff Only"),
         initial=False,
     )
-    search = SearchFilter(fields=["name"], label=_("Contributor Name"))
+    q = SearchFilter(fields=["name"], label=_("Contributor Name"))
     city = df.CharFilter(
         label=_("City"), field_name="affiliations__city", lookup_expr="icontains"
     )
@@ -40,7 +40,7 @@ class PersonFilter(df.FilterSet):
 class OrganizationFilter(df.FilterSet):
     """Filter organisations by name, city and country."""
 
-    search = SearchFilter(fields=["name"], label=_("Name"))
+    q = SearchFilter(fields=["name"], label=_("Name"))
 
     city = df.CharFilter(
         lookup_expr="icontains",

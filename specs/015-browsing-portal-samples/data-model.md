@@ -88,12 +88,12 @@ unfiltered) — see research.md R1 for why this is a queryset method, not a mana
 | Declared on | `ModelConfiguration` (`fairdm/registry/config.py`), added to `_OVERRIDABLE` |
 | Validated | At `__init__`, in two passes: `FieldInspector.resolve_path` per entry (same mechanism as `fields`/`exclude`), then `isinstance(field, (models.CharField, models.TextField))` on the resolved final field. Both raise `FieldValidationError` at import with the type and field named (FR-026) — the second because a numeric, boolean, date or geometry field resolves cleanly and then raises on the first search. It must be a positive test for a text field: Django registers `icontains` on `Field` itself, so asking whether the field *has* the lookup returns yes for every field type and rejects nothing. `FilterFactory._get_search_fields` (`fairdm/registry/factories.py:648-656`) already draws the line the same way |
 | Accessor | `get_search_fields(self) -> list[str]`: `return self.search_fields or ["name"]` |
-| Consumed by | `ModelConfiguration.get_filterset_class()`, which gives the generated filter set a `search` filter over these fields |
+| Consumed by | `ModelConfiguration.get_filterset_class()`, which gives the generated filter set a `q` filter over these fields |
 
 This is not one of the six `COMPONENTS` entries (form/table/filterset/serializer/resource/admin) —
 it generates no class, so it does not fit that table's `Component(fields_attr, class_attr, base,
-factory)` shape. It is a plain declared list read into the generated filter set's `search` filter, the way
-`ProjectFilter.search` and `DatasetFilter.search` are declared on their filter sets
+factory)` shape. It is a plain declared list read into the generated filter set's `q` filter, the way
+`ProjectFilter.q` and `DatasetFilter.q` are declared on their filter sets
 (`fairdm/core/project/filters.py`, `fairdm/core/dataset/filters.py`) — the registry's job is
 only to let a *type* declare it once instead of a portal author subclassing the view.
 
@@ -118,8 +118,8 @@ place to smuggle it in.
 `BaseModel`, so `db_index=True` there indexes **four** concrete models, not two: `Sample` and
 `Measurement`, and also `Project` (`fairdm/core/project/models.py:62`) and `Dataset`
 (`fairdm/core/dataset/models.py:186`). That is deliberate, not incidental — both of the latter
-already search `name` from their own listings (`ProjectFilter.search`,
-`DatasetFilter.search`), so the index serves exactly
+already search `name` from their own listings (`ProjectFilter.q`,
+`DatasetFilter.q`), so the index serves exactly
 the query it exists for. The alternative, moving `db_index=True` off the base onto two concrete
 declarations, would state the same decision twice and leave two live listings searching an
 unindexed column. Four migrations follow — sample, measurement, project, dataset — and all four are

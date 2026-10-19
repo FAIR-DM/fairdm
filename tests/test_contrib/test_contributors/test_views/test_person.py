@@ -68,7 +68,7 @@ class TestPersonListToolbar:
 
         toolbar, dialog = filter_placement(client.get(reverse("people-list")))
 
-        assert "search" in toolbar
+        assert "q" in toolbar
         assert {"city", "country"} <= dialog
 
 
@@ -83,5 +83,5 @@ class TestOrganizationListToolbar:
 
         toolbar, dialog = filter_placement(client.get(reverse("organization-list")))
 
-        assert {"search", "country"} <= toolbar
+        assert {"q", "country"} <= toolbar
         assert "city" in dialog

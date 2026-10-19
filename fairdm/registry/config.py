@@ -217,7 +217,7 @@ class ModelConfiguration:
             own. Names may use Django's double-underscore paths, and may be grouped
             in tuples for layout. An empty list means the framework decides.
         exclude: Names to leave out of every component.
-        search_fields: Field paths the listing's ``search`` filter matches. ``None``
+        search_fields: Field paths the listing's ``q`` filter matches. ``None``
             (the default) resolves to ``["name"]`` via ``get_search_fields()``.
             Every entry must resolve to a text field, ``CharField`` or
             ``TextField``, the same test ``AdminFactory._get_search_fields`` applies
@@ -522,7 +522,7 @@ class ModelConfiguration:
         return [name for name in flatten_fields(chosen) if name not in excluded]
 
     def get_search_fields(self) -> list[str]:
-        """Return the fields the listing's search filter searches, `["name"]` by default."""
+        """Return the fields the listing's `q` filter searches, `["name"]` by default."""
         return self.search_fields or ["name"]
 
     def _component_class(self, component: str, **factory_kwargs: Any) -> type:

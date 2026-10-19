@@ -398,14 +398,14 @@ class FilterFactory(ComponentFactory):
 
     Dates get range filters, choice fields a choice filter, foreign keys a model
     choice filter, numbers a range filter and text a case-insensitive contains filter.
-    The set also carries a ``search`` filter over the type's search fields, and its
+    The set also carries a ``q`` filter over the type's search fields, and its
     range filters use the range inputs from ``mvp_forms``.
 
     Args:
         model: The Django model class to generate the filter set for.
         fields: Field names to use. ``None`` uses the model's safe fields.
-        search_fields: ORM paths the ``search`` filter matches. Empty means the
-            filter set has no ``search`` filter of its own.
+        search_fields: ORM paths the ``q`` filter matches. Empty means the
+            filter set has no ``q`` filter of its own.
     """
 
     def __init__(
@@ -449,7 +449,7 @@ class FilterFactory(ComponentFactory):
             base_filterset = type(
                 base_filterset.__name__,
                 (base_filterset,),
-                {"search": SearchFilter(fields=self.search_fields)},
+                {"q": SearchFilter(fields=self.search_fields)},
             )
 
         try:

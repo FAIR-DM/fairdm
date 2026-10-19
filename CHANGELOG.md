@@ -43,13 +43,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   composes django-filter's `FilterView`, raises `ImproperlyConfigured` when its module is
   imported. Declare `mvp.filters.SearchFilter` and `mvp.filters.SortFilter` on the view's
   filterset instead, and name the fields drawn in the toolbar in `toolbar_filters`. The project,
-  dataset, people and organisation lists follow this: the search is now the `search` parameter
-  (it was `q`) and the sort the `sort` parameter (it was `o`), and the sort keys are unchanged.
+  dataset, people and organisation lists follow this: the search stays `q` and the sort stays `o`,
+  so existing addresses keep working, and the sort keys are unchanged.
   The toolbar holds the search and the status on projects, the search and the licence on
   datasets, the search on people, the search and the country on organisations, and the search and
   the status on every sample and measurement listing that has them. Every other filter sits in
   the Filter dialog. A registered type's `search_fields` still names its searched fields, and the
-  generated filterset carries a `search` filter over them. A configuration that overrides
+  generated filterset carries a `q` filter over them. A configuration that overrides
   `get_filterset_class()` and builds the set with `FilterFactory` passes
   `search_fields=self.get_search_fields()`. See
   [How to move a list view's search and sort into its filterset](docs/portal-development/list-search-and-sort.md).

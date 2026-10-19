@@ -203,7 +203,7 @@ under" and the wrong one for a listing open to anonymous visitors, where it rais
 questions, two different rules. The branch in `__init__` that tests authentication and then sets the
 same value in both arms goes.
 
-**The listing has one search.** `DatasetFilter.search` is a `SearchFilter` over
+**The listing has one search.** `DatasetFilter.q` is a `SearchFilter` over
 `["name", "uuid", "identifiers__value", "descriptions__value", "keywords__name"]`: the project's set
 (`fairdm/core/project/views.py:27`) plus the two the dataset's own requirements name, and keywords
 carried over from the withdrawn filter so nothing is lost.

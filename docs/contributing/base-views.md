@@ -153,8 +153,8 @@ from .models import Project
 
 
 class ProjectFilter(django_filters.FilterSet):
-    search = SearchFilter(fields=["name", "uuid"])
-    sort = SortFilter(
+    q = SearchFilter(fields=["name", "uuid"])
+    o = SortFilter(
         options=[
             ("name", "Name (A-Z)", ["name", "pk"]),
             ("-added", "Newest first", ["-added", "-pk"]),
@@ -169,7 +169,7 @@ class ProjectFilter(django_filters.FilterSet):
 class ProjectListView(FairDMListView):
     model = Project
     filterset_class = ProjectFilter
-    toolbar_filters = ["search", "status"]
+    toolbar_filters = ["q", "status"]
     grid = {"cols": 1, "sm": 2, "lg": 3}
 ```
 

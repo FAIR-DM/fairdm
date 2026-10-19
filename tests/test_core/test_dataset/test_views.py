@@ -58,12 +58,12 @@ class TestDatasetListView:
 
         url = reverse("dataset-list")
 
-        response_asc = client.get(url, {"sort": "added"})
+        response_asc = client.get(url, {"o": "added"})
         assert response_asc.status_code == 200
         content_asc = str(response_asc.content)
         assert content_asc.index(older.name) < content_asc.index(newer.name)
 
-        response_desc = client.get(url, {"sort": "-added"})
+        response_desc = client.get(url, {"o": "-added"})
         assert response_desc.status_code == 200
         content_desc = str(response_desc.content)
         assert content_desc.index(newer.name) < content_desc.index(older.name)
@@ -107,7 +107,7 @@ class TestDatasetListingSearch:
         other = DatasetFactory(
             name="Basalt Petrology Atlas", visibility=Visibility.PUBLIC
         )
-        response = client.get(reverse("dataset-list"), {"search": "Thermochronology"})
+        response = client.get(reverse("dataset-list"), {"q": "Thermochronology"})
         entries = list(response.context["object_list"])
         assert target in entries
         assert other not in entries
@@ -115,7 +115,7 @@ class TestDatasetListingSearch:
     def test_search_by_uuid_returns_the_dataset(self, client):
         target = DatasetFactory(visibility=Visibility.PUBLIC)
         other = DatasetFactory(visibility=Visibility.PUBLIC)
-        response = client.get(reverse("dataset-list"), {"search": str(target.uuid)})
+        response = client.get(reverse("dataset-list"), {"q": str(target.uuid)})
         entries = list(response.context["object_list"])
         assert target in entries
         assert other not in entries
@@ -124,7 +124,7 @@ class TestDatasetListingSearch:
         target = DatasetFactory(visibility=Visibility.PUBLIC)
         other = DatasetFactory(visibility=Visibility.PUBLIC)
         identifier = DatasetIdentifierFactory(related=target)
-        response = client.get(reverse("dataset-list"), {"search": identifier.value})
+        response = client.get(reverse("dataset-list"), {"q": identifier.value})
         entries = list(response.context["object_list"])
         assert target in entries
         assert other not in entries
@@ -139,7 +139,7 @@ class TestDatasetListingSearch:
             type="Abstract",
             value="A rare assemblage of pyroxenite xenoliths from the Rio Grande rift",
         )
-        response = client.get(reverse("dataset-list"), {"search": "pyroxenite"})
+        response = client.get(reverse("dataset-list"), {"q": "pyroxenite"})
         entries = list(response.context["object_list"])
         assert target in entries
         assert other not in entries
@@ -151,7 +151,7 @@ class TestDatasetListingSearch:
         other = DatasetFactory(visibility=Visibility.PUBLIC)
         term = Concept.objects.filter(vocabulary__name="fairdm-roles").first()
         target.keywords.add(term)
-        response = client.get(reverse("dataset-list"), {"search": term.name})
+        response = client.get(reverse("dataset-list"), {"q": term.name})
         entries = list(response.context["object_list"])
         assert target in entries
         assert other not in entries
@@ -161,8 +161,7 @@ class TestDatasetListingSearch:
         DatasetFactory(visibility=Visibility.PUBLIC)
         response = client.get(reverse("dataset-list"))
         content = response.content.decode()
-        assert content.count('name="search"') == 1
-        assert 'name="q"' not in content
+        assert content.count('name="q"') == 1
 
 
 @pytest.mark.django_db
@@ -170,14 +169,14 @@ class TestDatasetListingOrdering:
     def test_ordered_by_name_returns_alphabetical_order(self, client):
         bravo = DatasetFactory(name="Bravo Dataset", visibility=Visibility.PUBLIC)
         alpha = DatasetFactory(name="Alpha Dataset", visibility=Visibility.PUBLIC)
-        response = client.get(reverse("dataset-list"), {"sort": "name"})
+        response = client.get(reverse("dataset-list"), {"o": "name"})
         entries = list(response.context["object_list"])
         assert entries.index(alpha) < entries.index(bravo)
 
     def test_ordered_by_name_reversed_returns_reverse_alphabetical_order(self, client):
         bravo = DatasetFactory(name="Bravo Dataset", visibility=Visibility.PUBLIC)
         alpha = DatasetFactory(name="Alpha Dataset", visibility=Visibility.PUBLIC)
-        response = client.get(reverse("dataset-list"), {"sort": "-name"})
+        response = client.get(reverse("dataset-list"), {"o": "-name"})
         entries = list(response.context["object_list"])
         assert entries.index(bravo) < entries.index(alpha)
 
@@ -232,8 +231,8 @@ class TestDatasetListingFilters:
 class TestDatasetListingFiltersAllRunWithoutError:
     def _value_for(self, field_name, dataset, project, license_obj):
         return {
-            "search": dataset.name,
-            "sort": "name",
+            "q": dataset.name,
+            "o": "name",
             "license": license_obj.pk,
             "project": project.pk,
             "description_type": "Abstract",
@@ -345,7 +344,7 @@ class TestDatasetListingEmptyState:
         self, client, public_dataset
     ):
         response = client.get(
-            reverse("dataset-list"), {"search": "no-dataset-should-match-this-term"}
+            reverse("dataset-list"), {"q": "no-dataset-should-match-this-term"}
         )
         assert response.status_code == 200
         assert list(response.context["object_list"]) == []
@@ -1580,5 +1579,5 @@ class TestDatasetListToolbar:
 
         toolbar, dialog = filter_placement(client.get(reverse("dataset-list")))
 
-        assert {"search", "license"} <= toolbar
+        assert {"q", "license"} <= toolbar
         assert {"project", "description_type", "date_type", "image"} <= dialog

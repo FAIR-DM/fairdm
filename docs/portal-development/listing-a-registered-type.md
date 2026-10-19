@@ -123,7 +123,7 @@ here is what the whole framework receives.
 ## Search, and the field you add
 
 Search matches a case-insensitive substring of any word of the term against the fields
-`search_fields` names, in a `search` filter the generated filter set carries. The listing draws
+`search_fields` names, in a `q` filter the generated filter set carries. The listing draws
 the search in the toolbar, with the status filter when the type has one. Declaring nothing
 searches the record's `name`:
 

@@ -24,8 +24,8 @@ class DatasetFilter(BaseListFilter):
         **kwargs: Keyword arguments passed to ``FilterSet``.
 
     Attributes:
-        search: Match any word against the fields above.
-        sort: Order the list.
+        q: Match any word against the fields above.
+        o: Order the list.
         project: Filter by the dataset's project.
         description_type: Filter by the type of a description the dataset carries.
         date_type: Filter by the type of a date the dataset carries.
@@ -39,7 +39,7 @@ class DatasetFilter(BaseListFilter):
         ```
     """
 
-    search = SearchFilter(
+    q = SearchFilter(
         fields=[
             "name",
             "uuid",
@@ -49,7 +49,7 @@ class DatasetFilter(BaseListFilter):
         ]
     )
 
-    sort = SortFilter(
+    o = SortFilter(
         options=[
             ("-added", _("Date created (newest first)"), "-added"),
             ("added", _("Date created (oldest first)"), "added"),

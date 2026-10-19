@@ -32,8 +32,8 @@ these steps for each such view.
 
 
    class ProductFilter(django_filters.FilterSet):
-       search = SearchFilter(fields=["name", "description"], max_words=20)
-       sort = SortFilter(
+       q = SearchFilter(fields=["name", "description"], max_words=20)
+       o = SortFilter(
            options=[
                ("name_asc", "Name (A-Z)", ["name", "pk"]),
                ("newest", "Newest first", ["-created", "-pk"]),
@@ -48,7 +48,7 @@ these steps for each such view.
    class ProductListView(FairDMListView):
        model = Product
        filterset_class = ProductFilter
-       toolbar_filters = ["search", "status"]
+       toolbar_filters = ["q", "status"]
    ```
 
    A view that had no filterset gets one by declaring the class above and setting
@@ -59,10 +59,9 @@ these steps for each such view.
    end of the toolbar by the Filter button. A `RangeFilter` or `DateFromToRangeFilter` with its
    default widget cannot be in the toolbar; leave it in the dialog.
 
-4. Update every address that carries the old query parameters. The search was `q` and is now the
-   name of the `SearchFilter`, `search` in the example. The sort was `o` and is now the name of
-   the `SortFilter`, `sort` in the example. The sort keys are unchanged, so
-   `?sort=newest` selects the same order that `?o=newest` did.
+4. Declare the `SearchFilter` as `q` and the `SortFilter` as `o`, as in the example. Each filter's
+   name is its query parameter, so existing addresses such as `?q=basalt&o=newest` keep working,
+   and the sort keys are unchanged.
 
 ## Drop django-filter's `FilterView`
 
@@ -87,7 +86,7 @@ these steps for each such view.
 ## Keep a registered type's search
 
 9. A registered sample or measurement type keeps `search_fields` on its configuration. The
-   generated filterset gets a `search` filter over those fields, and the listing draws it in
+   generated filterset gets a `q` filter over those fields, and the listing draws it in
    the toolbar with the status filter when the type has one. A configuration that overrides
    `get_filterset_class()` and calls `FilterFactory` itself passes the fields on:
 
@@ -100,7 +99,7 @@ these steps for each such view.
        ).generate()
    ```
 
-   A `filterset_class` you declare yourself carries its own `SearchFilter` named `search`.
+   A `filterset_class` you declare yourself carries its own `SearchFilter` named `q`.
 
 ## Check the page
 

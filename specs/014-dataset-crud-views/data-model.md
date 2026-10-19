@@ -90,7 +90,7 @@ DatasetForm (base, full form for update)
 class DatasetListView(FairDMListView):
     model = Dataset
     filterset_class = DatasetFilter  # holds the search and the sort
-    toolbar_filters = ["search", "license"]
+    toolbar_filters = ["q", "license"]
 
     def get_queryset(self):
         return super().get_queryset().get_visible().with_contributors()

@@ -249,7 +249,7 @@ class TestQueryCount:
 @pytest.mark.django_db
 class TestSearch:
     def _search(self, client, slug, term):
-        return client.get(reverse(f"{slug}-list"), {"search": term})
+        return client.get(reverse(f"{slug}-list"), {"q": term})
 
     def test_with_no_search_fields_declared_a_word_from_the_name_matches(
         self, client, published_dataset
@@ -501,7 +501,7 @@ class TestSwitcher:
         expected_url = reverse(f"{measurement_slug}-list")
 
         response = client.get(
-            reverse(f"{rock_slug}-list"), {"search": "Basalt", "rock_type": "Granite"}
+            reverse(f"{rock_slug}-list"), {"q": "Basalt", "rock_type": "Granite"}
         )
 
         measurement_entry = next(
@@ -658,7 +658,7 @@ class TestToolbar:
 
         toolbar, dialog = filter_placement(client.get(reverse(f"{slug}-list")))
 
-        assert "search" in toolbar
+        assert "q" in toolbar
         assert "depth_cm_0" in dialog
 
     def test_a_range_filter_renders_a_pair_of_inputs(self, client, published_dataset):

@@ -17,7 +17,7 @@ class OrganizationListView(FairDMListView):
     title = _("Organizations")
     list_item_template = "contributors/contributor_card.html"
     grid = {"md": 2, "xl": 3}
-    toolbar_filters = ["search", "country"]
+    toolbar_filters = ["q", "country"]
 
 
 class OrganizationCreateView(FairDMCreateView):

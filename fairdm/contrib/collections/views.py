@@ -28,7 +28,7 @@ class DataTableView(FairDMTableView):
     def toolbar_filters(self) -> list[str]:
         """Draw the search and the status in the toolbar, wherever the filter set has them."""
         available = self.get_filterset_class().base_filters
-        return [name for name in ("search", "status") if name in available]
+        return [name for name in ("q", "status") if name in available]
 
     def get_filterset_class(self) -> type[FilterSet] | None:
         """Return the type's filter set with publication scoping applied last."""

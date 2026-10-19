@@ -104,8 +104,8 @@ class FairDMListView(MetadataMixin, MVPListView):
 
 
         class ProjectFilter(django_filters.FilterSet):
-            search = SearchFilter(fields=["name", "uuid"])
-            sort = SortFilter(options=[("name", "Name (A-Z)", ["name", "pk"])])
+            q = SearchFilter(fields=["name", "uuid"])
+            o = SortFilter(options=[("name", "Name (A-Z)", ["name", "pk"])])
 
             class Meta:
                 model = Project
@@ -115,7 +115,7 @@ class FairDMListView(MetadataMixin, MVPListView):
         class ProjectListView(FairDMListView):
             model = Project
             filterset_class = ProjectFilter
-            toolbar_filters = ["search", "status"]
+            toolbar_filters = ["q", "status"]
             grid = {"cols": 1, "sm": 2, "lg": 3}
     """
 
