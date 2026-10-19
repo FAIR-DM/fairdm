@@ -1,6 +1,6 @@
 # ADR 0034 — Portals build on the base images FairDM publishes
 
-**Status:** accepted
+**Status:** accepted. Which image version a portal uses is decided by [ADR 0036](0036-fairdm-declares-the-image-and-database-a-portal-runs-on.md).
 
 ## Decision
 

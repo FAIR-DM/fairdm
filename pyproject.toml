@@ -392,5 +392,13 @@ django = true                 # Enable Django integration (default: false)
 theme = "pydata_sphinx_theme" # Sphinx theme to use (default: "alabaster")
 
 # Suites that test templates and static assets have no Python module to mirror.
+[tool.fairdm.platform]
+# What this FairDM is tested on, and so what a portal that installs it runs on: the version of
+# the base images built from docker/Dockerfile (released as image-v<version>) and the tag of
+# the postgis/postgis image. FairDM's own workflows read the PostGIS tag from here, and so do
+# the workflows portals share.
+image = "1.0.0"
+postgis = "17-3.5"
+
 [tool.forge.conformance]
 non-mirror-paths = ["tests/test_templates/", "tests/test_docker/"]

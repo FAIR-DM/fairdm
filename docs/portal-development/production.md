@@ -38,10 +38,19 @@ The version says what kind of change a release is:
   security updates
 
 The releases and their changes are listed on the repository's
-[releases page](https://github.com/FAIR-DM/fairdm/releases), as `image-v<version>`. Use the newest
-image version. FairDM's changelog says when a FairDM release needs a newer image than before, so
-read it when you move your portal to a new FairDM release. A portal that pins FairDM to a commit
-needs nothing different.
+[releases page](https://github.com/FAIR-DM/fairdm/releases), as `image-v<version>`.
+
+Use the image version declared by the FairDM your portal installs. FairDM records it in its
+`pyproject.toml`, with the PostGIS version it is tested against:
+
+```toml
+[tool.fairdm.platform]
+image = "1.0.0"
+postgis = "17-3.5"
+```
+
+Read the table at the release or commit your portal pins. When you move your portal to a newer
+FairDM, move its image and its database to the versions that FairDM declares in the same change.
 
 There is no `latest` tag, so a portal's image changes only when its Dockerfile does. FairDM's
 image release workflow never replaces a published tag. A portal that needs an image that cannot
@@ -284,8 +293,8 @@ volumes:
   venv: {}
 ```
 
-Write the image version your portal builds on in place of `<image version>`. Then run `docker compose
-up`. The first start installs your locked dependencies into the `venv` volume, and the portal
+Write the image version your portal builds on in place of `<image version>`, and the `postgis` tag
+from the same table in place of `17-3.5` if it differs. Then run `docker compose up`. The first start installs your locked dependencies into the `venv` volume, and the portal
 answers on <http://localhost:8000> once it has. The development image sets `DJANGO_ENV=development`,
 so the portal runs with its development settings. Those settings show Django's debug pages, so the
 port is published on your own machine only.
