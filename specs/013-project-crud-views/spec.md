@@ -64,7 +64,7 @@ which presents the record rather than editing it.
 ### User Story 1 - Find a project (Priority: P1)
 
 Anyone, signed in or not, opens the project listing to see what a portal holds. They search by
-name, narrow the results by status, owner, contributor or tag, and sort by name or by when each
+name, narrow the results by one or more statuses, owner, contributor or tag, and sort by name or by when each
 project was added. The search, the status and the sort are in the toolbar, and the other filters are in
 the Filter dialog. Selecting an entry opens that project.
 

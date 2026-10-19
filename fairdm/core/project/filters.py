@@ -32,9 +32,8 @@ class ProjectFilter(BaseListFilter):
         ]
     )
 
-    status = df.ChoiceFilter(
+    status = df.MultipleChoiceFilter(
         choices=Project.STATUS_CHOICES,
-        empty_label=_("Any"),
         label=_("Status"),
     )
 
