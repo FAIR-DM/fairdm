@@ -3,6 +3,7 @@
 import django_filters
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
+from mvp.filters import SearchFilter
 
 from fairdm.core.measurement.filters import PartialDateFilter
 from fairdm.core.sample.models import Sample
@@ -89,7 +90,7 @@ class SampleFilter(SampleFilterMixin, django_filters.FilterSet):
         status: Filter by custody status.
         dataset: Filter by parent dataset.
         polymorphic_ctype: Filter by sample type.
-        search: Search across name, local_id and uuid.
+        q: Search across name, local_id and uuid.
         description: Search in the description text.
         date_after: Filter to dates on or after a date.
         date_before: Filter to dates on or before a date.
@@ -118,10 +119,7 @@ class SampleFilter(SampleFilterMixin, django_filters.FilterSet):
         empty_label=_("Any type"),
     )
 
-    search = django_filters.CharFilter(
-        method="filter_search",
-        label=_("Search"),
-    )
+    q = SearchFilter(fields=["name", "local_id", "uuid"], label=_("Search"))
 
     description = django_filters.CharFilter(
         field_name="descriptions__value",
@@ -147,26 +145,6 @@ class SampleFilter(SampleFilterMixin, django_filters.FilterSet):
 
         self.filters["polymorphic_ctype"].queryset = ContentType.objects.filter(
             app_label__in=["fairdm_core", "demo"]
-        )
-
-    def filter_search(self, queryset, name, value):
-        """Filter by a search term matching the name, local_id or uuid.
-
-        Args:
-            queryset: The queryset to filter.
-            name: The filter name (unused).
-            value: The search term.
-
-        Returns:
-            The queryset matching the term, unchanged when there is none.
-        """
-        if not value:
-            return queryset
-
-        return queryset.filter(
-            Q(name__icontains=value)
-            | Q(local_id__icontains=value)
-            | Q(uuid__icontains=value)
         )
 
     class Meta(SampleFilterMixin.Meta):

@@ -14,6 +14,8 @@ from django_filters import FilterSet
 from django_filters.filterset import filterset_factory
 from django_tables2 import Table
 from django_tables2.tables import table_factory
+from mvp.filters import SearchFilter
+from mvp_forms.widgets import DateRangeInput, DateTimeRangeInput, RangeInput
 
 from fairdm.utils.inspection import FieldInspector
 
@@ -396,7 +398,24 @@ class FilterFactory(ComponentFactory):
 
     Dates get range filters, choice fields a choice filter, foreign keys a model
     choice filter, numbers a range filter and text a case-insensitive contains filter.
+    The set also carries a ``q`` filter over the type's search fields, and its
+    range filters use the range inputs from ``mvp_forms``.
+
+    Args:
+        model: The Django model class to generate the filter set for.
+        fields: Field names to use. ``None`` uses the model's safe fields.
+        search_fields: ORM paths the ``q`` filter matches. Empty means the
+            filter set has no ``q`` filter of its own.
     """
+
+    def __init__(
+        self,
+        model: type[models.Model],
+        fields: list[str] | None = None,
+        search_fields: list[str] | None = None,
+    ):
+        super().__init__(model, fields)
+        self.search_fields = search_fields or []
 
     def generate(self) -> type[FilterSet]:
         """Generate a django-filter FilterSet class with smart filters.
@@ -424,6 +443,14 @@ class FilterFactory(ComponentFactory):
         # Built on the sample or measurement filter mixin so a type with no filter
         # set of its own keeps the mixin's declared filters.
         base_filterset = self.get_base_filterset_class()
+        if self.search_fields:
+            # Declared on the base so the fallback below, which cannot take overrides,
+            # keeps the search too.
+            base_filterset = type(
+                base_filterset.__name__,
+                (base_filterset,),
+                {"q": SearchFilter(fields=self.search_fields)},
+            )
 
         try:
             meta_attrs = {
@@ -497,10 +524,14 @@ class FilterFactory(ComponentFactory):
                 if isinstance(field, models.DateField) and not isinstance(
                     field, models.DateTimeField
                 ):
-                    filter_overrides[field_name] = filters.DateFromToRangeFilter()
+                    filter_overrides[field_name] = filters.DateFromToRangeFilter(
+                        widget=DateRangeInput()
+                    )
 
                 elif isinstance(field, models.DateTimeField):
-                    filter_overrides[field_name] = filters.DateTimeFromToRangeFilter()
+                    filter_overrides[field_name] = filters.DateTimeFromToRangeFilter(
+                        widget=DateTimeRangeInput()
+                    )
 
                 elif isinstance(field, models.BooleanField):
                     filter_overrides[field_name] = filters.BooleanFilter()
@@ -518,7 +549,9 @@ class FilterFactory(ComponentFactory):
                 elif isinstance(
                     field, (models.IntegerField, models.FloatField, models.DecimalField)
                 ):
-                    filter_overrides[field_name] = filters.RangeFilter()
+                    filter_overrides[field_name] = filters.RangeFilter(
+                        widget=RangeInput()
+                    )
 
                 elif isinstance(field, (models.CharField, models.TextField)):
                     filter_overrides[field_name] = filters.CharFilter(

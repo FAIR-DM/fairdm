@@ -17,23 +17,20 @@ and can be adapted for custom Sample and Measurement models.
 **Generic Search Filter**:
 ```python
 import django_filters
-from django.db.models import Q
+from mvp.filters import SearchFilter
 
 
-class MyFilter(BaseListFilter):
-    search = django_filters.CharFilter(
-        method="filter_search",
+class MyFilter(django_filters.FilterSet):
+    q = SearchFilter(
+        fields=["name", "uuid"],
         label="Search",
         help_text="Search across multiple fields",
     )
-
-    def filter_search(self, queryset, name, value):
-        if not value:
-            return queryset
-        return queryset.filter(
-            Q(name__icontains=value) | Q(uuid__icontains=value)
-        ).distinct()
 ```
+
+The list page draws `q` as the search box in its toolbar. `SearchFilter` matches
+any word of the term, ignoring case, in any of the named fields, and returns
+each record once.
 
 **Cross-Relationship Filter**:
 ```python
@@ -78,10 +75,10 @@ See `docs/portal-development/registry/configuration.md` for details.
 ## Best Practices
 
 ### 1. Generic Search Pattern
-- Use a single search field that searches multiple model fields
-- Use Q objects with OR logic for comprehensive search
-- Use distinct() to prevent duplicate results
-- Make search case-insensitive with icontains lookup
+- Declare one `q = SearchFilter(fields=[...])` that searches several model fields
+- `SearchFilter` matches any word of the term in any field, ignoring case
+- It returns each record once, so searching across related fields adds no duplicates
+- Name the filter `q`, the parameter the list page's toolbar search uses
 - Document which fields are searched in help_text
 
 ### 2. Cross-Relationship Filters
@@ -179,8 +176,8 @@ class MySampleConfig(ModelConfiguration):
 """
 
 import django_filters
-from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
+from mvp.filters import SearchFilter
 
 from demo.models import RockSample, WaterSample
 from fairdm.core.sample.filters import SampleFilter, SampleFilterMixin
@@ -229,9 +226,9 @@ class RockSampleFilterExample(SampleFilter):
     """Example filter demonstrating generic search across multiple fields.
 
     This filter shows how to:
-    1. Add a generic search field that searches multiple model fields
-    2. Use Q objects for OR logic within the search
-    3. Use distinct() to prevent duplicate results from joins
+    1. Declare the listing search as `q`, a `SearchFilter` over several model fields
+    2. Let `SearchFilter` match any word of the term in any of those fields
+    3. Rely on `SearchFilter` returning each record once, even across joins
     4. Combine search with other filters
 
     Pattern Usage:
@@ -242,13 +239,12 @@ class RockSampleFilterExample(SampleFilter):
     Performance Notes:
     - Search uses icontains lookup (case-insensitive)
     - Index the fields being searched for better performance
-    - Use distinct() when searching across related fields
     """
 
-    search = django_filters.CharFilter(
-        method="filter_search",
+    q = SearchFilter(
+        fields=["name", "uuid", "char_field"],
         label="Search",
-        help_text="Search across sample name, UUID, location, and rock type",
+        help_text="Search across sample name, UUID and char field",
     )
 
     rock_type = django_filters.CharFilter(
@@ -276,36 +272,14 @@ class RockSampleFilterExample(SampleFilter):
         model = CustomSample
         fields = []
 
-    def filter_search(self, queryset, name, value):
-        """Search several fields at once.
-
-        Matches the term case-insensitively against `name`, `uuid` and `char_field`.
-
-        Args:
-            queryset: The queryset to filter.
-            name: The filter name (unused).
-            value: The search term.
-
-        Returns:
-            The queryset restricted to rows matching the term in any field.
-        """
-        if not value:
-            return queryset
-
-        return queryset.filter(
-            Q(name__icontains=value)
-            | Q(uuid__icontains=value)
-            | Q(char_field__icontains=value)
-        ).distinct()
-
 
 class XRFMeasurementFilterExample(SampleFilter):
     """Example filter for models that are filtered through related objects.
 
-    It declares a generic search and uses `distinct()` so joins do not duplicate
-    rows. The module docstring shows the cross-relationship filter to add for
-    attributes of related objects (e.g., "find all samples with ABSTRACT
-    descriptions").
+    It declares the listing search as a `SearchFilter` named `q`, which returns
+    each record once so joins do not duplicate rows. The module docstring shows
+    the cross-relationship filter to add for attributes of related objects
+    (e.g., "find all samples with ABSTRACT descriptions").
 
     Performance Considerations:
     - Add database indexes to the related model's type fields
@@ -322,8 +296,8 @@ class XRFMeasurementFilterExample(SampleFilter):
     ```
     """
 
-    search = django_filters.CharFilter(
-        method="filter_search",
+    q = SearchFilter(
+        fields=["name", "uuid"],
         label="Search",
         help_text="Search across measurement name and UUID",
     )
@@ -332,26 +306,17 @@ class XRFMeasurementFilterExample(SampleFilter):
         model = CustomSample
         fields = []
 
-    def filter_search(self, queryset, name, value):
-        """Generic search across name and UUID."""
-        if not value:
-            return queryset
-
-        return queryset.filter(
-            Q(name__icontains=value) | Q(uuid__icontains=value)
-        ).distinct()
-
 
 class DatasetFilterExample(SampleFilter):
     """Example filter for complex models with many relationships.
 
-    It declares a generic search. Add `ModelChoiceFilter` for foreign keys,
-    `ChoiceFilter` for choice fields and `OrderingFilter` for sorting as the
-    model needs them.
+    It declares the listing search as a `SearchFilter` named `q`. Add
+    `ModelChoiceFilter` for foreign keys, `ChoiceFilter` for choice fields and
+    `OrderingFilter` for sorting as the model needs them.
     """
 
-    search = django_filters.CharFilter(
-        method="filter_search",
+    q = SearchFilter(
+        fields=["name", "uuid"],
         label="Search",
         help_text="Search across multiple fields",
     )
@@ -359,15 +324,6 @@ class DatasetFilterExample(SampleFilter):
     class Meta:
         model = CustomSample
         fields = []
-
-    def filter_search(self, queryset, name, value):
-        """Generic search implementation."""
-        if not value:
-            return queryset
-
-        return queryset.filter(
-            Q(name__icontains=value) | Q(uuid__icontains=value)
-        ).distinct()
 
 
 class RockSampleFilter(SampleFilterMixin, django_filters.FilterSet):

@@ -771,3 +771,36 @@ class TestOrganizationProfileFormLocation:
         resubmitted.save()
         organization.refresh_from_db()
         assert organization.location.equals(here)
+
+
+class TestProfileImageWidget:
+    @pytest.mark.parametrize(
+        "form_name", ["PersonProfileForm", "OrganizationProfileForm"]
+    )
+    def test_the_image_field_uses_the_image_input(self, form_name):
+        from mvp_forms.widgets import ImageInput
+
+        from fairdm.contrib.contributors.forms import profile
+
+        form_class = getattr(profile, form_name)
+
+        assert isinstance(form_class.base_fields["image"].widget, ImageInput)
+
+    def test_the_thumbnail_opens_the_file_picker_and_is_larger(self):
+        from fairdm.contrib.contributors.forms import profile
+
+        for form_name in ("PersonProfileForm", "OrganizationProfileForm"):
+            widget = getattr(profile, form_name).base_fields["image"].widget
+
+            assert widget.show_input is False
+            assert widget.height == 9
+            assert widget.aspect_ratio == 1
+
+    def test_the_person_image_is_a_circle_and_the_organisation_image_a_square(self):
+        from fairdm.contrib.contributors.forms import profile
+
+        person = profile.PersonProfileForm.base_fields["image"].widget
+        organization = profile.OrganizationProfileForm.base_fields["image"].widget
+
+        assert person.mask == "circle"
+        assert organization.mask is None

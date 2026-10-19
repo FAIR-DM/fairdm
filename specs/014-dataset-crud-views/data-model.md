@@ -89,14 +89,8 @@ DatasetForm (base, full form for update)
 ```python
 class DatasetListView(FairDMListView):
     model = Dataset
-    filterset_class = DatasetFilter
-    search_fields = ["uuid", "name", "descriptions__value"]
-    order_by = [
-        ("name", _("Name (A-Z)"), "name"),
-        ("-name", _("Name (Z-A)"), "-name"),
-        ("added", _("Date created (oldest first)"), "added"),
-        ("-added", _("Date created (newest first)"), "-added"),
-    ]
+    filterset_class = DatasetFilter  # holds the search and the sort
+    toolbar_filters = ["q", "license"]
 
     def get_queryset(self):
         return super().get_queryset().get_visible().with_contributors()

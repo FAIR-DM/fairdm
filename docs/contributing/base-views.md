@@ -31,18 +31,18 @@ Every FairDM view sits in a three-layer stack:
 | Django generic view | django-mvp view | FairDM view |
 |---|---|---|
 | `TemplateView` | `MVPTemplateView` | `FairDMTemplateView` |
-| `ListView` + `FilterView` | `MVPFilteredListView` | `FairDMListView` |
+| `ListView` | `MVPListView` | `FairDMListView` |
 | `DetailView` | `MVPDetailView` | `FairDMDetailView` |
 | `CreateView` | `MVPCreateView` | `FairDMCreateView` |
 | `UpdateView` | `MVPUpdateView` | `FairDMUpdateView` |
 | `DeleteView` | `MVPDeleteView` | `FairDMDeleteView` |
-| `ListView` + `FilterView` + `SingleTableMixin` | `MVPTableViewMixin` + `FilterView` | `FairDMTableView` |
+| `ListView` + `SingleTableMixin` | `MVPTableView` | `FairDMTableView` |
 
 **Layer 1 — Django** provides the standard HTTP/form/queryset lifecycle.
 
 **Layer 2 — django-mvp** adds the AdminLTE page shell (`PageMixin`), CRUD
-directory URL resolution (`CRUDDirectoryMixin`), list ordering/search
-(`SearchOrderMixin`), and form rendering helpers (`MVPFormBase`). All
+directory URL resolution (`CRUDDirectoryMixin`), the list page's search, sort and
+filters from one django-filter filterset, and form rendering helpers (`MVPFormBase`). All
 django-mvp views render the base AdminLTE layout automatically.
 
 **Layer 3 — FairDM** adds `MetadataMixin` (from `django-meta`) on top of
@@ -126,7 +126,7 @@ class AboutView(FairDMTemplateView):
 Paginated, filterable list rendered as cards or custom list items.  Sets
 `paginate_by = 25` and `grid = {"cols": 1, "gap": 2}` by default.
 
-**Inherits from**: `MetadataMixin`, `MVPFilteredListView`
+**Inherits from**: `MetadataMixin`, `MVPListView`
 
 **Key attributes**:
 
@@ -135,19 +135,41 @@ Paginated, filterable list rendered as cards or custom list items.  Sets
 | `paginate_by` | `25` | Objects per page |
 | `grid` | `{"cols": 1, "gap": 2}` | Responsive grid config |
 | `list_item_template` | `None` (auto-derived) | Partial template per item |
-| `search_fields` | `None` | ORM paths for `?q=` search |
-| `filterset_class` | `None` | `django_filters.FilterSet` subclass |
+| `filterset_class` | `None` | `django_filters.FilterSet` subclass holding the search, the sort and the filters |
+| `toolbar_filters` | `[]` | Names of the filterset fields drawn in the toolbar. The others sit in the Filter dialog |
+
+The search is a `mvp.filters.SearchFilter` and the sort is a `mvp.filters.SortFilter`,
+both declared on the filterset. A view that declares `search_fields` or `order_by`, or that
+composes django-filter's `FilterView`, raises `ImproperlyConfigured` when its module is
+imported. See
+[Move a list view's search and sort into its filterset](../how-to/list-search-and-sort.md).
 
 ```python
+import django_filters
+from mvp.filters import SearchFilter, SortFilter
+
 from fairdm.views import FairDMListView
-from .filters import ProjectFilter
 from .models import Project
+
+
+class ProjectFilter(django_filters.FilterSet):
+    q = SearchFilter(fields=["name", "uuid"])
+    o = SortFilter(
+        options=[
+            ("name", "Name (A-Z)", ["name", "pk"]),
+            ("-added", "Newest first", ["-added", "-pk"]),
+        ]
+    )
+
+    class Meta:
+        model = Project
+        fields = ["status"]
 
 
 class ProjectListView(FairDMListView):
     model = Project
     filterset_class = ProjectFilter
-    search_fields = ["name", "uuid"]
+    toolbar_filters = ["q", "status"]
     grid = {"cols": 1, "sm": 2, "lg": 3}
 ```
 
@@ -276,7 +298,7 @@ so a dataset whose samples carry measurements recorded by another dataset lands 
 Tabular object list powered by `django-tables2`.  The template is responsible
 for rendering the `{{ table }}` object — no automatic rendering is provided.
 
-**Inherits from**: `MetadataMixin`, `MVPTableViewMixin`, `FilterView`
+**Inherits from**: `MetadataMixin`, `MVPTableView`
 
 **Key attributes**:
 
@@ -284,7 +306,8 @@ for rendering the `{{ table }}` object — no automatic rendering is provided.
 |---|---|---|
 | `model` | Yes | The model to list |
 | `table_class` | Yes | A `django_tables2.Table` subclass |
-| `filterset_class` | No | `django_filters.FilterSet` subclass |
+| `filterset_class` | No | `django_filters.FilterSet` subclass holding the search and the filters. A `SortFilter` on it is ignored, since the column headers sort |
+| `toolbar_filters` | No | Names of the filterset fields drawn in the toolbar. The others sit in the Filter dialog |
 | `template_name` | Yes | Template that renders `{{ table }}` |
 
 ```python
@@ -319,7 +342,7 @@ Both views display a collection of objects, but they solve different problems:
 |---|---|---|
 | **Layout** | Cards / custom item templates | Rows-and-columns table |
 | **Item template** | `list_item_template` (per-item partial) | `table_class` (columns defined in Python) |
-| **Sorting** | `order_by` class attribute | `django-tables2` column ordering |
+| **Sorting** | A `SortFilter` on the filterset | `django-tables2` column ordering |
 | **Use case** | Browse pages, search results, "gallery" views | Admin grids, data exports, comparison tables |
 
 **Rule of thumb**: choose `FairDMListView` when the visual design calls for

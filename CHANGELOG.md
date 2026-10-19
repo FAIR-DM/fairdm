@@ -35,6 +35,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `docker compose up`. `compose/django/Dockerfile` is gone. The deployment guide shows a portal's
   own compose file on the same image.
 
+### Changed
+
+- **Breaking: a list view takes its search and sort from its filterset.** FairDM requires
+  django-mvp 0.29 and django-mvp-forms 0.6. A view that subclasses `FairDMListView` or
+  `FairDMTableView` and declares `search_fields`, `max_search_words` or `order_by`, or that
+  composes django-filter's `FilterView`, raises `ImproperlyConfigured` when its module is
+  imported. Declare `mvp.filters.SearchFilter` and `mvp.filters.SortFilter` on the view's
+  filterset instead, and name the fields drawn in the toolbar in `toolbar_filters`. The project,
+  dataset, people and organisation lists follow this: the search is `q` and the sort is `o`, as
+  django-mvp names them, and the sort keys are unchanged.
+  The toolbar holds the search and the status on projects (a multiple choice, so several
+  statuses can be selected at once), the search and the licence on
+  datasets, the search, the active and the staff switches on people, the search and the country on organisations, and the search and
+  the status on every sample and measurement listing that has them. Every other filter sits in
+  the Filter dialog. A registered type's `search_fields` still names its searched fields, and the
+  generated filterset carries a `q` filter over them. A configuration that overrides
+  `get_filterset_class()` and builds the set with `FilterFactory` passes
+  `search_fields=self.get_search_fields()`. See
+  [How to move a list view's search and sort into its filterset](docs/how-to/list-search-and-sort.md).
+- **Range filters on registered types use a pair of range inputs.** Number and date range
+  filters in a generated filterset draw django-mvp-forms' `RangeInput`, `DateRangeInput` and
+  `DateTimeRangeInput`. Their query parameters are `<field>_0` and `<field>_1`, where they were
+  `<field>_min` and `<field>_max` (numbers) or `<field>_after` and `<field>_before` (dates).
+- **Image fields use django-mvp-forms' `ImageInput`.** The project, dataset, sample,
+  measurement, person and organisation forms show the stored image and the newly chosen one,
+  in place of easy-thumbnails' clearable input. The thumbnail is larger and opens the file
+  picker itself; a person's image is drawn as a circle.
+- **The sample and measurement filter sets search on `q`.** The search in `SampleFilter` and
+  `MeasurementFilterMixin` is now the `q` parameter, a `mvp.filters.SearchFilter`, where it was
+  `search`. A listing draws it as the one search box in its toolbar, and a filter set built on
+  either class no longer shows a second search field in the Filter dialog.
+
 ### Removed
 
 - **django-compressor and django-libsass are no longer dependencies.** No template in FairDM used

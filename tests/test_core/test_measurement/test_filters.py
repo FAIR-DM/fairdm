@@ -216,7 +216,7 @@ class TestMeasurementFilterSearchFunctionality:
         )
 
         filterset = MeasurementFilter(
-            data={"search": "Iron"}, queryset=XRFMeasurement.objects.all()
+            data={"q": "Iron"}, queryset=XRFMeasurement.objects.all()
         )
         assert filterset.is_valid()
         assert measurement1 in filterset.qs
@@ -225,7 +225,7 @@ class TestMeasurementFilterSearchFunctionality:
 
         uuid_str = str(measurement2.uuid)[:8]
         filterset = MeasurementFilter(
-            data={"search": uuid_str}, queryset=XRFMeasurement.objects.all()
+            data={"q": uuid_str}, queryset=XRFMeasurement.objects.all()
         )
         assert filterset.is_valid()
         assert measurement2 in filterset.qs
@@ -433,7 +433,7 @@ class TestMeasurementFilterMixinInheritance:
         assert "dataset" in filterset.filters
         assert "sample" in filterset.filters
         assert "polymorphic_ctype" in filterset.filters
-        assert "search" in filterset.filters
+        assert "q" in filterset.filters
         assert "description" in filterset.filters
         assert "date_after" in filterset.filters
         assert "date_before" in filterset.filters
@@ -443,7 +443,7 @@ class TestMeasurementFilterMixinInheritance:
             "dataset",
             "sample",
             "polymorphic_ctype",
-            "search",
+            "q",
             "description",
             "date_after",
             "date_before",

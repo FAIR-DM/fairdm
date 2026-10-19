@@ -380,7 +380,8 @@ class XRFMeasurementFilter(MeasurementFilterMixin, django_filters.FilterSet):
 - `sample` - a `ModelChoiceFilter` over every sample
 - `polymorphic_ctype` - a `ModelChoiceFilter` over the registered measurement types,
   so a mixed list can be narrowed to one type
-- `search` - a `CharFilter` matching `name` or `uuid`
+- `q` - a `mvp.filters.SearchFilter` matching `name` or `uuid`, drawn as the search box in the
+  listing's toolbar
 - `description` - a `CharFilter` matching text in the measurement's descriptions
 - `date_after` / `date_before` - range filters over the measurement's dates. These
   accept a year, a year-and-month, or a full date (matching

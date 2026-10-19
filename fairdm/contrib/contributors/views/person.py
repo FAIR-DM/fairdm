@@ -22,6 +22,7 @@ class PersonListView(FairDMListView):
     list_item_template = "contributors/contributor_card.html"
     grid = {"md": 2, "xl": 3}
     show_create_action = False
+    toolbar_filters = ["q", "is_active", "is_staff"]
 
     def get_queryset(self):
         """Prefetch what each person's card reads."""

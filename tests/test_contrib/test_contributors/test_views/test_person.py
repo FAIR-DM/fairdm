@@ -33,7 +33,9 @@ class TestPersonListViewQueryCount:
 
         person = PersonFactory()
         identifier = ContributorIdentifierFactory(related=person)
-        SocialAccount.objects.create(user=person, provider="orcid", uid=identifier.value)
+        SocialAccount.objects.create(
+            user=person, provider="orcid", uid=identifier.value
+        )
         AffiliationFactory(person=person, is_primary=True)
         person.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
         return person
@@ -55,3 +57,33 @@ class TestPersonListViewQueryCount:
             response = client.get(reverse("people-list"))
 
         assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestPersonListToolbar:
+    def test_the_search_and_the_active_and_staff_switches_are_in_the_toolbar(
+        self, client, filter_placement
+    ):
+        from fairdm.factories import PersonFactory
+
+        PersonFactory()
+
+        toolbar, dialog = filter_placement(client.get(reverse("people-list")))
+
+        assert {"q", "is_active", "is_staff"} <= toolbar
+        assert {"city", "country"} <= dialog
+
+
+@pytest.mark.django_db
+class TestOrganizationListToolbar:
+    def test_the_search_and_country_are_in_the_toolbar_and_the_city_in_the_dialog(
+        self, client, filter_placement
+    ):
+        from fairdm.factories import OrganizationFactory
+
+        OrganizationFactory()
+
+        toolbar, dialog = filter_placement(client.get(reverse("organization-list")))
+
+        assert {"q", "country"} <= toolbar
+        assert "city" in dialog

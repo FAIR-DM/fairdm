@@ -68,7 +68,7 @@ A contributor modifies `fairdm/views/base.py` and submits a pull request. The te
 - **FR-002**: Each docstring MUST follow the django-mvp docstring style, using `Config:`, `Override hooks:`, `Context:`, and `Example::` sections where applicable — mirroring the conventions used in the parent view classes in django-mvp.
 - **FR-003**: `FairDMTemplateView`, `FairDMDetailView`, `FairDMUpdateView`, and `FairDMDeleteView` currently have no docstring or minimal content; these MUST be completed.
 - **FR-004**: `FairDMCreateView`'s docstring MUST describe its purpose as a thin composition of `MetadataMixin` + `MVPCreateView` and note that it provides no additional attributes beyond its parents.
-- **FR-005**: `FairDMListView`'s docstring MUST document `paginate_by` and `grid` attributes and explain the filtered list behaviour inherited from `MVPFilteredListView`.
+- **FR-005**: `FairDMListView`'s docstring MUST document `paginate_by` and `grid` attributes and explain how the search, the sort and the filters come from one `filterset_class`, and which of its fields `toolbar_filters` draws in the toolbar.
 - **FR-006**: `FairDMTableView`'s docstring MUST explain the difference from `FairDMListView` and describe what template responsibilities the developer takes on.
 - **FR-007**: A documentation page MUST be created at `docs/contributing/base-views.md` covering: the three-layer view hierarchy, the role of `django-meta`'s `MetadataMixin`, a summary of each view class, a quick-reference table mapping CRUD operations to view classes, and code examples for each view.
 - **FR-008**: The contributing docs index (`docs/contributing/index.md`) MUST include a link to the new base views page.
@@ -78,12 +78,12 @@ A contributor modifies `fairdm/views/base.py` and submits a pull request. The te
 ### Key Entities
 
 - **FairDMTemplateView**: Combines `MetadataMixin` + `MVPTemplateView`; used for static or lightly dynamic pages with SEO metadata support.
-- **FairDMListView**: Combines `MetadataMixin` + `MVPFilteredListView`; adds `paginate_by = 25` and `grid` config; used for filtered, paginated lists.
+- **FairDMListView**: Combines `MetadataMixin` + `MVPListView`; adds `paginate_by = 25` and `grid` config; takes its search, sort and filters from one filterset; used for filtered, paginated lists.
 - **FairDMDetailView**: Combines `MetadataMixin` + `MVPDetailView`; used for object detail pages.
 - **FairDMCreateView**: Combines `MetadataMixin` + `MVPCreateView`; a thin wrapper that brings SEO metadata support to object creation pages.
 - **FairDMUpdateView**: Combines `MetadataMixin` + `MVPUpdateView`; used for object edit pages.
 - **FairDMDeleteView**: Combines `MetadataMixin` + `MVPDeleteView`; used for object deletion confirmation pages.
-- **FairDMTableView**: Combines `MetadataMixin` + `MVPTableViewMixin` + `FilterView`; used for tabular data displays with filtering.
+- **FairDMTableView**: Combines `MetadataMixin` + `MVPTableView`; takes its search and filters from one filterset and sorts by column header; used for tabular data displays with filtering.
 
 ## Success Criteria *(mandatory)*
 

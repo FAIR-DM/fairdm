@@ -10,7 +10,7 @@ Complete the docstrings for all 7 view classes in `fairdm/views/base.py` using t
 ## Technical Context
 
 **Language/Version**: Python 3.13 (per active virtualenv)  
-**Primary Dependencies**: Django, django-mvp, django-meta (`MetadataMixin`), django-filter (`FilterView`), django-tables2 (`MVPTableViewMixin`), pytest, pytest-django  
+**Primary Dependencies**: Django, django-mvp, django-meta (`MetadataMixin`), django-filter (`FilterSet`), django-tables2 (`MVPTableView`), pytest, pytest-django  
 **Storage**: PostgreSQL (test DB via pytest-django)  
 **Testing**: pytest + pytest-django; `rf`/`client` fixtures; `RequestFactory`-based integration tests  
 **Target Platform**: Django web application (FairDM framework)  

@@ -72,7 +72,7 @@ specification decides.
 - Q: R17 also asks for sorting, which was not discussed. Is it in? → A: Yes, in the form a table
   gives for free. Each collection has a stable default order and sorts on the columns its
   registration produces. Ordering is declared on the table class, because the shell's table view
-  refuses a view that declares `order_by` itself.
+  sorts by column header and ignores a sort filter.
 - Q: The current page offers eight export formats, in the request, untested. Do they stay? → A:
   No. They are removed. Downloading data belongs to R21, which describes export as dataset-scoped
   and names in-request execution as one of the faults it exists to fix.
@@ -149,8 +149,9 @@ confirm the columns differ per type, that only published records appear, and tha
 
 ### User Story 3 - Narrow a listing to what is wanted (Priority: P1)
 
-A reader looking at a type's listing types a word into the search box at the top of the table and
-narrows the rows to those that match. They also apply the filters the type's registration produces,
+A reader looking at a type's listing types a word into the search box in the toolbar above the table and
+narrows the rows to those that match. They also apply the filters the type's registration produces
+(the status in the toolbar, the others in the Filter dialog),
 and sort by any column that carries an order. The fields the search covers are the model author's
 choice, and where the author has said nothing the record's name is searched.
 

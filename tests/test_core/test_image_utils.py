@@ -5,7 +5,7 @@ import io
 import pytest
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.template.loader import render_to_string
-from easy_thumbnails.widgets import ImageClearableFileInput
+from mvp_forms.widgets import ImageInput
 
 from fairdm.core.image_utils import validate_image_file_size
 
@@ -51,7 +51,7 @@ class TestImageFieldWidgetAndValidation:
             "fairdm.core.measurement.forms.MeasurementForm",
         ],
     )
-    def test_image_field_uses_clearable_widget(self, import_path):
+    def test_image_field_uses_the_image_input(self, import_path):
         module_path, class_name = import_path.rsplit(".", 1)
         import importlib
 
@@ -59,9 +59,29 @@ class TestImageFieldWidgetAndValidation:
         form_cls = getattr(mod, class_name)
         form = form_cls()
         widget = form.fields["image"].widget
-        assert isinstance(widget, ImageClearableFileInput), (
-            f"{class_name}.image.widget is {type(widget).__name__}, expected ImageClearableFileInput"
+        assert isinstance(widget, ImageInput), (
+            f"{class_name}.image.widget is {type(widget).__name__}, expected ImageInput"
         )
+
+    @pytest.mark.django_db
+    @pytest.mark.parametrize(
+        "import_path",
+        [
+            "fairdm.core.project.forms.ProjectForm",
+            "fairdm.core.dataset.forms.DatasetForm",
+            "fairdm.core.sample.forms.SampleForm",
+            "fairdm.core.measurement.forms.MeasurementForm",
+        ],
+    )
+    def test_image_thumbnail_opens_the_file_picker_and_is_larger(self, import_path):
+        import importlib
+
+        module_path, class_name = import_path.rsplit(".", 1)
+        form = getattr(importlib.import_module(module_path), class_name)()
+        widget = form.fields["image"].widget
+        assert widget.show_input is False
+        assert widget.height == 9
+        assert widget.mask is None
 
     def test_image_field_rejects_oversized_file(self):
         from fairdm.core.project.forms import ProjectForm
@@ -188,8 +208,8 @@ class TestImageFieldUniformity:
         form = form_cls()
         field = form.fields["image"]
 
-        assert isinstance(field.widget, ImageClearableFileInput), (
-            f"{class_name}: widget must be ImageClearableFileInput, got {type(field.widget).__name__}"
+        assert isinstance(field.widget, ImageInput), (
+            f"{class_name}: widget must be ImageInput, got {type(field.widget).__name__}"
         )
 
         assert validate_image_file_size in field.validators, (

@@ -232,6 +232,8 @@ class TestDatasetListingFilters:
 class TestDatasetListingFiltersAllRunWithoutError:
     def _value_for(self, field_name, dataset, project, license_obj):
         return {
+            "q": dataset.name,
+            "o": "name",
             "license": license_obj.pk,
             "project": project.pk,
             "description_type": "Abstract",
@@ -1567,3 +1569,16 @@ class TestDatasetCardRendering:
         assert "{#" not in html
         assert "#}" not in html
         assert "{%" not in html
+
+
+@pytest.mark.django_db
+class TestDatasetListToolbar:
+    def test_the_search_and_license_are_in_the_toolbar_and_the_rest_in_the_dialog(
+        self, client, filter_placement
+    ):
+        DatasetFactory(visibility=Visibility.PUBLIC)
+
+        toolbar, dialog = filter_placement(client.get(reverse("dataset-list")))
+
+        assert {"q", "license"} <= toolbar
+        assert {"project", "description_type", "date_type", "image"} <= dialog

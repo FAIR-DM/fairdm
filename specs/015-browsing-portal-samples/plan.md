@@ -10,8 +10,7 @@
 gives every listing a single, uniform test for what it may show. `DataTableView` is rebuilt on the
 registry's generated table and filterset classes, filtered through that flag by dataset-owning
 queryset methods so the filter runs once per model rather than once per row. Search and filtering
-are declared per type via a new `ModelConfiguration.search_fields` attribute (mirroring the shell's
-own `SearchMixin.search_fields`), defaulting to `["name"]`. Navigation entries and the
+are declared per type via a new `ModelConfiguration.search_fields` attribute (read into the generated filter set's `q` filter), defaulting to `["name"]`. Navigation entries and the
 cross-listing switcher are both built from `registry.samples` / `registry.measurements` at render
 time, so a new registration needs no per-type wiring. US-6 is a deletion story: the redirect view,
 the three overview views with their routes and templates, the unreached plugin, the unused
@@ -23,7 +22,7 @@ machinery and the stale README all go.
 **Language/Version**: Python 3.13
 
 **Primary Dependencies**: Django 5.1/5.2, django-tables2 3.0, django-filter 24.3, django-polymorphic,
-django-flex-menus 0.4.3, django-mvp 0.19.3 (`MVPTableViewMixin`, `SearchMixin`, `FairDMTableView`)
+django-flex-menus 0.4.3, django-mvp 0.29.0 (`MVPTableView`, `SearchFilter`, `FairDMTableView`)
 
 **Storage**: PostgreSQL (existing `Dataset` table gains one migration-added column; no new tables)
 

@@ -53,20 +53,7 @@ class DatasetListView(FairDMListView):
     page_icon = "dataset"
     list_item_template = "dataset/dataset_card.html"
     grid = {"cols": 1, "gap": 4}
-    order_by = [
-        ("-added", _("Date created (newest first)"), "-added"),
-        ("added", _("Date created (oldest first)"), "added"),
-        ("-modified", _("Recently Updated"), "-modified"),
-        ("name", _("Name A-Z"), "name"),
-        ("-name", _("Name Z-A"), "-name"),
-    ]
-    search_fields = [
-        "name",
-        "uuid",
-        "identifiers__value",
-        "descriptions__value",
-        "keywords__name",
-    ]
+    toolbar_filters = ["q", "license"]
 
     def get_queryset(self) -> QuerySet[Dataset]:
         """Load everything a card draws, so the query count does not grow with the page."""

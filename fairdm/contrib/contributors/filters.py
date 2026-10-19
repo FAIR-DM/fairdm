@@ -3,6 +3,7 @@
 import django_filters as df
 from django import forms
 from django.utils.translation import gettext_lazy as _
+from mvp.filters import SearchFilter
 
 from .models import Contributor
 
@@ -11,17 +12,14 @@ class PersonFilter(df.FilterSet):
     """Filter people by status, name, city, country and affiliation."""
 
     is_active = df.BooleanFilter(
-        label=_("Active Only"),
+        label=_("Active"),
         initial=False,
     )
     is_staff = df.BooleanFilter(
-        label=_("Staff Only"),
+        label=_("Staff"),
         initial=False,
     )
-    name = df.CharFilter(
-        label=_("Contributor Name"),
-        lookup_expr="icontains",
-    )
+    q = SearchFilter(fields=["name"], label=_("Contributor Name"))
     city = df.CharFilter(
         label=_("City"), field_name="affiliations__city", lookup_expr="icontains"
     )
@@ -36,13 +34,13 @@ class PersonFilter(df.FilterSet):
 
     class Meta:
         model = Contributor
-        fields = ["is_active", "is_staff", "name", "city", "country"]
+        fields = ["is_active", "is_staff", "city", "country"]
 
 
 class OrganizationFilter(df.FilterSet):
     """Filter organisations by name, city and country."""
 
-    name = df.CharFilter(lookup_expr="icontains", label=_("Name"))
+    q = SearchFilter(fields=["name"], label=_("Name"))
 
     city = df.CharFilter(
         lookup_expr="icontains",
@@ -55,7 +53,7 @@ class OrganizationFilter(df.FilterSet):
 
     class Meta:
         model = Contributor
-        fields = ["name", "city", "country"]
+        fields = ["city", "country"]
 
 
 class ContributorFilter(df.FilterSet):

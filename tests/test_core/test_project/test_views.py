@@ -3,6 +3,7 @@
 import re
 import time
 
+import django_filters
 import pytest
 from bs4 import BeautifulSoup
 from django import forms
@@ -23,7 +24,6 @@ from fairdm.factories import (
     DatasetFactory,
     OrganizationFactory,
     PersonFactory,
-    ProjectDateFactory,
     ProjectDescriptionFactory,
     ProjectFactory,
     ProjectIdentifierFactory,
@@ -196,11 +196,30 @@ class TestProjectListing:
             status=ProjectStatus.COMPLETE, visibility=Visibility.PUBLIC
         )
         response = client.get(
-            reverse("project-list"), {"status": ProjectStatus.CONCEPT}
+            reverse("project-list"), {"status": [ProjectStatus.CONCEPT]}
         )
         entries = list(response.context["object_list"])
         assert concept in entries
         assert complete not in entries
+
+    def test_listing_status_filter_takes_several_statuses_at_once(self, client):
+        concept = ProjectFactory(
+            status=ProjectStatus.CONCEPT, visibility=Visibility.PUBLIC
+        )
+        complete = ProjectFactory(
+            status=ProjectStatus.COMPLETE, visibility=Visibility.PUBLIC
+        )
+        in_progress = ProjectFactory(
+            status=ProjectStatus.IN_PROGRESS, visibility=Visibility.PUBLIC
+        )
+        response = client.get(
+            reverse("project-list"),
+            {"status": [ProjectStatus.CONCEPT, ProjectStatus.COMPLETE]},
+        )
+        entries = list(response.context["object_list"])
+        assert concept in entries
+        assert complete in entries
+        assert in_progress not in entries
 
     def test_listing_owner_filter_narrows_to_the_matching_owner(self, client):
         owner = OrganizationFactory()
@@ -569,9 +588,7 @@ class TestProjectUpdateView:
         )
         client.force_login(editor)
 
-        response = client.get(
-            reverse("project:edit", kwargs={"uuid": project.uuid})
-        )
+        response = client.get(reverse("project:edit", kwargs={"uuid": project.uuid}))
 
         assert {"name", "status"} <= set(response.context["form"].fields)
         assert not {"visibility", "owner"} & set(response.context["form"].fields)
@@ -1037,3 +1054,24 @@ class TestDeletionPageBackControl:
         back_href = match.group(1)
         assert back_href != ""
         resolve(back_href)
+
+
+@pytest.mark.django_db
+class TestProjectListToolbar:
+    def test_the_search_and_status_are_in_the_toolbar_and_the_rest_in_the_dialog(
+        self, client, filter_placement
+    ):
+        ProjectFactory(visibility=Visibility.PUBLIC)
+
+        toolbar, dialog = filter_placement(client.get(reverse("project-list")))
+
+        assert {"q", "status"} <= toolbar
+        assert {"owner", "contributor", "tags", "image"} <= dialog
+
+    def test_the_status_is_a_multiple_choice(self, client):
+        from fairdm.core.project.filters import ProjectFilter
+
+        status = ProjectFilter().filters["status"]
+
+        assert isinstance(status, django_filters.MultipleChoiceFilter)
+        assert status.field_class is django_filters.fields.MultipleChoiceField

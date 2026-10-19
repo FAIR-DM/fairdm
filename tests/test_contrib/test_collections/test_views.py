@@ -22,6 +22,7 @@ from demo.factories import (
     RockSampleFactory,
     SoilSampleFactory,
     WaterSampleFactory,
+    XRFMeasurementFactory,
 )
 from demo.models import (
     CustomSample,
@@ -29,6 +30,7 @@ from demo.models import (
     RockSample,
     SoilSample,
     WaterSample,
+    XRFMeasurement,
 )
 from fairdm.contrib.collections.views import DataTableView
 from fairdm.core.sample.models import Sample
@@ -336,7 +338,7 @@ class TestFilters:
         slug = registry.get_for_model(SoilSample).get_slug()
         response = client.get(
             reverse(f"{slug}-list"),
-            {"ph_level_min": "6.00", "ph_level_max": "7.00"},
+            {"ph_level_0": "6.00", "ph_level_1": "7.00"},
         )
 
         assert response.status_code == 200
@@ -350,7 +352,7 @@ class TestFilters:
 
         slug = registry.get_for_model(SoilSample).get_slug()
         response = client.get(
-            reverse(f"{slug}-list"), {"depth_cm_min": "0", "depth_cm_max": "20"}
+            reverse(f"{slug}-list"), {"depth_cm_0": "0", "depth_cm_1": "20"}
         )
 
         assert response.status_code == 200
@@ -646,3 +648,53 @@ class TestNothingUnreachable:
         content = response.content.decode()
         for term in (".csv", ".xlsx", ".json", ".yaml", ".latex", ".ods", ".tsv"):
             assert term not in content
+
+
+@pytest.mark.django_db
+class TestToolbar:
+    def test_the_search_is_in_the_toolbar_and_a_range_filter_in_the_dialog(
+        self, client, published_dataset, filter_placement
+    ):
+        SoilSampleFactory(dataset=published_dataset)
+        slug = registry.get_for_model(SoilSample).get_slug()
+
+        toolbar, dialog = filter_placement(client.get(reverse(f"{slug}-list")))
+
+        assert "q" in toolbar
+        assert "depth_cm_0" in dialog
+
+    def test_a_range_filter_renders_a_pair_of_inputs(self, client, published_dataset):
+        SoilSampleFactory(dataset=published_dataset)
+        slug = registry.get_for_model(SoilSample).get_slug()
+
+        soup = BeautifulSoup(client.get(reverse(f"{slug}-list")).content, "html.parser")
+
+        assert soup.select_one('input[name="depth_cm_0"]')
+        assert soup.select_one('input[name="depth_cm_1"]')
+
+
+@pytest.mark.django_db
+class TestOneSearchControl:
+    def test_a_measurement_table_has_one_search_in_the_toolbar(
+        self, client, published_dataset, filter_placement
+    ):
+        sample = RockSampleFactory(dataset=published_dataset)
+        XRFMeasurementFactory(sample=sample, dataset=published_dataset)
+        slug = registry.get_for_model(XRFMeasurement).get_slug()
+
+        toolbar, dialog = filter_placement(client.get(reverse(f"{slug}-list")))
+
+        assert "q" in toolbar
+        assert "search" not in toolbar | dialog
+        assert "q" not in dialog
+
+    def test_a_custom_sample_filterset_has_the_search_in_the_toolbar(
+        self, client, published_dataset, filter_placement
+    ):
+        CustomSampleFactory(dataset=published_dataset)
+        slug = registry.get_for_model(CustomSample).get_slug()
+
+        toolbar, dialog = filter_placement(client.get(reverse(f"{slug}-list")))
+
+        assert "q" in toolbar
+        assert "search" not in toolbar | dialog

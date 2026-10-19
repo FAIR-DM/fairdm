@@ -3,9 +3,9 @@
 from django import forms
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
-from easy_thumbnails.widgets import ImageClearableFileInput
 from licensing.models import License
 from literature.models import LiteratureItem
+from mvp_forms.widgets import ImageInput
 
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.forms import ManagerOnlyFieldsMixin
@@ -44,9 +44,7 @@ class DatasetForm(ManagerOnlyFieldsMixin, ModelForm):
         label=_("Cover Image"),
         help_text=IMAGE_HELP_TEXT,
         validators=[validate_image_file_size],
-        widget=ImageClearableFileInput(
-            thumbnail_options={"size": (150, 100), "crop": True}
-        ),
+        widget=ImageInput(aspect_ratio=3 / 2, show_input=False, height=9),
     )
 
     name = forms.CharField(

@@ -122,8 +122,10 @@ here is what the whole framework receives.
 
 ## Search, and the field you add
 
-Search matches a case-insensitive substring against the fields `search_fields` names. Declaring
-nothing searches the record's `name`:
+Search matches a case-insensitive substring of any word of the term against the fields
+`search_fields` names, in a `q` filter the generated filter set carries. The listing draws
+the search in the toolbar, with the status filter when the type has one. Declaring nothing
+searches the record's `name`:
 
 ```python
 @fairdm.register
@@ -132,6 +134,10 @@ class WaterSampleConfig(BaseSampleConfiguration):
     fields = ["name", "water_source", "ph_level"]
     search_fields = ["name", "water_source"]
 ```
+
+A configuration that overrides `get_filterset_class()` and builds the set with `FilterFactory`
+passes `search_fields=self.get_search_fields()` to keep the search. Range filters on numbers and
+dates sit in the Filter dialog as a pair of inputs, named `<field>_0` and `<field>_1`.
 
 Two kinds of declaration are refused when the server starts, rather than on the first search a
 visitor types. A path that names no field on the model is one. The other is a path that resolves

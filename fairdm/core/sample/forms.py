@@ -8,7 +8,7 @@ from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django_addanother.widgets import AddAnotherWidgetWrapper
 from django_select2.forms import ModelSelect2Widget
-from easy_thumbnails.widgets import ImageClearableFileInput
+from mvp_forms.widgets import ImageInput
 
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.forms import ManagerOnlyFieldsMixin
@@ -105,9 +105,7 @@ class SampleForm(SampleFormMixin, forms.ModelForm):
         label="",
         help_text=IMAGE_HELP_TEXT,
         validators=[validate_image_file_size],
-        widget=ImageClearableFileInput(
-            thumbnail_options={"size": (150, 100), "crop": True}
-        ),
+        widget=ImageInput(aspect_ratio=3 / 2, show_input=False, height=9),
     )
 
     class Meta:

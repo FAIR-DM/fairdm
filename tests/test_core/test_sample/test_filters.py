@@ -140,14 +140,14 @@ class TestSampleFilterSearchFunctionality:
         )
 
         filterset = SampleFilter(
-            data={"search": "Granite"}, queryset=RockSample.objects.all()
+            data={"q": "Granite"}, queryset=RockSample.objects.all()
         )
         assert filterset.is_valid()
         assert sample1 in filterset.qs
         assert sample2 not in filterset.qs
 
         filterset = SampleFilter(
-            data={"search": "ROCK-002"}, queryset=RockSample.objects.all()
+            data={"q": "ROCK-002"}, queryset=RockSample.objects.all()
         )
         assert filterset.is_valid()
         assert sample2 in filterset.qs
@@ -155,7 +155,7 @@ class TestSampleFilterSearchFunctionality:
 
         uuid_fragment = str(sample1.uuid)[:8]
         filterset = SampleFilter(
-            data={"search": uuid_fragment}, queryset=RockSample.objects.all()
+            data={"q": uuid_fragment}, queryset=RockSample.objects.all()
         )
         assert filterset.is_valid()
         assert sample1 in filterset.qs
@@ -262,7 +262,7 @@ class TestSampleFilterCombinedFilters:
 
 class TestSampleFilterMixinConfiguration:
     def test_mixin_provides_common_filters(self):
-        expected_filters = ["status", "dataset", "polymorphic_ctype", "search"]
+        expected_filters = ["status", "dataset", "polymorphic_ctype", "q"]
 
         filter_instance = SampleFilter()
         for filter_name in expected_filters:
@@ -321,12 +321,12 @@ class TestCustomSampleFilterIntegration:
         )
 
         filterset = RockSampleFilter(
-            data={"search": "Granite"}, queryset=RockSample.objects.all()
+            data={"q": "Granite"}, queryset=RockSample.objects.all()
         )
         assert filterset.is_valid()
         assert rock_sample in filterset.qs
 
-        assert "search" in filterset.filters
+        assert "q" in filterset.filters
         assert "rock_type" in filterset.filters
 
 
