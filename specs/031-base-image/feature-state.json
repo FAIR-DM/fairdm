@@ -508,6 +508,26 @@
               ".github/workflows/image.yml:130"
             ]
           }
+        },
+        {
+          "id": "T024",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_docker/test_next_version.py::TestNextVersion"
+            ],
+            "commands": [
+              "uv run pytest -n0 tests/test_docker/test_next_version.py: 6 failed before the script, 13 passed after; removing the not-above check fails 2",
+              "release-notes snippet against a scratch repo: previous=image-v1.10.0, lists only docker/ commits",
+              "check-jsonschema vendor.github-workflows and actionlint on image.yml, image-release.yml, test-suite.yml",
+              "forge verify: all steps passed"
+            ],
+            "code": [
+              "docker/next-version.sh:26",
+              ".github/workflows/image-release.yml:31"
+            ]
+          }
         }
       ]
     }
