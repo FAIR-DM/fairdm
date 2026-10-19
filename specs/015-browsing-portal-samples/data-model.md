@@ -88,7 +88,7 @@ unfiltered) — see research.md R1 for why this is a queryset method, not a mana
 | Declared on | `ModelConfiguration` (`fairdm/registry/config.py`), added to `_OVERRIDABLE` |
 | Validated | At `__init__`, in two passes: `FieldInspector.resolve_path` per entry (same mechanism as `fields`/`exclude`), then `isinstance(field, (models.CharField, models.TextField))` on the resolved final field. Both raise `FieldValidationError` at import with the type and field named (FR-026) — the second because a numeric, boolean, date or geometry field resolves cleanly and then raises on the first search. It must be a positive test for a text field: Django registers `icontains` on `Field` itself, so asking whether the field *has* the lookup returns yes for every field type and rejects nothing. `FilterFactory._get_search_fields` (`fairdm/registry/factories.py:648-656`) already draws the line the same way |
 | Accessor | `get_search_fields(self) -> list[str]`: `return self.search_fields or ["name"]` |
-| Consumed by | `DataTableView.get_queryset()`/`setup()`, assigned to `self.search_fields` before `SearchMixin` runs |
+| Consumed by | `ModelConfiguration.get_filterset_class()`, which gives the generated filter set a `search` filter over these fields |
 
 This is not one of the six `COMPONENTS` entries (form/table/filterset/serializer/resource/admin) —
 it generates no class, so it does not fit that table's `Component(fields_attr, class_attr, base,

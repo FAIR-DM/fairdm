@@ -96,6 +96,7 @@ overview-pages
 
 create_a_plugin
 record-editing-pages
+list-search-and-sort
 rich-text
 legal-documents
 quality_control

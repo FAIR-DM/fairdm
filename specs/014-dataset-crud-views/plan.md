@@ -203,10 +203,7 @@ under" and the wrong one for a listing open to anonymous visitors, where it rais
 questions, two different rules. The branch in `__init__` that tests authentication and then sets the
 same value in both arms goes.
 
-**The listing keeps one search, not two.** `DatasetListView.search_fields` binds to `?q=` while
-`DatasetFilter.search` is offered on the same page under `?search=`, over a different field set, and
-neither reaches the dataset's external identifiers — which is what a researcher pastes into a search
-box. `DatasetFilter.search` is withdrawn as the duplicate and `search_fields` becomes
+**The listing has one search.** `DatasetFilter.search` is a `SearchFilter` over
 `["name", "uuid", "identifiers__value", "descriptions__value", "keywords__name"]`: the project's set
 (`fairdm/core/project/views.py:27`) plus the two the dataset's own requirements name, and keywords
 carried over from the withdrawn filter so nothing is lost.
