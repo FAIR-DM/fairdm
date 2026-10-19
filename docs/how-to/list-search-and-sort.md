@@ -59,9 +59,9 @@ these steps for each such view.
    end of the toolbar by the Filter button. A `RangeFilter` or `DateFromToRangeFilter` with its
    default widget cannot be in the toolbar; leave it in the dialog.
 
-4. Declare the `SearchFilter` as `q` and the `SortFilter` as `o`, as in the example. Each filter's
-   name is its query parameter, so existing addresses such as `?q=basalt&o=newest` keep working,
-   and the sort keys are unchanged.
+4. Declare the `SearchFilter` as `q` and the `SortFilter` as `o`, as in the example. These are
+   django-mvp's names for the search (`q`) and the sort (`o`). Each filter's name is its query
+   parameter, as in `?q=basalt&o=newest`.
 
 ## Drop django-filter's `FilterView`
 
