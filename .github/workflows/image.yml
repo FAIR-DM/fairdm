@@ -27,7 +27,27 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  # The PostGIS version comes from [tool.fairdm.platform] in pyproject.toml, the same record a
+  # portal's workflows read, so the database FairDM is tested against is the one portals use.
+  platform:
+    name: Platform
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      postgis: ${{ steps.read.outputs.postgis }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Read the PostGIS version
+        id: read
+        run: |
+          python3 -c "import tomllib; print('postgis=' + tomllib.load(open('pyproject.toml', 'rb'))['tool']['fairdm']['platform']['postgis'])" >> "$GITHUB_OUTPUT"
+
   Image:
+    needs: platform
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -35,7 +55,7 @@ jobs:
 
     services:
       postgres:
-        image: postgis/postgis:17-3.5
+        image: postgis/postgis:${{ needs.platform.outputs.postgis }}
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
