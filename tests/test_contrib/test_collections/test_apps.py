@@ -72,7 +72,7 @@ class TestEmptyRegistryHidesItsHeading:
     def _isolated_menu(self, monkeypatch):
         """Pre-create both headings the way the portal menu does."""
         from fairdm.contrib.collections import apps as apps_module
-        from fairdm.menus.menus import _has_registered
+        from fairdm.menus import _has_registered
 
         isolated_menu = Menu("IsolatedAppMenu")
         isolated_menu.parent = None
@@ -112,7 +112,7 @@ class TestEmptyRegistryHidesItsHeading:
     def test_the_declared_heading_hides_without_this_app_ever_running(
         self, monkeypatch, rf
     ):
-        from fairdm.menus.menus import _has_registered
+        from fairdm.menus import _has_registered
 
         monkeypatch.setattr(type(registry), "samples", property(lambda self: []))
         heading = MenuCollapse(name="Samples", check=_has_registered("samples"))
@@ -161,7 +161,7 @@ class TestNavigationDoesNotDependOnThisApp:
 
     def test_the_menu_module_is_loaded_once_the_framework_config_is(self):
         importlib.import_module("fairdm.apps")
-        assert "fairdm.menus.menus" in sys.modules
+        assert "fairdm.menus" in sys.modules
 
     def test_the_core_headings_are_present(self):
         names = {str(child.name) for child in AppMenu.children}

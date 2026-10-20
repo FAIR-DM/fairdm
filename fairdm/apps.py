@@ -4,7 +4,7 @@ from django.apps import AppConfig
 from django.utils.module_loading import autodiscover_modules
 
 # Imported at module level, not in `ready()`, so the navigation exists regardless of
-# which optional apps are installed. `fairdm.menus.menus` imports no models.
+# which optional apps are installed. `fairdm.menus` imports no models.
 from fairdm import menus as _menus  # noqa: F401
 
 # Imported at module level so the checks also run under `manage.py check --deploy`
