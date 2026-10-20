@@ -9,7 +9,7 @@ datasets, samples, measurements, contributors) plus a demo application in `demo`
 
 ## Stack & commands
 
-- **Stack:** Python 3.13, Django 5.2+, uv-managed, PostgreSQL in production
+- **Stack:** Python 3.13, Django 6.0+, uv-managed, PostgreSQL in production
 - **Install:** `uv sync --group docs`
 - **Test:** `uv run pytest` (or `uv run invoke test` for coverage)
 - **Lint:** `uv run pre-commit run --all-files` — this is the gate CI enforces.
@@ -49,7 +49,7 @@ Required status checks (exact names, as they report on a pull request):
 - `call-build / Code Quality`
 - `call-build / Security Scan`
 - `call-build / Build Package`
-- `call-tests / Test Python 3.13, Django 5.2`
+- `call-tests / Test Python 3.13, Django 6.0`
 
 CI calls the shared workflows in `django-mvp/shared`, pinned to `v0.6.0`, from
 `.github/workflows/build.yml` and `.github/workflows/tests.yml`. Releases run through
