@@ -37,6 +37,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking: FairDM runs on Django 6.0.** The Django requirement is `>=6.0,<7.0`, so a portal
+  moves to Django 6.0 when it moves to this FairDM. Django 5.2 is no longer supported.
+  `django.contrib.postgres` is now in FairDM's installed apps: Django 6.0 refuses to migrate a
+  database whose models use a PostgreSQL index without it, and every location field has one.
 - **The development accounts are at `example.com`.** `create_dev_accounts` now creates
   `portal.administrator@example.com`, `data.curator@example.com`,
   `community.manager@example.com`, `portal.developer@example.com` and `regular.user@example.com`,

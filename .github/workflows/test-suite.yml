@@ -4,7 +4,7 @@ name: Test suite
 # shared test workflow does not provide, so FairDM keeps its own. The libraries come from the
 # development image, built from the branch, so a change to the image is tested by the suite
 # that depends on it. It is called from tests.yml as a reusable workflow so the check keeps its
-# required name, "call-tests / Test Python 3.13, Django 5.2".
+# required name, "call-tests / Test Python 3.13, Django 6.0".
 
 on:
   workflow_call:
@@ -43,10 +43,10 @@ jobs:
     timeout-minutes: 30
     strategy:
       matrix:
-        # Django 6.0 is outside this package's supported range (see the django
-        # constraint in pyproject.toml). The Python version is the image's.
+        # The Django version is the one the django constraint in pyproject.toml allows. The
+        # Python version is the image's.
         python-version: ["3.13"]
-        django-version: ["5.2"]
+        django-version: ["6.0"]
       fail-fast: false
 
     services:

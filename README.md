@@ -69,7 +69,7 @@ Where the framework is headed is a separate question from what it is. That lives
 ## Requirements
 
 - Python 3.13 or later.
-- Django 5.2.
+- Django 6.0.
 
 ## 🚀 Quick Start
 
@@ -337,7 +337,7 @@ uv run invoke docs
 
 ### Core Framework
 
-- **Django 5.2** — Web framework
+- **Django 6.0** — Web framework
 - **Python 3.13+** — Programming language
 - **PostgreSQL** — Database (recommended)
 - **Redis** — Caching and task queue

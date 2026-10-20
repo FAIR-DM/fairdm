@@ -30,6 +30,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.humanize",
     "django.contrib.gis",
+    # The location fields are indexed with GistIndex, which needs this app (postgres.E005).
+    "django.contrib.postgres",
     "django_cleanup.apps.CleanupConfig",
     # Ahead of FairDM's own apps so a portal's template or static file at the same path wins.
     *globals().get("FAIRDM_APPS", []),
