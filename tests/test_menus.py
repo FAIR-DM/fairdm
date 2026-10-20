@@ -1,4 +1,4 @@
-"""Tests for the FairDM application menu (``fairdm/menus/menus.py``)."""
+"""Tests for the FairDM application menu (``fairdm/menus.py``)."""
 
 import pytest
 from django.urls import reverse

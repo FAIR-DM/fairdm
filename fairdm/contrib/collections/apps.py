@@ -26,7 +26,7 @@ class CollectionsConfig(AppConfig):
 
         from fairdm.registry import registry
 
-        # A node declared in `fairdm/menus/menus.py` carries its own emptiness check. One created
+        # A node declared in `fairdm/menus.py` carries its own emptiness check. One created
         # here is a node the portal renamed or removed, so it needs the check supplied.
         # `_check`, not `check`: flex_menu's per-request copy reads `_check`.
         sample_menu = AppMenu.get("Samples")
