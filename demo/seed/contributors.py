@@ -52,7 +52,7 @@ class ContributorSeed(BaseCommand):
             self.stdout.write("Added affiliations to the records already seeded.")
             stepped_in = self.step_in(users["super.user"])
             self.stdout.write(
-                f"Dataset to step in on (sign in as data.curator@fairdm.org): "
+                f"Dataset to step in on (sign in as data.curator@example.com): "
                 f"{reverse(stepped_in, 'contribution-list')}"
             )
             return
@@ -161,7 +161,7 @@ class ContributorSeed(BaseCommand):
                 ),
             ),
             ("Dataset with a long list", crowd),
-            ("Dataset to step in on (sign in as data.curator@fairdm.org)", stepped_in),
+            ("Dataset to step in on (sign in as data.curator@example.com)", stepped_in),
             ("Sample", sample),
             ("Measurement", measurement),
         ):

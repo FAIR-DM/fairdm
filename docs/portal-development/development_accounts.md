@@ -10,22 +10,25 @@ Four commands create development accounts, for different purposes:
 
 | Command | Accounts | For |
 | --- | --- | --- |
-| `manage.py create_dev_accounts` | Five accounts at `fairdm.org`, one per portal role and one holding none | Seeing what each [portal role](portal_roles.md) can do |
+| `manage.py create_dev_accounts` | Five accounts at `example.com`, one per portal role and one holding none | Seeing what each [portal role](portal_roles.md) can do |
 | `manage.py seed_overviews` | Three accounts at `example.com`: a regular user, a staff user and a superuser | Opening the [overview pages](overview-pages.md) as a visitor, as a team member and as an administrator |
-| `manage.py seed_contributors` | The same three accounts at `example.com`, and the Data Curator account at `fairdm.org` | Opening a record's [Contributors tab](../user-guide/crediting-a-record.md) in every state it has, and stepping in on a record as a data curator |
+| `manage.py seed_contributors` | The same three accounts at `example.com`, and the Data Curator account of `create_dev_accounts` | Opening a record's [Contributors tab](../user-guide/crediting-a-record.md) in every state it has, and stepping in on a record as a data curator |
 | `manage.py seed_profiles` | Five more accounts at `example.com`: an administrator, an ordinary member and a former administrator of the organization `regular.user` owns, a community manager and a data curator | Opening and saving an [organization's editing page](contributors.md#editing-a-profile) as each kind of person around it |
 
 ```bash
 poetry run python manage.py create_dev_accounts
 ```
 
-| First name | Last name     | Email                              | Role                  |
-| ---------- | ------------- | ----------------------------------- | ---------------------- |
-| Portal     | Administrator | `portal.administrator@fairdm.org`   | Portal Administrator   |
-| Data       | Curator       | `data.curator@fairdm.org`           | Data Curator           |
-| Community  | Manager       | `community.manager@fairdm.org`      | Community Manager      |
-| Portal     | Developer     | `portal.developer@fairdm.org`       | Developer              |
-| Regular    | User          | `regular.user@fairdm.org`           | *(none)*                |
+| First name | Last name     | Email                              | Role                 |
+| ---------- | ------------- | ---------------------------------- | -------------------- |
+| Portal     | Administrator | `portal.administrator@example.com` | Portal Administrator |
+| Data       | Curator       | `data.curator@example.com`         | Data Curator         |
+| Community  | Manager       | `community.manager@example.com`    | Community Manager    |
+| Portal     | Developer     | `portal.developer@example.com`     | Developer            |
+| Regular    | User          | `regular.user@example.com`         | *(none)*             |
+
+`regular.user@example.com` is the same account `seed_overviews` and `seed_contributors` sign in
+through: whichever command runs first creates it, and the others leave it as it is.
 
 Every account uses the password `password` and is ready to sign in with immediately: active, and
 its email address already confirmed - there is no verification link to follow. Sign in at
@@ -105,14 +108,14 @@ poetry run python manage.py seed_contributors
 
 One of the datasets is private, belongs to no project, and has no manager who can sign in: the
 person managing it has no account. Nobody can change its contributors until someone steps in, which
-is what the Data Curator role is for. The command creates `data.curator@fairdm.org` if it is
+is what the Data Curator role is for. The command creates `data.curator@example.com` if it is
 missing, with the Data Curator role and the password `password`, and does not list it on the
 dataset. Sign in as that account, open the dataset's Contributors tab and raise Yusuf Demir to
 manage. From then on he is the only person who can sign in and manage it, so lowering or removing
 him is refused, and so is removing the organization he is credited from.
 
-Only the Data Curator account is created, not the other four at `fairdm.org`: `regular.user@fairdm.org`
-has the same name as `regular.user@example.com`, and the seed finds people by name.
+Only the Data Curator account is created, not the other four of `create_dev_accounts`: the seed
+steps in on a record as a data curator, and needs no other role.
 
 Running the command again replaces only the records it created. Pass `--keep-records` to add what
 a newer version of the seed needs to the records an earlier run made, without replacing them:

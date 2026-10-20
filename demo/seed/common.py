@@ -73,11 +73,11 @@ def data_curator() -> Person:
     """Return the development account that holds the Data Curator role, creating it if missing.
 
     The account is the one ``create_dev_accounts`` makes, from the same entry of ``DEV_ACCOUNTS``.
-    Only this one is created: the others would add a second person called Regular User beside
-    ``regular.user@example.com``.
+    Only this one is created: the seed steps in on a record as a data curator, and needs no
+    other role.
 
     Returns:
-        ``data.curator@fairdm.org``, signed in with the shared development password.
+        ``data.curator@example.com``, signed in with the shared development password.
     """
     entry = next(a for a in DEV_ACCOUNTS if a["role"] == PortalRoles.DATA_CURATOR.name)
     curator = create_accounts(

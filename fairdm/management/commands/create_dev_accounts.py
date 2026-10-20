@@ -31,31 +31,31 @@ DEV_ACCOUNTS = (
     {
         "first_name": "Portal",
         "last_name": "Administrator",
-        "email": "portal.administrator@fairdm.org",
+        "email": "portal.administrator@example.com",
         "role": PortalRoles.PORTAL_ADMINISTRATOR.name,
     },
     {
         "first_name": "Data",
         "last_name": "Curator",
-        "email": "data.curator@fairdm.org",
+        "email": "data.curator@example.com",
         "role": PortalRoles.DATA_CURATOR.name,
     },
     {
         "first_name": "Community",
         "last_name": "Manager",
-        "email": "community.manager@fairdm.org",
+        "email": "community.manager@example.com",
         "role": PortalRoles.COMMUNITY_MANAGER.name,
     },
     {
         "first_name": "Portal",
         "last_name": "Developer",
-        "email": "portal.developer@fairdm.org",
+        "email": "portal.developer@example.com",
         "role": PortalRoles.DEVELOPER.name,
     },
     {
         "first_name": "Regular",
         "last_name": "User",
-        "email": "regular.user@fairdm.org",
+        "email": "regular.user@example.com",
         "role": None,
     },
 )

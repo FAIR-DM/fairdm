@@ -856,13 +856,13 @@ class TestDevAccountsAbsentReportsTheExampleAccounts:
 
         Person = get_user_model()
         Person.objects.create_user(email="staff.user@example.com", password="x")
-        Person.objects.create_user(email="data.curator@fairdm.org", password="x")
+        Person.objects.create_user(email="data.curator@example.com", password="x")
 
         errors = check_dev_accounts_absent(app_configs=None)
 
         assert len(errors) == 1
         assert "staff.user@example.com" in errors[0].msg
-        assert "data.curator@fairdm.org" in errors[0].msg
+        assert "data.curator@example.com" in errors[0].msg
 
     def test_a_development_portal_holding_them_reports_nothing(self, db):
         from fairdm.conf.checks import check_dev_accounts_absent
