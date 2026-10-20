@@ -37,6 +37,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The development accounts are at `example.com`.** `create_dev_accounts` now creates
+  `portal.administrator@example.com`, `data.curator@example.com`,
+  `community.manager@example.com`, `portal.developer@example.com` and `regular.user@example.com`,
+  matching the accounts the demo seeds create. `regular.user@example.com` is the account
+  `seed_overviews` already makes, so the commands share it. Accounts an earlier run left at
+  `fairdm.org` stay in a development database, and `fairdm.E501` no longer looks for them: delete
+  them, or start from a fresh database. See
+  [Development accounts](docs/portal-development/development_accounts.md).
+
 - **Breaking: a list view takes its search and sort from its filterset.** FairDM requires
   django-mvp 0.29 and django-mvp-forms 0.6. A view that subclasses `FairDMListView` or
   `FairDMTableView` and declares `search_fields`, `max_search_words` or `order_by`, or that

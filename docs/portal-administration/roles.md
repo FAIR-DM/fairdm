@@ -142,7 +142,7 @@ person is: the record answers as if it did not exist. On a public record they ca
 
 Rights follow the role. A person removed from the Data Curator role is refused on their next
 request. To see the whole flow on development data, run `manage.py seed_contributors` and sign in as
-`data.curator@fairdm.org`, as described in [Development accounts](../portal-development/development_accounts.md#accounts-for-the-contributors-tab).
+`data.curator@example.com`, as described in [Development accounts](../portal-development/development_accounts.md#accounts-for-the-contributors-tab).
 
 ## Holding more than one role
 
