@@ -202,14 +202,13 @@ own.
 
 **Revisit if**: the API takes the record field's choices directly.
 
-## D21. Owner, contributor and the no-vocabulary keyword list are left as they are
+## D21. The no-vocabulary keyword list is left as it is
 
-**Decision**: the project list's owner and contributor filters keep their `ModelChoiceFilter`s, and
-the generic `keywords` filter used when no vocabulary is configured keeps its checkbox list. Only the
-per-vocabulary keyword filters move to `TomSelectMultiple(counted=True)`.
+**Decision**: the generic `keywords` filter used when no vocabulary is configured keeps its checkbox
+list. The per-vocabulary keyword filters are `TomSelectMultiple(counted=True)`, and the project
+list's owner and contributor filters are record filters over the organization and person fields.
 
-**Why**: the person and organization views and fields arrive with US5, which moves owner and
-contributor. The generic list never used django-autocomplete-light.
+**Why**: the generic list never used django-autocomplete-light.
 
 **Revisit if**: a portal with no vocabulary configured has enough keywords to need the counted control.
 
@@ -224,3 +223,47 @@ records, pass a list, and expect public records only.
 **Why**: each pinned the type or the visibility of a filter this story moves to public scope.
 
 **Revisit if**: a list filter is to offer a person's private records.
+
+## D23. People and organizations have one address and are offered at one scope
+
+**Decision**: `PersonAutocompleteView` and `OrganizationAutocompleteView` share a base that is not a
+record view. Each has the single address `autocomplete:person-public` and
+`autocomplete:organization-public`. Their fields declare `scopes=("public",)`, so the single field
+defaults to `public` like the multiple one and any other scope raises `ValueError`. The base answers
+`for_scope()` with itself and `offered()` with every contributor of the kind (people without
+superusers), so the shared field code needs no change beyond reading `scopes`.
+
+**Why**: a person or an organization has no visibility, so there is nothing for a scope to decide.
+
+**Revisit if**: a portal can hide a profile.
+
+## D24. A collaboration counts only through a record the searcher can open
+
+**Decision**: the people listed first are `get_collaborators()` over the searcher's credits on records
+the record views offer at the `view` scope. A credit with no level on a private record opens nothing,
+so a person met only there is not grouped.
+
+**Why**: AS 5.7. The profile page's list of visible credits answers a different question, what a
+profile may name, and counts a private record the searcher holds as not visible.
+
+**Revisit if**: `get_collaborators()` takes a queryset of records instead of credits.
+
+## D25. A filter naming `email` offers nothing, as any other field outside the allow-list
+
+**Decision**: `f` and `e` naming `email` get the library's allow-list answer, an empty page, and
+`ordering` naming it is ignored. Nothing special is written for `email`.
+
+**Why**: the brief reads "change nothing". The ordering case does change nothing. For `f` and `e`
+the allow-list already refuses the request, which is the answer every other address gives.
+
+**Revisit if**: a filter on `e` that names a disallowed field should be dropped instead of refused.
+
+## D26. The person form no longer passes `is_current` when it adds an affiliation
+
+**Decision**: `PersonCreateForm.save()` creates the affiliation with `organization` and `is_primary`
+only. The form's "Current affiliation" checkbox is left in place and has no effect.
+
+**Why**: `Affiliation` has no `is_current` field, so the old call raised `TypeError` whenever an
+affiliation was chosen. The model has no way to record "past" without an end date.
+
+**Revisit if**: the checkbox should ask for an end date.

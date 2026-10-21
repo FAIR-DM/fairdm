@@ -122,3 +122,38 @@ Did: filtering-by-vocabulary.md now describes the counted TomSelectMultiple keyw
 Verified: docs only; the example filter in the how-to mirrors the tested sample list filter.
 Next: full suite.
 Watch: ConceptMultiSelect, ConceptSelect and ConceptAutocomplete still exist in code (removal belongs to the django-autocomplete-light removal story).
+
+## 2026-10-21T14:05:03Z · Implementer US5 · T018
+
+Did: OrganizationAutocompleteView and the shared ContributorAutocompleteView, the organization-public and person-public addresses, and 9 tests. The old django-autocomplete-light contributor and organization views and their addresses are deleted.
+Verified: pytest tests/test_contrib/test_autocomplete/test_views.py: 149 passed. Red first on NoReverseMatch (9 failed).
+Next: person tests (the person view is already in the same commit).
+Watch: the shared base answers for_scope() with itself.
+
+## 2026-10-21T14:05:03Z · Implementer US5 · T019
+
+Did: 15 tests for the person view.
+Verified: pytest TestPersonAutocompleteView: 15 passed. The view was written in T018, so no red step; probed by mutation instead: Person.objects.real() replaced by all() (4 failed), every credit counted (1 failed), email added to search_lookups (1 failed). Each mutation reverted.
+Next: forms and fields.
+Watch: e= and f= naming email give an empty page by the library allow-list, see D25.
+
+## 2026-10-21T14:05:03Z · Implementer US5 · T020
+
+Did: PersonChoiceField, OrganizationChoiceField and their multiple pairs (scopes=("public",)). Moved AffiliationForm.organization, the organization profile parent, PersonCreateForm.affiliations, MergePersonForm.merge_into, OrganizationActionForm.new_owner, ProjectForm.owner. Roles use TomSelectMultiple(counted=True). merge_person.html carries form.media. Deleted the three select2 widgets and QuickAddContributionForm. PersonCreateForm no longer passes is_current (D26).
+Verified: red first (10 failed); then pytest tests/test_contrib/test_contributors/test_forms tests/test_core/test_project/test_forms.py tests/test_contrib/test_contributors/test_admin.py tests/test_contrib/test_autocomplete: 450 passed.
+Next: project list filters.
+Watch: ruff format on the whole tree reformats unrelated test files; I restored them.
+
+## 2026-10-21T14:05:04Z · Implementer US5 · T021
+
+Did: the project list owner and contributor filters are RecordMultipleFilter over the organization and person multiple fields. Scope check for the new fields.
+Verified: red first (4 failed); pytest tests/test_core/test_project tests/test_views: 418 passed; test_fields.py 23 passed.
+Next: docs.
+Watch: the old owner filter listed only organizations that own projects; the new one offers every organization.
+
+## 2026-10-21T14:05:04Z · Implementer US5 · T022
+
+Did: record-fields.md gains a people and organizations section, the two fields, addresses and result keys. contributors.md parent picker. managing_contributors.md: New owner and Merge into pickers.
+Verified: grep finds no mention of the deleted classes in docs, fairdm, demo or tests.
+Next: lint and the full suite.
+Watch: CHANGELOG is not touched.
