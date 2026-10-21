@@ -69,6 +69,20 @@ class ProjectFilter(BaseListFilter):
             owned_projects__isnull=False
         ).distinct()
 
+        from fairdm.contrib.autocomplete.records_fields import (
+            OrganizationMultipleChoiceField,
+            PersonMultipleChoiceField,
+            use_record_filters,
+        )
+
+        use_record_filters(
+            self,
+            {
+                "owner": OrganizationMultipleChoiceField,
+                "contributor": PersonMultipleChoiceField,
+            },
+        )
+
         from research_vocabs.models import Concept
 
         vocabularies = get_setting("PROJECT", "keywords") or []

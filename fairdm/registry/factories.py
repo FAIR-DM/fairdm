@@ -541,6 +541,19 @@ class FilterFactory(ComponentFactory):
                         choices=field.choices
                     )
 
+                elif isinstance(field, models.ForeignKey) and (
+                    record_field := _record_field_for(field.related_model)
+                ):
+                    # SKETCH: related core records get the public autocomplete filter.
+                    from fairdm.contrib.autocomplete.records_fields import record_filter
+
+                    filter_overrides[field_name] = record_filter(
+                        record_field,
+                        field_name=field_name,
+                        label=field.verbose_name.capitalize(),
+                        distinct=True,
+                    )
+
                 elif isinstance(field, models.ForeignKey):
                     filter_overrides[field_name] = filters.ModelChoiceFilter(
                         queryset=self._published_related_queryset(field.related_model)
@@ -1064,3 +1077,22 @@ __all__ = [
     "SerializerFactory",
     "TableFactory",
 ]
+
+
+def _record_field_for(model):
+    """SKETCH: the multiple autocomplete field for a related core record, or None."""
+    from fairdm.contrib.autocomplete import records_fields as rf
+    from fairdm.core.dataset.models import Dataset
+    from fairdm.core.measurement.models import Measurement
+    from fairdm.core.project.models import Project
+    from fairdm.core.sample.models import Sample
+
+    for base, field_class in (
+        (Project, rf.ProjectMultipleChoiceField),
+        (Dataset, rf.DatasetMultipleChoiceField),
+        (Sample, rf.SampleMultipleChoiceField),
+        (Measurement, rf.MeasurementMultipleChoiceField),
+    ):
+        if issubclass(model, base):
+            return field_class
+    return None

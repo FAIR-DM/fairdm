@@ -82,6 +82,8 @@ INSTALLED_APPS = [
     "django_filters",
     "crispy_forms",
     "mvp_forms",
+    # Below mvp_forms, whose django_tomselect/tomselect.html replaces this app's own.
+    "django_tomselect",
     "widget_tweaks",
     "django_select2",
     "django_social_share",
@@ -128,6 +130,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "allauth.account.middleware.AccountMiddleware",
     "django_htmx.middleware.HtmxMiddleware",
+    # django-tomselect's model widgets read the current request through it.
+    "django_tomselect.middleware.TomSelectMiddleware",
     "hijack.middleware.HijackUserMiddleware",
 ]
 

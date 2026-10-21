@@ -12,6 +12,9 @@
   {# The page blocks' own utilities, all prefixed `dce:`, which django-mvp's build has no way to know about. #}
   <link rel="stylesheet" href="{% static 'css/daisy-cotton-ext.css' %}" />
   <link rel="stylesheet" href="{% static 'css/fairdm.css' %}" />
+  <link rel="stylesheet" href="{% static 'django_tomselect/vendor/tom-select/css/tom-select.default.css' %}" />
+  <link rel="stylesheet" href="{% static 'django_tomselect/css/django-tomselect.css' %}" />
+  <link rel="stylesheet" href="{% static 'mvp_forms/tomselect.css' %}" />
 {% endblock styles %}
 
 {% block head %}
@@ -33,6 +36,7 @@
     }
   </style>
   {{ plugin_media.css }}
+  <script src="{% static 'django_tomselect/js/django-tomselect.min.js' %}"></script>
 {% endblock head %}
 
 {% block app.navbar.end %}

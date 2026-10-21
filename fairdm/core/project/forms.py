@@ -81,7 +81,13 @@ class ProjectForm(ManagerOnlyFieldsMixin, ModelForm):
         super().__init__(*args, **kwargs)
         self.withhold_manager_only_fields(request)
         if "owner" in self.fields:
-            self.fields["owner"].queryset = Organization.objects.all()
+            # SKETCH: an autocomplete field over every organization.
+            from fairdm.contrib.autocomplete.records_fields import OrganizationChoiceField
+
+            old = self.fields["owner"]
+            self.fields["owner"] = OrganizationChoiceField(
+                label=old.label, required=old.required, help_text=old.help_text
+            )
 
         self.helper = FormHelper()
         self.helper.form_tag = False

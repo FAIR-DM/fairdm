@@ -55,35 +55,13 @@ class SampleFormMixin(LocationFormMixin, ManagerOnlyFieldsMixin):
         self.withhold_manager_only_fields(self.request)
 
         if "dataset" in self.fields:
-            select2_widget = ModelSelect2Widget(
-                search_fields=["name__icontains", "title__icontains"],
-                attrs={"data-placeholder": _("Select a dataset...")},
-            )
-            self.fields["dataset"].widget = AddAnotherWidgetWrapper(
-                select2_widget,
-                add_related_url=reverse_lazy("admin:dataset_dataset_add"),
-            )
+            # SKETCH: the dataset field offers datasets the person may edit, grouped as theirs first.
+            from fairdm.contrib.autocomplete.records_fields import DatasetChoiceField
 
-            from fairdm.core.dataset.models import Dataset
-
-            # `all_objects` is only the base the level check narrows. Assigning it
-            # unconditionally would offer every private dataset to a caller that proved nothing.
-            if (
-                self.request
-                and hasattr(self.request, "user")
-                and self.request.user.is_authenticated
-            ):
-                self.fields["dataset"].queryset = Dataset.all_objects.accessible_to(
-                    self.request.user, ContributionLevel.EDIT
-                )
-            else:
-                logger.warning(
-                    "%s offers no dataset choices: no request (or no authenticated "
-                    "user on it) was passed, so FR-036's safe default excludes every "
-                    "dataset, including public ones.",
-                    type(self).__name__,
-                )
-                self.fields["dataset"].queryset = Dataset.objects.none()
+            old = self.fields["dataset"]
+            self.fields["dataset"] = DatasetChoiceField(
+                scope="edit", required=old.required, help_text=old.help_text
+            )
 
         if "status" in self.fields:
             self.fields["status"].widget = forms.Select(attrs={"class": "form-select"})

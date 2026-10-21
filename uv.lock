@@ -1784,6 +1784,18 @@ wheels = [
 ]
 
 [[package]]
+name = "django-tomselect"
+version = "2026.6.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/bb/a6/3780a9bc35ca62897bc720a01f575d47b036d8ecc5aea63615479600d760/django_tomselect-2026.6.2.tar.gz", hash = "sha256:584da0f81889da263bf1498484f414b022ae6d4df968bd44169161084084ff1a", size = 285267, upload-time = "2026-06-13T22:23:01.151Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cf/d6/e0b85e7432eaea047e83d475680d47824a6e8215c087df5b2a989904ddbb/django_tomselect-2026.6.2-py3-none-any.whl", hash = "sha256:726f713a203015319045ecd09f4935394e4040357ba52c9bbfaaaf74ff96c501", size = 322977, upload-time = "2026-06-13T22:23:03.201Z" },
+]
+
+[[package]]
 name = "django-waffle"
 version = "5.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2088,6 +2100,7 @@ dependencies = [
     { name = "django-storages", extra = ["boto3"] },
     { name = "django-tables2" },
     { name = "django-taggit" },
+    { name = "django-tomselect" },
     { name = "django-waffle" },
     { name = "django-widget-tweaks" },
     { name = "djangorestframework" },
@@ -2183,6 +2196,7 @@ requires-dist = [
     { name = "django-storages", extras = ["boto3"], specifier = ">=1.14.2,<2.0.0" },
     { name = "django-tables2", specifier = ">=3.0.1" },
     { name = "django-taggit", specifier = ">=6.1.0,<7.0.0" },
+    { name = "django-tomselect", specifier = ">=2026.6.2,<2027" },
     { name = "django-waffle", specifier = ">=5.0.0,<6.0.0" },
     { name = "django-widget-tweaks", specifier = ">=1.5.0,<2.0.0" },
     { name = "djangorestframework", specifier = ">=3.17.2,<4.0.0" },
