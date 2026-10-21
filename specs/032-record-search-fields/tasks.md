@@ -81,6 +81,15 @@ This story carries the foundation (plan D1 to D6). The sketch's `records.py`, `r
   django-tomselect's own behaviour for a dependent field and gets no test of ours.
 - [ ] T012 [US2] Docs: the reference page gains the sample and measurement fields and `depends_on`.
 
+- [ ] T035 [US2] The maintainer kept FS-006's rule (2026-10-21): a measurement may name a sample from
+  another dataset. Rework the measurement form's sample field and T009/T010's tests to the amended
+  US 2: a `prefer` argument on the record fields puts the samples of the dataset chosen in
+  another field first, in a group of their own, without narrowing to them (FR-004). The
+  measurement form's sample field uses `prefer="dataset"`, not `depends_on`. It accepts a sample
+  from another dataset the person may see (AS 2.4), and refuses one they may not (AS 2.5). The
+  existing `test_form_handles_cross_dataset_sample_reference` then passes unchanged.
+  `depends_on` stays, tested on its own field (US 4).
+
 ## Phase 3: US-3, a visitor filters a public list by a related record (P1)
 
 - [ ] T013 [US3] `tests/test_contrib/test_autocomplete/test_filters.py`, `TestRecordMultipleFilter`:
