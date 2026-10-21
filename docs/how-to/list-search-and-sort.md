@@ -55,9 +55,10 @@ these steps for each such view.
    `filterset_class`.
 
 3. Name the fields to draw in the toolbar in `toolbar_filters`, in the order they should
-   appear. The rest of the filterset's fields go in the Filter dialog, and the sort sits at the
-   end of the toolbar by the Filter button. A `RangeFilter` or `DateFromToRangeFilter` with its
-   default widget cannot be in the toolbar; leave it in the dialog.
+   appear. The rest of the filterset's fields go in the filter panel beside the results (a column from
+   the `xl` breakpoint, a drawer opened by the Filters button on narrower screens), and the sort
+   sits at the end of the toolbar. A `RangeFilter` or `DateFromToRangeFilter` with its default
+   widget cannot be in the toolbar. Leave it in the panel.
 
 4. Declare the `SearchFilter` as `q` and the `SortFilter` as `o`, as in the example. These are
    django-mvp's names for the search (`q`) and the sort (`o`). Each filter's name is its query
@@ -103,6 +104,6 @@ these steps for each such view.
 
 ## Check the page
 
-10. Open the list page and confirm the search box, the sort and the Filter button appear, and
+10. Open the list page and confirm the search box, the sort and the filter panel appear, and
     that a search and a sort change the results. Run the project's tests, which fail on any view
     that still declares a removed attribute.

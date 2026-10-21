@@ -254,8 +254,8 @@ they do not.
 **What both pages share**
 
 - **FR-001**: The person page and the organization page MUST use the page anatomy the record
-  overview pages use: notices, a header, a figures strip, then a wide content column beside a narrow
-  side column that stack below the `lg` breakpoint with the content first.
+  overview pages use: notices, a header, a figures strip, then the content and a side column. The side column is a side panel, a sticky column at the end
+  from the `xl` breakpoint, stacked after the content below it.
 - **FR-002**: The overview MUST be the first tab of a contributor's tabbed detail view and carry
   the same name as the first tab of every record. The Statistics and Network tabs MUST be removed.
 - **FR-003**: Both pages MUST expose named blocks under the `overview.` prefix for the notices, the

@@ -66,7 +66,7 @@ which presents the record rather than editing it.
 Anyone, signed in or not, opens the project listing to see what a portal holds. They search by
 name, narrow the results by one or more statuses, owner, contributor or tag, and sort by name or by when each
 project was added. The search, the status and the sort are in the toolbar, and the other filters are in
-the Filter dialog. Selecting an entry opens that project.
+the filter panel. Selecting an entry opens that project.
 
 **Why this priority**: the listing is the only route into the project area for someone who does not
 already hold a link. Every other page in this feature is reached through it or through a project

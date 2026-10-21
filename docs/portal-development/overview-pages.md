@@ -16,8 +16,9 @@ Each page has, in order:
    actions
 2. **notices**, alerts about the record's state
 3. a strip of **figures**
-4. a wide **content column** beside a narrow **side column**. Below the `lg` breakpoint the two
-   stack, content first.
+4. the **content** and a **side column**, which is django-mvp's side panel headed "At a glance".
+   From the `xl` breakpoint the side column is a sticky column at the end, under the header.
+   Below it the side column is stacked after the content.
 
 The side column presents its cards in this order, leaving out any that do not apply to the record:
 the readiness checklist (the team only), Details, the record's timeline of key dates, People,
@@ -45,8 +46,8 @@ fills blocks. The blocks carry the `overview.` prefix:
 | `overview.actions` | Header: buttons. Cite and Share by default, followed by the Manage menu. |
 | `overview.manage` | Inside the actions: the Manage menu, drawn by `<c-actions.manage>`. Fill it to add entries to the menu or a button before it. See [Record editing pages](record-editing-pages.md). |
 | `overview.figures` | The figures strip. |
-| `overview.main` | The wide column. Each record fills it with its own blocks. |
-| `overview.side` | The side column, which holds the blocks below. |
+| `overview.main` | The content. Each record fills it with its own blocks. |
+| `overview.side` | The side panel, which holds the blocks below. |
 | `overview.readiness` | What the team still has to add. The team only. |
 | `overview.details` | What the record belongs to, its licence, status, dates and how machines reach it. |
 | `overview.details_extra` | Inside Details: sections a record adds, such as a project's timeline. |

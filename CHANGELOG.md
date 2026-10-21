@@ -53,6 +53,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **FairDM requires django-mvp 0.30, django-mvp-forms 0.7, django-mvp-accounts 0.4 and
+  django-mvp-compliance 0.3.** List and table pages show the filters that are not in the toolbar
+  in a panel beside the results, in place of the Filter dialog. On narrower screens the panel is a
+  drawer opened by the Filters button. The results update in place when a filter, the sort or the
+  page changes. The facts column on project, dataset, sample, measurement, person and organization
+  pages is now django-mvp's side panel, headed "At a glance". It sticks under the header from the
+  `xl` breakpoint and now stacks below `xl` after the content, where it stacked below `lg` before.
+  Alerts show their icons again. A number field with a unit is drawn as one joined control.
+
+  Upgrading a portal:
+
+  - A template that overrides `overview.side` keeps working. One that copied the old grid markup
+    from `overview/page.html` should fill `page.side` instead.
+  - A portal that set `--mvp-compliance-header-clearance` can delete that rule. django-mvp-compliance
+    0.3 removed it and follows `--mvp-header-height`.
+  - A list template that overrides `page.toolbar` or `page.panel` should read the "The filter
+    panel" section of django-mvp's documentation.
 - **Breaking: FairDM runs on Django 6.0.** The Django requirement is `>=6.0,<7.0`, so a portal
   moves to Django 6.0 when it moves to this FairDM. Django 5.2 is no longer supported.
   `django.contrib.postgres` is now in FairDM's installed apps: Django 6.0 refuses to migrate a
