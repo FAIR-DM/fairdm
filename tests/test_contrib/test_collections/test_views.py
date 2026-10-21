@@ -657,16 +657,16 @@ class TestNothingUnreachable:
 
 @pytest.mark.django_db
 class TestToolbar:
-    def test_the_search_is_in_the_toolbar_and_a_range_filter_in_the_dialog(
+    def test_the_search_is_in_the_toolbar_and_a_range_filter_in_the_panel(
         self, client, published_dataset, filter_placement
     ):
         SoilSampleFactory(dataset=published_dataset)
         slug = registry.get_for_model(SoilSample).get_slug()
 
-        toolbar, dialog = filter_placement(client.get(reverse(f"{slug}-list")))
+        toolbar, panel = filter_placement(client.get(reverse(f"{slug}-list")))
 
         assert "q" in toolbar
-        assert "depth_cm_0" in dialog
+        assert "depth_cm_0" in panel
 
     def test_a_range_filter_renders_a_pair_of_inputs(self, client, published_dataset):
         SoilSampleFactory(dataset=published_dataset)
@@ -687,11 +687,11 @@ class TestOneSearchControl:
         XRFMeasurementFactory(sample=sample, dataset=published_dataset)
         slug = registry.get_for_model(XRFMeasurement).get_slug()
 
-        toolbar, dialog = filter_placement(client.get(reverse(f"{slug}-list")))
+        toolbar, panel = filter_placement(client.get(reverse(f"{slug}-list")))
 
         assert "q" in toolbar
-        assert "search" not in toolbar | dialog
-        assert "q" not in dialog
+        assert "search" not in toolbar | panel
+        assert "q" not in panel
 
     def test_a_custom_sample_filterset_has_the_search_in_the_toolbar(
         self, client, published_dataset, filter_placement
@@ -699,7 +699,7 @@ class TestOneSearchControl:
         CustomSampleFactory(dataset=published_dataset)
         slug = registry.get_for_model(CustomSample).get_slug()
 
-        toolbar, dialog = filter_placement(client.get(reverse(f"{slug}-list")))
+        toolbar, panel = filter_placement(client.get(reverse(f"{slug}-list")))
 
         assert "q" in toolbar
-        assert "search" not in toolbar | dialog
+        assert "search" not in toolbar | panel

@@ -1571,12 +1571,12 @@ class TestDatasetCardRendering:
 
 @pytest.mark.django_db
 class TestDatasetListToolbar:
-    def test_the_search_and_license_are_in_the_toolbar_and_the_rest_in_the_dialog(
+    def test_the_search_and_license_are_in_the_toolbar_and_the_rest_in_the_panel(
         self, client, filter_placement
     ):
         DatasetFactory(visibility=Visibility.PUBLIC)
 
-        toolbar, dialog = filter_placement(client.get(reverse("dataset-list")))
+        toolbar, panel = filter_placement(client.get(reverse("dataset-list")))
 
         assert {"q", "license"} <= toolbar
-        assert {"project", "description_type", "date_type", "image"} <= dialog
+        assert {"project", "description_type", "date_type", "image"} <= panel
