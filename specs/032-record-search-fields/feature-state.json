@@ -292,6 +292,11 @@
               "docs/portal-development/record-fields.md:38"
             ]
           }
+        },
+        {
+          "id": "T035",
+          "status": "todo",
+          "attempts": 0
         }
       ]
     },
@@ -430,33 +435,92 @@
       "priority": "P2",
       "issue": 548,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
           "id": "T018",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_autocomplete/test_views.py::TestOrganizationAutocompleteView"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_autocomplete/test_views.py::TestOrganizationAutocompleteView"
+            ],
+            "code": [
+              "fairdm/contrib/autocomplete/views.py:715"
+            ]
+          }
         },
         {
           "id": "T019",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_autocomplete/test_views.py::TestPersonAutocompleteView"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_autocomplete/test_views.py::TestPersonAutocompleteView"
+            ],
+            "code": [
+              "fairdm/contrib/autocomplete/views.py:626"
+            ]
+          }
         },
         {
           "id": "T020",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_contributors/test_forms/test_forms.py::TestAffiliationForm",
+              "tests/test_contrib/test_contributors/test_forms/test_contribution.py::TestPersonCreateForm",
+              "tests/test_contrib/test_contributors/test_forms/test_contribution.py::TestUpdateContributionForm",
+              "tests/test_contrib/test_contributors/test_forms/test_person.py::TestMergePersonForm",
+              "tests/test_contrib/test_contributors/test_forms/test_profile.py::TestOrganizationProfileParentField",
+              "tests/test_core/test_project/test_forms.py::TestProjectOwnerField",
+              "tests/test_contrib/test_contributors/test_admin.py::TestPersonChoicesInTheAdmin"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_contributors/test_forms tests/test_core/test_project/test_forms.py tests/test_contrib/test_contributors/test_admin.py"
+            ],
+            "code": [
+              "fairdm/contrib/contributors/forms/contribution.py:22"
+            ]
+          }
         },
         {
           "id": "T021",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_project/test_filters.py::TestOwnerAndContributorFilters",
+              "tests/test_contrib/test_autocomplete/test_fields.py::TestPersonAndOrganizationFields"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_core/test_project tests/test_views tests/test_contrib/test_autocomplete/test_fields.py"
+            ],
+            "code": [
+              "fairdm/core/project/filters.py:45"
+            ]
+          }
         },
         {
           "id": "T022",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "commands": [
+              "grep -rn 'ContributorSelect2\\|PersonSelect2\\|OrganizationSelect2\\|QuickAddContribution' docs fairdm demo tests"
+            ],
+            "code": [
+              "docs/portal-development/record-fields.md:44"
+            ]
+          }
         }
       ]
     },
@@ -531,7 +595,7 @@
       "max": 1
     },
     "tokens": {
-      "used": 49.46,
+      "used": 60.2,
       "max": 120
     },
     "design_review_cycles": {
