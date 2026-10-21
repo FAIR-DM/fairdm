@@ -68,22 +68,22 @@ class TestPersonListToolbar:
 
         PersonFactory()
 
-        toolbar, dialog = filter_placement(client.get(reverse("people-list")))
+        toolbar, panel = filter_placement(client.get(reverse("people-list")))
 
         assert {"q", "is_active", "is_staff"} <= toolbar
-        assert {"city", "country"} <= dialog
+        assert {"city", "country"} <= panel
 
 
 @pytest.mark.django_db
 class TestOrganizationListToolbar:
-    def test_the_search_and_country_are_in_the_toolbar_and_the_city_in_the_dialog(
+    def test_the_search_and_country_are_in_the_toolbar_and_the_city_in_the_panel(
         self, client, filter_placement
     ):
         from fairdm.factories import OrganizationFactory
 
         OrganizationFactory()
 
-        toolbar, dialog = filter_placement(client.get(reverse("organization-list")))
+        toolbar, panel = filter_placement(client.get(reverse("organization-list")))
 
         assert {"q", "country"} <= toolbar
-        assert "city" in dialog
+        assert "city" in panel

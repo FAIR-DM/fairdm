@@ -11,7 +11,7 @@
       <c-contributor.item :contributor="entry.contribution" size="md" secondary="{% if not entry.affiliation %}none{% endif %}" :link="False" />
 
       {% if entry.attached %}
-        <c-alert variant="warning" soft>
+        <c-alert variant="warning" icon="warning" soft>
           <div>
             <p class="font-semibold">{% blocktranslate with name=entry.contributor %}{{ name }} cannot be removed yet.{% endblocktranslate %}</p>
             <p>{% blocktranslate %}It is listed on this {{ kind }} as the affiliation of the people below. Change their affiliation here, or remove them, and it can then be removed.{% endblocktranslate %}</p>
@@ -28,7 +28,7 @@
           <c-button href="{{ list_url }}" text="{% translate 'Back to contributors' %}" icon="arrow-left" />
         </div>
       {% elif refused %}
-        <c-alert variant="warning" soft>
+        <c-alert variant="warning" icon="warning" soft>
           <div>
             <p class="font-semibold">{% blocktranslate with name=entry.contributor %}{{ name }} cannot be removed yet.{% endblocktranslate %}</p>
             <p>{% blocktranslate with name=entry.contributor %}They are the only person who can manage this {{ kind }}. Give someone else “Can manage” first, so it is never left with nobody to look after it.{% endblocktranslate %}</p>

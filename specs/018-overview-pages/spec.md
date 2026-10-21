@@ -351,8 +351,8 @@ member of its dataset's team, including the one recorded in a different dataset 
 **The shared page anatomy**
 
 - **FR-001**: Every overview page MUST have, in order: notices, a header, a figures strip, and then
-  a wide content column beside a narrow side column. Below the `lg` breakpoint the two columns MUST
-  stack with the content first.
+  the content and a side column. The side column MUST be a side panel, a sticky column at the end
+  from the `xl` breakpoint, and MUST stack after the content below it.
 - **FR-002**: The header on every page MUST carry the record's image or icon, its badges, its name,
   the people behind it where the record names any (FR-025, FR-030), its keywords and its actions, in
   the same arrangement. Each person named there MUST link to their page.

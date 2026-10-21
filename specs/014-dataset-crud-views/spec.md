@@ -67,7 +67,7 @@ for the project's pages, this feature configures it rather than building a secon
 Anyone, signed in or not, opens the dataset listing to see what a portal holds. They search by
 name, narrow the results by licence, project or the kinds of description and date a dataset
 carries, and sort by name or by when each dataset was added. The search, the licence and the sort
-are in the toolbar, and the other filters are in the Filter dialog. Selecting an entry opens that dataset.
+are in the toolbar, and the other filters are in the filter panel. Selecting an entry opens that dataset.
 
 **Why this priority**: the listing is the only route into the dataset area for someone who does not
 already hold a link. Every other page in this feature is reached through it or through a dataset it

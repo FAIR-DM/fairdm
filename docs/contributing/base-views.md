@@ -136,7 +136,7 @@ Paginated, filterable list rendered as cards or custom list items.  Sets
 | `grid` | `{"cols": 1, "gap": 2}` | Responsive grid config |
 | `list_item_template` | `None` (auto-derived) | Partial template per item |
 | `filterset_class` | `None` | `django_filters.FilterSet` subclass holding the search, the sort and the filters |
-| `toolbar_filters` | `[]` | Names of the filterset fields drawn in the toolbar. The others sit in the Filter dialog |
+| `toolbar_filters` | `[]` | Names of the filterset fields drawn in the toolbar. The others sit in the filter panel beside the results |
 
 The search is a `mvp.filters.SearchFilter` and the sort is a `mvp.filters.SortFilter`,
 both declared on the filterset. A view that declares `search_fields` or `order_by`, or that
@@ -307,7 +307,7 @@ for rendering the `{{ table }}` object — no automatic rendering is provided.
 | `model` | Yes | The model to list |
 | `table_class` | Yes | A `django_tables2.Table` subclass |
 | `filterset_class` | No | `django_filters.FilterSet` subclass holding the search and the filters. A `SortFilter` on it is ignored, since the column headers sort |
-| `toolbar_filters` | No | Names of the filterset fields drawn in the toolbar. The others sit in the Filter dialog |
+| `toolbar_filters` | No | Names of the filterset fields drawn in the toolbar. The others sit in the filter panel beside the results |
 | `template_name` | Yes | Template that renders `{{ table }}` |
 
 ```python

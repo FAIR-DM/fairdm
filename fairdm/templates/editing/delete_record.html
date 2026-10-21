@@ -3,7 +3,7 @@
 {% block before_form %}
   {% if is_protected %}
     {# Drawn here, not by the page this extends, so that what stops the deletion is named for what it is. #}
-    <c-alert variant="error">
+    <c-alert variant="error" icon="error">
       <div>
         <strong>{% translate "This record cannot be deleted." %}</strong>
         <c-mvp.text>
@@ -29,7 +29,7 @@
     {{ block.super }}
   {% endif %}
   {% if related_unlisted %}
-    <c-alert variant="warning">
+    <c-alert variant="warning" icon="warning">
       <span>
         {% blocktranslate count counter=related_unlisted %}One more row you do not have access to also goes with this record.{% plural %}{{ counter }} more rows you do not have access to also go with this record.{% endblocktranslate %}
       </span>

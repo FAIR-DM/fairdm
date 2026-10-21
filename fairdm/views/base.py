@@ -75,7 +75,7 @@ class FairDMListView(MetadataMixin, MVPListView):
             page's search (``mvp.filters.SearchFilter``), sort
             (``mvp.filters.SortFilter``) and filters. Default: ``None``.
         toolbar_filters (list[str]): Names of the filterset fields drawn in
-            the toolbar. The others sit in the Filter dialog. Default: ``[]``.
+            the toolbar. The others sit in the filter panel. Default: ``[]``.
 
     Override hooks:
         get_queryset(): Return the base queryset (add ``select_related`` /

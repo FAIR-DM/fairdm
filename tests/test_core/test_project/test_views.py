@@ -1058,15 +1058,15 @@ class TestDeletionPageBackControl:
 
 @pytest.mark.django_db
 class TestProjectListToolbar:
-    def test_the_search_and_status_are_in_the_toolbar_and_the_rest_in_the_dialog(
+    def test_the_search_and_status_are_in_the_toolbar_and_the_rest_in_the_panel(
         self, client, filter_placement
     ):
         ProjectFactory(visibility=Visibility.PUBLIC)
 
-        toolbar, dialog = filter_placement(client.get(reverse("project-list")))
+        toolbar, panel = filter_placement(client.get(reverse("project-list")))
 
         assert {"q", "status"} <= toolbar
-        assert {"owner", "contributor", "tags", "image"} <= dialog
+        assert {"owner", "contributor", "tags", "image"} <= panel
 
     def test_the_status_is_a_multiple_choice(self, client):
         from fairdm.core.project.filters import ProjectFilter

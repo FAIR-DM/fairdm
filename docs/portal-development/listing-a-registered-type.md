@@ -137,7 +137,7 @@ class WaterSampleConfig(BaseSampleConfiguration):
 
 A configuration that overrides `get_filterset_class()` and builds the set with `FilterFactory`
 passes `search_fields=self.get_search_fields()` to keep the search. Range filters on numbers and
-dates sit in the Filter dialog as a pair of inputs, named `<field>_0` and `<field>_1`.
+dates sit in the filter panel as a pair of inputs, named `<field>_0` and `<field>_1`.
 
 Two kinds of declaration are refused when the server starts, rather than on the first search a
 visitor types. A path that names no field on the model is one. The other is a path that resolves

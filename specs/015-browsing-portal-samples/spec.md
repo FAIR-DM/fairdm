@@ -151,7 +151,7 @@ confirm the columns differ per type, that only published records appear, and tha
 
 A reader looking at a type's listing types a word into the search box in the toolbar above the table and
 narrows the rows to those that match. They also apply the filters the type's registration produces
-(the status in the toolbar, the others in the Filter dialog),
+(the status in the toolbar, the others in the filter panel),
 and sort by any column that carries an order. The fields the search covers are the model author's
 choice, and where the author has said nothing the record's name is searched.
 
