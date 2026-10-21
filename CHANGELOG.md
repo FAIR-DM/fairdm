@@ -90,6 +90,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   own dependencies, adds `compressor` to its `INSTALLED_APPS`, adds
   `compressor.finders.CompressorFinder` to `STATICFILES_FINDERS`, sets its own `COMPRESS_*`
   settings, and runs `python manage.py compress` before it serves.
+- **`fairdm.utils` is no longer an installed app.** It was registered with the label `utils`
+  only to serve its templates and static files. Those now live in `fairdm/templates/` and
+  `fairdm/static/` at the same paths, so templates and static files resolve as before.
+  `fairdm.utils` stays importable as a plain package of helpers. Code that looked up the `utils`
+  app config (`apps.get_app_config("utils")`) no longer finds it.
 
 ## [v0.1.0] - 2026-10-16
 
