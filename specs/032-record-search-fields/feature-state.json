@@ -72,6 +72,15 @@
         "SPEC-001, SPEC-004: spec faults, delta brief to the maintainer",
         "9 medium and 7 low taken as plan edits"
       ]
+    },
+    "review": {
+      "approved_by": "review-panel",
+      "at": "2026-10-21T16:02:00Z",
+      "self_resolved": [
+        "SEC-001 high: filter traversal past the allow-listed relation, fixed T036, test red before the fix",
+        "COR-002 medium: allow-list test could not fail, covered by T036's test",
+        "COR-003 low: stale deptry map entry, fixed T037"
+      ]
     }
   },
   "stories": [
