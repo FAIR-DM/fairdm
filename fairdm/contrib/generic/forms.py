@@ -159,6 +159,7 @@ class KeywordForm(forms.ModelForm):
         from fairdm.contrib.autocomplete.records_fields import TagsField
 
         self.fields["tags"] = TagsField(
+            allow_new=True,
             label=_("Free keywords"),
             help_text=_("Words this record should be found under."),
             required=False,

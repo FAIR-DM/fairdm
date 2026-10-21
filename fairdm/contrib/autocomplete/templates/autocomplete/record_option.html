@@ -1,0 +1,8 @@
+{# SKETCH. One record in an autocomplete dropdown: its name over one line of detail, with a badge at the end. #}
+<div class="flex items-center gap-3 flex-1 min-w-0 text-start">
+  <div class="min-w-0 flex-1">
+    <div class="truncate">{{ name }}</div>
+    {% if detail %}<div class="text-xs text-base-content/70 truncate">{{ detail }}</div>{% endif %}
+  </div>
+  {% if badge %}<span class="badge badge-sm {% if badge_outline %}badge-outline{% else %}badge-ghost{% endif %} shrink-0">{{ badge }}</span>{% endif %}
+</div>

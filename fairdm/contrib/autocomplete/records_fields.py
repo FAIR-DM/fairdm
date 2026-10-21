@@ -17,25 +17,8 @@ from django_tomselect.forms import (
     TomSelectMultipleChoiceField,
 )
 
-RECORD_OPTION = (
-    '`<div class="flex items-center justify-between gap-3">'
-    '<div class="min-w-0"><div class="truncate">${data.name}</div>'
-    '<div class="text-xs text-base-content/60 truncate">${data.detail}</div></div>'
-    '<span class="${data.badge_class}">${data.badge}</span></div>`'
-)
-
-CONTRIBUTOR_OPTION = (
-    '`<div class="flex items-center gap-3">'
-    '<img src="${data.image}" alt="" class="${data.image_class}">'
-    '<span class="${data.initials_class}" aria-hidden="true">${data.initials}</span>'
-    '<div class="min-w-0 flex-1"><div class="truncate">${data.name}</div>'
-    '<div class="text-xs text-base-content/60 truncate">${data.detail}</div></div>'
-    '<span class="${data.badge_class}">${data.badge}</span></div>`'
-)
-
-
-def record_config(url, *, multiple, option=RECORD_OPTION, placeholder=None, **extra):
-    """Build the shared look: search in the dropdown, checkboxes for several."""
+def record_config(url, *, multiple, placeholder=None, count_text=None, **extra):
+    """Build the shared look: search in the dropdown, checkboxes and a count for several."""
     plugins = {
         "plugin_dropdown_input": PluginDropdownInput(),
         "plugin_clear_button": PluginClearButton(),
@@ -47,19 +30,26 @@ def record_config(url, *, multiple, option=RECORD_OPTION, placeholder=None, **ex
         value_field="id",
         label_field="name",
         placeholder=placeholder,
-        minimum_query_length=0,
+        minimum_query_length=2,
         preload="focus",
         hide_selected=False,
         close_after_select=not multiple,
         highlight=True,
         loading_class="ts-loading",
-        attrs={"render": {"option": option}},
+        attrs=(
+            {
+                "data-none-text": str(placeholder),
+                "data-count-text": str(count_text or _("selected")),
+            }
+            if multiple
+            else {}
+        ),
         **plugins,
         **extra,
     )
 
 
-def _pair(kind, url_prefix, *, option=RECORD_OPTION, any_label, one_label):
+def _pair(kind, url_prefix, *, any_label, one_label, count_text):
     """Make the single and the multiple field for one kind of record."""
 
     class Single(TomSelectModelChoiceField):
@@ -70,7 +60,6 @@ def _pair(kind, url_prefix, *, option=RECORD_OPTION, any_label, one_label):
                 config=record_config(
                     f"autocomplete:{url_prefix}-{scope}",
                     multiple=False,
-                    option=option,
                     placeholder=one_label,
                     filter_by=filter_by,
                 ),
@@ -85,7 +74,7 @@ def _pair(kind, url_prefix, *, option=RECORD_OPTION, any_label, one_label):
                 config=record_config(
                     f"autocomplete:{url_prefix}-{scope}",
                     multiple=True,
-                    option=option,
+                    count_text=count_text,
                     placeholder=any_label,
                     filter_by=filter_by,
                 ),
@@ -96,39 +85,53 @@ def _pair(kind, url_prefix, *, option=RECORD_OPTION, any_label, one_label):
 
 
 ProjectChoiceField, ProjectMultipleChoiceField = _pair(
-    _("Project"), "project", any_label=_("Any project"), one_label=_("Choose a project")
+    _("Project"),
+    "project",
+    any_label=_("Any project"),
+    one_label=_("Choose a project"),
+    count_text=_("projects"),
 )
 DatasetChoiceField, DatasetMultipleChoiceField = _pair(
-    _("Dataset"), "dataset", any_label=_("Any dataset"), one_label=_("Choose a dataset")
+    _("Dataset"),
+    "dataset",
+    any_label=_("Any dataset"),
+    one_label=_("Choose a dataset"),
+    count_text=_("datasets"),
 )
 SampleChoiceField, SampleMultipleChoiceField = _pair(
-    _("Sample"), "sample", any_label=_("Any sample"), one_label=_("Choose a sample")
+    _("Sample"),
+    "sample",
+    any_label=_("Any sample"),
+    one_label=_("Choose a sample"),
+    count_text=_("samples"),
 )
 MeasurementChoiceField, MeasurementMultipleChoiceField = _pair(
     _("Measurement"),
     "measurement",
     any_label=_("Any measurement"),
     one_label=_("Choose a measurement"),
+    count_text=_("measurements"),
 )
 PersonChoiceField, PersonMultipleChoiceField = _pair(
     _("Person"),
     "person",
-    option=CONTRIBUTOR_OPTION,
     any_label=_("Anyone"),
     one_label=_("Choose a person"),
+    count_text=_("people"),
 )
 OrganizationChoiceField, OrganizationMultipleChoiceField = _pair(
     _("Organization"),
     "organization",
-    option=CONTRIBUTOR_OPTION,
     any_label=_("Any organization"),
     one_label=_("Choose an organization"),
+    count_text=_("organizations"),
 )
 PublicationChoiceField, _unused = _pair(
     _("Data publication"),
     "publication",
     any_label=_("Any publication"),
     one_label=_("Search by title, author or DOI"),
+    count_text=_("publications"),
 )
 
 
@@ -176,9 +179,13 @@ def use_record_filters(filterset, fields):
 
 
 class TagsField(TomSelectMultipleChoiceField):
-    """Free tags as chips: offers tags in use and accepts new ones."""
+    """Free tags as chips: offers tags in use, and accepts new ones when ``allow_new`` is on.
 
-    def __init__(self, *args, **kwargs):
+    A form that records tags turns ``allow_new`` on. A filter leaves it off, since a tag nobody
+    has used matches nothing.
+    """
+
+    def __init__(self, *args, allow_new=False, **kwargs):
         from django_tomselect.app_settings import PluginRemoveButton
 
         super().__init__(
@@ -187,11 +194,11 @@ class TagsField(TomSelectMultipleChoiceField):
                 url="autocomplete:tags",
                 value_field="value",
                 label_field="label",
-                create=True,
+                create=allow_new,
                 hide_selected=True,
-                minimum_query_length=1,
-                preload=False,
-                placeholder=_("Add a keyword"),
+                minimum_query_length=2,
+                preload="focus",
+                placeholder=_("Add a keyword") if allow_new else _("Any keyword"),
                 loading_class="ts-loading",
                 plugin_remove_button=PluginRemoveButton(),
             ),
@@ -203,3 +210,23 @@ class TagsField(TomSelectMultipleChoiceField):
 
     def valid_value(self, value):
         return True
+
+
+def tag_filter(**kwargs):
+    """SKETCH: a filter by tags already in use, with no way to add one."""
+    import django_filters as df
+
+    class TagsFilterField(TagsField):
+        def __init__(self, *args, **kw):
+            kw.pop("choices", None)
+            super().__init__(*args, allow_new=False, **kw)
+
+    class TagFilter(df.MultipleChoiceFilter):
+        field_class = TagsFilterField
+
+        def filter(self, qs, value):
+            if not value:
+                return qs
+            return qs.filter(**{f"{self.field_name}__in": value}).distinct()
+
+    return TagFilter(**kwargs)

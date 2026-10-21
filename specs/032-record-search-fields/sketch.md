@@ -41,8 +41,20 @@
   `search_lookups` and `value_fields` unless the subclass declares its own, so a shared base class
   loses them. Its `page_size` can be raised by the request up to the library's maximum, which
   FR-022 does not allow.
-- django-mvp-forms styles the clear and remove buttons, but not the checkbox and dropdown-search
-  plugins. Both keep django-tomselect's default look in this sketch.
+- Every multiple field shows a count ("3 datasets") in place of chips, as django-mvp-forms'
+  counted control does. django-mvp-forms draws the count from `data-none-text` and
+  `data-count-text` on the control, but only its own `TomSelectMultiple` copies them there. For
+  django-tomselect's widgets the sketch copies them in `fairdm/templates/django_tomselect/tomselect.html`.
+  That copy belongs in django-mvp-forms.
+- A search needs two characters, and the first page is still fetched when a field opens.
+  django-tomselect refuses an empty search once a minimum length is set, so the sketch lets an
+  empty search through in the same template. That belongs in django-tomselect or django-mvp-forms.
+- A result is drawn on the server, from `autocomplete/record_option.html` and
+  `autocomplete/contributor_option.html`, and sent as HTML. FairDM's copy of django-tomselect's
+  `render/option.html` shows that HTML as it is. A person and an organization use
+  `c-contributor.avatar` and the affiliation line's organization icon, with no links inside the row.
+- The tag field takes `allow_new`. A form that records tags turns it on, and a filter by tags
+  leaves it off.
 - django-tomselect shows its own red error box when a search fails, in fixed colours outside the
   daisyUI theme. FR-021 needs a "searching is paused" message in the theme instead.
 
@@ -70,15 +82,18 @@
 
 ## What was ruled by eye
 
-Nothing yet. The taste calls, for Sam's eye:
+- Multiple fields show a count, never chips. Chips are only for tag fields (round 1).
+- A person's ORCID sits on its own line beneath their affiliation. An organization's ROR sits
+  beneath its place (round 1).
+- Result text starts at the left of the row (round 1).
+- Adding a new tag is allowed in forms and never in filters (round 1).
+- A search needs two characters, and the first page loads when a field opens (round 1).
+
+Still open to his eye:
 
 - Group headings read "Your datasets", "Public datasets", "People you have worked with",
   "Everyone else", "Your organizations" and "Other organizations".
 - A list with only one group shows no heading, so a public filter is a plain list.
-- A result is a name over one line of muted detail, with a small ghost badge on the right for
-  "Private" or "Unclaimed", and the DOI as an outline badge on a publication.
-- People have round pictures and organizations rounded squares, with initials where there is no
-  picture, matching `c-contributor.avatar`.
-- A field opens with the first page of results before anything is typed. FR-023 asks for a
-  minimum search length, so this is the question of whether that minimum is zero for these
-  fields.
+- A record result is a name over one line of muted detail, with a small ghost badge on the right
+  for "Private" or "Unclaimed", and the DOI as an outline badge on a publication.
+

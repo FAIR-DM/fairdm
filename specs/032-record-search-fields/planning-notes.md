@@ -38,3 +38,17 @@ tom-select widget that needs no view, so django-autocomplete-light can be remove
 "Finally, we need to worry a little about performance as well. I'm not sure if you've taken into
 account that these pages will be public and therefore open to abuse. We need to ensure that an autocomplete view is resistant to malicious users
 hammering the endpoint with large numbers of requests."
+
+## Sketch review, round 1
+
+"TomSelect input with multiselect should always use the count=True option. This displays a count of
+the number of items rather than chips. Chips provide poor UX for items with long names because they
+wrap onto new lines, inputs grow substantially, and then the entire component can become
+misaligned. I'm only willing to accept chip style for "tags" fields."
+
+"The keywords form field needs a switch for turning the "add" feature on/off. Tagging would be
+acceptable in form fields but not in filter fields."
+
+"My understanding is that the initial form population is independent from the search
+functionality. I suggest search requires minimum 2 characters. First page should still be fetched
+on first open regardless of search params."

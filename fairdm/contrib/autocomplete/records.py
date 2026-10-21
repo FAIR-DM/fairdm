@@ -5,6 +5,7 @@ Untested, and rebuilt test-first once the screens are approved. See
 """
 
 from django.db.models import Case, IntegerField, Q, Value, When
+from django.template.loader import render_to_string
 from django.utils.translation import gettext as _
 from django_tomselect.autocompletes import AutocompleteIterablesView, AutocompleteModelView
 from literature.models import LiteratureItem
@@ -123,12 +124,14 @@ class RecordAutocomplete(InheritLookups, AutocompleteModelView):
             if self.scope != "public" and (len(ranks) > 1 or rank != PUBLIC):
                 result["optgroup"] = names[rank]
             self.describe(result)
+            result["html"] = render_to_string(
+                "autocomplete/record_option.html", result, request=self.request
+            )
         return results
 
     def describe(self, result):
         result.setdefault("detail", "")
         result.setdefault("badge", "")
-        result["badge_class"] = PRIVATE_BADGE if result["badge"] else HIDDEN
 
 
 class ProjectAutocomplete(RecordAutocomplete):
@@ -287,21 +290,9 @@ class ContributorAutocomplete(InheritLookups, AutocompleteModelView):
             self.describe(result, objects[result["id"]])
         return results
 
-    def avatar(self, result, contributor):
-        image = ""
-        try:
-            if contributor.image:
-                image = contributor.image.url
-        except ValueError:
-            image = ""
-        result["image"] = image
-        result["image_class"] = "size-8 rounded-full shrink-0" if image else HIDDEN
-        result["initials"] = contributor.get_initials()
-        result["initials_class"] = (
-            HIDDEN
-            if image
-            else "size-8 rounded-full shrink-0 bg-neutral text-neutral-content "
-            "text-xs flex items-center justify-center"
+    def draw(self, result, context):
+        result["html"] = render_to_string(
+            "autocomplete/contributor_option.html", context, request=self.request
         )
 
 
@@ -310,11 +301,6 @@ class PersonAutocomplete(ContributorAutocomplete):
     near_label = _("People you have worked with")
     far_label = _("Everyone else")
 
-    def get_queryset(self):
-        # Ghost profiles are listed too, marked as unclaimed. Accounts that are not people
-        # (inactive staff shells) are not filtered out here: see sketch.md.
-        return super().get_queryset()
-
     def near_ids(self, user):
         try:
             return [c.pk for c in user.get_collaborators(limit=200)]
@@ -322,18 +308,18 @@ class PersonAutocomplete(ContributorAutocomplete):
             return []
 
     def describe(self, result, person):
-        self.avatar(result, person)
         affiliation = person.primary_affiliation()
-        orcid = person.orcid()
-        parts = []
-        if affiliation:
-            parts.append(affiliation.organization.name)
-        if orcid:
-            parts.append(f"ORCID {orcid.value}")
-        result["detail"] = " · ".join(parts) or _("No affiliation")
         unclaimed = not person.is_claimed and person.last_login is None
-        result["badge"] = _("Unclaimed") if unclaimed else ""
-        result["badge_class"] = PRIVATE_BADGE if unclaimed else HIDDEN
+        self.draw(
+            result,
+            {
+                "contributor": person,
+                "organization": affiliation.organization if affiliation else None,
+                "identifier": person.orcid(),
+                "identifier_icon": "orcid",
+                "badge": _("Unclaimed") if unclaimed else "",
+            },
+        )
 
 
 class OrganizationAutocomplete(ContributorAutocomplete):
@@ -349,19 +335,18 @@ class OrganizationAutocomplete(ContributorAutocomplete):
         )
 
     def describe(self, result, organization):
-        self.avatar(result, organization)
-        result["image_class"] = result["image_class"].replace("rounded-full", "rounded-box")
-        result["initials_class"] = result["initials_class"].replace(
-            "rounded-full", "rounded-box"
-        ).replace("bg-neutral text-neutral-content", "bg-base-300")
         place = ", ".join(
             p for p in [organization.city, getattr(organization.country, "name", "")] if p
         )
-        ror = organization.identifiers.filter(type="ROR").first()
-        parts = [p for p in [place, f"ROR {ror.value}" if ror else ""] if p]
-        result["detail"] = " · ".join(parts) or _("No location")
-        result["badge"] = ""
-        result["badge_class"] = HIDDEN
+        self.draw(
+            result,
+            {
+                "contributor": organization,
+                "place": place,
+                "identifier": organization.identifiers.filter(type="ROR").first(),
+                "identifier_icon": "ror",
+            },
+        )
 
 
 class PublicationAutocomplete(AutocompleteModelView):
@@ -411,7 +396,10 @@ class PublicationAutocomplete(AutocompleteModelView):
             result["detail"] = " · ".join(str(p) for p in [names, year] if p)
             doi = data.get("DOI", "")
             result["badge"] = doi
-            result["badge_class"] = "badge badge-sm badge-outline shrink-0" if doi else HIDDEN
+            result["badge_outline"] = True
+            result["html"] = render_to_string(
+                "autocomplete/record_option.html", result, request=self.request
+            )
         return results
 
 
