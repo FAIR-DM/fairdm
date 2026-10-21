@@ -5,7 +5,7 @@ from django.urls import reverse
 
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Affiliation
-from fairdm.factories import AffiliationFactory
+from fairdm.factories import AffiliationFactory, ContributionFactory, ProjectFactory
 from fairdm.utils.choices import Visibility
 from tests.registry_models.models import ConcreteMeasurement, ConcreteSample
 
@@ -618,3 +618,163 @@ class TestOrganizationAutocompleteView:
 
         assert [r["id"] for r in answer["results"]] == [wanted.pk]
         assert "optgroup" not in answer["results"][0]
+
+
+@pytest.mark.django_db
+class TestPersonAutocompleteView:
+    def share_a_record(self, researcher, person, *, level=ContributionLevel.VIEW):
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        ContributionFactory(
+            content_object=project, contributor=researcher, level=ContributionLevel.EDIT
+        )
+        ContributionFactory(content_object=project, contributor=person, level=level)
+        return project
+
+    def test_a_person_is_found_by_part_of_their_name(
+        self, researcher_client, make_person
+    ):
+        wanted = make_person("Dana Smith")
+        make_person("Ravi Patel")
+
+        answer = search(researcher_client, "person", "public", q="smi")
+
+        assert [r["id"] for r in answer["results"]] == [wanted.pk]
+
+    def test_a_person_is_found_by_an_alternative_name(
+        self, researcher_client, make_person
+    ):
+        wanted = make_person("Dana Smith", alternative_names=["D. Schmidt"])
+        make_person("Ravi Patel")
+
+        answer = search(researcher_client, "person", "public", q="schmidt")
+
+        assert [r["id"] for r in answer["results"]] == [wanted.pk]
+
+    def test_an_orcid_typed_exactly_comes_first(self, researcher_client, make_person):
+        make_person("Aardvark 0000-0002-1825-0097 fan")
+        wanted = make_person("Zed Zimmer", orcid="0000-0002-1825-0097")
+
+        answer = search(researcher_client, "person", "public", q="0000-0002-1825-0097")
+
+        assert answer["results"][0]["id"] == wanted.pk
+        assert len(answer["results"]) == 2
+
+    def test_the_people_the_researcher_has_worked_with_come_first(
+        self, researcher_client, researcher, make_person
+    ):
+        stranger = make_person("Alpha Stranger")
+        colleague = make_person("Zulu Colleague")
+        self.share_a_record(researcher, colleague)
+
+        answer = search(researcher_client, "person", "public")
+
+        ids = [r["id"] for r in answer["results"] if r["id"] != researcher.pk]
+        assert ids == [colleague.pk, stranger.pk]
+        groups = {r["id"]: r["optgroup"] for r in answer["results"]}
+        assert groups[colleague.pk] != groups[stranger.pk]
+
+    def test_a_collaboration_only_through_a_record_the_researcher_cannot_open_does_not_group(
+        self, researcher_client, researcher, make_person
+    ):
+        stranger = make_person("Alpha Stranger")
+        met_in_private = make_person("Zulu Colleague")
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        ContributionFactory(content_object=project, contributor=researcher, level=None)
+        ContributionFactory(
+            content_object=project,
+            contributor=met_in_private,
+            level=ContributionLevel.EDIT,
+        )
+
+        answer = search(researcher_client, "person", "public")
+
+        ids = [r["id"] for r in answer["results"] if r["id"] != researcher.pk]
+        assert ids == [stranger.pk, met_in_private.pk]
+        assert {r.get("optgroup") for r in answer["results"]} == {None}
+
+    def test_a_visitor_is_offered_people_with_no_group(self, client, make_person):
+        wanted = make_person("Dana Smith")
+
+        answer = search(client, "person", "public")
+
+        assert [r["id"] for r in answer["results"]] == [wanted.pk]
+        assert "optgroup" not in answer["results"][0]
+
+    def test_a_superuser_is_not_offered(self, researcher_client, make_person):
+        make_person("Root Admin", superuser=True)
+        wanted = make_person("Dana Smith")
+
+        answer = search(researcher_client, "person", "public")
+
+        assert [r["id"] for r in answer["results"] if r["name"] != "Test User"] == [
+            wanted.pk
+        ]
+
+    def test_an_email_address_typed_finds_nobody(self, researcher_client, make_person):
+        make_person("Dana Smith", email="dana.smith@example.org")
+
+        for typed in ("dana.smith@example.org", "example.org", "dana.smith"):
+            assert (
+                search(researcher_client, "person", "public", q=typed)["results"] == []
+            )
+
+    def test_no_result_carries_an_email_address(self, researcher_client, make_person):
+        make_person("Dana Smith", email="dana.smith@example.org")
+
+        response = researcher_client.get(reverse("autocomplete:person-public"))
+
+        assert "dana.smith@example.org" not in response.content.decode()
+
+    @pytest.mark.parametrize("parameter", ["f", "e"])
+    def test_a_filter_naming_the_email_offers_nothing(
+        self, researcher_client, make_person, parameter
+    ):
+        make_person("Dana Smith", email="dana.smith@example.org")
+
+        answer = search(
+            researcher_client,
+            "person",
+            "public",
+            **{parameter: "email__icontains=dana"},
+        )
+
+        assert answer["results"] == []
+
+    @pytest.mark.parametrize("ordering", ["email", "-email"])
+    def test_an_ordering_naming_the_email_changes_nothing(
+        self, researcher_client, make_person, ordering
+    ):
+        make_person("Bravo", email="a@example.org")
+        make_person("Alpha", email="z@example.org")
+
+        plain = search(researcher_client, "person", "public")
+        reordered = search(researcher_client, "person", "public", ordering=ordering)
+
+        assert names(reordered) == names(plain)
+
+    def test_an_unclaimed_person_is_marked_and_a_claimed_one_is_not(
+        self, researcher_client, make_person
+    ):
+        make_person("Alpha Unclaimed")
+        make_person("Zulu Claimed", claimed=True)
+
+        results = {
+            r["name"]: r
+            for r in search(researcher_client, "person", "public")["results"]
+        }
+
+        assert results["Alpha Unclaimed"]["unclaimed"] is True
+        assert results["Zulu Claimed"]["unclaimed"] is False
+
+    def test_a_row_gives_the_primary_affiliation_and_the_orcid(
+        self, researcher_client, make_person, make_organization
+    ):
+        organization = make_organization("Potsdam Research Institute")
+        make_person(
+            "Dana Smith", orcid="0000-0002-1825-0097", organization=organization
+        )
+
+        row = search(researcher_client, "person", "public", q="dana")["results"][0]
+
+        assert "Potsdam Research Institute" in row["html"]
+        assert "0000-0002-1825-0097" in row["html"]
