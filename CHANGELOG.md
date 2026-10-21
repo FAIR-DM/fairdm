@@ -96,6 +96,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `fairdm.utils` stays importable as a plain package of helpers. Code that looked up the `utils`
   app config (`apps.get_app_config("utils")`) no longer finds it.
 
+### Fixed
+
+- **Quantity fields can be edited.** A quantity field's form field was a plain number input, which
+  dropped the stored value (it carries its units), so every quantity box on an edit page was empty
+  and saving the page unchanged failed with "Enter a number." A quantity field is now edited as a
+  number with a unit list, using django-pint's form fields, and an edit form shows the stored value
+  in the field's base units with that unit selected. A value entered in another unit from
+  `unit_choices` is stored converted to the base units. See
+  [Special fields](docs/portal-development/special_fields.md#editing-a-quantity).
+
 ## [v0.1.0] - 2026-10-16
 
 ### Added
