@@ -6,6 +6,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 from licensing.models import License
 
+from fairdm.contrib.autocomplete.fields import ProjectChoiceField
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Contribution
 from fairdm.core.dataset.forms import DatasetCreateForm, DatasetForm
@@ -246,14 +247,36 @@ class TestInternationalizedHelpText:
 
 @pytest.mark.django_db
 class TestProjectAndReferenceFieldWidgets:
-    # The django_addanother/select2 wrapper stack does not render correctly in the
-    # portal.
-    def test_project_field_uses_a_plain_select_widget(self):
+    def test_project_field_is_the_project_field_at_edit_scope(self):
         form = DatasetForm()
 
-        widget = form.fields["project"].widget
-        assert type(widget).__name__ == "Select"
-        assert not hasattr(widget, "widget"), "project field is still wrapped"
+        field = form.fields["project"]
+        assert isinstance(field, ProjectChoiceField)
+        assert field.scope == "edit"
+
+    def test_a_dataset_saved_through_the_form_belongs_to_the_chosen_project(self):
+        factory = RequestFactory()
+        user = UserFactory()
+        project = ProjectFactory()
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
+        request = factory.get("/")
+        request.user = user
+        license = License.objects.get_or_create(name="CC BY 4.0")[0]
+
+        form = DatasetForm(
+            request=request,
+            data={
+                "name": "New dataset",
+                "project": project.pk,
+                "license": license.pk,
+                "visibility": Visibility.PRIVATE,
+            },
+        )
+
+        assert form.is_valid(), form.errors
+        assert form.save().project == project
 
     def test_reference_field_uses_a_plain_select_widget(self):
         form = DatasetForm()

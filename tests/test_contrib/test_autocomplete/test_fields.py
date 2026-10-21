@@ -124,6 +124,30 @@ class TestRecordFields:
         assert set(accepted.cleaned_data["datasets"]) == {first, second}
         assert refused.has_error("datasets", code="invalid_choice")
 
+    def test_a_form_built_outside_any_request_offers_nothing_by_default(
+        self, researcher, make_dataset
+    ):
+        dataset = make_dataset("Editable", holder=researcher)
+
+        form = PlacementForm({"dataset": dataset.pk})
+
+        assert form.has_error("dataset", code="invalid_choice")
+
+    def test_a_form_built_outside_any_request_uses_the_queryset_it_was_given(
+        self, make_dataset
+    ):
+        from fairdm.core.dataset.models import Dataset
+
+        dataset = make_dataset("Given")
+
+        class GivenForm(forms.Form):
+            dataset = DatasetChoiceField(scope="edit")
+
+        form = GivenForm({"dataset": dataset.pk})
+        form.fields["dataset"].queryset = Dataset.all_objects.all()
+
+        assert form.is_valid()
+
     def test_a_project_field_offers_projects_at_its_own_scope(
         self, researcher, in_request, make_project
     ):

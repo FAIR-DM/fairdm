@@ -546,15 +546,14 @@ class TestGeneratedFilterSetClass:
 
 @pytest.mark.django_db
 class TestFormFactoryMeasurementBranch:
-    def test_generated_form_uses_the_measurement_form_mixins_dataset_widget(self):
-        from django_addanother.widgets import AddAnotherWidgetWrapper
-
+    def test_generated_form_uses_the_measurement_form_mixins_dataset_field(self):
         from demo.models import XRFMeasurement
+        from fairdm.contrib.autocomplete.fields import DatasetChoiceField
 
         form_class = FormFactory(XRFMeasurement, fields=["name", "dataset"]).generate()
         form = form_class()
 
-        assert isinstance(form.fields["dataset"].widget, AddAnotherWidgetWrapper)
+        assert isinstance(form.fields["dataset"], DatasetChoiceField)
 
 
 @pytest.mark.django_db

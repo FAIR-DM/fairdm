@@ -14,6 +14,7 @@ from demo.factories import (
     XRFMeasurementFactory,
 )
 from demo.models import ExampleMeasurement, ICP_MS_Measurement, XRFMeasurement
+from fairdm.contrib.autocomplete.fields import DatasetChoiceField
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.measurement.forms import MeasurementFormMixin
 from fairdm.factories import (
@@ -398,23 +399,17 @@ class TestMeasurementFormRequestContext:
 
 
 @pytest.mark.django_db
-class TestMeasurementFormDatasetAddAnotherUrl:
-    def test_add_related_url_resolves_to_the_dataset_admin_add_view(self):
-        from django.urls import reverse
-
+class TestMeasurementFormDatasetField:
+    def test_dataset_field_is_the_dataset_field_at_edit_scope(self):
         class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
             class Meta:
                 model = XRFMeasurement
                 fields = ["name", "dataset", "sample"]
 
-        form = XRFMeasurementForm()
+        field = XRFMeasurementForm().fields["dataset"]
 
-        # `str()` is what forces the lazy proxy to resolve, the same way
-        # template rendering would. The dataset app's label is "dataset",
-        # not "core", so "admin:core_dataset_add" raises `NoReverseMatch`
-        # here.
-        add_url = str(form.fields["dataset"].widget.add_related_url)
-        assert add_url == reverse("admin:dataset_dataset_add")
+        assert isinstance(field, DatasetChoiceField)
+        assert field.scope == "edit"
 
 
 @pytest.mark.django_db

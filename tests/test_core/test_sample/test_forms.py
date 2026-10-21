@@ -9,6 +9,7 @@ from django.urls import reverse
 
 from demo.factories import RockSampleFactory, WaterSampleFactory
 from demo.models import RockSample, WaterSample
+from fairdm.contrib.autocomplete.fields import DatasetChoiceField
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.sample.forms import SampleFormMixin
 from fairdm.factories import (
@@ -211,30 +212,71 @@ class TestCustomSampleFormIntegration:
 @pytest.mark.django_db
 class TestSampleFormMixinWidgets:
     def _form(self):
-        from django_addanother.widgets import AddAnotherWidgetWrapper
-        from django_select2.forms import ModelSelect2Widget
-
         class RockSampleForm(SampleFormMixin, forms.ModelForm):
             class Meta:
                 model = RockSample
                 fields = ["name", "dataset", "status", "location"]
 
-        return RockSampleForm(), AddAnotherWidgetWrapper, ModelSelect2Widget
+        return RockSampleForm()
 
-    def test_dataset_field_uses_the_add_another_wrapped_select2_widget(self):
-        form, AddAnotherWidgetWrapper, ModelSelect2Widget = self._form()
+    def test_dataset_field_is_the_dataset_field_at_edit_scope(self):
+        form = self._form()
 
-        widget = form.fields["dataset"].widget
-        assert isinstance(widget, AddAnotherWidgetWrapper)
-        assert isinstance(widget.widget, ModelSelect2Widget)
+        field = form.fields["dataset"]
+        assert isinstance(field, DatasetChoiceField)
+        assert field.scope == "edit"
+
+    def test_a_sample_saved_through_the_form_belongs_to_the_chosen_dataset(self):
+        user = UserFactory()
+        dataset = DatasetFactory()
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+        )
+
+        class RockSampleForm(SampleFormMixin, forms.ModelForm):
+            class Meta:
+                model = RockSample
+                fields = ["name", "dataset", "rock_type", "collection_date"]
+
+        form = RockSampleForm(
+            data={
+                "name": "Basalt",
+                "dataset": dataset.pk,
+                "rock_type": "basalt",
+                "collection_date": "2026-01-02",
+            },
+            request=_request_for(user),
+        )
+
+        assert form.is_valid(), form.errors
+        assert form.save().dataset == dataset
+
+    def test_a_sample_is_refused_a_dataset_its_editor_may_only_view(self):
+        user = UserFactory()
+        dataset = DatasetFactory()
+        ContributionFactory(
+            content_object=dataset, contributor=user, level=ContributionLevel.VIEW
+        )
+
+        class RockSampleForm(SampleFormMixin, forms.ModelForm):
+            class Meta:
+                model = RockSample
+                fields = ["name", "dataset", "rock_type"]
+
+        form = RockSampleForm(
+            data={"name": "Basalt", "dataset": dataset.pk, "rock_type": "basalt"},
+            request=_request_for(user),
+        )
+
+        assert form.has_error("dataset", code="invalid_choice")
 
     def test_status_field_uses_a_select_widget(self):
-        form, _, _ = self._form()
+        form = self._form()
 
         assert isinstance(form.fields["status"].widget, forms.Select)
 
     def test_location_field_is_the_location_input(self):
-        form, _, _ = self._form()
+        form = self._form()
 
         assert isinstance(form.fields["location"], LocationField)
         assert form.fields["location"].full
@@ -415,27 +457,6 @@ class TestSampleFormOnAnExistingSample:
         form = RockSampleForm(request=_request_for(editor))
 
         assert "dataset" in form.fields
-
-
-@pytest.mark.django_db
-class TestSampleFormDatasetAddAnotherUrl:
-    # reverse_lazy defers evaluation, so a wrong URL name only surfaces once the
-    # widget renders.
-    def test_add_related_url_resolves_to_the_dataset_admin_add_view(self):
-        from django.urls import reverse
-
-        class RockSampleForm(SampleFormMixin, forms.ModelForm):
-            class Meta:
-                model = RockSample
-                fields = ["name", "dataset"]
-
-        form = RockSampleForm()
-
-        # `str()` is what forces the lazy proxy to resolve, the same way
-        # template rendering would. The dataset app's label is "dataset", not
-        # "core", so "admin:core_dataset_add" raises `NoReverseMatch` here.
-        add_url = str(form.fields["dataset"].widget.add_related_url)
-        assert add_url == reverse("admin:dataset_dataset_add")
 
 
 @pytest.mark.django_db

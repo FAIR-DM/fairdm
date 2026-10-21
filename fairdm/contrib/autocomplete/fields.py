@@ -238,10 +238,14 @@ class RecordFieldMixin:
         return super().get_bound_field(form, field_name)
 
     @property
+    def request(self):
+        """The request the field is used in: the form's, else the current one, else none."""
+        return getattr(self.form, "request", None) or get_current_request()
+
+    @property
     def user(self):
-        """The person using the field: the form's request, else the current one."""
-        request = getattr(self.form, "request", None) or get_current_request()
-        return getattr(request, "user", None)
+        """The person using the field, or none when it is used outside a request."""
+        return getattr(self.request, "user", None)
 
     def view(self):
         """Return the record view that serves the field's scope."""
@@ -270,7 +274,13 @@ class RecordFieldMixin:
         return [] if stored is None else [stored]
 
     def allowed(self):
-        """Return the records the field accepts: those it offers and those already stored."""
+        """Return the records the field accepts: those it offers and those already stored.
+
+        A field used outside any request, in a script or a test, serves no person. It accepts
+        what the form assigned to its ``queryset`` and nothing by default.
+        """
+        if self.request is None:
+            return self.queryset
         records = self.view().base_queryset()
         return records.filter(
             Q(pk__in=self.offered().values("pk")) | Q(pk__in=self.stored_pks())
