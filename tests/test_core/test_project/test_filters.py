@@ -1,6 +1,7 @@
 """Tests for ``ProjectFilter`` in ``fairdm.core.project.filters``."""
 
 import pytest
+from mvp_forms.widgets import TomSelectMultiple
 from research_vocabs.models import Concept
 
 from fairdm.core.project.filters import ProjectFilter
@@ -25,6 +26,27 @@ def projects(keywords):
         projects[name] = ProjectFactory(visibility=Visibility.PUBLIC)
         projects[name].keywords.set(terms)
     return projects
+
+
+@pytest.mark.django_db
+class TestKeywordFilterControl:
+    def test_the_vocabulary_filter_is_a_counted_control_with_no_autocomplete_light_widget(
+        self,
+    ):
+        widget = ProjectFilter().filters["keywords_FairDMRoles"].field.widget
+
+        assert isinstance(widget, TomSelectMultiple)
+        assert widget.counted is True
+        assert not type(widget).__module__.startswith("dal")
+
+    def test_the_keywords_are_chosen_from_the_vocabulary_the_filter_names(
+        self, keywords
+    ):
+        keywords[0].projects.add(ProjectFactory(visibility=Visibility.PUBLIC))
+
+        field = ProjectFilter().filters["keywords_FairDMRoles"].field
+
+        assert list(field.queryset) == [keywords[0]]
 
 
 @pytest.mark.django_db

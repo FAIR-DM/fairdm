@@ -6,7 +6,11 @@ from django.utils.translation import gettext_lazy as _
 from mvp.filters import SearchFilter
 from partial_date import PartialDate
 
-from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.contrib.autocomplete.fields import (
+    DatasetMultipleChoiceField,
+    SampleMultipleChoiceField,
+)
+from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
 from fairdm.core.measurement.models import Measurement
 
 
@@ -41,9 +45,8 @@ class MeasurementFilterMixin(django_filters.FilterSet):
     class or a subclass is defined. ``Meta.fields`` names only actual model fields, which a
     subclass's own ``Meta`` can extend. See docs/portal-development/measurements.md.
 
-    The dataset choices are the datasets the requesting user may change, or the privacy-first
-    default manager's datasets when there is no authenticated user. ``Dataset.all_objects`` is
-    never offered unconditionally, as it would list every private dataset.
+    The dataset and sample filters are ``RecordMultipleFilter`` objects at public scope, so a
+    visitor and a signed-in researcher are offered the same public records.
 
     Args:
         *args: Positional arguments passed to ``FilterSet``.
@@ -67,19 +70,9 @@ class MeasurementFilterMixin(django_filters.FilterSet):
         ```
     """
 
-    dataset = django_filters.ModelChoiceFilter(
-        field_name="dataset",
-        label=_("Dataset"),
-        queryset=None,
-        empty_label=_("Any dataset"),
-    )
+    dataset = RecordMultipleFilter(DatasetMultipleChoiceField, field_name="dataset")
 
-    sample = django_filters.ModelChoiceFilter(
-        field_name="sample",
-        label=_("Sample"),
-        queryset=None,
-        empty_label=_("Any sample"),
-    )
+    sample = RecordMultipleFilter(SampleMultipleChoiceField, field_name="sample")
 
     polymorphic_ctype = django_filters.ModelChoiceFilter(
         field_name="polymorphic_ctype",
@@ -115,25 +108,7 @@ class MeasurementFilterMixin(django_filters.FilterSet):
 
         from django.contrib.contenttypes.models import ContentType
 
-        from fairdm.core.models import Dataset
-        from fairdm.core.sample.models import Sample
         from fairdm.registry import registry
-
-        if "dataset" in self.filters:
-            if (
-                self.request
-                and hasattr(self.request, "user")
-                and self.request.user is not None
-                and self.request.user.is_authenticated
-            ):
-                self.filters["dataset"].queryset = Dataset.all_objects.accessible_to(
-                    self.request.user, ContributionLevel.EDIT
-                )
-            else:
-                self.filters["dataset"].queryset = Dataset.objects.all()
-
-        if "sample" in self.filters:
-            self.filters["sample"].queryset = Sample.objects.all()
 
         if "polymorphic_ctype" in self.filters:
             registered_content_types = ContentType.objects.get_for_models(

@@ -4,6 +4,8 @@ import django_filters
 from django.utils.translation import gettext_lazy as _
 from mvp.filters import SearchFilter, SortFilter
 
+from fairdm.contrib.autocomplete.fields import ProjectMultipleChoiceField
+from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
 from fairdm.core.filters import BaseListFilter
 
 from .models import Dataset
@@ -12,9 +14,9 @@ from .models import Dataset
 class DatasetFilter(BaseListFilter):
     """Filter for the dataset list, by licence, project, description type and date type.
 
-    The project choices are the public projects plus any the requester holds at least the view
-    level on. An anonymous visitor gets the public projects. A filterset built without a request
-    offers every project. All filters combine with AND.
+    The project filter is a ``RecordMultipleFilter`` at public scope, so everyone is offered the
+    same public projects. Ticking several keeps the datasets of any of them. All filters combine
+    with AND.
 
     The search matches the name, uuid, identifiers, descriptions and keywords. The sort
     offers date created, last update and name.
@@ -59,12 +61,10 @@ class DatasetFilter(BaseListFilter):
         ]
     )
 
-    project = django_filters.ModelChoiceFilter(
+    project = RecordMultipleFilter(
+        ProjectMultipleChoiceField,
         field_name="project",
-        queryset=None,
-        label="Project",
-        help_text="Filter by associated project",
-        empty_label="All projects",
+        help_text=_("Filter by associated project"),
     )
 
     description_type = django_filters.CharFilter(
@@ -88,21 +88,3 @@ class DatasetFilter(BaseListFilter):
         fields = {
             "license": ["exact"],
         }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        from fairdm.contrib.contributors.choices import ContributionLevel
-        from fairdm.core.models import Project
-
-        if self.request and hasattr(self.request, "user"):
-            queryset = Project.objects.get_visible()
-            if self.request.user.is_authenticated:
-                permitted = Project.objects.accessible_to(
-                    self.request.user, ContributionLevel.VIEW
-                )
-                queryset = (queryset | permitted).distinct()
-        else:
-            queryset = Project.objects.all()
-
-        self.filters["project"].queryset = queryset

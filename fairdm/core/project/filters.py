@@ -5,8 +5,8 @@ from django import forms
 from django.utils.module_loading import import_string
 from django.utils.translation import gettext_lazy as _
 from mvp.filters import SearchFilter, SortFilter
+from mvp_forms.widgets import TomSelectMultiple
 
-from fairdm.contrib.autocomplete.fields import ConceptMultiSelect
 from fairdm.core.filters import BaseListFilter
 from fairdm.utils.utils import get_setting
 
@@ -87,9 +87,12 @@ class ProjectFilter(BaseListFilter):
                     ).distinct(),
                     conjoined=True,
                     label=field_name,
-                    widget=ConceptMultiSelect(
-                        vocabulary=vocab_path, required=False
-                    ).widget,
+                    widget=TomSelectMultiple(
+                        counted=True,
+                        placeholder=_("Any"),
+                        none_text=_("Any"),
+                        count_text=_("selected"),
+                    ),
                 )
         else:
             self.filters["keywords"] = df.ModelMultipleChoiceFilter(

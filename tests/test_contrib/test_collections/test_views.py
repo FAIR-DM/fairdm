@@ -361,6 +361,14 @@ class TestFilters:
 
 @pytest.mark.django_db
 class TestFilterChoicesOnTheRenderedPage:
+    @pytest.fixture
+    def public_dataset(self):
+        return DatasetFactory(
+            published=True,
+            visibility=Visibility.PUBLIC,
+            project=ProjectFactory(visibility=Visibility.PUBLIC),
+        )
+
     def _page_filters(self, client, model):
         slug = registry.get_for_model(model).get_slug()
         response = client.get(reverse(f"{slug}-list"))
@@ -397,14 +405,10 @@ class TestFilterChoicesOnTheRenderedPage:
         assert unpublished_dataset not in choices
 
     def test_a_sample_listings_dataset_filter_offers_public_datasets_only(
-        self, client, published_dataset
+        self, client, public_dataset, published_dataset
     ):
         assert registry.get_for_model(CustomSample).filterset_class is not None
-        public = DatasetFactory(
-            published=True,
-            visibility=Visibility.PUBLIC,
-            project=ProjectFactory(visibility=Visibility.PUBLIC),
-        )
+        public = public_dataset
         CustomSampleFactory(dataset=public)
         CustomSampleFactory(dataset=published_dataset)
 
