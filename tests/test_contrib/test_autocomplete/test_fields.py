@@ -3,16 +3,23 @@
 import pytest
 from django import forms
 
+from demo.factories import RockSampleFactory
+from demo.models import RockSample
 from fairdm.contrib.autocomplete.fields import (
     DatasetChoiceField,
     DatasetMultipleChoiceField,
+    OrganizationMultipleChoiceField,
+    PersonChoiceField,
     ProjectChoiceField,
+    ProjectMultipleChoiceField,
     SampleChoiceField,
+    SampleMultipleChoiceField,
 )
 from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.factories import UserFactory
 from fairdm.utils.choices import Visibility
 from tests.factories import ConcreteSampleFactory
-from tests.registry_models.models import ConcreteSample
+from tests.registry_models.models import ConcreteMeasurement, ConcreteSample
 
 
 class PlacementForm(forms.Form):
@@ -366,3 +373,235 @@ class TestPersonAndOrganizationFields:
 
         assert PersonChoiceField().scope == "public"
         assert PersonMultipleChoiceField().scope == "public"
+
+
+class ProjectSettingsForm(forms.Form):
+    project = ProjectChoiceField()
+
+
+class ManyProjectsForm(forms.Form):
+    projects = ProjectMultipleChoiceField()
+
+
+class RockSampleForm(forms.Form):
+    sample = SampleChoiceField(type=RockSample)
+
+
+class OwnedProjectsForm(forms.Form):
+    project = ProjectMultipleChoiceField()
+
+    def __init__(self, *args, owner, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["project"] = ProjectMultipleChoiceField(owner=owner)
+
+
+@pytest.mark.django_db
+class TestFieldSettings:
+    def test_a_field_with_nothing_configured_offers_what_the_person_may_view(
+        self, researcher, in_request, make_project
+    ):
+        own = make_project("Own private", holder=researcher)
+        public = make_project("Open", visibility=Visibility.PUBLIC)
+        unseen = make_project("Unseen")
+        in_request(researcher)
+
+        assert ProjectSettingsForm({"project": own.pk}).is_valid()
+        assert ProjectSettingsForm({"project": public.pk}).is_valid()
+        assert ProjectSettingsForm({"project": unseen.pk}).has_error(
+            "project", code="invalid_choice"
+        )
+
+    def test_a_multiple_field_with_nothing_configured_offers_a_private_record_the_person_may_view(
+        self, researcher, in_request, make_project
+    ):
+        private = make_project(
+            "Viewable", holder=researcher, level=ContributionLevel.VIEW
+        )
+        public = make_project("Open", visibility=Visibility.PUBLIC)
+        in_request(researcher)
+
+        form = ManyProjectsForm({"projects": [private.pk, public.pk]})
+
+        assert form.is_valid(), form.errors
+        assert set(form.cleaned_data["projects"]) == {private, public}
+
+    def test_the_multiple_field_saves_every_chosen_record(
+        self, researcher, in_request, make_project
+    ):
+        first = make_project("First", holder=researcher)
+        second = make_project("Second", holder=researcher)
+        third = make_project("Third", holder=researcher)
+        in_request(researcher)
+
+        form = ManyProjectsForm({"projects": [first.pk, second.pk, third.pk]})
+
+        assert form.is_valid()
+        assert set(form.cleaned_data["projects"]) == {first, second, third}
+
+    def test_edit_scope_offers_only_what_the_person_may_edit(
+        self, researcher, in_request, make_project
+    ):
+        class EditForm(forms.Form):
+            project = ProjectChoiceField(scope="edit")
+
+        editable = make_project("Editable", holder=researcher)
+        view_only = make_project(
+            "View only", holder=researcher, level=ContributionLevel.VIEW
+        )
+        in_request(researcher)
+
+        assert EditForm({"project": editable.pk}).is_valid()
+        assert EditForm({"project": view_only.pk}).has_error(
+            "project", code="invalid_choice"
+        )
+
+    def test_public_scope_offers_no_private_record_of_the_person(
+        self, researcher, in_request, make_project
+    ):
+        class PublicForm(forms.Form):
+            project = ProjectChoiceField(scope="public")
+
+        private = make_project("Private", holder=researcher)
+        public = make_project("Open", visibility=Visibility.PUBLIC)
+        in_request(researcher)
+
+        assert PublicForm({"project": public.pk}).is_valid()
+        assert PublicForm({"project": private.pk}).has_error(
+            "project", code="invalid_choice"
+        )
+
+    def test_a_scope_the_kind_does_not_offer_is_refused(self):
+        with pytest.raises(ValueError, match="scope must be one of"):
+            ProjectChoiceField(scope="everything")
+
+    def test_a_sample_field_narrowed_to_a_type_accepts_that_type_and_no_other(
+        self, researcher, in_request, make_dataset
+    ):
+        dataset = make_dataset("Data", holder=researcher)
+        rock = RockSampleFactory(dataset=dataset)
+        other = ConcreteSampleFactory(dataset=dataset)
+        in_request(researcher)
+
+        accepted = RockSampleForm({"sample": rock.pk})
+        refused = RockSampleForm({"sample": other.pk})
+
+        assert accepted.is_valid(), accepted.errors
+        assert refused.has_error("sample", code="invalid_choice")
+
+    def test_a_field_narrowed_to_a_type_tells_the_address_to_filter_by_it(
+        self, researcher, in_request
+    ):
+        from django.contrib.contenttypes.models import ContentType
+
+        in_request(researcher)
+
+        context = RockSampleForm()["sample"].field.widget.get_context(
+            "sample", None, {}
+        )
+
+        filters = context["widget"]["filters"]
+        assert [(f["source"], f["lookup"], f["source_type"]) for f in filters] == [
+            (
+                str(ContentType.objects.get_for_model(RockSample).pk),
+                "polymorphic_ctype",
+                "const",
+            )
+        ]
+
+    def test_a_field_cannot_be_narrowed_to_a_type_its_kind_does_not_have(self):
+        with pytest.raises(ValueError, match="type"):
+            ProjectChoiceField(type=RockSample)
+
+    def test_a_sample_field_cannot_be_narrowed_to_a_model_that_is_not_a_sample(self):
+        with pytest.raises(ValueError, match="type"):
+            SampleChoiceField(type=ConcreteMeasurement)
+
+    def test_the_owners_private_records_are_offered_to_the_owner(
+        self, researcher, in_request, make_project
+    ):
+        private = make_project("Private", holder=researcher)
+        public = make_project("Open", visibility=Visibility.PUBLIC, holder=researcher)
+        in_request(researcher)
+
+        form = OwnedProjectsForm({"project": [private.pk, public.pk]}, owner=researcher)
+
+        assert form.is_valid(), form.errors
+
+    def test_the_owners_private_records_are_not_offered_to_anyone_else(
+        self, researcher, in_request, make_project
+    ):
+        owner = UserFactory()
+        private = make_project("Private", holder=owner)
+        shared = make_project("Shared", holder=researcher, level=ContributionLevel.VIEW)
+        public = make_project("Open", visibility=Visibility.PUBLIC, holder=owner)
+        in_request(researcher)
+
+        assert OwnedProjectsForm({"project": [public.pk]}, owner=owner).is_valid()
+        assert OwnedProjectsForm({"project": [private.pk]}, owner=owner).has_error(
+            "project", code="invalid_choice"
+        )
+        assert OwnedProjectsForm({"project": [shared.pk]}, owner=owner).has_error(
+            "project", code="invalid_choice"
+        )
+
+    def test_the_owner_fields_address_is_the_profile_address_carrying_the_owner(
+        self, researcher, in_request
+    ):
+        in_request(researcher)
+
+        widget = OwnedProjectsForm(owner=researcher)["project"].field.widget
+        context = widget.get_context("project", None, {})
+
+        assert widget.url == "autocomplete:project-profile"
+        assert context["widget"]["autocomplete_params"] == f"owner={researcher.pk}"
+
+    def test_a_person_or_organization_field_has_no_owner(self, researcher):
+        with pytest.raises(ValueError, match="owner"):
+            PersonChoiceField(owner=researcher)
+
+    def test_an_owner_and_a_scope_cannot_be_given_together(self, researcher):
+        with pytest.raises(ValueError, match="owner"):
+            ProjectChoiceField(owner=researcher, scope="edit")
+
+    def test_the_multiple_field_narrowed_by_another_field_offers_only_its_records(
+        self, researcher, in_request, make_dataset, make_sample
+    ):
+        class InDatasetForm(forms.Form):
+            dataset = DatasetChoiceField(scope="edit", required=False)
+            samples = SampleMultipleChoiceField(depends_on="dataset")
+
+        chosen = make_dataset("Chosen", holder=researcher)
+        other = make_dataset("Other", holder=researcher)
+        inside = make_sample("Inside", dataset=chosen)
+        outside = make_sample("Outside", dataset=other)
+        in_request(researcher)
+
+        accepted = InDatasetForm({"dataset": chosen.pk, "samples": [inside.pk]})
+        refused = InDatasetForm({"dataset": chosen.pk, "samples": [outside.pk]})
+
+        assert accepted.is_valid(), accepted.errors
+        assert refused.has_error("samples", code="invalid_choice")
+
+    @pytest.mark.parametrize(
+        "field_class",
+        [
+            ProjectChoiceField,
+            ProjectMultipleChoiceField,
+            DatasetChoiceField,
+            SampleChoiceField,
+            PersonChoiceField,
+            OrganizationMultipleChoiceField,
+        ],
+    )
+    def test_a_rendered_field_waits_for_two_characters_and_throttles_loads_to_300_ms(
+        self, researcher, in_request, field_class
+    ):
+        in_request(researcher)
+
+        class RenderedForm(forms.Form):
+            record = field_class()
+
+        context = RenderedForm()["record"].field.widget.get_context("record", None, {})
+
+        assert context["widget"]["minimum_query_length"] == 2
+        assert context["widget"]["load_throttle"] == 300
