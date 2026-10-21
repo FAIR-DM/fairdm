@@ -13,11 +13,15 @@ private record exists, and the list it filters already decides what the person s
 can be changed per field, which is what lets a developer build a "my datasets" filter or a
 manager-only form.
 
-## D2. Someone who is not signed in gets public records
+## D2. A public list's filter offers public records to everyone
 
-The current django-autocomplete-light views return nothing to anyone not signed in. Public list
-filters are used by visitors, so that rule cannot stand. Public records are already readable by
-anyone, so offering them reveals nothing new.
+The maintainer's ruling: a public list, such as the portal's project or dataset list, shows public
+records to everyone, so its filters offer public records to everyone, signed in or not. A signed-in
+researcher gets no private records there, because the list would never show them. A list of one
+person's records, such as the projects on their profile, is different: that person sees their
+private records as well as the public ones, and everyone else sees the public ones only. Its filter
+follows the list. The current django-autocomplete-light views return nothing to anyone not signed
+in, which cannot stand for filters visitors use.
 
 ## D3. Visibility rules are taken as they are
 

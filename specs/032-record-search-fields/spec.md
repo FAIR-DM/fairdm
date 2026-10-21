@@ -90,6 +90,8 @@ The second is listed so that nothing built now rules any of it out.
 - Finding people and organizations outside the portal, through ORCID and ROR, to add them as new
   contributors.
 - Fields for licences and for places.
+- Filters on lists of one person's records, such as the projects on their profile, which use the
+  setting this feature provides for them.
 - Choosing records held by another portal (R29).
 - Ranked, typo-tolerant matching once R17 provides it.
 
@@ -118,10 +120,16 @@ putting it to him again. The longer reasoning is in [decisions.md](decisions.md)
 - Q: Which private records does a field offer? → A: It depends on what the field is for. A field
   that places a record inside another, such as the dataset a new sample goes into, offers the
   records the person may edit. A field that links to a record offers the records the person may
-  view. A filter on a list offers public records only. A developer can change any of these
-  defaults.
-- Q: What does someone who is not signed in get? → A: Public records only. A field that offers
-  only records the person may edit offers them nothing.
+  view. A filter on a public list, such as the portal's project or dataset list, offers public
+  records only. A developer can change any of these defaults.
+- Q: Does a signed-in researcher see their own private records in a public list's filter? → A: No.
+  A public list shows public records to everyone, so its filter offers public records to everyone,
+  signed in or not. Someone who is not signed in gets public records from every field, and nothing
+  from a field that offers only records the person may edit.
+- Q: What about a list of one person's records, such as the projects on their profile? → A: That
+  person sees their private records and their public ones, and everyone else sees the public ones
+  only. A filter on such a list offers the same: the person's private records when they are the
+  one viewing, and public records to anyone else.
 - Q: What counts as public? → A: The rules FairDM already applies when the feature is built. A
   project is public when its visibility is public. A dataset is public when it and its project are
   public. A sample or measurement is public when its dataset is public and published. Making these
@@ -202,8 +210,10 @@ that only that dataset's samples are offered.
 
 A visitor, signed in or not, filters the sample list by dataset. They search for datasets by name,
 tick several, and the list narrows to samples in any of them. The field offers public datasets
-only, so a filter on a public page never shows that a private record exists. The project, dataset
-and measurement lists filter by their related records the same way.
+only, to everyone, signed in or not, because the list itself shows only public records. The
+project, dataset and measurement lists filter by their related records the same way. On a list of
+one person's records, such as the projects on their profile, the filter also offers that person's
+private records when they are the one viewing it.
 
 **Why this priority**: Every list in the portal carries a related-record filter that loads every
 row today, and these are the fields most visitors use.
@@ -225,6 +235,10 @@ datasets, and check the list holds only their samples.
    is searched, **Then** it behaves as the sample list's dataset filter does.
 6. **Given** the project list, **When** a visitor searches its owner and contributor filters,
    **Then** organizations and people are offered and the list narrows to the ones ticked.
+7. **Given** a filter on a list of one person's records, **When** that person searches it, **Then**
+   their private records and the public ones are offered.
+8. **Given** the same filter, **When** anyone else searches it, **Then** only public records are
+   offered, including to someone who may view that person's private records elsewhere.
 
 ---
 
@@ -399,7 +413,8 @@ save.
   form, and MUST clear itself when that value changes. (US 2, US 4)
 - **FR-005**: A field that places a record inside another MUST default to offering private records
   the person may edit. A field that links to a record MUST default to offering records the person
-  may view. A filter on a list MUST default to offering public records only. (US 1, US 3, US 4)
+  may view. A filter on a public list MUST default to offering public records only, to everyone.
+  (US 1, US 3, US 4)
 - **FR-006**: Forms and filters that FairDM generates for a registered model MUST use these fields
   for related projects, datasets, samples and measurements, with no configuration from the
   developer. (US 3, US 4)
@@ -409,54 +424,57 @@ save.
 - **FR-007**: A field MUST NOT offer a record the person may not view, and MUST NOT offer a private
   record at a lower access level than the field needs. (US 1, US 3, US 4)
 - **FR-008**: Someone who is not signed in MUST be offered public records only. (US 3)
-- **FR-009**: A submitted value outside what the field would offer that person MUST be refused when
+- **FR-009**: A field MUST be able to offer one person's private records only when that person
+  is the one using it, and public records to everyone else, for filters on a list of that
+  person's records. (US 3, US 4)
+- **FR-010**: A submitted value outside what the field would offer that person MUST be refused when
   the form is validated, and nothing MUST be saved. A value already stored on the record is the
   exception: it is kept when submitted unchanged. (US 1, US 2)
-- **FR-010**: A field's address MUST accept only the narrowing its field allows, and MUST NOT offer
+- **FR-011**: A field's address MUST accept only the narrowing its field allows, and MUST NOT offer
   more because a request asked for it. (US 4)
-- **FR-011**: A stored link to a record the person cannot view MUST be shown as a private record
+- **FR-012**: A stored link to a record the person cannot view MUST be shown as a private record
   without its name. (US 1)
 
 **Matching and results**
 
-- **FR-012**: Project and dataset fields MUST match on name. Sample fields MUST match on name,
+- **FR-013**: Project and dataset fields MUST match on name. Sample fields MUST match on name,
   local ID and identifiers. Measurement fields MUST match on name and local ID. Person fields MUST
   match on name, alternative names and ORCID. Organization fields MUST match on name, alternative
   names and ROR identifier. (US 1, US 2, US 5)
-- **FR-013**: An exact match on an identifier MUST be offered first. (US 2, US 5, US 6)
-- **FR-014**: Results MUST be offered a page at a time, with further pages on request. (US 1)
-- **FR-015**: Record results MUST be grouped as the person's own records first, then public
+- **FR-014**: An exact match on an identifier MUST be offered first. (US 2, US 5, US 6)
+- **FR-015**: Results MUST be offered a page at a time, with further pages on request. (US 1)
+- **FR-016**: Record results MUST be grouped as the person's own records first, then public
   records, then any further records a portal-wide role lets them see. A record MUST appear once, in
   its first group. (US 1, US 4)
-- **FR-016**: Person results MUST be grouped as people the person has worked with first, then
+- **FR-017**: Person results MUST be grouped as people the person has worked with first, then
   everyone else. Organization results MUST be grouped as organizations the person belongs to
   first, then everyone else. Only records the person may open MUST count towards having worked
   with someone. (US 5)
-- **FR-017**: Each result MUST give the details that tell it apart: for a project, whether it is
+- **FR-018**: Each result MUST give the details that tell it apart: for a project, whether it is
   private; for a dataset, its project and whether it is private; for a sample or measurement, its
   type, local ID and dataset; for a person, their picture, primary affiliation and ORCID, and
   whether their profile is unclaimed; for an organization, its city, country and ROR identifier.
   (US 1, US 2, US 5)
-- **FR-018**: A person MUST NOT be found by, or shown with, an email address. (US 5)
+- **FR-019**: A person MUST NOT be found by, or shown with, an email address. (US 5)
 
 **Fields moved off the removed libraries**
 
-- **FR-019**: Every form and filter in FairDM that chooses a project, dataset, sample,
+- **FR-020**: Every form and filter in FairDM that chooses a project, dataset, sample,
   measurement, person or organization MUST use these fields, including the forms and filters
   listed under *Needs today*. (US 1, US 2, US 3, US 5)
-- **FR-020**: The dataset form's data publication field MUST be searchable by title, author and
+- **FR-021**: The dataset form's data publication field MUST be searchable by title, author and
   DOI, with an exact DOI first. (US 6)
-- **FR-021**: The tag field MUST offer tags already used in the portal and accept new ones. (US 7)
-- **FR-022**: The organization form's ROR lookup MUST search the ROR registry, and MUST let the form
+- **FR-022**: The tag field MUST offer tags already used in the portal and accept new ones. (US 7)
+- **FR-023**: The organization form's ROR lookup MUST search the ROR registry, and MUST let the form
   be saved when the registry does not answer. (US 8)
-- **FR-023**: The keyword filters and the contribution roles field MUST keep working without
+- **FR-024**: The keyword filters and the contribution roles field MUST keep working without
   django-autocomplete-light, until django-controlled-vocabularies provides a concept field. (US 3)
-- **FR-024**: Admin pages that use django-autocomplete-light or django-select2 MUST use the Django
+- **FR-025**: Admin pages that use django-autocomplete-light or django-select2 MUST use the Django
   admin's own `autocomplete_fields` instead. (US 4)
-- **FR-025**: django-autocomplete-light, django-select2 and django-addanother MUST NOT be
+- **FR-026**: django-autocomplete-light, django-select2 and django-addanother MUST NOT be
   dependencies of FairDM. `fairdm.contrib.autocomplete`, its addresses and the Selectize widget
   MUST be removed. (US 4)
-- **FR-026**: The developer documentation MUST describe each field, its settings and its defaults,
+- **FR-027**: The developer documentation MUST describe each field, its settings and its defaults,
   and every page that documents a removed widget MUST be updated in the same pull request. (US 4)
 
 ### Key Entities
