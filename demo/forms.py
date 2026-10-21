@@ -164,6 +164,7 @@ from demo.models import RockSample, WaterSample
 from fairdm.contrib.autocomplete.fields import (
     DatasetChoiceField,
     ProjectChoiceField,
+    SampleChoiceField,
 )
 from fairdm.core.sample.forms import SampleFormMixin
 from fairdm.forms import ModelForm
@@ -555,3 +556,28 @@ class WaterSampleForm(SampleFormMixin, ModelForm):
             "image": _("Optional photo of the water sample or sampling location."),
             "tags": _("Keywords or tags for categorization."),
         }
+
+
+class SampleReferenceFormExample(forms.Form):
+    """Example form that picks one rock sample, with the sample field narrowed to a type.
+
+    This form shows how to:
+    1. Choose a sample among the ones the user may view, with no view or address of your own
+    2. Keep the field to one registered sample type with ``type=``
+
+    Pattern Usage:
+        Build it inside a request, so the field knows who is choosing:
+
+        ```python
+        form = SampleReferenceFormExample(request.POST)
+        ```
+
+    Attributes:
+        rock_sample: A rock sample the user may view. A sample of any other type is refused.
+    """
+
+    rock_sample = SampleChoiceField(
+        type=RockSample,
+        label=_("Rock sample"),
+        help_text=_("Search by name, local ID or IGSN. Only rock samples are offered."),
+    )
