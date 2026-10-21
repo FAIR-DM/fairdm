@@ -6,6 +6,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 from mvp_forms.widgets import ImageInput
 
+from fairdm.contrib.autocomplete.fields import OrganizationChoiceField
 from fairdm.contrib.contributors.models import Organization
 from fairdm.core.choices import ProjectStatus
 from fairdm.core.forms import ManagerOnlyFieldsMixin
@@ -63,11 +64,9 @@ class ProjectForm(ManagerOnlyFieldsMixin, ModelForm):
         help_text=_("Who can view this project?"),
         widget=forms.RadioSelect(attrs={"class": "form-check-input"}),
     )
-    owner: forms.ModelChoiceField = forms.ModelChoiceField(
+    owner = OrganizationChoiceField(
         label=_("Owner organization"),
-        queryset=None,
         help_text=_("The organization that owns this project."),
-        widget=forms.Select(attrs={"class": "form-control"}),
         required=False,
     )
 

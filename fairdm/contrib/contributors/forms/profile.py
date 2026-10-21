@@ -1,7 +1,6 @@
 """The forms a person or an organization is edited with, and the field their lists are typed into."""
 
 from crispy_forms.layout import Div, Fieldset, Layout
-from dal import autocomplete
 from django import forms
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.core.validators import FileExtensionValidator, URLValidator
@@ -9,6 +8,7 @@ from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy as _
 from mvp_forms.widgets import ImageInput
 
+from fairdm.contrib.autocomplete.fields import OrganizationChoiceField
 from fairdm.core import image_utils
 from fairdm.forms import ModelForm
 from fairdm.utils.location.forms import LocationField
@@ -331,12 +331,10 @@ class OrganizationProfileForm(ProfileForm):
         label=_("Alternative names"),
         help_text=_("Other names the organization is known by, one per line."),
     )
-    parent = forms.ModelChoiceField(
-        queryset=Organization.objects.all(),
+    parent = OrganizationChoiceField(
         required=False,
         label=_("Part of"),
         help_text=_("The organization this one belongs to, if any."),
-        widget=autocomplete.ModelSelect2(url="autocomplete:organization"),
     )
     location = LocationField(
         full=False,
@@ -409,6 +407,9 @@ class OrganizationProfileForm(ProfileForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # A form built outside a request serves no person and accepts every organization.
+        if "parent" in self.fields:
+            self.fields["parent"].queryset = Organization.objects.all()
         stored = self.instance.links or []
         if "website" in self.fields:
             self.initial["website"] = stored[0] if stored else ""

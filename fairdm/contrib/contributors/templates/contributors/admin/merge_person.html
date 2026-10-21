@@ -1,6 +1,8 @@
 {% extends "admin/base_site.html" %}
 {% load i18n %}
 
+{% block extrahead %}{{ block.super }}{{ form.media }}{% endblock %}
+
 {% block content %}
 <div class="mb-4">
   <h2>{% blocktrans with name=person.get_full_name %}Merge Person: {{ name }}{% endblocktrans %}</h2>

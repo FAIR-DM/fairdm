@@ -30,6 +30,8 @@ from .views import (
     SCOPES,
     DatasetAutocompleteView,
     MeasurementAutocompleteView,
+    OrganizationAutocompleteView,
+    PersonAutocompleteView,
     ProjectAutocompleteView,
     SampleAutocompleteView,
 )
@@ -180,6 +182,7 @@ class RecordFieldMixin:
     Attributes:
         view_class: The record view that decides what is offered.
         kind: The kind of record, as it appears in the view's address.
+        scopes: The scopes the kind offers. A person or an organization is offered at one.
         default_scope: The scope used when none is given.
         multiple: Whether the field chooses several records.
         label: The field's label when none is given.
@@ -192,6 +195,7 @@ class RecordFieldMixin:
     view_class = None
     given_request = None
     kind = ""
+    scopes = SCOPES
     default_scope = "view"
     multiple = False
     label = ""
@@ -200,8 +204,10 @@ class RecordFieldMixin:
 
     def __init__(self, *args, scope=None, depends_on=None, **kwargs):
         scope = scope or self.default_scope
-        if scope not in SCOPES:
-            raise ValueError(f"scope must be one of {', '.join(SCOPES)}, not {scope!r}")
+        if scope not in self.scopes:
+            raise ValueError(
+                f"scope must be one of {', '.join(self.scopes)}, not {scope!r}"
+            )
         allowed = self.view_class.allowed_filter_fields
         if depends_on and depends_on not in allowed:
             raise ValueError(
@@ -392,7 +398,9 @@ class RecordMultipleChoiceFieldMixin(RecordFieldMixin):
         return forms.ModelMultipleChoiceField.clean(self, value)
 
 
-def record_fields(view_class, kind, *, label, one_label, any_label, count_text):
+def record_fields(
+    view_class, kind, *, label, one_label, any_label, count_text, scopes=SCOPES
+):
     """Make the single and the multiple field that choose one kind of record.
 
     Args:
@@ -402,6 +410,8 @@ def record_fields(view_class, kind, *, label, one_label, any_label, count_text):
         one_label: The placeholder of the single field.
         any_label: The placeholder of the multiple field.
         count_text: The plural word shown beside the number the multiple field has chosen.
+        scopes: The scopes the kind offers. The single field defaults to ``view`` where the
+            kind offers it, and the multiple field to ``public``.
 
     Returns:
         The single field class and the multiple field class.
@@ -411,6 +421,7 @@ def record_fields(view_class, kind, *, label, one_label, any_label, count_text):
         "kind": kind,
         "label": label,
         "count_text": count_text,
+        "scopes": scopes,
     }
     noun = kind.capitalize()
     single = type(
@@ -418,6 +429,7 @@ def record_fields(view_class, kind, *, label, one_label, any_label, count_text):
         (RecordChoiceFieldMixin, TomSelectModelChoiceField),
         {
             **shared,
+            "default_scope": "view" if "view" in scopes else scopes[0],
             "placeholder": one_label,
             "widget_class": RecordSelectWidget,
             "__doc__": f"Choose one {kind}.",
@@ -468,4 +480,22 @@ MeasurementChoiceField, MeasurementMultipleChoiceField = record_fields(
     one_label=_("Choose a measurement"),
     any_label=_("Any measurement"),
     count_text=_("measurements"),
+)
+PersonChoiceField, PersonMultipleChoiceField = record_fields(
+    PersonAutocompleteView,
+    "person",
+    label=_("Person"),
+    one_label=_("Choose a person"),
+    any_label=_("Any person"),
+    count_text=_("people"),
+    scopes=("public",),
+)
+OrganizationChoiceField, OrganizationMultipleChoiceField = record_fields(
+    OrganizationAutocompleteView,
+    "organization",
+    label=_("Organization"),
+    one_label=_("Choose an organization"),
+    any_label=_("Any organization"),
+    count_text=_("organizations"),
+    scopes=("public",),
 )

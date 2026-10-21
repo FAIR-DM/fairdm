@@ -2,21 +2,19 @@
 
 from django import forms
 from django.core.exceptions import ValidationError
-from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
-from django_addanother.widgets import AddAnotherWidgetWrapper
-from django_select2.forms import HeavySelect2MultipleWidget, HeavySelect2Widget
+from mvp_forms.widgets import TomSelectMultiple
 from research_vocabs.models import Concept
 
+from fairdm.contrib.autocomplete.fields import OrganizationChoiceField
 from fairdm.contrib.contributors.models import (
     Contribution,
-    Contributor,
     Organization,
     Person,
 )
-from fairdm.forms import Form, ModelForm
+from fairdm.forms import ModelForm
 
-from .widgets import ContributorSelect2Widget, OrcidInputWidget
+from .widgets import OrcidInputWidget
 
 
 class PersonCreateForm(ModelForm):
@@ -44,17 +42,10 @@ class PersonCreateForm(ModelForm):
             "Search for ORCIDs at https://orcid.org/orcid-search/search"
         ),
     )
-    affiliations = forms.ModelChoiceField(
-        queryset=Organization.objects.all(),
+    affiliations = OrganizationChoiceField(
         required=False,
         label=_("Affiliation"),
-        help_text=_(
-            "Select the contributor's organizational affiliation. Use the + button to add a new organization if needed."
-        ),
-        widget=AddAnotherWidgetWrapper(
-            HeavySelect2Widget(data_view="organization-autocomplete"),
-            reverse_lazy("organization-add"),
-        ),
+        help_text=_("Select the contributor's organizational affiliation."),
     )
     is_primary = forms.BooleanField(
         required=False,
@@ -89,6 +80,8 @@ class PersonCreateForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.action = self.data.get("action") if self.data else None
+        # A form built outside a request serves no person and accepts every organization.
+        self.fields["affiliations"].queryset = Organization.objects.all()
 
     def clean_first_name(self):
         """Require a first name when adding manually."""
@@ -128,11 +121,8 @@ class PersonCreateForm(ModelForm):
         self.instance = super().save(commit)
         affiliations = self.cleaned_data.get("affiliations")
         if commit and affiliations:
-            is_primary = self.cleaned_data.get("is_primary", False)
-            is_current = is_primary or self.cleaned_data.get("is_current", False)
             self.instance.affiliations.create(
-                is_primary=is_primary,
-                is_current=is_current,
+                is_primary=self.cleaned_data.get("is_primary", False),
                 organization=affiliations,
             )
         return self.instance
@@ -154,7 +144,12 @@ class UpdateContributionForm(ModelForm):
 
     roles = forms.ModelMultipleChoiceField(
         queryset=Concept.objects.none(),
-        widget=HeavySelect2MultipleWidget(data_view="concept-autocomplete"),
+        widget=TomSelectMultiple(
+            counted=True,
+            placeholder=_("Select roles"),
+            none_text=_("No roles"),
+            count_text=_("roles"),
+        ),
     )
     affiliation = forms.ModelChoiceField(
         queryset=Person.objects.real(),
@@ -185,31 +180,3 @@ class UpdateContributionForm(ModelForm):
         ).filter(name__in=self.base_object.CONTRIBUTOR_ROLES.values)
         self.fields["roles"].queryset = roles_qs
         self.fields["roles"].choices = roles_qs.values_list("id", "label")
-
-
-class QuickAddContributionForm(Form):
-    """Add several contributors to an object at once.
-
-    Args:
-        base_object: The object the contributors are added to.
-        *args: Passed to ``Form``.
-        **kwargs: Passed to ``Form``.
-
-    Attributes:
-        contributors: The contributors to add.
-    """
-
-    contributors = forms.ModelMultipleChoiceField(
-        queryset=Contributor.objects.all(),
-        required=True,
-        label=_("Contributors"),
-        help_text=_("Search and select contributors to add. Type to search."),
-        widget=ContributorSelect2Widget,
-    )
-
-    class Meta:
-        fields = ["contributors"]
-
-    def __init__(self, base_object, *args, **kwargs):
-        self.base_object = base_object
-        super().__init__(*args, **kwargs)

@@ -1129,3 +1129,25 @@ class TestContributorAdminSmoke:
             response = admin_client.get(url)
             expected = self.EXPECTED_CHANGE_STATUS[opts.model_name]
             assert response.status_code == expected, f"{model.__name__} change"
+
+
+@pytest.mark.django_db
+class TestPersonChoicesInTheAdmin:
+    def test_the_new_owner_is_chosen_with_the_person_field(self):
+        from fairdm.contrib.autocomplete.fields import PersonChoiceField
+        from fairdm.contrib.contributors.admin import OrganizationActionForm
+
+        field = OrganizationActionForm().fields["new_owner"]
+
+        assert isinstance(field, PersonChoiceField)
+
+    def test_the_merge_page_carries_the_scripts_of_the_target_field(
+        self, admin_client, unclaimed_person
+    ):
+        url = reverse("admin:contributors_person_merge", args=[unclaimed_person.pk])
+
+        response = admin_client.get(url)
+
+        media = str(response.context["form"].media)
+        assert media
+        assert media in response.content.decode()

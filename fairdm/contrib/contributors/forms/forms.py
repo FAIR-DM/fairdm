@@ -1,9 +1,10 @@
 """Inline formsets and forms for identifiers and affiliations."""
 
-from dal import autocomplete
 from django import forms
 from django.forms.models import BaseInlineFormSet
 from django.utils.translation import gettext_lazy as _
+
+from fairdm.contrib.autocomplete.fields import OrganizationChoiceField
 
 from ..models import Affiliation, ContributorIdentifier, Organization, Person
 
@@ -87,12 +88,15 @@ class AffiliationForm(forms.ModelForm):
         organization: The organisation joined.
     """
 
-    organization = forms.ModelChoiceField(
-        queryset=Organization.objects.all(),
+    organization = OrganizationChoiceField(
         label=_("Organization"),
         help_text=_("Select an organization."),
-        widget=autocomplete.ModelSelect2(url="autocomplete:organization"),
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # A form built outside a request serves no person and accepts every organization.
+        self.fields["organization"].queryset = Organization.objects.all()
 
     def save(self, commit=True):
         """Set the type of a new affiliation, then save."""

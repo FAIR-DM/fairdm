@@ -11,6 +11,7 @@ from django.utils.translation import gettext_lazy as _
 from hijack.contrib.admin import HijackUserAdminMixin
 from import_export.admin import ImportExportModelAdmin
 
+from fairdm.contrib.autocomplete.fields import PersonChoiceField
 from fairdm.db import models
 
 from .models import (
@@ -579,11 +580,7 @@ class OrganizationActionForm(ActionForm):
         new_owner: The person to become owner.
     """
 
-    new_owner = forms.ModelChoiceField(
-        queryset=Person.objects.all(),
-        required=False,
-        label=_("New owner"),
-    )
+    new_owner = PersonChoiceField(required=False, label=_("New owner"))
 
 
 @admin.register(Organization)
