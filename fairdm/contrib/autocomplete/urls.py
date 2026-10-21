@@ -3,6 +3,7 @@
 from django.urls import path
 
 from .views import (
+    SCOPES,
     ConceptAutocomplete,
     ContributorAutocomplete,
     DatasetAutocompleteView,
@@ -23,9 +24,6 @@ RECORD_VIEWS = {
     "project": ProjectAutocompleteView,
     "dataset": DatasetAutocompleteView,
 }
-
-#: Scope is part of the address, so a request can never widen what an address offers.
-SCOPES = ("public", "view", "edit")
 
 for _kind, _view in RECORD_VIEWS.items():
     for _scope in SCOPES:

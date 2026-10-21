@@ -150,6 +150,9 @@ class OrganizationAutocomplete(autocomplete.Select2QuerySetView):
         return result.label or result.name
 
 
+#: Scope is part of the address, so a request can never widen what an address offers.
+SCOPES = ("public", "view", "edit")
+
 #: The ranks that order a page of records into its groups.
 OWN, PUBLIC, OTHER = 0, 1, 2
 

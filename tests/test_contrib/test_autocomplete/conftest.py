@@ -95,3 +95,23 @@ def make_record(make_dataset, make_project):
         return builders[kind](name, visibility=Visibility.PUBLIC, holder=holder)
 
     return make_record
+
+
+@pytest.fixture
+def in_request(rf):
+    """Return a function that makes a request the current one, as the middleware does.
+
+    A field finds the person through the current request, so a form built in a test is built
+    inside one.
+    """
+    from django_tomselect.middleware import _request_local
+
+    def enter(user, **query):
+        request = rf.get("/some/page/", query)
+        request.user = user
+        _request_local.request = request
+        return request
+
+    yield enter
+    if hasattr(_request_local, "request"):
+        del _request_local.request
