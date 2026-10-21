@@ -20,13 +20,57 @@ to add one to a form, see [How to add a record field to a form](add-a-record-fie
 ## Arguments
 
 Both fields take the arguments of Django's `ModelChoiceField` and `ModelMultipleChoiceField`,
-except `queryset`, which the field decides, and two more.
+except `queryset`, which the field decides, and five more.
 
 | Argument | Default | Meaning |
 |---|---|---|
-| `scope` | `"view"` for a single field, `"public"` for a multiple field | What the person must be able to do with a record for the field to offer it. |
+| `scope` | `"view"` | What the person must be able to do with a record for the field to offer it. A field that places a record inside another needs `"edit"`. A filter on a public list passes `"public"`. |
+| `owner` | none | A person, or a person's primary key. The field then offers the records that person is credited on, and their private ones only when they are the one using the field. Cannot be given with `scope`. Not for people or organizations. |
+| `type` | none | A registered sample or measurement model. The field then offers and accepts that type only. Samples and measurements only; any other model raises `ValueError`. |
 | `depends_on` | none | The name of another field on the same form. The field then offers only the records that belong to the value chosen in that field. Samples and measurements accept `"dataset"`. |
 | `prefer` | none | The name of another field on the same form. The field then lists the records that belong to the value chosen in that field first, in a group of their own, and offers the rest after them. It narrows nothing and changes nothing the field accepts. Samples and measurements accept `"dataset"`. |
+
+## Examples
+
+One field of each kind on a form. Each line works as written in a form built inside a request.
+
+```python
+from django import forms
+
+from demo.models import RockSample
+from fairdm.contrib.autocomplete.fields import (
+    DatasetChoiceField,
+    MeasurementChoiceField,
+    OrganizationMultipleChoiceField,
+    PersonChoiceField,
+    ProjectChoiceField,
+    ProjectMultipleChoiceField,
+    PublicationChoiceField,
+    RorChoiceField,
+    SampleChoiceField,
+    TagsField,
+)
+
+
+class EveryFieldForm(forms.Form):
+    # A record this form places something inside needs edit access.
+    dataset = DatasetChoiceField(scope="edit")
+    # A link to a record needs view access, the default.
+    project = ProjectChoiceField()
+    # Several projects, public ones only.
+    projects = ProjectMultipleChoiceField(scope="public")
+    # Only samples of one registered type, found by name, local ID or identifier.
+    rock_sample = SampleChoiceField(type=RockSample)
+    # Only the samples of the dataset chosen in the field above.
+    sample = SampleChoiceField(depends_on="dataset")
+    # The measurement is listed after the ones in the chosen dataset.
+    measurement = MeasurementChoiceField(prefer="dataset")
+    person = PersonChoiceField()
+    organizations = OrganizationMultipleChoiceField()
+    reference = PublicationChoiceField()
+    keywords = TagsField(allow_new=True)
+    ror = RorChoiceField()
+```
 
 ## Filters
 
@@ -61,7 +105,7 @@ Data Curator role does.
 
 ## People and organizations
 
-The person and organization fields take `scope` and `depends_on` like the others, but a person or
+The person and organization fields take `scope` like the others, but a person or
 an organization is public information, so they are offered at the `"public"` scope only and a
 different scope raises `ValueError`. Neither accepts `depends_on` or `prefer`.
 
@@ -83,6 +127,43 @@ A person's row shows their picture or initials, their primary affiliation and th
 marks a person nobody has claimed. An organization's row shows its city and country and no
 identifier. A person's result carries `unclaimed`, `true` when nobody has claimed the profile. A
 person's `detail` is the name of their primary affiliation, and an organization's is its place.
+
+## One person's records
+
+A field given `owner` offers the records one person is credited on, for a filter on a list of that
+person's records, such as the projects on their profile. The records are the ones the person holds at
+least the view level on, on the record itself or on a record above it. Their private records are
+offered only when the person using the field is that person. Everyone else, including someone who
+may view those private records elsewhere, is offered the public ones. The field is served by the
+profile address of its kind and sends the owner's key with each search, and it validates what it is
+sent by the same rule.
+
+```python
+from fairdm.contrib.autocomplete.fields import ProjectMultipleChoiceField
+
+
+projects = ProjectMultipleChoiceField(owner=person)
+```
+
+`owner` is a value of the page being shown, so a filter set creates the field when the page is
+built and replaces the one it declares. Giving `owner` together with `scope`, or to a person or
+organization field, raises `ValueError`.
+
+## A registered sample or measurement type
+
+A sample or measurement field given `type` offers, and accepts, samples or measurements of that
+registered type and no other. The address is told to filter by the type, and the form refuses a
+record of another type with `invalid_choice`.
+
+```python
+from demo.models import RockSample
+from fairdm.contrib.autocomplete.fields import SampleChoiceField
+
+rock_sample = SampleChoiceField(type=RockSample)
+```
+
+`type` must be a subclass of the kind's model. A project or dataset field, or a model of another
+kind, raises `ValueError` when the field is created.
 
 ## Publications
 
@@ -220,8 +301,9 @@ listed first.
 ## Addresses
 
 There is one address for each kind and scope, under the `autocomplete` namespace:
-`autocomplete:project-public`, `autocomplete:project-view`, `autocomplete:project-edit`, and the
-same three for `dataset`, `sample` and `measurement`. Tags have `autocomplete:tag-public` and
+`autocomplete:project-public`, `autocomplete:project-view`, `autocomplete:project-edit`,
+`autocomplete:project-profile`, and the same four for `dataset`, `sample` and `measurement`. The
+profile address offers the records of the person named by its `owner` parameter. Tags have `autocomplete:tag-public` and
 `autocomplete:tag-view`, and publications have `autocomplete:publication`. ROR has `autocomplete:ror`. People and organizations have one address
 each, `autocomplete:person-public` and `autocomplete:organization-public`. The scope belongs to
 the address, so a request cannot widen it.
@@ -240,7 +322,7 @@ A search that fails answers with status 500 and an empty list, and nothing else.
 
 ## Request rates
 
-Each address limits a caller with four throttles. A signed-in caller is counted by account and
+Each address limits a caller with four throttles. For what to set, see [Limits on the API](../portal-administration/api-limits.md#limits-on-the-search-fields). A signed-in caller is counted by account and
 anyone else by network address. A caller over a limit is answered with status 429, a `Retry-After`
 header and an empty list, before anything is searched.
 

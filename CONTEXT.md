@@ -227,6 +227,17 @@ static files, then serve with gunicorn. A step that fails stops the start with i
 exit status and the server never runs. Given `worker`, the same image starts a Celery worker
 and runs none of those steps. Implemented by `docker/entrypoint.sh`.
 
+### Autocomplete field
+
+A form field, or a list filter, that chooses a project, dataset, sample, measurement, person or
+organization by searching for it, and offers only what the person using it may reach. There are
+two kinds, and the difference is what the choice does. A field that **places a record inside
+another** (a sample's dataset, a dataset's project) changes who holds rights over the record, so it
+offers only records the person may edit. A field that **links to** a record (a measurement's
+sample, a dataset's data publication) only names it, so it offers the records the person may view.
+A filter on a public list offers public records only, to everyone. Defined by
+`fairdm.contrib.autocomplete.fields`.
+
 ## Standing principles
 
 1. **Configuration over code.** The registry handles plumbing; research teams write model classes.

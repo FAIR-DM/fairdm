@@ -24,7 +24,8 @@ see [Record fields](record-fields.md).
    ```python
    from django import forms
 
-   from myapp.models import RockSample
+   from demo.models import RockSample
+   from fairdm.contrib.autocomplete.fields import DatasetChoiceField
 
 
    class RockSampleForm(forms.ModelForm):
@@ -47,15 +48,62 @@ see [Record fields](record-fields.md).
 4. Save the form. The sample belongs to the dataset that was chosen, and a dataset the person may
    not edit is refused with the field's `invalid_choice` error.
 
-To choose several records, use the multiple field. It offers public records by default, which
-suits a filter, so pass `scope="edit"` when the form changes the records it chooses.
+To choose several records, use the multiple field. It takes the same arguments and offers the same
+records as the single field: the ones the person may view, unless you pass `scope`.
 
 ```python
+from django import forms
+
 from fairdm.contrib.autocomplete.fields import ProjectMultipleChoiceField
 
 
 class ProjectPickerForm(forms.Form):
-    projects = ProjectMultipleChoiceField(scope="view")
+    projects = ProjectMultipleChoiceField()
+```
+
+## Keep a sample field to one type
+
+To offer only the samples of one registered type, pass the model as `type`. A sample of any other
+type is refused when the form is saved.
+
+```python
+from django import forms
+
+from demo.models import RockSample
+from fairdm.contrib.autocomplete.fields import SampleChoiceField
+
+
+class CompareRocksForm(forms.Form):
+    rock_sample = SampleChoiceField(type=RockSample)
+```
+
+The demo portal has this form as `SampleReferenceFormExample` in `demo/forms.py`.
+
+## Narrow a field by another field
+
+To offer only the samples of the dataset chosen in another field of the form, pass that field's
+name as `depends_on`. To list those samples first and still offer the rest, pass it as `prefer`.
+
+```python
+from django import forms
+
+from fairdm.contrib.autocomplete.fields import DatasetChoiceField, SampleChoiceField
+
+
+class MeasurementPlacementForm(forms.Form):
+    dataset = DatasetChoiceField(scope="edit")
+    sample = SampleChoiceField(depends_on="dataset")
+```
+
+## Offer one person's records
+
+On a page that lists one person's records, give the field that person as `owner`. It offers their
+private records to them and public records to everyone else.
+
+```python
+from fairdm.contrib.autocomplete.fields import ProjectMultipleChoiceField
+
+projects = ProjectMultipleChoiceField(owner=person)
 ```
 
 ## Filter a list by a record
@@ -67,6 +115,7 @@ public scope, so a visitor and a signed-in researcher are offered the same publi
 ```python
 import django_filters
 
+from demo.models import RockSample
 from fairdm.contrib.autocomplete.fields import DatasetMultipleChoiceField
 from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
 
