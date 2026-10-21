@@ -36,7 +36,9 @@ form saved without changes keeps the value it had.
 
 The model fields pick their form field themselves: `fairdm.forms.fields.QuantityFormField`,
 `IntegerQuantityFormField` or `DecimalQuantityFormField`. Each is django-pint's form field of the
-same name, changed only in how it shows a stored value.
+same name, changed only in how it shows a stored value. That change is
+`fairdm.forms.fields.QuantityFormFieldMixin`, which a form field built on another of
+django-pint's quantity form fields can mix in for the same behaviour.
 
 ## ConceptField
 
