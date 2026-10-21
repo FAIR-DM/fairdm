@@ -139,7 +139,7 @@
         <c-tabs.tab group="add-person-via" label="{% translate 'New person' %}" :checked="adding.on_new">
           <div id="tab-new" class="flex flex-col gap-4">
             {% if adding.same_name %}
-              <c-alert variant="warning" soft>
+              <c-alert variant="warning" icon="warning" soft>
                 <div>
                   <p class="font-semibold">{% translate "Someone with this name is already in the portal." %}</p>
                   <p>{% translate "If they are who you mean, find them on the first tab so their work stays on one profile. Otherwise make the new profile." %}</p>
@@ -159,7 +159,7 @@
               <input type="hidden" name="via" value="new" />
               {% if adding.same_name %}<input type="hidden" name="confirmed" value="1" />{% endif %}
               {% if adding.on_new and adding.errors %}
-                <c-alert variant="error" soft>
+                <c-alert variant="error" icon="error" soft>
                   <div>
                     <p class="font-semibold">{% translate "Nothing was added." %}</p>
                     <ul>{% for field, error in adding.errors.items %}<li>{{ error }}</li>{% endfor %}</ul>

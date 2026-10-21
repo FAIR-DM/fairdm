@@ -122,7 +122,7 @@
         <c-tabs.tab group="add-organization-via" label="{% translate 'New organization' %}" :checked="adding.on_new">
           <div id="tab-new" class="flex flex-col gap-4">
             {% if adding.same_name %}
-              <c-alert variant="warning" soft>
+              <c-alert variant="warning" icon="warning" soft>
                 <div>
                   <p class="font-semibold">{% translate "An organization with this name is already in the portal." %}</p>
                   <p>{% translate "Add that one if it is the one you mean." %}</p>
@@ -146,7 +146,7 @@
                 {% csrf_token %}
                 <input type="hidden" name="via" value="new" />
                 {% if adding.errors %}
-                  <c-alert variant="error" soft>
+                  <c-alert variant="error" icon="error" soft>
                     <div>
                       <p class="font-semibold">{% translate "Nothing was added." %}</p>
                       <ul>{% for field, error in adding.errors.items %}<li>{{ error }}</li>{% endfor %}</ul>
