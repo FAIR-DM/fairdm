@@ -238,27 +238,60 @@
               "tests/test_contrib/test_autocomplete/test_views.py::TestSampleAutocompleteView,tests/test_contrib/test_autocomplete/test_views.py::TestMeasurementAutocompleteView"
             ],
             "commands": [
-              "uv run pytest -q -n0 tests/test_contrib/test_autocomplete/test_views.py::TestSampleAutocompleteView tests/test_contrib/test_autocomplete/test_views.py::TestMeasurementAutocompleteView"
+              "uv run pytest -q -n0 tests/test_contrib/test_autocomplete/test_views.py"
             ],
             "code": [
-              "fairdm/contrib/autocomplete/views.py:480"
+              "fairdm/contrib/autocomplete/views.py:519"
             ]
           }
         },
         {
           "id": "T010",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_autocomplete/test_fields.py::TestDependentFields,tests/test_core/test_measurement/test_forms.py::TestMeasurementSampleField"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_autocomplete/test_fields.py tests/test_core/test_measurement/test_forms.py"
+            ],
+            "code": [
+              "fairdm/contrib/autocomplete/fields.py:269"
+            ]
+          }
         },
         {
           "id": "T011",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_autocomplete/test_views.py,tests/test_contrib/test_autocomplete/test_fields.py"
+            ],
+            "commands": [
+              "uv run python manage.py check"
+            ],
+            "code": [
+              "fairdm/contrib/autocomplete/fields.py:449"
+            ]
+          }
         },
         {
           "id": "T012",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_autocomplete/test_fields.py::TestDependentFields"
+            ],
+            "commands": [
+              "docs example mirrors TestDependentFields.DependentSampleForm"
+            ],
+            "code": [
+              "docs/portal-development/record-fields.md:38"
+            ]
+          }
         }
       ]
     },

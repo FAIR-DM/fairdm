@@ -66,3 +66,24 @@ Did: SampleAutocompleteView and MeasurementAutocompleteView over a shared base f
 Verified: pytest test_views.py full file 140 passed; the two new classes 12 passed. ruff clean.
 Next: T010 dependent fields and the measurement form move.
 Watch: django-tomselect empties value_fields on a subclass that does not set it on its own class, so each concrete view names DATASET_RECORD_FIELDS itself.
+
+## 2026-10-21T13:10:28Z · Implementer US2 · T010
+
+Did: depends_on on the record fields (filter hook for the widget, narrowing read from the bound form's data, refused value that is not a key); SampleChoiceField, MeasurementChoiceField and their multiple pairs; MeasurementFormMixin.sample now SampleChoiceField(depends_on='dataset').
+Verified: test_fields.py and test_measurement/test_forms.py: 49 passed, 1 failed (pre-existing test_form_handles_cross_dataset_sample_reference, which contradicts AS 2.5; not edited).
+Next: T011 check, T012 docs.
+Watch: the pre-existing cross-dataset test; docs still describe cross-dataset measurements.
+
+## 2026-10-21T13:10:28Z · Implementer US2 · T011
+
+Did: nothing further beyond T010's field pairs and form move; ran the project check.
+Verified: manage.py check: no issues.
+Next: T012 docs.
+Watch: none.
+
+## 2026-10-21T13:10:28Z · Implementer US2 · T012
+
+Did: record-fields.md gains the sample and measurement fields, depends_on with an example, the row keys and the filters; measurements.md describes the form's dataset and sample fields as they now are.
+Verified: the example mirrors DependentSampleForm in TestDependentFields, which passes.
+Next: full verify and report.
+Watch: managing-measurements.md and the cross-dataset lines of measurements.md left as they were, pending a ruling.

@@ -154,3 +154,26 @@ The two classes that only checked the add-another URL were removed with the wrap
 Nothing else in those files was touched.
 
 **Revisit if**: a reviewer wants the registry and config tests kept for the generated-form story.
+
+## D17. Each concrete record view names its own value_fields
+
+**Decision**: `SampleAutocompleteView` and `MeasurementAutocompleteView` each set
+`value_fields = DATASET_RECORD_FIELDS` on their own class, not on their shared base.
+
+**Why**: django-tomselect's `__init_subclass__` replaces `value_fields` with an empty list on any
+subclass that does not set it in its own `__dict__`, so a base class's list never reaches the
+concrete view and the rows came back without type, local ID or dataset.
+
+**Revisit if**: django-tomselect inherits the list.
+
+## D18. The measurement form refuses a sample of another dataset
+
+**Decision**: `MeasurementFormMixin.sample` is `SampleChoiceField(depends_on="dataset")`, which
+accepts only a sample of the dataset submitted with the form (AS 2.5). The older test
+`test_form_handles_cross_dataset_sample_reference` and the portal docs on cross-dataset
+measurements assume the opposite. The test was not edited and now fails.
+
+**Why**: the brief and AS 2.5 require the refusal; the test is not one this story may change.
+
+**Revisit if**: cross-dataset measurements are to stay possible through forms. Then `depends_on` for
+the measurement's sample is dropped, or the old test and docs are rewritten.
