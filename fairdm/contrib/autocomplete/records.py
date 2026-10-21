@@ -343,8 +343,6 @@ class OrganizationAutocomplete(ContributorAutocomplete):
             {
                 "contributor": organization,
                 "place": place,
-                "identifier": organization.identifiers.filter(type="ROR").first(),
-                "identifier_icon": "ror",
             },
         )
 

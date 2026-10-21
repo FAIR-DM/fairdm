@@ -52,7 +52,7 @@
 - A result is drawn on the server, from `autocomplete/record_option.html` and
   `autocomplete/contributor_option.html`, and sent as HTML. FairDM's copy of django-tomselect's
   `render/option.html` shows that HTML as it is. A person and an organization use
-  `c-contributor.avatar` and the affiliation line's organization icon, with no links inside the row.
+  `c-contributor.avatar`, with no links inside the row.
 - The tag field takes `allow_new`. A form that records tags turns it on, and a filter by tags
   leaves it off.
 - django-tomselect shows its own red error box when a search fails, in fixed colours outside the
@@ -83,8 +83,9 @@
 ## What was ruled by eye
 
 - Multiple fields show a count, never chips. Chips are only for tag fields (round 1).
-- A person's ORCID sits on its own line beneath their affiliation. An organization's ROR sits
-  beneath its place (round 1).
+- A person's ORCID sits on its own line beneath their affiliation (round 1). The affiliation is
+  plain text with no icon (round 2).
+- An organization shows its place and no ROR (round 2).
 - Result text starts at the left of the row (round 1).
 - Adding a new tag is allowed in forms and never in filters (round 1).
 - A search needs two characters, and the first page loads when a field opens (round 1).
