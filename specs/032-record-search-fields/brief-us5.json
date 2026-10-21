@@ -1,0 +1,102 @@
+{
+ "story": "US5",
+ "issue": 548,
+ "repo": "FAIR-DM/fairdm",
+ "worktree": "/home/sam/projects/worktrees/fairdm-032",
+ "required_skills": [
+  {
+   "name": "craft-tdd",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+   "receipt": "craft-tdd/2026-09-28/b19e4d07"
+  },
+  {
+   "name": "craft-increments",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+   "receipt": "craft-increments/2026-10-15/1ffa47c3"
+  }
+ ],
+ "tasks": [
+  "T018",
+  "T019",
+  "T020",
+  "T021",
+  "T022"
+ ],
+ "context": {
+  "why": "US1-US3 built the record views, fields and RecordMultipleFilter in fairdm/contrib/autocomplete (views, fields, filters, throttling, urls; tests in tests/test_contrib/test_autocomplete/). Read them and follow their patterns; extend, do not restructure. US5 adds PersonAutocompleteView and OrganizationAutocompleteView (with LimitedAutocompleteMixin, the throttles and allow-lists), their single and multiple fields, rows drawn from the approved template autocomplete/contributor_option.html (keep its markup: avatar, name, affiliation as plain text, ORCID on its own line beneath for a person, place and no ROR for an organization, 'Unclaimed' badge). Grouping: people the requester has worked with (Contributor.get_collaborators) first; organizations the requester is a member of (verified, current affiliation; a pending request does not count) first. People come from Person.objects.real(). Never search or show email; e=/ordering= naming email change nothing. Move: AffiliationForm.organization, organization profile parent, PersonCreateForm.affiliations, person merge target (and add {{ form.media }} to merge_person.html), ownership-transfer action form new_owner, ProjectForm.owner, UpdateContributionForm.roles to mvp_forms.widgets.TomSelectMultiple(counted=True), and the project list's owner and contributor filters to RecordMultipleFilter with the organization and person multiple fields. Delete ContributorSelect2Widget, PersonSelect2Widget, OrganizationSelect2Widget and QuickAddContributionForm. Known state of the base: one test, test_form_handles_cross_dataset_sample_reference, fails pending the maintainer; leave it and the measurement sample field alone.",
+  "spec_sections": [
+   "User Story 5",
+   "FR-013",
+   "FR-014",
+   "FR-017",
+   "FR-018",
+   "FR-019"
+  ],
+  "plan_sections": [
+   "Design D2 (person/organization paragraph)",
+   "Design D7 (person/organization rows)"
+  ],
+  "prior_decisions": [
+   "D1: a field that places a record inside another needs edit; linking needs view; a public list filter offers public records only, to everyone.",
+   "D3: visibility rules are taken as they stand (project by visibility; dataset by get_visible on all_objects; sample/measurement by public+published dataset).",
+   "D4: a stored link to a record the editor cannot see is kept and shown as a private record without its name.",
+   "D12: limits on the pattern of fairdm/api/throttling.py, refused before any query.",
+   "D13: design review. django-tomselect rebuilds the validation view as view_class() (lazy_utils.py:107) and with the current page's q/f/e. So: one view subclass per scope (scope is a class attribute), and FairDM fields validate through the view's offered(user, owner=, type=, depends_on=) and never call django-tomselect's clean(). Use django-tomselect's allowed_filter_fields and allowed_ordering_fields, not a custom allow-list.",
+   "Upstream gaps are tracked in this repository's issue #554. Put '#554' in the comments of the two django_tomselect templates.",
+   "FR-021 (the 'searching is paused' message) is with the maintainer. Do NOT build it and do NOT write a skipped test for it."
+  ],
+  "environment": "Worktree /home/sam/projects/worktrees/fairdm-032, branch 032-record-search-fields, virtualenv .venv (uv). Run tests with: export GDAL_LIBRARY_PATH=/home/sam/.mamba/envs/gis/lib/libgdal.so GEOS_LIBRARY_PATH=/home/sam/.mamba/envs/gis/lib/libgeos_c.so LD_LIBRARY_PATH=/home/sam/.mamba/envs/gis/lib POSTGRES_HOST=localhost POSTGRES_PORT=5432 POSTGRES_USER=postgres POSTGRES_PASSWORD=postgres NO_PROXY=localhost,127.0.0.1; then `uv run pytest -q -n0 <path>::<Class>`. The database is the PostGIS container of the running docker compose stack (forge-fairdm) on localhost:5432; do not stop or restart it. Test databases are created fresh; if a run errors with a missing column, pass --create-db. Full verify at the end: /home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/worktrees/fairdm-032 with the same environment. django-tomselect 2026.6.2 source is in .venv/lib/python3.13/site-packages/django_tomselect; django-mvp-forms in .venv/.../mvp_forms. The docker dev server serves this same worktree on :8000 and autoreloads; that is expected.",
+  "verified_base": {
+   "commit": "567c17f34e3dd0fa36d92ee58c65f1c87f72aab1",
+   "verified_at": "2026-10-21T13:55:00Z",
+   "steps": [
+    "lint",
+    "typecheck",
+    "build",
+    "test"
+   ],
+   "note": "7263 passed, 8 skipped, 1 known failure (cross-dataset measurement test). Use the full pytest command in the dispatch message for your final check."
+  },
+  "acceptance": [
+   {
+    "task": "T018",
+    "given_when_then": "Organization view: name and alternative-name search, exact ROR first, member organizations grouped first and a pending request not, row gives place and no identifier."
+   },
+   {
+    "task": "T019",
+    "given_when_then": "Person view: collaborators first; name, alternative-name and ORCID search, exact ORCID first; email finds nobody and no row carries one; e=/ordering= naming email change nothing; unclaimed marked; a collaboration only through a record the requester cannot open does not group; superusers not offered."
+   },
+   {
+    "task": "T020",
+    "given_when_then": "The listed contributor forms, ProjectForm.owner and the ownership-transfer action form draw and save with the new fields; roles with TomSelectMultiple; the merge page carries the field's script."
+   },
+   {
+    "task": "T021",
+    "given_when_then": "Views, field pairs and form moves written; old select2 widgets and QuickAddContributionForm deleted; project list owner/contributor filters moved."
+   },
+   {
+    "task": "T022",
+    "given_when_then": "contributors.md (parent picker) and managing_contributors.md updated; reference page gains person and organization fields."
+   }
+  ]
+ },
+ "budgets": {
+  "attempts_per_task": 5,
+  "wallclock_minutes": 240
+ },
+ "rituals": [
+  "Load craft skills by reading their paths, record receipts",
+  "Read this brief, then tasks.md T001-T008 only, then the named plan.md sections",
+  "git log --oneline -10",
+  "Do not run a baseline suite: context.verified_base is the verified commit and must equal HEAD"
+ ],
+ "prohibitions": [
+  "Never modify or delete a test you did not author in this story, except tests that pin the old widgets, filters or deleted classes this story replaces",
+  "No GitHub operations, no pushing, no merging, no tokens",
+  "Never weaken assertions or add skip/xfail",
+  "Do not write feature-state.json by hand: use forge ledger-task; never touch state, story status or gates",
+  "Do not stop, restart or recreate the docker compose stack or its database",
+  "Wording and appearance get no tests (docs/contributing/standards/testing.md)",
+  "Mirror the source tree in tests: tests/test_contrib/test_autocomplete/ with __init__.py; one Test<Subject> class per unit; factories in tests/factories.py, fixtures in conftest.py"
+ ]
+}

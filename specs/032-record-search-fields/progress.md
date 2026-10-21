@@ -234,3 +234,10 @@ Did: removed django-autocomplete-light, django-select2 and django-addanother fro
 Verified: deptry: no issues; django check: no issues; pytest -n4 tests/test_conf tests/test_utils tests/test_core/test_project tests/test_core/test_dataset tests/test_contrib/test_autocomplete demo/tests: 1558 passed, 1 skipped. grep for dal, django_select2, select2, addanother, Selectize in fairdm, demo, tests, docs finds only the .select2 rule in admin.css (D33).
 Next: demo seed command and form.
 Watch: django-select2 is still in uv.lock as a dependency of django-mvp.
+
+## 2026-10-21T15:28:54Z · Implementer US4 · T033
+
+Did: seed_record_search (demo/seed/record_search.py): 12 organizations with ROR, 6 claimed people with ORCID or none, two unclaimed people, a private project and two private datasets that regular.user manages, public datasets, 12 rock samples with local IDs and three IGSNs, five publications with DOIs, tags; --large adds a public dataset of 100,000 samples, written in batches of 5,000 as a base row and a rock row. SampleReferenceFormExample in demo/forms.py uses SampleChoiceField(type=RockSample). demo forms and filters notes now name the record fields.
+Verified: pytest -n0 test_seed_record_search.py demo/tests/test_forms.py: 11 passed. The seed tests were written after the code, not before. First page measured on a separate database (fairdm_timing, created and dropped; the dev server's fairdm database untouched): 100,012 samples, signed in at view scope, first page of 20 with no search: median 478 ms, worst 542 ms over 15 runs. Edit scope 308 ms median; anonymous public scope 329 ms; search "Core sample 0500" 508 ms; exact local ID 335 ms. The run goes through the test client in-process, cache cleared before each call, so no throttle counts. SC-002 asks for under one second.
+Next: docs.
+Watch: the figure is on this machine's PostGIS container, the same stack the dev server uses.

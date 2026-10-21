@@ -475,8 +475,19 @@
         },
         {
           "id": "T033",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_demo/test_management/test_commands/test_seed_record_search.py,demo/tests/test_forms.py::TestSampleReferenceFormExample"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_demo/test_management/test_commands/test_seed_record_search.py demo/tests/test_forms.py,uv run python manage.py seed_record_search --large (fairdm_timing database, dropped after)"
+            ],
+            "code": [
+              "demo/seed/record_search.py:96"
+            ]
+          }
         },
         {
           "id": "T034",
