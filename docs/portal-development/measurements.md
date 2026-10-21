@@ -178,7 +178,8 @@ on demand and without caching, six components: a `ModelForm`, a django-filter
 import-export resource. The four a portal developer meets day to day:
 
 - **A form** - built on `MeasurementFormMixin` (see Step 4), so a type's form
-  gets the shared widgets and dataset scoping without writing a form class.
+  gets the shared widgets and a searchable `dataset` field that offers the datasets the person may
+  edit (see [Record fields](record-fields.md)) without writing a form class.
 - **A filter set** - built on `MeasurementFilterMixin` (see Step 4), so a type's
   filter set gets dataset, sample, type, search and date-range filtering for free.
 - **A table** - column layout and Bootstrap 5 styling from the field list.

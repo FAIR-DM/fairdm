@@ -49,23 +49,24 @@ class RockSampleForm(SampleFormMixin, forms.ModelForm):
 
 #### Features Provided
 
-**Dataset filtering by permission**: `SampleFormMixin.__init__` takes a `request` keyword
-argument, not a `user`. When it is given a request carrying an authenticated user, the `dataset`
-field's queryset narrows to the datasets that user holds at least the edit level on (a portal role
-that can change every dataset offers all of them). For a sample that already exists the `dataset`
-field is left out of the form unless the user can manage the sample, so an editor cannot move it.
-Given no
-request, or a request with no authenticated user, the queryset is `Dataset.objects.none()` — a
-form that has authorised nobody proposes no dataset, rather than guessing:
+**Dataset search by permission**: `SampleFormMixin.__init__` takes a `request` keyword
+argument, not a `user`, and replaces the `dataset` field with a
+[`DatasetChoiceField`](../record-fields.md) at `edit` scope. The person types part of a dataset's
+name and is offered the datasets they hold at least the edit level on (a portal role that can
+change every dataset offers all of them), and a dataset outside that list is refused when the form
+is saved. For a sample that already exists the `dataset` field is left out of the form unless the
+user can manage the sample, so an editor cannot move it. Given no request, or a request with no
+authenticated user, the form offers and accepts no dataset: a form that has authorised nobody
+proposes no dataset, rather than guessing:
 
 ```python
 # In a view
 form = RockSampleForm(request=request, data=request.POST)
 ```
 
-**Optimized widget settings**: the mixin sets a Select2 widget with an "add another" link for
-`dataset`, a plain `Select` for `status`, and the location input for `location`, whenever those
-field names are present on the form. Add your own widgets for your own fields the normal Django
+**Optimized widget settings**: the mixin sets the searchable dataset field for `dataset`, a plain
+`Select` for `status`, and the location input for `location`, whenever those field names are
+present on the form. Add your own widgets for your own fields the normal Django
 way:
 
 ```python
@@ -518,7 +519,7 @@ def test_rock_sample_filter_by_type(dataset):
 
 ### Form Design
 
-1. **Always pass `request` to forms**: it is what `SampleFormMixin` uses for dataset queryset filtering — a form built with no request offers no dataset at all
+1. **Always pass `request` to forms**: it is what the dataset field uses to decide which datasets the person may choose — a form built with no request, outside a view, offers and accepts no dataset at all
 2. **Use crispy-forms for layout**: Better than manual HTML
 3. **Validate early**: Use field-level validators when possible
 4. **Provide helpful error messages**: Clear, actionable feedback
