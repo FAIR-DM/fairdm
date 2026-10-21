@@ -5,6 +5,8 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from mvp.filters import SearchFilter
 
+from fairdm.contrib.autocomplete.fields import DatasetMultipleChoiceField
+from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
 from fairdm.core.measurement.filters import PartialDateFilter
 from fairdm.core.sample.models import Sample
 from fairdm.core.vocabularies import FairDMSampleStatus
@@ -18,10 +20,9 @@ class SampleFilterMixin(django_filters.FilterSet):
     ``model``, or the metaclass would generate a full, unused Sample filter set whenever this
     class or a subclass is defined. ``Meta.fields`` is a list a subclass's own ``Meta`` can extend.
 
-    The dataset choices are the public datasets and the private ones the requesting
-    user may view. ``Dataset.all_objects`` is never offered unconditionally, as it
-    would list every private dataset. A filter set built without a request offers the
-    public datasets only.
+    The dataset filter is a ``RecordMultipleFilter`` at public scope, so a visitor and a
+    signed-in researcher are offered the same public datasets. Ticking several narrows the list
+    to the samples of any of them.
 
     Args:
         *args: Positional arguments passed to ``FilterSet``.
@@ -62,19 +63,6 @@ class SampleFilterMixin(django_filters.FilterSet):
         no_image = Q(image="") | Q(image__isnull=True)
         return queryset.exclude(no_image) if value else queryset.filter(no_image)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        from fairdm.contrib.contributors.choices import ContributionLevel
-        from fairdm.core.models import Dataset
-
-        if "dataset" in self.filters:
-            user = getattr(self.request, "user", None)
-            self.filters["dataset"].queryset = (
-                Dataset.objects.all()
-                | Dataset.all_objects.accessible_to(user, ContributionLevel.VIEW)
-            )
-
     class Meta:
         fields = ["status", "dataset", "polymorphic_ctype"]
 
@@ -105,12 +93,7 @@ class SampleFilter(SampleFilterMixin, django_filters.FilterSet):
         empty_label=_("Any status"),
     )
 
-    dataset = django_filters.ModelChoiceFilter(
-        field_name="dataset",
-        label=_("Dataset"),
-        queryset=None,
-        empty_label=_("Any dataset"),
-    )
+    dataset = RecordMultipleFilter(DatasetMultipleChoiceField, field_name="dataset")
 
     polymorphic_ctype = django_filters.ModelChoiceFilter(
         field_name="polymorphic_ctype",

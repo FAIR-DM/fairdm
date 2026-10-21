@@ -34,7 +34,7 @@ from demo.models import (
 )
 from fairdm.contrib.collections.views import DataTableView
 from fairdm.core.sample.models import Sample
-from fairdm.factories import DatasetFactory
+from fairdm.factories import DatasetFactory, ProjectFactory
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
 
@@ -367,6 +367,12 @@ class TestFilterChoicesOnTheRenderedPage:
         assert response.status_code == 200
         return response.context["filter"].filters
 
+    def _offered(self, client, model, name):
+        slug = registry.get_for_model(model).get_slug()
+        response = client.get(reverse(f"{slug}-list"))
+        assert response.status_code == 200
+        return set(response.context["filter"].form.fields[name].offered())
+
     def test_a_measurement_listings_sample_filter_offers_no_unpublished_sample(
         self, client, published_dataset, unpublished_dataset
     ):
@@ -390,27 +396,22 @@ class TestFilterChoicesOnTheRenderedPage:
         assert published_dataset in choices
         assert unpublished_dataset not in choices
 
-    def test_a_sample_listings_dataset_filter_offers_no_unpublished_dataset(
-        self, client, published_dataset, unpublished_dataset
+    def test_a_sample_listings_dataset_filter_offers_public_datasets_only(
+        self, client, published_dataset
     ):
         assert registry.get_for_model(CustomSample).filterset_class is not None
+        public = DatasetFactory(
+            published=True,
+            visibility=Visibility.PUBLIC,
+            project=ProjectFactory(visibility=Visibility.PUBLIC),
+        )
+        CustomSampleFactory(dataset=public)
         CustomSampleFactory(dataset=published_dataset)
 
-        choices = self._page_filters(client, CustomSample)["dataset"].queryset
+        choices = self._offered(client, CustomSample, "dataset")
 
-        assert published_dataset in choices
-        assert unpublished_dataset not in choices
-
-    def test_a_published_but_private_dataset_is_still_offered(
-        self, client, unpublished_dataset
-    ):
-        private = DatasetFactory(published=True, visibility=Visibility.PRIVATE)
-        CustomSampleFactory(dataset=private)
-
-        choices = self._page_filters(client, CustomSample)["dataset"].queryset
-
-        assert private in choices
-        assert unpublished_dataset not in choices
+        assert public in choices
+        assert published_dataset not in choices
 
     def test_the_record_type_filter_is_left_alone(self, client, published_dataset):
         sample = RockSampleFactory(dataset=published_dataset)

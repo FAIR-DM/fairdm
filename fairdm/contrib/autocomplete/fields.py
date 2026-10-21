@@ -185,9 +185,12 @@ class RecordFieldMixin:
         label: The field's label when none is given.
         placeholder: The text shown before anything is chosen.
         count_text: The plural word shown beside the number of records chosen.
+        given_request: A request set on the field, for a field whose form carries none, such as
+            a filter's.
     """
 
     view_class = None
+    given_request = None
     kind = ""
     default_scope = "view"
     multiple = False
@@ -254,8 +257,12 @@ class RecordFieldMixin:
 
     @property
     def request(self):
-        """The request the field is used in: the form's, else the current one, else none."""
-        return getattr(self.form, "request", None) or get_current_request()
+        """The request the field is used in: the form's, else the one it was given, else the current one."""
+        return (
+            getattr(self.form, "request", None)
+            or self.given_request
+            or get_current_request()
+        )
 
     @property
     def user(self):

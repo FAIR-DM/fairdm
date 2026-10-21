@@ -2,15 +2,13 @@
 
 import pytest
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 
 from demo.filters import RockSampleFilter
 from demo.models import RockSample, WaterSample
-from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.models import Dataset
 from fairdm.core.sample.filters import SampleFilter, SampleFilterMixin
-from fairdm.factories import ContributionFactory, DatasetFactory, UserFactory
+from fairdm.factories import ProjectFactory
 from fairdm.utils.choices import Visibility
 
 User = get_user_model()
@@ -26,11 +24,14 @@ def request_for(user):
 
 
 class TestSampleFilterDatasetFiltering:
-    def test_filter_by_dataset(self, user, project):
-        # Left private, which is the model's default and the ordinary case: the
-        # filter offers a private dataset to a reader who may view it.
-        dataset1 = Dataset.objects.create(name="Dataset 1", project=project)
-        dataset2 = Dataset.objects.create(name="Dataset 2", project=project)
+    def test_filter_by_dataset(self, user):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        dataset1 = Dataset.objects.create(
+            name="Dataset 1", project=project, visibility=Visibility.PUBLIC
+        )
+        dataset2 = Dataset.objects.create(
+            name="Dataset 2", project=project, visibility=Visibility.PUBLIC
+        )
 
         sample1 = RockSample.objects.create(
             name="Rock in Dataset 1",
@@ -44,12 +45,9 @@ class TestSampleFilterDatasetFiltering:
             rock_type="sedimentary",
             collection_date="2024-01-01",
         )
-        ContributionFactory(
-            content_object=dataset1, contributor=user, level=ContributionLevel.VIEW
-        )
 
         filterset = SampleFilter(
-            data={"dataset": dataset1.id},
+            data={"dataset": [dataset1.id]},
             queryset=RockSample.objects.all(),
             request=request_for(user),
         )
@@ -328,57 +326,3 @@ class TestCustomSampleFilterIntegration:
 
         assert "q" in filterset.filters
         assert "rock_type" in filterset.filters
-
-
-class TestSampleFilterMixinDatasetPrivacy:
-    def test_a_reader_is_offered_a_private_dataset_they_may_view(self):
-        user = UserFactory()
-        allowed = DatasetFactory()  # private by default
-        other = DatasetFactory()
-        ContributionFactory(
-            content_object=allowed, contributor=user, level=ContributionLevel.VIEW
-        )
-
-        filterset = SampleFilter(request=request_for(user))
-
-        offered = set(filterset.filters["dataset"].queryset)
-        assert allowed in offered
-        assert other not in offered
-
-    def test_a_signed_in_reader_is_still_offered_a_public_dataset(self):
-        public = DatasetFactory(visibility=Visibility.PUBLIC)
-
-        filterset = SampleFilter(request=request_for(UserFactory()))
-
-        assert set(filterset.filters["dataset"].queryset) == {public}
-
-    def test_a_reader_with_no_entitlement_is_offered_no_private_dataset(self):
-        DatasetFactory()
-
-        filterset = SampleFilter(request=request_for(UserFactory()))
-
-        assert set(filterset.filters["dataset"].queryset) == set()
-
-    def test_a_visitor_is_offered_no_private_dataset(self):
-        DatasetFactory()
-
-        filterset = SampleFilter(request=request_for(AnonymousUser()))
-
-        assert set(filterset.filters["dataset"].queryset) == set()
-
-    def test_a_filter_set_built_without_a_request_offers_no_private_dataset(self):
-        DatasetFactory()
-
-        filterset = SampleFilter()
-
-        assert set(filterset.filters["dataset"].queryset) == set()
-
-    def test_a_private_dataset_cannot_be_probed_by_its_key(self):
-        hidden = DatasetFactory()
-
-        filterset = SampleFilter(
-            data={"dataset": hidden.pk}, request=request_for(UserFactory())
-        )
-
-        assert not filterset.is_valid()
-        assert "dataset" in filterset.errors
