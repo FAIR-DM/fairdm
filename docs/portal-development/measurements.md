@@ -322,12 +322,13 @@ class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
 
 **What MeasurementFormMixin provides:**
 
-- A Select2 autocomplete widget for `dataset`, with an "add another" link to the
-  dataset admin
+- A `DatasetChoiceField` for `dataset`, which searches the datasets the person may edit
 - The `dataset` queryset scoped to datasets the requesting user holds the edit level on, when
   the form is built with `request=...`. For a measurement that already exists the `dataset` field
   is left out unless the user can manage the measurement
-- A Select2 autocomplete widget for `sample`
+- A `SampleChoiceField` for `sample`, which depends on the form's `dataset` field. It offers the
+  samples of the dataset chosen on the form that the person may view, and refuses a sample of any
+  other dataset when the form is submitted. See [Record fields](record-fields.md)
 - A crispy-forms `FormHelper` (`form_tag = False`, so the surrounding page
   supplies the `<form>` tag)
 
