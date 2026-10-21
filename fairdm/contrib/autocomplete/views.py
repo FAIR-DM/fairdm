@@ -11,6 +11,7 @@ from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.utils.translation import gettext as _
 from django_tomselect.autocompletes import AutocompleteModelView
+from literature.models import LiteratureItem
 from research_vocabs.models import Concept
 
 from fairdm.contrib.autocomplete.throttling import (
@@ -770,3 +771,107 @@ class OrganizationAutocompleteView(ContributorAutocompleteView):
         )
         result["detail"] = place
         return {"place": place}
+
+
+class PublicationAutocompleteView(LimitedAutocompleteMixin, AutocompleteModelView):
+    """Offer publications, found by title, author or DOI, a DOI typed exactly first.
+
+    Literature carries no visibility of its own, so one address serves everyone and the scope
+    plays no part.
+    """
+
+    model = LiteratureItem
+    search_lookups = ["title__icontains", "item__author__icontains"]
+    value_fields = ["title"]
+
+    @classmethod
+    def for_scope(cls, scope):
+        """Return this view, which serves every scope alike.
+
+        Args:
+            scope: Ignored.
+
+        Returns:
+            The view class.
+        """
+        return cls
+
+    @staticmethod
+    def bare_doi(text):
+        """Take the DOI out of text that is one, or the address of one.
+
+        Args:
+            text: A search term.
+
+        Returns:
+            The text without a ``doi:`` or ``https://doi.org/`` prefix.
+        """
+        text = text.strip()
+        for prefix in ("https://doi.org/", "http://doi.org/", "doi:"):
+            text = text.removeprefix(prefix)
+        return text
+
+    def get_queryset(self):
+        """Return the publications that match the search, those with the DOI typed first."""
+        queryset = self.apply_filters(self.hook_queryset(self.model.objects.all()))
+        ordering = ["title", "pk"]
+        if self.query:
+            exact = Q(item__DOI__iexact=self.bare_doi(self.query))
+            queryset = queryset.filter(
+                self._build_simple_search_q(self.query) | exact
+            ).annotate(
+                exact_rank=Case(
+                    When(exact, then=Value(0)),
+                    default=Value(1),
+                    output_field=IntegerField(),
+                )
+            )
+            ordering.insert(0, "exact_rank")
+        return queryset.order_by(*ordering)
+
+    def hook_prepare_results(self, results):
+        """Give each result its authors, year and DOI, and its row drawn on the server."""
+        items = dict(
+            self.model.objects.filter(pk__in=[r["id"] for r in results]).values_list(
+                "pk", "item"
+            )
+        )
+        for result in results:
+            item = items[result["id"]]
+            authors = [
+                author.get("family") or author.get("literal") or author.get("name")
+                for author in item.get("author") or []
+            ]
+            result["authors"] = ", ".join(filter(None, authors))
+            result["year"] = self.year_of(item)
+            result["doi"] = item.get("DOI") or ""
+            result["html"] = render_to_string(
+                "autocomplete/record_option.html",
+                {
+                    "name": result["title"],
+                    "detail": " · ".join(
+                        str(part)
+                        for part in (result["authors"], result["year"])
+                        if part
+                    ),
+                    "badge": result["doi"],
+                    "badge_outline": True,
+                },
+                request=self.request,
+            )
+        return results
+
+    @staticmethod
+    def year_of(item):
+        """Read the year a publication was issued from its CSL data.
+
+        Args:
+            item: The publication's CSL JSON.
+
+        Returns:
+            The year, or ``None`` when the data gives none.
+        """
+        try:
+            return int(item["issued"]["date-parts"][0][0])
+        except (KeyError, IndexError, TypeError, ValueError):
+            return None

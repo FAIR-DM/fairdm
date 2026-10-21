@@ -4,10 +4,12 @@ from django import forms
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from licensing.models import License
-from literature.models import LiteratureItem
 from mvp_forms.widgets import ImageInput
 
-from fairdm.contrib.autocomplete.fields import ProjectChoiceField
+from fairdm.contrib.autocomplete.fields import (
+    ProjectChoiceField,
+    PublicationChoiceField,
+)
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.forms import ManagerOnlyFieldsMixin
 from fairdm.core.image_utils import IMAGE_HELP_TEXT, validate_image_file_size
@@ -79,15 +81,13 @@ class DatasetForm(ManagerOnlyFieldsMixin, ModelForm):
         ),
     )
 
-    reference = forms.ModelChoiceField(
-        queryset=LiteratureItem.objects.all(),
+    reference = PublicationChoiceField(
         label=_("Data Publication"),
         help_text=_(
             "Link to the primary data publication (paper, report, or other literature) "
             "that describes this dataset."
         ),
         required=False,
-        widget=forms.Select(attrs={"class": "form-control"}),
     )
 
     visibility = forms.TypedChoiceField(

@@ -10,6 +10,7 @@ from .views import (
     OrganizationAutocompleteView,
     PersonAutocompleteView,
     ProjectAutocompleteView,
+    PublicationAutocompleteView,
     SampleAutocompleteView,
 )
 
@@ -47,3 +48,7 @@ for _kind, _view in CONTRIBUTOR_VIEWS.items():
     urlpatterns.append(
         path(f"records/{_kind}/", _view.as_view(), name=f"{_kind}-public")
     )
+
+urlpatterns.append(
+    path("publication/", PublicationAutocompleteView.as_view(), name="publication")
+)

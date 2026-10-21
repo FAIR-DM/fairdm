@@ -24,6 +24,7 @@ from django_tomselect.widgets import (
     TomSelectModelMultipleWidget,
     TomSelectModelWidget,
 )
+from literature.models import LiteratureItem
 from research_vocabs.models import Concept
 
 from .views import (
@@ -513,3 +514,39 @@ OrganizationChoiceField, OrganizationMultipleChoiceField = record_fields(
     count_text=_("organizations"),
     scopes=("public",),
 )
+
+
+class PublicationChoiceField(TomSelectModelChoiceField):
+    """Choose one publication by searching its title, authors or DOI.
+
+    Publications carry no visibility, so the field accepts any publication that exists. It never
+    asks django-tomselect to validate, which rebuilds the view from the current page's search
+    parameters.
+
+    Args:
+        **kwargs: Passed to the form field. ``label`` defaults to "Publication".
+    """
+
+    def __init__(self, **kwargs):
+        kwargs.setdefault("label", _("Publication"))
+        config = TomSelectConfig(
+            url="autocomplete:publication",
+            value_field="id",
+            label_field="title",
+            placeholder=_("Choose a publication"),
+            minimum_query_length=2,
+            preload="focus",
+            load_throttle=300,
+            hide_selected=False,
+            close_after_select=True,
+            highlight=True,
+            loading_class="ts-loading",
+            plugin_dropdown_input=PluginDropdownInput(),
+            plugin_clear_button=PluginClearButton(),
+        )
+        super().__init__(config=config, **kwargs)
+
+    def clean(self, value):
+        """Accept the publication when it exists."""
+        self.queryset = LiteratureItem.objects.all()
+        return forms.ModelChoiceField.clean(self, self._clean_value(value))

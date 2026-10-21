@@ -164,3 +164,10 @@ Did: added `prefer` to the record fields (beside depends_on). The widget sends `
 Verified: uv run pytest -n0 tests/test_contrib/test_autocomplete tests/test_core/test_measurement/test_forms.py: 321 passed, 1 failed. Full suite -n 8: 7324 passed, 8 skipped, 1 failed. forge verify lint,typecheck,build: passed.
 Next: Forge to rule on test_form_handles_cross_dataset_sample_reference. Its sample sits in a private dataset the user holds no level on, so AS 2.5 requires refusing it. I did not edit the test or special-case the field.
 Watch: the JS in the tomselect template override (prefer wiring and the reset on change) is not covered by any test.
+
+## 2026-10-21T14:43:44Z · Implementer US6-US8 · T024
+
+Did: PublicationAutocompleteView (title, author and DOI search, exact DOI first, row from record_option.html with authors and year and the DOI as an outline badge), its address `autocomplete:publication`, PublicationChoiceField (validates against all literature, never calls django-tomselect's clean), DatasetForm.reference moved to it. The old test pinning a plain Select on reference is replaced by two that pin the new field and its saving.
+Verified: red first (7 view tests fail for the missing address, test_forms.py fails to import the field); then pytest -n0 tests/test_contrib/test_autocomplete/test_views.py::TestPublicationAutocompleteView tests/test_core/test_dataset/test_forms.py: 37 passed.
+Next: tags.
+Watch: ruff check fixes files outside the story (it rewrote tests/test_core/test_dataset/test_plugins.py); I restored it and use --no-fix.
