@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.2.0] - 2026-10-21
+
 ### Added
 
 - **FairDM declares the image and database a portal runs on.** `[tool.fairdm.platform]` in
