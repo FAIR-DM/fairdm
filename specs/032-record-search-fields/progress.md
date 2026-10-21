@@ -157,3 +157,10 @@ Did: record-fields.md gains a people and organizations section, the two fields, 
 Verified: grep finds no mention of the deleted classes in docs, fairdm, demo or tests.
 Next: lint and the full suite.
 Watch: CHANGELOG is not touched.
+
+## 2026-10-21T14:30:42Z · Implementer US2 · T035
+
+Did: added `prefer` to the record fields (beside depends_on). The widget sends `prefer=<relation>=<value>` through the tomselect template override; the sample and measurement views rank the matching records first in a group of their own ("Samples in this dataset") and filter nothing. The view accepts the preference only for the relations it allows a request to filter on (dataset, polymorphic_ctype) and ignores a value that cannot name a record. The measurement form's sample field uses prefer="dataset". Reworked the US2 tests (views, fields, measurement form) to the amended scenarios; updated record-fields.md and measurements.md.
+Verified: uv run pytest -n0 tests/test_contrib/test_autocomplete tests/test_core/test_measurement/test_forms.py: 321 passed, 1 failed. Full suite -n 8: 7324 passed, 8 skipped, 1 failed. forge verify lint,typecheck,build: passed.
+Next: Forge to rule on test_form_handles_cross_dataset_sample_reference. Its sample sits in a private dataset the user holds no level on, so AS 2.5 requires refusing it. I did not edit the test or special-case the field.
+Watch: the JS in the tomselect template override (prefer wiring and the reset on change) is not covered by any test.
