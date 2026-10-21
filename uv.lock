@@ -856,12 +856,6 @@ argon2 = [
 ]
 
 [[package]]
-name = "django-addanother"
-version = "2.2.2"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/51/d0/7e185b7150eeb85498f985aefc182ebc0705a1858d2c513abaa1a6933c32/django_addanother-2.2.2.tar.gz", hash = "sha256:89c2e044bd642df2d689c163745104bb67df11a33ccd72cbb41cebbac413ab3b", size = 6674, upload-time = "2022-09-11T18:26:08.27Z" }
-
-[[package]]
 name = "django-admin-extra-buttons"
 version = "2.2.1"
 source = { registry = "https://pypi.org/simple" }
@@ -946,18 +940,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/c8/23/d024935758e0a97f4e7a51b874670490c972704ca3e7d321e4b048a70c78/django_auto_prefetch-1.14.0.tar.gz", hash = "sha256:7a8bef68ee3d2dc9a3f570d16aa3bd5102c82a2fced9efa40d5327cc3db3f856", size = 8768, upload-time = "2025-09-18T09:21:20.352Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f8/62/a9dbe9e1034038bc3fd5a8a6a8f037d21f784fb9d9a32be81cb27daaca5b/django_auto_prefetch-1.14.0-py3-none-any.whl", hash = "sha256:223031c9e83aca44a7bb3f76ca9e74f3d806e4a0d979c7e0d630c4adcd41251f", size = 7141, upload-time = "2025-09-18T09:21:18.994Z" },
-]
-
-[[package]]
-name = "django-autocomplete-light"
-version = "5.0.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/5d/ca/1288c2c7597484340c6ba5e3911c84b552511310633954d7aa496610e45a/django_autocomplete_light-5.0.0.tar.gz", hash = "sha256:115ee3541ee4a7ddd1b92396ea75d0f38d0b91899b0dc17259310975c728b32e", size = 117640, upload-time = "2026-06-18T01:43:28.909Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/e1/bd/9e9cc8746bf51031a477dd21ee3a08449ab9d94739a242622dc381ebe763/django_autocomplete_light-5.0.0-py3-none-any.whl", hash = "sha256:6fa30efa43e87ff17266e638de04accb11543186e332b09ae43cbccb10e804bb", size = 134025, upload-time = "2026-06-18T01:43:27.178Z" },
 ]
 
 [[package]]
@@ -2048,12 +2030,10 @@ dependencies = [
     { name = "daisy-cotton-ext" },
     { name = "defusedxml" },
     { name = "django", extra = ["argon2"] },
-    { name = "django-addanother" },
     { name = "django-admin-extra-buttons" },
     { name = "django-adminactions" },
     { name = "django-allauth", extra = ["mfa", "socialaccount"] },
     { name = "django-auto-prefetch" },
-    { name = "django-autocomplete-light" },
     { name = "django-braces" },
     { name = "django-celery-beat" },
     { name = "django-classy-tags" },
@@ -2092,7 +2072,6 @@ dependencies = [
     { name = "django-polymorphic" },
     { name = "django-redis" },
     { name = "django-research-vocabs" },
-    { name = "django-select2" },
     { name = "django-setup-tools" },
     { name = "django-social-share" },
     { name = "django-solo" },
@@ -2144,12 +2123,10 @@ requires-dist = [
     { name = "daisy-cotton-ext", specifier = ">=0.5.0,<0.6.0" },
     { name = "defusedxml", specifier = ">=0.7.0,<0.8.0" },
     { name = "django", extras = ["argon2"], specifier = ">=6.0,<7.0.0" },
-    { name = "django-addanother", specifier = ">=2.2.2,<3.0.0" },
     { name = "django-admin-extra-buttons", specifier = ">=1.5.8,<3.0.0" },
     { name = "django-adminactions", specifier = ">=2.0.0,<3.0.0" },
     { name = "django-allauth", extras = ["mfa", "socialaccount"], specifier = ">=65.19.4,<66.0.0" },
     { name = "django-auto-prefetch", specifier = ">=1.12.0,<2.0.0" },
-    { name = "django-autocomplete-light", specifier = ">=3.12.1,<6.0.0" },
     { name = "django-braces", specifier = ">=1.17.0,<2.0.0" },
     { name = "django-celery-beat", specifier = ">=2.5.0,<3.0.0" },
     { name = "django-classy-tags", specifier = ">=4.1.0,<5.0.0" },
@@ -2188,7 +2165,6 @@ requires-dist = [
     { name = "django-polymorphic", specifier = ">=4.11.7,<5.0.0" },
     { name = "django-redis", specifier = ">=5.2.0,<8.0.0" },
     { name = "django-research-vocabs", git = "https://github.com/SamuelJennings/django-research-vocabs" },
-    { name = "django-select2", specifier = ">=8.4.1,<9.0.0" },
     { name = "django-setup-tools", specifier = ">=0.2.5,<0.3.0" },
     { name = "django-social-share", specifier = ">=2.3.0,<3.0.0" },
     { name = "django-solo", specifier = ">=2.2.0,<3.0.0" },

@@ -6,7 +6,6 @@ from .views import (
     PROFILE,
     SCOPES,
     TAG_SCOPES,
-    ConceptAutocomplete,
     DatasetAutocompleteView,
     MeasurementAutocompleteView,
     OrganizationAutocompleteView,
@@ -20,9 +19,7 @@ from .views import (
 
 app_name = "autocomplete"
 
-urlpatterns = [
-    path("concept/", ConceptAutocomplete.as_view(), name="concept"),
-]
+urlpatterns = []
 
 #: The record views, by the kind of record they offer.
 RECORD_VIEWS = {

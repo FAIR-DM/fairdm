@@ -45,7 +45,6 @@ dependencies = [
     'django-parler (>=2.3,<3.0)',
     'django-pint>=0.7.3,<1.1.0',
     'django-redis>=5.2.0,<8.0.0',
-    'django-select2 (>=8.4.1,<9.0.0)',
     'django-social-share (>=2.3.0,<3.0.0)',
     'django-solo (>=2.2.0,<3.0.0)',
     'django-split-settings (>=1.2.0,<2.0.0)',
@@ -65,8 +64,6 @@ dependencies = [
     'django-ordered-model (>=3.7.4,<4.0.0)',
     'django-taggit (>=6.1.0,<7.0.0)',
     'django-waffle (>=5.0.0,<6.0.0)',
-    'django-addanother (>=2.2.2,<3.0.0)',
-    'django-autocomplete-light>=3.12.1,<6.0.0',
     'django-braces (>=1.17.0,<2.0.0)',
     'django-auto-prefetch (>=1.12.0,<2.0.0)',
     'django-lifecycle (>=1.2.4,<2.0.0)',
@@ -357,7 +354,6 @@ package_module_name_map = { django-environ = "environ", django-filter = "django_
 # them. Everything below is genuinely used and none of it is dead weight.
 DEP002 = [
     "daisy-cotton-ext",
-    "django-addanother",
     "django-admin-extra-buttons",
     "django-celery-beat",
     "django-classy-tags",

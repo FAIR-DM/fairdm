@@ -40,14 +40,13 @@ def projects(keywords):
 
 @pytest.mark.django_db
 class TestKeywordFilterControl:
-    def test_the_vocabulary_filter_is_a_counted_control_with_no_autocomplete_light_widget(
+    def test_the_vocabulary_filter_is_a_counted_control(
         self,
     ):
         widget = ProjectFilter().filters["keywords_FairDMRoles"].field.widget
 
         assert isinstance(widget, TomSelectMultiple)
         assert widget.counted is True
-        assert not type(widget).__module__.startswith("dal")
 
     def test_the_keywords_are_chosen_from_the_vocabulary_the_filter_names(
         self, keywords

@@ -5,7 +5,7 @@ including:
 
 1. **Request-Based Queryset Filtering**: User permission integration
 2. **Internationalized Help Text**: Using gettext_lazy for translation
-3. **Autocomplete Widgets**: Select2 integration on all relationship fields
+3. **Autocomplete Fields**: FairDM's record fields on relations to records
 4. **License Defaults**: FAIR-compliant default licensing
 5. **DOI Entry Fields**: Creating DatasetIdentifier instances
 6. **Form-Specific Help Text**: User-friendly guidance (not model help_text)
@@ -35,17 +35,11 @@ name = forms.CharField(
 )
 ```
 
-**Autocomplete Widget**:
+**Autocomplete Field**:
 ```python
-from django_select2.forms import ModelSelect2Widget
+from fairdm.contrib.autocomplete.fields import ProjectChoiceField
 
-project = forms.ModelChoiceField(
-    queryset=Project.objects.all(),
-    widget=ModelSelect2Widget(
-        search_fields=["name__icontains"],
-        attrs={"data-placeholder": _("Select a project...")},
-    ),
-)
+project = ProjectChoiceField(scope="edit", label=_("Project"))
 ```
 
 **DOI Entry Field**:
@@ -113,17 +107,17 @@ See `docs/portal-development/registry_integration.md` for details.
 - Keep it concise but informative (1-2 sentences)
 
 ### 4. Autocomplete Widgets
-- Use ModelSelect2Widget on ALL ForeignKey fields
-- Use ModelSelect2MultipleWidget on ALL ManyToMany fields
-- Configure search_fields for efficient lookups
-- Add data-placeholder for better UX
+- Use the record fields from fairdm.contrib.autocomplete.fields for relations to
+  projects, datasets, samples and measurements
+- Pick the scope by what the field does: "edit" places a record inside another,
+  "view" links to one
+- Narrow with type=, depends_on= or prefer= instead of writing a view
 - Test with large datasets (100+ records)
 
 ### 5. License Defaults
 - Default to CC BY 4.0 for FAIR compliance
 - Allow users to change before publication
 - Explain license implications in help_text
-- Use ModelSelect2Widget for searchability
 
 ### 6. DOI Entry Pattern
 - Add DOI as CharField (not model field)
@@ -145,7 +139,6 @@ See `docs/portal-development/registry_integration.md` for details.
 - Match expected workflow (top-to-bottom)
 
 ### 9. Widget Customization
-- Use AddAnotherWidgetWrapper for convenience
 - Add placeholders for better UX
 - Use appropriate input types (date, email, url)
 - Add HTML5 validation attributes (pattern, min, max)
@@ -164,11 +157,14 @@ After creating forms, test:
 
 from django import forms
 from django.utils.translation import gettext_lazy as _
-from django_select2.forms import ModelSelect2MultipleWidget, ModelSelect2Widget
 from licensing.models import License
+from mvp_forms.widgets import TomSelectMultiple
 
 from demo.models import RockSample, WaterSample
-from fairdm.core.models import Project
+from fairdm.contrib.autocomplete.fields import (
+    DatasetChoiceField,
+    ProjectChoiceField,
+)
 from fairdm.core.sample.forms import SampleFormMixin
 from fairdm.forms import ModelForm
 
@@ -218,31 +214,23 @@ class RockSampleFormExample(ModelForm):
         max_length=200,
     )
 
-    dataset = forms.ModelChoiceField(
-        queryset=None,  # Set in __init__ based on user
+    dataset = DatasetChoiceField(
+        scope="edit",
         label=_("Dataset"),
         help_text=_(
             "Select the dataset this sample belongs to. You can only add samples "
-            "to datasets where you have contributor permissions."
+            "to datasets you may edit."
         ),
         required=True,
-        widget=ModelSelect2Widget(
-            search_fields=["name__icontains"],
-            attrs={"data-placeholder": _("Select a dataset...")},
-        ),
     )
 
-    project = forms.ModelChoiceField(
-        queryset=None,  # Set in __init__ based on user
+    project = ProjectChoiceField(
+        scope="edit",
         label=_("Project"),
         help_text=_(
             "Optionally associate this sample with a research project for better organization and tracking."
         ),
         required=False,
-        widget=ModelSelect2Widget(
-            search_fields=["name__icontains"],
-            attrs={"data-placeholder": _("Select a project...")},
-        ),
     )
 
     rock_type = forms.CharField(
@@ -270,35 +258,6 @@ class RockSampleFormExample(ModelForm):
         super().__init__(*args, **kwargs)
         self.request = request
 
-        dataset_field = self.fields.get("dataset")
-        if dataset_field:
-            if (
-                self.request
-                and hasattr(self.request, "user")
-                and self.request.user.is_authenticated
-            ):
-                from fairdm.core.dataset.models import Dataset
-
-                dataset_field.queryset = Dataset.objects.filter(
-                    contributors__person=self.request.user
-                )
-            else:
-                # No datasets for anonymous users, to prevent data leakage.
-                from fairdm.core.dataset.models import Dataset
-
-                dataset_field.queryset = Dataset.objects.none()
-
-        project_field = self.fields.get("project")
-        if project_field:
-            if (
-                self.request
-                and hasattr(self.request, "user")
-                and self.request.user.is_authenticated
-            ):
-                project_field.queryset = self.request.user.projects.all()
-            else:
-                project_field.queryset = Project.objects.none()
-
 
 class DatasetEnhancedFormExample(ModelForm):
     """Example form demonstrating license defaults and DOI entry.
@@ -306,7 +265,7 @@ class DatasetEnhancedFormExample(ModelForm):
     This form shows how to:
     1. Set license field default to CC BY 4.0
     2. Add DOI entry field that creates DatasetIdentifier
-    3. Use autocomplete on all relationship fields
+    3. Use the record fields on relations to records
     4. Provide comprehensive help text
 
     Pattern Usage:
@@ -344,10 +303,6 @@ class DatasetEnhancedFormExample(ModelForm):
             "CC BY 4.0 (default) allows sharing and adaptation with attribution. "
             "This encourages FAIR data principles and open science."
         ),
-        widget=ModelSelect2Widget(
-            search_fields=["name__icontains"],
-            attrs={"data-placeholder": _("Select a license...")},
-        ),
     )
 
     keywords = forms.ModelMultipleChoiceField(
@@ -358,13 +313,7 @@ class DatasetEnhancedFormExample(ModelForm):
             "searchability and enable better dataset discovery."
         ),
         required=False,
-        widget=ModelSelect2MultipleWidget(
-            search_fields=["name__icontains"],
-            attrs={
-                "data-placeholder": _("Select keywords..."),
-                "data-tags": "true",  # Allow creating new keywords
-            },
-        ),
+        widget=TomSelectMultiple(placeholder=_("Select keywords...")),
     )
 
     doi = forms.CharField(
@@ -435,10 +384,8 @@ class RockSampleForm(SampleFormMixin, ModelForm):
     from SampleFormMixin. Adds rock-specific field configurations.
 
     Features:
-        - Pre-configured Select2 widget for dataset
-        - Permission-based dataset filtering
+        - Dataset field offering the datasets the user may edit
         - Default status value ('available')
-        - Add another functionality for dataset
         - Internationalized help text
         - DateInput widget for collection_date
 
@@ -523,10 +470,8 @@ class WaterSampleForm(SampleFormMixin, ModelForm):
     from SampleFormMixin. Adds water quality specific field configurations.
 
     Features:
-        - Pre-configured Select2 widget for dataset
-        - Permission-based dataset filtering
+        - Dataset field offering the datasets the user may edit
         - Default status value ('available')
-        - Add another functionality for dataset
         - Internationalized help text
         - Appropriate input widgets for numeric fields
 

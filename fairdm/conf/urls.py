@@ -31,7 +31,6 @@ urlpatterns = [
     path("account-center/", AccountCenterView.as_view(), name="account-center"),
     path("legal/", include("mvp_compliance.urls")),
     path("contact/", include("django_contact_form.urls")),
-    path("select2/", include("django_select2.urls")),
     path("autocomplete/", include("fairdm.contrib.autocomplete.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
     # Preview only: django-markdownx also ships an unauthenticated image upload view.

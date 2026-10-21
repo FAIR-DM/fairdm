@@ -1,10 +1,9 @@
-"""Autocomplete views for FairDM models."""
+"""Autocomplete views for FairDM records, people, organizations, publications, tags and ROR."""
 
 import functools
 import logging
 import math
 
-from dal import autocomplete
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
@@ -18,7 +17,6 @@ from django_tomselect.autocompletes import (
     AutocompleteModelView,
 )
 from literature.models import LiteratureItem
-from research_vocabs.models import Concept
 from taggit.models import Tag
 
 from fairdm.contrib.autocomplete.throttling import (
@@ -43,50 +41,6 @@ from fairdm.core.sample.models import Sample, SampleIdentifier
 from fairdm.utils.choices import Visibility
 
 logger = logging.getLogger(__name__)
-
-
-class ConceptAutocomplete(autocomplete.Select2QuerySetView):
-    """Autocomplete view for Concept model with vocabulary filtering.
-
-    This view allows filtering concepts by vocabulary to support large vocabularies
-    efficiently without loading all concepts into the browser.
-
-    Usage in forms:
-        from dal import autocomplete
-
-        field = forms.ModelMultipleChoiceField(
-            queryset=Concept.objects.all(),
-            widget=autocomplete.ModelSelect2Multiple(
-                url='concept-autocomplete',
-                forward=['vocabulary_name']  # Pass vocabulary name from another field
-            )
-        )
-
-    Or with vocabulary specified in URL:
-        widget=autocomplete.ModelSelect2Multiple(
-            url='concept-autocomplete?vocabulary=gcmd-science-keywords'
-        )
-    """
-
-    def get_queryset(self):
-        """Return concepts filtered by vocabulary and search term, for signed-in users only."""
-        if not self.request.user.is_authenticated:
-            return Concept.objects.none()
-
-        qs = Concept.objects.all()
-
-        # No vocabulary is forwarded when DAL loads a field's initial values.
-        vocabulary = self.forwarded.get("vocabulary", None)
-        if not vocabulary:
-            vocabulary = self.request.GET.get("vocabulary", None)
-
-        if vocabulary:
-            qs = qs.filter(vocabulary__name=vocabulary)
-
-        if self.q:
-            qs = qs.filter(Q(label__icontains=self.q) | Q(name__icontains=self.q))
-
-        return qs.order_by("label")
 
 
 #: Scope is part of the address, so a request can never widen what an address offers.

@@ -603,7 +603,6 @@ class TestAutocompleteOnForeignKeys:
         content = response.content.decode()
         assert (
             "autocomplete" in content.lower()
-            or "select2" in content.lower()
             or "data-autocomplete" in content.lower()
         )
 
@@ -617,7 +616,6 @@ class TestAutocompleteOnForeignKeys:
         content = response.content.decode()
         assert (
             "autocomplete" in content.lower()
-            or "select2" in content.lower()
             or "data-autocomplete" in content.lower()
         )
 

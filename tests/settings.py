@@ -56,9 +56,6 @@ CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.dummy.DummyCache",
     },
-    "select2": {  # Required by django-select2
-        "BACKEND": "django.core.cache.backends.dummy.DummyCache",
-    },
 }
 
 

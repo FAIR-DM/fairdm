@@ -93,7 +93,7 @@ See `docs/portal-development/registry/configuration.md` for details.
 - Use ModelChoiceFilter for ForeignKey fields
 - Always provide empty_label for optional filters
 - Add helpful help_text explaining the options
-- Consider using Select2 widget for large choice lists
+- Consider RecordMultipleFilter for large choice lists
 
 ### 4. Date Range Filters
 - Create separate _from and _to filters for ranges

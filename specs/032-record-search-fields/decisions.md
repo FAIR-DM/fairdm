@@ -342,3 +342,11 @@ person may view.
 
 **Revisit if**: a filter declared on a class needs the owner of the page it is drawn on. The field
 takes `owner` at construction, so such a filter builds its field per request.
+
+## D33. The three libraries are gone from FairDM; django-select2 stays installed through django-mvp
+
+**Decision**: django-autocomplete-light, django-select2 and django-addanother leave `pyproject.toml`, `INSTALLED_APPS`, the URL conf and the cache settings. `uv.lock` drops the first and third. django-select2 stays in the lock because django-mvp depends on it, so it is installed but nothing in FairDM, the demo, the tests or the docs names it. `suggest_widget` for a relation now answers the plain `Select` and `SelectMultiple`. The `.select2` rule in `fairdm/contrib/identity/static/configuration/admin.css` stays: Django's own admin autocomplete draws a `select2` element and the rule sizes it in the admin's flex rows.
+
+**Why**: the migration guide tells a portal to declare any of the three itself. FairDM cannot remove a package another dependency requires.
+
+**Revisit if**: django-mvp drops django-select2, or the admin stylesheet gets a rule of its own for the admin's autocomplete.
