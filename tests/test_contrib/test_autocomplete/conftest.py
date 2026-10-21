@@ -81,3 +81,17 @@ def grant_view_everywhere(db):
         person.user_permissions.add(Permission.objects.get(codename="view_dataset"))
 
     return grant
+
+
+@pytest.fixture
+def make_record(make_dataset, make_project):
+    """Return a function building a public record of a kind that one person may edit.
+
+    The record is offered by every address of its kind, whatever the scope.
+    """
+
+    def make_record(kind, name, *, holder):
+        builders = {"project": make_project, "dataset": make_dataset}
+        return builders[kind](name, visibility=Visibility.PUBLIC, holder=holder)
+
+    return make_record

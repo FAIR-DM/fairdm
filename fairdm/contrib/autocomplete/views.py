@@ -4,6 +4,7 @@ import functools
 
 from dal import autocomplete
 from django.db.models import Case, IntegerField, Q, Value, When
+from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.utils.translation import gettext as _
 from django_tomselect.autocompletes import AutocompleteModelView
@@ -171,7 +172,66 @@ def scoped_view(view_class, scope):
     )
 
 
-class RecordAutocompleteView(AutocompleteModelView):
+class LimitedAutocompleteMixin:
+    """Keep what one request can cost, and what it can reveal, in the view's hands.
+
+    Attributes:
+        page_size: The results in a page. A request cannot change it.
+        max_pages: The last page that is served.
+        max_query_length: The longest search text. Longer text is cut.
+        allowed_filter_fields: The fields a request may filter on through ``f`` and ``e``. A
+            request naming any other field is offered nothing.
+        allowed_ordering_fields: The fields a request may order by. Others are ignored.
+    """
+
+    skip_authorization = True
+    allow_anonymous = True
+    page_size = 20
+    max_pages = 25
+    max_query_length = 100
+    allowed_filter_fields: list[str] = []
+    allowed_ordering_fields: list[str] = []
+
+    def setup(self, request, *args, **kwargs):
+        """Fix the page size and the length of the search text, whatever the request asks."""
+        super().setup(request, *args, **kwargs)
+        self.page_size = type(self).page_size
+        self.query = self.query[: self.max_query_length]
+
+    def paginate_queryset(self, queryset):
+        """Serve nothing past the last page of results or past the page limit."""
+        try:
+            requested = max(1, int(self.page))
+        except (TypeError, ValueError):
+            requested = 1
+        empty = {
+            "results": [],
+            "page": requested,
+            "has_more": False,
+            "next_page": None,
+            "total_pages": self.max_pages,
+        }
+        if requested > self.max_pages:
+            return empty
+        data = super().paginate_queryset(queryset)
+        if data["page"] != requested:
+            return empty
+        if requested == self.max_pages:
+            data["has_more"] = False
+            data["next_page"] = None
+        return data
+
+    def get(self, request, *args, **kwargs):
+        """Answer a search that failed with the failure and nothing else."""
+        response = super().get(request, *args, **kwargs)
+        if response.status_code >= 500:
+            return JsonResponse(
+                {"results": [], "page": 1, "has_more": False}, status=500
+            )
+        return response
+
+
+class RecordAutocompleteView(LimitedAutocompleteMixin, AutocompleteModelView):
     """Offer the records of one kind that the person searching may reach at one scope.
 
     Attributes:
@@ -183,9 +243,6 @@ class RecordAutocompleteView(AutocompleteModelView):
     """
 
     scope = "view"
-    skip_authorization = True
-    allow_anonymous = True
-    page_size = 20
     exact_lookups: list[str] = []
     noun_plural = ""
 

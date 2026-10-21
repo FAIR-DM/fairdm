@@ -235,3 +235,113 @@ class TestProjectAutocompleteView:
             public.pk
         ]
         assert search(client, "project", "edit")["results"] == []
+
+
+def every_address():
+    """Return the kind and scope of each record address the app registers."""
+    from fairdm.contrib.autocomplete import urls
+
+    return [(kind, scope) for kind in urls.RECORD_VIEWS for scope in urls.SCOPES]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(("kind", "scope"), every_address())
+class TestLimitedAutocompleteMixin:
+    def test_every_address_answers_a_visitor(self, client, kind, scope):
+        assert search(client, kind, scope)["results"] == []
+
+    def test_a_requested_page_size_is_ignored(
+        self, researcher_client, researcher, make_record, kind, scope
+    ):
+        for number in range(25):
+            make_record(kind, f"Record {number:02d}", holder=researcher)
+
+        for requested in (3, 1000):
+            answer = search(researcher_client, kind, scope, page_size=requested)
+
+            assert len(answer["results"]) == 20
+
+    def test_a_search_is_cut_to_a_hundred_characters(
+        self, researcher_client, researcher, make_record, kind, scope
+    ):
+        wanted = make_record(kind, "a" * 100, holder=researcher)
+
+        answer = search(researcher_client, kind, scope, q="a" * 100 + "zzzz")
+
+        assert [r["id"] for r in answer["results"]] == [wanted.pk]
+
+    def test_no_page_past_the_limit_is_served(
+        self, researcher_client, researcher, make_record, monkeypatch, kind, scope
+    ):
+        from fairdm.contrib.autocomplete.views import LimitedAutocompleteMixin
+
+        monkeypatch.setattr(LimitedAutocompleteMixin, "max_pages", 2)
+        for number in range(45):
+            make_record(kind, f"Record {number:02d}", holder=researcher)
+
+        last = search(researcher_client, kind, scope, p=2)
+        past = search(researcher_client, kind, scope, p=3)
+
+        assert len(last["results"]) == 20
+        assert last["has_more"] is False
+        assert past["results"] == []
+
+    def test_a_page_past_the_last_is_empty(
+        self, researcher_client, researcher, make_record, kind, scope
+    ):
+        make_record(kind, "Only one", holder=researcher)
+
+        assert search(researcher_client, kind, scope, p=5)["results"] == []
+
+    @pytest.mark.parametrize(
+        ("parameter", "narrowing"),
+        [
+            ("f", f"field__visibility={int(Visibility.PUBLIC)}"),
+            ("e", f"field__visibility={int(Visibility.PRIVATE)}"),
+        ],
+    )
+    def test_a_filter_outside_the_allow_list_offers_nothing(
+        self,
+        researcher_client,
+        researcher,
+        make_record,
+        kind,
+        scope,
+        parameter,
+        narrowing,
+    ):
+        make_record(kind, "Record", holder=researcher)
+
+        answer = search(researcher_client, kind, scope, **{parameter: narrowing})
+
+        assert answer["results"] == []
+
+    def test_an_ordering_outside_the_allow_list_changes_nothing(
+        self, researcher_client, researcher, make_record, kind, scope
+    ):
+        for name in ("Alpha", "Bravo", "Charlie"):
+            make_record(kind, name, holder=researcher)
+
+        plain = search(researcher_client, kind, scope)
+        reordered = search(researcher_client, kind, scope, ordering="-name")
+
+        assert names(reordered) == names(plain) == ["Alpha", "Bravo", "Charlie"]
+
+    def test_a_failing_search_reveals_only_the_failure(
+        self, researcher_client, monkeypatch, settings, kind, scope
+    ):
+        from fairdm.contrib.autocomplete import urls
+
+        settings.DEBUG = True
+
+        def fail(self):
+            raise RuntimeError("secret detail")
+
+        monkeypatch.setattr(urls.RECORD_VIEWS[kind], "get_queryset", fail)
+
+        response = researcher_client.get(reverse(f"autocomplete:{kind}-{scope}"))
+
+        assert response.status_code == 500
+        assert "secret detail" not in response.content.decode()
+        assert response.json()["results"] == []
+        assert set(response.json()) <= {"results", "page", "has_more"}
