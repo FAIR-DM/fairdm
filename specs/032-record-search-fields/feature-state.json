@@ -491,8 +491,19 @@
         },
         {
           "id": "T034",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "demo/tests/test_forms.py::TestSampleReferenceFormExample,tests/test_contrib/test_autocomplete/test_fields.py::TestFieldSettings"
+            ],
+            "commands": [
+              "uv run python run_doc_blocks.py (executes every python block of the three pages; the view fragment in step 3 of the how-to needs a request and is the one that does not stand alone)"
+            ],
+            "code": [
+              "docs/portal-development/record-fields.md:1"
+            ]
+          }
         }
       ]
     },

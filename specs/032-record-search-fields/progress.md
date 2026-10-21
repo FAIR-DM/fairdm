@@ -241,3 +241,10 @@ Did: seed_record_search (demo/seed/record_search.py): 12 organizations with ROR,
 Verified: pytest -n0 test_seed_record_search.py demo/tests/test_forms.py: 11 passed. The seed tests were written after the code, not before. First page measured on a separate database (fairdm_timing, created and dropped; the dev server's fairdm database untouched): 100,012 samples, signed in at view scope, first page of 20 with no search: median 478 ms, worst 542 ms over 15 runs. Edit scope 308 ms median; anonymous public scope 329 ms; search "Core sample 0500" 508 ms; exact local ID 335 ms. The run goes through the test client in-process, cache cleared before each call, so no throttle counts. SC-002 asks for under one second.
 Next: docs.
 Watch: the figure is on this machine's PostGIS container, the same stack the dev server uses.
+
+## 2026-10-21T15:30:50Z · Implementer US4 · T034
+
+Did: record-fields.md: scope defaults, owner and type arguments, an example form with one of each field, one section each for owner and for type, the profile address. add-a-record-field.md: the multiple field's default corrected, sections for type, depends_on/prefer and owner. api-limits.md: the four search-field scopes, their starting values, the settings, and the NUM_PROXIES reliance. CHANGELOG: an Added entry and a breaking Removed entry with an eight-step migration guide. CONTEXT.md: Autocomplete field.
+Verified: ran every python block of the three pages against this branch with tests.settings: all run except step 3 of the how-to, which is a view fragment that needs a request.
+Next: final verify and the full suite.
+Watch: the owner example on record-fields.md passes a placeholder person.
