@@ -382,26 +382,26 @@ class TestFilterChoicesOnTheRenderedPage:
         return set(response.context["filter"].form.fields[name].offered())
 
     def test_a_measurement_listings_sample_filter_offers_no_unpublished_sample(
-        self, client, published_dataset, unpublished_dataset
+        self, client, public_dataset, unpublished_dataset
     ):
-        offered = RockSampleFactory(dataset=published_dataset)
+        offered = RockSampleFactory(dataset=public_dataset)
         withheld = RockSampleFactory(dataset=unpublished_dataset)
-        ExampleMeasurementFactory(sample=offered, dataset=published_dataset)
+        ExampleMeasurementFactory(sample=offered, dataset=public_dataset)
 
-        choices = self._page_filters(client, ExampleMeasurement)["sample"].queryset
+        choices = self._offered(client, ExampleMeasurement, "sample")
 
         assert offered in choices
         assert withheld not in choices
 
     def test_a_measurement_listings_dataset_filter_offers_no_unpublished_dataset(
-        self, client, published_dataset, unpublished_dataset
+        self, client, public_dataset, unpublished_dataset
     ):
-        sample = RockSampleFactory(dataset=published_dataset)
-        ExampleMeasurementFactory(sample=sample, dataset=published_dataset)
+        sample = RockSampleFactory(dataset=public_dataset)
+        ExampleMeasurementFactory(sample=sample, dataset=public_dataset)
 
-        choices = self._page_filters(client, ExampleMeasurement)["dataset"].queryset
+        choices = self._offered(client, ExampleMeasurement, "dataset")
 
-        assert published_dataset in choices
+        assert public_dataset in choices
         assert unpublished_dataset not in choices
 
     def test_a_sample_listings_dataset_filter_offers_public_datasets_only(

@@ -2,17 +2,19 @@
 
 import pytest
 from django.contrib import admin
+from django.contrib.auth.models import AnonymousUser
 from django.db import models
 from django.forms import ModelForm
+from django.test import RequestFactory
 from django_filters import FilterSet
 from django_tables2 import Table
 
-from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from demo.models import ExampleMeasurement
 from fairdm.api.serializers import BaseMeasurementSerializer, BaseSampleSerializer
+from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
-from fairdm.factories import DatasetFactory
+from fairdm.factories import DatasetFactory, ProjectFactory
 from fairdm.registry import ModelConfiguration
 from fairdm.registry.factories import (
     AdminFactory,
@@ -573,62 +575,60 @@ class TestFilterFactoryMeasurementBranch:
 
 
 @pytest.mark.django_db
-class TestPublishedChoiceLists:
-    def test_a_sample_filters_choice_list_excludes_unpublished_samples(self):
-        published = RockSampleFactory(dataset=DatasetFactory(published=True))
-        unpublished = RockSampleFactory(dataset=DatasetFactory(published=False))
+class TestGeneratedRelatedRecordFilters:
+    @pytest.fixture(
+        params=["project", "dataset", "sample", "measurement"],
+    )
+    def referrer(self, request):
+        """A model with a foreign key to one kind of record, and the field class for it."""
+        from fairdm.contrib.autocomplete import fields
+        from fairdm.core.dataset.models import Dataset
+        from fairdm.core.project.models import Project
 
-        filterset_class = FilterFactory(
-            ExampleMeasurement, fields=["name", "sample"]
-        ).generate()
-        queryset = filterset_class.base_filters["sample"].extra["queryset"]
+        related = {
+            "project": Project,
+            "dataset": Dataset,
+            "sample": Sample,
+            "measurement": Measurement,
+        }[request.param]
+        attrs = {
+            "__module__": __name__,
+            "Meta": type("Meta", (), {"app_label": "test_app"}),
+            "related": models.ForeignKey(related, on_delete=models.CASCADE),
+        }
+        model = type(f"{request.param.capitalize()}Referrer", (models.Model,), attrs)
+        return model, getattr(
+            fields, f"{request.param.capitalize()}MultipleChoiceField"
+        )
 
-        assert published in queryset
-        assert unpublished not in queryset
+    def test_a_related_record_filter_is_a_record_filter_at_public_scope(self, referrer):
+        model, field_class = referrer
 
-    def test_a_dataset_filters_choice_list_excludes_unpublished_and_includes_published_private(
-        self,
-    ):
+        filterset_class = FilterFactory(model, fields=["related"]).generate()
+        generated = filterset_class.base_filters["related"]
+
+        assert isinstance(generated, RecordMultipleFilter)
+        assert generated.field_class is field_class
+        assert generated.extra["scope"] == "public"
+
+    def test_a_related_dataset_filter_offers_public_datasets_only(self):
+        public = DatasetFactory(
+            published=True,
+            visibility=Visibility.PUBLIC,
+            project=ProjectFactory(visibility=Visibility.PUBLIC),
+        )
         published_private = DatasetFactory(
             published=True, visibility=Visibility.PRIVATE
         )
-        published_public = DatasetFactory(published=True, visibility=Visibility.PUBLIC)
-        unpublished = DatasetFactory(published=False)
+        request = RequestFactory().get("/")
+        request.user = AnonymousUser()
 
-        filterset_class = FilterFactory(
+        filterset = FilterFactory(
             ExampleMeasurement, fields=["name", "dataset"]
-        ).generate()
-        queryset = filterset_class.base_filters["dataset"].extra["queryset"]
+        ).generate()(request=request)
 
-        assert published_private in queryset
-        assert published_public in queryset
-        assert unpublished not in queryset
-
-    def test_a_measurement_filters_choice_list_excludes_unpublished_measurements(self):
-        class MeasurementReferrer(models.Model):
-            measurement = models.ForeignKey(Measurement, on_delete=models.CASCADE)
-
-            class Meta:
-                app_label = "test_app"
-
-        published_dataset = DatasetFactory(published=True)
-        unpublished_dataset = DatasetFactory(published=False)
-        published = ExampleMeasurementFactory(
-            dataset=published_dataset,
-            sample=RockSampleFactory(dataset=published_dataset),
-        )
-        unpublished = ExampleMeasurementFactory(
-            dataset=unpublished_dataset,
-            sample=RockSampleFactory(dataset=unpublished_dataset),
-        )
-
-        filterset_class = FilterFactory(
-            MeasurementReferrer, fields=["measurement"]
-        ).generate()
-        queryset = filterset_class.base_filters["measurement"].extra["queryset"]
-
-        assert published in queryset
-        assert unpublished not in queryset
+        assert set(filterset.form.fields["dataset"].offered()) == {public}
+        assert published_private not in filterset.form.fields["dataset"].offered()
 
 
 @pytest.mark.django_db

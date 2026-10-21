@@ -17,6 +17,7 @@ from django_tables2.tables import table_factory
 from mvp.filters import SearchFilter
 from mvp_forms.widgets import DateRangeInput, DateTimeRangeInput, RangeInput
 
+from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
 from fairdm.utils.inspection import FieldInspector
 
 
@@ -542,9 +543,17 @@ class FilterFactory(ComponentFactory):
                     )
 
                 elif isinstance(field, models.ForeignKey):
-                    filter_overrides[field_name] = filters.ModelChoiceFilter(
-                        queryset=self._published_related_queryset(field.related_model)
-                    )
+                    record_field = self._record_field_class(field.related_model)
+                    if record_field is not None:
+                        filter_overrides[field_name] = RecordMultipleFilter(
+                            record_field, field_name=field_name
+                        )
+                    else:
+                        filter_overrides[field_name] = filters.ModelChoiceFilter(
+                            queryset=self._published_related_queryset(
+                                field.related_model
+                            )
+                        )
 
                 elif isinstance(
                     field, (models.IntegerField, models.FloatField, models.DecimalField)
@@ -562,6 +571,32 @@ class FilterFactory(ComponentFactory):
                 pass
 
         return filter_overrides
+
+    @staticmethod
+    def _record_field_class(related_model: type[models.Model]) -> Any:
+        """Return the multiple record field that chooses among a kind of record.
+
+        Args:
+            related_model: The model on the other end of a relation.
+
+        Returns:
+            The field class for a project, dataset, sample or measurement, otherwise ``None``.
+        """
+        from fairdm.contrib.autocomplete import fields
+        from fairdm.core.dataset.models import Dataset
+        from fairdm.core.measurement.models import Measurement
+        from fairdm.core.project.models import Project
+        from fairdm.core.sample.models import Sample
+
+        for model, field_class in (
+            (Project, fields.ProjectMultipleChoiceField),
+            (Dataset, fields.DatasetMultipleChoiceField),
+            (Sample, fields.SampleMultipleChoiceField),
+            (Measurement, fields.MeasurementMultipleChoiceField),
+        ):
+            if issubclass(related_model, model):
+                return field_class
+        return None
 
     def _published_related_queryset(self, related_model: type[models.Model]) -> Any:
         """Return a related-record filter's choices, scoped to published records.
