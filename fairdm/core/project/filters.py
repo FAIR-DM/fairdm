@@ -7,6 +7,11 @@ from django.utils.translation import gettext_lazy as _
 from mvp.filters import SearchFilter, SortFilter
 from mvp_forms.widgets import TomSelectMultiple
 
+from fairdm.contrib.autocomplete.fields import (
+    OrganizationMultipleChoiceField,
+    PersonMultipleChoiceField,
+)
+from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
 from fairdm.core.filters import BaseListFilter
 from fairdm.utils.utils import get_setting
 
@@ -37,9 +42,9 @@ class ProjectFilter(BaseListFilter):
         label=_("Status"),
     )
 
-    owner = df.ModelChoiceFilter(
-        queryset=None,
-        empty_label=_("Any"),
+    owner = RecordMultipleFilter(
+        OrganizationMultipleChoiceField,
+        field_name="owner",
         label=_("Owner"),
     )
 
@@ -49,10 +54,9 @@ class ProjectFilter(BaseListFilter):
         label=_("Tag"),
     )
 
-    contributor = df.ModelChoiceFilter(
-        queryset=None,
+    contributor = RecordMultipleFilter(
+        PersonMultipleChoiceField,
         field_name="contributors__contributor",
-        empty_label=_("Any"),
         label=_("Contributor"),
         distinct=True,
     )
@@ -62,12 +66,6 @@ class ProjectFilter(BaseListFilter):
 
         if self.queryset is not None:
             self.queryset = self.queryset.get_visible()
-
-        from fairdm.contrib.contributors.models import Organization
-
-        self.filters["owner"].queryset = Organization.objects.filter(
-            owned_projects__isnull=False
-        ).distinct()
 
         from research_vocabs.models import Concept
 
@@ -102,12 +100,6 @@ class ProjectFilter(BaseListFilter):
                 label=_("Keywords"),
                 widget=forms.CheckboxSelectMultiple,
             )
-
-        from fairdm.contrib.contributors.models import Contributor
-
-        self.filters["contributor"].queryset = Contributor.objects.filter(
-            contributions__content_type__model="project"
-        ).distinct()
 
     @property
     def form(self):

@@ -296,3 +296,25 @@ class TestDependentFields:
     def test_a_field_cannot_depend_on_what_its_view_does_not_filter_by(self):
         with pytest.raises(ValueError, match="depends_on"):
             DatasetChoiceField(depends_on="project")
+
+
+class TestPersonAndOrganizationFields:
+    @pytest.mark.parametrize("scope", ["view", "edit"])
+    def test_a_person_or_organization_field_is_offered_at_one_scope_only(self, scope):
+        from fairdm.contrib.autocomplete.fields import (
+            OrganizationChoiceField,
+            PersonMultipleChoiceField,
+        )
+
+        for field_class in (OrganizationChoiceField, PersonMultipleChoiceField):
+            with pytest.raises(ValueError, match="scope must be one of public"):
+                field_class(scope=scope)
+
+    def test_both_fields_of_a_pair_default_to_that_scope(self):
+        from fairdm.contrib.autocomplete.fields import (
+            PersonChoiceField,
+            PersonMultipleChoiceField,
+        )
+
+        assert PersonChoiceField().scope == "public"
+        assert PersonMultipleChoiceField().scope == "public"
