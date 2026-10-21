@@ -11,8 +11,9 @@ from tests.registry_models.models import ConcreteMeasurement, ConcreteSample
 
 
 def search(client, kind, scope, **params):
-    """Return the decoded answer of one kind's address at one scope."""
-    response = client.get(reverse(f"autocomplete:{kind}-{scope}"), params)
+    """Return the decoded answer of one kind's address at one scope, or of a kind with none."""
+    name = f"{kind}-{scope}" if scope else kind
+    response = client.get(reverse(f"autocomplete:{name}"), params)
     assert response.status_code == 200
     return response.json()
 
@@ -841,3 +842,103 @@ class TestPersonAutocompleteView:
 
         assert "Potsdam Research Institute" in row["html"]
         assert "0000-0002-1825-0097" in row["html"]
+
+
+@pytest.mark.django_db
+class TestPublicationAutocompleteView:
+    def test_a_publication_is_found_by_part_of_its_title(
+        self, client, make_publication
+    ):
+        wanted = make_publication("Basalt cooling rates")
+        make_publication("Granite ages")
+
+        answer = search(client, "publication", None, q="cooling")
+
+        assert [r["id"] for r in answer["results"]] == [wanted.pk]
+
+    def test_a_publication_is_found_by_an_author(self, client, make_publication):
+        wanted = make_publication("Untitled study", authors=[("Lovelace", "Ada")])
+        make_publication("Other study", authors=[("Babbage", "Charles")])
+
+        answer = search(client, "publication", None, q="lovelace")
+
+        assert [r["id"] for r in answer["results"]] == [wanted.pk]
+
+    def test_a_doi_typed_exactly_comes_first(self, client, make_publication):
+        mentioned = make_publication("On the paper 10.1000/abc and others")
+        exact = make_publication("Another title", doi="10.1000/ABC")
+
+        answer = search(client, "publication", None, q="10.1000/abc")
+
+        assert [r["id"] for r in answer["results"]] == [exact.pk, mentioned.pk]
+
+    def test_a_doi_typed_as_an_address_finds_the_publication(
+        self, client, make_publication
+    ):
+        wanted = make_publication("Some title", doi="10.1000/abc")
+
+        answer = search(client, "publication", None, q="https://doi.org/10.1000/abc")
+
+        assert [r["id"] for r in answer["results"]] == [wanted.pk]
+
+    def test_a_doi_typed_in_part_finds_nothing(self, client, make_publication):
+        make_publication("Some title", doi="10.1000/abcdef")
+
+        assert search(client, "publication", None, q="10.1000/abc")["results"] == []
+
+    def test_a_result_gives_the_authors_the_year_and_the_doi(
+        self, client, make_publication
+    ):
+        make_publication(
+            "Basalt",
+            authors=[("Lovelace", "Ada"), ("Babbage", "Charles")],
+            doi="10.1000/abc",
+            year=2021,
+        )
+
+        row = search(client, "publication", None)["results"][0]
+
+        assert row["authors"] == "Lovelace, Babbage"
+        assert row["year"] == 2021
+        assert row["doi"] == "10.1000/abc"
+        assert "item" not in row
+
+    def test_a_publication_with_no_authors_year_or_doi_still_has_a_row(
+        self, client, make_publication
+    ):
+        make_publication("Bare")
+
+        row = search(client, "publication", None)["results"][0]
+
+        assert row["title"] == "Bare"
+        assert row["authors"] == ""
+        assert row["year"] is None
+        assert row["doi"] == ""
+
+
+@pytest.mark.django_db
+class TestNewViewsTakeTheLimits:
+    @pytest.mark.parametrize("name", ["publication"])
+    def test_each_new_address_refuses_a_caller_over_the_burst_rate(
+        self, client, settings, monkeypatch, name
+    ):
+        from django.core.cache.backends.locmem import LocMemCache
+        from rest_framework.throttling import SimpleRateThrottle
+
+        from fairdm.contrib.contributors.services.registries import Ror
+
+        monkeypatch.setattr(
+            Ror, "search", lambda self, term: {"results": [], "more": False}
+        )
+        cache = LocMemCache(f"limits-{name}", {})
+        cache.clear()
+        monkeypatch.setattr(SimpleRateThrottle, "cache", cache)
+        rates = settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]
+        monkeypatch.setitem(rates, "autocomplete_anon_burst", "2/minute")
+
+        answers = [
+            client.get(reverse(f"autocomplete:{name}")).status_code for _ in range(4)
+        ]
+
+        assert answers[-1] == 429
+        assert 429 not in answers[:2]

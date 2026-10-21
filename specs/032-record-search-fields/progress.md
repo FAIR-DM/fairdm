@@ -171,3 +171,10 @@ Did: PublicationAutocompleteView (title, author and DOI search, exact DOI first,
 Verified: red first (7 view tests fail for the missing address, test_forms.py fails to import the field); then pytest -n0 tests/test_contrib/test_autocomplete/test_views.py::TestPublicationAutocompleteView tests/test_core/test_dataset/test_forms.py: 37 passed.
 Next: tags.
 Watch: ruff check fixes files outside the story (it rewrote tests/test_core/test_dataset/test_plugins.py); I restored it and use --no-fix.
+
+## 2026-10-21T14:43:53Z · Implementer US6-US8 · T023
+
+Did: TestPublicationAutocompleteView (title, author, exact DOI first, a DOI typed as an address, a DOI typed in part finds nothing, the row's authors/year/DOI, a bare publication), make_publication fixture, and a limits test that takes each new address in turn (publication now; tag and ROR join with their views). The dataset form tests for AS 6.4 were committed with T024.
+Verified: the tests failed first on the missing address; pytest -n0 TestPublicationAutocompleteView and the publication case of TestNewViewsTakeTheLimits: passed.
+Next: tags.
+Watch: none.

@@ -10,6 +10,7 @@ from fairdm.factories import (
     ContributionFactory,
     ContributorIdentifierFactory,
     DatasetFactory,
+    LiteratureItemFactory,
     OrganizationFactory,
     PersonFactory,
     ProjectFactory,
@@ -223,3 +224,20 @@ def make_measurement(db, make_sample):
         )
 
     return make_measurement
+
+
+@pytest.fixture
+def make_publication(db):
+    """Return a function building a literature item with authors, a DOI and a year."""
+
+    def make_publication(title, *, authors=(), doi="", year=None):
+        item = {"type": "article-journal", "title": title}
+        if authors:
+            item["author"] = [{"family": f, "given": g} for f, g in authors]
+        if doi:
+            item["DOI"] = doi
+        if year:
+            item["issued"] = {"date-parts": [[year]]}
+        return LiteratureItemFactory(item=item)
+
+    return make_publication
