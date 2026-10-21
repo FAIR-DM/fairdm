@@ -270,6 +270,26 @@ class TestSampleAutocompleteView:
 
         assert [r["id"] for r in answer["results"]] == [inside.pk]
 
+    @pytest.mark.parametrize("parameter", ["f", "e"])
+    def test_a_filter_cannot_reach_past_the_dataset_into_its_fields(
+        self, researcher_client, researcher, make_dataset, make_sample, parameter
+    ):
+        dataset = make_dataset("Wanted", holder=researcher)
+        make_sample("Inside", dataset=dataset)
+        reach = "x__dataset__project__visibility"
+
+        matching = search(
+            researcher_client,
+            "sample",
+            "view",
+            **{parameter: f"{reach}={dataset.project.visibility}"},
+        )
+        not_matching = search(
+            researcher_client, "sample", "view", **{parameter: f"{reach}=99"}
+        )
+
+        assert matching["results"] == not_matching["results"] == []
+
     def test_a_preferred_dataset_puts_its_samples_first_in_a_group_of_their_own(
         self, researcher_client, researcher, make_dataset, make_sample
     ):

@@ -151,6 +151,21 @@ class LimitedAutocompleteMixin:
             data["next_page"] = None
         return data
 
+    def _apply_single_filter(self, queryset, filter_str, is_exclude=False):
+        """Apply a request's filter only when it names an allowed field and nothing past it.
+
+        django-tomselect checks only the first part of a lookup against the allow-list, so
+        ``dataset__project__visibility`` would pass as ``dataset`` and let a request ask about
+        any field the relation reaches. A lookup must be exactly an allowed field.
+        """
+        try:
+            lookup_field, _value, _constant = self._parse_filter_string(filter_str)
+        except ValueError:
+            return None
+        if lookup_field not in self.allowed_filter_fields:
+            return None
+        return super()._apply_single_filter(queryset, filter_str, is_exclude)
+
     def get(self, request, *args, **kwargs):
         """Answer a search that failed with the failure and nothing else."""
         response = super().get(request, *args, **kwargs)
