@@ -124,23 +124,7 @@ class DatasetForm(ManagerOnlyFieldsMixin, ModelForm):
                 name=default_license_name
             ).first()
 
-        # SKETCH: autocomplete fields for the project and the data publication.
-        from fairdm.contrib.autocomplete.records_fields import (
-            ProjectChoiceField,
-            PublicationChoiceField,
-        )
-
-        if "reference" in self.fields:
-            old = self.fields["reference"]
-            self.fields["reference"] = PublicationChoiceField(
-                label=old.label, required=False, help_text=old.help_text
-            )
         project_field = self.fields.get("project")
-        if project_field:
-            self.fields["project"] = ProjectChoiceField(
-                scope="edit", required=False, help_text=project_field.help_text
-            )
-            project_field = None
         if project_field and self.request:
             if (
                 hasattr(self.request, "user")

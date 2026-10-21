@@ -2,9 +2,13 @@
 
 from crispy_forms.helper import FormHelper
 from django import forms
+from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
+from django_addanother.widgets import AddAnotherWidgetWrapper
+from django_select2.forms import ModelSelect2Widget
 from mvp_forms.widgets import ImageInput
 
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.forms import ManagerOnlyFieldsMixin
 from fairdm.core.image_utils import IMAGE_HELP_TEXT, validate_image_file_size
 from fairdm.utils.location.forms import LocationFormMixin
@@ -44,25 +48,38 @@ class MeasurementFormMixin(LocationFormMixin, ManagerOnlyFieldsMixin):
         super().__init__(*args, **kwargs)
         self.withhold_manager_only_fields(self.request)
 
-        # SKETCH: dataset by edit access, sample narrowed to the chosen dataset.
-        from fairdm.contrib.autocomplete.records_fields import (
-            DatasetChoiceField,
-            SampleChoiceField,
-        )
-
         if "dataset" in self.fields:
-            old = self.fields["dataset"]
-            self.fields["dataset"] = DatasetChoiceField(
-                scope="edit", required=old.required, help_text=old.help_text
+            select2_widget = ModelSelect2Widget(
+                search_fields=["name__icontains", "title__icontains"],
+                attrs={"data-placeholder": _("Select a dataset...")},
+            )
+            self.fields["dataset"].widget = AddAnotherWidgetWrapper(
+                select2_widget,
+                add_related_url=reverse_lazy("admin:dataset_dataset_add"),
             )
 
+            from fairdm.core.dataset.models import Dataset
+
+            # `all_objects` is only the base the permission check narrows. A caller that omits the
+            # optional `request` keeps the privacy-first default queryset, never every private dataset.
+            if (
+                self.request
+                and hasattr(self.request, "user")
+                and self.request.user is not None
+                and self.request.user.is_authenticated
+            ):
+                self.fields["dataset"].queryset = Dataset.all_objects.accessible_to(
+                    self.request.user, ContributionLevel.EDIT
+                )
+
         if "sample" in self.fields:
-            old = self.fields["sample"]
-            self.fields["sample"] = SampleChoiceField(
-                scope="view",
-                required=old.required,
-                help_text=old.help_text,
-                filter_by=("dataset", "dataset_id") if "dataset" in self.fields else (),
+            # The sample choices are filtered by JavaScript, from the selected dataset.
+            self.fields["sample"].widget = ModelSelect2Widget(
+                search_fields=["name__icontains"],
+                attrs={
+                    "data-placeholder": _("Select a sample..."),
+                    "data-depends-on": "dataset",
+                },
             )
 
         if "location" in self.fields:

@@ -6,6 +6,7 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 from mvp_forms.widgets import ImageInput
 
+from fairdm.contrib.contributors.models import Organization
 from fairdm.core.choices import ProjectStatus
 from fairdm.core.forms import ManagerOnlyFieldsMixin
 from fairdm.core.image_utils import IMAGE_HELP_TEXT, validate_image_file_size
@@ -80,15 +81,7 @@ class ProjectForm(ManagerOnlyFieldsMixin, ModelForm):
         super().__init__(*args, **kwargs)
         self.withhold_manager_only_fields(request)
         if "owner" in self.fields:
-            # SKETCH: an autocomplete field over every organization.
-            from fairdm.contrib.autocomplete.records_fields import (
-                OrganizationChoiceField,
-            )
-
-            old = self.fields["owner"]
-            self.fields["owner"] = OrganizationChoiceField(
-                label=old.label, required=old.required, help_text=old.help_text
-            )
+            self.fields["owner"].queryset = Organization.objects.all()
 
         self.helper = FormHelper()
         self.helper.form_tag = False

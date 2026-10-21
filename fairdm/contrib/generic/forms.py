@@ -155,19 +155,18 @@ class KeywordForm(forms.ModelForm):
 
         super().__init__(*args, **kwargs)
 
-        # SKETCH: free keywords as chips, offering tags already in use.
-        from fairdm.contrib.autocomplete.records_fields import TagsField
-
-        self.fields["tags"] = TagsField(
-            allow_new=True,
+        self.fields["tags"] = forms.CharField(
             label=_("Free keywords"),
             help_text=_("Words this record should be found under."),
+            widget=TagWidget,
             required=False,
         )
         if self.instance.pk:
             tags = list(self.instance.tags.names())
             self.initial["tags"] = tags
-            self.fields["tags"].choices = [(tag, tag) for tag in tags]
+            # A tag input draws only the options it is given, so the recorded tags are offered as
+            # its choices to show as chosen.
+            self.fields["tags"].widget.choices = [(tag, tag) for tag in tags]
 
         self.helper = FormHelper()
         self.helper.form_id = "keyword-form"
