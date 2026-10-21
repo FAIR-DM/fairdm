@@ -226,7 +226,7 @@
       "priority": "P1",
       "issue": 545,
       "worktree": null,
-      "status": "todo",
+      "status": "done",
       "replans": 0,
       "tasks": [
         {
@@ -295,8 +295,19 @@
         },
         {
           "id": "T035",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_core/test_measurement/test_forms.py::TestMeasurementFormPolymorphicHandling::test_form_handles_cross_dataset_sample_reference"
+            ],
+            "commands": [
+              "uv run pytest -q -n 8 (full suite, 2026-10-21T14:35Z)"
+            ],
+            "code": [
+              "fairdm/contrib/autocomplete/fields.py:1"
+            ]
+          }
         }
       ]
     },
@@ -595,7 +606,7 @@
       "max": 1
     },
     "tokens": {
-      "used": 60.2,
+      "used": 66.43,
       "max": 120
     },
     "design_review_cycles": {
