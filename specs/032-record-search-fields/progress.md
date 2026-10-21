@@ -87,3 +87,38 @@ Did: record-fields.md gains the sample and measurement fields, depends_on with a
 Verified: the example mirrors DependentSampleForm in TestDependentFields, which passes.
 Next: full verify and report.
 Watch: managing-measurements.md and the cross-dataset lines of measurements.md left as they were, pending a ruling.
+
+## 2026-10-21T13:31:54Z · Implementer US3 · T013
+
+Did: RecordMultipleFilter in fairdm/contrib/autocomplete/filters.py (a ModelMultipleChoiceFilter drawing the multiple record field, public scope by default, handing the field the filter set's request); the sample list's dataset filter now uses it. Tests in test_autocomplete/test_filters.py. Updated the sample and collections tests that pinned the old ModelChoiceFilter queryset.
+Verified: uv run pytest -q -n0 tests/test_contrib/test_autocomplete tests/test_core/test_sample/test_filters.py tests/test_contrib/test_collections/test_views.py::TestFilterChoicesOnTheRenderedPage: 264 passed, 4 skipped (earlier skips). tests/test_api ran green on the first pass of the change (1710 passed across sample, collections, api).
+Next: T014 other list filters and project keyword filters.
+Watch: the old privacy tests offered a private dataset to a reader who may view it; at public scope nobody is offered one.
+
+## 2026-10-21T13:38:07Z · Implementer US3 · T014
+
+Did: dataset list project filter, measurement list dataset and sample filters moved to RecordMultipleFilter at public scope; project keyword filters now use mvp_forms TomSelectMultiple(counted=True) with no django-autocomplete-light widget. Project list owner and contributor left as they are (US5). Updated the dataset, measurement and dataset-view tests that pinned the old ModelChoiceFilter queryset or offered private records.
+Verified: uv run pytest -q -n 8 tests/test_contrib tests/test_core tests/test_api tests/test_registry: 6305 passed, 7 skipped, 5 failed; the failures were the one known cross-dataset test plus tests pinning the old types, since fixed (110 passed on the re-run of those files). tests/test_api green.
+Next: T015 generated filters for related project, dataset, sample, measurement.
+Watch: two collections tests on ExampleMeasurement's dataset and sample filters still pin .queryset; they change with T015, because that type's filters come from the generated set.
+
+## 2026-10-21T13:40:54Z · Implementer US3 · T015
+
+Did: FilterFactory._get_smart_filters makes a RecordMultipleFilter (public scope) for a foreign key to a project, dataset, sample or measurement; other foreign keys keep their ModelChoiceFilter. Rewrote TestPublishedChoiceLists as TestGeneratedRelatedRecordFilters; moved the two collections tests on ExampleMeasurement's dataset and sample filters to the field's offered records.
+Verified: uv run pytest -q -n0 tests/test_registry: 271 passed; collections TestFilterChoicesOnTheRenderedPage 5 passed.
+Next: T016 API.
+Watch: PublishedChoicesMixin still scopes any filter that has a queryset; record filters have none and are scoped by their view.
+
+## 2026-10-21T13:40:55Z · Implementer US3 · T016
+
+Did: the API's DatasetFilterSet.match_relations_on_uuid swaps a RecordMultipleFilter for a plain ModelMultipleChoiceFilter (RecordMultipleFilter.for_api) over the public records, then matches on uuid as before. The sample, dataset and measurement mixins no longer assign querysets to those filters.
+Verified: tests/test_api full folder green in the combined run (6305 passed with the one known failure); TestRecordFiltersInTheApi fails when the swap is removed (probe) and passes with it.
+Next: T017 docs, then the full suite.
+Watch: none.
+
+## 2026-10-21T13:41:37Z · Implementer US3 · T017
+
+Did: filtering-by-vocabulary.md now describes the counted TomSelectMultiple keyword control and drops ConceptMultiSelect and the /autocomplete/concept/ address; add-a-record-field.md gains "Filter a list by a record"; record-fields.md gains a Filters section; sample-mixins.md says the dataset filter offers public datasets.
+Verified: docs only; the example filter in the how-to mirrors the tested sample list filter.
+Next: full suite.
+Watch: ConceptMultiSelect, ConceptSelect and ConceptAutocomplete still exist in code (removal belongs to the django-autocomplete-light removal story).
