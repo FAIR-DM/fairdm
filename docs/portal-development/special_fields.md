@@ -11,12 +11,14 @@ from fairdm.db import models
 
 class TemperatureMeasurement(Measurement):
     temperature = models.QuantityField(
+        "degC",
+        unit_choices=["degF", "K"],
         help_text="Temperature reading with units"
     )
     
     # Example usage:
-    # measurement.temperature = Quantity(25.5, 'celsius')
-    # converted = measurement.temperature.to('fahrenheit')
+    # measurement.temperature = Quantity(25.5, 'degC')
+    # converted = measurement.temperature.to('degF')
 ```
 
 ### Features
@@ -24,6 +26,19 @@ class TemperatureMeasurement(Measurement):
 - Automatic unit validation
 - Unit conversion capabilities
 - Integration with scientific libraries
+
+### Editing a quantity
+
+On a form, a quantity field is a number box with a unit list beside it. The list offers the
+field's base units and every unit in `unit_choices`. A value entered in any of them is converted
+and stored in the base units, and an edit form shows the stored value in the base units, so a
+form saved without changes keeps the value it had.
+
+The model fields pick their form field themselves: `fairdm.forms.fields.QuantityFormField`,
+`IntegerQuantityFormField` or `DecimalQuantityFormField`. Each is django-pint's form field of the
+same name, changed only in how it shows a stored value. That change is
+`fairdm.forms.fields.QuantityFormFieldMixin`, which a form field built on another of
+django-pint's quantity form fields can mix in for the same behaviour.
 
 ## ConceptField
 
@@ -103,7 +118,7 @@ from fairdm.db import models
 from research_vocabs.fields import ConceptField
 
 class AdvancedSample(Sample):
-    temperature = models.QuantityField()
+    temperature = models.QuantityField("degC")
     sample_type = ConceptField(vocabulary="sample_types")
     collection_date = models.PartialDateField()
 

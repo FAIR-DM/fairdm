@@ -1,7 +1,43 @@
-"""Tests for the PartialDateField model field."""
+"""Tests for the quantity and partial-date model fields."""
+
+import pytest
+from bs4 import BeautifulSoup
+from django import forms
+from quantityfield.units import ureg
 
 from fairdm.db.fields import PartialDateField
 from fairdm.forms.fields import PartialDateField as PartialDateFormField
+from tests.registry_models.models import ConcreteMeasurement
+
+DepthForm = forms.modelform_factory(ConcreteMeasurement, fields=["depth"])
+
+
+class TestQuantityField:
+    def test_an_unchanged_edit_form_saves_the_stored_quantity(self, measurement):
+        measurement.depth = ureg.Quantity(35.14, "m")
+        measurement.save()
+        rendered = BeautifulSoup(str(DepthForm(instance=measurement)), "html.parser")
+        number = rendered.select_one("input[name=depth_0]")
+        unit = rendered.select_one("select[name=depth_1] option[selected]")
+
+        form = DepthForm(
+            {"depth_0": number["value"], "depth_1": unit["value"]},
+            instance=measurement,
+        )
+
+        assert form.is_valid(), form.errors
+        form.save()
+        measurement.refresh_from_db()
+        assert measurement.depth == ureg.Quantity(35.14, "m")
+
+    def test_a_value_in_another_allowed_unit_is_stored_in_base_units(self, measurement):
+        form = DepthForm({"depth_0": "1.5", "depth_1": "km"}, instance=measurement)
+
+        assert form.is_valid(), form.errors
+        form.save()
+        measurement.refresh_from_db()
+        assert measurement.depth.magnitude == pytest.approx(1500)
+        assert measurement.depth.units == ureg.meter
 
 
 class TestPartialDateField:

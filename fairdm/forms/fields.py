@@ -1,9 +1,11 @@
-"""Form fields and widgets for partial dates and fixed-precision decimals."""
+"""Form fields and widgets for partial dates, quantities and fixed-precision decimals."""
 
 import datetime
 
+import pint
 from django import forms
 from partial_date import PartialDate
+from quantityfield import fields
 
 
 class PartialDateWidget(forms.SelectDateWidget):
@@ -81,6 +83,34 @@ class PartialDateField(forms.CharField):
         if value:
             return value.strip("-")
         return None
+
+
+class QuantityFormFieldMixin:
+    """Hand the number input and unit select a stored quantity in the field's base units.
+
+    django-pint's form field hands its widget the quantity itself, and the widget
+    names the unit the way pint prints it ("meter"). That matches none of the unit
+    choices when the field spells its units short ("m"), so the select shows no unit
+    and an unchanged form fails to save.
+    """
+
+    def prepare_value(self, value):
+        """Split a quantity into its magnitude in base units and the base unit choice."""
+        if isinstance(value, pint.Quantity):
+            return [value.to(self.base_units).magnitude, self.base_units]
+        return super().prepare_value(value)
+
+
+class QuantityFormField(QuantityFormFieldMixin, fields.QuantityFormField):
+    """django-pint's float quantity form field, showing stored values in base units."""
+
+
+class IntegerQuantityFormField(QuantityFormFieldMixin, fields.IntegerQuantityFormField):
+    """django-pint's integer quantity form field, showing stored values in base units."""
+
+
+class DecimalQuantityFormField(QuantityFormFieldMixin, fields.DecimalQuantityFormField):
+    """django-pint's decimal quantity form field, showing stored values in base units."""
 
 
 class DecimalField(forms.DecimalField):
