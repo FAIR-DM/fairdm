@@ -120,6 +120,25 @@ carries the tag's `id` and `name`.
 unless told otherwise and with no way to add a tag. Choosing several tags keeps the rows that
 carry any of them. The project list's tag filter is one.
 
+## ROR lookup
+
+`RorChoiceField` looks an organization up in the Research Organization Registry (ROR) by name and
+chooses one entry. Its value is the ROR ID, or the ROR address, as the person chose it. The
+organization form's lookup uses it. It takes the arguments of Django's `ChoiceField` and nothing
+else.
+
+The field accepts any value in the form of a ROR ID or its address, and never asks ROR to check
+it, so a form saves while ROR does not answer. A value that is not in that form is refused with
+the error code `invalid_choice`. A field that is not required accepts an empty value.
+
+The address is `autocomplete:ror`. It searches ROR for the text typed, shows nothing for an empty
+search and cuts the text at 100 characters. A result carries `value` (the ROR address), `label`
+(the organization's name), `detail` (its kind and where it is, with the country), and `html`. The
+row shows the name, the place and the ROR ID in an outline badge. ROR answers at most ten
+organizations for a search, so there is only one page. When ROR does not answer, the address
+answers with status 503 and an empty list. The address takes the same limits as the others and the
+same request rates.
+
 ## Fields that depend on another field
 
 A field with `depends_on` follows the field it names. In the browser, the field searches only the
@@ -203,7 +222,7 @@ listed first.
 There is one address for each kind and scope, under the `autocomplete` namespace:
 `autocomplete:project-public`, `autocomplete:project-view`, `autocomplete:project-edit`, and the
 same three for `dataset`, `sample` and `measurement`. Tags have `autocomplete:tag-public` and
-`autocomplete:tag-view`, and publications have `autocomplete:publication`. People and organizations have one address
+`autocomplete:tag-view`, and publications have `autocomplete:publication`. ROR has `autocomplete:ror`. People and organizations have one address
 each, `autocomplete:person-public` and `autocomplete:organization-public`. The scope belongs to
 the address, so a request cannot widen it.
 
@@ -214,7 +233,7 @@ the address, so a request cannot widen it.
 | Results in a page | 20, whatever `page_size` the request names |
 | Last page served | 25 |
 | Longest search text | 100 characters, cut when longer |
-| Filters a request may name | None for projects, datasets, publications, tags, people and organizations. `dataset` and `polymorphic_ctype` for samples and measurements. A request naming any other filter is offered nothing. |
+| Filters a request may name | None for projects, datasets, publications, tags, people, organizations and ROR. `dataset` and `polymorphic_ctype` for samples and measurements. A request naming any other filter is offered nothing. |
 | Ordering a request may name | None. An ordering is ignored. |
 
 A search that fails answers with status 500 and an empty list, and nothing else.

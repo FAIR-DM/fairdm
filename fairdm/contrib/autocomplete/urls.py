@@ -12,6 +12,7 @@ from .views import (
     PersonAutocompleteView,
     ProjectAutocompleteView,
     PublicationAutocompleteView,
+    RorAutocompleteView,
     SampleAutocompleteView,
     TagAutocompleteView,
 )
@@ -63,3 +64,5 @@ for _scope in TAG_SCOPES:
             name=f"tag-{_scope}",
         )
     )
+
+urlpatterns.append(path("ror/", RorAutocompleteView.as_view(), name="ror"))

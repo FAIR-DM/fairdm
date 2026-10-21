@@ -1,6 +1,7 @@
 """Autocomplete views for FairDM models."""
 
 import functools
+import logging
 import math
 
 from dal import autocomplete
@@ -12,7 +13,10 @@ from django.db.models.functions import Cast
 from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.utils.translation import gettext as _
-from django_tomselect.autocompletes import AutocompleteModelView
+from django_tomselect.autocompletes import (
+    AutocompleteIterablesView,
+    AutocompleteModelView,
+)
 from literature.models import LiteratureItem
 from research_vocabs.models import Concept
 from taggit.models import Tag
@@ -30,12 +34,15 @@ from fairdm.contrib.contributors.models import (
     Organization,
     Person,
 )
+from fairdm.contrib.contributors.services.registries import RegistryUnavailable, Ror
 from fairdm.contrib.generic.models import TaggedItem
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.project.models import Project
 from fairdm.core.sample.models import Sample, SampleIdentifier
 from fairdm.utils.choices import Visibility
+
+logger = logging.getLogger(__name__)
 
 
 class ConceptAutocomplete(autocomplete.Select2QuerySetView):
@@ -952,3 +959,77 @@ class TagAutocompleteView(LimitedAutocompleteMixin, AutocompleteModelView):
             self.hook_queryset(self.offered(self.request.user))
         )
         return self.search(queryset, self.query).order_by("name", "pk")
+
+
+class RorAutocompleteView(LimitedAutocompleteMixin, AutocompleteIterablesView):
+    """Offer the organizations of the Research Organization Registry that match the search.
+
+    The registry holds public information, so one address serves everyone and the scope plays
+    no part. A search that ROR does not answer is answered with status 503.
+    """
+
+    @classmethod
+    def for_scope(cls, scope):
+        """Return this view, which serves every scope alike.
+
+        Args:
+            scope: Ignored.
+
+        Returns:
+            The view class.
+        """
+        return cls
+
+    def get_iterable(self):
+        """Search ROR for the text typed, and draw each match as a row.
+
+        Returns:
+            A list of ``{"value", "label", "detail", "html"}`` dicts, empty when nothing is typed.
+
+        Raises:
+            RegistryUnavailable: ROR could not be asked or answered badly.
+        """
+        if not self.query.strip():
+            return []
+        return [
+            {
+                "value": record["id"],
+                "label": record["name"],
+                "detail": record["detail"],
+                "html": render_to_string(
+                    "autocomplete/record_option.html",
+                    {
+                        "name": record["name"],
+                        "detail": record["detail"],
+                        "badge": record["shown_id"],
+                        "badge_outline": True,
+                    },
+                    request=self.request,
+                ),
+            }
+            for record in Ror().search(self.query)["results"]
+        ]
+
+    def get(self, request, *args, **kwargs):
+        """Answer with the matches, or with the failure and nothing else."""
+        try:
+            data = self.paginate_iterable(self.get_iterable())
+        except RegistryUnavailable:
+            return self.refusal(503)
+        except Exception:
+            logger.exception("Error in the ROR autocomplete request")
+            return self.refusal(500)
+        return JsonResponse(data, encoder=self.get_json_encoder())
+
+    def refusal(self, status):
+        """Return an empty answer with a failure status.
+
+        Args:
+            status: The HTTP status.
+
+        Returns:
+            A ``JsonResponse`` that names no cause.
+        """
+        return JsonResponse(
+            {"results": [], "page": 1, "has_more": False}, status=status
+        )

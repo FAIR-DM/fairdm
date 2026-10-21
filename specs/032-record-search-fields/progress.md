@@ -189,6 +189,13 @@ Watch: TaggedItem.object_id is the text of an integer key and equal across table
 ## 2026-10-21T14:52:09Z · Implementer US6-US8 · T025
 
 Did: TestTagAutocompleteView (found by part of a name, a private record's tag withheld, a public record's tag offered to a visitor, the public address offering only public records' tags, an unused tag not offered, a tag on several records offered once, a same-key record of another kind not leaking its tag), TestTagFilter (narrowing by either of two tags, once for a project with both, a private project's tag refused, a researcher offered the same as a visitor, an unused tag refused, no way to add), TestKeywordFormTags (existing and new tag saved, stripping and blanks, removal, clearing, shown as chosen on reopening, new tags allowed), and the tag addresses join the limits test.
-Verified: the tests failed first for the missing address, the missing filter and the old widget; now pytest -n0 on the four classes: 37 passed.
+Verified: the tests failed first for the missing address, the missing filter and the old widget; now pytest -n0 on the four classes: 23 passed.
 Next: the ROR lookup.
 Watch: none.
+
+## 2026-10-21T14:57:13Z · Implementer US6-US8 · T028
+
+Did: RorAutocompleteView (an AutocompleteIterablesView over Ror.search with the mixin's throttles and text cut; nothing asked for an empty search; 503 on RegistryUnavailable; 500 with no detail on any other failure; one page), address autocomplete:ror, RorChoiceField (clean() accepts a value that is a ROR ID or address by form through Ror.identifier_in and never asks the registry), the organization form's from_ror moved to it, RORWidget and widgets/ror.html deleted. record-fields.md gains a ROR lookup section.
+Verified: red first (the form test module failed to import the field, the view tests had no address); then pytest -n4 tests/test_contrib/test_contributors tests/test_contrib/test_autocomplete: 2527 passed.
+Next: lint and the full suite.
+Watch: the field shows a chosen value's ROR ID as its label when a form is shown again after a refusal, since the form has no organization name to give it. The "lookup is unavailable" message of AS 8.3 is not drawn: the address answers 503 and the control shows no results.

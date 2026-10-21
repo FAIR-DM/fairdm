@@ -5,11 +5,10 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django_countries import countries
 
+from fairdm.contrib.autocomplete.fields import RorChoiceField
 from fairdm.contrib.contributors.models import Organization
 from fairdm.forms import ModelForm
 from fairdm.utils.location.forms import LocationField
-
-from .widgets import RORWidget
 
 
 class OrganizationCreateForm(ModelForm):
@@ -27,17 +26,10 @@ class OrganizationCreateForm(ModelForm):
         location: The organisation's point in WGS 84, typed as a latitude and a longitude.
     """
 
-    from_ror = forms.CharField(
-        label=_("ROR ID"),
+    from_ror = RorChoiceField(
         required=False,
         help_text=_(
             "Search the Research Organization Registry. Type at least 3 characters."
-        ),
-        widget=RORWidget(
-            attrs={
-                "data-placeholder": _("Search for an organization..."),
-                "data-minimum-input-length": "3",
-            }
         ),
     )
     country = forms.ChoiceField(

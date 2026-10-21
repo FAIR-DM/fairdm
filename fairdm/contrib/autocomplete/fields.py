@@ -18,6 +18,7 @@ from django_tomselect.app_settings import (
     TomSelectConfig,
 )
 from django_tomselect.forms import (
+    TomSelectChoiceField,
     TomSelectModelChoiceField,
     TomSelectModelMultipleChoiceField,
 )
@@ -28,6 +29,8 @@ from django_tomselect.widgets import (
 )
 from literature.models import LiteratureItem
 from research_vocabs.models import Concept
+
+from fairdm.contrib.contributors.services.registries import Ror
 
 from .views import (
     SCOPES,
@@ -669,3 +672,49 @@ class TagsField(forms.Field):
     def has_changed(self, initial, data):
         """Say whether the chosen tags differ from the initial ones, whatever their order."""
         return sorted(self.to_python(initial)) != sorted(self.to_python(data))
+
+
+class RorChoiceField(TomSelectChoiceField):
+    """Choose an organization from the Research Organization Registry by searching its name.
+
+    The value is the ROR ID. The field accepts any value in the form of a ROR ID or its address
+    and never asks the registry, so a form saves while ROR does not answer.
+
+    Args:
+        **kwargs: Passed to the form field. ``label`` defaults to "ROR ID".
+    """
+
+    default_error_messages = {
+        "invalid_choice": _("Enter a ROR ID, such as https://ror.org/04z8jg394."),
+    }
+
+    def __init__(self, **kwargs):
+        kwargs.setdefault("label", _("ROR ID"))
+        config = TomSelectConfig(
+            url="autocomplete:ror",
+            value_field="value",
+            label_field="label",
+            placeholder=_("Search for an organization..."),
+            minimum_query_length=3,
+            preload=False,
+            load_throttle=300,
+            close_after_select=True,
+            highlight=True,
+            loading_class="ts-loading",
+            plugin_dropdown_input=PluginDropdownInput(),
+            plugin_clear_button=PluginClearButton(),
+        )
+        super().__init__(config=config, **kwargs)
+
+    def clean(self, value):
+        """Accept a ROR ID or its address, or nothing when the field is not required."""
+        value = (value or "").strip()
+        if not value:
+            if self.required:
+                raise ValidationError(self.error_messages["required"], code="required")
+            return ""
+        if Ror().identifier_in(value) is None:
+            raise ValidationError(
+                self.error_messages["invalid_choice"], code="invalid_choice"
+            )
+        return value
