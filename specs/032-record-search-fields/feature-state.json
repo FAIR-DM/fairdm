@@ -3,7 +3,7 @@
   "feature": "032-record-search-fields",
   "branch": "032-record-search-fields",
   "repo": "FAIR-DM/fairdm",
-  "state": "REVIEW",
+  "state": "PR_READY",
   "state_history": [
     {
       "state": "QUEUED",
@@ -34,6 +34,11 @@
       "state": "REVIEW",
       "at": "2026-10-21T15:45:13Z",
       "note": "converged; stage-exit S5 green; ADRs 0037-0039"
+    },
+    {
+      "state": "PR_READY",
+      "at": "2026-10-21T16:02:15Z",
+      "note": "review fixes verified; verify green"
     }
   ],
   "gates": {
@@ -81,6 +86,11 @@
         "COR-002 medium: allow-list test could not fail, covered by T036's test",
         "COR-003 low: stale deptry map entry, fixed T037"
       ]
+    },
+    "walkthrough": {
+      "approved_by": null,
+      "at": "2026-10-21T16:02:32Z",
+      "self_resolved": []
     }
   },
   "stories": [
@@ -799,6 +809,6 @@
   },
   "pr": {
     "number": 542,
-    "draft": true
+    "draft": false
   }
 }
