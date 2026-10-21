@@ -141,6 +141,14 @@ putting it to him again. The longer reasoning is in [decisions.md](decisions.md)
   do they get? → A: Every record their role allows, with the records they contribute to grouped
   first.
 
+- Q: What does a field show when its caller is over the limit? → A: django-tomselect's standard
+  failure message, since django-tomselect cannot show another without FairDM copying its script.
+  The server's answer says when to try again. A proper "searching is paused" message is tracked
+  in #554 (agreed with the maintainer on 2026-10-21, after the design review).
+- Q: Does an organization result show its ROR identifier? → A: No. It shows its place. The
+  maintainer ruled this in the sketch review, and a ROR identifier typed exactly still finds the
+  organization.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A researcher chooses the dataset a new sample goes into (Priority: P1)
@@ -243,7 +251,7 @@ datasets, and check the list holds only their samples.
 8. **Given** the same filter, **When** anyone else searches it, **Then** only public records are
    offered, including to someone who may view that person's private records elsewhere.
 9. **Given** a caller over a field's request limit, **When** they search again, **Then** the
-   request is refused without searching, and the field says searching is paused.
+   request is refused without searching, and the answer says when to try again.
 10. **Given** one caller over the limit, **When** another visitor searches the same filter,
     **Then** the other visitor's search is answered as normal.
 
@@ -288,8 +296,7 @@ A researcher creating a person record adds their affiliations, a profile maintai
 organization's parent, and a project manager chooses the organization that owns the project. They
 type part of a name, an alternative name, an ORCID or a ROR identifier. People they have worked
 with come first, and organizations they belong to come first. Each person shows their picture,
-their primary affiliation and their ORCID. Each organization shows its city, its country and its
-ROR identifier. A person whose profile nobody has claimed is marked as unclaimed, so nobody adds a
+their primary affiliation and their ORCID. Each organization shows its city and its country. A person whose profile nobody has claimed is marked as unclaimed, so nobody adds a
 second record for them.
 
 **Why this priority**: The person form's affiliations field fails to draw today (#304), but these
@@ -464,7 +471,7 @@ save.
 - **FR-018**: Each result MUST give the details that tell it apart: for a project, whether it is
   private; for a dataset, its project and whether it is private; for a sample or measurement, its
   type, local ID and dataset; for a person, their picture, primary affiliation and ORCID, and
-  whether their profile is unclaimed; for an organization, its city, country and ROR identifier.
+  whether their profile is unclaimed; for an organization, its city and country.
   (US 1, US 2, US 5)
 - **FR-019**: A person MUST NOT be found by, or shown with, an email address. (US 5)
 
@@ -475,8 +482,9 @@ save.
   address. Each limit MUST be a setting a portal can change, and the defaults MUST leave room for
   someone typing quickly into several fields. (US 3, US 4)
 - **FR-021**: A request over a limit MUST be refused before any search runs, with an answer that
-  says the caller made too many requests and when to try again. The field MUST tell the person
-  typing that searching is paused, and the rest of the form MUST keep working. (US 3)
+  says the caller made too many requests and when to try again. The rest of the form MUST keep
+  working. What the field shows while the caller is refused is django-tomselect's standard
+  failure message until the gap tracked in #554 is closed. (US 3)
 - **FR-022**: The work one request can cause MUST be bounded by the field and not by the request.
   The page size, the longest search text, the number of pages that can be asked for, and the
   narrowing a request may carry are set by the field, and a request asking for more is refused or
