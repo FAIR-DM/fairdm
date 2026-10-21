@@ -32,3 +32,9 @@ not. E.g a public list filter doesn't require private objects in the dropdown."
 "Vocabulary concepts are out of scope. A dedicated field will eventually be created inside the dcv
 package." Until then the keyword filters and the contribution roles field move to django-mvp-forms'
 tom-select widget that needs no view, so django-autocomplete-light can be removed now.
+
+## Resistant to abuse
+
+"Finally, we need to worry a little about performance as well. I'm not sure if you've taken into
+account that these pages will be public and therefore open to abuse. We need to ensure that an autocomplete view is resistant to malicious users
+hammering the endpoint with large numbers of requests."

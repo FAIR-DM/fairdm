@@ -83,3 +83,16 @@ it out.
 The dataset search on `title`, the two missing addresses, the organization search's `label` and
 the unused `data-depends-on` attribute all sit in code this feature removes. Fixing them first
 would be work thrown away.
+
+## D12. Field addresses are public, so they are limited
+
+The maintainer's ruling: these addresses serve public pages, so anyone can call them, and they must
+stand up to someone hammering them. The API already limits each caller over a short window and over
+a day, counted by account or by network address, with rates a portal sets. The field addresses get
+limits of their own on the same pattern rather than sharing the API's, because a person typing
+sends requests in quick bursts the API's rates were not set for, and a busy search box should not
+use up someone's API allowance. Limits alone are not enough: a single request asking for ten
+thousand results or a search text of ten thousand characters can be costly, so the field, not the
+request, decides the page size, the search length, how deep the pages go and what narrowing is
+allowed. A refused request is refused before any search runs, so being over the limit costs the
+portal almost nothing.

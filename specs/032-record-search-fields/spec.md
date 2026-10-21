@@ -215,6 +215,9 @@ project, dataset and measurement lists filter by their related records the same 
 one person's records, such as the projects on their profile, the filter also offers that person's
 private records when they are the one viewing it.
 
+Because these lists are public, so are their fields' addresses. Someone hammering an address with
+requests is cut off once over a limit, and everyone else carries on searching.
+
 **Why this priority**: Every list in the portal carries a related-record filter that loads every
 row today, and these are the fields most visitors use.
 
@@ -239,6 +242,10 @@ datasets, and check the list holds only their samples.
    their private records and the public ones are offered.
 8. **Given** the same filter, **When** anyone else searches it, **Then** only public records are
    offered, including to someone who may view that person's private records elsewhere.
+9. **Given** a caller over a field's request limit, **When** they search again, **Then** the
+   request is refused without searching, and the field says searching is paused.
+10. **Given** one caller over the limit, **When** another visitor searches the same filter,
+    **Then** the other visitor's search is answered as normal.
 
 ---
 
@@ -394,6 +401,10 @@ save.
 - A dependent field's source is cleared. The dependent field is cleared with it.
 - A request to a field's address carries a type, a level or a filter the field does not allow. It
   is refused or ignored, and never widens what the field offers.
+- One caller sends requests far faster than anyone types. Once over the limit, their requests are
+  refused without searching, and other people's searches carry on as normal.
+- A request asks for a page size of thousands, a page number deep in the results, or a search text
+  thousands of characters long. It gets the field's own limit, never what it asked for.
 
 ## Requirements *(mandatory)*
 
@@ -457,24 +468,45 @@ save.
   (US 1, US 2, US 5)
 - **FR-019**: A person MUST NOT be found by, or shown with, an email address. (US 5)
 
+**Standing up to abuse**
+
+- **FR-020**: Every field's address MUST limit how many requests one caller makes, over a short
+  window and over a day, counting a signed-in caller by account and anyone else by network
+  address. Each limit MUST be a setting a portal can change, and the defaults MUST leave room for
+  someone typing quickly into several fields. (US 3, US 4)
+- **FR-021**: A request over a limit MUST be refused before any search runs, with an answer that
+  says the caller made too many requests and when to try again. The field MUST tell the person
+  typing that searching is paused, and the rest of the form MUST keep working. (US 3)
+- **FR-022**: The work one request can cause MUST be bounded by the field and not by the request.
+  The page size, the longest search text, the number of pages that can be asked for, and the
+  narrowing a request may carry are set by the field, and a request asking for more is refused or
+  cut to the field's limit. (US 3, US 4)
+- **FR-023**: A search MUST NOT run until the text reaches the field's minimum length, and a field
+  MUST wait for the person to pause before it asks for results, so typing a word sends one request
+  rather than one per keystroke. (US 3, US 4)
+- **FR-024**: A request that fails to search, for any reason, MUST NOT tell the caller more than
+  that the search failed. (US 3)
+- **FR-025**: The ROR lookup MUST be limited in the same way, so the portal cannot be used to send
+  the ROR registry more requests than the portal's own limits allow. (US 8)
+
 **Fields moved off the removed libraries**
 
-- **FR-020**: Every form and filter in FairDM that chooses a project, dataset, sample,
+- **FR-026**: Every form and filter in FairDM that chooses a project, dataset, sample,
   measurement, person or organization MUST use these fields, including the forms and filters
   listed under *Needs today*. (US 1, US 2, US 3, US 5)
-- **FR-021**: The dataset form's data publication field MUST be searchable by title, author and
+- **FR-027**: The dataset form's data publication field MUST be searchable by title, author and
   DOI, with an exact DOI first. (US 6)
-- **FR-022**: The tag field MUST offer tags already used in the portal and accept new ones. (US 7)
-- **FR-023**: The organization form's ROR lookup MUST search the ROR registry, and MUST let the form
+- **FR-028**: The tag field MUST offer tags already used in the portal and accept new ones. (US 7)
+- **FR-029**: The organization form's ROR lookup MUST search the ROR registry, and MUST let the form
   be saved when the registry does not answer. (US 8)
-- **FR-024**: The keyword filters and the contribution roles field MUST keep working without
+- **FR-030**: The keyword filters and the contribution roles field MUST keep working without
   django-autocomplete-light, until django-controlled-vocabularies provides a concept field. (US 3)
-- **FR-025**: Admin pages that use django-autocomplete-light or django-select2 MUST use the Django
+- **FR-031**: Admin pages that use django-autocomplete-light or django-select2 MUST use the Django
   admin's own `autocomplete_fields` instead. (US 4)
-- **FR-026**: django-autocomplete-light, django-select2 and django-addanother MUST NOT be
+- **FR-032**: django-autocomplete-light, django-select2 and django-addanother MUST NOT be
   dependencies of FairDM. `fairdm.contrib.autocomplete`, its addresses and the Selectize widget
   MUST be removed. (US 4)
-- **FR-027**: The developer documentation MUST describe each field, its settings and its defaults,
+- **FR-033**: The developer documentation MUST describe each field, its settings and its defaults,
   and every page that documents a removed widget MUST be updated in the same pull request. (US 4)
 
 ### Key Entities
@@ -494,12 +526,17 @@ save.
   access level the field needs.
 - **SC-002**: With 100,000 samples in the portal, a sample field search returns its first page in
   under one second on the development stack.
-- **SC-003**: Once the feature is built, no module, template, setting or document in FairDM refers
+- **SC-003**: While one caller sends requests to a field's address as fast as it can, the caller
+  is refused once over its limit, and another person's search on the same portal still returns its
+  first page within the time SC-002 allows.
+- **SC-004**: A person typing a ten-letter word into a field at ordinary speed causes no more than
+  three requests, and stays well inside the default limits.
+- **SC-005**: Once the feature is built, no module, template, setting or document in FairDM refers
   to django-autocomplete-light, django-select2, django-addanother, Selectize or
   `fairdm.contrib.autocomplete`.
-- **SC-004**: Every form and filter listed under *Needs today* renders and saves in the test suite
+- **SC-006**: Every form and filter listed under *Needs today* renders and saves in the test suite
   with the new fields.
-- **SC-005**: A developer adds a working project field to a new form with one field declaration,
+- **SC-007**: A developer adds a working project field to a new form with one field declaration,
   as the documentation's example shows.
 
 ## Assumptions
