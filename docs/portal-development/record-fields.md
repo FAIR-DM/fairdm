@@ -25,6 +25,21 @@ except `queryset`, which the field decides, and two more.
 | `scope` | `"view"` for a single field, `"public"` for a multiple field | What the person must be able to do with a record for the field to offer it. |
 | `depends_on` | none | The name of another field on the same form. The field then offers only the records that belong to the value chosen in that field. Samples and measurements accept `"dataset"`. |
 
+## Filters
+
+`fairdm.contrib.autocomplete.filters.RecordMultipleFilter` is a django-filter filter that draws a
+multiple field in a filter set. It takes the multiple field class and the filter's usual arguments,
+and one more.
+
+| Argument | Default | Meaning |
+|---|---|---|
+| `scope` | `"public"` | As for the fields. A list filter offers public records to everyone. |
+
+The list filters FairDM ships use it: the dataset list's project filter, the sample list's dataset
+filter and the measurement list's dataset and sample filters. A filter generated for a registered
+type's relation to a project, dataset, sample or measurement is one too. Choosing several records
+keeps the rows that point at any of them.
+
 ## Scope
 
 | Scope | Offers |

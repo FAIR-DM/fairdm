@@ -258,17 +258,13 @@ and `polymorphic_ctype` fields would silently disappear from the filter set.
 - `status`, `dataset`, `polymorphic_ctype` — implicit filters generated from `Meta.fields`, once
   your own `Meta` extends `SampleFilterMixin.Meta`
 
-**Dataset choices follow the viewer**: `SampleFilterMixin.__init__` runs on every subclass through
-the method resolution order and sets the `dataset` filter's queryset whenever `dataset` is one of
-the filter set's fields. It offers the public datasets, and the private ones the requesting user
-may view: those they are credited on at any level, on the dataset or its project, and every
-dataset for someone the portal lets view all of them. `Dataset`'s own default manager is
-privacy-first, so without this a filter set would offer no private dataset to filter by, which is
-every dataset until one is published.
+**Dataset choices are the public datasets**: the `dataset` filter is a `RecordMultipleFilter`
+(see [Record fields](../record-fields.md)) at public scope. A visitor and a signed-in researcher
+are offered the same public datasets, and ticking several keeps the samples of any of them. A
+private dataset is never offered, and its key is refused as an invalid choice, whoever asks.
 
 Pass the request when you build the filter set yourself, as `MyFilter(request.GET,
-queryset=..., request=request)`. Without a request, or for a visitor who has not signed in, only
-the public datasets are offered, and a private dataset's key is refused as an invalid choice.
+queryset=..., request=request)`. Without a request the filter offers and accepts nothing.
 
 ### Custom Filters
 

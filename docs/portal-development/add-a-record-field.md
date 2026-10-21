@@ -58,7 +58,34 @@ class ProjectPickerForm(forms.Form):
     projects = ProjectMultipleChoiceField(scope="view")
 ```
 
+## Filter a list by a record
+
+To let a visitor narrow a list to the records that point at any of several chosen records, declare
+a `RecordMultipleFilter` on the filter set. It draws the multiple field of the kind you name, at
+public scope, so a visitor and a signed-in researcher are offered the same public records.
+
+```python
+import django_filters
+
+from fairdm.contrib.autocomplete.fields import DatasetMultipleChoiceField
+from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
+
+
+class RockSampleFilter(django_filters.FilterSet):
+    dataset = RecordMultipleFilter(DatasetMultipleChoiceField, field_name="dataset")
+
+    class Meta:
+        model = RockSample
+        fields = ["dataset"]
+```
+
+Build the filter set with the request, as `RockSampleFilter(request.GET, queryset=..., request=request)`
+does in a list view. The values come back from the list's address as repeated parameters, such as
+`?dataset=3&dataset=5`, and a record the field would not offer is refused. A filter set built with
+no request offers and accepts nothing.
+
 ## Check that it works
 
 Open the page signed in as someone who can edit one private dataset, type part of the dataset's
-name, and the dataset is offered with its project beneath it.
+name, and the dataset is offered with its project beneath it. For a filter, open the list signed out
+and tick two datasets: the list narrows to their records.
