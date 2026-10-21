@@ -4,6 +4,7 @@ import functools
 import math
 
 from dal import autocomplete
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Case, IntegerField, Q, Value, When
 from django.http import JsonResponse
 from django.template.loader import render_to_string
@@ -20,7 +21,9 @@ from fairdm.contrib.autocomplete.throttling import (
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Contribution, Contributor, Organization
 from fairdm.core.dataset.models import Dataset
+from fairdm.core.measurement.models import Measurement
 from fairdm.core.project.models import Project
+from fairdm.core.sample.models import Sample, SampleIdentifier
 from fairdm.utils.choices import Visibility
 
 
@@ -304,23 +307,28 @@ class RecordAutocompleteView(LimitedAutocompleteMixin, AutocompleteModelView):
         """
         return Q(visibility=Visibility.PUBLIC)
 
-    def offered(self, user):
+    def offered(self, user, *, depends_on=None):
         """Return the records this scope offers a person, before any search or page.
 
         Args:
             user: The person searching, or an anonymous user.
+            depends_on: Lookups the records must match, such as ``{"dataset": 5}``, when the
+                field chooses within another field's value. Each lookup must be one the view
+                allows a request to filter on.
 
         Returns:
             A queryset of the records the scope offers that person.
         """
         records = self.base_queryset()
         if self.scope == "public":
-            return records.filter(self.public_q())
-        if self.scope == "edit":
-            return records.accessible_to(user, ContributionLevel.EDIT)
-        return records.filter(self.public_q()) | records.accessible_to(
-            user, ContributionLevel.VIEW
-        )
+            offered = records.filter(self.public_q())
+        elif self.scope == "edit":
+            offered = records.accessible_to(user, ContributionLevel.EDIT)
+        else:
+            offered = records.filter(self.public_q()) | records.accessible_to(
+                user, ContributionLevel.VIEW
+            )
+        return offered.filter(**depends_on) if depends_on else offered
 
     def get_queryset(self):
         """Return the offered records, searched, ranked into groups and ordered."""
@@ -465,3 +473,81 @@ class ProjectAutocompleteView(RecordAutocompleteView):
         statuses = dict(Project._meta.get_field("status").flatchoices)
         result["detail"] = str(statuses.get(result.pop("status"), ""))
         super().describe(result)
+
+
+#: What a row of a sample or a measurement is built from. Each concrete view names it itself,
+#: because django-tomselect empties a list that a subclass does not set on its own class.
+DATASET_RECORD_FIELDS = ["local_id", "dataset__name", "polymorphic_ctype"]
+
+
+class DatasetRecordsAutocompleteView(RecordAutocompleteView):
+    """Offer samples or measurements, the records that sit inside a dataset.
+
+    A record of these kinds is public when its dataset is public and published.
+    """
+
+    allowed_filter_fields = ["dataset", "polymorphic_ctype"]
+
+    def public_q(self):
+        """Return the condition for a record whose dataset is public and published."""
+        return Q(dataset__visibility=Visibility.PUBLIC, dataset__published=True)
+
+    def get_value_fields(self):
+        """Add the visibility of the record's own dataset, which decides its badge."""
+        return [
+            *super().get_value_fields(),
+            "dataset__visibility",
+            "dataset__published",
+        ]
+
+    def describe(self, result):
+        """Show the record's type, local ID and dataset, and mark it private unless released."""
+        kind = ContentType.objects.get_for_id(result.pop("polymorphic_ctype"))
+        result["type"] = str(kind.model_class()._meta.verbose_name)
+        result["dataset"] = result.pop("dataset__name")
+        result["detail"] = " · ".join(
+            part
+            for part in (result["type"], result["local_id"], result["dataset"])
+            if part
+        )
+        released = result.pop(
+            "dataset__visibility"
+        ) == Visibility.PUBLIC and result.pop("dataset__published")
+        result["private"] = not released
+
+
+class SampleAutocompleteView(DatasetRecordsAutocompleteView):
+    """Offer samples, found by name, local ID or identifier."""
+
+    model = Sample
+    noun_plural = _("samples")
+    search_lookups = ["name__icontains", "local_id__icontains"]
+    exact_lookups = ["local_id__iexact", "uuid__iexact"]
+    value_fields = DATASET_RECORD_FIELDS
+
+    def exact_q(self, query):
+        """Match the local ID, the UUID and any identifier typed exactly."""
+        identified = SampleIdentifier.objects.filter(value__iexact=query)
+        return super().exact_q(query) | Q(pk__in=identified.values("related_id"))
+
+    def search(self, queryset, query):
+        """Match the text on name and local ID, on an identifier that contains it, and exactly."""
+        if not query:
+            return queryset
+        identified = SampleIdentifier.objects.filter(value__icontains=query)
+        matched = (
+            self._build_simple_search_q(query)
+            | self.exact_q(query)
+            | Q(pk__in=identified.values("related_id"))
+        )
+        return queryset.filter(matched)
+
+
+class MeasurementAutocompleteView(DatasetRecordsAutocompleteView):
+    """Offer measurements, found by name or local ID."""
+
+    model = Measurement
+    noun_plural = _("measurements")
+    search_lookups = ["name__icontains", "local_id__icontains"]
+    exact_lookups = ["local_id__iexact", "uuid__iexact"]
+    value_fields = DATASET_RECORD_FIELDS

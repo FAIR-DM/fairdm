@@ -4,6 +4,7 @@ import pytest
 from django.contrib.auth.models import Group, Permission
 
 from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.core.sample.models import SampleIdentifier
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
@@ -11,6 +12,7 @@ from fairdm.factories import (
     UserFactory,
 )
 from fairdm.utils.choices import Visibility
+from tests.factories import ConcreteMeasurementFactory, ConcreteSampleFactory
 
 
 @pytest.fixture
@@ -33,12 +35,15 @@ def make_dataset(db):
         *,
         visibility=Visibility.PRIVATE,
         project_visibility=Visibility.PUBLIC,
+        published=False,
         project=None,
         holder=None,
         level=ContributionLevel.EDIT,
     ):
         project = project or ProjectFactory(visibility=project_visibility)
-        dataset = DatasetFactory(name=name, visibility=visibility, project=project)
+        dataset = DatasetFactory(
+            name=name, visibility=visibility, published=published, project=project
+        )
         if holder is not None:
             ContributionFactory(content_object=dataset, contributor=holder, level=level)
         return dataset
@@ -84,15 +89,33 @@ def grant_view_everywhere(db):
 
 
 @pytest.fixture
-def make_record(make_dataset, make_project):
+def make_record(make_dataset, make_project, make_sample, make_measurement):
     """Return a function building a public record of a kind that one person may edit.
 
     The record is offered by every address of its kind, whatever the scope.
     """
 
+    def in_public_dataset(name, holder):
+        return make_dataset(
+            name, visibility=Visibility.PUBLIC, published=True, holder=holder
+        )
+
     def make_record(kind, name, *, holder):
-        builders = {"project": make_project, "dataset": make_dataset}
-        return builders[kind](name, visibility=Visibility.PUBLIC, holder=holder)
+        builders = {
+            "project": lambda: make_project(
+                name, visibility=Visibility.PUBLIC, holder=holder
+            ),
+            "dataset": lambda: make_dataset(
+                name, visibility=Visibility.PUBLIC, holder=holder
+            ),
+            "sample": lambda: make_sample(
+                name, dataset=in_public_dataset(f"{name} dataset", holder)
+            ),
+            "measurement": lambda: make_measurement(
+                name, dataset=in_public_dataset(f"{name} dataset", holder)
+            ),
+        }
+        return builders[kind]()
 
     return make_record
 
@@ -115,3 +138,31 @@ def in_request(rf):
     yield enter
     if hasattr(_request_local, "request"):
         del _request_local.request
+
+
+@pytest.fixture
+def make_sample(db):
+    """Return a function building a sample in a dataset, with an optional identifier."""
+
+    def make_sample(name, *, dataset, local_id="", identifier=None):
+        sample = ConcreteSampleFactory(name=name, dataset=dataset, local_id=local_id)
+        if identifier:
+            SampleIdentifier.objects.create(
+                related=sample, type="DOI", value=identifier
+            )
+        return sample
+
+    return make_sample
+
+
+@pytest.fixture
+def make_measurement(db, make_sample):
+    """Return a function building a measurement of a new sample in the same dataset."""
+
+    def make_measurement(name, *, dataset, local_id=""):
+        sample = make_sample(f"{name} sample", dataset=dataset)
+        return ConcreteMeasurementFactory(
+            name=name, dataset=dataset, sample=sample, local_id=local_id
+        )
+
+    return make_measurement

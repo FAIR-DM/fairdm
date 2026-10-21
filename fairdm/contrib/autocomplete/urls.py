@@ -7,8 +7,10 @@ from .views import (
     ConceptAutocomplete,
     ContributorAutocomplete,
     DatasetAutocompleteView,
+    MeasurementAutocompleteView,
     OrganizationAutocomplete,
     ProjectAutocompleteView,
+    SampleAutocompleteView,
 )
 
 app_name = "autocomplete"
@@ -23,6 +25,8 @@ urlpatterns = [
 RECORD_VIEWS = {
     "project": ProjectAutocompleteView,
     "dataset": DatasetAutocompleteView,
+    "sample": SampleAutocompleteView,
+    "measurement": MeasurementAutocompleteView,
 }
 
 for _kind, _view in RECORD_VIEWS.items():

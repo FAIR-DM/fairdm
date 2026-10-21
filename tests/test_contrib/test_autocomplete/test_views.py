@@ -5,6 +5,7 @@ from django.urls import reverse
 
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.utils.choices import Visibility
+from tests.registry_models.models import ConcreteMeasurement, ConcreteSample
 
 
 def search(client, kind, scope, **params):
@@ -235,6 +236,167 @@ class TestProjectAutocompleteView:
             public.pk
         ]
         assert search(client, "project", "edit")["results"] == []
+
+
+def narrowed_to(dataset):
+    """Return the filter parameter django-tomselect sends for a field that depends on a dataset."""
+    return {"f": f"'dataset__dataset={dataset.pk}'"}
+
+
+@pytest.mark.django_db
+class TestSampleAutocompleteView:
+    def test_narrowed_by_a_dataset_only_that_datasets_samples_are_offered(
+        self, researcher_client, researcher, make_dataset, make_sample
+    ):
+        wanted = make_dataset("Wanted", holder=researcher)
+        other = make_dataset("Other", holder=researcher)
+        inside = make_sample("Inside", dataset=wanted)
+        make_sample("Outside", dataset=other)
+
+        answer = search(researcher_client, "sample", "view", **narrowed_to(wanted))
+
+        assert [r["id"] for r in answer["results"]] == [inside.pk]
+
+    def test_a_local_id_typed_exactly_comes_first(
+        self, researcher_client, researcher, make_dataset, make_sample
+    ):
+        dataset = make_dataset("Cores", holder=researcher)
+        make_sample("B-1 slab", dataset=dataset)
+        exact = make_sample("Zeta", dataset=dataset, local_id="B-1")
+
+        answer = search(researcher_client, "sample", "view", q="B-1")
+
+        assert answer["results"][0]["id"] == exact.pk
+        assert len(answer["results"]) == 2
+
+    def test_an_identifier_typed_exactly_comes_first(
+        self, researcher_client, researcher, make_dataset, make_sample
+    ):
+        dataset = make_dataset("Cores", holder=researcher)
+        make_sample("AU1101 slab", dataset=dataset)
+        exact = make_sample("Zeta", dataset=dataset, identifier="AU1101")
+
+        answer = search(researcher_client, "sample", "view", q="AU1101")
+
+        assert answer["results"][0]["id"] == exact.pk
+        assert len(answer["results"]) == 2
+
+    def test_a_sample_with_two_matching_lookups_is_offered_once(
+        self, researcher_client, researcher, make_dataset, make_sample
+    ):
+        dataset = make_dataset("Cores", holder=researcher)
+        sample = make_sample(
+            "AU1101 core", dataset=dataset, local_id="AU1101", identifier="AU1101"
+        )
+
+        answer = search(researcher_client, "sample", "view", q="AU1101")
+
+        assert [r["id"] for r in answer["results"]] == [sample.pk]
+
+    def test_a_row_gives_the_type_the_local_id_and_the_dataset(
+        self, researcher_client, researcher, make_dataset, make_sample
+    ):
+        dataset = make_dataset("Cores", holder=researcher)
+        make_sample("Core one", dataset=dataset, local_id="C-1")
+
+        row = search(researcher_client, "sample", "view")["results"][0]
+
+        assert row["type"] == ConcreteSample._meta.verbose_name
+        assert row["local_id"] == "C-1"
+        assert row["dataset"] == "Cores"
+
+    def test_a_sample_is_public_when_its_dataset_is_public_and_published(
+        self, client, make_dataset, make_sample
+    ):
+        released = make_dataset(
+            "Released", visibility=Visibility.PUBLIC, published=True
+        )
+        unpublished = make_dataset("Unpublished", visibility=Visibility.PUBLIC)
+        private = make_dataset("Private", published=True)
+        shown = make_sample("Shown", dataset=released)
+        make_sample("Not published", dataset=unpublished)
+        make_sample("Private dataset", dataset=private)
+
+        answer = search(client, "sample", "public")
+
+        assert [r["id"] for r in answer["results"]] == [shown.pk]
+        assert answer["results"][0]["private"] is False
+
+    def test_a_sample_of_a_dataset_the_researcher_holds_is_flagged_private(
+        self, researcher_client, researcher, make_dataset, make_sample
+    ):
+        make_sample("Mine", dataset=make_dataset("Mine", holder=researcher))
+
+        row = search(researcher_client, "sample", "view")["results"][0]
+
+        assert row["private"] is True
+
+    def test_edit_offers_only_samples_of_datasets_the_researcher_may_edit(
+        self, researcher_client, researcher, make_dataset, make_sample
+    ):
+        editable = make_sample("Editable", dataset=make_dataset("A", holder=researcher))
+        make_sample(
+            "Read only",
+            dataset=make_dataset("B", holder=researcher, level=ContributionLevel.VIEW),
+        )
+
+        answer = search(researcher_client, "sample", "edit")
+
+        assert [r["id"] for r in answer["results"]] == [editable.pk]
+
+
+@pytest.mark.django_db
+class TestMeasurementAutocompleteView:
+    def test_narrowed_by_a_dataset_only_that_datasets_measurements_are_offered(
+        self, researcher_client, researcher, make_dataset, make_measurement
+    ):
+        wanted = make_dataset("Wanted", holder=researcher)
+        other = make_dataset("Other", holder=researcher)
+        inside = make_measurement("Inside", dataset=wanted)
+        make_measurement("Outside", dataset=other)
+
+        answer = search(researcher_client, "measurement", "view", **narrowed_to(wanted))
+
+        assert [r["id"] for r in answer["results"]] == [inside.pk]
+
+    def test_a_local_id_typed_exactly_comes_first(
+        self, researcher_client, researcher, make_dataset, make_measurement
+    ):
+        dataset = make_dataset("Runs", holder=researcher)
+        make_measurement("R-7 repeat", dataset=dataset)
+        exact = make_measurement("Zeta", dataset=dataset, local_id="R-7")
+
+        answer = search(researcher_client, "measurement", "view", q="R-7")
+
+        assert answer["results"][0]["id"] == exact.pk
+        assert len(answer["results"]) == 2
+
+    def test_a_row_gives_the_type_the_local_id_and_the_dataset(
+        self, researcher_client, researcher, make_dataset, make_measurement
+    ):
+        dataset = make_dataset("Runs", holder=researcher)
+        make_measurement("Run one", dataset=dataset, local_id="R-1")
+
+        row = search(researcher_client, "measurement", "view")["results"][0]
+
+        assert row["type"] == ConcreteMeasurement._meta.verbose_name
+        assert row["local_id"] == "R-1"
+        assert row["dataset"] == "Runs"
+
+    def test_a_measurement_is_public_when_its_dataset_is_public_and_published(
+        self, client, make_dataset, make_measurement
+    ):
+        released = make_dataset(
+            "Released", visibility=Visibility.PUBLIC, published=True
+        )
+        unpublished = make_dataset("Unpublished", visibility=Visibility.PUBLIC)
+        shown = make_measurement("Shown", dataset=released)
+        make_measurement("Not published", dataset=unpublished)
+
+        answer = search(client, "measurement", "public")
+
+        assert [r["id"] for r in answer["results"]] == [shown.pk]
+        assert answer["results"][0]["private"] is False
 
 
 def every_address():
