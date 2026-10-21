@@ -13,6 +13,8 @@ private record exists, and the list it filters already decides what the person s
 can be changed per field, which is what lets a developer build a "my datasets" filter or a
 manager-only form.
 
+**ADR:** docs/adr/0038-each-autocomplete-scope-is-its-own-view.md
+
 ## D2. A public list's filter offers public records to everyone
 
 The maintainer's ruling: a public list, such as the portal's project or dataset list, shows public
@@ -23,6 +25,8 @@ private records as well as the public ones, and everyone else sees the public on
 follows the list. The current django-autocomplete-light views return nothing to anyone not signed
 in, which cannot stand for filters visitors use.
 
+**ADR:** docs/adr/0038-each-autocomplete-scope-is-its-own-view.md
+
 ## D3. Visibility rules are taken as they are
 
 The rules differ between record types today: a dataset is public when it and its project are
@@ -30,12 +34,16 @@ public, while a sample or measurement also needs its dataset to be published. Th
 whatever rules FairDM applies when they are built. Bringing the rules into line is R14, and doing
 it here would make this feature a second owner of visibility.
 
+**ADR:** none — follows rules owned by R14, nothing new to inherit
+
 ## D4. A stored link the person cannot see is kept
 
 A project manager may edit a record that links to a private record they have no access to. Dropping
 the link on save would destroy someone else's data. Showing its name would leak it. The field shows
 it as a private record and keeps it when the form is saved unchanged. Validation treats the value
 already stored on the record as allowed, and every other value must be one the field would offer.
+
+**ADR:** none — a property of the fields, recorded in their reference page
 
 ## D5. Groups follow how the person relates to the result
 
@@ -45,12 +53,16 @@ collaboration, which `Contributor.get_collaborators()` already defines and limit
 viewer may open. Organizations group by membership, as `CONTEXT.md` defines it. A record appears
 once, in its first group, so a list never repeats itself.
 
+**ADR:** none — presentation of results, recorded in the reference page
+
 ## D6. People are never found by email
 
 An email address is personal data that a profile does not publish. Searching by it would let anyone
 confirm whether an address belongs to a portal user. Unclaimed profiles are marked instead, which
 answers the question searching by email would have been used for: whether this person is already
 in the portal.
+
+**ADR:** none — a privacy rule already set by FR-019 and tested
 
 ## D7. Vocabulary concepts keep working through a stopgap
 
@@ -59,17 +71,23 @@ Removing django-autocomplete-light now would break the keyword filters and the c
 field in the meantime. They move to django-mvp-forms' tom-select widget that needs no view, which
 lets the library go in this feature and costs one swap when the concept field lands.
 
+**ADR:** docs/adr/0037-autocomplete-fields-are-built-on-django-tomselect.md
+
 ## D8. Data publications, tags and the ROR lookup are in scope
 
 None of them is one of the six record kinds, but each runs on a library this feature removes, so
 leaving them out would leave the removal undone. #304 names the data publication field as the one
 that most needs a search.
 
+**ADR:** none — scope of this feature only
+
 ## D9. The admin moves to Django's own autocomplete
 
 Admin pages are used by staff and already rely on `autocomplete_fields` in several places. The few
 that use django-autocomplete-light or django-select2 move to it, rather than to the new fields,
 because the admin has its own widget and styling and gains nothing from the portal's.
+
+**ADR:** docs/adr/0037-autocomplete-fields-are-built-on-django-tomselect.md
 
 ## D10. Creating a record from inside a form is deferred
 
@@ -78,11 +96,15 @@ fields needs it to be useful, and it brings its own questions about permissions 
 filled forms. It is listed among the needs expected later, so the fields are designed not to rule
 it out.
 
+**ADR:** none — a deferral, listed among later needs in the spec
+
 ## D11. The broken widgets are replaced, not repaired
 
 The dataset search on `title`, the two missing addresses, the organization search's `label` and
 the unused `data-depends-on` attribute all sit in code this feature removes. Fixing them first
 would be work thrown away.
+
+**ADR:** none — local to this feature
 
 ## D12. Field addresses are public, so they are limited
 
@@ -96,6 +118,8 @@ thousand results or a search text of ten thousand characters can be costly, so t
 request, decides the page size, the search length, how deep the pages go and what narrowing is
 allowed. A refused request is refused before any search runs, so being over the limit costs the
 portal almost nothing.
+
+**ADR:** docs/adr/0039-autocomplete-addresses-are-limited-per-caller.md
 
 ## D13. Design review: five high findings applied to the plan, two put to the maintainer
 
@@ -118,6 +142,8 @@ django-select2 uses, a timed seed for SC-002, and four smaller edits.
 The two spec findings (the "searching is paused" message of FR-021, and FR-018 still naming an
 organization's ROR after the sketch removed it) went to the maintainer as a delta brief.
 
+**ADR:** docs/adr/0038-each-autocomplete-scope-is-its-own-view.md
+
 ## D14. The autocomplete rates live on their throttle classes, not in the API's rate dictionary
 
 **Decision**: The four autocomplete throttles carry their default rates as `default_rate` and
@@ -132,6 +158,8 @@ any entry, and a portal that wants other figures adds the four scopes to its own
 **Revisit if**: that test is widened to the eight scopes, when the defaults can move into the
 shipped dictionary beside the API's.
 
+**ADR:** docs/adr/0039-autocomplete-addresses-are-limited-per-caller.md
+
 ## D15. A form built with no request keeps the queryset it was given
 
 **Decision**: A record field used outside any request (a script, a test) validates against
@@ -142,6 +170,8 @@ every project there when it is built with no request, as its docstring has alway
 already pin that. The sample and measurement forms assign nothing, so they offer nothing then.
 
 **Revisit if**: a caller builds a form without a request and expects the person's own records.
+
+**ADR:** none — an implementation detail of the fields
 
 ## D16. Tests that pinned the old dataset and project widgets are replaced across six files
 
@@ -155,6 +185,8 @@ Nothing else in those files was touched.
 
 **Revisit if**: a reviewer wants the registry and config tests kept for the generated-form story.
 
+**ADR:** none — test housekeeping
+
 ## D17. Each concrete record view names its own value_fields
 
 **Decision**: `SampleAutocompleteView` and `MeasurementAutocompleteView` each set
@@ -165,6 +197,8 @@ subclass that does not set it in its own `__dict__`, so a base class's list neve
 concrete view and the rows came back without type, local ID or dataset.
 
 **Revisit if**: django-tomselect inherits the list.
+
+**ADR:** none — a workaround for a library quirk inside the views
 
 ## D18. The measurement form refuses a sample of another dataset
 
@@ -178,6 +212,8 @@ measurements assume the opposite. The test was not edited and now fails.
 **Revisit if**: cross-dataset measurements are to stay possible through forms. Then `depends_on` for
 the measurement's sample is dropped, or the old test and docs are rewritten.
 
+**ADR:** none — superseded by D27 after the maintainer's ruling
+
 ## D19. A filter hands its field the filter set's request
 
 **Decision**: `RecordMultipleFilter.field` sets `given_request` on the field it builds, from the
@@ -188,6 +224,8 @@ filter set's own request. The field reads its person from the form's request, th
 test or a view that skips the middleware would otherwise offer and accept nothing.
 
 **Revisit if**: the filter set's form carries the request, as FairDM's own record forms do.
+
+**ADR:** none — an implementation detail of the filters
 
 ## D20. The API swaps a record filter for a plain one
 
@@ -202,6 +240,8 @@ own.
 
 **Revisit if**: the API takes the record field's choices directly.
 
+**ADR:** none — local to the API's filter sets
+
 ## D21. The no-vocabulary keyword list is left as it is
 
 **Decision**: the generic `keywords` filter used when no vocabulary is configured keeps its checkbox
@@ -211,6 +251,8 @@ list's owner and contributor filters are record filters over the organization an
 **Why**: the generic list never used django-autocomplete-light.
 
 **Revisit if**: a portal with no vocabulary configured has enough keywords to need the counted control.
+
+**ADR:** none — left as it was
 
 ## D22. Tests that offered private records through a list filter changed with the scope
 
@@ -223,6 +265,8 @@ records, pass a list, and expect public records only.
 **Why**: each pinned the type or the visibility of a filter this story moves to public scope.
 
 **Revisit if**: a list filter is to offer a person's private records.
+
+**ADR:** none — test housekeeping
 
 ## D23. People and organizations have one address and are offered at one scope
 
@@ -237,6 +281,8 @@ superusers), so the shared field code needs no change beyond reading `scopes`.
 
 **Revisit if**: a portal can hide a profile.
 
+**ADR:** none — recorded in the reference page
+
 ## D24. A collaboration counts only through a record the searcher can open
 
 **Decision**: the people listed first are `get_collaborators()` over the searcher's credits on records
@@ -248,6 +294,8 @@ profile may name, and counts a private record the searcher holds as not visible.
 
 **Revisit if**: `get_collaborators()` takes a queryset of records instead of credits.
 
+**ADR:** none — follows the CONTEXT.md definition of collaborator
+
 ## D25. A filter naming `email` offers nothing, as any other field outside the allow-list
 
 **Decision**: `f` and `e` naming `email` get the library's allow-list answer, an empty page, and
@@ -258,6 +306,8 @@ the allow-list already refuses the request, which is the answer every other addr
 
 **Revisit if**: a filter on `e` that names a disallowed field should be dropped instead of refused.
 
+**ADR:** none — follows from the allow-lists in ADR 0039
+
 ## D26. The person form no longer passes `is_current` when it adds an affiliation
 
 **Decision**: `PersonCreateForm.save()` creates the affiliation with `organization` and `is_primary`
@@ -267,6 +317,8 @@ only. The form's "Current affiliation" checkbox is left in place and has no effe
 affiliation was chosen. The model has no way to record "past" without an end date.
 
 **Revisit if**: the checkbox should ask for an end date.
+
+**ADR:** none — a defect fix
 
 ## D27. A measurement may name a visible sample from another dataset
 
@@ -292,6 +344,8 @@ so the view takes every model that subclasses the record's model.
 
 **Revisit if**: tagging moves to one table for all record kinds.
 
+**ADR:** none — an implementation detail of the tag view
+
 ## D29. The publication view and field have no scope
 
 **Decision**: `PublicationAutocompleteView` and `PublicationChoiceField` offer and accept every
@@ -301,6 +355,8 @@ literature item, and `for_scope()` on the view returns the view itself.
 still never calls django-tomselect's `clean()` (D13).
 
 **Revisit if**: literature gains a visibility.
+
+**ADR:** none — local to the publication field
 
 ## D30. The keyword page tests read the form's value, and the ROR field keeps the value as chosen
 
@@ -314,6 +370,8 @@ unchanged, since `Organization.from_ror()` takes either form.
 page was showing as chosen.
 
 **Revisit if**: the tag control's script-built options need a browser test.
+
+**ADR:** none — test housekeeping
 
 ## D31. The ROR lookup shows the standard message when ROR is down
 
@@ -343,6 +401,8 @@ person may view.
 **Revisit if**: a filter declared on a class needs the owner of the page it is drawn on. The field
 takes `owner` at construction, so such a filter builds its field per request.
 
+**ADR:** none — recorded in the reference page
+
 ## D33. The three libraries are gone from FairDM; django-select2 stays installed through django-mvp
 
 **Decision**: django-autocomplete-light, django-select2 and django-addanother leave `pyproject.toml`, `INSTALLED_APPS`, the URL conf and the cache settings. `uv.lock` drops the first and third. django-select2 stays in the lock because django-mvp depends on it, so it is installed but nothing in FairDM, the demo, the tests or the docs names it. `suggest_widget` for a relation now answers the plain `Select` and `SelectMultiple`. The `.select2` rule in `fairdm/contrib/identity/static/configuration/admin.css` stays: Django's own admin autocomplete draws a `select2` element and the rule sizes it in the admin's flex rows.
@@ -350,3 +410,6 @@ takes `owner` at construction, so such a filter builds its field per request.
 **Why**: the migration guide tells a portal to declare any of the three itself. FairDM cannot remove a package another dependency requires.
 
 **Revisit if**: django-mvp drops django-select2, or the admin stylesheet gets a rule of its own for the admin's autocomplete.
+
+**ADR:** docs/adr/0037-autocomplete-fields-are-built-on-django-tomselect.md
+

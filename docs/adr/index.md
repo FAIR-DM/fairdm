@@ -43,4 +43,7 @@ do not restate earlier ones, only build past them.
 0034-portals-build-on-the-published-base-images
 0035-fairdm-does-not-compress-static-files
 0036-fairdm-declares-the-image-and-database-a-portal-runs-on
+0037-autocomplete-fields-are-built-on-django-tomselect
+0038-each-autocomplete-scope-is-its-own-view
+0039-autocomplete-addresses-are-limited-per-caller
 ```

@@ -335,3 +335,67 @@ header and an empty list, before anything is searched.
 
 Add a scope to `REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]` to change its rate. A scope left out
 uses the default above.
+
+## Classes behind the fields
+
+A field needs none of these to work. They are listed for a portal that builds a field of its own
+on the same address and limits.
+
+**Views**, in `fairdm.contrib.autocomplete.views`:
+
+| Class | Serves |
+|---|---|
+| `LimitedAutocompleteMixin` | The page size, page depth, search length, filter and ordering limits, and the request throttles, for every view below |
+| `RecordAutocompleteView` | The base of the record views: scope, the "yours, public, other" grouping and the exact-identifier ordering |
+| `ProjectAutocompleteView` | Projects |
+| `DatasetAutocompleteView` | Datasets, counted from `Dataset.all_objects` |
+| `DatasetRecordsAutocompleteView` | The base of the two views below, for records that sit inside a dataset |
+| `SampleAutocompleteView` | Samples |
+| `MeasurementAutocompleteView` | Measurements |
+| `ContributorAutocompleteView` | The base of the two views below, with the "near first" grouping |
+| `PersonAutocompleteView` | People |
+| `OrganizationAutocompleteView` | Organizations |
+| `PublicationAutocompleteView` | The portal's literature |
+| `TagAutocompleteView` | Tags in use on records the requester may see |
+| `RorAutocompleteView` | The ROR registry |
+
+`scoped_view(view_class, scope)` returns the subclass of a record view that serves one scope.
+django-tomselect rebuilds a view without the arguments given to `as_view()` when it validates a
+value, so each scope is its own class:
+
+```python
+from django.urls import path
+
+from fairdm.contrib.autocomplete.views import SampleAutocompleteView, scoped_view
+
+urlpatterns = [
+    path("samples/edit/", scoped_view(SampleAutocompleteView, "edit").as_view()),
+]
+```
+
+**Throttles**, in `fairdm.contrib.autocomplete.throttling`: `AutocompleteAnonBurstThrottle`,
+`AutocompleteAnonDailyThrottle`, `AutocompleteUserBurstThrottle` and
+`AutocompleteUserDailyThrottle`, one per scope in the table under Request rates. Each takes
+`DefaultRateMixin`, which falls back to the default rate when a portal's settings leave the scope
+out.
+
+**Fields and widgets**, in `fairdm.contrib.autocomplete.fields`:
+
+- `record_fields()` makes the single and the multiple field for one record view, as each pair
+  above is made.
+- `RecordFieldMixin`, with `RecordChoiceFieldMixin` and `RecordMultipleChoiceFieldMixin`, carries
+  the arguments, the validation through the view and the kept stored value.
+- `RecordSelectWidget` and `RecordSelectMultipleWidget`, built on `RecordSelectMixin`, write the
+  address, the dependency and the count words on the control.
+- `TagsWidget` draws the chips of `TagsField`.
+
+## Demo records
+
+The demo's `seed_record_search` command, written as `RecordSearchSeed` in `demo/seed/record_search.py`,
+seeds the records these fields are shown with: organizations with ROR identifiers, people with
+ORCID identifiers, unclaimed people, private and public projects, datasets and samples,
+publications with DOIs, and tags. `--large` adds 100,000 samples.
+
+```console
+DJANGO_ENV=development python manage.py seed_record_search
+```
