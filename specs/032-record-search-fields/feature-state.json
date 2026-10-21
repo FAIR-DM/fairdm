@@ -3,7 +3,7 @@
   "feature": "032-record-search-fields",
   "branch": "032-record-search-fields",
   "repo": "FAIR-DM/fairdm",
-  "state": "DESIGN_REVIEW",
+  "state": "IMPLEMENT",
   "state_history": [
     {
       "state": "QUEUED",
@@ -19,6 +19,11 @@
       "state": "DESIGN_REVIEW",
       "at": "2026-10-21T11:32:36Z",
       "note": "plan, research and tasks written"
+    },
+    {
+      "state": "IMPLEMENT",
+      "at": "2026-10-21T11:50:16Z",
+      "note": "plan gate open; design review applied"
     }
   ],
   "gates": {
@@ -42,8 +47,8 @@
       ]
     },
     "plan": {
-      "approved_by": null,
-      "at": null
+      "approved_by": "open",
+      "at": "2026-10-21T11:50:15Z"
     },
     "merge": {
       "approved_by": null,
