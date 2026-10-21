@@ -199,3 +199,10 @@ Did: RorAutocompleteView (an AutocompleteIterablesView over Ror.search with the 
 Verified: red first (the form test module failed to import the field, the view tests had no address); then pytest -n4 tests/test_contrib/test_contributors tests/test_contrib/test_autocomplete: 2527 passed.
 Next: lint and the full suite.
 Watch: the field shows a chosen value's ROR ID as its label when a form is shown again after a refusal, since the form has no organization name to give it. The "lookup is unavailable" message of AS 8.3 is not drawn: the address answers 503 and the control shows no results.
+
+## 2026-10-21T14:57:22Z · Implementer US6-US8 · T027
+
+Did: TestRorAutocompleteView with Ror.search faked (an entry with its name, ROR address and country; an empty search asks nothing; the text cut at 100 characters; 503 when ROR does not answer; a failure revealing only the failure; a visitor answered), the ROR address joins the limits test, and the organization form tests (the field is the ROR field; a chosen ROR ID saves while Ror.search raises RegistryUnavailable; the form saves with no ROR ID while ROR is down; a value that is not a ROR ID is refused; a ROR action with none is refused). conftest gains the fake_ror fixture.
+Verified: the form tests failed to import the field and the view tests had no address before the code existed; with it: pytest -n0 TestRorAutocompleteView, TestNewViewsTakeTheLimits and test_organization.py: 21 passed.
+Next: the full suite.
+Watch: none.

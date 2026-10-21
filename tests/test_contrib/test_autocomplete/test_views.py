@@ -923,7 +923,7 @@ class TestPublicationAutocompleteView:
 
 @pytest.mark.django_db
 class TestNewViewsTakeTheLimits:
-    @pytest.mark.parametrize("name", ["publication", "tag-view", "tag-public"])
+    @pytest.mark.parametrize("name", ["publication", "tag-view", "tag-public", "ror"])
     def test_each_new_address_refuses_a_caller_over_the_burst_rate(
         self, client, settings, monkeypatch, name
     ):
@@ -1012,3 +1012,67 @@ class TestTagAutocompleteView:
         DatasetFactory(id=987654, visibility=Visibility.PRIVATE).tags.add("leaky")
 
         assert search(client, "tag", "view")["results"] == []
+
+
+@pytest.mark.django_db
+class TestRorAutocompleteView:
+    GFZ = {
+        "id": "https://ror.org/04z8jg394",
+        "shown_id": "ror.org/04z8jg394",
+        "name": "GFZ Helmholtz Centre for Geosciences",
+        "detail": "Research institute · Potsdam, Germany",
+    }
+
+    def test_an_entry_is_offered_with_its_name_its_id_and_its_country(
+        self, researcher_client, fake_ror
+    ):
+        fake_ror.results = [self.GFZ]
+
+        answer = search(researcher_client, "ror", None, q="gfz")
+
+        assert fake_ror.asked == ["gfz"]
+        [entry] = answer["results"]
+        assert entry["value"] == "https://ror.org/04z8jg394"
+        assert entry["label"] == "GFZ Helmholtz Centre for Geosciences"
+        assert "Germany" in entry["detail"]
+        assert answer["has_more"] is False
+
+    def test_an_empty_search_asks_ror_nothing(self, researcher_client, fake_ror):
+        answer = search(researcher_client, "ror", None)
+
+        assert answer["results"] == []
+        assert fake_ror.asked == []
+
+    def test_a_search_is_cut_to_a_hundred_characters(self, researcher_client, fake_ror):
+        search(researcher_client, "ror", None, q="a" * 150)
+
+        assert fake_ror.asked == ["a" * 100]
+
+    def test_ror_not_answering_is_a_503_with_no_results(
+        self, researcher_client, fake_ror
+    ):
+        from fairdm.contrib.contributors.services.registries import RegistryUnavailable
+
+        fake_ror.error = RegistryUnavailable("down")
+
+        response = researcher_client.get(reverse("autocomplete:ror"), {"q": "gfz"})
+
+        assert response.status_code == 503
+        assert response.json()["results"] == []
+
+    def test_a_failing_search_reveals_only_the_failure(
+        self, researcher_client, fake_ror, settings
+    ):
+        settings.DEBUG = True
+        fake_ror.error = RuntimeError("secret detail")
+
+        response = researcher_client.get(reverse("autocomplete:ror"), {"q": "gfz"})
+
+        assert response.status_code == 500
+        assert "secret detail" not in response.content.decode()
+        assert set(response.json()) <= {"results", "page", "has_more"}
+
+    def test_a_visitor_is_answered(self, client, fake_ror):
+        fake_ror.results = [self.GFZ]
+
+        assert len(search(client, "ror", None, q="gfz")["results"]) == 1

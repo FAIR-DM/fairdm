@@ -545,13 +545,35 @@
       "tasks": [
         {
           "id": "T023",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_autocomplete/test_views.py::TestPublicationAutocompleteView,tests/test_core/test_dataset/test_forms.py::TestProjectAndReferenceFieldWidgets"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_autocomplete/test_views.py::TestPublicationAutocompleteView tests/test_core/test_dataset/test_forms.py"
+            ],
+            "code": [
+              "fairdm/contrib/autocomplete/views.py:776"
+            ]
+          }
         },
         {
           "id": "T024",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_autocomplete/test_views.py::TestPublicationAutocompleteView,tests/test_core/test_dataset/test_forms.py::TestProjectAndReferenceFieldWidgets"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_autocomplete/test_views.py::TestPublicationAutocompleteView tests/test_core/test_dataset/test_forms.py"
+            ],
+            "code": [
+              "fairdm/contrib/autocomplete/fields.py:519"
+            ]
+          }
         }
       ]
     },
@@ -565,13 +587,35 @@
       "tasks": [
         {
           "id": "T025",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_autocomplete/test_views.py::TestTagAutocompleteView,tests/test_contrib/test_autocomplete/test_filters.py::TestTagFilter,tests/test_contrib/test_generic/test_forms.py::TestKeywordFormTags"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_autocomplete/test_views.py::TestTagAutocompleteView tests/test_contrib/test_autocomplete/test_filters.py::TestTagFilter tests/test_contrib/test_generic/test_forms.py::TestKeywordFormTags"
+            ],
+            "code": [
+              "fairdm/contrib/autocomplete/views.py:887"
+            ]
+          }
         },
         {
           "id": "T026",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_autocomplete/test_views.py::TestTagAutocompleteView,tests/test_contrib/test_autocomplete/test_filters.py::TestTagFilter,tests/test_contrib/test_generic/test_forms.py::TestKeywordFormTags,tests/test_core/test_editing.py::TestEditKeywords"
+            ],
+            "commands": [
+              "uv run pytest -q -n4 tests/test_core/test_editing.py -k TestEditKeywords; uv run pytest -q -n0 tests/test_contrib/test_autocomplete tests/test_contrib/test_generic/test_forms.py"
+            ],
+            "code": [
+              "fairdm/contrib/autocomplete/fields.py:585"
+            ]
+          }
         }
       ]
     },
@@ -585,13 +629,35 @@
       "tasks": [
         {
           "id": "T027",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_autocomplete/test_views.py::TestRorAutocompleteView,tests/test_contrib/test_autocomplete/test_views.py::TestNewViewsTakeTheLimits,tests/test_contrib/test_contributors/test_forms/test_organization.py::TestOrganizationCreateForm"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_autocomplete/test_views.py::TestRorAutocompleteView tests/test_contrib/test_autocomplete/test_views.py::TestNewViewsTakeTheLimits tests/test_contrib/test_contributors/test_forms/test_organization.py"
+            ],
+            "code": [
+              "fairdm/contrib/autocomplete/views.py:964"
+            ]
+          }
         },
         {
           "id": "T028",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_autocomplete/test_views.py::TestRorAutocompleteView,tests/test_contrib/test_contributors/test_forms/test_organization.py::TestOrganizationCreateForm"
+            ],
+            "commands": [
+              "uv run pytest -q -n4 tests/test_contrib/test_contributors tests/test_contrib/test_autocomplete"
+            ],
+            "code": [
+              "fairdm/contrib/autocomplete/fields.py:677"
+            ]
+          }
         }
       ]
     }

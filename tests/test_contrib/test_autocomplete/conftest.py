@@ -241,3 +241,28 @@ def make_publication(db):
         return LiteratureItemFactory(item=item)
 
     return make_publication
+
+
+class FakeRor:
+    """What ``Ror.search`` answers in a test: the records set, or an error, and the terms asked."""
+
+    def __init__(self):
+        self.results = []
+        self.error = None
+        self.asked = []
+
+    def search(self, term):
+        self.asked.append(term)
+        if self.error is not None:
+            raise self.error
+        return {"results": self.results, "more": False}
+
+
+@pytest.fixture
+def fake_ror(monkeypatch):
+    """Replace ``Ror.search`` so that no test reaches ROR."""
+    from fairdm.contrib.contributors.services.registries import Ror
+
+    fake = FakeRor()
+    monkeypatch.setattr(Ror, "search", lambda self, term: fake.search(term))
+    return fake
