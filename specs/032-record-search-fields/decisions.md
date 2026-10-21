@@ -279,3 +279,38 @@ the user view access to the other dataset, and still asserts that the cross-data
 accepted. Linking a private sample nobody has let you see would name it to you, so it stays refused.
 
 **ADR:** none — the meeting point of two specs' rules, recorded here and in the test
+
+## D28. A tag is offered by the record's content type as well as its key
+
+**Decision**: `TagAutocompleteView.offered()` matches a tag item to a record by the key and by the
+content type of the record's model and its subclasses, never by the key alone.
+
+**Why**: a tag item holds the record's key as text, and the keys of different tables are equal
+integers. By key alone, a private dataset's tag was offered because a public project had the same
+key. A test builds that case. Samples and measurements are tagged under their concrete subclass,
+so the view takes every model that subclasses the record's model.
+
+**Revisit if**: tagging moves to one table for all record kinds.
+
+## D29. The publication view and field have no scope
+
+**Decision**: `PublicationAutocompleteView` and `PublicationChoiceField` offer and accept every
+literature item, and `for_scope()` on the view returns the view itself.
+
+**Why**: a literature item has no visibility of its own, so no rule can narrow it. The field
+still never calls django-tomselect's `clean()` (D13).
+
+**Revisit if**: literature gains a visibility.
+
+## D30. The keyword page tests read the form's value, and the ROR field keeps the value as chosen
+
+**Decision**: two existing keyword page tests read `option[selected]` out of the old tag widget's
+markup. django-tomselect renders an empty `<select>` and fills the options with script, so they now
+read the form's value on the page's context, and the `chosen` helper only they used is removed.
+`RorChoiceField.clean()` returns the value stripped and otherwise as chosen, the ROR address
+unchanged, since `Organization.from_ror()` takes either form.
+
+**Why**: the brief lets tests that pin the replaced widgets change. The form's value is what the
+page was showing as chosen.
+
+**Revisit if**: the tag control's script-built options need a browser test.
