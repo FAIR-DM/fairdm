@@ -26,7 +26,13 @@ from django_tomselect.widgets import (
 )
 from research_vocabs.models import Concept
 
-from .views import SCOPES, DatasetAutocompleteView, ProjectAutocompleteView
+from .views import (
+    SCOPES,
+    DatasetAutocompleteView,
+    MeasurementAutocompleteView,
+    ProjectAutocompleteView,
+    SampleAutocompleteView,
+)
 
 
 class ConceptMixin:
@@ -167,6 +173,8 @@ class RecordFieldMixin:
     Args:
         scope: How much the person may be offered: ``"public"``, ``"view"`` or ``"edit"``.
             Defaults to the field's ``default_scope``.
+        depends_on: The name of another field on the same form whose value the records must
+            match, such as ``"dataset"`` for a sample. It must be a filter the view allows.
         **kwargs: Passed to the form field.
 
     Attributes:
@@ -187,11 +195,17 @@ class RecordFieldMixin:
     placeholder = ""
     count_text = ""
 
-    def __init__(self, *args, scope=None, **kwargs):
+    def __init__(self, *args, scope=None, depends_on=None, **kwargs):
         scope = scope or self.default_scope
         if scope not in SCOPES:
             raise ValueError(f"scope must be one of {', '.join(SCOPES)}, not {scope!r}")
+        allowed = self.view_class.allowed_filter_fields
+        if depends_on and depends_on not in allowed:
+            raise ValueError(
+                f"depends_on must be one of {', '.join(allowed) or 'none'}, not {depends_on!r}"
+            )
         self.scope = scope
+        self.depends_on = depends_on
         self.form = None
         self.field_name = ""
         kwargs.setdefault("label", self.label)
@@ -227,6 +241,7 @@ class RecordFieldMixin:
             highlight=True,
             loading_class="ts-loading",
             attrs=attrs,
+            filter_by=(self.depends_on, self.depends_on) if self.depends_on else (),
             **plugins,
         )
 
@@ -251,9 +266,36 @@ class RecordFieldMixin:
         """Return the record view that serves the field's scope."""
         return self.view_class.for_scope(self.scope)()
 
-    def offered(self):
-        """Return the records the field offers the person using it."""
-        return self.view().offered(self.user)
+    def narrowing(self):
+        """Return the lookup that the other field's submitted value puts on the records.
+
+        Read from the bound form's data and never from the page's request.
+
+        Returns:
+            A dict for the view's ``offered()``, or ``None`` when the field depends on nothing
+            or the other field has no value.
+        """
+        if not self.depends_on or self.form is None or not self.form.is_bound:
+            return None
+        value = self.form.data.get(self.form.add_prefix(self.depends_on))
+        return None if value in (None, "") else {self.depends_on: value}
+
+    def offered(self, narrowed=False):
+        """Return the records the field offers the person using it.
+
+        Args:
+            narrowed: Whether to keep only the records that match the field it depends on.
+                A value that cannot name a record offers nothing.
+
+        Returns:
+            A queryset of the offered records.
+        """
+        view = self.view()
+        try:
+            depends_on = self.narrowing() if narrowed else None
+            return view.offered(self.user, depends_on=depends_on)
+        except (TypeError, ValueError):
+            return view.base_queryset().none()
 
     def stored_pks(self):
         """Return the primary keys the record being edited already holds in this field.
@@ -283,7 +325,8 @@ class RecordFieldMixin:
             return self.queryset
         records = self.view().base_queryset()
         return records.filter(
-            Q(pk__in=self.offered().values("pk")) | Q(pk__in=self.stored_pks())
+            Q(pk__in=self.offered(narrowed=True).values("pk"))
+            | Q(pk__in=self.stored_pks())
         )
 
     def selected_options(self, value):
@@ -402,4 +445,20 @@ DatasetChoiceField, DatasetMultipleChoiceField = record_fields(
     one_label=_("Choose a dataset"),
     any_label=_("Any dataset"),
     count_text=_("datasets"),
+)
+SampleChoiceField, SampleMultipleChoiceField = record_fields(
+    SampleAutocompleteView,
+    "sample",
+    label=_("Sample"),
+    one_label=_("Choose a sample"),
+    any_label=_("Any sample"),
+    count_text=_("samples"),
+)
+MeasurementChoiceField, MeasurementMultipleChoiceField = record_fields(
+    MeasurementAutocompleteView,
+    "measurement",
+    label=_("Measurement"),
+    one_label=_("Choose a measurement"),
+    any_label=_("Any measurement"),
+    count_text=_("measurements"),
 )

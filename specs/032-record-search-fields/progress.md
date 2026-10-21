@@ -59,3 +59,10 @@ Did: sample-mixins.md and measurements.md describe the dataset field; new how-to
 Verified: link targets checked by reading; the documentation build was not run here (sphinx missing).
 Next: full verify and report.
 Watch: the reference lists only the project and dataset kinds, which are the ones built so far.
+
+## 2026-10-21T13:07:57Z · Implementer US2 · T009
+
+Did: SampleAutocompleteView and MeasurementAutocompleteView over a shared base for records inside a dataset; registered at sample/measurement x public/view/edit. offered() gained depends_on. Fixtures make_sample/make_measurement; make_record now builds all four kinds, so the shared limit tests cover the new addresses.
+Verified: pytest test_views.py full file 140 passed; the two new classes 12 passed. ruff clean.
+Next: T010 dependent fields and the measurement form move.
+Watch: django-tomselect empties value_fields on a subclass that does not set it on its own class, so each concrete view names DATASET_RECORD_FIELDS itself.

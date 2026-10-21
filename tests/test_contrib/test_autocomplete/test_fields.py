@@ -7,6 +7,7 @@ from fairdm.contrib.autocomplete.fields import (
     DatasetChoiceField,
     DatasetMultipleChoiceField,
     ProjectChoiceField,
+    SampleChoiceField,
 )
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.utils.choices import Visibility
@@ -223,3 +224,75 @@ class TestStoredLinkTheEditorCannotSee:
 
         assert f"allItems.push('{visible.pk}')" in html
         assert visible.name in html
+
+
+class DependentSampleForm(forms.Form):
+    dataset = DatasetChoiceField(scope="edit", required=False)
+    sample = SampleChoiceField(depends_on="dataset")
+
+
+@pytest.mark.django_db
+class TestDependentFields:
+    def test_the_field_hands_the_widget_the_hook_that_narrows_by_the_dataset(
+        self, researcher, in_request
+    ):
+        in_request(researcher)
+
+        context = DependentSampleForm()["sample"].field.widget.get_context(
+            "sample", None, {}
+        )
+
+        filters = context["widget"]["filters"]
+        assert [(f["source"], f["lookup"], f["source_type"]) for f in filters] == [
+            ("dataset", "dataset", "field")
+        ]
+
+    def test_a_sample_of_the_chosen_dataset_is_accepted(
+        self, researcher, in_request, make_dataset, make_sample
+    ):
+        chosen = make_dataset("Chosen", holder=researcher)
+        sample = make_sample("Inside", dataset=chosen)
+        in_request(researcher)
+
+        form = DependentSampleForm({"dataset": chosen.pk, "sample": sample.pk})
+
+        assert form.is_valid()
+        assert form.cleaned_data["sample"] == sample
+
+    def test_a_sample_of_another_dataset_is_refused(
+        self, researcher, in_request, make_dataset, make_sample
+    ):
+        chosen = make_dataset("Chosen", holder=researcher)
+        other = make_dataset("Other", holder=researcher)
+        sample = make_sample("Elsewhere", dataset=other)
+        in_request(researcher)
+
+        form = DependentSampleForm({"dataset": chosen.pk, "sample": sample.pk})
+
+        assert form.has_error("sample", code="invalid_choice")
+
+    def test_the_dataset_is_read_from_the_forms_data_and_not_from_the_page(
+        self, researcher, in_request, make_dataset, make_sample
+    ):
+        chosen = make_dataset("Chosen", holder=researcher)
+        other = make_dataset("Other", holder=researcher)
+        sample = make_sample("Elsewhere", dataset=other)
+        in_request(researcher, f=f"'dataset__dataset={other.pk}'")
+
+        form = DependentSampleForm({"dataset": chosen.pk, "sample": sample.pk})
+
+        assert form.has_error("sample", code="invalid_choice")
+
+    def test_a_dataset_value_that_is_not_a_key_refuses_the_sample_and_does_not_fail(
+        self, researcher, in_request, make_dataset, make_sample
+    ):
+        sample = make_sample("Any", dataset=make_dataset("D", holder=researcher))
+        in_request(researcher)
+
+        form = DependentSampleForm({"dataset": "not a key", "sample": sample.pk})
+
+        assert form.has_error("sample", code="invalid_choice")
+
+    def test_a_field_cannot_depend_on_what_its_view_does_not_filter_by(self):
+        with pytest.raises(ValueError, match="depends_on"):
+            DatasetChoiceField(depends_on="project")

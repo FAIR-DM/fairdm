@@ -231,8 +231,19 @@
       "tasks": [
         {
           "id": "T009",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 4,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_autocomplete/test_views.py::TestSampleAutocompleteView,tests/test_contrib/test_autocomplete/test_views.py::TestMeasurementAutocompleteView"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_autocomplete/test_views.py::TestSampleAutocompleteView tests/test_contrib/test_autocomplete/test_views.py::TestMeasurementAutocompleteView"
+            ],
+            "code": [
+              "fairdm/contrib/autocomplete/views.py:480"
+            ]
+          }
         },
         {
           "id": "T010",

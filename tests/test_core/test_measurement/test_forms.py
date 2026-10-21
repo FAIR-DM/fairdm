@@ -14,7 +14,7 @@ from demo.factories import (
     XRFMeasurementFactory,
 )
 from demo.models import ExampleMeasurement, ICP_MS_Measurement, XRFMeasurement
-from fairdm.contrib.autocomplete.fields import DatasetChoiceField
+from fairdm.contrib.autocomplete.fields import DatasetChoiceField, SampleChoiceField
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.measurement.forms import MeasurementFormMixin
 from fairdm.factories import (
@@ -548,3 +548,55 @@ class TestMeasurementEditPageLocation:
 
         assert response.status_code == 200
         assert main_form(response).select('[name^="location"]') == []
+
+
+@pytest.mark.django_db
+class TestMeasurementSampleField:
+    """The sample is chosen from the dataset chosen on the same form."""
+
+    def _form_class(self):
+        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
+            class Meta:
+                model = XRFMeasurement
+                fields = ["name", "dataset", "sample"]
+
+        return XRFMeasurementForm
+
+    def _editor_of(self, *datasets):
+        user = UserFactory()
+        for dataset in datasets:
+            ContributionFactory(
+                content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+            )
+        return user
+
+    def test_the_sample_field_depends_on_the_dataset_field(self):
+        form = self._form_class()()
+
+        assert isinstance(form.fields["sample"], SampleChoiceField)
+        assert form.fields["sample"].depends_on == "dataset"
+
+    def test_a_sample_of_another_dataset_is_refused(self):
+        chosen, other = DatasetFactory(), DatasetFactory()
+        sample = RockSampleFactory(dataset=other)
+        user = self._editor_of(chosen, other)
+
+        form = self._form_class()(
+            data={"name": "Run", "dataset": chosen.pk, "sample": sample.pk},
+            request=_request_for(user),
+        )
+
+        assert form.has_error("sample", code="invalid_choice")
+
+    def test_a_sample_of_the_chosen_dataset_is_accepted(self):
+        chosen = DatasetFactory()
+        sample = RockSampleFactory(dataset=chosen)
+        user = self._editor_of(chosen)
+
+        form = self._form_class()(
+            data={"name": "Run", "dataset": chosen.pk, "sample": sample.pk},
+            request=_request_for(user),
+        )
+
+        assert form.is_valid(), form.errors
+        assert form.cleaned_data["sample"] == sample
