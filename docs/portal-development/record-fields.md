@@ -1,7 +1,7 @@
 # Record fields
 
-Record fields are form fields that choose a project, a dataset, a sample or a measurement by
-searching for it. Each field
+Record fields are form fields that choose a project, a dataset, a sample, a measurement, a person
+or an organization by searching for it. Each field
 sends its searches to an address that FairDM provides and answers with the records the person
 using the field may reach. The fields are in `fairdm.contrib.autocomplete.fields`. For the steps
 to add one to a form, see [How to add a record field to a form](add-a-record-field.md).
@@ -14,6 +14,8 @@ to add one to a form, see [How to add a record field to a form](add-a-record-fie
 | `DatasetChoiceField` | `DatasetMultipleChoiceField` | a dataset |
 | `SampleChoiceField` | `SampleMultipleChoiceField` | a sample |
 | `MeasurementChoiceField` | `MeasurementMultipleChoiceField` | a measurement |
+| `PersonChoiceField` | `PersonMultipleChoiceField` | a person |
+| `OrganizationChoiceField` | `OrganizationMultipleChoiceField` | an organization |
 
 ## Arguments
 
@@ -36,7 +38,8 @@ and one more.
 | `scope` | `"public"` | As for the fields. A list filter offers public records to everyone. |
 
 The list filters FairDM ships use it: the dataset list's project filter, the sample list's dataset
-filter and the measurement list's dataset and sample filters. A filter generated for a registered
+filter, the measurement list's dataset and sample filters, and the project list's owner and
+contributor filters, which offer organizations and people. A filter generated for a registered
 type's relation to a project, dataset, sample or measurement is one too. Choosing several records
 keeps the rows that point at any of them.
 
@@ -54,6 +57,31 @@ published. A person may view or edit a record when they hold that level on it,
 on its project for a dataset, on its dataset or that dataset's project for a sample or a
 measurement, or when a portal role gives them the right on every record, as the
 Data Curator role does.
+
+## People and organizations
+
+The person and organization fields take `scope` and `depends_on` like the others, but a person or
+an organization is public information, so they are offered at the `"public"` scope only and a
+different scope raises `ValueError`. Neither accepts `depends_on`.
+
+A person is found by name, by an alternative name or by an ORCID iD typed exactly. An organization
+is found by name, by an alternative name or by a ROR identifier typed exactly. An identifier typed
+exactly lists that person or organization first. A part of an identifier finds nothing.
+
+Results are grouped. People the person searching has worked with come first, then everyone else.
+Two people have worked together when both are credited on a record the searcher can open. A
+credit on a private record the searcher has no access to does not count. Organizations the
+searcher belongs to come first, then the rest. Belonging means an affiliation that is verified and
+has not ended, so a pending request does not count.
+
+People come from the portal's real people: superusers and the anonymous placeholder account are
+never offered. An email address is not searched and is never part of a result. A request that
+names `email` in `f` or `e` is offered nothing, and an `ordering` that names it is ignored.
+
+A person's row shows their picture or initials, their primary affiliation and their ORCID iD, and
+marks a person nobody has claimed. An organization's row shows its city and country and no
+identifier. A person's result carries `unclaimed`, `true` when nobody has claimed the profile. A
+person's `detail` is the name of their primary affiliation, and an organization's is its place.
 
 ## Fields that depend on another field
 
@@ -118,8 +146,9 @@ listed first.
 
 There is one address for each kind and scope, under the `autocomplete` namespace:
 `autocomplete:project-public`, `autocomplete:project-view`, `autocomplete:project-edit`, and the
-same three for `dataset`, `sample` and `measurement`. The scope belongs to the address, so a
-request cannot widen it.
+same three for `dataset`, `sample` and `measurement`. People and organizations have one address
+each, `autocomplete:person-public` and `autocomplete:organization-public`. The scope belongs to
+the address, so a request cannot widen it.
 
 ## Limits
 
@@ -128,7 +157,7 @@ request cannot widen it.
 | Results in a page | 20, whatever `page_size` the request names |
 | Last page served | 25 |
 | Longest search text | 100 characters, cut when longer |
-| Filters a request may name | None for projects and datasets. `dataset` and `polymorphic_ctype` for samples and measurements. A request naming any other filter is offered nothing. |
+| Filters a request may name | None for projects, datasets, people and organizations. `dataset` and `polymorphic_ctype` for samples and measurements. A request naming any other filter is offered nothing. |
 | Ordering a request may name | None. An ordering is ignored. |
 
 A search that fails answers with status 500 and an empty list, and nothing else.

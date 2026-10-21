@@ -1165,7 +1165,9 @@ for an error on a field the form lacks, and the editing page answers with a serv
 - `location` is a latitude and a longitude as signed decimal degrees in WGS 84, as a sample's
   location input reads them, and shown under the city and country. It is stored as the organization's `location`
   point. Leaving both empty removes the point. See [Locations](locations.md#placing-an-organization).
-- `parent` is a search over every organization, the same picker the affiliation form uses.
+- `parent` is an `OrganizationChoiceField`, the same picker the affiliation form uses. It searches
+  every organization by name, alternative name or ROR identifier and lists the organizations the
+  editor belongs to first. See [Record fields](record-fields.md#people-and-organizations).
 - `website` and `links` are two fields over the one stored list `Organization.links`. The website
   is stored first and the other links follow it, so an address typed in both places is stored
   once. When the form opens, `website` shows the first stored link and `links` shows the rest.

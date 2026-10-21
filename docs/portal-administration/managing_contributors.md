@@ -173,7 +173,9 @@ Organizations represent institutions, companies, research groups, and other orga
 **Ownership Transfer**:
 - Admin action: "Transfer Ownership"
 - Select a single organization, choose the new owner from the "New owner"
-  field in the action bar, then run the action
+  field in the action bar, then run the action. The field searches people by
+  name, alternative name or ORCID iD, never by email, and lists the people
+  you have worked with first
 - Performs the transfer directly — demotes the incumbent owner to ADMIN and
   promotes the chosen member to OWNER
 
@@ -499,6 +501,9 @@ ghosts_without_data = Person.objects.ghost().filter(
 ```
 
 ### Merging Duplicate Persons
+
+The "Merge into" field on the confirmation page searches people the same way as the "New owner"
+field, by name, alternative name or ORCID iD. Choosing the person being merged is refused.
 
 The Person admin's **"Merge selected Person into another…"** action does this transactionally,
 including identifiers, allauth accounts and, where both people are listed on a record, the higher
