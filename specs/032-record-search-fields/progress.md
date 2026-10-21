@@ -206,3 +206,24 @@ Did: TestRorAutocompleteView with Ror.search faked (an entry with its name, ROR 
 Verified: the form tests failed to import the field and the view tests had no address before the code existed; with it: pytest -n0 TestRorAutocompleteView, TestNewViewsTakeTheLimits and test_organization.py: 21 passed.
 Next: the full suite.
 Watch: none.
+
+## 2026-10-21T15:20:00Z · Implementer US4 · T029
+
+Did: TestFieldSettings: nothing configured, a multiple field offering a private record the person may view, saving several records, edit and public scope, a scope the kind lacks, type (accepts that type, refuses another, sent as a constant filter, refused for a kind without types or a model that is not one), owner (the owner's private records offered to the owner only, none to anyone else, profile address with owner=<pk>, refused for people/organizations and with a scope), depends_on on the multiple field, and minimum length 2 / load throttle 300 on six rendered fields.
+Verified: red first (module failed to collect: Field.__init__ got 'type'); then pytest -n0 test_fields.py: 49 passed (2 existing multiple-field scopes changed their default: no existing test pinned it). pytest -n4 tests/test_contrib tests/test_core tests/test_registry: 5112 passed, 7 skipped.
+Next: generated forms and admin.
+Watch: the multiple field's default scope moved from public to view (D32); the list filters still pass public.
+
+## 2026-10-21T15:20:00Z · Implementer US4 · T030
+
+Did: TestGeneratedRelatedRecordForms: a relation to a project, dataset, sample or measurement is drawn with the single field at view scope; a measurement's dataset and a dataset's project at edit scope.
+Verified: red first (5 failed: plain ModelChoiceField); then pytest -n0 tests/test_registry: 277 passed.
+Next: T031.
+Watch: none.
+
+## 2026-10-21T15:20:01Z · Implementer US4 · T031
+
+Did: owner and type on the record fields, the profile address (one per kind), FormFactory passes field_classes for relations to records (edit for the record it sits in), contributors admin groups, the dataset admin and demo/admin.py use autocomplete_fields in place of the django-autocomplete-light and django-select2 widgets. D32 records the choices.
+Verified: pytest -n0 tests/test_contrib/test_admin tests/test_core/test_dataset/test_admin.py demo/tests/test_admin_views.py: 55 passed.
+Next: removal.
+Watch: the registered demo admins never used the removed overrides; only the unregistered XRF example did.

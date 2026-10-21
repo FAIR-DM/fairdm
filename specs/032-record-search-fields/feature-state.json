@@ -411,18 +411,51 @@
       "tasks": [
         {
           "id": "T029",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_autocomplete/test_fields.py::TestFieldSettings"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_autocomplete/test_fields.py"
+            ],
+            "code": [
+              "fairdm/contrib/autocomplete/fields.py:236"
+            ]
+          }
         },
         {
           "id": "T030",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_registry/test_factories.py::TestGeneratedRelatedRecordForms"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_registry"
+            ],
+            "code": [
+              "fairdm/registry/factories.py:109"
+            ]
+          }
         },
         {
           "id": "T031",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_admin/test_admin.py::TestPersonAdminGroupsAutocomplete,tests/test_core/test_dataset/test_admin.py::TestDatasetAdminAutocompleteFields,demo/tests/test_admin_views.py::TestXRFMeasurementAdminExample"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_admin tests/test_core/test_dataset/test_admin.py demo/tests/test_admin_views.py"
+            ],
+            "code": [
+              "fairdm/contrib/autocomplete/views.py:261"
+            ]
+          }
         },
         {
           "id": "T032",
