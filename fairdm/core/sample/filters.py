@@ -75,13 +75,6 @@ class SampleFilterMixin(django_filters.FilterSet):
                 | Dataset.all_objects.accessible_to(user, ContributionLevel.VIEW)
             )
 
-        from fairdm.contrib.autocomplete.records_fields import (
-            DatasetMultipleChoiceField,
-            use_record_filters,
-        )
-
-        use_record_filters(self, {"dataset": DatasetMultipleChoiceField})
-
     class Meta:
         fields = ["status", "dataset", "polymorphic_ctype"]
 

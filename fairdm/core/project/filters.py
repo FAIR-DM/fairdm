@@ -7,7 +7,6 @@ from django.utils.translation import gettext_lazy as _
 from mvp.filters import SearchFilter, SortFilter
 
 from fairdm.contrib.autocomplete.fields import ConceptMultiSelect
-from fairdm.contrib.autocomplete.records_fields import tag_filter
 from fairdm.core.filters import BaseListFilter
 from fairdm.utils.utils import get_setting
 
@@ -44,8 +43,11 @@ class ProjectFilter(BaseListFilter):
         label=_("Owner"),
     )
 
-    # SKETCH: tags in use, with no way to add one.
-    tags = tag_filter(field_name="tags__name", label=_("Tags"))
+    tags = df.CharFilter(
+        field_name="tags__name",
+        lookup_expr="iexact",
+        label=_("Tag"),
+    )
 
     contributor = df.ModelChoiceFilter(
         queryset=None,
@@ -66,20 +68,6 @@ class ProjectFilter(BaseListFilter):
         self.filters["owner"].queryset = Organization.objects.filter(
             owned_projects__isnull=False
         ).distinct()
-
-        from fairdm.contrib.autocomplete.records_fields import (
-            OrganizationMultipleChoiceField,
-            PersonMultipleChoiceField,
-            use_record_filters,
-        )
-
-        use_record_filters(
-            self,
-            {
-                "owner": OrganizationMultipleChoiceField,
-                "contributor": PersonMultipleChoiceField,
-            },
-        )
 
         from research_vocabs.models import Concept
 

@@ -106,10 +106,3 @@ class DatasetFilter(BaseListFilter):
             queryset = Project.objects.all()
 
         self.filters["project"].queryset = queryset
-
-        from fairdm.contrib.autocomplete.records_fields import (
-            ProjectMultipleChoiceField,
-            use_record_filters,
-        )
-
-        use_record_filters(self, {"project": ProjectMultipleChoiceField})
