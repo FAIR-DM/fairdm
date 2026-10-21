@@ -6,8 +6,12 @@ from django.contrib.auth.models import Group, Permission
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.sample.models import SampleIdentifier
 from fairdm.factories import (
+    AffiliationFactory,
     ContributionFactory,
+    ContributorIdentifierFactory,
     DatasetFactory,
+    OrganizationFactory,
+    PersonFactory,
     ProjectFactory,
     UserFactory,
 )
@@ -138,6 +142,59 @@ def in_request(rf):
     yield enter
     if hasattr(_request_local, "request"):
         del _request_local.request
+
+
+@pytest.fixture
+def make_organization(db):
+    """Return a function building an organization, optionally with a ROR identifier."""
+
+    def make_organization(
+        name, *, ror=None, alternative_names=None, city="", country=""
+    ):
+        organization = OrganizationFactory(
+            name=name,
+            alternative_names=alternative_names or [],
+            city=city,
+            country=country,
+        )
+        if ror:
+            ContributorIdentifierFactory(related=organization, type="ROR", value=ror)
+        return organization
+
+    return make_organization
+
+
+@pytest.fixture
+def make_person(db):
+    """Return a function building a person, optionally with an ORCID and a primary affiliation."""
+
+    def make_person(
+        name,
+        *,
+        orcid=None,
+        email=None,
+        alternative_names=None,
+        claimed=False,
+        superuser=False,
+        organization=None,
+    ):
+        extra = {"email": email} if email else {}
+        person = PersonFactory(
+            name=name,
+            alternative_names=alternative_names or [],
+            is_claimed=claimed,
+            is_superuser=superuser,
+            **extra,
+        )
+        if orcid:
+            ContributorIdentifierFactory(related=person, type="ORCID", value=orcid)
+        if organization is not None:
+            AffiliationFactory(
+                person=person, organization=organization, is_primary=True
+            )
+        return person
+
+    return make_person
 
 
 @pytest.fixture

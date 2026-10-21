@@ -5,10 +5,10 @@ from django.urls import path
 from .views import (
     SCOPES,
     ConceptAutocomplete,
-    ContributorAutocomplete,
     DatasetAutocompleteView,
     MeasurementAutocompleteView,
-    OrganizationAutocomplete,
+    OrganizationAutocompleteView,
+    PersonAutocompleteView,
     ProjectAutocompleteView,
     SampleAutocompleteView,
 )
@@ -17,8 +17,6 @@ app_name = "autocomplete"
 
 urlpatterns = [
     path("concept/", ConceptAutocomplete.as_view(), name="concept"),
-    path("contributor/", ContributorAutocomplete.as_view(), name="contributor"),
-    path("organization/", OrganizationAutocomplete.as_view(), name="organization"),
 ]
 
 #: The record views, by the kind of record they offer.
@@ -38,3 +36,14 @@ for _kind, _view in RECORD_VIEWS.items():
                 name=f"{_kind}-{_scope}",
             )
         )
+
+#: The views behind the person and organization fields. Nothing about them varies by scope.
+CONTRIBUTOR_VIEWS = {
+    "person": PersonAutocompleteView,
+    "organization": OrganizationAutocompleteView,
+}
+
+for _kind, _view in CONTRIBUTOR_VIEWS.items():
+    urlpatterns.append(
+        path(f"records/{_kind}/", _view.as_view(), name=f"{_kind}-public")
+    )

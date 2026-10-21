@@ -4,6 +4,8 @@ import pytest
 from django.urls import reverse
 
 from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.contrib.contributors.models import Affiliation
+from fairdm.factories import AffiliationFactory
 from fairdm.utils.choices import Visibility
 from tests.registry_models.models import ConcreteMeasurement, ConcreteSample
 
@@ -507,3 +509,112 @@ class TestLimitedAutocompleteMixin:
         assert "secret detail" not in response.content.decode()
         assert response.json()["results"] == []
         assert set(response.json()) <= {"results", "page", "has_more"}
+
+
+@pytest.mark.django_db
+class TestOrganizationAutocompleteView:
+    def test_an_organization_is_found_by_part_of_its_name(
+        self, researcher_client, make_organization
+    ):
+        wanted = make_organization("Potsdam Research Institute")
+        make_organization("Berlin Laboratory")
+
+        answer = search(researcher_client, "organization", "public", q="potsdam")
+
+        assert [r["id"] for r in answer["results"]] == [wanted.pk]
+
+    def test_an_organization_is_found_by_an_alternative_name(
+        self, researcher_client, make_organization
+    ):
+        wanted = make_organization(
+            "Helmholtz Centre Potsdam", alternative_names=["GFZ"]
+        )
+        make_organization("Berlin Laboratory")
+
+        answer = search(researcher_client, "organization", "public", q="gfz")
+
+        assert [r["id"] for r in answer["results"]] == [wanted.pk]
+
+    def test_a_ror_identifier_typed_exactly_comes_first(
+        self, researcher_client, make_organization
+    ):
+        make_organization("Aardvark 04z8jg394 group")
+        wanted = make_organization("Zeta Institute", ror="04z8jg394")
+
+        answer = search(researcher_client, "organization", "public", q="04z8jg394")
+
+        assert answer["results"][0]["id"] == wanted.pk
+        assert len(answer["results"]) == 2
+
+    def test_an_identifier_typed_in_part_finds_nothing(
+        self, researcher_client, make_organization
+    ):
+        make_organization("Zeta Institute", ror="04z8jg394")
+
+        answer = search(researcher_client, "organization", "public", q="04z8jg")
+
+        assert answer["results"] == []
+
+    def test_the_organizations_the_researcher_belongs_to_come_first(
+        self, researcher_client, researcher, make_organization
+    ):
+        other = make_organization("Alpha Institute")
+        member_of = make_organization("Zulu Institute")
+        AffiliationFactory(person=researcher, organization=member_of)
+
+        answer = search(researcher_client, "organization", "public")
+
+        assert [r["id"] for r in answer["results"]] == [member_of.pk, other.pk]
+        assert answer["results"][0]["optgroup"] != answer["results"][1]["optgroup"]
+
+    def test_a_pending_request_does_not_make_an_organization_the_researchers_own(
+        self, researcher_client, researcher, make_organization
+    ):
+        first = make_organization("Alpha Institute")
+        requested = make_organization("Zulu Institute")
+        AffiliationFactory(
+            person=researcher,
+            organization=requested,
+            type=Affiliation.MembershipType.PENDING,
+        )
+
+        answer = search(researcher_client, "organization", "public")
+
+        assert [r["id"] for r in answer["results"]] == [first.pk, requested.pk]
+        assert {r.get("optgroup") for r in answer["results"]} == {None}
+
+    def test_an_ended_membership_does_not_make_an_organization_the_researchers_own(
+        self, researcher_client, researcher, make_organization
+    ):
+        first = make_organization("Alpha Institute")
+        left = make_organization("Zulu Institute")
+        AffiliationFactory(person=researcher, organization=left, end_date="2022")
+
+        answer = search(researcher_client, "organization", "public")
+
+        assert [r["id"] for r in answer["results"]] == [first.pk, left.pk]
+
+    def test_a_row_gives_the_place_and_no_identifier(
+        self, researcher_client, make_organization
+    ):
+        make_organization(
+            "Potsdam Research Institute",
+            ror="04z8jg394",
+            city="Potsdam",
+            country="DE",
+        )
+
+        row = search(researcher_client, "organization", "public")["results"][0]["html"]
+
+        assert "Potsdam" in row
+        assert "04z8jg394" not in row
+
+    def test_a_visitor_is_offered_organizations_with_no_group(
+        self, client, make_organization
+    ):
+        wanted = make_organization("Potsdam Research Institute")
+
+        answer = search(client, "organization", "public")
+
+        assert [r["id"] for r in answer["results"]] == [wanted.pk]
+        assert "optgroup" not in answer["results"][0]

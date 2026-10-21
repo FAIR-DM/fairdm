@@ -19,7 +19,12 @@ from fairdm.contrib.autocomplete.throttling import (
     AutocompleteUserDailyThrottle,
 )
 from fairdm.contrib.contributors.choices import ContributionLevel
-from fairdm.contrib.contributors.models import Contribution, Contributor, Organization
+from fairdm.contrib.contributors.models import (
+    Affiliation,
+    ContributorIdentifier,
+    Organization,
+    Person,
+)
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.project.models import Project
@@ -69,88 +74,6 @@ class ConceptAutocomplete(autocomplete.Select2QuerySetView):
             qs = qs.filter(Q(label__icontains=self.q) | Q(name__icontains=self.q))
 
         return qs.order_by("label")
-
-
-class ContributorAutocomplete(autocomplete.Select2QuerySetView):
-    """Autocomplete view for Contributor model with filtering to exclude existing contributors.
-
-    This view allows searching for contributors while optionally excluding those
-    already associated with a specific object.
-
-    Usage in forms:
-        from dal import autocomplete, forward
-
-        field = forms.ModelMultipleChoiceField(
-            queryset=Contributor.objects.all(),
-            widget=autocomplete.ModelSelect2Multiple(
-                url='autocomplete:contributor',
-                forward=(
-                    forward.Const(str(base_object.pk), 'object_id'),
-                    forward.Const(ContentType.objects.get_for_model(base_object).pk, 'content_type_id'),
-                )
-            )
-        )
-    """
-
-    def get_queryset(self):
-        """Return contributors matching the search term, minus those already on the forwarded object."""
-        if not self.request.user.is_authenticated:
-            return Contributor.objects.none()
-
-        qs = Contributor.objects.all()
-
-        if self.q:
-            qs = qs.filter(name__icontains=self.q)
-
-        print(f"DEBUG: forwarded = {self.forwarded}")
-        print(f"DEBUG: request.GET = {dict(self.request.GET)}")
-
-        object_id = self.forwarded.get("object_id", None)
-        content_type_id = self.forwarded.get("content_type_id", None)
-
-        print(f"DEBUG: object_id = {object_id}, content_type_id = {content_type_id}")
-
-        if object_id and content_type_id:
-            existing_contributor_ids = Contribution.objects.filter(
-                object_id=object_id, content_type_id=content_type_id
-            ).values_list("contributor_id", flat=True)
-
-            print(f"DEBUG: existing_contributor_ids = {list(existing_contributor_ids)}")
-
-            qs = qs.exclude(pk__in=existing_contributor_ids)
-
-        return qs.order_by("name")
-
-
-class OrganizationAutocomplete(autocomplete.Select2QuerySetView):
-    """Autocomplete view for Organization model.
-
-    This view allows searching for organizations by name.
-
-    Usage in forms:
-        from dal import autocomplete
-
-        field = forms.ModelChoiceField(
-            queryset=Organization.objects.all(),
-            widget=autocomplete.ModelSelect2(url='autocomplete:organization')
-        )
-    """
-
-    def get_queryset(self):
-        """Return organizations matching the search term, for signed-in users only."""
-        if not self.request.user.is_authenticated:
-            return Organization.objects.none()
-
-        qs = Organization.objects.all()
-
-        if self.q:
-            qs = qs.filter(name__icontains=self.q)
-
-        return qs.order_by("name")
-
-    def get_result_label(self, result):
-        """Return the label to display for each result."""
-        return result.label or result.name
 
 
 #: Scope is part of the address, so a request can never widen what an address offers.
@@ -551,3 +474,268 @@ class MeasurementAutocompleteView(DatasetRecordsAutocompleteView):
     search_lookups = ["name__icontains", "local_id__icontains"]
     exact_lookups = ["local_id__iexact", "uuid__iexact"]
     value_fields = DATASET_RECORD_FIELDS
+
+
+class ContributorAutocompleteView(LimitedAutocompleteMixin, AutocompleteModelView):
+    """Offer the people or the organizations of the portal, those nearest the person searching first.
+
+    A person or an organization is public information, so one address serves everyone and the
+    scope plays no part.
+
+    Attributes:
+        identifier_type: The identifier on which an exact match is offered first.
+        near_heading: The heading of the group listed first.
+        far_heading: The heading of the group listed after it.
+    """
+
+    identifier_type = ""
+    near_heading = ""
+    far_heading = ""
+
+    @classmethod
+    def for_scope(cls, scope):
+        """Return this view, which serves every scope alike.
+
+        Args:
+            scope: Ignored.
+
+        Returns:
+            The view class.
+        """
+        return cls
+
+    def base_queryset(self):
+        """Return every contributor of the kind, before any rule on who is offered.
+
+        Returns:
+            A queryset over the kind's contributors.
+        """
+        return self.model.objects.all()
+
+    def offered(self, user, *, depends_on=None):
+        """Return the contributors offered to a person, before any search or page.
+
+        Args:
+            user: The person searching, or an anonymous user.
+            depends_on: Not used, since these views allow no filter.
+
+        Returns:
+            A queryset of the offered contributors.
+        """
+        return self.base_queryset()
+
+    def nearby(self, user):
+        """Return the primary keys of the contributors listed first for a person.
+
+        Args:
+            user: The signed-in person searching.
+
+        Returns:
+            A list of primary keys.
+        """
+        return []
+
+    def exact_q(self, query):
+        """Return the condition under which a contributor's identifier is the text typed.
+
+        Args:
+            query: The text searched for.
+
+        Returns:
+            A ``Q`` object over the kind's contributors.
+        """
+        identified = ContributorIdentifier.objects.filter(
+            type=self.identifier_type, value__iexact=query
+        )
+        return Q(pk__in=identified.values("related_id"))
+
+    def get_queryset(self):
+        """Return the offered contributors, searched, grouped by nearness and ordered."""
+        user = self.request.user
+        near = self.nearby(user) if user.is_authenticated else []
+        queryset = self.offered(user).annotate(
+            group_rank=Case(
+                When(pk__in=near, then=Value(OWN)),
+                default=Value(PUBLIC),
+                output_field=IntegerField(),
+            )
+        )
+        queryset = self.apply_filters(self.hook_queryset(queryset))
+        ordering = ["group_rank", "name", "pk"]
+        if self.query:
+            exact = self.exact_q(self.query)
+            queryset = queryset.filter(
+                self._build_simple_search_q(self.query) | exact
+            ).annotate(
+                exact_rank=Case(
+                    When(exact, then=Value(0)),
+                    default=Value(1),
+                    output_field=IntegerField(),
+                )
+            )
+            ordering.insert(0, "exact_rank")
+        return queryset.order_by(*ordering)
+
+    def get_value_fields(self):
+        """Return the fields the results are built from."""
+        return ["id", "name", "group_rank"]
+
+    def loaded(self, ids):
+        """Load the contributors of a page with what their rows show.
+
+        Args:
+            ids: The primary keys of the page.
+
+        Returns:
+            A dict of contributors by primary key.
+        """
+        return self.model.objects.in_bulk(ids)
+
+    def describe(self, result, contributor):
+        """Work out what one row shows.
+
+        Args:
+            result: The result, changed in place.
+            contributor: The contributor the result stands for.
+
+        Returns:
+            The extra context the row is drawn with.
+        """
+        return {}
+
+    def hook_prepare_results(self, results):
+        """Add each result's group heading and its row, drawn on the server."""
+        headings = {OWN: self.near_heading, PUBLIC: self.far_heading}
+        ranks = {result["group_rank"] for result in results}
+        loaded = self.loaded([result["id"] for result in results])
+        for result in results:
+            rank = result.pop("group_rank")
+            # A page holding only the far group needs no heading.
+            if len(ranks) > 1 or rank != PUBLIC:
+                result["optgroup"] = headings[rank]
+            contributor = loaded[result["id"]]
+            context = self.describe(result, contributor)
+            result["html"] = render_to_string(
+                "autocomplete/contributor_option.html",
+                {"contributor": contributor, **context},
+                request=self.request,
+            )
+        return results
+
+
+class PersonAutocompleteView(ContributorAutocompleteView):
+    """Offer people, found by name, alternative name or ORCID, collaborators first.
+
+    Superusers and the anonymous placeholder account are never offered. An email address is
+    neither searched nor shown.
+    """
+
+    model = Person
+    identifier_type = "ORCID"
+    search_lookups = ["name__icontains", "alternative_names__icontains"]
+    value_fields = []
+    near_heading = _("People you have worked with")
+    far_heading = _("Everyone else")
+
+    def offered(self, user, *, depends_on=None):
+        """Offer every person who is not a superuser or the anonymous placeholder."""
+        return Person.objects.real()
+
+    def nearby(self, user):
+        """Return the people credited on a record that the person searching can open."""
+        return list(
+            user.get_collaborators(
+                contributions=self.openable_credits(user)
+            ).values_list("pk", flat=True)
+        )
+
+    @staticmethod
+    def openable_credits(user):
+        """Return the person's credits on the records the person may view.
+
+        A credit on a private record that carries no access to it does not count, so a person
+        met only there is not someone the searcher has worked with.
+
+        Args:
+            user: The person searching.
+
+        Returns:
+            A list of contributions.
+        """
+        views = (
+            ProjectAutocompleteView,
+            DatasetAutocompleteView,
+            SampleAutocompleteView,
+            MeasurementAutocompleteView,
+        )
+        credits_by_view = {}
+        for credit in user.contributions.select_related("content_type"):
+            model_class = credit.content_type.model_class()
+            view = next(
+                (
+                    v
+                    for v in views
+                    if model_class is not None and issubclass(model_class, v.model)
+                ),
+                None,
+            )
+            if view is not None:
+                credits_by_view.setdefault(view, []).append(credit)
+        openable = []
+        for view, held in credits_by_view.items():
+            records = view.for_scope("view")().offered(user)
+            reachable = set(
+                records.filter(pk__in=[c.object_id for c in held]).values_list(
+                    "pk", flat=True
+                )
+            )
+            openable.extend(c for c in held if int(c.object_id) in reachable)
+        return openable
+
+    def loaded(self, ids):
+        """Load the people with their identifiers and affiliations."""
+        return self.model.objects.prefetch_related(
+            "identifiers", "affiliations__organization"
+        ).in_bulk(ids)
+
+    def describe(self, result, person):
+        """Show the person's primary affiliation and ORCID, and mark one nobody has claimed."""
+        affiliation = person.primary_affiliation()
+        organization = affiliation.organization if affiliation else None
+        result["detail"] = organization.name if organization else ""
+        result["unclaimed"] = not person.is_claimed and person.last_login is None
+        return {
+            "organization": organization,
+            "identifier": person.get_default_identifier(),
+            "identifier_icon": "orcid",
+            "badge": _("Unclaimed") if result["unclaimed"] else "",
+        }
+
+
+class OrganizationAutocompleteView(ContributorAutocompleteView):
+    """Offer organizations, found by name, alternative name or ROR, the researcher's own first."""
+
+    model = Organization
+    identifier_type = "ROR"
+    search_lookups = ["name__icontains", "alternative_names__icontains"]
+    value_fields = []
+    near_heading = _("Your organizations")
+    far_heading = _("Other organizations")
+
+    def nearby(self, user):
+        """Return the organizations the person belongs to: verified and not ended."""
+        return list(
+            Affiliation.objects.current()
+            .filter(person=user, type__gt=Affiliation.MembershipType.PENDING)
+            .values_list("organization_id", flat=True)
+        )
+
+    def describe(self, result, organization):
+        """Show where the organization is, and no identifier."""
+        place = ", ".join(
+            part
+            for part in (organization.city, getattr(organization.country, "name", ""))
+            if part
+        )
+        result["detail"] = place
+        return {"place": place}
