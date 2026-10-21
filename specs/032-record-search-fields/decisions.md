@@ -131,3 +131,14 @@ any entry, and a portal that wants other figures adds the four scopes to its own
 
 **Revisit if**: that test is widened to the eight scopes, when the defaults can move into the
 shipped dictionary beside the API's.
+
+## D15. A form built with no request keeps the queryset it was given
+
+**Decision**: A record field used outside any request (a script, a test) validates against
+`field.queryset` as the form left it. By default that queryset is empty. `DatasetForm` leaves
+every project there when it is built with no request, as its docstring has always said.
+
+**Why**: `DatasetForm` validated against every project when built without a request, and tests
+already pin that. The sample and measurement forms assign nothing, so they offer nothing then.
+
+**Revisit if**: a caller builds a form without a request and expects the person's own records.

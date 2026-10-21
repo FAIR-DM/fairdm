@@ -1,5 +1,6 @@
 {% comment %}
-SKETCH: FairDM's copy of django-tomselect's template, with one branch added for results drawn on the server.
+FairDM's copy of django-tomselect 2026.6.2's template, with one branch added for results drawn on
+the server. Tracked in #554, which asks for that branch upstream so that this copy can go.
 Renders each option (search result) in the dropdown.
 If is_tabular is true, renders a row of columns.
 If not, checks for custom rendering templates.
@@ -8,8 +9,8 @@ If not, checks for custom rendering templates.
 option: function(data, escape) {
     {% include "django_tomselect/helpers/decode_if_needed.html" %}
 
-    // SKETCH (FairDM): a result the server drew as HTML is shown as drawn. The server renders it
-    // with Django's autoescaping, so no value in it is raw user input.
+    // FairDM: a result the server drew as HTML is shown as drawn. The server renders it with
+    // Django's autoescaping, so no value in it is raw user input.
     if (data.html) {
         return '<div role="option">' + data.html + '</div>';
     }

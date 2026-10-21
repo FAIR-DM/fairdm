@@ -1,8 +1,9 @@
 {% extends "django_tomselect/tomselect.html" %}
 {% comment %}
-SKETCH. Two things django-tomselect and django-mvp-forms do not do yet for a model-backed control:
+Two things django-tomselect and django-mvp-forms do not do yet for a model-backed control:
 show a count in place of the chosen values, and fetch the first page when the control opens
-while still asking for two characters before searching.
+while still asking for two characters before searching. Tracked in #554, which asks for both
+upstream so that this template can go.
 {% endcomment %}
 {% block tomselect_extra_js %}
   {{ block.super }}
