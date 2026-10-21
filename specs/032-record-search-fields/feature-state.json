@@ -75,8 +75,19 @@
       "tasks": [
         {
           "id": "T001",
-          "status": "todo",
-          "attempts": 0
+          "status": "done",
+          "attempts": 2,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_autocomplete/test_views.py::TestDatasetAutocompleteView,tests/test_contrib/test_autocomplete/test_views.py::TestRecordRows"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_autocomplete/test_views.py (16 passed, exit 0)"
+            ],
+            "code": [
+              "fairdm/contrib/autocomplete/views.py:290"
+            ]
+          }
         },
         {
           "id": "T002",

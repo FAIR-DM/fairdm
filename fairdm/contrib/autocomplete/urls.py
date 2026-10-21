@@ -7,6 +7,7 @@ from .views import (
     ContributorAutocomplete,
     DatasetAutocompleteView,
     OrganizationAutocomplete,
+    ProjectAutocompleteView,
 )
 
 app_name = "autocomplete"
@@ -18,7 +19,10 @@ urlpatterns = [
 ]
 
 #: The record views, by the kind of record they offer.
-RECORD_VIEWS = {"dataset": DatasetAutocompleteView}
+RECORD_VIEWS = {
+    "project": ProjectAutocompleteView,
+    "dataset": DatasetAutocompleteView,
+}
 
 #: Scope is part of the address, so a request can never widen what an address offers.
 SCOPES = ("public", "view", "edit")

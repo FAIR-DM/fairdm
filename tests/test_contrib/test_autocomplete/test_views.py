@@ -183,3 +183,55 @@ class TestRecordRows:
         answer = search(researcher_client, "dataset", "edit", q=wanted.uuid)
 
         assert [r["id"] for r in answer["results"]] == [wanted.pk]
+
+
+@pytest.mark.django_db
+class TestProjectAutocompleteView:
+    def test_edit_offers_the_private_projects_the_researcher_can_edit(
+        self, researcher_client, researcher, make_project
+    ):
+        editable = make_project("Editable", holder=researcher)
+        make_project("Read only", holder=researcher, level=ContributionLevel.VIEW)
+        make_project("Public", visibility=Visibility.PUBLIC)
+        make_project("Unseen")
+
+        answer = search(researcher_client, "project", "edit")
+
+        assert [r["id"] for r in answer["results"]] == [editable.pk]
+
+    def test_a_result_carries_a_private_flag(
+        self, researcher_client, researcher, make_project
+    ):
+        make_project("Private one", holder=researcher)
+        make_project("Public one", visibility=Visibility.PUBLIC, holder=researcher)
+
+        results = {
+            r["name"]: r
+            for r in search(researcher_client, "project", "edit")["results"]
+        }
+
+        assert results["Private one"]["private"] is True
+        assert results["Public one"]["private"] is False
+
+    def test_a_data_curator_gets_every_project_with_their_own_first(
+        self, client, data_curator, make_project
+    ):
+        client.force_login(data_curator)
+        elsewhere = make_project("A elsewhere")
+        own = make_project("B own", holder=data_curator)
+
+        answer = search(client, "project", "edit")
+
+        assert [r["id"] for r in answer["results"]] == [own.pk, elsewhere.pk]
+        assert answer["results"][0]["optgroup"] != answer["results"][1]["optgroup"]
+
+    def test_a_visitor_is_offered_public_projects_at_view_and_none_at_edit(
+        self, client, make_project
+    ):
+        public = make_project("Open", visibility=Visibility.PUBLIC)
+        make_project("Closed")
+
+        assert [r["id"] for r in search(client, "project", "view")["results"]] == [
+            public.pk
+        ]
+        assert search(client, "project", "edit")["results"] == []

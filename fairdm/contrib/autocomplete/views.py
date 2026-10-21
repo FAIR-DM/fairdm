@@ -12,6 +12,7 @@ from research_vocabs.models import Concept
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Contribution, Contributor, Organization
 from fairdm.core.dataset.models import Dataset
+from fairdm.core.project.models import Project
 from fairdm.utils.choices import Visibility
 
 
@@ -361,3 +362,19 @@ class DatasetAutocompleteView(RecordAutocompleteView):
         result["private"] = result["private"] or (
             project_visibility is not None and project_visibility != Visibility.PUBLIC
         )
+
+
+class ProjectAutocompleteView(RecordAutocompleteView):
+    """Offer projects, public by their own visibility."""
+
+    model = Project
+    noun_plural = _("projects")
+    search_lookups = ["name__icontains"]
+    exact_lookups = ["uuid__iexact"]
+    value_fields = ["visibility", "status"]
+
+    def describe(self, result):
+        """Show the project's status."""
+        statuses = dict(Project._meta.get_field("status").flatchoices)
+        result["detail"] = str(statuses.get(result.pop("status"), ""))
+        super().describe(result)
