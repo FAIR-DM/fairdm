@@ -804,3 +804,27 @@ class TestProfileImageWidget:
 
         assert person.mask == "circle"
         assert organization.mask is None
+
+
+@pytest.mark.django_db
+class TestOrganizationProfileParentField:
+    def test_the_parent_is_chosen_with_the_organization_field(self, organization):
+        from fairdm.contrib.autocomplete.fields import OrganizationChoiceField
+
+        form = OrganizationProfileForm(instance=organization)
+
+        assert isinstance(form.fields["parent"], OrganizationChoiceField)
+
+    def test_the_chosen_parent_is_saved(
+        self, organization, organization_profile_data, in_request
+    ):
+        parent = OrganizationFactory()
+        in_request(PersonFactory())
+        organization_profile_data["parent"] = parent.pk
+        form = OrganizationProfileForm(organization_profile_data, instance=organization)
+
+        assert form.is_valid(), form.errors
+        form.save()
+
+        organization.refresh_from_db()
+        assert organization.parent == parent

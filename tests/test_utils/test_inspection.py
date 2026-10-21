@@ -188,7 +188,7 @@ class TestFieldInspector:
     def test_suggest_widget_foreign_key(self):
         inspector = FieldInspector(TestSampleModel)
         widget = inspector.suggest_widget("parent")
-        assert widget == "Select2Widget"
+        assert widget == "Select"
 
     def test_suggest_widget_text(self):
         inspector = FieldInspector(TestSampleModel)

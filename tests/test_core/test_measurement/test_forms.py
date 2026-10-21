@@ -14,6 +14,7 @@ from demo.factories import (
     XRFMeasurementFactory,
 )
 from demo.models import ExampleMeasurement, ICP_MS_Measurement, XRFMeasurement
+from fairdm.contrib.autocomplete.fields import DatasetChoiceField, SampleChoiceField
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.measurement.forms import MeasurementFormMixin
 from fairdm.factories import (
@@ -339,6 +340,11 @@ class TestMeasurementFormPolymorphicHandling:
         ContributionFactory(
             content_object=dataset1, contributor=user, level=ContributionLevel.EDIT
         )
+        # The sample field never accepts a sample its user may not see, so the user may view
+        # the other dataset. A sample from another dataset is still accepted (FS-006, FR-006).
+        ContributionFactory(
+            content_object=dataset2, contributor=user, level=ContributionLevel.VIEW
+        )
         sample_in_dataset2 = RockSampleFactory(dataset=dataset2)
 
         class ExampleMeasurementForm(MeasurementFormMixin, forms.ModelForm):
@@ -398,23 +404,17 @@ class TestMeasurementFormRequestContext:
 
 
 @pytest.mark.django_db
-class TestMeasurementFormDatasetAddAnotherUrl:
-    def test_add_related_url_resolves_to_the_dataset_admin_add_view(self):
-        from django.urls import reverse
-
+class TestMeasurementFormDatasetField:
+    def test_dataset_field_is_the_dataset_field_at_edit_scope(self):
         class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
             class Meta:
                 model = XRFMeasurement
                 fields = ["name", "dataset", "sample"]
 
-        form = XRFMeasurementForm()
+        field = XRFMeasurementForm().fields["dataset"]
 
-        # `str()` is what forces the lazy proxy to resolve, the same way
-        # template rendering would. The dataset app's label is "dataset",
-        # not "core", so "admin:core_dataset_add" raises `NoReverseMatch`
-        # here.
-        add_url = str(form.fields["dataset"].widget.add_related_url)
-        assert add_url == reverse("admin:dataset_dataset_add")
+        assert isinstance(field, DatasetChoiceField)
+        assert field.scope == "edit"
 
 
 @pytest.mark.django_db
@@ -553,3 +553,69 @@ class TestMeasurementEditPageLocation:
 
         assert response.status_code == 200
         assert main_form(response).select('[name^="location"]') == []
+
+
+@pytest.mark.django_db
+class TestMeasurementSampleField:
+    """The sample is chosen from every sample the person may see, those of the chosen dataset first."""
+
+    def _form_class(self):
+        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
+            class Meta:
+                model = XRFMeasurement
+                fields = ["name", "dataset", "sample"]
+
+        return XRFMeasurementForm
+
+    def _editor_of(self, *datasets):
+        user = UserFactory()
+        for dataset in datasets:
+            ContributionFactory(
+                content_object=dataset, contributor=user, level=ContributionLevel.EDIT
+            )
+        return user
+
+    def test_the_sample_field_prefers_the_dataset_field_and_is_not_bound_to_it(self):
+        form = self._form_class()()
+
+        assert isinstance(form.fields["sample"], SampleChoiceField)
+        assert form.fields["sample"].prefer == "dataset"
+        assert form.fields["sample"].depends_on is None
+
+    def test_a_sample_of_another_dataset_the_person_may_see_is_accepted(self):
+        chosen, other = DatasetFactory(), DatasetFactory()
+        sample = RockSampleFactory(dataset=other)
+        user = self._editor_of(chosen, other)
+
+        form = self._form_class()(
+            data={"name": "Run", "dataset": chosen.pk, "sample": sample.pk},
+            request=_request_for(user),
+        )
+
+        assert form.is_valid(), form.errors
+        assert form.cleaned_data["sample"] == sample
+
+    def test_a_sample_the_person_may_not_see_is_refused(self):
+        chosen, unseen = DatasetFactory(), DatasetFactory()
+        sample = RockSampleFactory(dataset=unseen)
+        user = self._editor_of(chosen)
+
+        form = self._form_class()(
+            data={"name": "Run", "dataset": chosen.pk, "sample": sample.pk},
+            request=_request_for(user),
+        )
+
+        assert form.has_error("sample", code="invalid_choice")
+
+    def test_a_sample_of_the_chosen_dataset_is_accepted(self):
+        chosen = DatasetFactory()
+        sample = RockSampleFactory(dataset=chosen)
+        user = self._editor_of(chosen)
+
+        form = self._form_class()(
+            data={"name": "Run", "dataset": chosen.pk, "sample": sample.pk},
+            request=_request_for(user),
+        )
+
+        assert form.is_valid(), form.errors
+        assert form.cleaned_data["sample"] == sample

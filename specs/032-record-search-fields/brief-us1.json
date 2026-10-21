@@ -1,0 +1,121 @@
+{
+ "story": "US1",
+ "issue": 544,
+ "repo": "FAIR-DM/fairdm",
+ "worktree": "/home/sam/projects/worktrees/fairdm-032",
+ "required_skills": [
+  {
+   "name": "craft-tdd",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-tdd/SKILL.md",
+   "receipt": "craft-tdd/2026-09-28/b19e4d07"
+  },
+  {
+   "name": "craft-increments",
+   "path": "/home/sam/.openclaw/workspaces/forge/skills/craft-increments/SKILL.md",
+   "receipt": "craft-increments/2026-10-15/1ffa47c3"
+  }
+ ],
+ "tasks": [
+  "T001",
+  "T002",
+  "T003",
+  "T004",
+  "T005",
+  "T006",
+  "T007",
+  "T008"
+ ],
+ "context": {
+  "why": "FairDM is moving every related-record picker to view-backed django-tomselect fields. A sketch on this branch drew the screens, and the maintainer approved them. The sketch's Python has been removed; what remains are the approved templates and the wiring: fairdm/contrib/autocomplete/templates/autocomplete/record_option.html and contributor_option.html (server-drawn result rows), fairdm/templates/django_tomselect/tomselect.html (copies count words, lets the empty first-page search through) and fairdm/templates/django_tomselect/render/option.html (shows a row drawn on the server), django_tomselect in INSTALLED_APPS below mvp_forms with its middleware, the stylesheet and script links in fairdm/templates/base.html, and the django-tomselect dependency. KEEP those templates and their markup; the screens are approved. US1 builds the foundation (plan D1-D6) test-first and the project and dataset record kinds, and moves the sample form's dataset, the measurement form's dataset and the dataset form's project to the new fields. fairdm/contrib/autocomplete/views.py and fields.py still hold the old django-autocomplete-light classes used elsewhere; leave them working (US4 removes them) and put the new code beside them under the names plan D1 gives, or in new modules, without breaking existing imports. Existing tests that pin the old widgets for the fields US1 moves (ModelSelect2Widget/AddAnotherWidgetWrapper/plain-select expectations for sample/measurement dataset and dataset project) are the ones T006 replaces. Note: deptry currently reports django-tomselect unused (DEP002); it goes green once your code imports it. The repo's conformance step reports pre-existing documentation-layout and README badge drift that is not this feature's.",
+  "spec_sections": [
+   "User Story 1",
+   "Clarifications",
+   "Edge Cases",
+   "FR-001..FR-012",
+   "FR-015, FR-016, FR-018",
+   "FR-020..FR-024",
+   "SC-001, SC-003"
+  ],
+  "plan_sections": [
+   "Design D1",
+   "Design D2",
+   "Design D3",
+   "Design D4",
+   "Design D5",
+   "Design D6",
+   "Design D7 (dataset/sample/measurement dataset and dataset project rows only)"
+  ],
+  "prior_decisions": [
+   "D1: a field that places a record inside another needs edit; linking needs view; a public list filter offers public records only, to everyone.",
+   "D3: visibility rules are taken as they stand (project by visibility; dataset by get_visible on all_objects; sample/measurement by public+published dataset).",
+   "D4: a stored link to a record the editor cannot see is kept and shown as a private record without its name.",
+   "D12: limits on the pattern of fairdm/api/throttling.py, refused before any query.",
+   "D13: design review. django-tomselect rebuilds the validation view as view_class() (lazy_utils.py:107) and with the current page's q/f/e. So: one view subclass per scope (scope is a class attribute), and FairDM fields validate through the view's offered(user, owner=, type=, depends_on=) and never call django-tomselect's clean(). Use django-tomselect's allowed_filter_fields and allowed_ordering_fields, not a custom allow-list.",
+   "Upstream gaps are tracked in this repository's issue #554. Put '#554' in the comments of the two django_tomselect templates.",
+   "FR-021 (the 'searching is paused' message) is with the maintainer. Do NOT build it and do NOT write a skipped test for it."
+  ],
+  "environment": "Worktree /home/sam/projects/worktrees/fairdm-032, branch 032-record-search-fields, virtualenv .venv (uv). Run tests with: export GDAL_LIBRARY_PATH=/home/sam/.mamba/envs/gis/lib/libgdal.so GEOS_LIBRARY_PATH=/home/sam/.mamba/envs/gis/lib/libgeos_c.so LD_LIBRARY_PATH=/home/sam/.mamba/envs/gis/lib POSTGRES_HOST=localhost POSTGRES_PORT=5432 POSTGRES_USER=postgres POSTGRES_PASSWORD=postgres NO_PROXY=localhost,127.0.0.1; then `uv run pytest -q -n0 <path>::<Class>`. The database is the PostGIS container of the running docker compose stack (forge-fairdm) on localhost:5432; do not stop or restart it. Test databases are created fresh; if a run errors with a missing column, pass --create-db. Full verify at the end: /home/sam/.openclaw/workspaces/forge/engineering-org/kit/forge verify --repo /home/sam/projects/worktrees/fairdm-032 with the same environment. django-tomselect 2026.6.2 source is in .venv/lib/python3.13/site-packages/django_tomselect; django-mvp-forms in .venv/.../mvp_forms. The docker dev server serves this same worktree on :8000 and autoreloads; that is expected.",
+  "verified_base": {
+   "commit": "9fc9f9d3197e0bf09caf0d0671cf1522080dcc26",
+   "verified_at": "2026-10-21T12:15:06Z",
+   "steps": [
+    "test",
+    "build"
+   ],
+   "note": "Full suite green: 6,9xx passed, 8 skipped, on fresh test databases. lint is green except deptry DEP002 for django-tomselect (unused until your code imports it). conformance reports pre-existing doc-layout and README-badge drift. This brief file is untracked on purpose; leave it untracked."
+  },
+  "acceptance": [
+   {
+    "task": "T001",
+    "given_when_then": "Given a researcher who can edit a private dataset, when they search the edit address, then it is offered; a public dataset they may only view and a private one they cannot see are not; rows carry project and private flag; grouping own/public/other; next page served; anonymous: nothing on edit, public on public and view."
+   },
+   {
+    "task": "T002",
+    "given_when_then": "Given projects, the edit address offers only projects the researcher can edit; a Data Curator gets every project, own first."
+   },
+   {
+    "task": "T003",
+    "given_when_then": "Over every registered address: page_size ignored, search cut at 100 chars, no page past 25, f/e/ordering outside the allow-lists change nothing, a failing search reveals only the failure, every address answers 200 to a visitor."
+   },
+   {
+    "task": "T004",
+    "given_when_then": "A visitor over the burst rate gets 429 with Retry-After and no query after the throttle; signed-in callers counted per account; another caller unaffected; missing scope in DEFAULT_THROTTLE_RATES falls back to the default rate. Parametrised over every address."
+   },
+   {
+    "task": "T005",
+    "given_when_then": "DatasetChoiceField(scope='edit') on a form built inside a request accepts an editable dataset and refuses one the user may view but not edit with invalid_choice, also when the page request carries q/f/e; a stored dataset the editor cannot see is kept unchanged and labelled as a private record without its name."
+   },
+   {
+    "task": "T006",
+    "given_when_then": "Sample form dataset and dataset form project are the new fields at edit scope; a sample saved through the form belongs to the chosen dataset."
+   },
+   {
+    "task": "T007",
+    "given_when_then": "Implementation per plan D1-D6 for projects and datasets; sketch Python and seed deleted; manage.py check passes."
+   },
+   {
+    "task": "T008",
+    "given_when_then": "Docs describe the new dataset/project fields; how-to and reference page started with working examples."
+   }
+  ]
+ },
+ "budgets": {
+  "attempts_per_task": 5,
+  "wallclock_minutes": 240
+ },
+ "rituals": [
+  "Load craft skills by reading their paths, record receipts",
+  "Read this brief, then tasks.md T001-T008 only, then the named plan.md sections",
+  "git log --oneline -10",
+  "Do not run a baseline suite: context.verified_base is the verified commit and must equal HEAD"
+ ],
+ "prohibitions": [
+  "Never modify or delete a test you did not author in this story, except the tests T006 names as replaced (ModelSelect2Widget/AddAnotherWidgetWrapper expectations in tests/test_core/test_sample/test_forms.py and test_dataset/test_forms.py)",
+  "No GitHub operations, no pushing, no merging, no tokens",
+  "Never weaken assertions or add skip/xfail",
+  "Do not write feature-state.json by hand: use forge ledger-task; never touch state, story status or gates",
+  "Do not stop, restart or recreate the docker compose stack or its database",
+  "Wording and appearance get no tests (docs/contributing/standards/testing.md)",
+  "Mirror the source tree in tests: tests/test_contrib/test_autocomplete/ with __init__.py; one Test<Subject> class per unit; factories in tests/factories.py, fixtures in conftest.py"
+ ]
+}

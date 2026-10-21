@@ -1,0 +1,195 @@
+{
+  "stage": "design",
+  "lens": "architecture",
+  "verdict": "request_changes",
+  "risk": "high",
+  "skills_loaded": [
+    {"name": "craft-review", "receipt": "RECEIPT: craft-review/2026-10-15/6b8372b4", "loaded_via": "path-read"},
+    {"name": "craft-security", "receipt": "RECEIPT: craft-security/2026-08-04/ea3d6742", "loaded_via": "path-read"},
+    {"name": "craft-simplify", "receipt": "RECEIPT: craft-simplify/2026-08-04/69038ce1", "loaded_via": "path-read"}
+  ],
+  "scope": "Design review of specs/032-record-search-fields (plan.md, research.md, tasks.md, sketch.md, decisions.md, planning-notes.md) against the approved spec.md, CONSTITUTION.md, CONTEXT.md and docs/contributing/standards/testing.md, on branch 032-record-search-fields at 33131900. Code read: django_tomselect 2026.6.2 forms.py (BaseTomSelectModelMixin.clean, TomSelectChoiceField/MultipleChoiceField.clean), widgets.py (get_lazy_view, build_attrs, _get_selected_options, get_queryset), lazy_utils.py (LazyView.get_view/get_url), autocompletes.py (setup, page_size, apply_filters, _apply_single_filter, order_queryset, paginate_queryset, dispatch, get), templates/django_tomselect/tomselect.html (load error path, blocks); django-mvp-forms v0.6.0 django_tomselect/tomselect.html; DRF 3.18.1 throttling.py; fairdm/core/managers.py, fairdm/api/throttling.py and settings.py, fairdm/contrib/contributors/services/registries.py (Ror.search), fairdm/contrib/contributors/forms/*.py, admin.py (merge, OrganizationActionForm), merge service, fairdm/core/dataset/forms.py and views.py, fairdm/core/abstract.py (tags), fairdm/conf/settings/apps.py, demo/admin.py, demo/forms.py, docs/portal-administration/api-limits.md, sketch urls.py/records.py for the as_view(scope=) wiring. Research premises spot-checked: 5 of 5 named in the brief. Field clean() uses the view queryset: true, but through LazyView, which drops as_view initkwargs and reads the current page's request.GET (SEC-001, SEC-002). _get_selected_options filters by that queryset: true, same caveats. AutocompleteModelView setup()/page_size: request page_size honoured up to MAX_PAGE_SIZE=200, so an override is needed, as planned. DRF SimpleRateThrottle on a plain HttpRequest: works (reads request.headers, META, user). Other side, also checked: get_ident trusts X-Forwarded-For while NUM_PROXIES is None (notes). Other sides checked in the same pass: exclude_by and ordering beside filter_by (SEC-003); the iterable-field clean beside the model-field clean (SPEC-002); widget render beside clean (SPEC-006); action form beside merge form (SPEC-007). FR against a task and a failing test: 18 of 33 fully covered. Partial or broken: FR-005, 009, 010, 011, 013, 014, 018, 020, 021, 022, 023, 026, 028, 029, 032. SC against tasks: 3 of 7 fully covered (SC-001, SC-006 partial, SC-007 covered; SC-002 and SC-004 none; SC-003 and SC-005 partial). Routes with rule: 21 of 21 listed. 16 record routes (project/dataset/sample/measurement x public/view/edit/profile): anonymous allowed, authorization skipped, visibility by the scope's queryset, throttled and capped in RecordAutocompleteView, but the scope is lost on validation (SEC-001) and profile cannot be reversed (SPEC-006). person: Person.objects.real(), anonymous (needed by the public contributor filter), no throttle or caps named (SPEC-003). organization: all organizations, no throttle or caps named. publication: all LiteratureItem, no throttle or caps named. tags: every tag including private-only, anonymous (SEC-004). ror: outbound fetch, throttled (T027). Removed: autocomplete:concept, :contributor, :organization and the select2/ include. Admin autocomplete_fields reuse Django's existing admin autocomplete view, staff and model view permission. New code against the tree: 3 of 3 lines that research.md records as new are confirmed new (result-row templates, the tomselect.html extension, stored-value keeping). 5 planned pieces are missing from the list. 2 of them are already provided: django-tomselect's allowed_filter_fields/allowed_ordering_fields (SEC-003) and the four API throttle classes (ARCH-001). The other 3 are new: the page-depth/length caps, RecordFilter (ARCH-002) and the demo seed.",
+  "findings": [
+    {
+      "id": "SEC-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[security] A field's scope never reaches the view its value is validated against. The plan sets scope through as_view(scope=...) in urls.py (plan D2), but django-tomselect builds that view with view_class() and no initkwargs. Every field therefore validates at the class default scope, so an `edit` field accepts records the person may only view.",
+      "evidence": "django_tomselect/lazy_utils.py:103-107: `view_class = resolved.func.view_class` then `view_instance = view_class()`, and `resolved.func.view_initkwargs` is never read. widgets.py:1185-1190 and forms.py:208-214 take the validation queryset from that LazyView. plan.md D2 says scope is 'set by as_view(scope=...) in urls.py'. The sketch shows the wiring the plan keeps: fairdm/contrib/autocomplete/urls.py:32 `_view.as_view(scope=_scope)`, class default `scope = \"view\"` at records.py:53. It is reachable today: /datasets/create/ (fairdm/core/dataset/urls.py:13) carries DatasetForm.project, planned at `edit` (plan D7), and main currently scopes it to accessible_to(user, EDIT) in the form (fairdm/core/dataset/forms.py:144-154). That guard moves into the view, and the move loses it.",
+      "reproduction": "A researcher with view-only access to someone else's project submits that project's id in the dataset create form's project field. clean() validates against the `view` scope, which holds the project, so the dataset is created inside a project the researcher cannot edit (AS 1.6, AS 1.7, FR-010, SC-001). The same applies to SampleFormMixin.dataset and the generated forms at `edit`.",
+      "suggested_fix": "plan.md D2: carry scope as a class attribute, not an as_view initkwarg. urls.py registers one subclass per scope, for example a classmethod returning a cached `type(f'{cls.__name__}{scope.title()}', (cls,), {'scope': scope})`, so LazyView's view_class carries the scope. tasks.md T005 (and T001's form assertions): the refused dataset must be one the user may view but not edit, for example a public dataset or one on a project where they hold the view level. A dataset the user cannot see at all is refused under both scopes, so it cannot tell edit from view."
+    },
+    {
+      "id": "SEC-002",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[security] Validation narrows by the current page's query string, not by the field's own settings. The narrowing a field adds through filter_by (depends_on, type, owner) is absent when the form is posted, so a value outside it is accepted. On a list page, the list's own `q` search narrows the filter's validation, so choices that don't match the list's search are refused.",
+      "evidence": "lazy_utils.py:117-123 sets up the validation view with get_current_request(), the form's own request. autocompletes.py:293 reads `q` and :301-311 read `f`/`e` from that request's GET, and get_queryset (:385-401) applies them through apply_filters and search. A POSTed form's request carries no `f=dataset_id=...` and no `f=polymorphic_ctype_id=...`, so plan D4's 'turns them into ... django-tomselect's filter_by' narrowing is absent at clean(). List pages use `q` as their own search parameter (fairdm/core/dataset/views.py:56, fairdm/core/project/views.py:25, registry/factories.py:452). _get_selected_options (widgets.py:965, 991) uses the same queryset to label chosen values.",
+      "reproduction": "(1) A researcher submits the measurement form with a sample they may view from a different dataset than the one chosen. The sample is accepted (AS 2.5, FR-010). The same holds for a sample field narrowed to one registered type: AS 4.5 is accepted, and an FK to that subclass then fails on assignment. (2) A visitor opens /samples/?q=basalt&dataset=<uuid of a dataset not matching 'basalt'>. The dataset filter's clean() searches datasets for 'basalt', refuses the chosen one, and the filter is either dropped or empties the list. The chosen value's label also disappears on reopening (AS 3.3, AS 3.4).",
+      "suggested_fix": "plan.md D4: the field validates, and labels stored or chosen values, against the view's scoped base queryset. That queryset takes its narrowing from the field's own settings (scope from SEC-001, `type`, `owner`) and its depends_on value from the bound form's data, never from request.GET's q/f/e/p. Concretely, the field calls a view method that returns the scoped queryset for (user, narrowing) without search or paging. tasks.md T013: add a case where the dataset filter is applied together with the list's `q` and keeps its choices. T010 already covers the cross-dataset refusal, and it will fail until this lands."
+    },
+    {
+      "id": "SEC-003",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[security] The plan's allow-list covers filter_by only. django-tomselect also applies a request's `e` (exclude_by) and `ordering` parameters to any model field. On the person view that gives anyone, signed in or not, an oracle on email addresses (FR-019, FR-011, FR-022).",
+      "evidence": "plan.md D2: '`allowed_filters`: the only `filter_by` lookups the view accepts'. It says nothing of exclude_by or ordering. autocompletes.py:303 and :311 read `e` from the request. _apply_single_filter (:479-537) applies it as queryset.exclude() with an allow-list only when allowed_filter_fields is set (:500-509), and it is None by default (:219). order_queryset (:693-703) applies `ordering` from the request unless allowed_ordering_fields is set (:218, default None). Person has an `email` field (fairdm/contrib/contributors/models.py:699). The person view has to answer anonymous callers, because the project list's contributor filter is public (plan D7, AS 3.6).",
+      "reproduction": "GET the person address with `?q=Smith&e=email__iexact=jane@example.org`. If Jane Smith drops out of the results, the address is hers. Or use `?ordering=email` to learn people's relative email order. Neither request touches the planned filter_by allow-list.",
+      "suggested_fix": "plan.md D2: drop the custom `allowed_filters` and set django-tomselect's own `allowed_filter_fields` on every view. It guards both `f` and `e` and matches on the base field, so list `dataset_id` and `polymorphic_ctype_id` for samples and measurements, and `[]` for every other view. Also set `allowed_ordering_fields = []` on every view. A disallowed lookup then yields no results rather than a 400, which the spec's edge case allows ('refused or ignored'). tasks.md T003 and T019: send `e=` and `ordering=` naming `email` to the person view and assert the results are unchanged."
+    },
+    {
+      "id": "SPEC-001",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[spec-compliance] The plan drops part of an approved requirement without putting it back to the maintainer. FR-021's 'The field MUST tell the person typing that searching is paused' is 'not built', and T004 plans a skipped test for it. The testing standard forbids a planned skip, and the code review blocks one regardless of the rest of the diff.",
+      "evidence": "spec.md FR-021, US3 AS 9. plan.md D5: 'The \"searching is paused\" message (FR-021) is not built: its test is written and skipped'. tasks.md T004. docs/contributing/standards/testing.md:90: 'Never ... add `skip` or `xfail`'. The gap is real upstream: django-tomselect's load() hard-codes its failure message inline (templates/django_tomselect/tomselect.html:639-653), and FairDM could only change it by overriding the whole `tomselect_config` block (:275).",
+      "suggested_fix": "This fault is in the spec, not the plan. Put FR-021's second sentence and AS 3.9's 'and the field says searching is paused' to the maintainer as a delta brief and re-gate. Either the requirement moves to the upstream-gaps issue, or FairDM overrides `tomselect_config` and builds it. Either way, delete the planned skipped test from T004."
+    },
+    {
+      "id": "SPEC-002",
+      "severity": "high",
+      "confidence": "verified",
+      "claim": "[spec-compliance] django-tomselect validates the ROR and tag fields by listing every value the view can return and checking the submitted value is in it. A chosen ROR ID can never be in a list built with no search text, so the organization form cannot save one (AS 8.2, FR-029). A ROR outage during that check raises out of clean(). TagsField(allow_new=True) refuses every new tag (AS 7.2, FR-028).",
+      "evidence": "django_tomselect/forms.py:295-313 (single) and :360-379 (multiple): `all_items = autocomplete_view.get_iterable()` then `if str_value not in allowed_values: raise ValidationError(invalid_choice)`. Only AttributeError/TypeError/KeyError are caught (:303, :318). plan.md D2: RorAutocompleteView and TagAutocompleteView are AutocompleteIterablesViews over Ror.search() and taggit's tags. Ror.search(term) (fairdm/contrib/contributors/services/registries.py:319-336) queries the registry with the search text. In clean() that text is the organization form's request `q`, which is empty, and RegistryUnavailable is not among the caught exceptions. plan.md D4 says only that TagsField 'cleans to a list of strings' and names no override of this check.",
+      "suggested_fix": "plan.md D4: RorChoiceField.clean accepts a value that is a ROR ID by format, using the existing `Ror.identifier_in`, and never calls the registry. TagsField.clean, when allow_new is true, returns the stripped submitted strings, and checks them against tags in use when it is false. tasks.md T027: the organization form saves a chosen ROR ID with Ror.search faked to raise RegistryUnavailable. T025 already covers the new tag."
+    },
+    {
+      "id": "SPEC-003",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[spec-compliance] The request limits and per-request caps (FR-020, FR-022) are placed only on RecordAutocompleteView. The person, organization and publication views (AutocompleteModelView) and the tag view (AutocompleteIterablesView) inherit none of them. They honour a request's page_size up to 200, take any length of search text and any page, and no planned test covers them.",
+      "evidence": "plan.md D2 lists page_size = 20, the 100-character cut, no page past 25 and 'dispatch() runs the two throttles' as RecordAutocompleteView bullets. The Person/Organization/Publication/Tag paragraphs name none of them. autocompletes.py:322-327 and :1061-1067: request page_size is honoured up to MAX_PAGE_SIZE=200. tasks.md T003/T004 test record views only, and T027 covers ROR alone. spec.md FR-020: 'Every field's address'. The edge case says a page size of thousands 'gets the field's own limit, never what it asked for'.",
+      "suggested_fix": "plan.md D2/D5: put the throttles and the three caps in one mixin, used by all seven views, in place of the RecordAutocompleteView bullets. tasks.md T003/T004: parametrise over every address."
+    },
+    {
+      "id": "SPEC-004",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[spec-compliance] The approved spec requires an organization result to show its ROR identifier. The maintainer's later sketch ruling removed it, and the plan and T018 follow the ruling, so the built feature will contradict spec.md as written.",
+      "evidence": "spec.md FR-018 ('for an organization, its city, country and ROR identifier') and US5 ('Each organization shows its city, its country and its ROR identifier'). sketch.md 'What was ruled by eye': 'An organization shows its place and no ROR (round 2)'. Commit 7a4f2e4d 'no ROR on organizations' was made after the spec. plan.md D2: 'An organization shows its place and no ROR'. tasks.md T018: 'row gives place and no identifier'.",
+      "suggested_fix": "This fault is in the spec. Take FR-018's organization clause and US5's sentence to the maintainer as a delta brief, and amend spec.md once re-gated. The plan and T018 stay as they are."
+    },
+    {
+      "id": "SPEC-005",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[spec-compliance] The default scope is set by single versus multiple rather than by form versus filter. A multiple field on a form, linking records (AS 4.2), defaults to `public` and never offers the person's private records. FR-005 says a linking field defaults to records the person may view, and only a filter on a public list defaults to public.",
+      "evidence": "plan.md D4: 'Defaults: a single field \"view\", a multiple field \"public\" (FR-005)'. spec.md FR-005. plan.md D1 already has separate filter classes (filters.py RecordMultipleFilter), which is where the public default belongs.",
+      "suggested_fix": "plan.md D4: both fields default to \"view\", and RecordMultipleFilter defaults to \"public\". tasks.md T029: a multiple field on a form with nothing configured offers a private record the person may view."
+    },
+    {
+      "id": "SPEC-006",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[spec-compliance] The `profile` address puts the owner's UUID in the path. django-tomselect reverses a field's address with no arguments, so any field with `owner` fails to render (NoReverseMatch), and its validation view never receives the owner (FR-009).",
+      "evidence": "plan.md D2: 'profile: the records the owner (a person's UUID in the address) is credited on'. widgets.py:261 `safe_reverse_lazy(self.url)` and lazy_utils.py:85 `safe_reverse(self.url_name)` pass no args or kwargs, and get_view calls setup() with no URL kwargs (:123). tasks.md T029 asserts `owner` behaviour.",
+      "suggested_fix": "plan.md D2: a single profile address per kind, reading the owner's UUID from a query parameter the field adds. It cannot widen: private records are still offered only when the requester is that owner, and everyone else gets public ones. The SEC-002 remedy supplies the owner to validation from the field."
+    },
+    {
+      "id": "SEC-004",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[security] The tag address lists every tag in the portal to anyone, including tags used only on private records. It serves the public project list's planned TagFilter, where main has only a free-text filter that lists nothing.",
+      "evidence": "fairdm/core/abstract.py:47: every core record carries `tags = TaggableManager(...)`. plan.md D2: 'TagAutocompleteView ... over taggit's tags'. plan.md D7: 'project list tags | TagFilter'. On origin/main, fairdm/core/project/filters.py:46 is `df.CharFilter(field_name=\"tags__name\")`, and the keyword form's Select2TagWidget has no server source. CONSTITUTION.md Article V: portals 'MUST NOT require public exposure of data'.",
+      "suggested_fix": "plan.md D2: make TagAutocompleteView an AutocompleteModelView over taggit's Tag, whose queryset is the tags on records the requester may view, and the tags on public records at the filter's address. That also gives it SQL search and the SPEC-003 caps instead of an in-memory list. The other option is to keep main's free-text tag filter and drop TagFilter."
+    },
+    {
+      "id": "SEC-005",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[security] The new throttle scopes have no safe default when a portal's settings lack them. FairDM's own docs tell a portal that replacing DEFAULT_THROTTLE_RATES needs 'all four names'. Such a portal raises ImproperlyConfigured on every autocomplete request after upgrading, so every field breaks.",
+      "evidence": "docs/portal-administration/api-limits.md:56-57: 'If you replace the whole DEFAULT_THROTTLE_RATES dictionary ... include all four names'. DRF throttling.py SimpleRateThrottle.get_rate raises ImproperlyConfigured('No default throttle rate set for ... scope') on a missing scope. plan.md D5 adds the four autocomplete scopes to that same dict.",
+      "suggested_fix": "plan.md D5: the autocomplete throttle classes fall back to their documented default rate when their scope is missing from DEFAULT_THROTTLE_RATES. tasks.md T034: api-limits.md names the eight scopes."
+    },
+    {
+      "id": "SPEC-007",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[spec-compliance] The person-merge and ownership-transfer fields from the spec's 'Needs today' table are not fully planned. The admin merge page never prints the form's media, so a django-tomselect field there renders without its script. The ownership-transfer action form has no task (SC-006, FR-026).",
+      "evidence": "fairdm/contrib/contributors/templates/contributors/admin/merge_person.html extends admin/base_site.html and has no {{ form.media }}. plan.md research says the scripts are linked in fairdm/templates/base.html, which admin pages do not extend. fairdm/contrib/contributors/admin.py:582 OrganizationActionForm.new_owner is listed in plan D7 but absent from tasks.md T020/T021. T020's 'draw and save' passes on a POST while the page offers no search.",
+      "suggested_fix": "tasks.md T021: add {{ form.media }} to merge_person.html. Django's changelist already adds action_form.media. tasks.md T020: add the ownership-transfer action form, and have the merge test load the merge page and assert the field's script is on it."
+    },
+    {
+      "id": "SPEC-008",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[spec-compliance] SC-002, SC-004 and FR-023 have no task. Nothing measures the 100,000-sample first page, and nothing would fail if the two-character minimum or the 300 ms pause were lost, which would multiply the requests a typist sends.",
+      "evidence": "tasks.md T001-T034: no task names SC-002, SC-004 or FR-023. plan.md D4 sets minimum_query_length=2 and load_throttle=300. docs/contributing/standards/testing.md:146 forbids timing a request in a test, so SC-002 needs a recorded measurement rather than a test.",
+      "suggested_fix": "tasks.md T033/T034: seed 100,000 samples on the development stack, time the sample field's first page and record it in the pull request (SC-002, and SC-003's second clause). tasks.md T029: assert the rendered field carries a minimum length of 2 and a load throttle of 300 ms (FR-023, SC-004)."
+    },
+    {
+      "id": "SPEC-009",
+      "severity": "medium",
+      "confidence": "verified",
+      "claim": "[spec-compliance] The demo app imports django-select2 in its admin and forms, and neither the admin move nor the removal names it. Removing the dependency breaks the demo's import, and with it the suite that loads it (FR-031, FR-032, SC-005).",
+      "evidence": "demo/admin.py:140 `from django_select2.forms import Select2MultipleWidget, Select2Widget`. demo/forms.py:40 and :167 import ModelSelect2Widget and ModelSelect2MultipleWidget. plan.md D8/D9 and tasks.md T031-T033 do not mention them. tests/settings.py:59 and tests/test_conf/test_settings/test_cache.py also carry the select2 cache.",
+      "suggested_fix": "tasks.md T031: move demo/admin.py to autocomplete_fields. T032: move demo/forms.py to the new fields and list the tests/settings.py and test_cache.py select2 cache entries."
+    },
+    {
+      "id": "SEC-006",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "[security] The stored-value exception (FR-010, FR-012) is keyed on form.initial, which includes any `initial=` a view passes, not only the value stored on the record. A future view that seeds initial from the request would let a crafted value through the field's refusal.",
+      "evidence": "plan.md D4 and research 'A stored link the editor cannot see': `get_bound_field()` records 'the form's initial value' from `form.initial`. spec.md FR-010 makes the exception 'A value already stored on the record'. No FairDM view seeds a record field's initial from the request today (only get_initial is fairdm/contrib/generic/forms.py:48, unrelated), so this is not reachable now.",
+      "suggested_fix": "plan.md D4: read the kept value from form.instance (when it has a pk) rather than form.initial."
+    },
+    {
+      "id": "SPEC-010",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[spec-compliance] The person view's matching has no test. Nothing tests search by name, alternative name or ORCID, or exact ORCID first (FR-013, FR-014).",
+      "evidence": "tasks.md T019 covers collaborators, email, unclaimed, AS 5.7 and superusers only. plan.md D2 has the person view searching 'name, alternative names and the ORCID ... exact identifier first'.",
+      "suggested_fix": "tasks.md T019: add name, alternative-name and ORCID search, and exact ORCID first."
+    },
+    {
+      "id": "SPEC-011",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "[spec-compliance] Organizations are grouped first on 'a current affiliation', which is not the glossary's Member. Member excludes pending requests, so a researcher with a pending request would see that organization grouped as theirs.",
+      "evidence": "plan.md D2: 'organizations they hold a current affiliation to are grouped first'. CONTEXT.md 'Member': 'A person with a verified affiliation to an organization that has not ended. A pending request and a former member are not members.' decisions.md D5 says organizations group by membership 'as CONTEXT.md defines it'.",
+      "suggested_fix": "plan.md D2: 'organizations they are a member of'. tasks.md T018: a pending request does not group."
+    },
+    {
+      "id": "ARCH-001",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[architecture] The plan writes two new throttle classes that each have to choose between two scopes per request. The repo already has the four-class pattern, including the signed-in-only key, so four three-line subclasses do the same job.",
+      "evidence": "plan.md D5: 'two SimpleRateThrottle subclasses ... scopes autocomplete_anon_burst, autocomplete_anon_day, autocomplete_user_burst, autocomplete_user_day'. DRF SimpleRateThrottle.__init__ parses one `scope`'s rate before any request is seen, so a two-scope class has to override allow_request. fairdm/api/throttling.py already defines AnonBurstThrottle, AnonDailyThrottle, UserBurstThrottle and UserDailyThrottle on SignedInThrottle.",
+      "suggested_fix": "plan.md D5: four subclasses of the existing fairdm.api.throttling classes, each overriding `scope` only."
+    },
+    {
+      "id": "ARCH-002",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[architecture] `RecordFilter`, the single-value filter class, has no caller. Every filter in plan D7 is a RecordMultipleFilter or a TagFilter.",
+      "evidence": "plan.md D1: 'filters.py RecordFilter, RecordMultipleFilter, TagFilter'. plan.md D7 uses only RecordMultipleFilter and TagFilter.",
+      "suggested_fix": "plan.md D1: drop RecordFilter."
+    },
+    {
+      "id": "ARCH-003",
+      "severity": "low",
+      "confidence": "likely",
+      "claim": "[architecture] The dataset `view` and `edit` querysets have to start from Dataset.all_objects. The default manager already drops private datasets, so `Dataset.objects.accessible_to(...)` would never offer a researcher their own private dataset (AS 1.1).",
+      "evidence": "sketch.md: '`Dataset.objects` already leaves private datasets out, and `Dataset.all_objects` holds every dataset.' plan.md D2 names `accessible_to(user, EDIT)` without its manager, and names all_objects only for the public rule (D3). AutocompleteModelView.get_queryset defaults to `self.model.objects.all()` (autocompletes.py:389).",
+      "suggested_fix": "plan.md D2: name Dataset.all_objects as the base of every dataset scope. Carry it as a watch item into the US1 brief. T001 would fail without it."
+    },
+    {
+      "id": "ARCH-004",
+      "severity": "low",
+      "confidence": "verified",
+      "claim": "[architecture] The repo's testing standard asks for a smoke test per route, and the plan adds about 21 routes while its view tests touch only a subset of kind and scope pairs.",
+      "evidence": "docs/contributing/standards/testing.md 'URL smoke tests': 'Every app that registers URL patterns ... has at least one smoke test per route'. plan.md D1 urls.py: 'one path per kind and scope'. tasks.md T001-T003 exercise dataset and project at some scopes.",
+      "suggested_fix": "tasks.md T007: one parametrised smoke test over every autocomplete route."
+    }
+  ],
+  "notes": [
+    "research.md 'Resistant to abuse' cites SC-007 for the ten-letter word; it is SC-004.",
+    "tasks.md T004 cites SC-006 for the throttle; it is SC-003.",
+    "research.md 'Each scope is its own address, so a request can never ask for a wider one' holds for the request and not for validation (SEC-001); reword once fixed.",
+    "plan.md D2 'answered 400 and nothing is searched' changes to 'ignored, no results' if SEC-003's remedy (allowed_filter_fields) is taken; T003 likewise.",
+    "fairdm/conf/checks.py W601 and docs/portal-administration/api-limits.md describe NUM_PROXIES only for the API; while it is unset DRF's get_ident uses the client's X-Forwarded-For, so the field limits are bypassable the same way. Name the field limits in both (FR-033).",
+    "MergePersonForm's exclude_pk is a queryset exclusion the view-backed field cannot see; merge_persons already refuses a self-merge (services/merge.py:37), so nothing is lost, but the field will offer the person being merged.",
+    "T004's django_assert_num_queries(0) must wrap only the work after the throttle; session and user loading run first for a signed-in caller.",
+    "plan.md Technical context says django-tomselect is a 'New runtime dependency'; it is already in pyproject.toml:116 and uv.lock from the sketch."
+  ]
+}

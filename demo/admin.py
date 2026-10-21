@@ -135,9 +135,7 @@ After customizing admin interfaces, test:
 """
 
 from django.contrib import admin
-from django.db import models
 from django.utils.translation import gettext_lazy as _
-from django_select2.forms import Select2MultipleWidget, Select2Widget
 
 from fairdm.core.dataset.models import DatasetDescription
 
@@ -254,11 +252,7 @@ class XRFMeasurementAdminExample(admin.ModelAdmin):
         ),
     )
 
-    formfield_overrides = {
-        models.ManyToManyField: {"widget": Select2MultipleWidget},
-        models.ForeignKey: {"widget": Select2Widget},
-        models.OneToOneField: {"widget": Select2Widget},
-    }
+    autocomplete_fields = ("dataset", "sample")
 
 
 from fairdm.core.measurement.admin import MeasurementChildAdmin

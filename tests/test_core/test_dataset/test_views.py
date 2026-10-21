@@ -282,8 +282,8 @@ class TestDatasetListingProjectFilterVisibility:
             name="Confidential Survey", visibility=Visibility.PRIVATE
         )
         response = client.get(reverse("dataset-list"))
-        project_queryset = response.context["filter"].form.fields["project"].queryset
-        assert private_project not in project_queryset
+        offered = response.context["filter"].form.fields["project"].offered()
+        assert private_project not in offered
         assertNotContains(response, "Confidential Survey")
 
     def test_a_private_project_is_absent_for_a_signed_in_visitor_with_no_rights_over_it(
@@ -294,8 +294,8 @@ class TestDatasetListingProjectFilterVisibility:
         )
         client.force_login(UserFactory())
         response = client.get(reverse("dataset-list"))
-        project_queryset = response.context["filter"].form.fields["project"].queryset
-        assert private_project not in project_queryset
+        offered = response.context["filter"].form.fields["project"].offered()
+        assert private_project not in offered
         assertNotContains(response, "Confidential Survey")
 
     def test_a_public_project_is_offered_to_every_visitor(self, client):
@@ -303,10 +303,10 @@ class TestDatasetListingProjectFilterVisibility:
             name="Open Reef Survey", visibility=Visibility.PUBLIC
         )
         response = client.get(reverse("dataset-list"))
-        project_queryset = response.context["filter"].form.fields["project"].queryset
-        assert public_project in project_queryset
+        offered = response.context["filter"].form.fields["project"].offered()
+        assert public_project in offered
 
-    def test_a_private_project_the_signed_in_visitor_holds_view_rights_on_is_offered(
+    def test_a_private_project_the_signed_in_visitor_holds_view_rights_on_is_not_offered(
         self, client
     ):
         private_project = ProjectFactory(
@@ -320,8 +320,8 @@ class TestDatasetListingProjectFilterVisibility:
         )
         client.force_login(user)
         response = client.get(reverse("dataset-list"))
-        project_queryset = response.context["filter"].form.fields["project"].queryset
-        assert private_project in project_queryset
+        offered = response.context["filter"].form.fields["project"].offered()
+        assert private_project not in offered
 
     def test_a_private_project_the_visitor_holds_only_a_stored_row_on_is_not_offered(
         self, client
@@ -335,8 +335,8 @@ class TestDatasetListingProjectFilterVisibility:
         assign_perm("view_project", user, private_project)
         client.force_login(user)
         response = client.get(reverse("dataset-list"))
-        project_queryset = response.context["filter"].form.fields["project"].queryset
-        assert private_project not in project_queryset
+        offered = response.context["filter"].form.fields["project"].offered()
+        assert private_project not in offered
 
 
 @pytest.mark.django_db
@@ -831,9 +831,7 @@ class TestDatasetUpdateView:
         dataset, _own, _other = self._setup(user, ContributionLevel.EDIT)
         client.force_login(user)
 
-        response = client.get(
-            reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
-        )
+        response = client.get(reverse("dataset:edit", kwargs={"uuid": dataset.uuid}))
 
         assert {"name", "license"} <= set(response.context["form"].fields)
         assert not {"visibility", "project"} & set(response.context["form"].fields)

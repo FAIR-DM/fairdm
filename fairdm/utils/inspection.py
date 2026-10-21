@@ -349,9 +349,9 @@ class FieldInspector:
             return "FileInput"
 
         if isinstance(field, models.ForeignKey):
-            return "Select2Widget"
+            return "Select"
         if isinstance(field, models.ManyToManyField):
-            return "Select2MultipleWidget"
+            return "SelectMultiple"
 
         if isinstance(field, models.TextField):
             return "Textarea"

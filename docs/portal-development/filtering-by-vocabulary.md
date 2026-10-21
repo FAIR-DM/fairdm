@@ -59,48 +59,30 @@ filterset.qs  # the visible projects that carry both keywords
 ## No configured vocabularies
 
 If `FAIRDM_PROJECT["keywords"]` is empty or unset, `ProjectFilter` falls back to one generic
-`keywords` filter spanning every vocabulary, rendered as a plain checkbox list rather than an
-autocomplete widget.
+`keywords` filter spanning every vocabulary, rendered as a plain checkbox list rather than the counted
+control.
 
 ## The filter widget
 
-Each per-vocabulary filter uses `ConceptMultiSelect`
-(`fairdm.contrib.autocomplete.fields.ConceptMultiSelect`), which wires up a
-`django-autocomplete-light` widget scoped to that one vocabulary automatically:
+Each per-vocabulary filter draws its concepts with `mvp_forms.widgets.TomSelectMultiple(counted=True)`:
+a searchable list with a tick beside each chosen concept and a count in place of the chosen
+names. The list holds only the concepts of that vocabulary that a project uses, so it needs no
+address of its own to load them from.
+
+A portal that builds a keyword filter of its own uses the same widget:
 
 ```python
-from fairdm.contrib.autocomplete.fields import ConceptMultiSelect
+import django_filters
+from mvp_forms.widgets import TomSelectMultiple
+from research_vocabs.models import Concept
 
-field = ConceptMultiSelect(vocabulary="fairdm.core.vocabularies.FairDMRoles")
-```
-
-`vocabulary` accepts either the class itself or its dotted path. This is what `ProjectFilter`
-constructs internally for each configured vocabulary — a portal does not need to build one by
-hand to get vocabulary-scoped filtering.
-
-## Concept autocomplete endpoint
-
-`ConceptAutocomplete` (`fairdm.contrib.autocomplete.views.ConceptAutocomplete`), mounted at
-`/autocomplete/concept/`, backs every concept widget so large vocabularies load concepts on
-demand rather than shipping the whole queryset to the browser. It requires an authenticated
-request and filters by vocabulary name via a forwarded field or a `?vocabulary=` query parameter:
-
-```python
-from dal import autocomplete
-from django import forms
-
-field = forms.ModelMultipleChoiceField(
-    queryset=Concept.objects.all(),
-    widget=autocomplete.ModelSelect2Multiple(
-        url="autocomplete:concept",
-        forward=["vocabulary_name"],
-    ),
+keywords = django_filters.ModelMultipleChoiceFilter(
+    field_name="keywords",
+    queryset=Concept.objects.filter(vocabulary__name="fairdm-roles", projects__isnull=False).distinct(),
+    conjoined=True,
+    widget=TomSelectMultiple(counted=True),
 )
 ```
-
-`ConceptMultiSelect` and `ConceptSelect` build this widget for you, scoped to one vocabulary, so
-reaching for `autocomplete.ModelSelect2Multiple` directly is only needed for a widget that isn't
-tied to a single vocabulary.
 
 ## Performance
 

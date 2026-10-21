@@ -6,12 +6,17 @@ from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 from licensing.models import License
 
+from fairdm.contrib.autocomplete.fields import (
+    ProjectChoiceField,
+    PublicationChoiceField,
+)
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Contribution
 from fairdm.core.dataset.forms import DatasetCreateForm, DatasetForm
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
+    LiteratureItemFactory,
     PersonFactory,
     ProjectFactory,
     UserFactory,
@@ -246,21 +251,75 @@ class TestInternationalizedHelpText:
 
 @pytest.mark.django_db
 class TestProjectAndReferenceFieldWidgets:
-    # The django_addanother/select2 wrapper stack does not render correctly in the
-    # portal.
-    def test_project_field_uses_a_plain_select_widget(self):
+    def test_project_field_is_the_project_field_at_edit_scope(self):
         form = DatasetForm()
 
-        widget = form.fields["project"].widget
-        assert type(widget).__name__ == "Select"
-        assert not hasattr(widget, "widget"), "project field is still wrapped"
+        field = form.fields["project"]
+        assert isinstance(field, ProjectChoiceField)
+        assert field.scope == "edit"
 
-    def test_reference_field_uses_a_plain_select_widget(self):
+    def test_a_dataset_saved_through_the_form_belongs_to_the_chosen_project(self):
+        factory = RequestFactory()
+        user = UserFactory()
+        project = ProjectFactory()
+        ContributionFactory(
+            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        )
+        request = factory.get("/")
+        request.user = user
+        license = License.objects.get_or_create(name="CC BY 4.0")[0]
+
+        form = DatasetForm(
+            request=request,
+            data={
+                "name": "New dataset",
+                "project": project.pk,
+                "license": license.pk,
+                "visibility": Visibility.PRIVATE,
+            },
+        )
+
+        assert form.is_valid(), form.errors
+        assert form.save().project == project
+
+    def test_reference_field_is_the_publication_field(self):
         form = DatasetForm()
 
-        widget = form.fields["reference"].widget
-        assert type(widget).__name__ == "Select"
-        assert not hasattr(widget, "widget"), "reference field is still wrapped"
+        assert isinstance(form.fields["reference"], PublicationChoiceField)
+
+    def test_a_dataset_saved_through_the_form_holds_the_chosen_publication(self):
+        user = UserFactory()
+        request = RequestFactory().get("/")
+        request.user = user
+        publication = LiteratureItemFactory()
+        license = License.objects.get_or_create(name="CC BY 4.0")[0]
+
+        form = DatasetForm(
+            request=request,
+            data={
+                "name": "New dataset",
+                "license": license.pk,
+                "reference": publication.pk,
+                "visibility": Visibility.PRIVATE,
+            },
+        )
+
+        assert form.is_valid(), form.errors
+        assert form.save().reference == publication
+
+    def test_a_publication_that_does_not_exist_is_refused(self):
+        license = License.objects.get_or_create(name="CC BY 4.0")[0]
+
+        form = DatasetForm(
+            data={
+                "name": "New dataset",
+                "license": license.pk,
+                "reference": 999999,
+                "visibility": Visibility.PRIVATE,
+            },
+        )
+
+        assert form.has_error("reference", code="invalid_choice")
 
     def test_license_field_uses_a_select_widget(self):
         form = DatasetForm()

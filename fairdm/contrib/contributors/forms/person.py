@@ -4,6 +4,8 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 
+from fairdm.contrib.autocomplete.fields import PersonChoiceField
+
 User = get_user_model()
 
 
@@ -54,8 +56,7 @@ class MergePersonForm(forms.Form):
         merge_into: The person that survives.
     """
 
-    merge_into = forms.ModelChoiceField(
-        queryset=None,
+    merge_into = PersonChoiceField(
         label=_("Merge into"),
         help_text=_(
             "Select the Person record that should survive the merge. The current record will be deleted."
@@ -66,7 +67,18 @@ class MergePersonForm(forms.Form):
         super().__init__(*args, **kwargs)
         from fairdm.contrib.contributors.models import Person
 
+        self.exclude_pk = exclude_pk
+
         qs = Person.objects.all()
         if exclude_pk is not None:
             qs = qs.exclude(pk=exclude_pk)
         self.fields["merge_into"].queryset = qs
+
+    def clean_merge_into(self):
+        """Refuse the person being merged as the person that survives."""
+        keep = self.cleaned_data["merge_into"]
+        if self.exclude_pk is not None and keep.pk == self.exclude_pk:
+            raise forms.ValidationError(
+                _("A person cannot be merged into themselves."), code="same_person"
+            )
+        return keep

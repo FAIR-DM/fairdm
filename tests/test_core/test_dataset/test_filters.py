@@ -2,20 +2,33 @@
 
 import pytest
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
 from django.db import connection
+from django.test import RequestFactory
 from django.test.utils import CaptureQueriesContext
 from licensing.models import License
 
+from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.dataset.filters import DatasetFilter
 from fairdm.core.dataset.models import Dataset
 from fairdm.factories import (
+    ContributionFactory,
     DatasetDateFactory,
     DatasetDescriptionFactory,
     DatasetFactory,
     ProjectFactory,
+    UserFactory,
 )
+from fairdm.utils.choices import Visibility
 
 User = get_user_model()
+
+
+def _anonymous_request():
+    request = RequestFactory().get("/")
+    request.user = AnonymousUser()
+    return request
 
 
 @pytest.mark.django_db
@@ -50,22 +63,73 @@ class TestLicenseFilter:
 
 @pytest.mark.django_db
 class TestProjectFilter:
-    def test_filter_by_project(self):
-        project1 = ProjectFactory()
-        project2 = ProjectFactory()
+    def request_for(self, user=None):
+        request = RequestFactory().get("/")
+        request.user = user or AnonymousUser()
+        return request
+
+    @pytest.fixture
+    def public_projects(self):
+        return [ProjectFactory(visibility=Visibility.PUBLIC) for _ in range(3)]
+
+    def test_the_project_filter_is_a_record_filter_at_public_scope(self):
+        project_filter = DatasetFilter().filters["project"]
+
+        assert isinstance(project_filter, RecordMultipleFilter)
+        assert project_filter.field.scope == "public"
+
+    def test_filter_by_project(self, public_projects):
+        project1, project2, _ = public_projects
 
         ds1 = DatasetFactory(project=project1)
         ds2 = DatasetFactory(project=project1)
         DatasetFactory(project=project2)
 
         filterset = DatasetFilter(
-            data={"project": project1.id}, queryset=Dataset.all_objects.all()
+            data={"project": [project1.id]},
+            queryset=Dataset.all_objects.all(),
+            request=self.request_for(),
         )
 
         assert filterset.is_valid()
         assert filterset.qs.count() == 2
         assert ds1 in filterset.qs
         assert ds2 in filterset.qs
+
+    def test_two_ticked_projects_narrow_the_list_to_the_datasets_of_either(
+        self, public_projects
+    ):
+        project1, project2, project3 = public_projects
+        wanted = [
+            DatasetFactory(project=project1),
+            DatasetFactory(project=project2),
+        ]
+        DatasetFactory(project=project3)
+
+        filterset = DatasetFilter(
+            data={"project": [project1.id, project2.id]},
+            queryset=Dataset.all_objects.all(),
+            request=self.request_for(),
+        )
+
+        assert filterset.is_valid(), filterset.errors
+        assert set(filterset.qs) == set(wanted)
+
+    def test_a_private_project_is_refused_even_to_a_member(self):
+        member = UserFactory()
+        private = ProjectFactory()
+        ContributionFactory(
+            content_object=private, contributor=member, level=ContributionLevel.EDIT
+        )
+
+        filterset = DatasetFilter(
+            data={"project": [private.id]},
+            queryset=Dataset.all_objects.all(),
+            request=self.request_for(member),
+        )
+
+        assert not filterset.is_valid()
+        assert "project" in filterset.errors
 
     def test_filter_by_null_project(self):
         DatasetFactory(project=None)
@@ -110,16 +174,17 @@ class TestMultipleFilterCombinations:
     def test_combine_license_and_project(self):
         cc_by = License.objects.get(name="CC BY 4.0")
         cc0 = License.objects.get(name="CC0 1.0")
-        project1 = ProjectFactory()
-        project2 = ProjectFactory()
+        project1 = ProjectFactory(visibility=Visibility.PUBLIC)
+        project2 = ProjectFactory(visibility=Visibility.PUBLIC)
 
         ds_match = DatasetFactory(license=cc_by, project=project1)
         DatasetFactory(license=cc_by, project=project2)
         DatasetFactory(license=cc0, project=project1)
 
         filterset = DatasetFilter(
-            data={"license": cc_by.id, "project": project1.id},
+            data={"license": cc_by.id, "project": [project1.id]},
             queryset=Dataset.all_objects.all(),
+            request=_anonymous_request(),
         )
 
         assert filterset.is_valid()
@@ -129,8 +194,8 @@ class TestMultipleFilterCombinations:
     def test_combine_all_filters(self):
         cc_by = License.objects.get(name="CC BY 4.0")
         cc0 = License.objects.get(name="CC0 1.0")
-        project = ProjectFactory()
-        other_project = ProjectFactory()
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        other_project = ProjectFactory(visibility=Visibility.PUBLIC)
 
         ds_match = DatasetFactory(license=cc_by, project=project)
         DatasetDescriptionFactory(related=ds_match, type="Abstract")
@@ -145,10 +210,11 @@ class TestMultipleFilterCombinations:
         filterset = DatasetFilter(
             data={
                 "license": cc_by.id,
-                "project": project.id,
+                "project": [project.id],
                 "description_type": "Abstract",
             },
             queryset=Dataset.all_objects.all(),
+            request=_anonymous_request(),
         )
 
         assert filterset.is_valid()
@@ -203,14 +269,17 @@ class TestFilterFormRendering:
 
     def test_filter_form_with_data_is_valid(self):
         license_obj = License.objects.first()
-        project = ProjectFactory()
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        request = RequestFactory().get("/")
+        request.user = AnonymousUser()
 
         filterset = DatasetFilter(
             data={
                 "license": license_obj.id,
-                "project": project.id,
+                "project": [project.id],
             },
             queryset=Dataset.objects.all(),
+            request=request,
         )
 
         assert filterset.is_valid()

@@ -96,15 +96,14 @@ class TestRegistryUsesTheMixins:
         )
         return config_class()
 
-    def test_generated_form_uses_the_sample_form_mixins_dataset_widget(self):
-        from django_addanother.widgets import AddAnotherWidgetWrapper
-
+    def test_generated_form_uses_the_sample_form_mixins_dataset_field(self):
         from demo.models import RockSample
+        from fairdm.contrib.autocomplete.fields import DatasetChoiceField
 
         config = self._config_for(RockSample, ["name", "dataset"])
         form = config.get_form_class()()
 
-        assert isinstance(form.fields["dataset"].widget, AddAnotherWidgetWrapper)
+        assert isinstance(form.fields["dataset"], DatasetChoiceField)
 
     def test_generated_filterset_carries_the_sample_filter_mixins_image_filter(self):
         from demo.models import RockSample

@@ -1,8 +1,6 @@
-"""Base form, Selectize widget and creators field shared by the core forms."""
+"""Base form and the manager-only fields mixin shared by the core forms."""
 
-from django import forms
 from django.forms import ModelForm
-from django.utils.safestring import mark_safe
 
 
 class ManagerOnlyFieldsMixin:
@@ -55,69 +53,3 @@ class BaseForm(ModelForm):
         for name in list(self.fields):
             if name not in allowed:
                 del self.fields[name]
-
-
-class SelectizeWidget(forms.SelectMultiple):
-    """Multiple select widget that renders as a Selectize control with remove and drag-drop plugins.
-
-    Args:
-        *args: Positional arguments passed to ``SelectMultiple``.
-        **kwargs: Keyword arguments passed to ``SelectMultiple``. ``selectize_options`` is
-            removed first and stored on the widget.
-    """
-
-    def __init__(self, *args, **kwargs):
-        self.selectize_options = kwargs.pop("selectize_options", {})
-        super().__init__(*args, **kwargs)
-
-    def render(self, name, value, attrs=None, renderer=None):
-        """Append the script that initialises Selectize on the rendered select."""
-        output = super().render(name, value, attrs, renderer)
-
-        selectize_script = f"""
-        <script type="text/javascript">
-            $(document).ready(function() {{
-                $('#{attrs["id"]}').selectize({{
-                    {self._generate_selectize_options()}
-                }});
-            }});
-        </script>
-        """
-
-        return mark_safe(output + selectize_script)
-
-    def _generate_selectize_options(self):
-        options = ["'plugins': ['remove_button', 'drag_drop']"]
-        return ", ".join(options)
-
-
-class CreatorsFormField(forms.ModelMultipleChoiceField):
-    """Ordered multiple choice field that grants and removes the Creator role as it is edited."""
-
-    widget = SelectizeWidget
-
-    def clean(self, value):
-        """Add the Creator role to new selections, remove it from dropped ones and order the rest."""
-        value = super().clean(value)
-        removed = [c for c in self.initial if c not in value]
-
-        for c in removed:
-            c.roles.remove("Creator")
-            c.save()
-
-        for i, c in enumerate(value):
-            if c not in self.initial:
-                c.add_roles(["Creator"])
-            c.to(i)
-            c.save()
-
-        return value
-
-    def _check_values(self, value):
-        """Return the objects matching each value on ``to_field_name`` (default ``uuid``), in order."""
-        key = self.to_field_name or "uuid"
-        qs = super()._check_values(value)
-        result = []
-        for uuid in value:
-            result.append(qs.get(**{key: uuid}))
-        return result

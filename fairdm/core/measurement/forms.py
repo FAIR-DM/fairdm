@@ -2,12 +2,10 @@
 
 from crispy_forms.helper import FormHelper
 from django import forms
-from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
-from django_addanother.widgets import AddAnotherWidgetWrapper
-from django_select2.forms import ModelSelect2Widget
 from mvp_forms.widgets import ImageInput
 
+from fairdm.contrib.autocomplete.fields import DatasetChoiceField, SampleChoiceField
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.forms import ManagerOnlyFieldsMixin
 from fairdm.core.image_utils import IMAGE_HELP_TEXT, validate_image_file_size
@@ -17,7 +15,7 @@ from .models import Measurement
 
 
 class MeasurementFormMixin(LocationFormMixin, ManagerOnlyFieldsMixin):
-    """Mixin giving measurement model forms Select2 widgets for dataset and sample, and the location input.
+    """Mixin giving measurement model forms autocomplete fields for dataset and sample, and the location input.
 
     Use it with the ``ModelForm`` of a concrete measurement type. The dataset choices are limited
     to the datasets the requesting user may edit. For a measurement that already exists the
@@ -49,13 +47,12 @@ class MeasurementFormMixin(LocationFormMixin, ManagerOnlyFieldsMixin):
         self.withhold_manager_only_fields(self.request)
 
         if "dataset" in self.fields:
-            select2_widget = ModelSelect2Widget(
-                search_fields=["name__icontains", "title__icontains"],
-                attrs={"data-placeholder": _("Select a dataset...")},
-            )
-            self.fields["dataset"].widget = AddAnotherWidgetWrapper(
-                select2_widget,
-                add_related_url=reverse_lazy("admin:dataset_dataset_add"),
+            current = self.fields["dataset"]
+            self.fields["dataset"] = DatasetChoiceField(
+                scope="edit",
+                label=current.label,
+                required=current.required,
+                help_text=current.help_text,
             )
 
             from fairdm.core.dataset.models import Dataset
@@ -73,13 +70,12 @@ class MeasurementFormMixin(LocationFormMixin, ManagerOnlyFieldsMixin):
                 )
 
         if "sample" in self.fields:
-            # The sample choices are filtered by JavaScript, from the selected dataset.
-            self.fields["sample"].widget = ModelSelect2Widget(
-                search_fields=["name__icontains"],
-                attrs={
-                    "data-placeholder": _("Select a sample..."),
-                    "data-depends-on": "dataset",
-                },
+            current = self.fields["sample"]
+            self.fields["sample"] = SampleChoiceField(
+                prefer="dataset",
+                label=current.label,
+                required=current.required,
+                help_text=current.help_text,
             )
 
         if "location" in self.fields:

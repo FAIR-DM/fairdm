@@ -1,0 +1,18 @@
+{# A person or an organization in an autocomplete dropdown, drawn with the contributor components' avatar and lines. Nothing in it is a link, since the whole row is the choice. #}
+{% load easy_icons %}
+<div class="flex items-center gap-3 flex-1 min-w-0 text-start">
+  <c-contributor.avatar :contributor="contributor" size="sm" class="shrink-0" />
+  <div class="min-w-0 flex-1">
+    <div class="truncate">{{ contributor.name }}</div>
+    {% if organization %}
+      <div class="text-xs font-semibold text-base-content/70 truncate">{{ organization.name }}</div>
+    {% endif %}
+    {% if place %}<div class="text-xs font-semibold text-base-content/70 truncate">{{ place }}</div>{% endif %}
+    {% if identifier %}
+      <div class="text-xs text-base-content/70 flex items-center gap-1">
+        <span class="inline-flex shrink-0" aria-hidden="true">{% icon identifier_icon %}</span><span>{{ identifier.value }}</span>
+      </div>
+    {% endif %}
+  </div>
+  {% if badge %}<span class="badge badge-sm badge-ghost shrink-0">{{ badge }}</span>{% endif %}
+</div>

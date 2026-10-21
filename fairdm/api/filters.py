@@ -16,6 +16,7 @@ from django_filters.filters import QuerySetRequestMixin
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import BaseFilterBackend
 
+from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
 from fairdm.contrib.contributors.access import RecordAccess
 from fairdm.contrib.contributors.choices import (
     ContributionLevel,
@@ -185,6 +186,8 @@ class DatasetFilterSet(django_filters.FilterSet):
         for name, filter_ in list(cls.base_filters.items()):
             if not isinstance(filter_, QuerySetRequestMixin):
                 continue
+            if isinstance(filter_, RecordMultipleFilter):
+                filter_ = filter_.for_api()
             related = cls.related_model(filter_)
             if related is None or not any(
                 field.name == "uuid" for field in related._meta.concrete_fields

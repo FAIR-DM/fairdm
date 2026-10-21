@@ -153,3 +153,43 @@ class TestProjectUpdateForm:
         updated_project = form.save()
         assert updated_project.name == "Updated Project Name"
         assert updated_project.visibility == Visibility.PUBLIC
+
+
+@pytest.mark.django_db
+class TestProjectOwnerField:
+    def test_the_owner_is_chosen_with_the_organization_field(self):
+        from fairdm.contrib.autocomplete.fields import OrganizationChoiceField
+        from fairdm.core.project.forms import ProjectForm
+
+        assert isinstance(ProjectForm().fields["owner"], OrganizationChoiceField)
+
+    def test_the_chosen_owner_is_saved(self, in_request):
+        from fairdm.contrib.contributors.models import Organization
+        from fairdm.core.project.forms import ProjectForm
+        from fairdm.core.project.models import Project
+
+        owner = Organization.objects.create(name="Test Organization")
+        manager = UserFactory()
+        project = Project.objects.create(
+            name="Owned", status=ProjectStatus.CONCEPT, visibility=Visibility.PRIVATE
+        )
+        ContributionFactory(
+            content_object=project, contributor=manager, level=ContributionLevel.MANAGE
+        )
+        in_request(manager)
+        form = ProjectForm(
+            data={
+                "name": "Owned",
+                "status": ProjectStatus.CONCEPT,
+                "visibility": Visibility.PRIVATE,
+                "owner": owner.pk,
+            },
+            instance=project,
+            request=SimpleNamespace(user=manager),
+        )
+
+        assert form.is_valid(), form.errors
+        form.save()
+
+        project.refresh_from_db()
+        assert project.owner == owner

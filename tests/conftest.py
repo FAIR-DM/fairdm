@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from django.core.management import call_command
 
 from fairdm.factories import DatasetFactory, ProjectFactory, UserFactory
+from tests.test_contrib.test_autocomplete.conftest import in_request  # noqa: F401
 
 
 @pytest.fixture(scope="session")

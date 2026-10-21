@@ -178,7 +178,8 @@ on demand and without caching, six components: a `ModelForm`, a django-filter
 import-export resource. The four a portal developer meets day to day:
 
 - **A form** - built on `MeasurementFormMixin` (see Step 4), so a type's form
-  gets the shared widgets and dataset scoping without writing a form class.
+  gets the shared widgets and a searchable `dataset` field that offers the datasets the person may
+  edit (see [Record fields](record-fields.md)) without writing a form class.
 - **A filter set** - built on `MeasurementFilterMixin` (see Step 4), so a type's
   filter set gets dataset, sample, type, search and date-range filtering for free.
 - **A table** - column layout and Bootstrap 5 styling from the field list.
@@ -321,12 +322,15 @@ class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
 
 **What MeasurementFormMixin provides:**
 
-- A Select2 autocomplete widget for `dataset`, with an "add another" link to the
-  dataset admin
+- A `DatasetChoiceField` for `dataset`, which searches the datasets the person may edit
 - The `dataset` queryset scoped to datasets the requesting user holds the edit level on, when
   the form is built with `request=...`. For a measurement that already exists the `dataset` field
   is left out unless the user can manage the measurement
-- A Select2 autocomplete widget for `sample`
+- A `SampleChoiceField` for `sample`, which prefers the form's `dataset` field. It offers every
+  sample the person may view. Once a dataset is chosen on the form, that dataset's samples come
+  first, under a heading of their own, and the other samples follow. A sample of another dataset
+  is accepted when the person may view it, and a sample the person may not view is refused. See
+  [Record fields](record-fields.md)
 - A crispy-forms `FormHelper` (`form_tag = False`, so the surrounding page
   supplies the `<form>` tag)
 

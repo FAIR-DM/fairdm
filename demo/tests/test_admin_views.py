@@ -450,3 +450,16 @@ class TestAllSampleAdminViewsWork:
                 f"{display_name} change view failed to load"
             )
             assert sample.name in str(response.content)
+
+
+class TestXRFMeasurementAdminExample:
+    def test_the_example_admin_passes_the_admin_checks_with_its_autocomplete_fields(
+        self,
+    ):
+        from django.contrib import admin
+
+        from demo.admin import XRFMeasurementAdminExample
+
+        example = XRFMeasurementAdminExample(XRFMeasurement, admin.site)
+
+        assert example.check() == []

@@ -1,0 +1,63 @@
+{% extends "django_tomselect/tomselect.html" %}
+{% comment %}
+Two things django-tomselect and django-mvp-forms do not do yet for a model-backed control:
+show a count in place of the chosen values, and fetch the first page when the control opens
+while still asking for two characters before searching. Tracked in #554, which asks for both
+upstream so that this template can go.
+{% endcomment %}
+{% block tomselect_url_setup %}
+  {{ block.super }}
+  {% if widget.prefer %}
+  {# Sends the other field's value so that matching records are listed first. It filters nothing, so an empty field still searches everything. #}
+  const preferSource = '{{ widget.prefer|escapejs }}';
+  const createFirstUrlWithoutPreference = createFirstUrlFunction;
+  createFirstUrlFunction = function (prefix, filterCfg) {
+    const firstUrl = createFirstUrlWithoutPreference(prefix, filterCfg);
+    return function (query) {
+      const url = firstUrl(query);
+      const source = document.getElementById('id_' + prefix + preferSource);
+      return source && source.value
+        ? addUrlParam(url, 'prefer', preferSource + '=' + source.value)
+        : url;
+    };
+  };
+  originalFirstUrl = createFirstUrlFunction(formPrefix, filterConfig);
+  {% endif %}
+{% endblock tomselect_url_setup %}
+{% block tomselect_extra_js %}
+  {{ block.super }}
+  (function () {
+    var select = document.getElementById("{{ widget.attrs.id|escapejs }}");
+    function wire() {
+      if (!select) return;
+      if (!select.tomselect) return setTimeout(wire, 50);
+      var control = select.tomselect;
+      ["noneText", "countText"].forEach(function (name) {
+        if (name in select.dataset) control.control.dataset[name] = select.dataset[name];
+      });
+      {% if widget.prefer %}
+      var name = "{{ widget.name|escapejs }}";
+      var source = document.getElementById(
+        "id_" + name.slice(0, name.lastIndexOf("-") + 1) + "{{ widget.prefer|escapejs }}"
+      );
+      if (source) {
+        // The other field's value changed, so the options already fetched are ranked for the old one.
+        source.addEventListener("change", function () {
+          control.clearOptions();
+          control.clearCache();
+          control.clearPagination();
+          control.settings.firstUrl = control.settings.originalFirstUrl;
+          control.settings.setNextUrl = control.settings.originalFirstUrl;
+          control.wrapper.classList.remove("preloaded");
+        });
+      }
+      {% endif %}
+      var shouldLoad = control.settings.shouldLoad;
+      control.settings.shouldLoad = function (query) {
+        if (!query) return true;
+        return shouldLoad.call(this, query);
+      };
+    }
+    wire();
+  })();
+{% endblock tomselect_extra_js %}

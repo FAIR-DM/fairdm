@@ -7,21 +7,12 @@ from crispy_forms.helper import FormHelper
 from django import forms
 from django.forms import BaseFormSet, BaseInlineFormSet
 from django.utils.translation import gettext_lazy as _
-from django_select2.forms import Select2TagWidget
 from extra_views import InlineFormSetFactory
 from markdownx.fields import MarkdownxFormField
 
+from fairdm.contrib.autocomplete.fields import TagsField
 from fairdm.core.abstract import DESCRIPTION_MAX_LENGTH
 from fairdm.core.sample.models import SampleDescription
-
-
-class TagWidget(Select2TagWidget):
-    """Tag input that submits its tags as one comma-separated string."""
-
-    def value_from_datadict(self, data, files, name):
-        """Join the submitted tags with commas, or return None when there are none."""
-        value = super().value_from_datadict(data, files, name)
-        return ",".join(value) if value else None
 
 
 class FormsetMixin:
@@ -155,18 +146,14 @@ class KeywordForm(forms.ModelForm):
 
         super().__init__(*args, **kwargs)
 
-        self.fields["tags"] = forms.CharField(
+        self.fields["tags"] = TagsField(
             label=_("Free keywords"),
             help_text=_("Words this record should be found under."),
-            widget=TagWidget,
             required=False,
+            allow_new=True,
         )
         if self.instance.pk:
-            tags = list(self.instance.tags.names())
-            self.initial["tags"] = tags
-            # A tag input draws only the options it is given, so the recorded tags are offered as
-            # its choices to show as chosen.
-            self.fields["tags"].widget.choices = [(tag, tag) for tag in tags]
+            self.initial["tags"] = list(self.instance.tags.names())
 
         self.helper = FormHelper()
         self.helper.form_id = "keyword-form"
@@ -177,13 +164,7 @@ class KeywordForm(forms.ModelForm):
 
         if commit:
             instance.save()
-            tags_value = self.cleaned_data.get("tags")
-            if tags_value:
-                instance.tags.set(
-                    tags_value.split(",") if isinstance(tags_value, str) else tags_value
-                )
-            else:
-                instance.tags.clear()
+            instance.tags.set(self.cleaned_data["tags"])
 
         return instance
 

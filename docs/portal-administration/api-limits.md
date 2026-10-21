@@ -77,6 +77,33 @@ stopped. Set it to `0` when no proxy stands in front of the portal.
 `manage.py check --deploy` warns (`fairdm.W601`) while `REST_FRAMEWORK` has no `NUM_PROXIES`. Any value
 you set, `0` included, ends the warning. See [Configuration Checks](configuration-checks.md#w601-the-number-of-proxies-in-front-of-the-api-is-not-set).
 
+## Limits on the search fields
+
+The search boxes that choose a project, dataset, sample, measurement, person, organization,
+publication, tag or ROR entry send their requests to addresses of their own. Those addresses are
+open to anyone who can see the page, so each is limited the same way, with four limits of its own
+that do not use up the API's allowance.
+
+| Limit | Setting name | Starting value |
+|-------|--------------|----------------|
+| Anonymous caller, over a minute | `autocomplete_anon_burst` | 60 requests |
+| Anonymous caller, over a day | `autocomplete_anon_day` | 5,000 requests |
+| Signed-in caller, over a minute | `autocomplete_user_burst` | 240 requests |
+| Signed-in caller, over a day | `autocomplete_user_day` | 50,000 requests |
+
+They are set in the same dictionary as the API's limits, and a name left out of it keeps the
+starting value above, so a portal that replaced the dictionary keeps working search boxes.
+
+```python
+REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]["autocomplete_anon_burst"] = "120/minute"
+```
+
+A caller past a limit is answered with `429 Too Many Requests` and a `Retry-After` header, and an
+empty list of results, before anything is searched. Callers are counted as the API counts them, so
+the limits count per address only once `REST_FRAMEWORK["NUM_PROXIES"]` is set. See
+[Counting callers behind a proxy](#counting-callers-behind-a-proxy). Without it, a script can send a
+different `X-Forwarded-For` value with every request and is never stopped.
+
 ## Where the counts are kept
 
 The counts live in the portal's default cache, which is Redis on a production portal. Every worker

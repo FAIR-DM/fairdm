@@ -34,6 +34,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   mounts the checkout, and starts PostGIS, Redis, the development server and a Celery worker with
   `docker compose up`. `compose/django/Dockerfile` is gone. The deployment guide shows a portal's
   own compose file on the same image.
+- **Search fields for records, people and organizations.** A form or filter that chooses a
+  project, dataset, sample, measurement, person or organization now searches on the server and
+  loads twenty results at a time, so a portal with 100,000 samples answers a sample search with its
+  first page in under a second. Each field offers only what the person using it may reach, refuses
+  any other value when the form is saved, and keeps a stored link to a record the person cannot see
+  as a private record without its name. Samples are found by name, local ID and identifier,
+  people by name and ORCID, organizations by name and ROR identifier, and an identifier typed
+  exactly is listed first. The fields take `scope`, `depends_on`, `prefer`, `owner` and `type`, and
+  list filters, the project list's tag filter, the publication, tag and ROR lookups and the forms
+  and filters FairDM generates for registered types use them. Each address limits a caller with
+  four new request limits, `autocomplete_anon_burst`, `autocomplete_anon_day`,
+  `autocomplete_user_burst` and `autocomplete_user_day`. `python manage.py seed_record_search`
+  seeds a walkthrough in development, and `--large` adds 100,000 samples. See
+  [How to add a record field to a form](docs/portal-development/add-a-record-field.md),
+  [Record fields](docs/portal-development/record-fields.md) and
+  [Limits on the API](docs/portal-administration/api-limits.md#limits-on-the-search-fields).
 
 ### Changed
 
@@ -95,6 +111,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `fairdm/static/` at the same paths, so templates and static files resolve as before.
   `fairdm.utils` stays importable as a plain package of helpers. Code that looked up the `utils`
   app config (`apps.get_app_config("utils")`) no longer finds it.
+- **Breaking: django-autocomplete-light, django-select2 and django-addanother are no longer
+  dependencies.** FairDM's search boxes are built on django-tomselect, which replaces all three.
+  The `dal`, `dal_select2`, `django_select2` and `django_addanother` apps, the `autocomplete/` and
+  `select2/` addresses, the `autocomplete:concept`, `autocomplete:contributor` and
+  `autocomplete:organization` address names, the `select2` cache and the `SELECT2_*` settings are
+  gone. `ConceptSelect`, `ConceptMultiSelect`, `ContributorSelect2Widget`, `PersonSelect2Widget`,
+  `OrganizationSelect2Widget`, `SelectizeWidget` and `CreatorsFormField` are removed, and
+  `FieldInspector.suggest_widget` answers `Select` and `SelectMultiple` for a relation. The
+  admin pages for people and datasets use Django's own `autocomplete_fields`.
+
+  To move a portal:
+
+  1. Search the portal for `dal`, `django_select2`, `django_addanother`, `ConceptSelect`,
+     `ConceptMultiSelect`, `SelectizeWidget`, `CreatorsFormField`, `PersonSelect2Widget`,
+     `OrganizationSelect2Widget` and `ContributorSelect2Widget`.
+  2. Replace a field that chooses a project, dataset, sample or measurement with
+     `ProjectChoiceField`, `DatasetChoiceField`, `SampleChoiceField` or
+     `MeasurementChoiceField` from `fairdm.contrib.autocomplete.fields`, or the matching
+     `...MultipleChoiceField`. Pass `scope="edit"` where the form places a record inside another.
+     Replace a person or organization field with `PersonChoiceField` or `OrganizationChoiceField`.
+     A `ModelSelect2Widget` with `search_fields` becomes the field of that kind, and the search
+     lookups are the field's own.
+  3. Replace a vocabulary field built with `ConceptSelect` or `ConceptMultiSelect` with
+     `mvp_forms.widgets.TomSelectMultiple(counted=True)` on a model choice field of the
+     vocabulary's concepts, or with a plain select for a short list.
+  4. Replace `SelectizeWidget` and `CreatorsFormField` with a model multiple choice field and
+     `TomSelectMultiple`, and keep the Creator role logic in the form's `save()`.
+  5. Replace an admin's `formfield_overrides` that names a Select2 widget with
+     `autocomplete_fields`, and give each target admin `search_fields`.
+  6. Delete the routes `select2/` and `autocomplete/` from the portal's URL conf if it includes
+     them, and the `select2` entry of `CACHES` and the `SELECT2_*` settings.
+  7. If the portal still imports one of the three packages for its own code, add it to the
+     portal's own dependencies and `INSTALLED_APPS`. django-select2 stays installed because
+     django-mvp depends on it, but FairDM no longer adds it to `INSTALLED_APPS`.
+  8. Run `python manage.py check` and the portal's tests.
 
 ### Fixed
 

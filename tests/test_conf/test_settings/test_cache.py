@@ -12,7 +12,6 @@ class TestCache:
 
         assert module.CACHES["default"]["BACKEND"] == "django_redis.cache.RedisCache"
         assert module.CACHES["default"]["LOCATION"] == "redis://cachehost:6380/2"
-        assert module.CACHES["select2"]["BACKEND"] == "django_redis.cache.RedisCache"
         assert (
             module.CACHES["vocabularies"]["BACKEND"] == "django_redis.cache.RedisCache"
         )

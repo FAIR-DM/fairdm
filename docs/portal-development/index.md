@@ -75,6 +75,7 @@ models/custom-samples
 measurements
 locations
 forms-and-filters/sample-mixins
+record-fields
 contributors
 using_the_registry
 listing-a-registered-type
@@ -95,6 +96,7 @@ overview-pages
 :maxdepth: 2
 
 create_a_plugin
+add-a-record-field
 record-editing-pages
 ../how-to/list-search-and-sort
 rich-text

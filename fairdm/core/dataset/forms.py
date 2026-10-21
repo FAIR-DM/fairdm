@@ -4,9 +4,12 @@ from django import forms
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from licensing.models import License
-from literature.models import LiteratureItem
 from mvp_forms.widgets import ImageInput
 
+from fairdm.contrib.autocomplete.fields import (
+    ProjectChoiceField,
+    PublicationChoiceField,
+)
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.forms import ManagerOnlyFieldsMixin
 from fairdm.core.image_utils import IMAGE_HELP_TEXT, validate_image_file_size
@@ -78,15 +81,13 @@ class DatasetForm(ManagerOnlyFieldsMixin, ModelForm):
         ),
     )
 
-    reference = forms.ModelChoiceField(
-        queryset=LiteratureItem.objects.all(),
+    reference = PublicationChoiceField(
         label=_("Data Publication"),
         help_text=_(
             "Link to the primary data publication (paper, report, or other literature) "
             "that describes this dataset."
         ),
         required=False,
-        widget=forms.Select(attrs={"class": "form-control"}),
     )
 
     visibility = forms.TypedChoiceField(
@@ -125,6 +126,16 @@ class DatasetForm(ManagerOnlyFieldsMixin, ModelForm):
             ).first()
 
         project_field = self.fields.get("project")
+        if project_field:
+            project_field = self.fields["project"] = ProjectChoiceField(
+                scope="edit",
+                label=project_field.label,
+                required=project_field.required,
+                help_text=project_field.help_text,
+            )
+            # A form built with no request at all is not a person using the portal, and keeps
+            # offering every project.
+            project_field.queryset = Project.objects.all()
         if project_field and self.request:
             if (
                 hasattr(self.request, "user")

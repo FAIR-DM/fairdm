@@ -823,3 +823,56 @@ class TestContributorRecords:
         assert {credited.uuid, other.uuid} <= {
             row["uuid"] for row in response.json()["results"]
         }
+
+
+@pytest.mark.django_db
+class TestRecordFiltersInTheApi:
+    @pytest.fixture
+    def probe(self):
+        from fairdm.api.filters import DatasetFilterSet
+        from fairdm.contrib.autocomplete.fields import DatasetMultipleChoiceField
+        from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
+        from fairdm.core.sample.models import Sample
+
+        class ProbeFilterSet(DatasetFilterSet):
+            chosen = RecordMultipleFilter(
+                DatasetMultipleChoiceField, field_name="dataset"
+            )
+
+            class Meta:
+                model = Sample
+                fields = []
+
+        ProbeFilterSet.match_relations_on_uuid()
+        return ProbeFilterSet
+
+    def test_a_record_filter_matches_on_the_short_identifier(self, probe):
+        from django.contrib.auth.models import AnonymousUser
+        from django.test import RequestFactory
+
+        from demo.factories import RockSampleFactory
+        from fairdm.core.sample.models import Sample
+
+        public = DatasetFactory(
+            visibility=Visibility.PUBLIC,
+            published=True,
+            project=ProjectFactory(visibility=Visibility.PUBLIC),
+        )
+        other = DatasetFactory(
+            visibility=Visibility.PUBLIC,
+            published=True,
+            project=ProjectFactory(visibility=Visibility.PUBLIC),
+        )
+        wanted = RockSampleFactory(dataset=public)
+        RockSampleFactory(dataset=other)
+        request = RequestFactory().get("/")
+        request.user = AnonymousUser()
+
+        filterset = probe(
+            data={"chosen": [str(public.uuid)]},
+            queryset=Sample.objects.all(),
+            request=request,
+        )
+
+        assert filterset.is_valid(), filterset.errors
+        assert list(filterset.qs) == [wanted]

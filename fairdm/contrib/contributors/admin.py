@@ -1,7 +1,6 @@
 """Admin for contributors, affiliations, claiming and the claiming audit log."""
 
 from allauth.account.models import EmailAddress
-from dal import autocomplete
 from django import forms
 from django.contrib import admin
 from django.contrib.admin.helpers import ActionForm
@@ -11,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from hijack.contrib.admin import HijackUserAdminMixin
 from import_export.admin import ImportExportModelAdmin
 
-from fairdm.db import models
+from fairdm.contrib.autocomplete.fields import PersonChoiceField
 
 from .models import (
     Affiliation,
@@ -246,11 +245,7 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         "affiliations",
     )
     exclude = ("username",)
-    formfield_overrides = {
-        models.ManyToManyField: {
-            "widget": autocomplete.ModelSelect2Multiple(url="admin:autocomplete")
-        },
-    }
+    autocomplete_fields = ["groups"]
     readonly_fields = ["synced_data", "last_synced", "uuid", "added", "modified"]
     fieldsets = (
         (
@@ -579,11 +574,7 @@ class OrganizationActionForm(ActionForm):
         new_owner: The person to become owner.
     """
 
-    new_owner = forms.ModelChoiceField(
-        queryset=Person.objects.all(),
-        required=False,
-        label=_("New owner"),
-    )
+    new_owner = PersonChoiceField(required=False, label=_("New owner"))
 
 
 @admin.register(Organization)
