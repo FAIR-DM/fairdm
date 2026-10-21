@@ -15,7 +15,7 @@ its templates and copy stay, and everything behind them is rebuilt test-first.
 ## Technical context
 
 - Python 3.12 and 3.13, Django 5.2 to 6.1, PostgreSQL with PostGIS in development, tests and CI.
-- New runtime dependency: `django-tomselect>=2026.6.2,<2027`. It replaces three
+- New runtime dependency: `django-tomselect>=2026.6.2,<2027` (added to `pyproject.toml` with the sketch). It replaces three
   (django-autocomplete-light, django-select2, django-addanother), so the dependency tree shrinks.
 - django-mvp-forms 0.6.0 draws the controls and their groups. Django REST framework, already a
   dependency, supplies the request limits.
@@ -40,12 +40,12 @@ its templates and copy stay, and everything behind them is rebuilt test-first.
 
 ```
 fairdm/contrib/autocomplete/
-  views.py       RecordAutocompleteView and its four record views, PersonAutocompleteView,
-                 OrganizationAutocompleteView, PublicationAutocompleteView,
-                 TagAutocompleteView, RorAutocompleteView
-  throttling.py  AutocompleteBurstThrottle, AutocompleteDailyThrottle
+  views.py       LimitedAutocompleteMixin, RecordAutocompleteView and its four record views,
+                 PersonAutocompleteView, OrganizationAutocompleteView,
+                 PublicationAutocompleteView, TagAutocompleteView, RorAutocompleteView
+  throttling.py  four subclasses of fairdm.api.throttling's classes, each changing only `scope`
   fields.py      the field pairs, PublicationChoiceField, TagsField, RorChoiceField
-  filters.py     RecordFilter, RecordMultipleFilter, TagFilter
+  filters.py     RecordMultipleFilter, TagFilter
   urls.py        one path per kind and scope
   templates/autocomplete/record_option.html, contributor_option.html   (from the sketch)
 fairdm/templates/django_tomselect/tomselect.html          (extends django-mvp-forms')
@@ -58,29 +58,41 @@ gets a seed of its own in `demo/` (D10).
 
 ### D2. The views
 
-`RecordAutocompleteView(AutocompleteModelView)` holds what the four record views share:
+Every view, the seven of them, takes `LimitedAutocompleteMixin` (design review SPEC-003), which
+holds what keeps an address cheap and closed:
 
-- `scope`: `"public"`, `"view"`, `"edit"` or `"profile"`, set by `as_view(scope=…)` in `urls.py`
-  and never read from the request.
-- `get_queryset()`:
+- `dispatch()` runs the two throttles before anything else (D5).
+- `page_size = 20`, the `page_size` request parameter ignored, no page past 25, the search text
+  cut to 100 characters (FR-022).
+- `allowed_filter_fields` and `allowed_ordering_fields`, django-tomselect's own allow-lists,
+  which guard `f`, `e` and `ordering` alike (design review SEC-003). Ordering is `[]` on every
+  view. Filters are `["dataset", "polymorphic_ctype"]` on samples and measurements and `[]`
+  elsewhere. A request naming anything else gets no results.
+- `skip_authorization = True` and `allow_anonymous = True`: access is decided by the queryset, and
+  django-tomselect's model-permission check would refuse a visitor every public record.
+
+`RecordAutocompleteView(LimitedAutocompleteMixin, AutocompleteModelView)` holds what the four
+record views share:
+
+- `scope`: `"public"`, `"view"`, `"edit"` or `"profile"`, a **class attribute**. `urls.py`
+  registers one subclass per scope (`ProjectAutocompleteView.for_scope("edit")`, a cached
+  `type()` subclass), because django-tomselect rebuilds the view for validation as
+  `view_class()` and drops `as_view()` arguments (`lazy_utils.py:107`, design review SEC-001).
+- `offered(user, *, owner=None, type=None, depends_on=None)`: the records this scope offers that
+  user, before any search, page or request parameter. It is the one place the scope rule lives,
+  and both the search and the field's validation call it (D4):
   - `public`: the public records (D3), to everyone.
   - `view`: public records together with `accessible_to(user, VIEW)`.
   - `edit`: `accessible_to(user, EDIT)`, nothing for someone not signed in.
-  - `profile`: the records the owner (a person's UUID in the address) is credited on. Private ones
-    are included only when the requester is that owner, otherwise the public ones alone.
-  - Each is annotated with a `group` rank (own, public, other) and, when the search is exact on an
-    identifier the view names, an `exact` rank, then ordered by exact, group, name and pk.
-- `search_lookups` and `exact_lookups` per concrete view. The search text is cut to 100 characters
-  first.
-- `allowed_filters`: the only `filter_by` lookups the view accepts (`dataset_id` and
-  `polymorphic_ctype_id` for samples and measurements, nothing for the others). A request naming
-  any other lookup is answered 400 and nothing is searched (FR-011).
-- `page_size = 20`, the `page_size` request parameter ignored, no page past 25 (FR-022).
+  - `profile`: the records `owner` is credited on, private ones only when `user` is `owner`.
+  - Datasets start from `Dataset.all_objects` in every scope (design review ARCH-003).
+- `get_queryset()` is `offered()` for the request's user, with the profile owner read from the
+  `owner` parameter on the one profile address per kind (design review SPEC-006), then django-tomselect's
+  filters and search, an `exact` rank when the search is exact on an identifier the view names, a
+  `group` rank (own, public, other), ordered by exact, group, name and pk.
+- `search_lookups` and `exact_lookups` per concrete view.
 - `hook_prepare_results()` adds each result's `optgroup` heading (none when the page holds one
   group, as approved) and its `html`, drawn from `autocomplete/record_option.html`.
-- `dispatch()` runs the two throttles before anything else (D5).
-- `skip_authorization = True` and `allow_anonymous = True`: access is decided by the queryset, and
-  django-tomselect's model-permission check would refuse a visitor every public record.
 
 The four record views set `model`, the lookups and the detail line approved in the sketch:
 
@@ -93,14 +105,17 @@ The four record views set `model`, the lookups and the detail line approved in t
 
 `PersonAutocompleteView` and `OrganizationAutocompleteView` search name, alternative names and the
 ORCID or ROR identifier, exact identifier first. People come from `Person.objects.real()`. People
-the requester has worked with (`get_collaborators()`) and organizations they hold a current
-affiliation to are grouped first. Rows are drawn from `autocomplete/contributor_option.html`:
+the requester has worked with (`get_collaborators()`) and organizations they are a member of
+(`CONTEXT.md`: a verified affiliation that has not ended, so a pending request does not count) are
+grouped first. Rows are drawn from `autocomplete/contributor_option.html`:
 picture or initials, name, affiliation, ORCID beneath it, and "Unclaimed" for a person nobody has
 claimed. An organization shows its place and no ROR. No email is searched or shown.
 
 `PublicationAutocompleteView` searches title, authors and DOI on `LiteratureItem`, exact DOI
-first. `TagAutocompleteView` and `RorAutocompleteView` are `AutocompleteIterablesView`s over
-taggit's tags and `Ror.search()`. A `RegistryUnavailable` from ROR answers 503.
+first. `TagAutocompleteView` is a model view over taggit's `Tag`: the tags on records the
+requester may view, and on public records only at the filter's `public` address, so a private
+record's tags never leak (design review SEC-004). `RorAutocompleteView` is an
+`AutocompleteIterablesView` over `Ror.search()`. A `RegistryUnavailable` from ROR answers 503.
 
 ### D3. What public means
 
@@ -113,30 +128,44 @@ Each view writes this as one `public_records()` method, so R14 has one place per
 `fields.py` makes each pair with one function, `record_fields(view_name, …)`, returning the single
 and the multiple class, so the six pairs read as six lines. Each field:
 
-- takes `scope`, `owner`, `type` and `depends_on` and turns them into the address and django-tomselect's
-  `filter_by`. Defaults: a single field `"view"`, a multiple field `"public"` (FR-005). The forms
-  that place a record inside another pass `scope="edit"`.
+- takes `scope`, `owner`, `type` and `depends_on`, and turns them into the scoped address and
+  django-tomselect's `filter_by`. Both fields default to `"view"`. `RecordMultipleFilter` defaults
+  to `"public"`, and the forms that place a record inside another pass `scope="edit"` (FR-005,
+  design review SPEC-005).
+- **validates against the view, never against the page's request** (design review SEC-002). Its
+  `clean()` sets its queryset to the scoped view's `offered()` for the request's user, with the
+  field's own `owner` and `type` and the `depends_on` value read from the bound form's data, then
+  runs Django's `ModelChoiceField` / `ModelMultipleChoiceField` validation. django-tomselect's own
+  `clean()`, which rebuilds the view from the current page's `q`, `f` and `e`, is not called. The
+  label of a chosen or stored value is looked up the same way.
+- keeps a stored value the person cannot see (FR-012): `get_bound_field()` keeps the form, `clean()`
+  accepts the value already on `form.instance` (when it has a pk) unchanged, and the widget labels
+  it "Private record" when `offered()` does not hold it (design review SEC-006).
 - uses `PluginDropdownInput` and `PluginClearButton`, and on the multiple field
   `PluginCheckboxOptions` with the count words written on the select (`data-none-text`,
   `data-count-text`).
 - sets `minimum_query_length=2`, `preload="focus"`, `load_throttle=300`, `loading_class="ts-loading"`.
-- keeps a stored value the person cannot see (FR-012): `get_bound_field()` records the form's
-  initial value on that form's copy of the field, `clean()` accepts it unchanged, and the widget
-  labels it "Private record" when the view does not hold it.
 
-`TagsField(allow_new=False)` is the multiple field over tags drawn as chips with a remove button.
-`allow_new=True` turns on Tom Select's `create`. It cleans to a list of strings.
-`RorChoiceField` is a single field over ROR whose value is the ROR ID.
+`TagsField(allow_new=False)` is the multiple field over tags, drawn as chips with a remove button,
+cleaning to a list of stripped strings. With `allow_new=True` it turns on Tom Select's `create` and
+accepts any non-empty tag. With it off it accepts only tags in use (design review SPEC-002).
+`RorChoiceField` is a single field over ROR whose value is the ROR ID. Its `clean()` accepts a value
+that is a ROR ID by form (`Ror.identifier_in`) and never calls the registry, so the form saves when
+ROR is down (design review SPEC-002).
 
 ### D5. Request limits
 
-`throttling.py` holds two `SimpleRateThrottle` subclasses, each counting a signed-in caller by
-account and anyone else by address, scopes `autocomplete_anon_burst`, `autocomplete_anon_day`,
-`autocomplete_user_burst`, `autocomplete_user_day`. The default rates are added to
-`REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]` in `fairdm/api/settings.py` beside the API's. A refused
+`throttling.py` holds four subclasses of the API's own classes in `fairdm/api/throttling.py`, each
+changing only `scope`: `autocomplete_anon_burst`, `autocomplete_anon_day`,
+`autocomplete_user_burst`, `autocomplete_user_day` (design review ARCH-001). They count a signed-in
+caller by account and anyone else by address, as the API does. The default rates are added to
+`REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]` in `fairdm/api/settings.py` beside the API's, and each
+class falls back to its default rate when a portal's settings lack its scope, so a portal that
+replaced the dictionary keeps working fields (design review SEC-005). The limits rest on the same
+`NUM_PROXIES` setting as the API's, and `docs/portal-administration/api-limits.md` says so. A refused
 request answers 429 with `Retry-After` and an empty result list, before any query. The cache is
-the portal's default cache, as the API's limits use. The "searching is paused" message (FR-021) is
-not built: its test is written and skipped, naming the upstream-gaps issue.
+the portal's default cache, as the API's limits use. What the field shows when it is refused (FR-021)
+waits on the maintainer's answer to the delta brief of 2026-10-21.
 
 ### D6. FairDM's two django-tomselect templates
 
@@ -167,6 +196,10 @@ not built: its test is written and skipped, naming the upstream-gaps issue.
 | generated filters of a registered type, for a related project, dataset, sample or measurement | `RecordMultipleFilter` | public |
 | generated forms of a registered type, for a related project, dataset, sample or measurement | the single field | edit for the record it sits in, view otherwise |
 
+`merge_person.html` writes `{{ form.media }}` so the merge target field starts (design review
+SPEC-007). The merge target offers the person being merged as well, which `merge_persons` already
+refuses.
+
 `QuickAddContributionForm` and the unused `PersonSelect2Widget` and `OrganizationSelect2Widget`
 are deleted, not moved: nothing uses them.
 
@@ -174,19 +207,23 @@ are deleted, not moved: nothing uses them.
 
 The contributors admin's django-autocomplete-light widget and the dataset admin's django-select2
 `formfield_overrides` are replaced by `autocomplete_fields` naming the same relations, with
-`search_fields` on each target admin where it is missing.
+`search_fields` on each target admin where it is missing. `demo/admin.py` moves the same way
+(design review SPEC-009).
 
 ### D9. Removal
 
 django-autocomplete-light, django-select2 and django-addanother leave `pyproject.toml`, `uv.lock`,
 `INSTALLED_APPS`, `fairdm/conf/urls.py` and the select2 cache settings. `fairdm/templates/django_addanother/`,
 `SelectizeWidget`, `CreatorsFormField`, the old `views.py` and `fields.py` contents, and the
-Select2 suggestions in `fairdm/utils/inspection.py` go. `deptry`'s ignore list loses the three.
+Select2 suggestions in `fairdm/utils/inspection.py` go, with `demo/forms.py`'s django-select2 widgets and
+the select2 cache entries in `tests/settings.py` and its cache test. `deptry`'s ignore list loses the three.
 
 ### D10. Demo and documentation
 
 - `demo/`: a management command seeding what the walkthrough needs, adapted from the sketch's
-  seed, and one demo form using `SampleChoiceField(type=…)`.
+  seed, with an option to seed 100,000 samples, and one demo form using `SampleChoiceField(type=…)`.
+  The sample field's first page is timed on that seed and the figure goes in the pull request
+  (SC-002).
 - `docs/portal-development/`: a how-to, "Add a record field to a form or filter", and a reference
   page for every field, its arguments and defaults, the addresses and the throttle settings.
 - `docs/portal-development/filtering-by-vocabulary.md`, `measurements.md`,

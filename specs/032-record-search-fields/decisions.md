@@ -96,3 +96,24 @@ thousand results or a search text of ten thousand characters can be costly, so t
 request, decides the page size, the search length, how deep the pages go and what narrowing is
 allowed. A refused request is refused before any search runs, so being over the limit costs the
 portal almost nothing.
+
+## D13. Design review: five high findings applied to the plan, two put to the maintainer
+
+The design review returned five verified high findings. Three were plan faults and are fixed in
+`plan.md` and `tasks.md`:
+
+- django-tomselect rebuilds the view it validates against without its `as_view()` arguments, and
+  with the current page's search and filter parameters. Each scope is now its own view class, and
+  FairDM's fields validate through the view's `offered()` with their own settings.
+- The person view accepted `e=` and `ordering=` on any field, which could test whether an email
+  belongs to a user. django-tomselect's own allow-lists replace the custom one.
+- The ROR and tag fields could not save a ROR ID or a new tag, because django-tomselect validates
+  against an unsearched list. Both fields validate by form instead.
+
+Every medium and low finding was taken: limits and caps on all seven views, both fields defaulting
+to `view`, one profile address per kind, tags drawn only from records the requester may view, a
+fallback rate when a portal's settings lack a scope, the merge page's script, the demo's
+django-select2 uses, a timed seed for SC-002, and four smaller edits.
+
+The two spec findings (the "searching is paused" message of FR-021, and FR-018 still naming an
+organization's ROR after the sketch removed it) went to the maintainer as a delta brief.

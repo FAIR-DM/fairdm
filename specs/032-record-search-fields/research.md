@@ -48,7 +48,8 @@ tracked in this repository's issue for the upstream gaps (see "Gaps in dependenc
 - `type`: a registered sample or measurement model the field is narrowed to.
 - `depends_on`: the name of another field on the form whose value narrows this one.
 
-Each scope is its own address, so a request can never ask for a wider one (FR-011).
+Each scope is its own view class behind its own address, so neither a request nor validation can
+reach a wider one (FR-011, design review SEC-001).
 
 ### Vocabulary concepts wait for their own field
 
@@ -73,7 +74,7 @@ Each request's cost is set by the view, never by the request (FR-022): the page 
 20 and django-tomselect's `page_size` parameter is ignored, a search is cut to 100 characters,
 and no page past the 25th is served. Tom Select waits 300 ms after the last keystroke before it
 asks (`load_throttle`, django-tomselect's default) and nothing is asked below two characters, so
-a ten-letter word sends at most a request or two (SC-007).
+a ten-letter word sends at most a request or two (SC-004).
 
 ### Sketch review, round 1
 
@@ -106,6 +107,14 @@ search through, which is the second item in the upstream issue.
 | Keyword filters still on django-autocomplete-light | Moved as above |
 | Old libraries installed | Removed (FR-032) |
 
+## How a field validates (design review SEC-001, SEC-002)
+
+django-tomselect validates a value against a view it rebuilds as `view_class()` (`lazy_utils.py:107`),
+so `as_view()` arguments are lost, and set up with the current page's request, so the page's `q`,
+`f` and `e` narrow the check (`lazy_utils.py:117-123`, `autocompletes.py:293-311`). FairDM's fields
+therefore validate through the scoped view class's `offered()` with the field's own settings
+(plan D4), and never call django-tomselect's `clean()`.
+
 ## A stored link the editor cannot see (FR-012)
 
 django-tomselect validates a value against the view's queryset for the current request
@@ -113,8 +122,8 @@ django-tomselect validates a value against the view's queryset for the current r
 `_get_selected_options`). Both drop a value the person cannot see. Two small overrides in the
 FairDM fields close that:
 
-- `get_bound_field(form, name)` records the value the bound form started with, from
-  `form.initial`, on that form's copy of the field.
+- `get_bound_field(form, name)` keeps the form, and the stored value is read from
+  `form.instance` when it has a pk.
 - `clean` accepts that one stored value unchanged even when the view would not offer it, and the
   widget labels it "Private record" when the view's queryset does not hold it.
 
@@ -131,8 +140,7 @@ the package that owns it:
    optional line has to be drawn on the server. FairDM keeps a copy of `render/option.html` with
    one added branch.
 4. django-tomselect shows one fixed message, in fixed colours, for any failed search, so a field
-   cannot say that searching is paused (FR-021). Not worked around: the server answers 429 with
-   `Retry-After`, and the test for the paused message is skipped with this issue's number.
+   cannot say that searching is paused (FR-021). Put to the maintainer as a delta brief.
 
 ## Decisions settled here
 
@@ -168,7 +176,8 @@ visible records per user           · 2, repo    · fairdm/core/managers.py with
 collaborators                      · 2, repo    · Contributor.get_collaborators
 person and organization details    · 2, repo    · Person.primary_affiliation, Person.orcid, Organization.city/country, ContributorIdentifier
 avatar in a result                 · 2, repo    · cotton/contributor/avatar.html
-request limits                     · 3, package · rest_framework.throttling.SimpleRateThrottle, as fairdm/api/throttling.py
+request limits                     · 2, repo    · fairdm/api/throttling.py AnonBurstThrottle and siblings, subclassed for scope only
+filter and ordering allow-lists    · 3, package · django_tomselect AutocompleteModelView.allowed_filter_fields, allowed_ordering_fields
 admin search                       · 4, Django  · ModelAdmin.autocomplete_fields
 result rows drawn on the server    · 7, new     · two templates in fairdm/contrib/autocomplete/templates/autocomplete/; searched mvp and fairdm cotton components, none draws a selectable row without links
 FairDM's tomselect.html extension  · 7, new     · searched django-mvp-forms and django-tomselect settings for the word copy and the empty first page, neither has one

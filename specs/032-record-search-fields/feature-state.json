@@ -48,6 +48,15 @@
     "merge": {
       "approved_by": null,
       "at": null
+    },
+    "design_review": {
+      "approved_by": "design-panel",
+      "at": "2026-10-21T12:40:00Z",
+      "self_resolved": [
+        "SEC-001, SEC-002, SEC-003, SPEC-002: re-planned, remedies verified against the cited django-tomselect lines",
+        "SPEC-001, SPEC-004: spec faults, delta brief to the maintainer",
+        "9 medium and 7 low taken as plan edits"
+      ]
     }
   },
   "stories": [
