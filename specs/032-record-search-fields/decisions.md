@@ -267,3 +267,15 @@ only. The form's "Current affiliation" checkbox is left in place and has no effe
 affiliation was chosen. The model has no way to record "past" without an end date.
 
 **Revisit if**: the checkbox should ask for an end date.
+
+## D27. A measurement may name a visible sample from another dataset
+
+The maintainer kept FS-006's FR-006 on 2026-10-21: a measurement may name a sample from another
+dataset. FS-032's FR-007 and FR-010 still hold: no field accepts a record its user may not see.
+FS-006 says nothing about whether the person linking may see the sample. The one existing test of
+the cross-dataset case created the other dataset with the factory's private default and gave the
+user no access to it. That fixture detail is incidental to what the test checks. The test now gives
+the user view access to the other dataset, and still asserts that the cross-dataset sample is
+accepted. Linking a private sample nobody has let you see would name it to you, so it stays refused.
+
+**ADR:** none — the meeting point of two specs' rules, recorded here and in the test

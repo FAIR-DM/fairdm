@@ -340,6 +340,11 @@ class TestMeasurementFormPolymorphicHandling:
         ContributionFactory(
             content_object=dataset1, contributor=user, level=ContributionLevel.EDIT
         )
+        # The sample field never accepts a sample its user may not see, so the user may view
+        # the other dataset. A sample from another dataset is still accepted (FS-006, FR-006).
+        ContributionFactory(
+            content_object=dataset2, contributor=user, level=ContributionLevel.VIEW
+        )
         sample_in_dataset2 = RockSampleFactory(dataset=dataset2)
 
         class ExampleMeasurementForm(MeasurementFormMixin, forms.ModelForm):
