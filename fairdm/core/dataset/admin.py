@@ -9,7 +9,6 @@ from django.contrib import admin, messages
 from django.db import models
 from django.db.models import Exists, OuterRef
 from django.utils.translation import gettext_lazy as _
-from django_select2.forms import Select2MultipleWidget, Select2Widget
 from literature.models import LiteratureItem
 
 from ..formsets import date_ordering_formset
@@ -147,12 +146,6 @@ class DatasetAdmin(admin.ModelAdmin):
             },
         ),
     )
-
-    formfield_overrides = {
-        models.ManyToManyField: {"widget": Select2MultipleWidget},
-        models.ForeignKey: {"widget": Select2Widget},
-        models.OneToOneField: {"widget": Select2Widget},
-    }
 
     def get_queryset(self, request):
         """Include private datasets and annotate the abstract and DOI flags."""

@@ -253,7 +253,7 @@ class RecordFieldMixin:
                 )
             scope = PROFILE
         scope = scope or self.default_scope
-        if scope not in self.scopes + (PROFILE,):
+        if scope not in (*self.scopes, PROFILE):
             raise ValueError(
                 f"scope must be one of {', '.join(self.scopes)}, not {scope!r}"
             )

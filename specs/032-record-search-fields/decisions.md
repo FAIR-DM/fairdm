@@ -324,3 +324,21 @@ django-tomselect's standard failure message, and the form still saves. The fourt
 covers both.
 
 **ADR:** none — the same ruling as FR-021, applied to the second place it reaches
+
+## D32. `owner` selects the profile address, `type` is a model, the multiple field defaults to view
+
+**Decision**: a record field given `owner` (a person or a key) is served by one extra address per
+kind, `autocomplete:<kind>-profile`, which reads `owner` from the request. The profile scope offers the
+records the owner holds at least view on, private ones only when the person searching is the owner.
+`owner` cannot be given with `scope`, and people and organizations take neither. `type` is the model
+of a registered sample or measurement type; it is sent as a constant `polymorphic_ctype` filter, which
+the views already allow, and validated through `offered(type=)`. Both single and multiple fields now
+default to `view`, as plan D4 says; the list filters still pass `public`.
+
+**Why**: the owner is a request-time fact the page cannot be trusted to name, so it lives on one
+address and is checked again by `offered()` when the form validates. The multiple field defaulting to
+`public` contradicted D4 and the T029 scenario of a multiple field offering a private record the
+person may view.
+
+**Revisit if**: a filter declared on a class needs the owner of the page it is drawn on. The field
+takes `owner` at construction, so such a filter builds its field per request.

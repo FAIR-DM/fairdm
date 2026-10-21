@@ -136,3 +136,32 @@ class TestShippedRoleDeleteMessage:
         response = admin_client.get(url)
 
         assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestPersonAdminGroupsAutocomplete:
+    def test_the_change_page_loads_and_the_groups_field_is_an_admin_autocomplete(
+        self, admin_client, admin_user
+    ):
+        response = admin_client.get(
+            reverse("admin:contributors_person_change", args=[admin_user.pk])
+        )
+
+        assert response.status_code == 200
+        field = response.context["adminform"].form.fields["groups"]
+        assert field.widget.widget.__class__.__name__ == "AutocompleteSelectMultiple"
+
+    def test_the_groups_field_finds_a_group_by_name(self, admin_client):
+        response = admin_client.get(
+            reverse("admin:autocomplete"),
+            {
+                "term": PortalRoles.DATA_CURATOR.name[:4],
+                "app_label": "contributors",
+                "model_name": "person",
+                "field_name": "groups",
+            },
+        )
+
+        assert response.status_code == 200
+        names = [row["text"] for row in response.json()["results"]]
+        assert PortalRoles.DATA_CURATOR.name in names

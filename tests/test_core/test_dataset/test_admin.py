@@ -700,3 +700,40 @@ class TestDatasetAdminLicenceWarning:
 
         levels = [m.level for m in response.context["messages"]]
         assert messages.WARNING not in levels
+
+
+@pytest.mark.django_db
+class TestDatasetAdminAutocompleteFields:
+    def test_the_change_page_loads_with_project_and_reference_as_admin_autocompletes(
+        self, admin_client
+    ):
+        dataset = DatasetFactory(name="Test Dataset")
+
+        response = admin_client.get(
+            reverse("admin:dataset_dataset_change", args=[dataset.pk])
+        )
+
+        assert response.status_code == 200
+        fields = response.context["adminform"].form.fields
+        assert (
+            fields["project"].widget.widget.__class__.__name__ == "AutocompleteSelect"
+        )
+        assert (
+            fields["reference"].widget.widget.__class__.__name__ == "AutocompleteSelect"
+        )
+
+    def test_the_project_field_finds_a_project_by_name(self, admin_client):
+        project = ProjectFactory(name="Glacier monitoring")
+
+        response = admin_client.get(
+            reverse("admin:autocomplete"),
+            {
+                "term": "Glacier",
+                "app_label": "dataset",
+                "model_name": "dataset",
+                "field_name": "project",
+            },
+        )
+
+        assert response.status_code == 200
+        assert [row["id"] for row in response.json()["results"]] == [str(project.pk)]

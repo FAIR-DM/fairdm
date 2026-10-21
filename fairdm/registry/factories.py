@@ -8,6 +8,7 @@ from typing import Any, cast
 
 from django.contrib import admin
 from django.contrib.gis.db.models import GeometryField
+from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 from django.forms import ModelForm, modelform_factory
 from django_filters import FilterSet
@@ -90,6 +91,7 @@ class FormFactory(ComponentFactory):
             form=self.get_base_form_class(),
             fields=fields,
             widgets=widgets,
+            field_classes=self._record_field_classes(fields),
         )
 
         original_init = form_class.__init__
@@ -103,6 +105,56 @@ class FormFactory(ComponentFactory):
         form_class.__init__ = __init__  # type: ignore[method-assign]
 
         return form_class
+
+    def _record_field_classes(self, fields: list[str]) -> dict[str, Any]:
+        """Choose the record field for each relation to a project, dataset, sample or measurement.
+
+        A relation to the record this one sits in, a sample's or measurement's dataset or a
+        dataset's project, is chosen among what the person may edit. Any other is chosen among
+        what the person may view.
+
+        Args:
+            fields: The names of the fields the form carries.
+
+        Returns:
+            A dict mapping field names to the record field class that draws them.
+        """
+        from functools import partial
+
+        from fairdm.contrib.autocomplete import fields as record_fields
+        from fairdm.core.dataset.models import Dataset
+        from fairdm.core.measurement.models import Measurement
+        from fairdm.core.project.models import Project
+        from fairdm.core.sample.models import Sample
+
+        kinds = (
+            (Project, record_fields.ProjectChoiceField),
+            (Dataset, record_fields.DatasetChoiceField),
+            (Sample, record_fields.SampleChoiceField),
+            (Measurement, record_fields.MeasurementChoiceField),
+        )
+        sits_in = {Dataset: "project", Sample: "dataset", Measurement: "dataset"}
+        container = next(
+            (name for model, name in sits_in.items() if issubclass(self.model, model)),
+            None,
+        )
+        classes: dict[str, Any] = {}
+        for field_name in fields:
+            try:
+                field = self.model._meta.get_field(field_name)
+            except FieldDoesNotExist:
+                continue
+            if not isinstance(field, models.ForeignKey):
+                continue
+            for model, field_class in kinds:
+                if issubclass(field.related_model, model):
+                    classes[field_name] = (
+                        partial(field_class, scope="edit")
+                        if field_name == container
+                        else field_class
+                    )
+                    break
+        return classes
 
     def _get_smart_widgets(self) -> dict[str, Any]:
         """Choose a widget for each field by its type.

@@ -1,7 +1,6 @@
 """Admin for contributors, affiliations, claiming and the claiming audit log."""
 
 from allauth.account.models import EmailAddress
-from dal import autocomplete
 from django import forms
 from django.contrib import admin
 from django.contrib.admin.helpers import ActionForm
@@ -12,7 +11,6 @@ from hijack.contrib.admin import HijackUserAdminMixin
 from import_export.admin import ImportExportModelAdmin
 
 from fairdm.contrib.autocomplete.fields import PersonChoiceField
-from fairdm.db import models
 
 from .models import (
     Affiliation,
@@ -247,11 +245,7 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         "affiliations",
     )
     exclude = ("username",)
-    formfield_overrides = {
-        models.ManyToManyField: {
-            "widget": autocomplete.ModelSelect2Multiple(url="admin:autocomplete")
-        },
-    }
+    autocomplete_fields = ["groups"]
     readonly_fields = ["synced_data", "last_synced", "uuid", "added", "modified"]
     fieldsets = (
         (
