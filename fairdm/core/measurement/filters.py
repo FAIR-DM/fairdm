@@ -135,20 +135,6 @@ class MeasurementFilterMixin(django_filters.FilterSet):
         if "sample" in self.filters:
             self.filters["sample"].queryset = Sample.objects.all()
 
-        from fairdm.contrib.autocomplete.records_fields import (
-            DatasetMultipleChoiceField,
-            SampleMultipleChoiceField,
-            use_record_filters,
-        )
-
-        use_record_filters(
-            self,
-            {
-                "dataset": DatasetMultipleChoiceField,
-                "sample": SampleMultipleChoiceField,
-            },
-        )
-
         if "polymorphic_ctype" in self.filters:
             registered_content_types = ContentType.objects.get_for_models(
                 *registry.measurements
