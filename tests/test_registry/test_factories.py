@@ -559,6 +559,62 @@ class TestFormFactoryMeasurementBranch:
 
 
 @pytest.mark.django_db
+class TestGeneratedRelatedRecordForms:
+    @pytest.fixture(
+        params=["project", "dataset", "sample", "measurement"],
+    )
+    def referrer(self, request):
+        """A model with a foreign key to one kind of record, and the field class for it."""
+        from fairdm.contrib.autocomplete import fields
+        from fairdm.core.dataset.models import Dataset
+        from fairdm.core.project.models import Project
+
+        related = {
+            "project": Project,
+            "dataset": Dataset,
+            "sample": Sample,
+            "measurement": Measurement,
+        }[request.param]
+        attrs = {
+            "__module__": __name__,
+            "Meta": type("Meta", (), {"app_label": "test_app"}),
+            "related": models.ForeignKey(related, on_delete=models.CASCADE),
+        }
+        model = type(
+            f"{request.param.capitalize()}FormReferrer", (models.Model,), attrs
+        )
+        return model, getattr(fields, f"{request.param.capitalize()}ChoiceField")
+
+    def test_a_related_record_is_chosen_with_the_single_field_at_view_scope(
+        self, referrer
+    ):
+        model, field_class = referrer
+
+        form = FormFactory(model, fields=["related"]).generate()()
+
+        assert isinstance(form.fields["related"], field_class)
+        assert form.fields["related"].scope == "view"
+
+    def test_the_dataset_a_measurement_sits_in_is_chosen_at_edit_scope(self):
+        from demo.models import XRFMeasurement
+        from fairdm.contrib.autocomplete.fields import DatasetChoiceField
+
+        form = FormFactory(XRFMeasurement, fields=["name", "dataset"]).generate()()
+
+        assert isinstance(form.fields["dataset"], DatasetChoiceField)
+        assert form.fields["dataset"].scope == "edit"
+
+    def test_the_project_a_dataset_sits_in_is_chosen_at_edit_scope(self):
+        from fairdm.contrib.autocomplete.fields import ProjectChoiceField
+        from fairdm.core.dataset.models import Dataset
+
+        form = FormFactory(Dataset, fields=["name", "project"]).generate()()
+
+        assert isinstance(form.fields["project"], ProjectChoiceField)
+        assert form.fields["project"].scope == "edit"
+
+
+@pytest.mark.django_db
 class TestFilterFactoryMeasurementBranch:
     # A plain FilterSet base would lack "q", because it names no model field.
     def test_generated_filterset_carries_the_measurement_filter_mixins_search_filter(
