@@ -2,6 +2,8 @@
 
 import django_filters
 
+from .fields import TagsField
+
 
 class RecordMultipleFilter(django_filters.ModelMultipleChoiceFilter):
     """Narrow a list to the records that point at any of several chosen records.
@@ -57,3 +59,36 @@ class RecordMultipleFilter(django_filters.ModelMultipleChoiceFilter):
             conjoined=self.conjoined,
             distinct=self.distinct,
         )
+
+
+class TagFilter(django_filters.Filter):
+    """Narrow a list to the records that carry any of several chosen tags.
+
+    The control is the tags field with no way to add a tag, at ``public`` scope unless told
+    otherwise, so a visitor and a signed-in researcher are offered the same tags.
+
+    Args:
+        scope: How much the person may be offered. Defaults to ``"public"``.
+        **kwargs: Passed to ``Filter``. ``field_name`` names the tag's name, such as
+            ``"tags__name"``.
+
+    Example:
+        ```python
+        tags = TagFilter(field_name="tags__name")
+        ```
+    """
+
+    field_class = TagsField
+
+    def __init__(self, *, scope="public", **kwargs):
+        kwargs.setdefault("lookup_expr", "in")
+        kwargs.setdefault("distinct", True)
+        super().__init__(**kwargs)
+        self.extra["scope"] = scope
+
+    @property
+    def field(self):
+        """Build the field and hand it the filter set's request."""
+        field = super().field
+        field.given_request = getattr(self.parent, "request", None)
+        return field

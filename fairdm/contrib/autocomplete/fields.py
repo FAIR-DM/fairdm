@@ -4,7 +4,8 @@ from typing import Any, ClassVar
 
 from dal import autocomplete, forward
 from django import forms
-from django.core.exceptions import FieldDoesNotExist
+from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import FieldDoesNotExist, ValidationError
 from django.db.models import Q
 from django.urls import reverse
 from django.utils.module_loading import import_string
@@ -13,6 +14,7 @@ from django_tomselect.app_settings import (
     PluginCheckboxOptions,
     PluginClearButton,
     PluginDropdownInput,
+    PluginRemoveButton,
     TomSelectConfig,
 )
 from django_tomselect.forms import (
@@ -29,12 +31,14 @@ from research_vocabs.models import Concept
 
 from .views import (
     SCOPES,
+    TAG_SCOPES,
     DatasetAutocompleteView,
     MeasurementAutocompleteView,
     OrganizationAutocompleteView,
     PersonAutocompleteView,
     ProjectAutocompleteView,
     SampleAutocompleteView,
+    TagAutocompleteView,
 )
 
 
@@ -550,3 +554,118 @@ class PublicationChoiceField(TomSelectModelChoiceField):
         """Accept the publication when it exists."""
         self.queryset = LiteratureItem.objects.all()
         return forms.ModelChoiceField.clean(self, self._clean_value(value))
+
+
+class TagsWidget(TomSelectModelMultipleWidget):
+    """Choose tags, which are words and not records, so the chosen ones need no lookup."""
+
+    def selected_tags(self, value):
+        """Return the chosen tags as the options the control starts with.
+
+        Args:
+            value: The tags chosen, as a list or a single tag.
+
+        Returns:
+            A list of ``{"value", "label"}`` dicts.
+        """
+        tags = [value] if isinstance(value, str) else list(value or [])
+        return [{"value": tag, "label": tag} for tag in tags]
+
+    def _get_selected_options(self, value, autocomplete_view):
+        """Show each chosen tag as itself."""
+        return self.selected_tags(value)
+
+    def get_context(self, name, value, attrs=None):
+        """Show the chosen tags even where the page has no request to look them up in."""
+        context = super().get_context(name, value, attrs)
+        context["widget"]["selected_options"] = self.selected_tags(value)
+        return context
+
+
+class TagsField(forms.Field):
+    """Choose tags, drawn as chips with a remove button, cleaned to a list of stripped words.
+
+    With ``allow_new`` off the field accepts only tags in use on the records its scope offers
+    the person. With it on, any tag that is not empty.
+
+    Args:
+        scope: How much the person may be offered: ``"public"`` or ``"view"``. Defaults to
+            ``"view"``.
+        allow_new: Whether a person may type a tag nobody has used.
+        **kwargs: Passed to the form field.
+
+    Attributes:
+        given_request: A request set on the field, for a field whose form carries none, such as
+            a filter's.
+    """
+
+    default_error_messages = {
+        "invalid_choice": _(
+            "Select a valid choice. %(value)s is not one of the available choices."
+        ),
+    }
+    given_request = None
+
+    def __init__(self, *, scope="view", allow_new=False, **kwargs):
+        if scope not in TAG_SCOPES:
+            raise ValueError(
+                f"scope must be one of {', '.join(TAG_SCOPES)}, not {scope!r}"
+            )
+        self.scope = scope
+        self.allow_new = allow_new
+        kwargs.setdefault("label", _("Tags"))
+        kwargs["widget"] = TagsWidget(
+            config=TomSelectConfig(
+                url=f"autocomplete:tag-{scope}",
+                value_field="name",
+                label_field="name",
+                placeholder=_("Add a tag") if allow_new else _("Any tag"),
+                minimum_query_length=2,
+                preload="focus",
+                load_throttle=300,
+                hide_selected=True,
+                close_after_select=False,
+                highlight=True,
+                loading_class="ts-loading",
+                create=allow_new,
+                plugin_remove_button=PluginRemoveButton(),
+            )
+        )
+        super().__init__(**kwargs)
+
+    @property
+    def user(self):
+        """The person using the field, or an anonymous user when it is used outside a request."""
+        request = self.given_request or get_current_request()
+        return getattr(request, "user", None) or AnonymousUser()
+
+    def to_python(self, value):
+        """Strip each tag, and drop the empty ones and the repeats.
+
+        Args:
+            value: The submitted tags, as a list or a single tag.
+
+        Returns:
+            A list of tags in the order given.
+        """
+        tags = [value] if isinstance(value, str) else value or []
+        return list(dict.fromkeys(tag.strip() for tag in tags if tag and tag.strip()))
+
+    def validate(self, value):
+        """Refuse a tag nobody has used, unless the field lets a new one be added."""
+        super().validate(value)
+        if self.allow_new or not value:
+            return
+        offered = TagAutocompleteView.for_scope(self.scope)().offered(self.user)
+        in_use = set(offered.filter(name__in=value).values_list("name", flat=True))
+        for tag in value:
+            if tag not in in_use:
+                raise ValidationError(
+                    self.error_messages["invalid_choice"],
+                    code="invalid_choice",
+                    params={"value": tag},
+                )
+
+    def has_changed(self, initial, data):
+        """Say whether the chosen tags differ from the initial ones, whatever their order."""
+        return sorted(self.to_python(initial)) != sorted(self.to_python(data))

@@ -4,6 +4,7 @@ from django.urls import path
 
 from .views import (
     SCOPES,
+    TAG_SCOPES,
     ConceptAutocomplete,
     DatasetAutocompleteView,
     MeasurementAutocompleteView,
@@ -12,6 +13,7 @@ from .views import (
     ProjectAutocompleteView,
     PublicationAutocompleteView,
     SampleAutocompleteView,
+    TagAutocompleteView,
 )
 
 app_name = "autocomplete"
@@ -52,3 +54,12 @@ for _kind, _view in CONTRIBUTOR_VIEWS.items():
 urlpatterns.append(
     path("publication/", PublicationAutocompleteView.as_view(), name="publication")
 )
+
+for _scope in TAG_SCOPES:
+    urlpatterns.append(
+        path(
+            f"tags/{_scope}/",
+            TagAutocompleteView.for_scope(_scope).as_view(),
+            name=f"tag-{_scope}",
+        )
+    )

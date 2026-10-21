@@ -279,14 +279,6 @@ def roles(count=2):
     return found
 
 
-def chosen(form, name):
-    """List the values a rendered form shows as selected in one of its select controls."""
-    return {
-        option["value"]
-        for option in form.select(f'select[name="{name}"] option[selected]')
-    }
-
-
 def delete_confirmation(case):
     """Return what a person types to confirm deleting the record: its name, else its portal ID."""
     return case.record.name or str(case.record.uuid)
@@ -1341,7 +1333,7 @@ class TestEditKeywords:
 
         response = browser_as(editor).get(case.url("keywords"))
 
-        assert chosen(main_form(response), "tags") == {"granite", "outcrop"}
+        assert set(response.context["form"]["tags"].value()) == {"granite", "outcrop"}
 
     @pytest.mark.parametrize("kind", KINDS)
     def test_the_page_offers_the_free_keywords_alone(
@@ -1416,9 +1408,8 @@ class TestEditKeywords:
         opened = client.get(case.url("keywords"))
 
         assert opened.status_code == 200
-        form = main_form(opened)
-        assert chosen(form, "tags") == {"old"}
-        payload = form_payload(form)
+        assert opened.context["form"]["tags"].value() == ["old"]
+        payload = form_payload(main_form(opened))
         payload["tags"] = ["old", "added"]
         response = client.post(case.url("keywords"), payload)
         assert response.status_code == 302

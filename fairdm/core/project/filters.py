@@ -11,7 +11,7 @@ from fairdm.contrib.autocomplete.fields import (
     OrganizationMultipleChoiceField,
     PersonMultipleChoiceField,
 )
-from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
+from fairdm.contrib.autocomplete.filters import RecordMultipleFilter, TagFilter
 from fairdm.core.filters import BaseListFilter
 from fairdm.utils.utils import get_setting
 
@@ -48,11 +48,7 @@ class ProjectFilter(BaseListFilter):
         label=_("Owner"),
     )
 
-    tags = df.CharFilter(
-        field_name="tags__name",
-        lookup_expr="iexact",
-        label=_("Tag"),
-    )
+    tags = TagFilter(field_name="tags__name", label=_("Tag"))
 
     contributor = RecordMultipleFilter(
         PersonMultipleChoiceField,

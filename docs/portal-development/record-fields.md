@@ -84,6 +84,42 @@ marks a person nobody has claimed. An organization's row shows its city and coun
 identifier. A person's result carries `unclaimed`, `true` when nobody has claimed the profile. A
 person's `detail` is the name of their primary affiliation, and an organization's is its place.
 
+## Publications
+
+`PublicationChoiceField` chooses one publication from the portal's literature. It takes the
+arguments of Django's `ModelChoiceField` except `queryset`, and takes no `scope`: a publication
+carries no visibility, so the field accepts any publication that exists. The dataset form's data
+publication uses it.
+
+A publication is found by part of its title, by part of an author's name, or by its DOI typed
+exactly. A DOI typed as a `doi:` prefix or an address (`https://doi.org/10.1000/abc`) finds the
+same publication, and a part of a DOI finds nothing. A publication whose DOI was typed exactly is
+listed first, and the rest follow in order of title. Besides `id` and `title`, a result carries
+`authors` (the family names, joined with commas), `year` (a number, or `null`), `doi` (empty when
+the publication has none) and `html`. The row shows the title, then the authors and year, with
+the DOI in an outline badge. The address is `autocomplete:publication`.
+
+## Tags
+
+`TagsField` chooses tags, which are words and not records. The tags are drawn as chips, each with
+a button to remove it, and the field cleans to a list of strings with the spaces around each
+removed, empty entries dropped and repeats kept once.
+
+| Argument | Default | Meaning |
+|---|---|---|
+| `scope` | `"view"` | `"view"` offers the tags in use on records the person may view, and `"public"` offers only the tags in use on public records, to everyone. |
+| `allow_new` | `False` | With `True` the person may type a tag nobody has used, and the field accepts any tag that is not empty. With `False` it accepts only a tag in use on the records its scope offers. |
+
+The free keywords page uses `TagsField(allow_new=True)`. A tag is offered when it is in use on a
+project, a dataset, a sample or a measurement that the record fields of the same scope would
+offer, so a tag never reveals a record the person cannot reach. A tag in use on no record is not
+offered. The addresses are `autocomplete:tag-view` and `autocomplete:tag-public`, and a result
+carries the tag's `id` and `name`.
+
+`fairdm.contrib.autocomplete.filters.TagFilter` draws the field in a filter set, at `public` scope
+unless told otherwise and with no way to add a tag. Choosing several tags keeps the rows that
+carry any of them. The project list's tag filter is one.
+
 ## Fields that depend on another field
 
 A field with `depends_on` follows the field it names. In the browser, the field searches only the
@@ -166,7 +202,8 @@ listed first.
 
 There is one address for each kind and scope, under the `autocomplete` namespace:
 `autocomplete:project-public`, `autocomplete:project-view`, `autocomplete:project-edit`, and the
-same three for `dataset`, `sample` and `measurement`. People and organizations have one address
+same three for `dataset`, `sample` and `measurement`. Tags have `autocomplete:tag-public` and
+`autocomplete:tag-view`, and publications have `autocomplete:publication`. People and organizations have one address
 each, `autocomplete:person-public` and `autocomplete:organization-public`. The scope belongs to
 the address, so a request cannot widen it.
 
@@ -177,7 +214,7 @@ the address, so a request cannot widen it.
 | Results in a page | 20, whatever `page_size` the request names |
 | Last page served | 25 |
 | Longest search text | 100 characters, cut when longer |
-| Filters a request may name | None for projects, datasets, people and organizations. `dataset` and `polymorphic_ctype` for samples and measurements. A request naming any other filter is offered nothing. |
+| Filters a request may name | None for projects, datasets, publications, tags, people and organizations. `dataset` and `polymorphic_ctype` for samples and measurements. A request naming any other filter is offered nothing. |
 | Ordering a request may name | None. An ordering is ignored. |
 
 A search that fails answers with status 500 and an empty list, and nothing else.

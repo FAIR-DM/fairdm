@@ -4,15 +4,18 @@ import functools
 import math
 
 from dal import autocomplete
+from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
-from django.db.models import Case, IntegerField, Q, Value, When
+from django.db.models import Case, CharField, IntegerField, Q, Value, When
+from django.db.models.functions import Cast
 from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.utils.translation import gettext as _
 from django_tomselect.autocompletes import AutocompleteModelView
 from literature.models import LiteratureItem
 from research_vocabs.models import Concept
+from taggit.models import Tag
 
 from fairdm.contrib.autocomplete.throttling import (
     AutocompleteAnonBurstThrottle,
@@ -27,6 +30,7 @@ from fairdm.contrib.contributors.models import (
     Organization,
     Person,
 )
+from fairdm.contrib.generic.models import TaggedItem
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.project.models import Project
@@ -80,6 +84,9 @@ class ConceptAutocomplete(autocomplete.Select2QuerySetView):
 
 #: Scope is part of the address, so a request can never widen what an address offers.
 SCOPES = ("public", "view", "edit")
+
+#: A tag is not edited through a record, so its address has no ``edit`` scope.
+TAG_SCOPES = ("public", "view")
 
 #: The ranks that order a page of records into its groups. PREFERRED holds the records that
 #: match what the field asked to see first, whoever they belong to.
@@ -875,3 +882,73 @@ class PublicationAutocompleteView(LimitedAutocompleteMixin, AutocompleteModelVie
             return int(item["issued"]["date-parts"][0][0])
         except (KeyError, IndexError, TypeError, ValueError):
             return None
+
+
+class TagAutocompleteView(LimitedAutocompleteMixin, AutocompleteModelView):
+    """Offer the tags in use on the records the person searching may reach, found by name.
+
+    Attributes:
+        scope: ``"public"`` offers the tags on public records, to everyone. ``"view"`` adds the
+            tags on the records the person may view. Fixed by the address and never read from
+            the request.
+    """
+
+    model = Tag
+    search_lookups = ["name__icontains"]
+    value_fields = ["name"]
+    scope = "view"
+
+    @classmethod
+    def for_scope(cls, scope):
+        """Return the subclass of this view that serves one scope.
+
+        Args:
+            scope: One of ``"public"`` or ``"view"``.
+
+        Returns:
+            The view class for that scope.
+        """
+        return scoped_view(cls, scope)
+
+    def offered(self, user, *, depends_on=None):
+        """Return the tags this scope offers a person, before any search or page.
+
+        A tag is offered when it is in use on a project, dataset, sample or measurement that the
+        record view of the same scope offers that person, so no tag reveals a record.
+
+        Args:
+            user: The person searching, or an anonymous user.
+            depends_on: Not used, since this view allows no filter.
+
+        Returns:
+            A queryset of tags.
+        """
+        reachable = Q()
+        for view in (
+            ProjectAutocompleteView,
+            DatasetAutocompleteView,
+            SampleAutocompleteView,
+            MeasurementAutocompleteView,
+        ):
+            records = view.for_scope(self.scope)().offered(user)
+            # A tag item holds the key as text and the type of the concrete model, and keys of
+            # different tables can be equal.
+            kinds = ContentType.objects.get_for_models(
+                *(m for m in apps.get_models() if issubclass(m, view.model))
+            ).values()
+            reachable |= Q(
+                content_type__in=kinds,
+                object_id__in=records.annotate(key=Cast("pk", CharField())).values(
+                    "key"
+                ),
+            )
+        return Tag.objects.filter(
+            pk__in=TaggedItem.objects.filter(reachable).values("tag_id")
+        )
+
+    def get_queryset(self):
+        """Return the offered tags, searched and ordered by name."""
+        queryset = self.apply_filters(
+            self.hook_queryset(self.offered(self.request.user))
+        )
+        return self.search(queryset, self.query).order_by("name", "pk")
