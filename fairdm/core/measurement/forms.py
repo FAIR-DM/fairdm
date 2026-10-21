@@ -72,7 +72,7 @@ class MeasurementFormMixin(LocationFormMixin, ManagerOnlyFieldsMixin):
         if "sample" in self.fields:
             current = self.fields["sample"]
             self.fields["sample"] = SampleChoiceField(
-                depends_on="dataset",
+                prefer="dataset",
                 label=current.label,
                 required=current.required,
                 help_text=current.help_text,

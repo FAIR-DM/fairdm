@@ -26,6 +26,7 @@ except `queryset`, which the field decides, and two more.
 |---|---|---|
 | `scope` | `"view"` for a single field, `"public"` for a multiple field | What the person must be able to do with a record for the field to offer it. |
 | `depends_on` | none | The name of another field on the same form. The field then offers only the records that belong to the value chosen in that field. Samples and measurements accept `"dataset"`. |
+| `prefer` | none | The name of another field on the same form. The field then lists the records that belong to the value chosen in that field first, in a group of their own, and offers the rest after them. It narrows nothing and changes nothing the field accepts. Samples and measurements accept `"dataset"`. |
 
 ## Filters
 
@@ -62,7 +63,7 @@ Data Curator role does.
 
 The person and organization fields take `scope` and `depends_on` like the others, but a person or
 an organization is public information, so they are offered at the `"public"` scope only and a
-different scope raises `ValueError`. Neither accepts `depends_on`.
+different scope raises `ValueError`. Neither accepts `depends_on` or `prefer`.
 
 A person is found by name, by an alternative name or by an ORCID iD typed exactly. An organization
 is found by name, by an alternative name or by a ROR identifier typed exactly. An identifier typed
@@ -105,6 +106,25 @@ class XRFMeasurementForm(forms.Form):
 
 `depends_on` accepts only a name that the field's address lets a request filter on. Any other
 name raises `ValueError` when the field is created.
+
+## Fields that prefer another field's value
+
+A field with `prefer` lists first the records that belong to the value chosen in the field it
+names, under a heading of their own such as "Samples in this dataset", and offers every other
+record the person may see after them. The measurement form's sample field works this way, because
+a measurement may name a sample from another dataset. The preference only orders and groups. The
+field accepts the same records whatever the other field holds: a sample of another dataset that
+the person may view is accepted, and one the person may not view is refused with
+`invalid_choice`. When the other field has no value, the records are listed as usual.
+
+```python
+class XRFMeasurementForm(forms.Form):
+    dataset = DatasetChoiceField(scope="edit")
+    sample = SampleChoiceField(prefer="dataset")
+```
+
+`prefer` accepts the same names as `depends_on`, and any other name raises `ValueError` when the
+field is created.
 
 ## Validation
 

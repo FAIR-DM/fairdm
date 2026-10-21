@@ -5,6 +5,7 @@ import math
 
 from dal import autocomplete
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.db.models import Case, IntegerField, Q, Value, When
 from django.http import JsonResponse
 from django.template.loader import render_to_string
@@ -79,8 +80,9 @@ class ConceptAutocomplete(autocomplete.Select2QuerySetView):
 #: Scope is part of the address, so a request can never widen what an address offers.
 SCOPES = ("public", "view", "edit")
 
-#: The ranks that order a page of records into its groups.
-OWN, PUBLIC, OTHER = 0, 1, 2
+#: The ranks that order a page of records into its groups. PREFERRED holds the records that
+#: match what the field asked to see first, whoever they belong to.
+PREFERRED, OWN, PUBLIC, OTHER = -1, 0, 1, 2
 
 
 @functools.cache
@@ -196,11 +198,18 @@ class RecordAutocompleteView(LimitedAutocompleteMixin, AutocompleteModelView):
             the address and never read from the request.
         noun_plural: The kind's name in the plural, for the headings of the groups.
         exact_lookups: Lookups on which an exact match is offered first.
+        prefer_param: The request parameter that names a relation and a value, as
+            ``dataset=5``. Records that match come first, in a group of their own. It orders
+            and groups, and never adds or removes a record.
+        preferred_heading: The heading of the preferred group, with ``%(things)s`` standing
+            for the kind's name in the plural.
     """
 
     scope = "view"
     exact_lookups: list[str] = []
     noun_plural = ""
+    prefer_param = "prefer"
+    preferred_heading = ""
 
     @classmethod
     def for_scope(cls, scope):
@@ -253,25 +262,44 @@ class RecordAutocompleteView(LimitedAutocompleteMixin, AutocompleteModelView):
             )
         return offered.filter(**depends_on) if depends_on else offered
 
+    def preference(self):
+        """Return the condition the request asks to see first.
+
+        Only a relation the view allows a request to filter on is accepted, and only a value
+        that can name a record of it. Anything else is ignored.
+
+        Returns:
+            A ``Q`` object, or ``None`` when the request asks for nothing the view can use.
+        """
+        relation, _separator, value = self.request.GET.get(
+            self.prefer_param, ""
+        ).partition("=")
+        if relation not in self.allowed_filter_fields or not value:
+            return None
+        try:
+            value = self.model._meta.get_field(relation).target_field.to_python(value)
+        except ValidationError:
+            return None
+        return Q(**{relation: value})
+
     def get_queryset(self):
         """Return the offered records, searched, ranked into groups and ordered."""
         user = self.request.user
         records = self.base_queryset()
+        ranks = [
+            When(
+                pk__in=records.with_level(user, ContributionLevel.VIEW).values("pk"),
+                then=Value(OWN),
+            ),
+            When(
+                pk__in=records.filter(self.public_q()).values("pk"),
+                then=Value(PUBLIC),
+            ),
+        ]
+        if (preferred := self.preference()) is not None:
+            ranks.insert(0, When(preferred, then=Value(PREFERRED)))
         queryset = self.offered(user).annotate(
-            group_rank=Case(
-                When(
-                    pk__in=records.with_level(user, ContributionLevel.VIEW).values(
-                        "pk"
-                    ),
-                    then=Value(OWN),
-                ),
-                When(
-                    pk__in=records.filter(self.public_q()).values("pk"),
-                    then=Value(PUBLIC),
-                ),
-                default=Value(OTHER),
-                output_field=IntegerField(),
-            )
+            group_rank=Case(*ranks, default=Value(OTHER), output_field=IntegerField())
         )
         queryset = self.apply_filters(self.hook_queryset(queryset))
         queryset = self.search(queryset, self.query)
@@ -315,6 +343,8 @@ class RecordAutocompleteView(LimitedAutocompleteMixin, AutocompleteModelView):
     def group_names(self):
         """Return the heading of each group, by rank."""
         return {
+            PREFERRED: self.preferred_heading
+            % {"things": str(self.noun_plural).capitalize()},
             OWN: _("Your %(things)s") % {"things": self.noun_plural},
             PUBLIC: _("Public %(things)s") % {"things": self.noun_plural},
             OTHER: _("Other %(things)s") % {"things": self.noun_plural},
@@ -410,6 +440,7 @@ class DatasetRecordsAutocompleteView(RecordAutocompleteView):
     """
 
     allowed_filter_fields = ["dataset", "polymorphic_ctype"]
+    preferred_heading = _("%(things)s in this dataset")
 
     def public_q(self):
         """Return the condition for a record whose dataset is public and published."""

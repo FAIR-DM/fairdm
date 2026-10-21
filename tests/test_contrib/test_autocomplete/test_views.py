@@ -245,6 +245,11 @@ def narrowed_to(dataset):
     return {"f": f"'dataset__dataset={dataset.pk}'"}
 
 
+def preferring(dataset):
+    """Return the parameter a field that prefers a dataset sends with each search."""
+    return {"prefer": f"dataset={dataset.pk}"}
+
+
 @pytest.mark.django_db
 class TestSampleAutocompleteView:
     def test_narrowed_by_a_dataset_only_that_datasets_samples_are_offered(
@@ -258,6 +263,51 @@ class TestSampleAutocompleteView:
         answer = search(researcher_client, "sample", "view", **narrowed_to(wanted))
 
         assert [r["id"] for r in answer["results"]] == [inside.pk]
+
+    def test_a_preferred_dataset_puts_its_samples_first_in_a_group_of_their_own(
+        self, researcher_client, researcher, make_dataset, make_sample
+    ):
+        wanted = make_dataset("Wanted", holder=researcher)
+        other = make_dataset("Other", holder=researcher)
+        elsewhere = make_sample("Alpha", dataset=other)
+        inside = make_sample("Zulu", dataset=wanted)
+
+        answer = search(researcher_client, "sample", "view", **preferring(wanted))
+
+        assert [r["id"] for r in answer["results"]] == [inside.pk, elsewhere.pk]
+        assert answer["results"][0]["optgroup"] != answer["results"][1]["optgroup"]
+
+    def test_a_preference_does_not_offer_what_the_person_could_not_be_offered(
+        self, researcher_client, researcher, make_dataset, make_sample
+    ):
+        unseen = make_dataset("Unseen")
+        make_sample("Hidden", dataset=unseen)
+        visible = make_sample("Seen", dataset=make_dataset("Mine", holder=researcher))
+
+        answer = search(researcher_client, "sample", "view", **preferring(unseen))
+
+        assert [r["id"] for r in answer["results"]] == [visible.pk]
+
+    @pytest.mark.parametrize(
+        "preference",
+        ["visibility=1", "dataset=not a key", "dataset=", "dataset", "=3"],
+    )
+    def test_a_preference_the_view_cannot_use_changes_nothing(
+        self,
+        researcher_client,
+        researcher,
+        make_dataset,
+        make_sample,
+        preference,
+    ):
+        dataset = make_dataset("Cores", holder=researcher)
+        for name in ("Alpha", "Bravo"):
+            make_sample(name, dataset=dataset)
+
+        plain = search(researcher_client, "sample", "view")
+        preferred = search(researcher_client, "sample", "view", prefer=preference)
+
+        assert preferred["results"] == plain["results"]
 
     def test_a_local_id_typed_exactly_comes_first(
         self, researcher_client, researcher, make_dataset, make_sample
@@ -360,6 +410,19 @@ class TestMeasurementAutocompleteView:
         answer = search(researcher_client, "measurement", "view", **narrowed_to(wanted))
 
         assert [r["id"] for r in answer["results"]] == [inside.pk]
+
+    def test_a_preferred_dataset_puts_its_measurements_first_in_a_group_of_their_own(
+        self, researcher_client, researcher, make_dataset, make_measurement
+    ):
+        wanted = make_dataset("Wanted", holder=researcher)
+        other = make_dataset("Other", holder=researcher)
+        elsewhere = make_measurement("Alpha", dataset=other)
+        inside = make_measurement("Zulu", dataset=wanted)
+
+        answer = search(researcher_client, "measurement", "view", **preferring(wanted))
+
+        assert [r["id"] for r in answer["results"]] == [inside.pk, elsewhere.pk]
+        assert answer["results"][0]["optgroup"] != answer["results"][1]["optgroup"]
 
     def test_a_local_id_typed_exactly_comes_first(
         self, researcher_client, researcher, make_dataset, make_measurement

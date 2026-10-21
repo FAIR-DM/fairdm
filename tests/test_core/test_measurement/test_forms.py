@@ -552,7 +552,7 @@ class TestMeasurementEditPageLocation:
 
 @pytest.mark.django_db
 class TestMeasurementSampleField:
-    """The sample is chosen from the dataset chosen on the same form."""
+    """The sample is chosen from every sample the person may see, those of the chosen dataset first."""
 
     def _form_class(self):
         class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
@@ -570,16 +570,30 @@ class TestMeasurementSampleField:
             )
         return user
 
-    def test_the_sample_field_depends_on_the_dataset_field(self):
+    def test_the_sample_field_prefers_the_dataset_field_and_is_not_bound_to_it(self):
         form = self._form_class()()
 
         assert isinstance(form.fields["sample"], SampleChoiceField)
-        assert form.fields["sample"].depends_on == "dataset"
+        assert form.fields["sample"].prefer == "dataset"
+        assert form.fields["sample"].depends_on is None
 
-    def test_a_sample_of_another_dataset_is_refused(self):
+    def test_a_sample_of_another_dataset_the_person_may_see_is_accepted(self):
         chosen, other = DatasetFactory(), DatasetFactory()
         sample = RockSampleFactory(dataset=other)
         user = self._editor_of(chosen, other)
+
+        form = self._form_class()(
+            data={"name": "Run", "dataset": chosen.pk, "sample": sample.pk},
+            request=_request_for(user),
+        )
+
+        assert form.is_valid(), form.errors
+        assert form.cleaned_data["sample"] == sample
+
+    def test_a_sample_the_person_may_not_see_is_refused(self):
+        chosen, unseen = DatasetFactory(), DatasetFactory()
+        sample = RockSampleFactory(dataset=unseen)
+        user = self._editor_of(chosen)
 
         form = self._form_class()(
             data={"name": "Run", "dataset": chosen.pk, "sample": sample.pk},

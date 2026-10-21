@@ -231,6 +231,54 @@ class DependentSampleForm(forms.Form):
     sample = SampleChoiceField(depends_on="dataset")
 
 
+class PreferringSampleForm(forms.Form):
+    dataset = DatasetChoiceField(scope="edit", required=False)
+    sample = SampleChoiceField(prefer="dataset")
+
+
+@pytest.mark.django_db
+class TestPreferringFields:
+    def test_the_widget_is_told_to_prefer_the_dataset_and_not_to_filter_by_it(
+        self, researcher, in_request
+    ):
+        in_request(researcher)
+
+        context = PreferringSampleForm()["sample"].field.widget.get_context(
+            "sample", None, {}
+        )
+
+        assert context["widget"]["prefer"] == "dataset"
+        assert not context["widget"].get("filters")
+
+    def test_a_sample_of_another_dataset_the_person_may_see_is_accepted(
+        self, researcher, in_request, make_dataset, make_sample
+    ):
+        chosen = make_dataset("Chosen", holder=researcher)
+        other = make_dataset("Other", holder=researcher)
+        sample = make_sample("Elsewhere", dataset=other)
+        in_request(researcher)
+
+        form = PreferringSampleForm({"dataset": chosen.pk, "sample": sample.pk})
+
+        assert form.is_valid(), form.errors
+        assert form.cleaned_data["sample"] == sample
+
+    def test_a_sample_the_person_may_not_see_is_refused(
+        self, researcher, in_request, make_dataset, make_sample
+    ):
+        chosen = make_dataset("Chosen", holder=researcher)
+        sample = make_sample("Hidden", dataset=make_dataset("Unseen"))
+        in_request(researcher)
+
+        form = PreferringSampleForm({"dataset": chosen.pk, "sample": sample.pk})
+
+        assert form.has_error("sample", code="invalid_choice")
+
+    def test_a_field_cannot_prefer_what_its_view_does_not_filter_by(self):
+        with pytest.raises(ValueError, match="prefer"):
+            DatasetChoiceField(prefer="project")
+
+
 @pytest.mark.django_db
 class TestDependentFields:
     def test_the_field_hands_the_widget_the_hook_that_narrows_by_the_dataset(

@@ -156,6 +156,12 @@ class RecordSelectMixin:
             return super()._get_selected_options(value, autocomplete_view)
         return self.field.selected_options(value)
 
+    def get_context(self, name, value, attrs=None):
+        """Tell the page which field's value the search should put first."""
+        context = super().get_context(name, value, attrs)
+        context["widget"]["prefer"] = getattr(self.field, "prefer", None)
+        return context
+
 
 class RecordSelectWidget(RecordSelectMixin, TomSelectModelWidget):
     """Choose one record."""
@@ -177,6 +183,9 @@ class RecordFieldMixin:
             Defaults to the field's ``default_scope``.
         depends_on: The name of another field on the same form whose value the records must
             match, such as ``"dataset"`` for a sample. It must be a filter the view allows.
+        prefer: The name of another field on the same form whose value the records should
+            match to be listed first, in a group of their own. Unlike ``depends_on`` it never
+            narrows what the field offers or accepts. It must be a filter the view allows.
         **kwargs: Passed to the form field.
 
     Attributes:
@@ -202,7 +211,7 @@ class RecordFieldMixin:
     placeholder = ""
     count_text = ""
 
-    def __init__(self, *args, scope=None, depends_on=None, **kwargs):
+    def __init__(self, *args, scope=None, depends_on=None, prefer=None, **kwargs):
         scope = scope or self.default_scope
         if scope not in self.scopes:
             raise ValueError(
@@ -213,8 +222,13 @@ class RecordFieldMixin:
             raise ValueError(
                 f"depends_on must be one of {', '.join(allowed) or 'none'}, not {depends_on!r}"
             )
+        if prefer and prefer not in allowed:
+            raise ValueError(
+                f"prefer must be one of {', '.join(allowed) or 'none'}, not {prefer!r}"
+            )
         self.scope = scope
         self.depends_on = depends_on
+        self.prefer = prefer
         self.form = None
         self.field_name = ""
         kwargs.setdefault("label", self.label)
