@@ -6,7 +6,9 @@ from django.urls import reverse
 
 from demo.factories import CustomSampleFactory
 from demo.models import CustomSample
-from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
+from fairdm.contrib.autocomplete.filters import RecordMultipleFilter, TagFilter
+from fairdm.core.project.filters import ProjectFilter
+from fairdm.core.project.models import Project
 from fairdm.core.sample.filters import SampleFilter
 from fairdm.utils.choices import Visibility
 
@@ -134,3 +136,68 @@ class TestRecordMultipleFilter:
 
         assert filterset.is_valid(), filterset.errors
         assert [sample.dataset for sample in filterset.qs] == [datasets["first"]]
+
+
+@pytest.mark.django_db
+class TestTagFilter:
+    @pytest.fixture
+    def projects(self, make_project):
+        """A public project tagged "basalt", one tagged "granite", one untagged, and a private one tagged "secret"."""
+        basalt = make_project("Basalt", visibility=Visibility.PUBLIC)
+        basalt.tags.add("basalt")
+        granite = make_project("Granite", visibility=Visibility.PUBLIC)
+        granite.tags.add("granite")
+        bare = make_project("Bare", visibility=Visibility.PUBLIC)
+        make_project("Hidden").tags.add("secret")
+        return {"basalt": basalt, "granite": granite, "bare": bare}
+
+    def filterset(self, in_request, data, user=None):
+        request = in_request(user or AnonymousUser())
+        return ProjectFilter(data=data, queryset=Project.objects.all(), request=request)
+
+    def test_the_project_lists_tag_filter_is_a_tag_filter(self):
+        assert isinstance(ProjectFilter().filters["tags"], TagFilter)
+
+    def test_two_chosen_tags_narrow_the_list_to_the_projects_with_either(
+        self, in_request, projects
+    ):
+        filterset = self.filterset(in_request, {"tags": ["basalt", "granite"]})
+
+        assert filterset.is_valid(), filterset.errors
+        assert set(filterset.qs) == {projects["basalt"], projects["granite"]}
+
+    def test_a_project_with_both_tags_is_listed_once(self, in_request, projects):
+        projects["basalt"].tags.add("granite")
+
+        filterset = self.filterset(in_request, {"tags": ["basalt", "granite"]})
+
+        assert list(filterset.qs).count(projects["basalt"]) == 1
+
+    def test_a_tag_used_only_on_a_private_project_is_refused(
+        self, in_request, projects
+    ):
+        filterset = self.filterset(in_request, {"tags": ["secret"]})
+
+        assert not filterset.is_valid()
+        assert "tags" in filterset.errors
+
+    def test_a_researcher_is_offered_the_same_tags_as_a_visitor(
+        self, in_request, researcher, make_project, projects
+    ):
+        make_project("Mine", holder=researcher).tags.add("mine")
+
+        filterset = self.filterset(in_request, {"tags": ["mine"]}, user=researcher)
+
+        assert not filterset.is_valid()
+
+    def test_a_tag_nothing_uses_is_refused_so_the_filter_adds_none(
+        self, in_request, projects
+    ):
+        filterset = self.filterset(in_request, {"tags": ["brand-new"]})
+
+        assert not filterset.is_valid()
+
+    def test_the_control_offers_no_way_to_add_a_tag(self, in_request):
+        filterset = self.filterset(in_request, {})
+
+        assert filterset.form.fields["tags"].widget.create is False

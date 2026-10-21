@@ -185,3 +185,10 @@ Did: TagAutocompleteView (a model view over taggit's Tag; the tags in use on rec
 Verified: red first (9 view/form tests failed, filter tests failed to import); pytest -n4 tests/test_core/test_project tests/test_contrib/test_generic tests/test_contrib/test_autocomplete tests/test_core/test_editing.py: 1112 passed, 8 failed (the keyword page tests that read option[selected] out of the old widget); those two tests now read the form's value, and the `chosen` helper they alone used is gone: 28 passed in TestEditKeywords. Probed: removing the content-type restriction in TagAutocompleteView.offered makes the same-key test fail.
 Next: Tag tests are committed as T025.
 Watch: TaggedItem.object_id is the text of an integer key and equal across tables, so the view restricts by content type (the concrete model's, for samples and measurements).
+
+## 2026-10-21T14:52:09Z · Implementer US6-US8 · T025
+
+Did: TestTagAutocompleteView (found by part of a name, a private record's tag withheld, a public record's tag offered to a visitor, the public address offering only public records' tags, an unused tag not offered, a tag on several records offered once, a same-key record of another kind not leaking its tag), TestTagFilter (narrowing by either of two tags, once for a project with both, a private project's tag refused, a researcher offered the same as a visitor, an unused tag refused, no way to add), TestKeywordFormTags (existing and new tag saved, stripping and blanks, removal, clearing, shown as chosen on reopening, new tags allowed), and the tag addresses join the limits test.
+Verified: the tests failed first for the missing address, the missing filter and the old widget; now pytest -n0 on the four classes: 37 passed.
+Next: the ROR lookup.
+Watch: none.

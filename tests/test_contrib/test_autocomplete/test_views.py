@@ -5,7 +5,12 @@ from django.urls import reverse
 
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Affiliation
-from fairdm.factories import AffiliationFactory, ContributionFactory, ProjectFactory
+from fairdm.factories import (
+    AffiliationFactory,
+    ContributionFactory,
+    DatasetFactory,
+    ProjectFactory,
+)
 from fairdm.utils.choices import Visibility
 from tests.registry_models.models import ConcreteMeasurement, ConcreteSample
 
@@ -918,7 +923,7 @@ class TestPublicationAutocompleteView:
 
 @pytest.mark.django_db
 class TestNewViewsTakeTheLimits:
-    @pytest.mark.parametrize("name", ["publication"])
+    @pytest.mark.parametrize("name", ["publication", "tag-view", "tag-public"])
     def test_each_new_address_refuses_a_caller_over_the_burst_rate(
         self, client, settings, monkeypatch, name
     ):
@@ -942,3 +947,68 @@ class TestNewViewsTakeTheLimits:
 
         assert answers[-1] == 429
         assert 429 not in answers[:2]
+
+
+@pytest.mark.django_db
+class TestTagAutocompleteView:
+    def test_a_tag_in_use_on_a_record_the_researcher_may_view_is_found_by_part_of_its_name(
+        self, researcher_client, researcher, make_project
+    ):
+        make_project("Mine", holder=researcher).tags.add("basalt-cores")
+        make_project("Also mine", holder=researcher).tags.add("granite")
+
+        answer = search(researcher_client, "tag", "view", q="cores")
+
+        assert names(answer) == ["basalt-cores"]
+
+    def test_a_tag_used_only_on_a_private_record_is_not_offered_to_someone_who_cannot_view_it(
+        self, researcher_client, make_project
+    ):
+        make_project("Secret").tags.add("secret-site")
+
+        answer = search(researcher_client, "tag", "view")
+
+        assert answer["results"] == []
+
+    def test_a_tag_on_a_public_record_is_offered_to_a_visitor(
+        self, client, make_project
+    ):
+        make_project("Open", visibility=Visibility.PUBLIC).tags.add("open-data")
+
+        assert names(search(client, "tag", "view")) == ["open-data"]
+
+    def test_the_public_address_offers_only_tags_on_public_records(
+        self, researcher_client, researcher, make_project, make_record
+    ):
+        make_project("Mine", holder=researcher).tags.add("mine-only")
+        make_record("project", "Open", holder=researcher).tags.add("on-public")
+        make_record("sample", "A sample", holder=researcher).tags.add("on-sample")
+
+        at_view = search(researcher_client, "tag", "view")
+        at_public = search(researcher_client, "tag", "public")
+
+        assert names(at_view) == ["mine-only", "on-public", "on-sample"]
+        assert names(at_public) == ["on-public", "on-sample"]
+
+    def test_a_tag_nothing_uses_is_not_offered(self, researcher_client):
+        from taggit.models import Tag
+
+        Tag.objects.create(name="orphan")
+
+        assert search(researcher_client, "tag", "view")["results"] == []
+
+    def test_a_tag_used_on_several_records_is_offered_once(
+        self, researcher_client, researcher, make_project
+    ):
+        for name in ("One", "Two"):
+            make_project(name, holder=researcher).tags.add("shared")
+
+        assert names(search(researcher_client, "tag", "view")) == ["shared"]
+
+    def test_a_private_records_tag_is_not_offered_because_a_public_record_of_another_kind_shares_its_key(
+        self, client
+    ):
+        ProjectFactory(id=987654, visibility=Visibility.PUBLIC)
+        DatasetFactory(id=987654, visibility=Visibility.PRIVATE).tags.add("leaky")
+
+        assert search(client, "tag", "view")["results"] == []
