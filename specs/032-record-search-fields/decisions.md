@@ -117,3 +117,17 @@ django-select2 uses, a timed seed for SC-002, and four smaller edits.
 
 The two spec findings (the "searching is paused" message of FR-021, and FR-018 still naming an
 organization's ROR after the sketch removed it) went to the maintainer as a delta brief.
+
+## D14. The autocomplete rates live on their throttle classes, not in the API's rate dictionary
+
+**Decision**: The four autocomplete throttles carry their default rates as `default_rate` and
+read `REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]` only when a portal gives a scope there.
+`fairdm/api/settings.py` is unchanged.
+
+**Why**: `tests/test_api/test_throttling.py` pins that dictionary to exactly the API's four scopes
+(`test_the_four_throttles_are_the_ones_the_api_applies`), and a test written for another story
+cannot be edited here. The fallback the plan asks for already gives a portal the defaults without
+any entry, and a portal that wants other figures adds the four scopes to its own dictionary.
+
+**Revisit if**: that test is widened to the eight scopes, when the defaults can move into the
+shipped dictionary beside the API's.

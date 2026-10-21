@@ -1,6 +1,7 @@
 """Autocomplete views for FairDM models."""
 
 import functools
+import math
 
 from dal import autocomplete
 from django.db.models import Case, IntegerField, Q, Value, When
@@ -10,6 +11,12 @@ from django.utils.translation import gettext as _
 from django_tomselect.autocompletes import AutocompleteModelView
 from research_vocabs.models import Concept
 
+from fairdm.contrib.autocomplete.throttling import (
+    AutocompleteAnonBurstThrottle,
+    AutocompleteAnonDailyThrottle,
+    AutocompleteUserBurstThrottle,
+    AutocompleteUserDailyThrottle,
+)
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Contribution, Contributor, Organization
 from fairdm.core.dataset.models import Dataset
@@ -179,6 +186,7 @@ class LimitedAutocompleteMixin:
         page_size: The results in a page. A request cannot change it.
         max_pages: The last page that is served.
         max_query_length: The longest search text. Longer text is cut.
+        throttle_classes: The limits on one caller, checked before anything is searched.
         allowed_filter_fields: The fields a request may filter on through ``f`` and ``e``. A
             request naming any other field is offered nothing.
         allowed_ordering_fields: The fields a request may order by. Others are ignored.
@@ -191,6 +199,25 @@ class LimitedAutocompleteMixin:
     max_query_length = 100
     allowed_filter_fields: list[str] = []
     allowed_ordering_fields: list[str] = []
+    throttle_classes = (
+        AutocompleteAnonBurstThrottle,
+        AutocompleteAnonDailyThrottle,
+        AutocompleteUserBurstThrottle,
+        AutocompleteUserDailyThrottle,
+    )
+
+    def dispatch(self, request, *args, **kwargs):
+        """Refuse a caller over a limit, before anything is searched."""
+        throttles = [throttle() for throttle in self.throttle_classes]
+        refused = [t for t in throttles if not t.allow_request(request, self)]
+        if refused:
+            waits = [wait for t in refused if (wait := t.wait())]
+            response = JsonResponse(
+                {"results": [], "page": 1, "has_more": False}, status=429
+            )
+            response["Retry-After"] = str(math.ceil(max(waits, default=1)))
+            return response
+        return super().dispatch(request, *args, **kwargs)
 
     def setup(self, request, *args, **kwargs):
         """Fix the page size and the length of the search text, whatever the request asks."""
