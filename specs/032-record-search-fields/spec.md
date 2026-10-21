@@ -67,7 +67,7 @@ The second is listed so that nothing built now rules any of it out.
 | Where | Chooses | Single or multiple | Private records offered |
 |---|---|---|---|
 | Sample form, measurement form | the dataset the record belongs to | single | those the person may edit |
-| Measurement form | the sample it was made on, narrowed to the chosen dataset | single | those the person may view |
+| Measurement form | the sample it was made on, the chosen dataset's samples first | single | those the person may view |
 | Dataset form | the project it belongs to | single | those the person may edit |
 | Dataset form | its data publication | single | not applicable |
 | Project form | the owning organization | single | not applicable |
@@ -149,6 +149,10 @@ putting it to him again. The longer reasoning is in [decisions.md](decisions.md)
   maintainer ruled this in the sketch review, and a ROR identifier typed exactly still finds the
   organization.
 
+- Q: May the measurement form's sample field offer a sample from another dataset? → A: Yes. FS-006
+  (FR-006) lets a measurement name a sample from a different dataset, and the maintainer confirmed
+  on 2026-10-21 that it stays. The chosen dataset only puts its own samples first.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A researcher chooses the dataset a new sample goes into (Priority: P1)
@@ -188,29 +192,31 @@ form, search for a dataset, choose it and save.
 
 ### User Story 2 - A researcher chooses the sample a measurement was made on (Priority: P1)
 
-A researcher adds a measurement. Once they have chosen its dataset, the sample field offers only
-that dataset's samples. They find the sample by its name, its local ID or an identifier it
-carries, and each result shows the sample's type and local ID. Typing an identifier exactly puts
-that sample first.
+A researcher adds a measurement. The sample field offers every sample they may see, because a
+measurement may name a sample from another dataset (FS-006, FR-006). Once they have chosen the
+measurement's dataset, that dataset's samples come first, under a heading of their own. They find
+the sample by its name, its local ID or an identifier it carries, and each result shows the
+sample's type, local ID and dataset. Typing an identifier exactly puts that sample first.
 
 **Why this priority**: A measurement's sample field lists every sample in the portal today, which
 is unusable in a portal of any size.
 
 **Independent Test**: Choose a dataset on the measurement form, search the sample field, and check
-that only that dataset's samples are offered.
+that the dataset's samples come first and samples from other datasets follow.
 
 **Acceptance Scenarios**:
 
 1. **Given** a dataset chosen on the measurement form, **When** the researcher searches the sample
-   field, **Then** only samples in that dataset are offered.
+   field, **Then** samples in that dataset are offered first, in a group of their own, and other
+   samples the researcher may see follow.
 2. **Given** a sample, **When** the researcher types its local ID or an identifier it carries,
    **Then** that sample is offered first.
 3. **Given** offered samples, **When** the results are shown, **Then** each gives its type, its
    local ID and its dataset.
-4. **Given** a sample chosen, **When** the researcher changes the dataset, **Then** the sample
-   field is cleared.
-5. **Given** a sample from another dataset, **When** it is submitted with the form anyway, **Then**
-   the form is refused and nothing is saved.
+4. **Given** a sample from another dataset that the researcher may see, **When** it is chosen and
+   the form is saved, **Then** the measurement names that sample.
+5. **Given** a sample the researcher may not see, **When** it is submitted with the form anyway,
+   **Then** the form is refused and nothing is saved.
 
 ---
 
@@ -428,7 +434,9 @@ save.
   level a private record needs, and, for sample and measurement fields, the registered type it is
   narrowed to. (US 4)
 - **FR-004**: A field MUST let its developer narrow it by the value of another field on the same
-  form, and MUST clear itself when that value changes. (US 2, US 4)
+  form, and MUST clear itself when that value changes. A field MUST also let its developer put the
+  records related to another field's value first, without narrowing to them, as the measurement
+  form's sample field does. (US 2, US 4)
 - **FR-005**: A field that places a record inside another MUST default to offering private records
   the person may edit. A field that links to a record MUST default to offering records the person
   may view. A filter on a public list MUST default to offering public records only, to everyone.
