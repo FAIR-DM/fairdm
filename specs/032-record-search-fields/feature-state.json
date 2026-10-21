@@ -79,13 +79,16 @@
           "attempts": 2,
           "evidence": {
             "tests": [
-              "tests/test_contrib/test_autocomplete/test_views.py::TestDatasetAutocompleteView,tests/test_contrib/test_autocomplete/test_views.py::TestRecordRows"
+              "tests/test_contrib/test_autocomplete/test_views.py::TestDatasetAutocompleteView",
+              "tests/test_contrib/test_autocomplete/test_views.py::TestRecordRows"
             ],
             "commands": [
-              "uv run pytest -q -n0 tests/test_contrib/test_autocomplete/test_views.py (16 passed, exit 0)"
+              "uv run pytest -q -n0 tests/test_contrib/test_autocomplete/test_views.py (exit 0)"
             ],
             "code": [
-              "fairdm/contrib/autocomplete/views.py:290"
+              "fairdm/contrib/autocomplete/views.py:264",
+              "fairdm/contrib/autocomplete/views.py:423",
+              "fairdm/contrib/autocomplete/urls.py:25"
             ]
           }
         },
@@ -98,10 +101,10 @@
               "tests/test_contrib/test_autocomplete/test_views.py::TestProjectAutocompleteView"
             ],
             "commands": [
-              "uv run pytest -q -n0 tests/test_contrib/test_autocomplete/test_views.py (20 passed, exit 0)"
+              "uv run pytest -q -n0 tests/test_contrib/test_autocomplete/test_views.py (exit 0)"
             ],
             "code": [
-              "fairdm/contrib/autocomplete/views.py:332"
+              "fairdm/contrib/autocomplete/views.py:454"
             ]
           }
         },
@@ -114,10 +117,10 @@
               "tests/test_contrib/test_autocomplete/test_views.py::TestLimitedAutocompleteMixin"
             ],
             "commands": [
-              "uv run pytest -q -n0 tests/test_contrib/test_autocomplete/test_views.py (74 passed, exit 0)"
+              "uv run pytest -q -n0 tests/test_contrib/test_autocomplete/test_views.py (exit 0)"
             ],
             "code": [
-              "fairdm/contrib/autocomplete/views.py:176"
+              "fairdm/contrib/autocomplete/views.py:185"
             ]
           }
         },
@@ -130,10 +133,11 @@
               "tests/test_contrib/test_autocomplete/test_throttling.py::TestAutocompleteThrottles"
             ],
             "commands": [
-              "uv run pytest -q -n0 tests/test_contrib/test_autocomplete tests/test_api/test_throttling.py (all passed, exit 0)"
+              "uv run pytest -q -n0 tests/test_contrib/test_autocomplete tests/test_api/test_throttling.py (exit 0)"
             ],
             "code": [
-              "fairdm/contrib/autocomplete/throttling.py:19"
+              "fairdm/contrib/autocomplete/throttling.py:19",
+              "fairdm/contrib/autocomplete/views.py:212"
             ]
           }
         },
@@ -143,13 +147,15 @@
           "attempts": 2,
           "evidence": {
             "tests": [
-              "tests/test_contrib/test_autocomplete/test_fields.py::TestRecordFields,tests/test_contrib/test_autocomplete/test_fields.py::TestStoredLinkTheEditorCannotSee"
+              "tests/test_contrib/test_autocomplete/test_fields.py::TestRecordFields",
+              "tests/test_contrib/test_autocomplete/test_fields.py::TestStoredLinkTheEditorCannotSee"
             ],
             "commands": [
-              "uv run pytest -q -n0 tests/test_contrib/test_autocomplete (passed, exit 0)"
+              "uv run pytest -q -n0 tests/test_contrib/test_autocomplete (exit 0)"
             ],
             "code": [
-              "fairdm/contrib/autocomplete/fields.py:178"
+              "fairdm/contrib/autocomplete/fields.py:160",
+              "fairdm/contrib/autocomplete/fields.py:325"
             ]
           }
         },
@@ -159,13 +165,19 @@
           "attempts": 3,
           "evidence": {
             "tests": [
-              "tests/test_core/test_sample/test_forms.py::TestSampleFormMixinWidgets,tests/test_core/test_dataset/test_forms.py::TestProjectAndReferenceFieldWidgets,tests/test_core/test_measurement/test_forms.py::TestMeasurementFormDatasetField,tests/test_core/test_sample/test_config.py::TestRegistryUsesTheMixins,tests/test_registry/test_factories.py::TestFormFactoryMeasurementBranch"
+              "tests/test_core/test_sample/test_forms.py::TestSampleFormMixinWidgets",
+              "tests/test_core/test_dataset/test_forms.py::TestProjectAndReferenceFieldWidgets",
+              "tests/test_core/test_measurement/test_forms.py::TestMeasurementFormDatasetField",
+              "tests/test_core/test_sample/test_config.py::TestRegistryUsesTheMixins",
+              "tests/test_registry/test_factories.py::TestFormFactoryMeasurementBranch"
             ],
             "commands": [
               "uv run pytest -q -n0 tests/test_contrib/test_autocomplete tests/test_core/test_sample tests/test_core/test_dataset tests/test_core/test_measurement tests/test_registry tests/test_core/test_project (1789 passed, 7 skipped, exit 0)"
             ],
             "code": [
-              "fairdm/core/sample/forms.py:56"
+              "fairdm/core/sample/forms.py:57",
+              "fairdm/core/measurement/forms.py:52",
+              "fairdm/core/dataset/forms.py:130"
             ]
           }
         },
@@ -175,13 +187,17 @@
           "attempts": 1,
           "evidence": {
             "tests": [
-              "tests/test_contrib/test_autocomplete/test_views.py,tests/test_contrib/test_autocomplete/test_throttling.py,tests/test_contrib/test_autocomplete/test_fields.py"
+              "tests/test_contrib/test_autocomplete/test_views.py::TestDatasetAutocompleteView",
+              "tests/test_contrib/test_autocomplete/test_fields.py::TestRecordFields"
             ],
             "commands": [
-              "uv run python manage.py check (no issues); uv run deptry . (no dependency issues); uv run pytest -q -n0 tests/test_contrib/test_autocomplete (passed)"
+              "uv run python manage.py check (no issues)",
+              "uv run deptry . (no dependency issues)"
             ],
             "code": [
-              "fairdm/contrib/autocomplete/views.py:176"
+              "fairdm/conf/settings/apps.py:86",
+              "fairdm/templates/django_tomselect/tomselect.html:5",
+              "fairdm/templates/django_tomselect/render/option.html:3"
             ]
           }
         },
@@ -194,10 +210,12 @@
               "tests/test_contrib/test_autocomplete/test_fields.py::TestRecordFields"
             ],
             "commands": [
-              "docs examples mirror the tested forms in test_fields.py; sphinx not installed in this environment, so the build was not run"
+              "documentation build not run: sphinx is not installed in this environment"
             ],
             "code": [
-              "docs/portal-development/record-fields.md:1"
+              "docs/portal-development/record-fields.md:1",
+              "docs/portal-development/add-a-record-field.md:1",
+              "docs/portal-development/forms-and-filters/sample-mixins.md:50"
             ]
           }
         }

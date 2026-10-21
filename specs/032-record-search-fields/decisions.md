@@ -142,3 +142,15 @@ every project there when it is built with no request, as its docstring has alway
 already pin that. The sample and measurement forms assign nothing, so they offer nothing then.
 
 **Revisit if**: a caller builds a form without a request and expects the person's own records.
+
+## D16. Tests that pinned the old dataset and project widgets are replaced across six files
+
+**Decision**: The tests expecting the add-another wrapper or a plain select on the sample,
+measurement and dataset forms were rewritten to expect the new fields. They sit in the sample,
+measurement and dataset form tests, `test_sample/test_config.py` and `test_registry/test_factories.py`.
+The two classes that only checked the add-another URL were removed with the wrapper.
+
+**Why**: Each one asserted the widget of a field this story moves, so each had to change with it.
+Nothing else in those files was touched.
+
+**Revisit if**: a reviewer wants the registry and config tests kept for the generated-form story.
