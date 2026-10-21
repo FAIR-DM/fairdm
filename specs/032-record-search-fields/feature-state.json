@@ -3,7 +3,7 @@
   "feature": "032-record-search-fields",
   "branch": "032-record-search-fields",
   "repo": "FAIR-DM/fairdm",
-  "state": "IMPLEMENT",
+  "state": "REVIEW",
   "state_history": [
     {
       "state": "QUEUED",
@@ -24,6 +24,16 @@
       "state": "IMPLEMENT",
       "at": "2026-10-21T11:50:16Z",
       "note": "plan gate open; design review applied"
+    },
+    {
+      "state": "CONVERGE",
+      "at": "2026-10-21T15:43:00Z",
+      "note": "all eight stories accepted"
+    },
+    {
+      "state": "REVIEW",
+      "at": "2026-10-21T15:45:13Z",
+      "note": "converged; stage-exit S5 green; ADRs 0037-0039"
     }
   ],
   "gates": {
@@ -216,6 +226,38 @@
               "docs/portal-development/record-fields.md:1",
               "docs/portal-development/add-a-record-field.md:1",
               "docs/portal-development/forms-and-filters/sample-mixins.md:50"
+            ]
+          }
+        },
+        {
+          "id": "T036",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_autocomplete/test_views.py::TestSampleAutocompleteView::test_a_filter_cannot_reach_past_the_dataset_into_its_fields"
+            ],
+            "commands": [
+              "uv run pytest -q -n0 tests/test_contrib/test_autocomplete/test_views.py -k reach_past (red before the fix: 2 failed; green after)"
+            ],
+            "code": [
+              "fairdm/contrib/autocomplete/views.py:155"
+            ]
+          }
+        },
+        {
+          "id": "T037",
+          "status": "done",
+          "attempts": 1,
+          "evidence": {
+            "tests": [
+              "tests/test_contrib/test_autocomplete/test_views.py::TestSampleAutocompleteView::test_a_filter_cannot_reach_past_the_dataset_into_its_fields"
+            ],
+            "commands": [
+              "grep django-autocomplete-light pyproject.toml (no match)"
+            ],
+            "code": [
+              "pyproject.toml:1"
             ]
           }
         }
@@ -730,11 +772,11 @@
   ],
   "budgets": {
     "converge_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 2
     },
     "review_cycles": {
-      "used": 0,
+      "used": 1,
       "max": 1
     },
     "tokens": {

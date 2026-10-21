@@ -188,3 +188,13 @@ This story carries the foundation (plan D1 to D6). The sketch's `records.py`, `r
   address and throttle setting, with a working example each), `docs/portal-administration/api-limits.md`
   naming the four new scopes and their reliance on `NUM_PROXIES`, the CHANGELOG with the breaking
   changes and a migration guide, and `CONTEXT.md`'s Autocomplete field entry.
+
+## Review fixes
+
+- [x] T036 [US1] A request's `f` or `e` must name an allowed filter field exactly. django-tomselect
+  checked only the first part of a lookup, so `dataset__project__visibility` passed as `dataset`
+  and let a visitor test any field the relation reached, a contributor's email among them. Test:
+  `TestSampleAutocompleteView::test_a_filter_cannot_reach_past_the_dataset_into_its_fields`, red
+  before the fix for both `f` and `e`.
+- [x] T037 [US4] Remove the leftover `django-autocomplete-light` entry from deptry's module map in
+  `pyproject.toml`.
