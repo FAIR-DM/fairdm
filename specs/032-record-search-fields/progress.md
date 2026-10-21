@@ -227,3 +227,10 @@ Did: owner and type on the record fields, the profile address (one per kind), Fo
 Verified: pytest -n0 tests/test_contrib/test_admin tests/test_core/test_dataset/test_admin.py demo/tests/test_admin_views.py: 55 passed.
 Next: removal.
 Watch: the registered demo admins never used the removed overrides; only the unregistered XRF example did.
+
+## 2026-10-21T15:23:54Z · Implementer US4 · T032
+
+Did: removed django-autocomplete-light, django-select2 and django-addanother from pyproject.toml, uv.lock (uv lock; uv sync --locked), INSTALLED_APPS, the URL conf and the select2 cache settings. Deleted ConceptAutocomplete, ConceptSelect, ConceptMultiSelect, SelectizeWidget, CreatorsFormField, the django_addanother template, and the Select2 widget suggestions (now Select and SelectMultiple). demo/forms.py moved to the record fields. The tests that pinned removed pieces changed: the select2 cache entry and its assertion, the Select2Widget suggestion, the "select2" alternative in two admin assertions, and the dal module check in one project filter test.
+Verified: deptry: no issues; django check: no issues; pytest -n4 tests/test_conf tests/test_utils tests/test_core/test_project tests/test_core/test_dataset tests/test_contrib/test_autocomplete demo/tests: 1558 passed, 1 skipped. grep for dal, django_select2, select2, addanother, Selectize in fairdm, demo, tests, docs finds only the .select2 rule in admin.css (D33).
+Next: demo seed command and form.
+Watch: django-select2 is still in uv.lock as a dependency of django-mvp.
