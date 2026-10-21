@@ -6,7 +6,6 @@ bulk action of its own, so visibility can only be changed one dataset at a time.
 """
 
 from django.contrib import admin, messages
-from django.db import models
 from django.db.models import Exists, OuterRef
 from django.utils.translation import gettext_lazy as _
 from literature.models import LiteratureItem
