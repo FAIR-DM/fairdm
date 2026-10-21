@@ -17,6 +17,7 @@ from django_tomselect.forms import (
     TomSelectMultipleChoiceField,
 )
 
+
 def record_config(url, *, multiple, placeholder=None, count_text=None, **extra):
     """Build the shared look: search in the dropdown, checkboxes and a count for several."""
     plugins = {

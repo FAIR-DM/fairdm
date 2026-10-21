@@ -2,13 +2,9 @@
 
 from crispy_forms.helper import FormHelper
 from django import forms
-from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
-from django_addanother.widgets import AddAnotherWidgetWrapper
-from django_select2.forms import ModelSelect2Widget
 from mvp_forms.widgets import ImageInput
 
-from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.forms import ManagerOnlyFieldsMixin
 from fairdm.core.image_utils import IMAGE_HELP_TEXT, validate_image_file_size
 from fairdm.utils.location.forms import LocationFormMixin

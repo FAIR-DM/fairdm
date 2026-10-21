@@ -18,7 +18,7 @@ from fairdm.contrib.contributors.models import (
     Organization,
     Person,
 )
-from fairdm.core.models import Dataset, Project, Sample
+from fairdm.core.models import Dataset, Project
 from fairdm.core.sample.models import SampleIdentifier
 from fairdm.utils.choices import Visibility
 
@@ -49,11 +49,36 @@ PEOPLE = [
 GHOSTS = [("Heinrich", "Albrecht"), ("Margarethe", "Lindqvist-Bergström")]
 
 PUBLICATIONS = [
-    ("Alpine spring chemistry across three seasons", ["Okafor", "Weber", "Fischer"], 2024, "10.5880/gfz.2024.011"),
-    ("Groundwater residence times in fractured granite", ["Rossi"], 2023, "10.1029/2023wr034512"),
-    ("A global database of heat flow measurements", ["Raman", "Halvorsen"], 2021, "10.5880/fidgeo.2021.014"),
-    ("Isotopic tracers of meltwater in high mountain catchments", ["Weber", "Okafor"], 2022, "10.1016/j.jhydrol.2022.127845"),
-    ("Hydrochemical survey of the Bernese Oberland", ["Rossi", "Fischer"], 2020, "10.5194/hess-24-1234-2020"),
+    (
+        "Alpine spring chemistry across three seasons",
+        ["Okafor", "Weber", "Fischer"],
+        2024,
+        "10.5880/gfz.2024.011",
+    ),
+    (
+        "Groundwater residence times in fractured granite",
+        ["Rossi"],
+        2023,
+        "10.1029/2023wr034512",
+    ),
+    (
+        "A global database of heat flow measurements",
+        ["Raman", "Halvorsen"],
+        2021,
+        "10.5880/fidgeo.2021.014",
+    ),
+    (
+        "Isotopic tracers of meltwater in high mountain catchments",
+        ["Weber", "Okafor"],
+        2022,
+        "10.1016/j.jhydrol.2022.127845",
+    ),
+    (
+        "Hydrochemical survey of the Bernese Oberland",
+        ["Rossi", "Fischer"],
+        2020,
+        "10.5194/hess-24-1234-2020",
+    ),
 ]
 
 
@@ -95,7 +120,10 @@ class Command(BaseCommand):
             Affiliation.objects.get_or_create(
                 person=person,
                 organization=orgs[org_name],
-                defaults={"is_primary": True, "type": Affiliation.MembershipType.MEMBER},
+                defaults={
+                    "is_primary": True,
+                    "type": Affiliation.MembershipType.MEMBER,
+                },
             )
             if orcid:
                 ContributorIdentifier.objects.get_or_create(
@@ -115,9 +143,9 @@ class Command(BaseCommand):
             name="Alpine groundwater atlas", defaults={"visibility": Visibility.PUBLIC}
         )
         Contribution.add_to(regular, internal)
-        Contribution.objects.filter(contributor=regular, object_id=str(internal.pk)).update(
-            level=ContributionLevel.MANAGE
-        )
+        Contribution.objects.filter(
+            contributor=regular, object_id=str(internal.pk)
+        ).update(level=ContributionLevel.MANAGE)
         for person in people[:3]:
             Contribution.add_to(person, internal)
             Contribution.add_to(person, public_project)
@@ -131,7 +159,12 @@ class Command(BaseCommand):
         ]
         for i in range(1, 26):
             datasets.append(
-                (f"Borehole temperature log {i:02d}", public_project, Visibility.PUBLIC, True)
+                (
+                    f"Borehole temperature log {i:02d}",
+                    public_project,
+                    Visibility.PUBLIC,
+                    True,
+                )
             )
         made = {}
         for name, project, visibility, published in datasets:
@@ -149,7 +182,11 @@ class Command(BaseCommand):
         Dataset.all_objects.get_or_create(
             name="Hydrochemistry of high alpine springs in the Bernese Oberland and the "
             "Valais, including repeat sampling after the 2024 glacial outburst event",
-            defaults={"project": public_project, "visibility": Visibility.PUBLIC, "published": True},
+            defaults={
+                "project": public_project,
+                "visibility": Visibility.PUBLIC,
+                "published": True,
+            },
         )
 
         # Samples with local IDs and IGSNs in the regular user's dataset.
@@ -173,11 +210,17 @@ class Command(BaseCommand):
                     )
                 if i <= 3:
                     SampleIdentifier.objects.get_or_create(
-                        related=sample, type="IGSN", defaults={"value": f"10.58052/IEAS25{i:04d}"}
+                        related=sample,
+                        type="IGSN",
+                        defaults={"value": f"10.58052/IEAS25{i:04d}"},
                     )
 
-        made["Alpine springs 2025 field season"].tags.add("groundwater", "springs", "hydrochemistry")
-        made["Alpine springs 2024"].tags.add("groundwater", "isotopes", "glacial meltwater")
+        made["Alpine springs 2025 field season"].tags.add(
+            "groundwater", "springs", "hydrochemistry"
+        )
+        made["Alpine springs 2024"].tags.add(
+            "groundwater", "isotopes", "glacial meltwater"
+        )
 
         from literature.models import LiteratureItem
 

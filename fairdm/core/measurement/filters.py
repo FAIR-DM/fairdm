@@ -143,7 +143,10 @@ class MeasurementFilterMixin(django_filters.FilterSet):
 
         use_record_filters(
             self,
-            {"dataset": DatasetMultipleChoiceField, "sample": SampleMultipleChoiceField},
+            {
+                "dataset": DatasetMultipleChoiceField,
+                "sample": SampleMultipleChoiceField,
+            },
         )
 
         if "polymorphic_ctype" in self.filters:

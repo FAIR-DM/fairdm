@@ -7,7 +7,10 @@ Untested, and rebuilt test-first once the screens are approved. See
 from django.db.models import Case, IntegerField, Q, Value, When
 from django.template.loader import render_to_string
 from django.utils.translation import gettext as _
-from django_tomselect.autocompletes import AutocompleteIterablesView, AutocompleteModelView
+from django_tomselect.autocompletes import (
+    AutocompleteIterablesView,
+    AutocompleteModelView,
+)
 from literature.models import LiteratureItem
 
 from fairdm.contrib.contributors.choices import ContributionLevel
@@ -99,7 +102,9 @@ class RecordAutocomplete(InheritLookups, AutocompleteModelView):
         if exact:
             queryset = queryset.annotate(
                 exact_rank=Case(
-                    When(exact, then=Value(0)), default=Value(1), output_field=IntegerField()
+                    When(exact, then=Value(0)),
+                    default=Value(1),
+                    output_field=IntegerField(),
                 )
             ).distinct()
             return queryset.order_by("exact_rank", "group_rank", "name", "pk")
@@ -173,7 +178,11 @@ class DatasetAutocomplete(RecordAutocomplete):
 class TypedRecordAutocomplete(RecordAutocomplete):
     """Samples and measurements: public means a public, published dataset."""
 
-    search_lookups = ["name__icontains", "local_id__icontains", "identifiers__value__iexact"]
+    search_lookups = [
+        "name__icontains",
+        "local_id__icontains",
+        "identifiers__value__iexact",
+    ]
     exact_lookups = ["local_id__iexact", "identifiers__value__iexact"]
     value_fields = [
         "local_id",
@@ -268,7 +277,9 @@ class ContributorAutocomplete(InheritLookups, AutocompleteModelView):
                 )
             )
         else:
-            queryset = queryset.annotate(exact_rank=Value(1, output_field=IntegerField()))
+            queryset = queryset.annotate(
+                exact_rank=Value(1, output_field=IntegerField())
+            )
         queryset = self.apply_filters(queryset)
         if self.query:
             terms = Q(identifiers__value__iexact=self.query)
@@ -304,7 +315,7 @@ class PersonAutocomplete(ContributorAutocomplete):
     def near_ids(self, user):
         try:
             return [c.pk for c in user.get_collaborators(limit=200)]
-        except Exception:  # noqa: BLE001 - sketch
+        except Exception:
             return []
 
     def describe(self, result, person):
@@ -336,7 +347,9 @@ class OrganizationAutocomplete(ContributorAutocomplete):
 
     def describe(self, result, organization):
         place = ", ".join(
-            p for p in [organization.city, getattr(organization.country, "name", "")] if p
+            p
+            for p in [organization.city, getattr(organization.country, "name", "")]
+            if p
         )
         self.draw(
             result,
@@ -358,17 +371,21 @@ class PublicationAutocomplete(AutocompleteModelView):
     def get_queryset(self):
         queryset = LiteratureItem.objects.all()
         if self.query:
-            queryset = queryset.filter(
-                Q(title__icontains=self.query)
-                | Q(item__author__icontains=self.query)
-                | Q(item__DOI__iexact=self.query)
-            ).annotate(
-                exact_rank=Case(
-                    When(item__DOI__iexact=self.query, then=Value(0)),
-                    default=Value(1),
-                    output_field=IntegerField(),
+            queryset = (
+                queryset.filter(
+                    Q(title__icontains=self.query)
+                    | Q(item__author__icontains=self.query)
+                    | Q(item__DOI__iexact=self.query)
                 )
-            ).order_by("exact_rank", "-issued", "pk")
+                .annotate(
+                    exact_rank=Case(
+                        When(item__DOI__iexact=self.query, then=Value(0)),
+                        default=Value(1),
+                        output_field=IntegerField(),
+                    )
+                )
+                .order_by("exact_rank", "-issued", "pk")
+            )
         else:
             queryset = queryset.order_by("-issued", "pk")
         return queryset

@@ -40,12 +40,18 @@ for _kind, _view in {
 }.items():
     for _scope in ("public", "view", "edit"):
         urlpatterns.append(
-            path(f"records/{_kind}/{_scope}/", _view.as_view(), name=f"{_kind}-{_scope}")
+            path(
+                f"records/{_kind}/{_scope}/", _view.as_view(), name=f"{_kind}-{_scope}"
+            )
         )
 
 urlpatterns += [
     path("records/tags/", records.TagAutocomplete.as_view(), name="tags"),
-    path("sketch/new-sample/", sketch_pages.SketchNewSample.as_view(), name="sketch-new-sample"),
+    path(
+        "sketch/new-sample/",
+        sketch_pages.SketchNewSample.as_view(),
+        name="sketch-new-sample",
+    ),
     path(
         "sketch/new-measurement/",
         sketch_pages.SketchNewMeasurement.as_view(),

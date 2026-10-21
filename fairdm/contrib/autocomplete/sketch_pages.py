@@ -46,7 +46,9 @@ class SketchCreatePage(MVPFormView):
         return self.page_title
 
     def form_valid(self, form):
-        messages.info(self.request, _("The form is valid. Nothing was saved: this is a sketch."))
+        messages.info(
+            self.request, _("The form is valid. Nothing was saved: this is a sketch.")
+        )
         return self.render_to_response(self.get_context_data(form=form))
 
 
