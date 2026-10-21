@@ -92,6 +92,9 @@ class ConceptAutocomplete(autocomplete.Select2QuerySetView):
 #: Scope is part of the address, so a request can never widen what an address offers.
 SCOPES = ("public", "view", "edit")
 
+#: The scope of the one address per kind that offers a person's own records, named by ``owner``.
+PROFILE = "profile"
+
 #: A tag is not edited through a record, so its address has no ``edit`` scope.
 TAG_SCOPES = ("public", "view")
 
@@ -209,8 +212,9 @@ class RecordAutocompleteView(LimitedAutocompleteMixin, AutocompleteModelView):
 
     Attributes:
         scope: ``"public"`` offers public records to everyone. ``"view"`` adds the records the
-            person may view. ``"edit"`` offers only the records the person may edit. Fixed by
-            the address and never read from the request.
+            person may view. ``"edit"`` offers only the records the person may edit.
+            ``"profile"`` offers the records one person, the ``owner``, is credited on: their
+            private ones only to them. Fixed by the address and never read from the request.
         noun_plural: The kind's name in the plural, for the headings of the groups.
         exact_lookups: Lookups on which an exact match is offered first.
         prefer_param: The request parameter that names a relation and a value, as
@@ -254,11 +258,14 @@ class RecordAutocompleteView(LimitedAutocompleteMixin, AutocompleteModelView):
         """
         return Q(visibility=Visibility.PUBLIC)
 
-    def offered(self, user, *, depends_on=None):
+    def offered(self, user, *, owner=None, type=None, depends_on=None):  # noqa: A002
         """Return the records this scope offers a person, before any search or page.
 
         Args:
             user: The person searching, or an anonymous user.
+            owner: The person whose records the ``profile`` scope offers, as a person or a
+                primary key. Other scopes ignore it.
+            type: A registered sample or measurement type to keep, or ``None`` for every type.
             depends_on: Lookups the records must match, such as ``{"dataset": 5}``, when the
                 field chooses within another field's value. Each lookup must be one the view
                 allows a request to filter on.
@@ -271,11 +278,43 @@ class RecordAutocompleteView(LimitedAutocompleteMixin, AutocompleteModelView):
             offered = records.filter(self.public_q())
         elif self.scope == "edit":
             offered = records.accessible_to(user, ContributionLevel.EDIT)
+        elif self.scope == PROFILE:
+            offered = self.credited_to(user, owner)
         else:
             offered = records.filter(self.public_q()) | records.accessible_to(
                 user, ContributionLevel.VIEW
             )
+        if type is not None:
+            offered = offered.filter(
+                polymorphic_ctype=ContentType.objects.get_for_model(type)
+            )
         return offered.filter(**depends_on) if depends_on else offered
+
+    def credited_to(self, user, owner):
+        """Return the records one person is credited on that a person may be offered.
+
+        Args:
+            user: The person searching, or an anonymous user.
+            owner: The person whose records are wanted, or their primary key.
+
+        Returns:
+            The owner's records, private ones included only when ``user`` is the owner.
+            Nothing when there is no such person.
+        """
+        records = self.base_queryset()
+        if not isinstance(owner, Person):
+            owner = Person.objects.filter(pk=owner).first()
+        if owner is None:
+            return records.none()
+        credited = records.with_level(owner, ContributionLevel.VIEW)
+        if user is not None and user.is_authenticated and user.pk == owner.pk:
+            return credited
+        return credited.filter(self.public_q())
+
+    def requested_owner(self):
+        """Return the primary key the request names as the owner, or ``None``."""
+        owner = self.request.GET.get("owner", "")
+        return owner if self.scope == PROFILE and owner.isdigit() else None
 
     def preference(self):
         """Return the condition the request asks to see first.
@@ -313,7 +352,7 @@ class RecordAutocompleteView(LimitedAutocompleteMixin, AutocompleteModelView):
         ]
         if (preferred := self.preference()) is not None:
             ranks.insert(0, When(preferred, then=Value(PREFERRED)))
-        queryset = self.offered(user).annotate(
+        queryset = self.offered(user, owner=self.requested_owner()).annotate(
             group_rank=Case(*ranks, default=Value(OTHER), output_field=IntegerField())
         )
         queryset = self.apply_filters(self.hook_queryset(queryset))

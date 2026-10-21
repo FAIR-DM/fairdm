@@ -5,7 +5,9 @@ from typing import Any, ClassVar
 from dal import autocomplete, forward
 from django import forms
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import FieldDoesNotExist, ValidationError
+from django.db import models
 from django.db.models import Q
 from django.urls import reverse
 from django.utils.module_loading import import_string
@@ -33,6 +35,7 @@ from research_vocabs.models import Concept
 from fairdm.contrib.contributors.services.registries import Ror
 
 from .views import (
+    PROFILE,
     SCOPES,
     TAG_SCOPES,
     DatasetAutocompleteView,
@@ -164,10 +167,18 @@ class RecordSelectMixin:
             return super()._get_selected_options(value, autocomplete_view)
         return self.field.selected_options(value)
 
+    def get_autocomplete_params(self):
+        """Name the owner whose records the profile address offers."""
+        owner = getattr(self.field, "owner_pk", None)
+        return "" if owner is None else f"owner={owner}"
+
     def get_context(self, name, value, attrs=None):
-        """Tell the page which field's value the search should put first."""
+        """Tell the page which field's value to put first and which type to keep."""
         context = super().get_context(name, value, attrs)
         context["widget"]["prefer"] = getattr(self.field, "prefer", None)
+        type_filter = getattr(self.field, "type_filter", lambda: None)()
+        if type_filter:
+            context["widget"].setdefault("filters", []).append(type_filter)
         return context
 
 
@@ -188,7 +199,13 @@ class RecordFieldMixin:
 
     Args:
         scope: How much the person may be offered: ``"public"``, ``"view"`` or ``"edit"``.
-            Defaults to the field's ``default_scope``.
+            Defaults to the field's ``default_scope``. Not given with ``owner``.
+        owner: A person whose records the field offers, as a person or a primary key: their
+            private records only when they are the one using the field, public records to
+            everyone else. For a filter on a list of that person's records. Not for people or
+            organizations.
+        type: A registered sample or measurement type the field keeps, given as its model.
+            Only for samples and measurements.
         depends_on: The name of another field on the same form whose value the records must
             match, such as ``"dataset"`` for a sample. It must be a filter the view allows.
         prefer: The name of another field on the same form whose value the records should
@@ -219,9 +236,24 @@ class RecordFieldMixin:
     placeholder = ""
     count_text = ""
 
-    def __init__(self, *args, scope=None, depends_on=None, prefer=None, **kwargs):
+    def __init__(
+        self,
+        *args,
+        scope=None,
+        owner=None,
+        type=None,  # noqa: A002
+        depends_on=None,
+        prefer=None,
+        **kwargs,
+    ):
+        if owner is not None:
+            if scope or "view" not in self.scopes:
+                raise ValueError(
+                    "owner is for a field of records, and cannot be given with a scope"
+                )
+            scope = PROFILE
         scope = scope or self.default_scope
-        if scope not in self.scopes:
+        if scope not in self.scopes + (PROFILE,):
             raise ValueError(
                 f"scope must be one of {', '.join(self.scopes)}, not {scope!r}"
             )
@@ -234,7 +266,17 @@ class RecordFieldMixin:
             raise ValueError(
                 f"prefer must be one of {', '.join(allowed) or 'none'}, not {prefer!r}"
             )
+        if type is not None and not (
+            "polymorphic_ctype" in allowed
+            and isinstance(type, models.base.ModelBase)
+            and issubclass(type, self.view_class.model)
+        ):
+            raise ValueError(
+                f"type must be a registered {self.kind} type, not {type!r}"
+            )
         self.scope = scope
+        self.owner_pk = getattr(owner, "pk", owner)
+        self.type = type
         self.depends_on = depends_on
         self.prefer = prefer
         self.form = None
@@ -275,6 +317,21 @@ class RecordFieldMixin:
             filter_by=(self.depends_on, self.depends_on) if self.depends_on else (),
             **plugins,
         )
+
+    def type_filter(self):
+        """Return the filter that keeps the field's type, as the widget draws it.
+
+        Returns:
+            A dict for the widget's filters, or ``None`` when the field keeps every type.
+        """
+        if self.type is None:
+            return None
+        return {
+            "source": str(ContentType.objects.get_for_model(self.type).pk),
+            "lookup": "polymorphic_ctype",
+            "source_type": "const",
+            "levels_up": 0,
+        }
 
     def get_bound_field(self, form, field_name):
         """Remember the form, which holds the record being edited and the request."""
@@ -328,7 +385,12 @@ class RecordFieldMixin:
         view = self.view()
         try:
             depends_on = self.narrowing() if narrowed else None
-            return view.offered(self.user, depends_on=depends_on)
+            kept = {"owner": self.owner_pk, "type": self.type}
+            return view.offered(
+                self.user,
+                depends_on=depends_on,
+                **{name: value for name, value in kept.items() if value is not None},
+            )
         except (TypeError, ValueError):
             return view.base_queryset().none()
 
@@ -432,13 +494,14 @@ def record_fields(
         one_label: The placeholder of the single field.
         any_label: The placeholder of the multiple field.
         count_text: The plural word shown beside the number the multiple field has chosen.
-        scopes: The scopes the kind offers. The single field defaults to ``view`` where the
-            kind offers it, and the multiple field to ``public``.
+        scopes: The scopes the kind offers. Both fields default to ``view`` where the kind
+            offers it.
 
     Returns:
         The single field class and the multiple field class.
     """
     shared = {
+        "default_scope": "view" if "view" in scopes else scopes[0],
         "view_class": view_class,
         "kind": kind,
         "label": label,
@@ -451,7 +514,6 @@ def record_fields(
         (RecordChoiceFieldMixin, TomSelectModelChoiceField),
         {
             **shared,
-            "default_scope": "view" if "view" in scopes else scopes[0],
             "placeholder": one_label,
             "widget_class": RecordSelectWidget,
             "__doc__": f"Choose one {kind}.",
@@ -463,7 +525,6 @@ def record_fields(
         {
             **shared,
             "placeholder": any_label,
-            "default_scope": "public",
             "widget_class": RecordSelectMultipleWidget,
             "__doc__": f"Choose several {kind} records.",
         },

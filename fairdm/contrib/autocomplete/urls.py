@@ -3,6 +3,7 @@
 from django.urls import path
 
 from .views import (
+    PROFILE,
     SCOPES,
     TAG_SCOPES,
     ConceptAutocomplete,
@@ -32,7 +33,7 @@ RECORD_VIEWS = {
 }
 
 for _kind, _view in RECORD_VIEWS.items():
-    for _scope in SCOPES:
+    for _scope in (*SCOPES, PROFILE):
         urlpatterns.append(
             path(
                 f"records/{_kind}/{_scope}/",
