@@ -314,3 +314,13 @@ unchanged, since `Organization.from_ror()` takes either form.
 page was showing as chosen.
 
 **Revisit if**: the tag control's script-built options need a browser test.
+
+## D31. The ROR lookup shows the standard message when ROR is down
+
+AS 8.3 asked the ROR field to say that the lookup is unavailable. django-tomselect shows one fixed
+message for every failed search, the gap the maintainer agreed on 2026-10-21 for request limits
+(FR-021). The ROR lookup takes the same ruling: the address answers 503, the field shows
+django-tomselect's standard failure message, and the form still saves. The fourth gap in #554
+covers both.
+
+**ADR:** none — the same ruling as FR-021, applied to the second place it reaches

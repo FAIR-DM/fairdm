@@ -393,8 +393,8 @@ save.
    **Then** matching ROR entries are offered with their country.
 2. **Given** a ROR entry chosen, **When** the form is saved, **Then** the organization carries that
    ROR identifier.
-3. **Given** the ROR registry does not answer, **When** the maintainer searches, **Then** the field
-   says the lookup is unavailable and the rest of the form can still be saved.
+3. **Given** the ROR registry does not answer, **When** the maintainer searches, **Then** the search
+   fails with django-tomselect's standard message, and the form can still be saved.
 
 ---
 
