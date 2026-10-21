@@ -177,3 +177,50 @@ measurements assume the opposite. The test was not edited and now fails.
 
 **Revisit if**: cross-dataset measurements are to stay possible through forms. Then `depends_on` for
 the measurement's sample is dropped, or the old test and docs are rewritten.
+
+## D19. A filter hands its field the filter set's request
+
+**Decision**: `RecordMultipleFilter.field` sets `given_request` on the field it builds, from the
+filter set's own request. The field reads its person from the form's request, then
+`given_request`, then the current request.
+
+**Why**: a django-filter form has no `request`, so a filter set built with `request=` in a script, a
+test or a view that skips the middleware would otherwise offer and accept nothing.
+
+**Revisit if**: the filter set's form carries the request, as FairDM's own record forms do.
+
+## D20. The API swaps a record filter for a plain one
+
+**Decision**: `DatasetFilterSet.match_relations_on_uuid` replaces a `RecordMultipleFilter` with the
+plain `ModelMultipleChoiceFilter` that `RecordMultipleFilter.for_api()` returns, over the records
+the filter offers at its scope, and then matches on `uuid` as it does for any relation filter.
+
+**Why**: the field behind a record filter keys its choices on the database number and has no control
+to draw in the API. The API matches records by short identifier. The mixins' own dataset and sample
+filters never reach the API, because the API's filter sets come first in the bases and declare their
+own.
+
+**Revisit if**: the API takes the record field's choices directly.
+
+## D21. Owner, contributor and the no-vocabulary keyword list are left as they are
+
+**Decision**: the project list's owner and contributor filters keep their `ModelChoiceFilter`s, and
+the generic `keywords` filter used when no vocabulary is configured keeps its checkbox list. Only the
+per-vocabulary keyword filters move to `TomSelectMultiple(counted=True)`.
+
+**Why**: the person and organization views and fields arrive with US5, which moves owner and
+contributor. The generic list never used django-autocomplete-light.
+
+**Revisit if**: a portal with no vocabulary configured has enough keywords to need the counted control.
+
+## D22. Tests that offered private records through a list filter changed with the scope
+
+**Decision**: in `test_sample/test_filters.py`, `test_dataset/test_filters.py`, `test_dataset/test_views.py`,
+`test_measurement/test_filters.py`, `test_collections/test_views.py` and `test_registry/test_factories.py`,
+the tests that pinned a filter's `queryset`, passed a single value for a filter that is now multiple,
+or expected a private record to be offered to someone who may view it, now read the field's offered
+records, pass a list, and expect public records only.
+
+**Why**: each pinned the type or the visibility of a filter this story moves to public scope.
+
+**Revisit if**: a list filter is to offer a person's private records.
