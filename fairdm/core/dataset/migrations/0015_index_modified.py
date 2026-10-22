@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('dataset', '0014_alter_datasetdescription_value'),
-        ('generic', '0001_initial'),
+        ('fairdm', '0001_initial'),
         ('licensing', '0002_alter_license_options_remove_license_url_and_more'),
         ('literature', '0004_alter_literatureitem_options'),
         ('project', '0010_alter_projectdescription_value'),

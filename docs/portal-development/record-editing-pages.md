@@ -111,7 +111,7 @@ empty area removes it. The vocabularies are `ProjectDescription.VOCABULARY`,
 
 ## Keywords
 
-The page edits the record's free keywords with `KeywordForm`: one tags field, where a person
+The page edits the record's free keywords with `KeywordForm` (in `fairdm.core.forms`): one tags field, where a person
 chooses a tag already in use on records they may view or types a new one. The free keywords the
 record carries are shown as chosen, and
 saving replaces them with what is in the field. Emptying the field removes them all.

@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
         ('contenttypes', '0002_remove_content_type_name'),
         ('dataset', '0015_index_modified'),
         ('fairdm_location', '0001_initial'),
-        ('generic', '0001_initial'),
+        ('fairdm', '0001_initial'),
         ('research_vocabs', '0002_alter_concept_unique_together'),
         ('sample', '0010_alter_sampledescription_value'),
         ('taggit', '0006_rename_taggeditem_content_type_object_id_taggit_tagg_content_8fc721_idx'),

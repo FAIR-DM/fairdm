@@ -23,7 +23,7 @@ class Migration(migrations.Migration):
         ("contenttypes", "0002_remove_content_type_name"),
         ("dataset", "0002_initial"),
         ("fairdm_location", "0001_initial"),
-        ("generic", "0001_initial"),
+        ("fairdm", "0001_initial"),
         ("research_vocabs", "0002_alter_concept_unique_together"),
         (
             "taggit",
@@ -150,7 +150,7 @@ class Migration(migrations.Migration):
                     taggit.managers.TaggableManager(
                         blank=True,
                         help_text="A comma-separated list of tags.",
-                        through="generic.TaggedItem",
+                        through="fairdm.TaggedItem",
                         to="taggit.Tag",
                         verbose_name="Tags",
                     ),

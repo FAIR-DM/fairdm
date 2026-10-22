@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     "fairdm.core.sample",
     "fairdm.core.measurement",
     "fairdm.contrib.autocomplete",
-    "fairdm.contrib.generic",
     "fairdm.contrib.collections",
     "fairdm.contrib.contributors",
     "fairdm.contrib.import_export",

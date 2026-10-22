@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ("generic", "0001_initial"),
+        ("fairdm", "0001_initial"),
         ("measurement", "0001_initial"),
         ("sample", "0001_initial"),
         (
@@ -37,7 +37,7 @@ class Migration(migrations.Migration):
             field=taggit.managers.TaggableManager(
                 blank=True,
                 help_text="A comma-separated list of tags.",
-                through="generic.TaggedItem",
+                through="fairdm.TaggedItem",
                 to="taggit.Tag",
                 verbose_name="Tags",
             ),

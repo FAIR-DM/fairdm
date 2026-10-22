@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("dataset", "0001_initial"),
-        ("generic", "0001_initial"),
+        ("fairdm", "0001_initial"),
         ("literature", "0004_alter_literatureitem_options"),
         ("project", "0001_initial"),
         (
@@ -63,7 +63,7 @@ class Migration(migrations.Migration):
             field=taggit.managers.TaggableManager(
                 blank=True,
                 help_text="A comma-separated list of tags.",
-                through="generic.TaggedItem",
+                through="fairdm.TaggedItem",
                 to="taggit.Tag",
                 verbose_name="Tags",
             ),

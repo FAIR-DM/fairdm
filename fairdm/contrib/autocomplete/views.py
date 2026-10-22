@@ -33,11 +33,11 @@ from fairdm.contrib.contributors.models import (
     Person,
 )
 from fairdm.contrib.contributors.services.registries import RegistryUnavailable, Ror
-from fairdm.contrib.generic.models import TaggedItem
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.project.models import Project
 from fairdm.core.sample.models import Sample, SampleIdentifier
+from fairdm.models import TaggedItem
 from fairdm.utils.choices import Visibility
 
 logger = logging.getLogger(__name__)
