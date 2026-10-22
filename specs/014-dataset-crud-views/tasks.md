@@ -148,6 +148,6 @@ than one story.
 ## Reconciliation
 
 Each task above is settled against the codebase before any implementation begins, and the result is
-written to `reconciliation.json` and then to `feature-state.json`. A task starts `done` only with a
+written to `reconciliation.json` and then to the build record. A task starts `done` only with a
 code citation **and** a passing test that covers it. Code with no test leaves the task open, and the
 remaining work is the test.

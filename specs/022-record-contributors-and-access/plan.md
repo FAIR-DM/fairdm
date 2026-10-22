@@ -223,7 +223,7 @@ organization when they are given a contribution. Given a person, they behave as 
 
 The templates under `contributors/plugins/` and `cotton/contribution/`, the seed command, and the
 wording. A story edits a template only to follow a context name it had to change, and says so in
-`progress.md`. The prototype's fixed registry records and its pause are deleted in the story that
+the build log. The prototype's fixed registry records and its pause are deleted in the story that
 builds the registry module.
 
 ## Watch items
@@ -232,7 +232,7 @@ builds the registry module.
   as a callable for the other two. The pull request says so.
 - Existing tests that assert guardian grants on core records (project and dataset creation, the
   sample and measurement backends, `visible_to`) describe behaviour this feature replaces. Each is
-  changed in the task that changes the behaviour, and named in `progress.md`.
+  changed in the task that changes the behaviour, and named in the build log.
 - The shared dev server runs this worktree. The schema step lands in story 1, `SET_NULL` in story
   2 and the data step in story 4.
 - A superuser cannot be saved as a contributor outside debug mode (`Contribution.save`). `Crediting`

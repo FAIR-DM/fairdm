@@ -130,7 +130,7 @@ the code is cited and a passing test covers it.
   the real routes. Tests for this feature use the routes.
 - Tests that assert the old login endpoint, the old page sizes, the old field lists or the docs
   setting describe behaviour this feature replaces. Each is updated in the task that changes the
-  behaviour and named in `progress.md`.
+  behaviour and named in the build log.
 - The cause of the sorting failure is a reading. The failing test comes first.
 - `fairdm/conf/settings/api.py` imports the API settings by name. A new setting such as
   `REST_KNOX` or `FAIRDM_API_MAX_PAGE_SIZE` reaches Django only when it is listed there.

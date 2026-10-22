@@ -14,7 +14,7 @@ A task replaces the code behind a page and changes a template only to follow a c
 
 **Existing tests** that assert guardian grants on projects, datasets, samples or measurements
 describe behaviour this feature replaces. Where one does, it is updated in the task that changes
-the behaviour, and the change is named in `progress.md`.
+the behaviour, and the change is named in the build log.
 
 **Format**: `[ID] [Story] Description`.
 
@@ -237,7 +237,7 @@ the creator's level land here with the backend, so no commit leaves a creator lo
   `get_contributions()` returns people in order, then organizations in order, and the dataset and
   project citations name creators in that order (3, FR-058, SC-011). `get_credits()` gives a person credited
   with no organization none, whatever their profile says (FR-024); an existing overview test that
-  asserts the fallback to the primary affiliation is updated here and named in `progress.md`.
+  asserts the fallback to the primary affiliation is updated here and named in the build log.
 - [ ] T028 [US6] Implement to make T026 and T027 pass (plan D3 `move`, D6).
 - [ ] T029 [US6] Documentation: ordering, and that people come before organizations where both are
   named, in the user guide page.

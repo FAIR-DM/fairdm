@@ -79,7 +79,6 @@ specs/017-portal-roles/
 ├── spec.md              # Approved at the specification gate
 ├── research.md          # What the framework already does, and what it settles
 ├── decisions.md         # Rationale, including the options not taken
-├── progress.md          # Gate outcomes and run narrative
 ├── quickstart.md        # How an administrator and a developer use this
 └── tasks.md             # The task graph
 ```

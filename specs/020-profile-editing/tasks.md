@@ -10,7 +10,7 @@ assertions.
 
 **Existing tests** stay as they are. Where one pins a disabled stand-in this feature brings to
 life, it is updated in the task that changes the template, and the change is named in
-`progress.md`.
+the build log.
 
 **Format**: `[ID] [Story] Description`.
 
