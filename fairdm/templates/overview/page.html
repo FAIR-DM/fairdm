@@ -5,8 +5,8 @@
 
   One anatomy on all four, so a reader finds the same fact in the same place: notices, the header
   (badges, name, a line placing the record, keywords, actions), a strip of figures, then the
-  content, and the facts a reuser checks in the page's side panel. From `xl` the panel is a
-  sticky column beside the content, below it the panel is stacked after the content.
+  content in a wide column with the facts a reuser checks in a narrow column beside it. Below
+  `lg` the columns stack, content first.
 
   Each record's own template extends this one and fills blocks. A sample or measurement type
   extends its record's template the same way, using `{{ block.super }}` to add to a block and keep
@@ -24,8 +24,8 @@
                               entries through the component's slot, and put any button that
                               belongs before the menu in front of it
     overview.figures        the figures strip
-    overview.main           the content; each record fills it with its own blocks
-    overview.side           the facts in the side panel, which holds, in this order:
+    overview.main           the wide column; each record fills it with its own blocks
+    overview.side           the facts column, which holds, in this order:
       overview.readiness      what the team still has to add (team only)
       overview.details        what it belongs to, licence, status, dates, how machines reach it
         overview.details_extra  sections inside Details, e.g. a project's timeline
@@ -125,14 +125,12 @@
 {% block page.content %}
   {% block overview.figures %}{% endblock overview.figures %}
 
-  <div class="flex flex-col gap-4 lg:gap-6 min-w-0">
-    {% block overview.main %}{% endblock overview.main %}
-  </div>
-{% endblock page.content %}
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+    <div class="lg:col-span-2 flex flex-col gap-4 lg:gap-6 min-w-0">
+      {% block overview.main %}{% endblock overview.main %}
+    </div>
 
-{% block page.side %}
-  <c-mvp.page.side label="{% translate 'At a glance' %}" id="overview-side" width="lg" collapse="stack" align="content">
-    <div class="flex flex-col gap-4 lg:gap-6">
+    <div class="flex flex-col gap-4 lg:gap-6 min-w-0">
       {% block overview.side %}
 
         {% block overview.readiness %}
@@ -180,8 +178,8 @@
 
       {% endblock overview.side %}
     </div>
-  </c-mvp.page.side>
-{% endblock page.side %}
+  </div>
+{% endblock page.content %}
 
 {% block extra_js %}
   {{ block.super }}
