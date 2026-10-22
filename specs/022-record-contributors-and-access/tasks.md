@@ -263,8 +263,8 @@ the creator's level land here with the backend, so no commit leaves a creator lo
 
 ## Phase 8: fixes from the code review
 
-Each task closes a finding in `review-findings-security.json` or
-`review-findings-correctness.json`. The finding's own reproduction is the failing test to write
+Each task closes a finding from the security or correctness review on the pull request. The
+finding's own reproduction is the failing test to write
 first.
 
 - [ ] T033 [US4] SEC-001, CORR-001: through the API, changing `visibility` on a project or dataset
