@@ -2047,7 +2047,6 @@ dependencies = [
     { name = "django-downloadview" },
     { name = "django-easy-icons" },
     { name = "django-environ" },
-    { name = "django-extra-views" },
     { name = "django-filter" },
     { name = "django-flex-menus" },
     { name = "django-guardian" },
@@ -2140,7 +2139,6 @@ requires-dist = [
     { name = "django-downloadview", specifier = ">=2.3.0,<3.0.0" },
     { name = "django-easy-icons", specifier = ">=0.6.0,<1.0.0" },
     { name = "django-environ", specifier = ">=0.10.0,<0.15.0" },
-    { name = "django-extra-views", specifier = ">=0.16.0,<0.17.0" },
     { name = "django-filter", specifier = ">=24.3,<27.0" },
     { name = "django-flex-menus" },
     { name = "django-guardian", specifier = ">=3.5.0,<4.0.0" },
@@ -3229,7 +3227,7 @@ name = "pexpect"
 version = "4.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "ptyprocess" },
+    { name = "ptyprocess", marker = "python_full_version >= '3.15' or sys_platform != 'win32'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/42/92/cc564bf6381ff43ce1f4d06852fc19a2f11d180f23dc32d9588bee2f149d/pexpect-4.9.0.tar.gz", hash = "sha256:ee7d41123f3c9911050ea2c2dac107568dc43b2d3b0c7557a33212c398ead30f", size = 166450, upload-time = "2023-11-25T09:07:26.339Z" }
 wheels = [

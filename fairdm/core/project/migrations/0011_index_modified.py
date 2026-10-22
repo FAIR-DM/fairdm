@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('contributors', '0023_levels_from_stored_permissions'),
-        ('generic', '0001_initial'),
+        ('fairdm', '0001_initial'),
         ('project', '0010_alter_projectdescription_value'),
         ('research_vocabs', '0002_alter_concept_unique_together'),
         ('taggit', '0006_rename_taggeditem_content_type_object_id_taggit_tagg_content_8fc721_idx'),

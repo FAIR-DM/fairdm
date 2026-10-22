@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('contenttypes', '0002_remove_content_type_name'),
         ('dataset', '0015_index_modified'),
-        ('generic', '0001_initial'),
+        ('fairdm', '0001_initial'),
         ('measurement', '0013_alter_measurementdescription_value'),
         ('research_vocabs', '0002_alter_concept_unique_together'),
         ('sample', '0010_alter_sampledescription_value'),

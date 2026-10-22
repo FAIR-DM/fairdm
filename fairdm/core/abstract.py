@@ -18,10 +18,10 @@ from research_vocabs.vocabularies import VocabularyBuilder
 from taggit.managers import TaggableManager
 
 from fairdm.contrib.contributors.choices import IdentifierLookup
-from fairdm.contrib.generic.models import TaggedItem
 from fairdm.db import models
 from fairdm.db.fields import PartialDateField
 from fairdm.db.models import PolymorphicModel
+from fairdm.models import TaggedItem
 from fairdm.utils import default_image_path, get_inheritance_chain
 from fairdm.utils.markdown import markdownify
 

@@ -23,6 +23,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   now ship from `fairdm/static/img/brand/` at the same paths, so a portal that replaces
   `img/brand/logo.svg` or `img/brand/icon.svg` keeps working unchanged. A portal that lists
   `fairdm.contrib.theme` in its own `INSTALLED_APPS` must remove it.
+- **`fairdm.contrib.generic` is gone.** `TaggedItem`, the model behind every record's free
+  keywords, moves to `fairdm.models`, and `KeywordForm` to `fairdm.core.forms`. The other forms in
+  the app were used by nothing and are deleted, and FairDM no longer depends on
+  django-extra-views. Running `migrate` renames the `generic_taggeditem` table to
+  `fairdm_taggeditem` and keeps every keyword. See the
+  [migration guide](docs/more/migration-guides.md#the-tagging-model-moved-out-of-fairdmcontribgeneric).
 
 ## [v0.2.0] - 2026-10-21
 

@@ -3,8 +3,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+    """Create the tagged item table, which ``fairdm.contrib.generic`` used to own.
+
+    A database that applied ``generic.0001_initial`` already has the table, so Django records
+    this migration as applied there without running it. The table keeps its old name here, and
+    ``0002`` renames it.
+    """
 
     initial = True
+
+    replaces = [("generic", "0001_initial")]
 
     dependencies = [
         ("contenttypes", "0002_remove_content_type_name"),
@@ -53,6 +61,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 "abstract": False,
+                "db_table": "generic_taggeditem",
             },
         ),
     ]

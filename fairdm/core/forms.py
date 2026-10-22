@@ -1,6 +1,13 @@
-"""Base form and the manager-only fields mixin shared by the core forms."""
+"""Base form, the manager-only fields mixin and the keyword form shared by the core forms."""
 
+import copy
+from typing import ClassVar
+
+from crispy_forms.helper import FormHelper
 from django.forms import ModelForm
+from django.utils.translation import gettext_lazy as _
+
+from fairdm.contrib.autocomplete.fields import TagsField
 
 
 class ManagerOnlyFieldsMixin:
@@ -53,3 +60,49 @@ class BaseForm(ModelForm):
         for name in list(self.fields):
             if name not in allowed:
                 del self.fields[name]
+
+
+class KeywordForm(ModelForm):
+    """Edit a record's free keywords: words a person types, with no vocabulary behind them.
+
+    Keywords chosen from a controlled vocabulary are not offered here and are left as they are
+    when the form is saved.
+
+    Args:
+        *args: Passed to ``ModelForm``.
+        **kwargs: Passed to ``ModelForm``. The model is taken from ``instance`` when given.
+    """
+
+    class Meta:
+        fields: ClassVar[list[str]] = []
+
+    def __init__(self, *args, **kwargs):
+        instance = kwargs.get("instance")
+        if instance:
+            # A copy, so building the form for one model never rebinds the class for the next.
+            self._meta = copy.copy(self._meta)
+            self._meta.model = type(instance)
+
+        super().__init__(*args, **kwargs)
+
+        self.fields["tags"] = TagsField(
+            label=_("Free keywords"),
+            help_text=_("Words this record should be found under."),
+            required=False,
+            allow_new=True,
+        )
+        if self.instance.pk:
+            self.initial["tags"] = list(self.instance.tags.names())
+
+        self.helper = FormHelper()
+        self.helper.form_id = "keyword-form"
+
+    def save(self, commit=True):
+        """Save the free keywords, leaving the record's vocabulary keywords alone."""
+        instance = super().save(commit=False)
+
+        if commit:
+            instance.save()
+            instance.tags.set(self.cleaned_data["tags"])
+
+        return instance
