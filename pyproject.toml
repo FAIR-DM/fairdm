@@ -88,7 +88,7 @@ dependencies = [
     "django-cors-headers (>=4.7.0,<5.0.0)",
     "uncertainties (>=3.2.3,<4.0.0)",
     'django-flex-menus',
-    "django-mvp (>=0.30.0,<0.31.0)",
+    "django-mvp (>=0.31.0,<0.32.0)",
     "django-mvp-charts (>=0.3.0,<0.4.0)",
     # The landing page is built from its page blocks (fairdm/templates/fairdm/landing.html).
     "daisy-cotton-ext (>=0.5.0,<0.6.0)",
