@@ -16,8 +16,8 @@ keywords, is now part of the `fairdm` app, and its table is renamed from `generi
    FairDM's own settings no longer do.
 3. **Update your imports.** `from fairdm.contrib.generic.models import TaggedItem` becomes
    `from fairdm.models import TaggedItem`, and `from fairdm.contrib.generic.forms import
-   KeywordForm` becomes `from fairdm.core.forms import KeywordForm`. `DescriptionForm`,
-   `DescriptionInline` and the formset classes in that module are gone with nothing in their place.
+   KeywordForm` becomes `from fairdm.core.forms import KeywordForm`. The other forms and formsets
+   in that module are gone with nothing in their place.
 4. **Check your own migrations for `"generic"`.** A migration that depends on
    `("generic", "0001_initial")` keeps working, because Django maps it to the new migration. One
    that names `"generic.TaggedItem"` in a field must name `"fairdm.TaggedItem"` instead.
