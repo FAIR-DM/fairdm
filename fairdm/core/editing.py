@@ -19,7 +19,6 @@ from meta.views import MetadataMixin
 from mvp.views import MVPFormView
 
 from fairdm.contrib.contributors.access import RecordAccess
-from fairdm.contrib.generic.forms import KeywordForm
 from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins import registry as plugin_registry
 from fairdm.contrib.plugins import reverse as plugin_reverse
@@ -28,6 +27,7 @@ from fairdm.contrib.plugins.mixins import RecordOwnPageBackFallbackMixin
 from fairdm.core.dataset.forms import DatasetForm
 from fairdm.core.dataset.models import Dataset, DatasetDescription
 from fairdm.core.descriptions import VocabularyDescriptionsForm
+from fairdm.core.forms import KeywordForm
 from fairdm.core.measurement.models import Measurement, MeasurementDescription
 from fairdm.core.project.forms import ProjectForm
 from fairdm.core.project.models import (

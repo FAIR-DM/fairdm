@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('contenttypes', '0002_remove_content_type_name'),
         ('dataset', '0015_index_modified'),
-        ('generic', '0001_initial'),
+        ('fairdm', '0001_initial'),
         ('research_vocabs', '0002_alter_concept_unique_together'),
         ('sample', '0011_index_modified'),
         ('taggit', '0006_rename_taggeditem_content_type_object_id_taggit_tagg_content_8fc721_idx'),

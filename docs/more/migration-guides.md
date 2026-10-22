@@ -3,6 +3,27 @@
 Step-by-step instructions for upgrading past a breaking change. Each section covers one change;
 read the one that matches what changed under you.
 
+## The tagging model moved out of `fairdm.contrib.generic`
+
+`fairdm.contrib.generic` no longer exists. `TaggedItem`, the model that holds every record's free
+keywords, is now part of the `fairdm` app, and its table is renamed from `generic_taggeditem` to
+`fairdm_taggeditem`. No keyword is lost.
+
+1. **Run `python manage.py migrate`.** It records the new `fairdm` migration as applied, because
+   your database already has the table, then renames the table and moves the model's content type
+   and permissions to the `fairdm` app.
+2. **Remove `fairdm.contrib.generic` from `INSTALLED_APPS`** if your portal lists it itself.
+   FairDM's own settings no longer do.
+3. **Update your imports.** `from fairdm.contrib.generic.models import TaggedItem` becomes
+   `from fairdm.models import TaggedItem`, and `from fairdm.contrib.generic.forms import
+   KeywordForm` becomes `from fairdm.core.forms import KeywordForm`. The other forms and formsets
+   in that module are gone with nothing in their place.
+4. **Check your own migrations for `"generic"`.** A migration that depends on
+   `("generic", "0001_initial")` keeps working, because Django maps it to the new migration. One
+   that names `"generic.TaggedItem"` in a field must name `"fairdm.TaggedItem"` instead.
+5. **If you use django-extra-views yourself**, add it to your portal's dependencies. FairDM no
+   longer installs it.
+
 ## 031 - FairDM no longer compresses static files
 
 FairDM no longer installs django-compressor or django-libsass, and its settings no longer set up

@@ -79,7 +79,6 @@ dependencies = [
     'django-setup-tools (>=0.2.5,<0.3.0)',
     'django-hijack (>=3.7.4,<4.0.0)',
     'tablib[ods,xlsx] (>=3.10.0,<4.0.0)',
-    'django-extra-views (>=0.16.0,<0.17.0)',
     "rapidfuzz (>=3.14.6,<4.0.0)",
     # REST API (Feature 011)
     "djangorestframework (>=3.17.2,<4.0.0)",
@@ -345,7 +344,7 @@ known_first_party = ["fairdm", "demo"]
 # Django packages whose distribution name differs from the name they are
 # imported under. Without this, deptry reads every one of them as declared but
 # never used.
-package_module_name_map = { django-environ = "environ", django-filter = "django_filters", django-import-export = "import_export", django-meta = "meta", django-model-utils = "model_utils", django-parler = "parler", django-pint = ["django_pint", "quantityfield"], django-solo = "solo", django-split-settings = "split_settings", django-braces = "braces", django-auto-prefetch = "auto_prefetch", django-guardian = "guardian", django-polymorphic = "polymorphic", django-content-license = "licensing", django-flex-menus = "flex_menu", django-easy-icons = "easy_icons", django-mvp = "mvp", django-mvp-charts = "mvp_charts", django-mvp-compliance = "mvp_compliance", django-hijack = "hijack", django-research-vocabs = "research_vocabs", django-literature = "literature", django-ordered-model = "ordered_model", django-taggit = "taggit", django-extra-views = "extra_views", django-waffle = "waffle" }
+package_module_name_map = { django-environ = "environ", django-filter = "django_filters", django-import-export = "import_export", django-meta = "meta", django-model-utils = "model_utils", django-parler = "parler", django-pint = ["django_pint", "quantityfield"], django-solo = "solo", django-split-settings = "split_settings", django-braces = "braces", django-auto-prefetch = "auto_prefetch", django-guardian = "guardian", django-polymorphic = "polymorphic", django-content-license = "licensing", django-flex-menus = "flex_menu", django-easy-icons = "easy_icons", django-mvp = "mvp", django-mvp-charts = "mvp_charts", django-mvp-compliance = "mvp_compliance", django-hijack = "hijack", django-research-vocabs = "research_vocabs", django-literature = "literature", django-ordered-model = "ordered_model", django-taggit = "taggit", django-waffle = "waffle" }
 
 [tool.deptry.per_rule_ignores]
 # DEP002 = declared but never imported. Django wires most of its moving parts

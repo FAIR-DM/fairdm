@@ -1,34 +1,12 @@
-"""Tests for fairdm/contrib/generic/forms.py."""
+"""Tests for fairdm/core/forms.py."""
 
 import pytest
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
-from fairdm.contrib.generic.forms import DescriptionForm, KeywordForm
-from fairdm.core.abstract import DESCRIPTION_MAX_LENGTH
 from fairdm.core.dataset.models import Dataset
+from fairdm.core.forms import KeywordForm
 from fairdm.core.project.models import Project
 from fairdm.factories import DatasetFactory, ProjectFactory
-
-
-@pytest.mark.django_db
-class TestDescriptionForm:
-    def test_value_at_the_ceiling_is_valid(self):
-        form = DescriptionForm(
-            data={"type": "SampleCollection", "value": "x" * DESCRIPTION_MAX_LENGTH}
-        )
-
-        assert form.is_valid(), form.errors
-
-    def test_value_one_character_over_the_ceiling_is_rejected(self):
-        form = DescriptionForm(
-            data={
-                "type": "SampleCollection",
-                "value": "x" * (DESCRIPTION_MAX_LENGTH + 1),
-            }
-        )
-
-        assert not form.is_valid()
-        assert "value" in form.errors
 
 
 @pytest.mark.django_db

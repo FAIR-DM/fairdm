@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("contributors", "0001_initial"),
-        ("generic", "0001_initial"),
+        ("fairdm", "0001_initial"),
         ("research_vocabs", "0002_alter_concept_unique_together"),
         (
             "taggit",
@@ -140,7 +140,7 @@ class Migration(migrations.Migration):
                     taggit.managers.TaggableManager(
                         blank=True,
                         help_text="A comma-separated list of tags.",
-                        through="generic.TaggedItem",
+                        through="fairdm.TaggedItem",
                         to="taggit.Tag",
                         verbose_name="Tags",
                     ),

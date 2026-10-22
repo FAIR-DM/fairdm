@@ -1,4 +1,4 @@
-"""Tagging model for core objects."""
+"""Tagging model for the core records."""
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
