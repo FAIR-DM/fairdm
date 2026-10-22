@@ -315,7 +315,7 @@ myapp/
 
 ### Loading Configurations
 
-Ensure your configurations are loaded by importing them in your app's `__init__.py` or `apps.py`:
+Ensure your configurations are loaded by importing them in your app's `apps.py`:
 
 ```python
 # myapp/apps.py
@@ -327,13 +327,6 @@ class MyAppConfig(AppConfig):
     def ready(self):
         # Import configurations to trigger registration
         from . import fairdm_config
-```
-
-Or in your `__init__.py`:
-
-```python
-# myapp/__init__.py
-default_app_config = 'myapp.apps.MyAppConfig'
 ```
 
 ## Validation and Error Handling

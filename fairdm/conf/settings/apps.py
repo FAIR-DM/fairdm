@@ -46,7 +46,6 @@ INSTALLED_APPS = [
     "fairdm.contrib.import_export",
     "fairdm.contrib.location",
     "fairdm.contrib.identity",
-    "fairdm.contrib.theme",
     # Ahead of allauth and mvp: it replaces templates both of them ship, and Django takes
     # the first one it finds.
     "mvp_accounts",

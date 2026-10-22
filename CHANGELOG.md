@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   keeps working. One that filled `page.side` on an overview page should override `overview.side`
   instead.
 
+### Removed
+
+- **`fairdm.contrib.theme` is gone.** It held nothing in use but the brand logo and icon, which
+  now ship from `fairdm/static/img/brand/` at the same paths, so a portal that replaces
+  `img/brand/logo.svg` or `img/brand/icon.svg` keeps working unchanged. A portal that lists
+  `fairdm.contrib.theme` in its own `INSTALLED_APPS` must remove it.
+
 ## [v0.2.0] - 2026-10-21
 
 ### Added
