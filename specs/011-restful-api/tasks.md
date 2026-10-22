@@ -5,7 +5,7 @@
 **How this list was written**: as if the repository held no API at all, so that it describes the
 whole feature and not what happens to exist. It was then checked against the code. A task is
 ticked only where the code that satisfies it is cited and a passing test covers it. The evidence
-for each ticked task is in `feature-state.json`.
+for each ticked task is in the build record.
 
 **Tests first**: in every story the test tasks come first and are seen to fail before the code
 that makes them pass is written. API tests send requests to the real routes with `APIClient`,

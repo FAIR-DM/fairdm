@@ -498,7 +498,7 @@ stands, the full suite and the demo app still pass.
 
 Appended after the maintainer opened the pages at the merge gate. Not a seventh user story: no
 issue, no spec change, and each task corrects something an earlier task in this feature delivered.
-Evidence for all six is in `feature-state.json` under `US7`; the reasoning is decisions.md D26–D27.
+Evidence for all six is in the build record under `US7`; the reasoning is decisions.md D26–D27.
 
 - [x] T081 Namespace a column's field-name CSS class as `col-<name>` on both header and data cells,
       so a field called `status`, `badge` or `link` stops rendering as the DaisyUI component of that
