@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **FairDM requires django-mvp 0.31 and django-mvp-forms 0.8.**
+- **The facts column on overview pages is a column of the page again.** On project, dataset,
+  sample, measurement, person and organization pages, the facts sit in a narrow column beside the
+  content, as they did before v0.2.0, and stack after the content below the `lg` breakpoint. The
+  "At a glance" side panel is gone. A template that overrides `overview.side` or a block inside it
+  keeps working. One that filled `page.side` on an overview page should override `overview.side`
+  instead.
+
 ## [v0.2.0] - 2026-10-21
 
 ### Added
