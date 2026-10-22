@@ -132,7 +132,7 @@ is never touched.
 ---
 
 *Everything below was decided at the design review, 2026-09-16. Thirteen verified findings, applied
-in full; the reviewer's own report is `design-review-findings.json`.*
+in full.*
 
 
 ## D10 — The legacy groups are renamed, not replaced

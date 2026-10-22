@@ -159,7 +159,7 @@ This story also lays what the others stand on: the module, the access rule and t
 
 ## Phase 6: After the code review
 
-Each task names the review finding it answers. The findings are in `review-findings.json`.
+Each task names the review finding it answers. The findings are in the review on the pull request.
 
 - [ ] T014 [US3] SEC-001 and COR-001. Tests first, in `TestDeleteRecord`: a sample related to a
   sample in a dataset the viewer holds no level on has a delete page that carries neither that

@@ -371,7 +371,6 @@ This project is licensed under the **MIT License** — see the [LICENSE](https:/
 
 We welcome contributions! See our [Contributing Guide](https://github.com/FAIR-DM/fairdm/blob/main/CONTRIBUTING.md) for:
 
-- **Quick setup**: Run `bash scripts/dev-setup.sh` to get started
 - **Development workflow**: Install git hooks to prevent CI failures
 - **Code style and conventions**: Ruff formatting (120 char lines)
 - **Testing requirements**: pytest with >80% coverage goal
