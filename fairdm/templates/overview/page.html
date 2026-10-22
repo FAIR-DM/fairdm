@@ -6,7 +6,7 @@
   One anatomy on all four, so a reader finds the same fact in the same place: notices, the header
   (badges, name, a line placing the record, keywords, actions), a strip of figures, then the
   content, and the facts a reuser checks in the page's side panel. From `xl` the panel is a
-  sticky column beside the content, below it the panel is stacked after the content.
+  sticky column beside the content that starts level with the header, below it the panel is stacked after the content.
 
   Each record's own template extends this one and fills blocks. A sample or measurement type
   extends its record's template the same way, using `{{ block.super }}` to add to a block and keep
@@ -131,7 +131,7 @@
 {% endblock page.content %}
 
 {% block page.side %}
-  <c-mvp.page.side label="{% translate 'At a glance' %}" id="overview-side" width="lg" collapse="stack" align="content">
+  <c-mvp.page.side label="{% translate 'At a glance' %}" id="overview-side" width="lg" collapse="stack" align="title">
     <div class="flex flex-col gap-4 lg:gap-6">
       {% block overview.side %}
 
