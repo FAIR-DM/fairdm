@@ -172,7 +172,7 @@ Contact your portal administrator if:
 
 ## Additional Resources
 
-- **[Understanding Core Data Structures](core_data_model.md)**: Learn more about the purpose of each field
+- **[Understanding Core Data Structures](../explanation/the-core-data-model.md)**: Learn more about the purpose of each field
 - **[Getting Started Guide](getting_started.md)**: Step-by-step walkthrough for your first contribution
 - **Portal-Specific Guidance**: Check if your portal has additional metadata guidelines for your discipline
 

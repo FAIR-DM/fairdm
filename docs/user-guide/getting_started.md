@@ -118,7 +118,7 @@ Here's a typical example for a water sample:
 If any required fields are missing, the form will highlight them in red and prevent saving until they're completed.
 
 ```{seealso}
-For a detailed explanation of each field and how it supports FAIR principles, see [Understanding Core Data Structures](core_data_model.md).
+For a detailed explanation of each field and how it supports FAIR principles, see [Understanding Core Data Structures](../explanation/the-core-data-model.md).
 ```
 
 ## Step 4: Add Measurements to Your Sample
@@ -209,7 +209,7 @@ Congratulations! You've completed your first data contribution:
 ## Next Steps
 
 - **[Metadata Best Practices](metadata_practices.md)**: Learn tips for ensuring high-quality, FAIR-compliant contributions
-- **[Understanding Core Data Structures](core_data_model.md)**: Deep dive into Projects, Datasets, Samples, and Measurements
+- **[Understanding Core Data Structures](../explanation/the-core-data-model.md)**: Deep dive into Projects, Datasets, Samples, and Measurements
 - **Explore other datasets**: Contribute to additional datasets within your portal's projects
 
 ```{tip}

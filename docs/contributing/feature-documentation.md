@@ -1,109 +1,40 @@
-# Documenting Features
+# Documenting features
 
-**For portal builders and framework contributors** who need to document new features
+This page is for contributors who change FairDM and need to know what to document. Where a page
+lives, which type it is and how it is written are set by the
+[documentation standard](standards/documentation.md). This page covers only how a change maps onto
+the pages.
 
-This guide explains how to document features in FairDM, including where documentation lives, how to use checklists, and how to trace documentation back to specifications.
+## Document a change
 
----
+1. Find the readers the change affects. Each reader is a section of `docs/`: `developers/`,
+   `administrators/` or `users/`.
+2. For each reader, pick the page whose type matches what the change needs, as the standard
+   describes:
+   - a new thing to do gets a how-to guide,
+   - a new setting, component, template tag or command gets an entry on its reference page,
+   - a new idea a reader must understand gets an explanation.
+3. Link to the new or changed page from the pages that mention the subject. Do not repeat it
+   there.
+4. Describe the current release only. Record what changed, and the steps to upgrade, in the
+   `CHANGELOG.md` entry for the release, not on the page.
+5. Build the documentation and fix every warning, as [validation rules](documentation/validation-rules.md)
+   describes:
 
-## Quick Start
+   ```bash
+   uv run sphinx-build -W --keep-going -b html docs docs/_build/html
+   ```
 
-When you implement a new feature:
+6. Name the pages you changed in your pull request description, so a reviewer can check the
+   coverage.
 
-1. **Identify relevant sections** based on your feature type (models, UI, config, etc.)
-2. **Update documentation** in the appropriate guide (developer/admin/contributor/contributing)
-3. **Add cross-references** to your spec and constitution principles
-4. **Validate locally** with `uv run sphinx-build -W docs docs/_build`
-5. **Note what you updated** in your pull request description, so reviewers can confirm coverage
+## Add a setting
 
----
+Add its entry to the settings reference, `docs/developers/reference/settings.md`, and link to the
+entry from any page that mentions it. A public setting with no entry is a defect.
 
-## Where Does Documentation Go?
+## Related
 
-FairDM documentation is organized by audience:
-
-Which section a page belongs in, and which of the four page types it is, are set out in the
-[documentation standard](standards/documentation.md).
-
----
-
-## Cross-Reference Patterns
-
-### Linking to Specifications
-
-When documenting a feature, link back to its specification to provide full context:
-
-```markdown
-This registration API was designed to support domain-driven modeling
-([spec](../../specs/002-fairdm-registry/spec.md)).
-```
-
-### Linking to Constitution
-
-Show how features align with FairDM governance principles:
-
-```markdown
-FairDM enforces FAIR principles through automated metadata validation
-([Constitution: FAIR-First](../../CONSTITUTION.md#i-fair-first-research-portals)).
-```
-
-### Stable Anchors
-
-Constitution principle anchors:
-
-- `#i-fair-first-research-portals`
-- `#ii-domain-driven-declarative-modeling`
-- `#iii-configuration-over-custom-plumbing`
-- `#iv-opinionated-production-grade-defaults`
-- `#v-quality-sustainability-and-community`
-
----
-
-## Validation
-
-Before submitting documentation:
-
-```bash
-# Build docs and check for errors
-uv run sphinx-build -W docs docs/_build
-
-# Validate internal links
-uv run sphinx-build -b linkcheck docs docs/_build
-```
-
-There's no CI job that runs these checks yet, so run them yourself before opening a pull request.
-
----
-
-## Common Scenarios
-
-### Adding a New Model
-
-Update:
-
-- **developer-guide**: Model configuration, registration API usage
-- **portal-administration**: Permissions, admin interface
-- **user-guide**: How users interact with the model
-
-### Adding UI Components
-
-Update:
-
-- **developer-guide**: Component integration, customization
-- **user-guide**: UI usage guide with screenshots
-- **portal-administration**: Permissions for UI features (if applicable)
-
-### Configuration Changes
-
-Update:
-
-- **developer-guide**: New settings reference with examples
-- **portal-administration**: Deployment environment variables
-
----
-
-## Related Documentation
-
-- [Documentation standard](standards/documentation.md) - Page types and where each page belongs
-- [Constitution](../../CONSTITUTION.md) - FairDM governance principles
-- [MyST Syntax](https://myst-parser.readthedocs.io/) - Markdown extensions we use
+- [Documentation standard](standards/documentation.md)
+- [Cross-references](documentation/cross-references.md)
+- [Validation rules](documentation/validation-rules.md)

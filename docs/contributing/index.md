@@ -34,7 +34,6 @@ Before getting started, please review the [FairDM Constitution](https://github.c
 :maxdepth: 1
 
 before_you_start
-core_data_model
 registry-system
 base-views
 record-page-building-blocks
@@ -47,5 +46,4 @@ standards/documentation
 documentation/index
 feature-documentation
 testing/index
-../adr/index
 ```

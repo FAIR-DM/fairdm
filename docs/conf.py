@@ -57,7 +57,12 @@ html_context = {
 }
 
 # exclude_patterns = ["apidocs/index.rst"]
+exclude_patterns = [*exclude_patterns, "agents/**"]
 extensions = [*extensions, 'sphinxcontrib.mermaid']
+
+# Every release in the changelog has its own "Added", "Changed" and "Removed"
+# headings, so section labels repeat on that page by design.
+suppress_warnings = ["autosectionlabel.changelog"]
 
 # mermaid_fullscreen = True
 mermaid_d3_zoom = True
@@ -123,8 +128,3 @@ epub_title = "FairDM Documentation"
 epub_author = "FAIR-DM"
 epub_publisher = "FAIR-DM"
 epub_copyright = "2023, FAIR-DM"
-
-# Use custom template for index page
-html_additional_pages = {
-    'index': 'index.html',
-}

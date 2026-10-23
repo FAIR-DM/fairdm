@@ -4,143 +4,111 @@
 :width: 100%
 ```
 
-______________________________________________________________________
+# FairDM
 
-[![Release](https://img.shields.io/github/v/release/FAIR-DM/fairdm)](https://github.com/FAIR-DM/fairdm/releases)
-[![Build status](https://travis-ci.org/SSJenny90/fairdm.svg?branch=master)](https://travis-ci.org/SSJenny90/fairdm)
-[![Code coverage](https://codecov.io/gh/SSJenny90/fairdm/branch/master/graph/badge.svg)](https://codecov.io/gh/SSJenny90/fairdm)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
-[![Documentation Validation](https://github.com/FAIR-DM/fairdm/workflows/Documentation%20Validation/badge.svg)](https://github.com/FAIR-DM/fairdm/actions/workflows/docs-validation.yml)
+FairDM is an open-source web framework for building research data portals that follow the FAIR
+data principles. A portal records projects, datasets, samples and measurements, the people and
+organizations credited on them, and who may see and change each record. These pages are split by
+who is reading, so start with the entry that matches what you do.
 
-FairDM is an open-source web framework designed to help you build modern research data portals that fully align with the FAIR data principles. It streamlines the process of creating, deploying, and maintaining research portals by using a modern, well-documented, and widely supported open-source tech stack. FairDM takes care of the complexities of web development with sensible defaults that work out of the box—so researchers and data managers can focus on their data and research, not on technical headaches.
+## Portal developer
 
-```{tip}
-**New to FairDM?** Jump straight to the [Getting Started guide](portal-development/getting_started.md) for a hands-on introduction.
-```
+[Developers](developers/index.md) is for you if you build a research data portal on FairDM and
+deploy it. It covers defining sample and measurement types, configuring a portal, extending its
+pages and running it in production.
 
-## Documentation by Role
+## Portal administrator
 
-Choose the guide that best matches your needs:
+[Administrators](administrators/index.md) is for you if you run a portal that already exists. It
+covers the people and roles, the review of content and the checks on a portal's configuration.
 
-### [Developer Guide](portal-development/index.md)
+## Portal user
 
-**For portal developers** who want to build and deploy a new FairDM-powered research portal. Learn how to set up your environment, define domain-specific data models, configure your portal, and deploy it to production.
+[Users](users/index.md) is for you if you add, edit and publish research data in a portal. It
+follows the sections a portal shows in its navigation.
 
-**Start here if**: You're building a FairDM-based portal for your research community
+## Shared explanation
 
-### [Admin Guide](portal-administration/index.md)
+These pages explain how FairDM works and why. Every reader may need them.
 
-**For portal administrators** who manage an existing FairDM portal. Understand your responsibilities for managing users, permissions, datasets, and ensuring FAIR-compliant metadata quality.
+- [What FairDM is for](explanation/what-fairdm-is-for.md)
+- [FAIR data and research data infrastructure](explanation/fair-data-and-research-data-infrastructure.md)
+- [The technology stack](explanation/the-technology-stack.md)
+- [The core data model](explanation/the-core-data-model.md)
+- [How sample and measurement types are stored](explanation/how-sample-and-measurement-types-are-stored.md)
+- [Controlled vocabularies](explanation/controlled-vocabularies.md)
+- [Configuration over code](explanation/configuration-over-code.md)
+- [Why complete metadata matters](explanation/why-complete-metadata-matters.md)
+- [How access to a record is decided](explanation/how-access-to-a-record-is-decided.md)
+- [Why FairDM records contributors](explanation/why-fairdm-records-contributors.md)
+- [How contributor accounts and credits work](explanation/how-contributor-accounts-and-credits-work.md)
+- [How a profile is claimed](explanation/how-a-profile-is-claimed.md)
+- [How FairDM configures a portal](explanation/how-fairdm-configures-a-portal.md)
+- [Who is asked to agree to a legal document](explanation/who-is-asked-to-agree-to-a-legal-document.md)
+- [How locations are stored and protected](explanation/how-locations-are-stored-and-protected.md)
+- [Dataset publication, DOIs and DataCite metadata](explanation/dataset-publication-dois-and-datacite-metadata.md)
 
-**Start here if**: You manage an existing FairDM portal and its users
+## Reference for every reader
 
-### [User Guide](user-guide/index.md) (Portal Users)
+- [Glossary](reference/glossary.md)
 
-**For portal users** who add and edit research data in FairDM portals. Learn how to contribute data, understand metadata requirements, and follow FAIR practices.
+## For maintainers
 
-**Start here if**: You contribute data and metadata to an existing portal
+These pages are for the people who work on FairDM itself.
 
-### [Contributing Guide](contributing/index.md) (Framework Contributors)
-
-**For FairDM framework contributors** who want to contribute to the core framework itself (code, documentation, examples). Set up a development environment, understand the architecture, and learn how to propose changes that align with the [FairDM constitution](https://github.com/FAIR-DM/fairdm/blob/main/CONSTITUTION.md).
-
-**Start here if**: You want to improve the FairDM framework codebase
-
-```{seealso}
-For more on the distinction between portal users and framework contributors, see the [Glossary](more/glossary.md).
-```
-
-### [Overview](overview/index.md)
-
-**For evaluators and stakeholders** seeking high-level context on FairDM's vision, FAIR-first philosophy, core architecture, design principles, and the [FairDM Constitution](../CONSTITUTION.md).
-
-**Start here if**: You're evaluating FairDM or need high-level context
-
----
-
-## Governance & Specifications
-
-FairDM follows a governance model defined in the [FairDM Constitution](../CONSTITUTION.md), which establishes five core principles:
-
-::::{grid} 1 2 2 3
-:gutter: 3
-
-:::{grid-item-card} {octicon}`shield-check;1.5em` FAIR by Design
-:link: overview/fair-by-design
-:link-type: doc
-
-Every feature improves or maintains FAIR characteristics
-+++
-[Learn More →](overview/fair-by-design)
-:::
-
-:::{grid-item-card} {octicon}`package;1.5em` Domain-Driven, Declarative Modeling
-:link: overview/domain-driven-modeling
-:link-type: doc
-
-Research communities define schemas declaratively
-+++
-[Learn More →](overview/domain-driven-modeling)
-:::
-
-:::{grid-item-card} {octicon}`gear;1.5em` Configuration Over Custom Plumbing
-:link: overview/configuration-over-code
-:link-type: doc
-
-Focus on domain modeling, not web plumbing
-+++
-[Learn More →](overview/configuration-over-code)
-:::
-
-:::{grid-item-card} {octicon}`star;1.5em` Opinionated, Production-Grade Defaults
-:link: overview/opinionated-defaults
-:link-type: doc
-
-Coherent modern stack with sensible defaults
-+++
-[Learn More →](overview/opinionated-defaults)
-:::
-
-:::{grid-item-card} {octicon}`people;1.5em` Quality, Sustainability, and Community
-:link: overview/quality-and-sustainability
-:link-type: doc
-
-Long-lived research infrastructure with comprehensive testing
-+++
-[Learn More →](overview/quality-and-sustainability)
-:::
-
-::::
-
-Feature specifications and implementation plans are maintained in the [`specs/` directory](https://github.com/FAIR-DM/fairdm/tree/main/specs).
+- [Contributing](contributing/index.md)
+- [Decision records](adr/index.md)
+- [Roadmap](ROADMAP.md)
+- [Changelog](changelog.md)
 
 ```{toctree}
 :maxdepth: 1
 :hidden:
+:caption: Readers
 
-overview/index
-user-guide/index
-portal-development/index
-portal-administration/index
-contributing/index
-more/migration-guides
-more/glossary
-more/changelog
-more/support
+developers/index
+administrators/index
+users/index
 ```
 
-## Help Improve These Docs
+```{toctree}
+:maxdepth: 1
+:hidden:
+:caption: Shared explanation
 
-Found something unclear, incorrect, or missing? We welcome your feedback!
+explanation/what-fairdm-is-for
+explanation/fair-data-and-research-data-infrastructure
+explanation/the-technology-stack
+explanation/the-core-data-model
+explanation/how-sample-and-measurement-types-are-stored
+explanation/controlled-vocabularies
+explanation/configuration-over-code
+explanation/why-complete-metadata-matters
+explanation/how-access-to-a-record-is-decided
+explanation/why-fairdm-records-contributors
+explanation/how-contributor-accounts-and-credits-work
+explanation/how-a-profile-is-claimed
+explanation/how-fairdm-configures-a-portal
+explanation/who-is-asked-to-agree-to-a-legal-document
+explanation/how-locations-are-stored-and-protected
+explanation/dataset-publication-dois-and-datacite-metadata
+```
 
-- **Report documentation issues**: [Open an issue on GitHub](https://github.com/FAIR-DM/fairdm/issues/new?labels=documentation) describing what needs improvement
-- **Suggest improvements**: [Start a discussion](https://github.com/FAIR-DM/fairdm/discussions) to propose enhancements
-- **Contribute directly**: See the [Contributing Guide](contributing/index.md) to submit documentation pull requests
+```{toctree}
+:maxdepth: 1
+:hidden:
+:caption: Reference
 
-Your feedback helps make FairDM more accessible for everyone. Thank you!
+reference/glossary
+```
 
-<!-- ## Indices and tables
+```{toctree}
+:maxdepth: 1
+:hidden:
+:caption: Maintainers
 
-- {ref}`genindex`
-- {ref}`modindex`
-- {ref}`search` -->
+contributing/index
+adr/index
+ROADMAP
+changelog
+```

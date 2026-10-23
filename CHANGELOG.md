@@ -29,8 +29,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   keywords, moves to `fairdm.models`, and `KeywordForm` to `fairdm.core.forms`. The other forms in
   the app were used by nothing and are deleted, and FairDM no longer depends on
   django-extra-views. Running `migrate` renames the `generic_taggeditem` table to
-  `fairdm_taggeditem` and keeps every keyword. See the
-  [migration guide](docs/more/migration-guides.md#the-tagging-model-moved-out-of-fairdmcontribgeneric).
+  `fairdm_taggeditem` and keeps every keyword.
+
+  Upgrading:
+
+  1. Run `python manage.py migrate`. It records the new `fairdm` migration as applied, because
+     your database already has the table, then renames the table and moves the model's content
+     type and permissions to the `fairdm` app.
+  2. Remove `fairdm.contrib.generic` from `INSTALLED_APPS` if your portal lists it itself.
+  3. Change `from fairdm.contrib.generic.models import TaggedItem` to
+     `from fairdm.models import TaggedItem`, and
+     `from fairdm.contrib.generic.forms import KeywordForm` to
+     `from fairdm.core.forms import KeywordForm`. The other forms and formsets in that module are
+     gone with nothing in their place.
+  4. Search your own migrations for `"generic"`. A dependency on `("generic", "0001_initial")`
+     keeps working, because Django maps it to the new migration. A field that names
+     `"generic.TaggedItem"` must name `"fairdm.TaggedItem"` instead.
+  5. If you use django-extra-views yourself, add it to your portal's dependencies. FairDM no
+     longer installs it.
 
 ## [v0.2.0] - 2026-10-21
 
@@ -150,6 +166,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   own dependencies, adds `compressor` to its `INSTALLED_APPS`, adds
   `compressor.finders.CompressorFinder` to `STATICFILES_FINDERS`, sets its own `COMPRESS_*`
   settings, and runs `python manage.py compress` before it serves.
+
+  Upgrading:
+
+  1. Remove the `compress` step from your own start command. A container or deployment script
+     that runs `python manage.py compress` stops with `Unknown command: 'compress'`. If you build
+     on FairDM's base images, their start sequence no longer runs it.
+  2. Search your templates for `{% load compress %}` and `{% compress %}`. If you find none, you
+     are done. If you find them, add `django-compressor` (and `django-libsass` if you compile
+     SCSS) to your portal's dependencies, add `"compressor"` to `INSTALLED_APPS` and
+     `"compressor.finders.CompressorFinder"` to `STATICFILES_FINDERS`, set the `COMPRESS_*`
+     settings your templates rely on, and run `python manage.py compress` before the server
+     starts, as a start step when you build on the base images.
 - **`fairdm.utils` is no longer an installed app.** It was registered with the label `utils`
   only to serve its templates and static files. Those now live in `fairdm/templates/` and
   `fairdm/static/` at the same paths, so templates and static files resolve as before.
@@ -219,6 +247,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with its latitude and longitude to five decimal places, and `c-card.location` takes `elevation`
   and `uncertainty`. An organization has a `location` point of its own. Run `migrate` when upgrading. See
   [Locations](docs/portal-development/locations.md).
+
+  Upgrading. Existing locations are not carried across, so follow these steps in order:
+
+  1. Rename a field of your own that clashes. A sample type or a measurement type that declares a
+     field called `location`, `location_elevation` or `location_uncertainty` fails to load once
+     the upgrade is in place. A `location` text field or foreign key on a measurement type is the
+     usual case. Rename the field, and move its data with a migration of your own, before you
+     upgrade.
+  2. Search your code and templates for what read the old record, and change each hit:
+     - `location.latitude` and `location.longitude` read `location.y` and `location.x`. A
+       template that still writes `{{ sample.location.latitude }}` renders nothing, with no error.
+     - Filters on `location__x`, `location__y` and `location__crs` no longer apply. Use `inside`,
+       `within_distance` and `nearest`, or filter on `location` itself.
+     - `select_related("location")`, `prefetch_related("location")`, `autocomplete_fields` or
+       `raw_id_fields` listing `location`, and a form or admin that lists `location` for a
+       person, raise when they run or when Django checks them.
+     - `PointFactory` is removed. Give a sample factory
+       `location=Point(longitude, latitude, srid=4326)`.
+     - Links to `/location/<lon>/<lat>/` and `Dataset.bbox` are gone. Use
+       `Dataset.spatial_coverage(user)`.
+     - Remove `FAIRDM_CRS`, `FAIRDM_X_COORD` and `FAIRDM_Y_COORD` from your settings.
+  3. Export the coordinates you need to keep. The migrations drop the table behind `Point` and
+     do not copy its rows to the samples.
+  4. Run `migrate`, then enter the locations again. A sample's form takes them when its
+     registration lists `location` in its fields, and an import file takes them in `latitude`
+     and `longitude` columns, with the optional `location_elevation` and `location_uncertainty`.
+  5. Check your registrations. A sample type or a measurement type shows the location input only
+     when its `fields` list `location`. A type that listed no fields shows it already.
 
 - **A measurement can record where it was made.** A measurement type shows the location input in
   its form when its registration lists `location`, and the measurement's page maps its own location
@@ -377,6 +433,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in the record's namespace instead, and a portal that subclassed `UpdatePlugin` for its own page
   builds on `FairDMUpdateView` and `Plugin`. See
   [Record editing pages](docs/portal-development/record-editing-pages.md).
+
+  Upgrading. Nothing in the database changes. Check your portal's own code for these:
+
+  - **URL names on projects and datasets.** `overview-update`, `overview-descriptions` and
+    `overview-delete` no longer exist. Reverse `edit`, `descriptions` and `delete` in the
+    `project` or `dataset` namespace. The update address moves from `<record address>/update/`
+    to `<record address>/edit/`, so a link written by hand to `/update/` answers 404.
+  - **URL names on samples.** `sample:basic-information` no longer exists. Reverse
+    `sample:descriptions` for the descriptions page and `sample:edit` for the sample's own
+    fields. `sample:keywords` and `sample:key-dates` keep their names and addresses. A
+    measurement has all six names in the `measurement` namespace.
+  - **Classes you subclassed.** `UpdatePlugin`, `DeletePlugin`, `DescriptionsPlugin`,
+    `KeyDatesPlugin` and `KeywordsPlugin` are gone, with the project, dataset and sample
+    `Update`, `Edit`, `Descriptions`, `Keywords`, `KeyDates` and `Delete` plugins. A page of
+    your own that edits or deletes a record builds on `FairDMUpdateView` or `FairDMDeleteView`
+    together with `Plugin`. To change what the shared pages do, subclass the class in
+    `fairdm.core.editing` and register it for your model. The project and dataset `Overview`
+    plugins no longer build on django-mvp's `CRUDDirectoryMixin`, so the `directory` and
+    `crud_views` attributes and the `show_update_action`, `show_descriptions_action` and
+    `show_delete_action` methods are gone from them. A subclass that read one of these reads
+    `manage_menu` instead.
+  - **Templates.** `plugins/descriptions.html`, `plugins/key-dates.html` and
+    `dataset/plugins/update.html` are removed. The row-set page is `editing/rows.html` and the
+    delete page is `editing/delete_record.html`. A template that extended a removed name extends
+    the shared page you need, or `form_view.html`.
+  - **Overview context.** A sample's overview no longer sets `urls` or `can_edit`, and a
+    project's and a dataset's no longer set `urls.delete`, `directory` or `crud_views`. Read the
+    addresses from `manage_menu`, a list of entries each carrying a `label`, an `icon`, a `url`
+    and a `destructive` flag, built by `fairdm.core.editing.manage_menu(request, record)`.
+  - **Dates and identifiers.** A form of yours that posts `dates-` or `identifiers-` fields to
+    the `edit` page posts them to the `key-dates` or `identifiers` page of the record.
+  - **Your own Manage menu.** A template that overrides `overview.actions` to draw a Manage
+    dropdown fills `overview.manage` instead, with `<c-actions.manage :entries="manage_menu">`
+    and any extra entries in its slot. An override of `overview.actions` that keeps
+    `{{ block.super }}` and draws its own dropdown shows two.
+  - **Portal-wide change rights on samples.** The editing pages of a sample answer 404 to a
+    person who holds `sample.change_sample` for the whole portal, has no level on the sample and
+    may not see it. Give the people who should keep access a level on the sample or on its
+    dataset, on the Contributors tab. A Data Curator is unaffected.
 - `SamplePermissionBackend` and `MeasurementPermissionBackend`, with their modules
   `fairdm.core.sample.permissions` and `fairdm.core.measurement.permissions`. They passed a
   dataset's stored permissions down to its samples and measurements. A level on a dataset now
@@ -456,6 +551,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `name_identifier` and `scheme_uri` of a Wikidata or Crossref Funder ID identifier now carry
   its address. If your code looks up `IdentifierLookup["Wikidata"]` or
   `IdentifierLookup["Crossref Funder ID"]`, use `"WIKIDATA"` and `"CROSSREF_FUNDER_ID"`.
+
+  Upgrading:
+
+  1. Search your code for `IdentifierLookup` and replace `IdentifierLookup["Wikidata"]` with
+     `IdentifierLookup["WIKIDATA"]` and `IdentifierLookup["Crossref Funder ID"]` with
+     `IdentifierLookup["CROSSREF_FUNDER_ID"]`.
+  2. Search for calls to an identifier's `get_absolute_url()`. It returns `None` for a type with
+     no resolver, so guard a link on the result:
+
+     ```django
+     {% if identifier.get_absolute_url %}
+       <a href="{{ identifier.get_absolute_url }}">{{ identifier.value }}</a>
+     {% else %}
+       {{ identifier.value }}
+     {% endif %}
+     ```
 - **A location's page renders.** `/location/<longitude>/<latitude>/` answered with a server
   error, because it asked for a card template per sample type and a page layout that were never
   in the repository. It now lists the samples taken at the location as the new `c-sample.card`
@@ -602,7 +713,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   now refuses any engine other than PostGIS, where it refused SQLite before. `docker-compose.yml`
   starts PostGIS, Redis, a Celery worker and the development server, and the test suite runs
   against PostGIS locally and in CI. See
-  [Technology stack](docs/overview/tech_stack.md) and
+  [The technology stack](docs/explanation/the-technology-stack.md) and
   [Configuration checks](docs/portal-administration/configuration-checks.md).
 - **The sign-in, sign-up and other entrance pages are laid out in two halves.** The form takes one
   half of the window. The other names the portal, gives its description and says who runs it, on
@@ -755,6 +866,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   view level, an organization already stored with a person's entry is kept and listed on the
   record, and the converted permissions are deleted. Permissions stored for organizations and for
   models a portal defines are untouched. The conversion does not reverse.
+
+  Upgrading. Bringing the database up to date converts the stored permissions. Check your
+  portal's own code for these:
+
+  1. Remove from `AUTHENTICATION_BACKENDS` the two backends that passed a dataset's permissions
+     down to its samples and measurements, which lived in `fairdm.core.sample.permissions` and
+     `fairdm.core.measurement.permissions`. Both modules are gone.
+     `fairdm.contrib.contributors.permissions.RecordLevelBackend` is added to FairDM's own list.
+     If your settings build the list themselves, add it after
+     `fairdm.core.permissions.PolymorphicObjectPermissionBackend`.
+  2. Replace granting access in code. `assign_perm` and `remove_perm`, guardian's or the ones in
+     `fairdm.core.utils`, no longer give a person access to a project, dataset, sample or
+     measurement. List the person at a level instead:
+     `Crediting(record).add(person)`, then
+     `Crediting(record).update(contribution, roles=[], level=ContributionLevel.EDIT)`.
+  3. Replace `get_objects_for_user` on those four models, which no longer finds anything. Use
+     `Dataset.all_objects.with_level(user, ContributionLevel.VIEW)`, or `accessible_to(user, level)`,
+     which also includes every record for someone a portal role gives the right to change
+     datasets. Call either on `Dataset.all_objects`, because `Dataset.objects` leaves private
+     datasets out.
 - **Creating a project or dataset, or a sample or measurement through the API, lists the creator
   at the manage level** and stores no permission. A superuser who creates one is not listed.
 - **Deleting a sample or a measurement now needs the manage level** on it, on its dataset or on its
@@ -795,8 +926,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **The demo application moved from `fairdm_demo/` to `demo/`** and is imported as `demo`. Its
   Django app label changed with it, which moves the database tables it owns. Nothing about how it
   behaves changed. Portals that install it, import from it, or name its models by label need a
-  small change — the steps are in
-  [Migration guides](docs/more/migration-guides.md#the-demo-application-moved-to-demo).
+  small change.
+
+  Upgrading:
+
+  1. If you install the demo application in your own portal, change the name you pass to
+     `fairdm.setup()` from `apps=["fairdm_demo"]` to `apps=["demo"]`.
+  2. If you import from it, change the import path, for example `from fairdm_demo.factories import
+     RockSampleFactory` to `from demo.factories import RockSampleFactory`.
+  3. If you refer to its models by label in `ForeignKey` strings, `apps.get_model()` calls,
+     permission codenames or content-type lookups, replace `fairdm_demo` with `demo`.
+  4. If you have a database holding demo data, the simplest path is to drop and recreate it. To
+     keep the data, do all of this before you start the application under the new name and
+     before running `migrate`:
+     - Rename each of the application's tables from `fairdm_demo_<model>` to `demo_<model>`.
+     - In `django_migrations`, set `app` from `fairdm_demo` to `demo` for its rows.
+     - In `django_content_type`, set `app_label` from `fairdm_demo` to `demo` for its rows.
+       Permissions follow, because they reference a content type by id.
+
+     If the application has already started under the new name, the content type step fails on
+     a uniqueness error, because Django has created a `demo` row beside the `fairdm_demo` row for
+     each model. Delete the newly created `demo` rows first, then run the step.
 - Withdrawing a contributor's rights when their credit is deleted now happens in one place
   rather than two. The behaviour is unchanged for every path that already worked.
 - **A model-level permission held through one of the four portal roles below now applies to
@@ -1336,6 +1486,63 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   opposite to the record's own, so each returned what the other promised. Neither had a caller.
 - **A specimen cannot be its own parent, and two specimens cannot each descend from the other**,
   when saved directly rather than only under validation.
+
+Upgrading a portal that holds samples:
+
+1. Export the sample statuses before you migrate if you need a record of them. Migration
+   `sample.0008_migrate_sample_status_to_unknown` rewrites every sample's `status` to `unknown`
+   and does not reverse. For example:
+
+   ```python
+   import csv
+   from fairdm.core.sample.models import Sample
+
+   with open("sample_status_backup.csv", "w", newline="") as f:
+       writer = csv.writer(f)
+       writer.writerow(["uuid", "name", "status"])
+       for sample in Sample.objects.values_list("uuid", "name", "status"):
+           writer.writerow(sample)
+   ```
+
+2. Update your own code, filters and reports that compare `sample.status` with `"complete"`,
+   `"ongoing"`, `"planned"` or `"available"` as a form default. The valid values are now
+   `available`, `in_use`, `stored`, `destroyed` and `unknown`.
+3. Write a concrete factory for each of your own sample types, subclassing
+   `fairdm.factories.SampleFactory`, and replace every `SampleFactory(...)` call in your tests:
+
+   ```python
+   from fairdm.factories import SampleFactory
+   from myapp.models import RockSample
+
+   class RockSampleFactory(SampleFactory):
+       class Meta:
+           model = RockSample
+   ```
+
+   Pass a concrete sample wherever you relied on a default, for example
+   `MeasurementFactory(sample=RockSampleFactory())`.
+4. Retarget any code that creates a bare `Sample`. Creating one through `Sample.objects.create()`,
+   `.save()`, a form, the admin or fixture loading raises `ValidationError`. Search for
+   `Sample.objects.create(`, for `Sample(` followed by `.save()`, and for fixtures with
+   `"model": "sample.sample"`, and point each at a concrete sample type.
+5. Check sample identifiers. The type vocabulary is now exactly `IGSN` and `DOI`. Django does not
+   validate choices on save, so a row can hold a stale type that fails `full_clean()`. Find them
+   with `SampleIdentifier.objects.exclude(type__in=SampleIdentifier.VOCABULARY.values)` and retype
+   or delete each. A local lab barcode belongs in the sample's `local_id`.
+6. Expect two changes to every identifier value. A display prefix such as `https://doi.org/`,
+   `http://doi.org/`, `https://igsn.org/`, `hdl.handle.net/`, `doi:` or `igsn:` is stripped before
+   the value is compared or stored, and a value must be unique across projects, datasets, samples
+   and measurements. If your code validates IGSNs against `^10273/[A-Z0-9]{9,}$`, remove that
+   pattern: an IGSN now validates as any DataCite DOI or the legacy `10273/` handle.
+7. Replace direct calls to `guardian.shortcuts.assign_perm`, `remove_perm`, `get_perms` or
+   `get_objects_for_user` against a sample, a measurement, an organization or a person with the
+   function of the same name in `fairdm.core.utils`. Calls against a non-polymorphic model are
+   unaffected. If your settings list `AUTHENTICATION_BACKENDS` by hand, replace
+   `guardian.backends.ObjectPermissionBackend` with
+   `fairdm.core.permissions.PolymorphicObjectPermissionBackend`.
+8. Check any view, template or link of your own that assumed the sample editing pages were open
+   without a permission. They now require `sample.change_sample`. Give the people who should keep
+   access the edit level on the sample or on its dataset, on the Contributors tab.
 
 #### Portal configuration (Feature 001) — breaking
 
