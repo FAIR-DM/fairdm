@@ -231,9 +231,9 @@ describes how something works is fine. A list of things to do is a how-to guide.
 
 | Reader | Lives in | Does | Organised by |
 |---|---|---|---|
-| Portal developer | `portal-development/` | Builds a research data portal on FairDM and deploys it | type |
-| Portal administrator | `portal-administration/` | Runs a portal: people, roles, content review and configuration checks | type |
-| Portal user | `user-guide/` | Adds, edits and publishes research data in a portal | the site's sections |
+| Portal developer | `developers/` | Builds a research data portal on FairDM and deploys it | type |
+| Portal administrator | `administrators/` | Runs a portal: people, roles, content review and configuration checks | type |
+| Portal user | `users/` | Adds, edits and publishes research data in a portal | the site's sections |
 
 The portal user's guide follows the sections a portal shows in its navigation: projects,
 datasets, samples, measurements and the account pages. Explanation that every reader needs, such
