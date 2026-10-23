@@ -315,7 +315,7 @@ linkcheck_workers = 5              # Parallel workers
 
 ## Related Documentation
 
-- [Information Architecture](./information-architecture.md) — Where documentation belongs
+- [Documentation standard](../standards/documentation.md) — Page types and where each page belongs
 - [Cross-Reference Patterns](./cross-references.md) — Linking to specs and constitution
 
 ---

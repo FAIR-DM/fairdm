@@ -22,14 +22,8 @@ When you implement a new feature:
 
 FairDM documentation is organized by audience:
 
-| Section | Audience | When to Use |
-|---------|----------|-------------|
-| **developer-guide/** | Portal builders | Configuring FairDM, extending with custom models/plugins |
-| **portal-administration/** | Portal administrators | Deploying, managing permissions, backups, monitoring |
-| **user-guide/** | Portal data contributors | Submitting data, using portal features, metadata guidelines |
-| **contributing/** | Framework contributors | Developing FairDM core, testing, code style, releasing |
-
-**See the full decision criteria**: [Documentation Standards](../contributing/documentation-standards.md#decision-criteria-where-does-my-documentation-go)
+Which section a page belongs in, and which of the four page types it is, are set out in the
+[documentation standard](standards/documentation.md).
 
 ---
 
@@ -110,6 +104,6 @@ Update:
 
 ## Related Documentation
 
-- [Documentation Standards](../contributing/documentation-standards.md) - Full IA guide with decision criteria
+- [Documentation standard](standards/documentation.md) - Page types and where each page belongs
 - [Constitution](../../CONSTITUTION.md) - FairDM governance principles
 - [MyST Syntax](https://myst-parser.readthedocs.io/) - Markdown extensions we use
