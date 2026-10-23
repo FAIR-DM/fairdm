@@ -351,7 +351,7 @@ class TestTableFactory:
         assert "description" not in fields
 
     def test_a_declared_long_text_field_is_left_out_of_the_generated_table(self):
-        # One long value would push the other columns off the page. See docs/portal-development/listing-a-registered-type.md.
+        # One long value would push the other columns off the page. See docs/developers/explanation/what-registering-a-type-produces.md.
         factory = TableFactory(SampleModel, fields=["name", "description", "status"])
 
         table_class = factory.generate()

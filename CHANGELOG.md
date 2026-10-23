@@ -57,7 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`postgis`) this FairDM is tested on. A portal uses the versions declared by the FairDM it pins,
   and moves its image and database when it moves FairDM. FairDM's own test and image workflows read
   the PostGIS tag from the same table. See
-  [How to deploy a portal in a container](docs/portal-development/production.md#choose-the-image-version)
+  [How to deploy a portal in a container](docs/developers/how-to/deploy-a-portal-in-a-container.md)
   and [ADR 0036](docs/adr/0036-fairdm-declares-the-image-and-database-a-portal-runs-on.md).
 - **Base images for building a portal's production container.** `docker/Dockerfile` builds a
   runtime image (Python 3.13, uv, the PostgreSQL client library, GDAL, GEOS and PROJ, and a
@@ -72,7 +72,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   The images have a version of their own: the Image Release workflow, run from the Actions tab,
   publishes `ghcr.io/fair-dm/fairdm:<version>` and `ghcr.io/fair-dm/fairdm:<version>-dev` and
   never moves a tag it has published. See
-  [How to deploy a portal in a container](docs/portal-development/production.md).
+  [How to deploy a portal in a container](docs/developers/how-to/deploy-a-portal-in-a-container.md).
 - **The `docker-compose.yml` development stack works again.** It builds the development image,
   mounts the checkout, and starts PostGIS, Redis, the development server and a Celery worker with
   `docker compose up`. `compose/django/Dockerfile` is gone. The deployment guide shows a portal's
@@ -90,8 +90,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   four new request limits, `autocomplete_anon_burst`, `autocomplete_anon_day`,
   `autocomplete_user_burst` and `autocomplete_user_day`. `python manage.py seed_record_search`
   seeds a walkthrough in development, and `--large` adds 100,000 samples. See
-  [How to add a record field to a form](docs/portal-development/add-a-record-field.md),
-  [Record fields](docs/portal-development/record-fields.md) and
+  [How to add a record field to a form](docs/developers/how-to/add-a-record-field-to-a-form.md),
+  [Record fields](docs/developers/reference/record-fields.md) and
   [Limits on the API](docs/portal-administration/api-limits.md#limits-on-the-search-fields).
 
 ### Changed
@@ -124,7 +124,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `seed_overviews` already makes, so the commands share it. Accounts an earlier run left at
   `fairdm.org` stay in a development database, and `fairdm.E501` no longer looks for them: delete
   them, or start from a fresh database. See
-  [Development accounts](docs/portal-development/development_accounts.md).
+  [Development accounts](docs/developers/reference/development-accounts.md).
 
 - **Breaking: a list view takes its search and sort from its filterset.** FairDM requires
   django-mvp 0.29 and django-mvp-forms 0.6. A view that subclasses `FairDMListView` or
@@ -142,7 +142,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   generated filterset carries a `q` filter over them. A configuration that overrides
   `get_filterset_class()` and builds the set with `FilterFactory` passes
   `search_fields=self.get_search_fields()`. See
-  [How to move a list view's search and sort into its filterset](docs/how-to/list-search-and-sort.md).
+  [How to move a list view's search and sort into its filterset](docs/developers/how-to/add-search-and-sort-to-a-list-view.md).
 - **Range filters on registered types use a pair of range inputs.** Number and date range
   filters in a generated filterset draw django-mvp-forms' `RangeInput`, `DateRangeInput` and
   `DateTimeRangeInput`. Their query parameters are `<field>_0` and `<field>_1`, where they were
@@ -227,7 +227,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   number with a unit list, using django-pint's form fields, and an edit form shows the stored value
   in the field's base units with that unit selected. A value entered in another unit from
   `unit_choices` is stored converted to the base units. See
-  [Special fields](docs/portal-development/special_fields.md#editing-a-quantity).
+  [Special fields](docs/developers/reference/model-fields.md).
 
 ## [v0.1.0] - 2026-10-16
 
@@ -246,7 +246,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   has `LocationField`, `LocationWidget` and `LocationFormMixin`. A sample's page shows its elevation and uncertainty
   with its latitude and longitude to five decimal places, and `c-card.location` takes `elevation`
   and `uncertainty`. An organization has a `location` point of its own. Run `migrate` when upgrading. See
-  [Locations](docs/portal-development/locations.md).
+  [Locations](docs/developers/reference/location-fields.md).
 
   Upgrading. Existing locations are not carried across, so follow these steps in order:
 
@@ -281,7 +281,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and says it is the measurement's. A measurement with none of its own is where its sample is, but
   only for a viewer who may open the sample. `Measurement.effective_location_for(user)` and
   `MeasurementQuerySet.with_effective_location(user)` give that location, and the page's context
-  carries it as `effective_location`. See [Locations](docs/portal-development/locations.md).
+  carries it as `effective_location`. See [Locations](docs/developers/reference/location-fields.md).
 
 - **Find samples, measurements and organizations by where they are.** `inside(area)` takes a
   polygon or a `(west, south, east, north)` tuple and counts a point on the edge as inside.
@@ -289,21 +289,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `nearest(point)` orders nearest first and carries `distance`. Each reads a spatial index and
   combines with `visible_to()`. A measurement's lookups take the viewer and find it by its own
   location, else its sample's for a viewer who may open the sample. See
-  [Locations](docs/portal-development/locations.md).
+  [Locations](docs/developers/reference/location-fields.md).
 
 - **The spatial coverage of a dataset and of a project.** `Dataset.spatial_coverage(user=None)` and
   `Project.spatial_coverage(user=None)` return the smallest box holding the locations the viewer
   may open, measurements included, or `None` when nothing is located. Locations on both sides of
   the 180th meridian give a narrow box with its western bound east of its eastern one. The
   collection tables' Latitude and Longitude for a measurement are its effective location for the
-  viewer. See [Locations](docs/portal-development/locations.md).
+  viewer. See [Locations](docs/developers/reference/location-fields.md).
 
 - **The API returns a record's location as a GeoJSON point.** A sample and a measurement return
   `location`, a `Point` in WGS 84 with longitude first and the elevation as a third coordinate
   where one is recorded, and `location_uncertainty` in metres beside it. An organization returns
   `location` without an elevation, and a person returns none. A record with no location returns
   `null`, and a measurement returns only its own location, never its sample's. The three location
-  fields are read-only. See [A record's location](docs/portal-development/restful-api.md#a-records-location).
+  fields are read-only. See [A record's location](docs/developers/reference/rest-api.md).
 
 - **A location is four columns in tabular import and export.** Where a sample or measurement
   type's `fields` or `resource_fields` list `location`, its resource has `latitude`, `longitude`,
@@ -311,21 +311,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   values in WGS 84 decimal degrees, and a measurement never writes its sample's location. Import
   reads the coordinates as decimal degrees, with the location input's ranges, and reports a row it
   refuses instead of saving it. See
-  [Locations](docs/portal-development/locations.md#in-import-and-export).
+  [Locations](docs/developers/reference/location-fields.md).
 
 - **An organization's point is typed on its forms.** The organization's profile page, the form
   that adds an organization and the older profile form take a latitude and a longitude as decimal
   degrees in WGS 84, in place of the map input. An organization
   added from ROR still takes the coordinates ROR publishes, and a person placed on a map is placed
   at their primary affiliation's organization's point. See
-  [Locations](docs/portal-development/locations.md#placing-an-organization).
+  [Locations](docs/developers/reference/location-fields.md).
 
 - **A template tag that asks whether the viewer holds a level on a record.**
   `{% holds_level "edit" object as can_edit %}`, from `plugin_tags`, answers for the view, edit or
   manage level on a project, dataset, sample or measurement, decided as the record's own pages
   decide it. A template that fills a block of a record's page can guard what it adds without a
   view of its own. `plugins.holds_level(request, level, record)` asks the same from Python. See
-  [Create a plugin](docs/portal-development/create_a_plugin.md).
+  [Create a plugin](docs/developers/how-to/create-a-plugin.md).
 - **A landing page for visitors who have not signed in.** The address `/` now opens on a
   full-height hero and follows it with public figures, the portal's description, the latest
   datasets, the registered sample and measurement types, the community, new projects, the API, an
@@ -335,13 +335,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `c-landing.*` component, and `FairDMHomeView` reads each section's data from a `get_*` method
   a subclass can override. The
   listings' record cards are now the components `c-dataset.card` and `c-project.card`. See
-  [Home page](docs/portal-development/home_page.md).
+  [Home page](docs/developers/reference/home-page.md).
 - **A keywords page on projects, datasets, samples and measurements.** Each record type has the URL
   name `keywords`, at `<record address>/keywords/`, reached from the Manage menu after the
   descriptions entry. The Manage menu now offers all six pages in one order on every record type: edit
   details, descriptions, keywords, key dates, identifiers and delete. The readiness items for
   keywords on a project's and a dataset's page lead to it. See
-  [Record editing pages](docs/portal-development/record-editing-pages.md).
+  [Record editing pages](docs/developers/reference/record-editing-pages.md).
 - **A delete page on projects, datasets, samples and measurements.** Each record type has the URL
   name `delete`, at `<record address>/delete/`, reached from the last entry of the Manage menu. A
   sample and a measurement can be deleted through the portal for the first time. The page asks for
@@ -350,7 +350,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   public dataset or a sample with measurements, says what is in the way and offers no way to
   confirm. Measurements the viewer may not see are counted and not named. Afterwards a sample or a
   measurement leads to its dataset. `manage_menu` entries now carry a `destructive` flag. See
-  [Record editing pages](docs/portal-development/record-editing-pages.md).
+  [Record editing pages](docs/developers/reference/record-editing-pages.md).
 - **Key dates and identifiers pages on projects, datasets, samples and measurements.** Each record
   type has the URL names `key-dates` and `identifiers`, at `<record address>/key-dates/` and
   `<record address>/identifiers/`, reached from the Manage menu after the descriptions entry. A
@@ -358,7 +358,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   precisely as it was entered, and a project and a dataset still refuse an end that falls before
   the start. New row sets `SampleDateInline`, `SampleIdentifierInline`, `MeasurementDateInline`
   and `MeasurementIdentifierInline` are in `fairdm.core.related_records`. See
-  [Record editing pages](docs/portal-development/record-editing-pages.md).
+  [Record editing pages](docs/developers/reference/record-editing-pages.md).
 - **Legal documents, and a record of who agreed to them.** FairDM now installs
   [django-mvp-compliance](https://github.com/django-mvp/django-mvp-compliance) 0.2. A portal's
   privacy policy, terms and impressum are written in the admin under **Compliance**, published as
@@ -367,7 +367,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `/legal/agree/` before they go on. FairDM ships no documents, so nothing changes for anybody
   until a portal publishes one. Run `migrate` when upgrading, which creates the package's tables.
   A portal that already serves pages of its own under `/legal/` has to move them or leave the
-  package's addresses out. See [Legal documents](docs/portal-development/legal-documents.md)
+  package's addresses out. See [Legal documents](docs/developers/reference/legal-documents.md)
   (#463).
 
 ### Removed
@@ -432,7 +432,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   old addresses are not redirected. A portal that linked to one reverses `edit` or `descriptions`
   in the record's namespace instead, and a portal that subclassed `UpdatePlugin` for its own page
   builds on `FairDMUpdateView` and `Plugin`. See
-  [Record editing pages](docs/portal-development/record-editing-pages.md).
+  [Record editing pages](docs/developers/reference/record-editing-pages.md).
 
   Upgrading. Nothing in the database changes. Check your portal's own code for these:
 
@@ -499,7 +499,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and the signup gate django-invitations provided is now FairDM's own setting. Portals that
   customised either need a small change — the settings and template changes involved, and
   the one piece of markdown syntax that renders differently afterwards, are covered in
-  [Rich text and markdown](docs/portal-development/rich-text.md).
+  [Rich text and markdown](docs/developers/how-to/render-markdown-in-a-template.md).
 - **The `groups` fixture and its three empty, ungoverned groups are gone**, replaced by the four
   portal roles described below. A portal already using the three previous groups keeps every
   member: they are renamed in place, not deleted, the next time the database is brought up to
@@ -510,7 +510,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   page is now the overview plugin's, drawn by `measurement/measurement_overview.html` and its
   `overview.*` blocks. A portal that subclassed the view or extended the template overrides the
   matching block or plugin method instead, as described in
-  [Overview pages](docs/portal-development/overview-pages.md).
+  [Overview pages](docs/developers/reference/overview-plugins.md).
 - **The `gis` extra and the GeoDjango code in `fairdm.contrib.location` are gone.**
   `pip install fairdm[gis]` no longer names an extra, and `djangorestframework-gis` is no longer a
   dependency of any kind. GeoDjango itself is now always installed, as described under Changed. Removed with it: the modules `fairdm.contrib.location.api`,
@@ -527,7 +527,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   renders, a contributor's roles reach `contributorType`, and the `geoLocationBox` holds the
   dataset's spatial coverage for a visitor. A dataset with no public location carries no
   `geoLocations`. The template no longer reads `dataset.centroid`, which no dataset has. See
-  [Locations](docs/portal-development/locations.md#in-datacite-metadata).
+  [Locations](docs/developers/reference/location-fields.md).
 - **Organizations made or synced from ROR get their name, city, country and location.** ROR
   now answers in version 2 of its schema, and `RORTransform` and the background sync still read
   version 1. Creating an organization from a ROR ID raised `decimal.InvalidOperation` for every
@@ -572,11 +572,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   in the repository. It now lists the samples taken at the location as the new `c-sample.card`
   component, one card for every sample type, and shows only the samples the viewer may see. An
   address that names no location answers "not found". See
-  [Overview pages](docs/portal-development/overview-pages.md).
+  [Overview pages](docs/developers/reference/overview-plugins.md).
 - **Selecting two keywords narrows the project list to the projects that carry both.** The
   keyword filters of `ProjectFilter` kept a project that carried either keyword, so each
   further keyword widened the list. See
-  [Filtering by vocabulary](docs/portal-development/filtering-by-vocabulary.md).
+  [Filtering by vocabulary](docs/developers/how-to/filter-projects-by-vocabulary-keywords.md).
 - **The plugin guide and two docstrings no longer say an additional view takes its plugin's access
   rule.** A view listed in `extra_views` is decided by its own `check` and `permission` only, so a
   restricted plugin leaves its additional views open until each states the rule itself. The guide,
@@ -586,7 +586,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   public datasets and the private ones the requesting user may view, and a private dataset's key
   is refused as an invalid choice for anyone else. A filter set built without a request offers
   the public datasets only, so pass `request=request` when you build one yourself. See
-  [Sample mixins](docs/portal-development/forms-and-filters/sample-mixins.md).
+  [Sample mixins](docs/developers/reference/form-and-filter-mixins.md).
 - **The add-person page accepts only people.** A POST naming an organization, or the placeholder
   account that stands for visitors, could list it on a record as a person. The page for adding a
   person now answers 404 for anything but a person, the page for adding an organization for
@@ -720,7 +720,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a background in the theme's colours. Below 1024 pixels the form has the page. These pages drew
   one centred card before. A portal replaces the pane with a `cotton/entrance/aside.html` of its
   own, and the whole layout with `mvp_accounts/entrance/base.html`. See
-  [Entrance pages](docs/portal-development/entrance_pages.md).
+  [Entrance pages](docs/developers/reference/entrance-pages.md).
 - **The django-mvp packages move to their latest releases.** django-mvp 0.28.2, django-mvp-forms
   0.4.0, django-mvp-accounts 0.3.0, django-mvp-charts 0.3.0 and daisy-cotton-ext 0.5.0. Nothing in
   FairDM's own code or templates needed changing. What a portal will notice:
@@ -744,7 +744,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   where they scanned the whole table before. Contributors already had the index. Each of
   the four apps gains one migration that creates it, so run `migrate` when upgrading (#466).
 - **The REST API is complete, and a portal with API clients or serializers of its own has changes
-  to make.** See [The REST API](docs/portal-development/restful-api.md) and
+  to make.** See [The REST API](docs/developers/reference/rest-api.md) and
   [Limits on the API](docs/portal-administration/api-limits.md). What to change:
   - **Records refer to each other by short identifier, and no response carries a database number.**
     The `id` field is gone from every record. `project`, `dataset` and `sample` are
@@ -916,7 +916,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   changed.** `c-contributor.names` no longer takes `role` or `separator`, `c-contributor.name` and
   the person and organization cards take the contributor as an attribute rather than reading it
   from the context, and `c-contributor.avatar` takes a size token rather than pixels. The
-  components are described in [Contributors](docs/portal-development/component_library/contributors.md).
+  components are described in [Contributors](docs/developers/reference/components.md).
 
 - **The project is built and developed with uv instead of Poetry.** Contributors run
   `uv sync` to install and `uv run` in place of `poetry run`. The lockfile is now `uv.lock`,
@@ -1068,7 +1068,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   The migration adds an empty column; existing contributions hold no level until a person is given
   one. `Person.can_sign_in()` is the rule that decides whether an account is in use, which
   `Person.is_editable_by()` now asks. See
-  [The Contributors tab](docs/portal-development/contributors.md#the-contributors-tab) and
+  [The Contributors tab](docs/developers/reference/contributor-models.md) and
   [Crediting a record](docs/user-guide/crediting-a-record.md).
 - **A Data Curator can step in on any record.** Holding the Data Curator role, a person opens any
   project, dataset, sample or measurement and manages its contributors without being listed on it,
@@ -1081,7 +1081,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   only manager cannot sign in. `--keep-records` adds what a newer version needs to an earlier run's
   records without changing their addresses. `manage.py seed_profiles` credits each person it
   affiliates from their primary affiliation. See
-  [Development accounts](docs/portal-development/development_accounts.md#accounts-for-the-contributors-tab).
+  [Development accounts](docs/developers/reference/development-accounts.md).
 - A person can edit their own profile. The edit action in the header of their page, the prompt to
   write a biography and the photo, biography and links items on their checklist now lead to a page
   for changing the photo, given and family name, display name, alternative names, biography, links and languages. While the
@@ -1089,7 +1089,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   naming its own form in the new `FAIRDM_PROFILE_FORMS` setting. A portal that overrides
   `contributors/overview/person.html` keeps the disabled edit button, the disabled prompt and the
   unlinked checklist items until it adopts the new `can_edit` and `update_url` values. See
-  [Editing a profile](docs/portal-development/contributors.md#editing-a-profile).
+  [Editing a profile](docs/developers/reference/contributor-models.md).
 - An organization's owner and administrators can edit its profile. **Edit details** in the
   **Manage** menu, the description prompt and the logo, type, city and country, description and
   website items on its checklist now lead to a page for changing the logo, name, alternative names,
@@ -1099,7 +1099,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `FAIRDM_PROFILE_FORMS`. A portal that overrides `contributors/overview/organization.html` keeps
   the disabled **Edit details** entry, the disabled description prompt and the unlinked checklist
   items until it adopts the new `can_edit` and `update_url` values. See
-  [Editing a profile](docs/portal-development/contributors.md#editing-a-profile).
+  [Editing a profile](docs/developers/reference/contributor-models.md).
 - `Organization.get_descendant_ids()` returns every organization beneath one, at any depth. An
   organization can no longer be made part of itself or of one of its own sub-organizations, in the
   editing page or in the administration interface.
@@ -1123,7 +1123,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   affiliations. An unclaimed profile and an inactive account each say so, and capabilities FairDM
   cannot offer yet, such as claiming a profile or contacting the person, are shown as not
   available. The blocks are described in
-  [Overview pages](docs/portal-development/overview-pages.md#the-person-page), including the new
+  [Overview pages](docs/developers/reference/overview-plugins.md), including the new
   `overview.name`.
 - An organization's page now shows what it is, where it sits among the organizations around it,
   its current members with the people who run it marked, and the public projects it owns or is
@@ -1131,25 +1131,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   not counted as the organization's. The people who keep the record see a checklist, and a
   signed-in person who is not a member is shown asking to join as not available yet. The blocks
   are described in
-  [Overview pages](docs/portal-development/overview-pages.md#the-organization-page).
+  [Overview pages](docs/developers/reference/overview-plugins.md).
 - The Projects and Datasets tabs of an organization list the same records as its overview, so a
   figure on the page equals the number of entries behind its link.
 - A person sees a checklist of what a complete profile has on their own page, with editing the
   profile offered as not available yet, and the owner and administrators of an organization see
   the checklist of its record and a menu of management actions. Nobody else sees either, whatever
   their portal role. Who sees what is described in
-  [Overview pages](docs/portal-development/overview-pages.md#the-profile-checklist).
+  [Overview pages](docs/developers/reference/overview-plugins.md).
 - The card `c-card.hierarchy`, and `Organization.get_current_memberships()`, `has_member()`,
   `is_managed_by()`, `get_hierarchy()`, `get_public_projects()` and `get_public_datasets()`, are
-  documented in [Cards](docs/portal-development/component_library/cards.md#c-cardhierarchy) and
-  [Contributors](docs/portal-development/contributors.md#organization-properties).
+  documented in [Cards](docs/developers/reference/components.md) and
+  [Contributors](docs/developers/reference/contributor-models.md).
 - The cards `c-card.records`, `c-card.roles`, `c-card.links` and `c-card.affiliations`, and the
   `c-missing` notice, are documented in
-  [Cards](docs/portal-development/component_library/cards.md).
+  [Cards](docs/developers/reference/components.md).
 - `Contributor.get_public_projects()`, `get_public_datasets()`, `get_visible_contributions()`,
   `get_role_counts()`, `get_collaborators()` and `to_public_schema_org()`, and the helpers in
   `fairdm.contrib.contributors.profiles`, are documented in
-  [Contributors](docs/portal-development/contributors.md#what-a-profile-may-show).
+  [Contributors](docs/developers/reference/contributor-models.md).
 - `manage.py seed_profiles` loads a person and an organization in every state the pages answer for.
   It refuses to run outside development.
 - Pillow is a declared dependency of FairDM.
@@ -1157,7 +1157,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   row with an `actions` slot), `c-contributor.byline`, `c-contributor.stack`,
   `c-contributor.summary` and `c-contributor.affiliation` join the existing name, names, avatar and
   card components. Each takes a person, an organization or a contribution. They are described in
-  [Contributors](docs/portal-development/component_library/contributors.md).
+  [Contributors](docs/developers/reference/components.md).
 - **The person card shows the portal roles a person holds**, as a badge per role.
 - **`Person.objects.for_cards()`** prefetches everything a person's card reads, so a page listing
   people costs the same number of queries however many it shows. The people listing and the team
@@ -1171,11 +1171,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Projects, datasets, samples and measurements open on one consistent overview page.** The
   four pages share one layout (header, notices, a strip of figures, then content beside a side
   column of shared cards) and one list of `overview.` template blocks, documented in
-  [Overview pages](docs/portal-development/overview-pages.md). The project page lists its five
+  [Overview pages](docs/developers/reference/overview-plugins.md). The project page lists its five
   most recently updated datasets, charts records by type and growth by month, shows the team a
   readiness checklist, and counts for a visitor only the datasets they may see. The cards are
   the `c-card.*` components, described in
-  [Cards](docs/portal-development/component_library/cards.md), and a portal changes a page by
+  [Cards](docs/developers/reference/components.md), and a portal changes a page by
   overriding one block, or one method of `RecordOverviewPlugin`, which every overview plugin now
   subclasses. Dates on these pages follow the active language, and every string on them is
   translatable.
@@ -1184,7 +1184,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a timeline card of its key dates, its citation and its related publications worded from the
   publication's side. A public dataset that is not published shows a visitor its description,
   counts and charts, and never a record. The team sees a "Ready to publish?" checklist of seven
-  required and three recommended items until the dataset is published. See [Overview pages](docs/portal-development/overview-pages.md).
+  required and three recommended items until the dataset is published. See [Overview pages](docs/developers/reference/overview-plugins.md).
 - **The sample page follows the specimen, and a sample type adds its own fields by providing one
   template.** It shows the type and status, a timeline joining each step's date, people and
   notes, the measurements made on the sample (including those another team recorded in its own
@@ -1193,7 +1193,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   linked. A portal gives a sample type its page with `<app_label>/<model_name>_overview.html`, a
   subtype inherits its parent type's page, and the demo's rock sample is the worked example. `SampleQuerySet` and `MeasurementQuerySet` now get `published()`
   and `visible_to()` from `fairdm.core.managers.RecordVisibilityMixin`. See
-  [Overview pages](docs/portal-development/overview-pages.md).
+  [Overview pages](docs/developers/reference/overview-plugins.md).
 - **The measurement page shows the result and how it was obtained, and a measurement type adds its
   own fields by providing one template.** It shows the result with its uncertainty, a timeline of
   how the measurement was set up, made and taken down, the sample it was made on as a small version
@@ -1203,13 +1203,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   state of its sample's dataset, and a sample in an unpublished dataset is described as one and
   never named, linked or mapped. A portal gives a measurement type its page with
   `<app_label>/<model_name>_overview.html`, and the demo's XRF measurement is the worked example.
-  See [Overview pages](docs/portal-development/overview-pages.md).
+  See [Overview pages](docs/developers/reference/overview-plugins.md).
 - **`manage.py seed_overviews` loads development data for the overview pages**, and creates
   `regular.user@example.com`, `staff.user@example.com` and `super.user@example.com` when they are
   missing. It refuses to run outside development, leaves an existing account as it is, and
   replaces only the projects it created. `fairdm.E501` now reports these three addresses on a
   portal that is not in development. See
-  [Development accounts](docs/portal-development/development_accounts.md).
+  [Development accounts](docs/developers/reference/development-accounts.md).
 - **Description text now has a 20,000-character ceiling.** Project, dataset, sample and
   measurement descriptions previously had no length limit anywhere between the editing page
   and the database. The limit is well beyond any real abstract or methods note, so ordinary

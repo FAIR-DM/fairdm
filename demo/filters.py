@@ -50,9 +50,9 @@ description_type = django_filters.CharFilter(
 
 ## Related Documentation
 
-- **Filter Guide**: `docs/portal-development/filters/creating-filters.md`
+- **Filter Guide**: `docs/developers/how-to/add-a-filter-to-a-sample-type.md`
 - **Dataset Filter Reference**: `fairdm/core/dataset/filters.py`
-- **Performance Guide**: `docs/portal-development/filters/performance.md`
+- **Performance Guide**: `docs/developers/how-to/add-a-filter-to-a-sample-type.md`
 
 ## Integration with FairDM Registry
 
@@ -70,7 +70,7 @@ class MySampleConfig(ModelConfiguration):
     filter_fields = ["name", "location", "date"]
 ```
 
-See `docs/portal-development/registry/configuration.md` for details.
+See `docs/developers/reference/model-configuration.md` for details.
 
 ## Best Practices
 

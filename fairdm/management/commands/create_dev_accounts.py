@@ -8,7 +8,7 @@ polymorphic ``Contributor``, so a fixture row would need a content-type primary
 key that differs between databases, and a fixture cannot refuse to load at all.
 
 The accounts share a published password (``password``, also written down in
-``docs/portal-development/development_accounts.md``), so the refusal below, not
+``docs/developers/reference/development-accounts.md``), so the refusal below, not
 secrecy, is their whole safety outside development. ``fairdm.E501``
 (``fairdm/conf/checks.py``) is the second line of defence: it reports any of
 these five addresses found on a portal this command never ran against, such as

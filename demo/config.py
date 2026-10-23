@@ -14,13 +14,13 @@ The examples in this module illustrate:
 
 ## Related Documentation
 
-- **Getting Started Guide**: `docs/portal-development/getting_started.md`
+- **Getting Started Guide**: `docs/developers/tutorial.md`
   - Basic registration walkthrough and first model creation
 
-- **Model Configuration Guide**: `docs/portal-development/model_configuration.md`
+- **Model Configuration Guide**: `docs/developers/reference/model-configuration.md`
   - Complete API reference for ModelConfiguration options
 
-- **Registry Usage**: `docs/portal-development/using_the_registry.md`
+- **Registry Usage**: `docs/developers/reference/registry.md`
   - Advanced patterns and introspection capabilities
 """
 
@@ -55,7 +55,7 @@ class CustomParentSampleConfig(BaseSampleConfiguration):
     - Custom resource class for specialized import/export handling
     - Internationalization support with gettext_lazy
 
-    See: docs/portal-development/model_configuration.md#metadata-configuration
+    See: docs/developers/reference/model-configuration.md
     """
 
     model = CustomParentSample
@@ -101,7 +101,7 @@ class CustomSampleConfig(ModelConfiguration):
     Pattern: Use this approach when you need fine-grained control over
     different UI components while maintaining auto-generation benefits.
 
-    See: docs/portal-development/model_configuration.md#component-specific-fields
+    See: docs/developers/reference/model-configuration.md
     """
 
     model = CustomSample
@@ -392,7 +392,7 @@ class XRFMeasurementConfig(BaseMeasurementConfiguration):
     description for all ``/api/v1/measurements/xrf-measurements/`` endpoints.
 
     See: Developer Guide > RESTful API > Model Descriptions in the API Docs
-    (docs/portal-development/restful-api.md#model-descriptions-in-the-api-docs)
+    (docs/developers/reference/rest-api.md)
     """
 
     model = XRFMeasurement
@@ -428,7 +428,7 @@ class ICP_MS_MeasurementConfig(BaseMeasurementConfiguration):
     description for all ``/api/v1/measurements/icp-ms-measurements/`` endpoints.
 
     See: Developer Guide > RESTful API > Model Descriptions in the API Docs
-    (docs/portal-development/restful-api.md#model-descriptions-in-the-api-docs)
+    (docs/developers/reference/rest-api.md)
     """
 
     model = ICP_MS_Measurement

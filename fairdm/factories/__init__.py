@@ -66,7 +66,7 @@ Documentation
 -------------
 
 Portal Developers:
-    See docs/portal-development/testing-portal-projects.md
+    See docs/developers/how-to/test-a-portal-with-fairdm-factories.md
 
 Framework Contributors:
     See docs/contributing/testing/

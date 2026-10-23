@@ -46,7 +46,7 @@ def get_actions(self, request):
 
 ## Related Documentation
 
-- **Admin Interface Guide**: `docs/portal-development/admin_interfaces.md`
+- **Admin Interface Guide**: `docs/developers/how-to/customise-the-admin-for-a-measurement-type.md`
   - Complete guide to customizing admin interfaces
 
 - **Dataset Admin Reference**: `fairdm/core/dataset/admin.py`
@@ -72,7 +72,7 @@ class MySampleConfig(ModelConfiguration):
     fields = ["name", "location", "date"]
 ```
 
-See `docs/portal-development/registry_integration.md` for details.
+See `docs/developers/reference/registry.md` for details.
 
 ## Best Practices
 
@@ -283,7 +283,7 @@ class RockSampleAdmin(SampleChildAdmin):
 
     See Also:
         - fairdm.core.sample.admin.SampleAdmin: Base admin class
-        - docs/portal-development/admin/sample-admin.md: Admin customization guide
+        - docs/developers/how-to/add-a-sample-type.md: Admin customization guide
     """
 
     base_model = RockSample
@@ -329,7 +329,7 @@ class WaterSampleAdmin(SampleChildAdmin):
 
     See Also:
         - fairdm.core.sample.admin.SampleAdmin: Base admin class
-        - docs/portal-development/admin/sample-admin.md: Admin customization guide
+        - docs/developers/how-to/add-a-sample-type.md: Admin customization guide
     """
 
     base_model = WaterSample
@@ -379,7 +379,7 @@ class ExampleMeasurementAdmin(MeasurementChildAdmin):
 
     See Also:
         - fairdm.core.measurement.admin.MeasurementChildAdmin: Base admin class
-        - docs/portal-development/admin/measurement-admin.md: Admin customization guide
+        - docs/developers/how-to/customise-the-admin-for-a-measurement-type.md: Admin customization guide
     """
 
     base_model = ExampleMeasurement
@@ -429,7 +429,7 @@ class XRFMeasurementAdmin(MeasurementChildAdmin):
 
     See Also:
         - fairdm.core.measurement.admin.MeasurementChildAdmin: Base admin class
-        - docs/portal-development/admin/measurement-admin.md: Admin customization guide
+        - docs/developers/how-to/customise-the-admin-for-a-measurement-type.md: Admin customization guide
     """
 
     base_model = XRFMeasurement
@@ -480,7 +480,7 @@ class ICP_MS_MeasurementAdmin(MeasurementChildAdmin):
 
     See Also:
         - fairdm.core.measurement.admin.MeasurementChildAdmin: Base admin class
-        - docs/portal-development/admin/measurement-admin.md: Admin customization guide
+        - docs/developers/how-to/customise-the-admin-for-a-measurement-type.md: Admin customization guide
     """
 
     base_model = ICP_MS_Measurement

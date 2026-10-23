@@ -139,7 +139,7 @@ fairdm.setup(apps=["myportal"], addons=["fairdm_discussions"])
 
 FairDM's settings are production-grade in every environment. Each environment is an override layered on top, named by `DJANGO_ENV` and applied only if it exists — so `config/development.py` beside your settings module tunes development, and an environment nobody ships a module for simply gets the production baseline. In production, configuration that would leave the portal unsafe stops it starting.
 
-See [Configuration](https://github.com/FAIR-DM/fairdm/blob/main/docs/portal-development/configuration.md) for the layer order, the environment variables and `manage.py show_config`.
+See [Configuration](https://github.com/FAIR-DM/fairdm/blob/main/docs/developers/reference/configuration.md) for the layer order, the environment variables and `manage.py show_config`.
 
 ### Model Registration
 
@@ -251,9 +251,9 @@ Full documentation is available at: **<https://fairdm.readthedocs.io/en/latest/>
 
 ### Documentation Sections
 
-- **[User Guide](https://fairdm.readthedocs.io/en/latest/user-guide/)** — For portal users and contributors
-- **[Developer Guide](https://fairdm.readthedocs.io/en/latest/portal-development/)** — Build your own research portal
-- **[Admin Guide](https://fairdm.readthedocs.io/en/latest/portal-administration/)** — Portal administration and maintenance
+- **[Developers](https://fairdm.readthedocs.io/en/latest/developers/)** — Build and deploy a research portal on FairDM
+- **[Administrators](https://fairdm.readthedocs.io/en/latest/administrators/)** — Run a portal: people, roles, content review and configuration checks
+- **[Users](https://fairdm.readthedocs.io/en/latest/users/)** — Add, edit and publish research data in a portal
 - **[Contributing](https://fairdm.readthedocs.io/en/latest/contributing/)** — Contribute to FairDM framework development
 
 ---

@@ -284,7 +284,7 @@ class PersonFactory(factory.django.DjangoModelFactory):
     1. Claimed users (email + password) for interactive portal access
     2. Unclaimed contributors (name-only) for provenance tracking
 
-    See: docs/portal-development/contributors.md
+    See: docs/developers/reference/contributor-models.md
     """
 
     first_name = factory.Faker("first_name")
@@ -335,7 +335,7 @@ class OrganizationFactory(factory.django.DjangoModelFactory):
     - Parent-child hierarchies
     - Member affiliations with type-based permissions
 
-    See: docs/portal-development/contributors.md#organizations
+    See: docs/developers/reference/contributor-models.md
     """
 
     name = factory.Faker("company")
