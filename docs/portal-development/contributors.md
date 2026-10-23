@@ -298,7 +298,7 @@ The Django admin's affiliation forms - the standalone Affiliation admin and both
 the same write behind `manage_organization`: setting a type to `ADMIN` or `OWNER`, or changing
 or deleting an affiliation that already carries one of those types, requires the acting user to
 already hold `manage_organization` on that organisation. See [Managing Organization Memberships
-in Managing Contributors](../portal-administration/managing_contributors.md#managing-organization-memberships)
+in Managing Contributors](../administrators/reference/people.md)
 for the admin-facing behaviour.
 
 ### Organization Properties
@@ -1514,6 +1514,6 @@ creators = Contribution.objects.for_entity(project).by_role("Creator")
 
 ## Next Steps
 
-- **Admin Guide**: See [Managing Contributors](../portal-administration/managing_contributors.md) for admin workflows
+- **Admin Guide**: See [Managing Contributors](../administrators/reference/people.md) for admin workflows
 - **Registry Integration**: See [Using the Registry](using_the_registry.md) for registering custom Person/Organization fields
 - **Testing**: See [Testing Portal Projects](testing-portal-projects.md) for contributor-related test patterns

@@ -921,7 +921,7 @@ required field 'rock_type', so no record of this type can be created through the
 A required field is one that is editable, has no default, and may be neither blank nor null. It
 needs a writable field in the type's serializer, so a field the serializer returns as read-only is
 reported too. The check looks at the serializer the API will
-use, whether FairDM builds it or you supply it. See [Configuration Checks](../portal-administration/configuration-checks.md).
+use, whether FairDM builds it or you supply it. See [Configuration Checks](../administrators/reference/configuration-checks.md).
 
 ## Serializer and Filter Classes
 
@@ -1087,7 +1087,7 @@ seconds to wait. Counts are kept in Django's default cache, so a production port
 cache it already requires, and the limits count per address only once
 `REST_FRAMEWORK["NUM_PROXIES"]` holds the number of proxies in front of the portal. Without it, the
 address comes from a header the caller controls. The portal administration guide gives the same
-settings for an administrator: see [Limits on the API](../portal-administration/api-limits.md).
+settings for an administrator: see [Limits on the API](../developers/explanation/how-api-callers-are-limited.md).
 
 The page size follows the same pattern. A list holds `REST_FRAMEWORK["PAGE_SIZE"]` records (100)
 unless `?page_size=` asks for another number, up to `FAIRDM_API_MAX_PAGE_SIZE` (1000).

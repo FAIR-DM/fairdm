@@ -225,5 +225,5 @@ type and the value.
 
 - [`Person`](../portal-development/contributors.md) — the account a user logs in with, and
   what "claimed" means.
-- [`Organization`](../portal-administration/managing_contributors.md) — managing organisations
+- [`Organization`](../administrators/reference/people.md) — managing organisations
   and their members from the admin interface.

@@ -287,7 +287,7 @@ def check_api_proxy_count(app_configs, **kwargs):
             "the caller controls.",
             hint=(
                 "Set REST_FRAMEWORK['NUM_PROXIES'] to the number of proxies in front of the "
-                "portal. See docs/portal-administration/api-limits.md."
+                "portal. See docs/developers/how-to/count-api-callers-behind-a-proxy.md."
             ),
             id="fairdm.W601",
         )

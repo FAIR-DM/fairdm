@@ -322,7 +322,7 @@ A search that fails answers with status 500 and an empty list, and nothing else.
 
 ## Request rates
 
-Each address limits a caller with four throttles. For what to set, see [Limits on the API](../portal-administration/api-limits.md#limits-on-the-search-fields). A signed-in caller is counted by account and
+Each address limits a caller with four throttles. For what to set, see [Limits on the API](../developers/explanation/how-api-callers-are-limited.md). A signed-in caller is counted by account and
 anyone else by network address. A caller over a limit is answered with status 429, a `Retry-After`
 header and an empty list, before anything is searched.
 
