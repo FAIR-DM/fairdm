@@ -13,7 +13,7 @@ class MeasurementQuerySet(RecordVisibilityMixin, PolymorphicQuerySet):
     """QuerySet for measurements, whose methods chain with the standard queryset operations.
 
     ``with_related()`` prefetches direct relationships without deep nesting, which views add
-    themselves when needed. See docs/portal-development/measurements.md.
+    themselves when needed. See docs/developers/how-to/add-a-measurement-type.md.
 
     ``inside()``, ``within_distance()`` and ``nearest()`` find measurements by their effective
     location: their own, else their sample's for a viewer who may open the sample.

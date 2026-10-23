@@ -14,7 +14,7 @@ class BaseMeasurementConfiguration(ModelConfiguration):
     """Base registry configuration for measurement types, with the common field lists.
 
     A subclass sets ``model`` and lists its own ``fields``. Do not register the base
-    ``Measurement`` model. See docs/portal-development/measurements.md.
+    ``Measurement`` model. See docs/developers/how-to/add-a-measurement-type.md.
 
     Attributes:
         fields: Fields for all generated components.

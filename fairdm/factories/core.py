@@ -84,7 +84,7 @@ Type validation::
     project = ProjectFactory(descriptions=1, descriptions__types=["InvalidType"])
 
 For more details, see:
-- Portal developers: docs/portal-development/testing-portal-projects.md
+- Portal developers: docs/developers/how-to/test-a-portal-with-fairdm-factories.md
 - Framework contributors: docs/contributing/testing/
 """
 

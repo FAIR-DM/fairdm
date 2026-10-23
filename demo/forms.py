@@ -63,9 +63,9 @@ def save(self, commit=True):
 
 ## Related Documentation
 
-- **Form Guide**: `docs/portal-development/forms/creating-forms.md`
+- **Form Guide**: `docs/developers/how-to/customise-a-sample-form.md`
 - **Dataset Form Reference**: `fairdm/core/dataset/forms.py`
-- **Widget Customization**: `docs/portal-development/forms/widgets.md`
+- **Widget Customization**: `docs/developers/how-to/customise-a-sample-form.md`
 
 ## Integration with FairDM Registry
 
@@ -83,7 +83,7 @@ class MySampleConfig(ModelConfiguration):
     fields = ["name", "location", "date"]
 ```
 
-See `docs/portal-development/registry_integration.md` for details.
+See `docs/developers/reference/registry.md` for details.
 
 ## Best Practices
 

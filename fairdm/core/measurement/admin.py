@@ -84,7 +84,7 @@ class MeasurementChildAdmin(PolymorphicChildModelAdmin):
 
     Subclass it for each measurement type and set ``base_model``. Declare ``base_fieldsets``
     rather than ``fieldsets`` so the polymorphic admin can add the subclass's own fields. See
-    docs/portal-development/measurements.md.
+    docs/developers/how-to/add-a-measurement-type.md.
     """
 
     list_display = [

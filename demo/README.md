@@ -435,7 +435,7 @@ visible = person.get_visible_fields(viewer=some_authenticated_user)
 # Returns: {"name": "...", "affiliation": "...", "orcid": "..."}
 ```
 
-See [docs/portal-development/contributors.md](../docs/portal-development/contributors.md) for complete API reference.
+See [docs/developers/reference/contributor-models.md](../docs/developers/reference/contributor-models.md) for complete API reference.
 
 ---
 
@@ -454,7 +454,7 @@ See [Contributing Guide](../docs/contributing/index.md) for details.
 
 ## Further Reading
 
-- [Plugin System Documentation](../docs/portal-development/create_a_plugin.md)
+- [Plugin System Documentation](../docs/developers/how-to/create-a-plugin.md)
 - [Framework Architecture](../specs/008-plugin-system/plan.md)
 - [Quick Start Examples](../specs/008-plugin-system/quickstart.md)
 - [API Reference](../docs/api/plugins.md)

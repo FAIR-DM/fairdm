@@ -56,13 +56,29 @@ html_context = {
     "doc_path": "docs",
 }
 
-# exclude_patterns = ["apidocs/index.rst"]
 exclude_patterns = [*exclude_patterns, "agents/**"]
-extensions = [*extensions, 'sphinxcontrib.mermaid']
+extensions = [*extensions, 'sphinxcontrib.mermaid', "autodoc2"]
+
+# The Python API reference is generated from FairDM's docstrings into
+# developers/reference/api/ on every build, so it is never edited by hand.
+autodoc2_packages = [
+    {
+        "path": "../fairdm",
+        "exclude_dirs": ["__pycache__", "migrations", "tests", "templates", "static"],
+    }
+]
+autodoc2_output_dir = "developers/reference/api"
+autodoc2_render_plugin = "myst"
+autodoc2_hidden_objects = ["private", "dunder", "inherited"]
 
 # Every release in the changelog has its own "Added", "Changed" and "Removed"
 # headings, so section labels repeat on that page by design.
-suppress_warnings = ["autosectionlabel.changelog"]
+suppress_warnings = [
+    "autosectionlabel.changelog",
+    # autodoc2 reads an attribute declared twice in a class body, such as a
+    # lookup Django registers on a field class, as a duplicate entry.
+    "autodoc2.dup_item",
+]
 
 # mermaid_fullscreen = True
 mermaid_d3_zoom = True

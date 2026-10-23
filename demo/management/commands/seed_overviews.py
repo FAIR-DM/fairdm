@@ -7,7 +7,7 @@ replaces only the records it created.
 
     DJANGO_ENV=development python manage.py seed_overviews
 
-See documentation: [Overview pages](docs/portal-development/overview-pages.md).
+See documentation: [Overview pages](docs/developers/reference/overview-plugins.md).
 """
 
 from django.apps import apps

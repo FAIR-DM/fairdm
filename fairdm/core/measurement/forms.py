@@ -20,7 +20,7 @@ class MeasurementFormMixin(LocationFormMixin, ManagerOnlyFieldsMixin):
     Use it with the ``ModelForm`` of a concrete measurement type. The dataset choices are limited
     to the datasets the requesting user may edit. For a measurement that already exists the
     dataset is offered only to someone who can manage the measurement. The location input is
-    there only when the type's fields list ``location``. See docs/portal-development/measurements.md.
+    there only when the type's fields list ``location``. See docs/developers/how-to/add-a-measurement-type.md.
 
     Args:
         *args: Positional arguments passed to ``ModelForm``.

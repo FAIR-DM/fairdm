@@ -110,3 +110,5 @@ fairdm/templates/fairdm/cards/standard_copy.html
 
 # Local Obsidian working notes for the domain model (not part of the package).
 vault/
+# Generated from docstrings by sphinx-autodoc2 on every build
+docs/developers/reference/api/

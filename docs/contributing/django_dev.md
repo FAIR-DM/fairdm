@@ -111,7 +111,7 @@ FairDM uses **mypy** to catch type errors before runtime.
 uv run mypy fairdm
 ```
 
-### Configuration
+### Type-checking configuration
 
 mypy is configured in `pyproject.toml`:
 
@@ -173,7 +173,7 @@ Many linting issues can be automatically fixed:
 uv run ruff check --fix fairdm
 ```
 
-### Configuration
+### Linting configuration
 
 Ruff is configured in `pyproject.toml`:
 

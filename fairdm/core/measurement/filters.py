@@ -43,7 +43,7 @@ class MeasurementFilterMixin(django_filters.FilterSet):
     declared filters from bases that carry ``declared_filters``. ``Meta`` deliberately has no
     ``model``, or the metaclass would generate a full, unused Measurement filter set whenever this
     class or a subclass is defined. ``Meta.fields`` names only actual model fields, which a
-    subclass's own ``Meta`` can extend. See docs/portal-development/measurements.md.
+    subclass's own ``Meta`` can extend. See docs/developers/how-to/add-a-measurement-type.md.
 
     The dataset and sample filters are ``RecordMultipleFilter`` objects at public scope, so a
     visitor and a signed-in researcher are offered the same public records.
