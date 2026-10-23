@@ -54,11 +54,11 @@ class TestAPIMenuItem:
 class TestDocumentationMenuGroupOtherChildren:
     def test_second_child_is_user_guide(self, documentation_menu_group):
         child = documentation_menu_group.children[1]
-        assert child._url == "https://fairdm.org/user-guide/"
+        assert child._url == "https://fairdm.org/users/"
 
     def test_third_child_is_admin_guide(self, documentation_menu_group):
         child = documentation_menu_group.children[2]
-        assert child._url == "https://fairdm.org/admin-guide/"
+        assert child._url == "https://fairdm.org/administrators/"
 
 
 @pytest.mark.django_db

@@ -5,7 +5,7 @@
 ```{important}
 **Framework contributors vs portal users**: This guide is for people who want to contribute to the FairDM framework codebase, documentation, or examples. If you're looking to:
 - **Build a portal** for your research community → see the [Developer Guide](../portal-development/index.md)
-- **Add data** to an existing portal → see the [User Guide](../user-guide/index.md) for portal users
+- **Add data** to an existing portal → see the [User Guide](../users/index.md) for portal users
 ```
 
 ## Your Role

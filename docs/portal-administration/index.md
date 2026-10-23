@@ -41,7 +41,6 @@ This guide provides practical information for managing your FairDM portal, inclu
 - Understanding [portal roles and responsibilities](roles.md)
 - Learning [how to review and maintain content](reviewing_content.md)
 - [Managing users and permissions](managing_users_and_permissions.md)
-- [Adjusting dataset access](adjusting_dataset_access.md)
 - [Setting the limits on the API](api-limits.md)
 - Ensuring FAIR compliance in your research data
 
@@ -55,7 +54,6 @@ reviewing_content
 managing_users_and_permissions
 managing_contributors
 looking-up-contributors
-adjusting_dataset_access
 managing_projects
 managing-samples
 managing-measurements

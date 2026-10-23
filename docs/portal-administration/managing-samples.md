@@ -482,6 +482,6 @@ django-guardian, grants nothing. Put the person on the sample's Contributors tab
 ## See Also
 
 - [Managing Projects](managing_projects.md) - Parent project management
-- [Adjusting Dataset Access](adjusting_dataset_access.md) - Permission management
+- [How to restrict a dataset to specific people](../users/datasets/restrict-a-dataset-to-specific-people.md) - Permission management
 - [Managing Users and Permissions](managing_users_and_permissions.md) - User access control
 - [Developer Guide: Custom Samples](../portal-development/models/custom-samples.md) - For developers creating new sample types
