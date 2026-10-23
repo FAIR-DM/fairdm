@@ -31,7 +31,7 @@ Additionally:
 - **Organizations**: Research institutions, universities, and other entities affiliated with the portal
 
 ```{seealso}
-For a detailed technical description of the core data model, see the [Core Data Model documentation](../contributing/core_data_model.md).
+For a detailed technical description of the core data model, see the [Core Data Model documentation](../explanation/the-core-data-model.md).
 ```
 
 ## What You'll Find Here

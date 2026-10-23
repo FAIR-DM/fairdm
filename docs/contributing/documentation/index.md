@@ -1,112 +1,34 @@
-# Documentation Guidelines
+# Working on the documentation
 
-Welcome to the FairDM documentation guidelines for contributors. This section covers how to write, organize, and validate documentation that serves the diverse FairDM community.
+The [documentation standard](../standards/documentation.md) sets the rules for every page under
+`docs/`: the readers, the four page types, where a page lives and how it is written. This section
+covers only how to work on this repository's documentation: building it, checking it and linking
+within it.
 
-## For Framework Contributors
+## Build the documentation
 
-If you're contributing to the FairDM framework codebase, these guides will help you ensure your documentation is clear, well-organized, and properly validated:
+Build the HTML once, treating warnings as errors:
 
-### Essential Guides
-
-::::{grid} 1 2 2 3
-:gutter: 3
-
-:::{grid-item-card} {octicon}`link;1.5em` Cross-Reference Patterns
-:link: cross-references
-:link-type: doc
-
-Link documentation to specifications and constitutional principles for traceability
-+++
-[Learn the Patterns →](cross-references)
-:::
-
-:::{grid-item-card} {octicon}`shield-check;1.5em` Documentation Validation
-:link: validation-rules
-:link-type: doc
-
-Ensure your documentation builds correctly and meets quality standards
-+++
-[Learn Validation Rules →](validation-rules)
-:::
-
-::::
-
-## Quick Links
-
-- **Where do I add documentation?** → [Documentation standard](../standards/documentation.md)
-- **How do I add cross-references?** → [Cross-Reference Patterns](cross-references)
-- **How do I validate documentation?** → [Validation Rules](validation-rules)
-- **What are the writing standards?** → [Documentation standard](../standards/documentation.md)
-
-## Overview
-
-FairDM documentation serves four distinct audiences, each with different needs:
-
-| Audience | Section | Purpose |
-|----------|---------|---------|
-| **Portal Users** | `docs/user-guide/` | How to use a FairDM-powered portal |
-| **Portal Administrators** | `docs/portal-administration/` | How to manage and configure a portal |
-| **Portal Developers** | `docs/portal-development/` | How to build and customise a portal |
-| **Framework Contributors** | `docs/contributing/` | How to contribute to FairDM itself |
-
-```{important}
-These four sections are **immutable** — future features must use these section names and locations.
+```bash
+uv run sphinx-build -W --keep-going -b html docs docs/_build/html
 ```
 
-## Documentation Principles
+Serve it and rebuild on every save:
 
-FairDM documentation follows these core principles from our [Constitution](CONSTITUTION.md#documentation-principles):
+```bash
+uv run sphinx-autobuild docs docs/_build/html
+```
 
-1. **Audience-First**: Organize content by reader role, not by technical implementation
-2. **Traceability**: Link documentation to specifications and governance principles
-3. **Quality Gates**: Automated validation prevents broken links and incomplete documentation
-4. **FAIR-Aligned**: Documentation itself follows FAIR principles (Findable, Accessible, Interoperable, Reusable)
+## In this section
 
-## Contributing to Documentation
-
-### Before You Write
-
-1. **Identify your audience**: User, Admin, Developer, or Contributor?
-2. **Check existing content**: Is there already documentation for this topic?
-3. **Consult the IA guide**: Where should this documentation live?
-
-### While You Write
-
-1. **Follow the style guide**: Clear, concise, example-rich content
-2. **Add cross-references**: Link to specs, constitution, related docs
-3. **Include examples**: Show, don't just tell
-4. **Consider accessibility**: Alt text for images, descriptive link text
-
-### After You Write
-
-1. **Run validation**: Build docs locally and check for errors
-2. **Complete the checklist**: Use the feature documentation checklist
-3. **Request review**: Tag documentation reviewers in your PR
-
-## Tools and Resources
-
-- **Sphinx**: Documentation build system ([docs](https://www.sphinx-doc.org/))
-- **MyST Parser**: Markdown support for Sphinx ([docs](https://myst-parser.readthedocs.io/))
-- **PyData Theme**: Our documentation theme ([docs](https://pydata-sphinx-theme.readthedocs.io/))
-- **Vale Linter**: Prose linting tool (optional, for style consistency)
-
-## Getting Help
-
-- **Questions about where to document something?** → [File an issue](https://github.com/FAIR-DM/fairdm/issues)
-- **Need help with MyST syntax?** → [MyST Syntax Reference](https://myst-parser.readthedocs.io/en/latest/syntax/syntax.html)
-- **Found a documentation bug?** → [Report it](https://github.com/FAIR-DM/fairdm/issues/new)
-
----
-
-## Table of Contents
+- [Cross-references](cross-references.md) covers the syntax for linking between pages, to decision
+  records and to the maintainers' material.
+- [Validation rules](validation-rules.md) covers what the build and the link check report and how
+  to fix it.
 
 ```{toctree}
-:maxdepth: 2
+:hidden:
 
 cross-references
 validation-rules
 ```
-
----
-
-**Ready to contribute documentation? Start with the [documentation standard](../standards/documentation.md) to find the right home for your content.**

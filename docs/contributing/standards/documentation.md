@@ -239,6 +239,10 @@ The portal user's guide follows the sections a portal shows in its navigation: p
 datasets, samples, measurements and the account pages. Explanation that every reader needs, such
 as why FairDM favours configuration over code, lives in `docs/explanation/`.
 
+### Shared reference
+
+Reference that every reader needs, such as the glossary, lives in `docs/reference/`.
+
 ---
 
-**Version**: 1.1.0
+**Version**: 1.2.0
