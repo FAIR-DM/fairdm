@@ -778,7 +778,7 @@ class MyMeasurementConfig(ModelConfiguration):
     serializer_class = MyMeasurementSerializer
 ```
 
-When the fields the API carries leave out a field the model requires, the start-up check `fairdm.E600` reports it before anyone meets the failure (see [Configuration Checks](../portal-administration/configuration-checks.md)).
+When the fields the API carries leave out a field the model requires, the start-up check `fairdm.E600` reports it before anyone meets the failure (see [Configuration Checks](../administrators/reference/configuration-checks.md)).
 
 A viewset of your own goes on the API router, which is public as `fairdm_api_router`: see [Extending the Router with Custom Viewsets](restful-api.md#extending-the-router-with-custom-viewsets).
 

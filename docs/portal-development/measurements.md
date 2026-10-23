@@ -481,7 +481,7 @@ user.has_perm("myapp.view_xrfmeasurement", measurement)        # read as view_me
 ```
 
 A permission your measurement type declares itself is refused until it is added to the table of
-levels. See [Managing Users and Permissions](../portal-administration/managing_users_and_permissions.md)
+levels. See [Managing Users and Permissions](../explanation/how-access-to-a-record-is-decided.md)
 for what each level allows.
 
 ## Complete Example: Putting It All Together
@@ -658,7 +658,7 @@ measurements = XRFMeasurement.objects.with_related()
 ## Next Steps
 
 - [Registry Documentation](using_the_registry.md) - Advanced registry configuration
-- [Admin Guide](../portal-administration/managing-measurements.md) - Portal administrator guide
+- [Admin Guide](../administrators/reference/measurements.md) - Portal administrator guide
 - [Controlled Vocabularies](controlled_vocabularies.md) - Standardized metadata terms
 - [Forms and Filters Guide](forms-and-filters/) - Advanced form techniques
 

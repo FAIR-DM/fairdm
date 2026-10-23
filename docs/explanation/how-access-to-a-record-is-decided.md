@@ -84,7 +84,7 @@ The four roles cannot be deleted or renamed through the portal. If one goes miss
 
 Editing a person's or an organization's profile is not decided by a model permission either. The record is asked. A person with an active account edits their own profile. A Community Manager edits an organization's profile and the profile of any person nobody can sign in as. An organization's owner and current administrators also edit its profile. A superuser, and the holders of the other three roles, get no right to edit profiles from the portal's pages, although the administration interface is unchanged. See [ADR 0024](../adr/0024-the-right-to-edit-a-profile-is-asked-of-the-record.md).
 
-Generating a profile claim link and merging one person into another belong to the Community Manager role rather than to superusers. A claim link is a credential and a merge destroys an identity, so neither is an ordinary staff operation, and a named role is exactly the person whose job this is. See [ADR 0021](../adr/0021-claims-and-merges-belong-to-a-named-role.md).
+Merging one person into another is not an ordinary staff operation, because a merge destroys an identity. It needs the right to change people, which the Community Manager and Portal Administrator roles hold, and which no other role and no staff flag gives. See [ADR 0021](../adr/0021-claims-and-merges-belong-to-a-named-role.md).
 
 ## What a refusal means
 

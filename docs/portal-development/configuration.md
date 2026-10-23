@@ -186,11 +186,11 @@ The full check set stays available on demand, and always assesses configuration 
 python manage.py check --deploy
 ```
 
-See {doc}`/portal-administration/configuration-checks` for the check catalogue and what each one requires.
+See {doc}`/administrators/reference/configuration-checks` for the check catalogue and what each one requires.
 
 ## Interrogating the Resolved Configuration
 
-Because a layer that finds no override module is skipped silently, FairDM provides a way to ask what actually happened: which layers were considered, which were found, and — for a given setting — which layer produced its final value. Consult {doc}`/portal-administration/configuration-checks` for the current command and its output format.
+Because a layer that finds no override module is skipped silently, FairDM provides a way to ask what actually happened: which layers were considered, which were found, and — for a given setting — which layer produced its final value. Consult {doc}`/administrators/reference/configuration-checks` for the current command and its output format.
 
 ## Troubleshooting
 
@@ -245,7 +245,7 @@ tools therefore tells you nothing about why the POST was rejected — look at th
 The usual cause is a cookie named with the `__Secure-` or `__Host-` prefix while the matching
 `*_COOKIE_SECURE` setting is off, which browsers discard without reporting anything.
 `manage.py check` names this as `fairdm.E006`. The fix is in
-{doc}`/portal-administration/configuration-checks`.
+{doc}`/administrators/reference/configuration-checks`.
 
 ### My override module isn't being applied
 
@@ -316,7 +316,7 @@ LANGUAGES = [("en", "English"), ("de", "German")]
 
 ## See Also
 
-- {doc}`/portal-administration/configuration-checks` - production-critical checks and the deployment check command
+- {doc}`/administrators/reference/configuration-checks` - production-critical checks and the deployment check command
 - {doc}`/portal-development/production` - Docker deployment guide
 - {doc}`/developer-guide/setting_up` - Initial portal setup
 - {doc}`/portal-development/testing-portal-projects` - Testing your configuration

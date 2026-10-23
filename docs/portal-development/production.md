@@ -150,7 +150,7 @@ environment. These variables are the ones a production portal needs:
 | `WSGI_APP` | The WSGI application gunicorn serves. Defaults to `config.wsgi:application`. |
 
 Without them the container refuses to start, naming what is missing. See
-[Configuration checks](../portal-administration/configuration-checks.md) for the full list of checks
+[Configuration checks](../administrators/reference/configuration-checks.md) for the full list of checks
 and `python manage.py check --deploy` to run them before you deploy.
 
 Production redirects plain HTTP to HTTPS and trusts the `X-Forwarded-Proto` header for the
@@ -313,4 +313,4 @@ python manage.py check --deploy
 
 The command exits with `0` when every check passes and `1` when it finds errors. Include it in your
 CI pipeline to catch configuration problems before a deployment. For the checks and how to fix each
-one, see [Configuration checks](../portal-administration/configuration-checks.md).
+one, see [Configuration checks](../administrators/reference/configuration-checks.md).
