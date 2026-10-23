@@ -115,6 +115,9 @@ MyPy is configured but currently disabled in CI. When enabled:
   [code documentation standard](docs/contributing/standards/code-documentation.md).
 - Where code lives, and when a new abstraction is worth adding, follows the
   [Django standard](docs/contributing/standards/django.md).
+- Pages under `docs/` follow the
+  [documentation standard](docs/contributing/standards/documentation.md): each page is a
+  tutorial, a how-to guide, reference or explanation, and sits in the section for its reader.
 
 ## Pre-commit Hooks
 

@@ -43,8 +43,8 @@ django_dev
 standards/testing
 standards/code-documentation
 standards/django
+standards/documentation
 documentation/index
-documentation-standards
 feature-documentation
 testing/index
 ../adr/index

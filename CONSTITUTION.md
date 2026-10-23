@@ -58,6 +58,8 @@ features.
 Public API changes ship their docs in the same pull request: README and CHANGELOG updated.
 Docstrings, component annotations and code comments follow
 [`docs/contributing/standards/code-documentation.md`](docs/contributing/standards/code-documentation.md).
+The pages under `docs/` follow
+[`docs/contributing/standards/documentation.md`](docs/contributing/standards/documentation.md).
 The built docs must build clean. As a package, the README follows
 the organisation README standard.
 
@@ -342,4 +344,4 @@ The constitution defines how FairDM is evolved and how compliance is enforced.
   - Maintainers SHOULD provide clear, written rationale when accepting or rejecting significant changes with explicit reference to this document.
   - As additional maintainers and institutional stakeholders join the project, a more formal governance structure (e.g., a small core team or steering group with an RFC process) SHOULD be established and documented as an amendment to this section.
 
-**Version**: 3.1.0 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-10-12
+**Version**: 3.2.0 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-10-23

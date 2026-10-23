@@ -11,15 +11,6 @@ If you're contributing to the FairDM framework codebase, these guides will help 
 ::::{grid} 1 2 2 3
 :gutter: 3
 
-:::{grid-item-card} {octicon}`book;1.5em` Information Architecture
-:link: information-architecture
-:link-type: doc
-
-Learn where documentation lives and how to determine the correct location for new content
-+++
-[Read the IA Guide →](information-architecture)
-:::
-
 :::{grid-item-card} {octicon}`link;1.5em` Cross-Reference Patterns
 :link: cross-references
 :link-type: doc
@@ -42,10 +33,10 @@ Ensure your documentation builds correctly and meets quality standards
 
 ## Quick Links
 
-- **Where do I add documentation?** → [Information Architecture](information-architecture)
+- **Where do I add documentation?** → [Documentation standard](../standards/documentation.md)
 - **How do I add cross-references?** → [Cross-Reference Patterns](cross-references)
 - **How do I validate documentation?** → [Validation Rules](validation-rules)
-- **What are the writing standards?** → Coming soon
+- **What are the writing standards?** → [Documentation standard](../standards/documentation.md)
 
 ## Overview
 
@@ -112,11 +103,10 @@ FairDM documentation follows these core principles from our [Constitution](CONST
 ```{toctree}
 :maxdepth: 2
 
-information-architecture
 cross-references
 validation-rules
 ```
 
 ---
 
-**Ready to contribute documentation? Start with the [Information Architecture Guide](information-architecture) to find the right home for your content.**
+**Ready to contribute documentation? Start with the [documentation standard](../standards/documentation.md) to find the right home for your content.**

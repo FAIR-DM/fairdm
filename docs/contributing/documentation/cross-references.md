@@ -356,7 +356,7 @@ See [Validation Rules](./validation-rules.md) for more on what the build and lin
 
 ## Related Documentation
 
-- [Information Architecture](./information-architecture.md) - Understanding documentation structure
+- [Documentation standard](../standards/documentation.md) - Page types and where each page belongs
 - [Validation Rules](./validation-rules.md) - Quality checks for cross-references
 
 ## Questions & Troubleshooting
