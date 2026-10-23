@@ -3,7 +3,7 @@
 The pages for adding a person or an organization to a record can look the contributor up in a
 registry: ORCID for people and ROR for organizations. This page says what your portal needs for
 that and what happens when it cannot reach them. How a manager uses the lookup is described in the
-user guide page [Crediting a record](../user-guide/crediting-a-record.md).
+user guide page [Crediting a record](../users/contributors/contributors-tab.md).
 
 ## What the portal needs
 

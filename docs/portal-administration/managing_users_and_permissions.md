@@ -51,7 +51,7 @@ people who hold a level on it, directly or from above, and to holders of a porta
 rights cover it.
 
 People who manage a record set levels themselves, on its **Contributors** tab, and nobody needs to
-ask an administrator. See [Crediting a record](../user-guide/crediting-a-record.md) for how.
+ask an administrator. See [Crediting a record](../users/contributors/contributors-tab.md) for how.
 An administrator does not grant access to a record in the administration interface: a permission
 stored for a project, dataset, sample or measurement there, for a person or for a group, grants
 nothing. Membership of an organization, or owning one, gives no access to a record either.
@@ -132,8 +132,8 @@ the **Edit** level. To close the dataset to them again, they remove the entry.
 Set the dataset's visibility to private on its edit details page, reached from the dataset's
 **Manage** menu, which needs the manage level or a portal role that holds the right to change
 datasets. Then only the people listed on it, or on its
-project, and the holders of such a role, can open it. See [Adjusting dataset
-access](adjusting_dataset_access.md).
+project, and the holders of such a role, can open it. See [How to restrict a dataset to specific
+people](../users/datasets/restrict-a-dataset-to-specific-people.md).
 
 ## Best Practices
 

@@ -77,6 +77,6 @@ The geographic section of the XML is a single box that holds the locations of th
 
 ## Where to go next
 
-- [Datasets](../users/datasets/datasets.md) and [Identifiers](../users/datasets/identifiers.md) describe the screens where a team records a DOI.
+- [Datasets](../users/datasets/datasets.md) and [Identifiers](../users/editing-a-record/identifiers.md) describe the screens where a team records a DOI.
 - [How to export projects as JSON or DataCite JSON](../administrators/how-to/export-projects.md) covers the project export.
 - [REST API](../developers/reference/rest-api.md) lists how credits and identifiers appear in the API.

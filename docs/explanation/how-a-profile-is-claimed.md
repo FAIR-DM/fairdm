@@ -24,9 +24,9 @@ An ORCID iD is proof only for a profile that is still unclaimed. The identifier 
 
 ### Confirming an email address
 
-If an unclaimed profile holds an email address, and you register with that address and confirm it, the portal claims the profile when the confirmation is recorded.
+The portal claims an unclaimed profile when the email address the profile holds is confirmed, and only while email verification is mandatory, which is the default. If verification is set to any other value, nothing is claimed, because an unconfirmed address proves nothing about who owns it.
 
-This route works only while email verification is mandatory, which is the default. If verification is set to any other value, the route does nothing, because an unconfirmed address proves nothing about who owns it.
+Registering a new account does not reach this route. The portal treats an address an unclaimed profile already holds as taken, so signing up with it does not create a second account and does not claim the profile. A person in that position asks an administrator to merge the records, as described below.
 
 ### Merging into an existing account
 
@@ -58,5 +58,5 @@ A deactivated profile refuses every route for a reason of the same kind. Deactiv
 - [Profile claiming](../developers/reference/profile-claiming.md) lists the functions and exceptions.
 - [Claiming audit logs](../administrators/reference/claiming-audit-log.md) describes the log an administrator reads.
 - [How to merge two person records](../administrators/how-to/merge-two-person-records.md) walks through a merge.
-- [How to claim your profile with ORCID](../users/account/claim-your-profile-with-orcid.md) and [How to claim your profile by email](../users/account/claim-your-profile-by-email.md) are the user guides for the first two routes.
+- [How to claim your profile with ORCID](../users/account/claim-your-profile-with-orcid.md) is the user guide for the first route.
 - [Settings](../developers/reference/settings.md) lists the settings that affect claiming.

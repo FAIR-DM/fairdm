@@ -12,7 +12,7 @@ Four commands create development accounts, for different purposes:
 | --- | --- | --- |
 | `manage.py create_dev_accounts` | Five accounts at `example.com`, one per portal role and one holding none | Seeing what each [portal role](portal_roles.md) can do |
 | `manage.py seed_overviews` | Three accounts at `example.com`: a regular user, a staff user and a superuser | Opening the [overview pages](overview-pages.md) as a visitor, as a team member and as an administrator |
-| `manage.py seed_contributors` | The same three accounts at `example.com`, and the Data Curator account of `create_dev_accounts` | Opening a record's [Contributors tab](../user-guide/crediting-a-record.md) in every state it has, and stepping in on a record as a data curator |
+| `manage.py seed_contributors` | The same three accounts at `example.com`, and the Data Curator account of `create_dev_accounts` | Opening a record's [Contributors tab](../users/contributors/contributors-tab.md) in every state it has, and stepping in on a record as a data curator |
 | `manage.py seed_profiles` | Five more accounts at `example.com`: an administrator, an ordinary member and a former administrator of the organization `regular.user` owns, a community manager and a data curator | Opening and saving an [organization's editing page](contributors.md#editing-a-profile) as each kind of person around it |
 
 ```bash

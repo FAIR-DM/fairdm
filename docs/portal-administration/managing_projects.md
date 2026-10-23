@@ -233,5 +233,5 @@ Follow this recommended project lifecycle:
 ## See Also
 
 - [Managing Users and Permissions](managing_users_and_permissions.md)
-- [Adjusting Dataset Access](adjusting_dataset_access.md)
+- [How to restrict a dataset to specific people](../users/datasets/restrict-a-dataset-to-specific-people.md)
 - [Reviewing Content](reviewing_content.md)
