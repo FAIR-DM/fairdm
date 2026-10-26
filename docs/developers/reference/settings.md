@@ -1459,7 +1459,7 @@ Three kinds of variable have no entry here. `DJANGO_ENV` and `SENTRY_DSN` are de
 - **Type**: `int`
 - **Default**: `4`
 - **What it does**: Sets [`DBBACKUP_CLEANUP_KEEP`](#dbbackup_cleanup_keep) and [`DBBACKUP_CLEANUP_KEEP_MEDIA`](#dbbackup_cleanup_keep_media), the number of database backups and the number of media backups kept.
-- **Accepts**: A whole number.
+- **Accepts**: A whole number, 1 or more.
 
 ### `BACKUP_S3_BUCKET_NAME`
 

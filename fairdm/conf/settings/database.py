@@ -10,6 +10,8 @@ production.
 
 from urllib.parse import quote
 
+from django.core.exceptions import ImproperlyConfigured
+
 env = globals()["env"]
 BASE_DIR = globals()["BASE_DIR"]
 
@@ -35,6 +37,10 @@ DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)
 BACKUP_PUBLIC_KEY = env.str("BACKUP_PUBLIC_KEY", multiline=True)
 DBBACKUP_HOSTNAME = env("BACKUP_SERVER_NAME")
 DBBACKUP_CLEANUP_KEEP = DBBACKUP_CLEANUP_KEEP_MEDIA = env("BACKUP_KEEP")
+if DBBACKUP_CLEANUP_KEEP < 1:
+    # A keep of 0 deletes every backup after it is written, the new one included.
+    msg = "BACKUP_KEEP must be a whole number, 1 or more."
+    raise ImproperlyConfigured(msg)
 # The custom format is compressed and restores PostGIS into an empty database with pg_restore.
 DBBACKUP_CONNECTORS = {
     "default": {"CONNECTOR": "dbbackup.db.postgresql.PgDumpBinaryConnector"}

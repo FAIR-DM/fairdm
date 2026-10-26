@@ -2,6 +2,9 @@
 
 import os
 
+import pytest
+from django.core.exceptions import ImproperlyConfigured
+
 
 class TestDatabase:
     def test_configures_postgres_from_database_url(self, isolated_env, settings_module):
@@ -81,6 +84,26 @@ class TestDatabaseBackup:
 
         assert module.DBBACKUP_CLEANUP_KEEP == 7
         assert module.DBBACKUP_CLEANUP_KEEP_MEDIA == 7
+
+    @pytest.mark.parametrize("keep", ["0", "-1"])
+    def test_a_backup_keep_below_one_is_refused(
+        self, isolated_env, settings_module, monkeypatch, keep
+    ):
+        os.environ["DJANGO_ENV"] = "qa"
+        monkeypatch.setenv("BACKUP_KEEP", keep)
+
+        with pytest.raises(ImproperlyConfigured, match="BACKUP_KEEP"):
+            settings_module()
+
+    def test_a_backup_keep_of_one_is_accepted(
+        self, isolated_env, settings_module, monkeypatch
+    ):
+        os.environ["DJANGO_ENV"] = "qa"
+        monkeypatch.setenv("BACKUP_KEEP", "1")
+
+        module = settings_module()
+
+        assert module.DBBACKUP_CLEANUP_KEEP == 1
 
     def test_backup_server_name_names_the_backup_files(
         self, isolated_env, settings_module, monkeypatch
