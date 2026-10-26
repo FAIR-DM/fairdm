@@ -54,8 +54,7 @@ class BackupKey:
         if self.PRIVATE_ARMOUR in self.armored:
             return None
         gpg = gnupg.GPG(gnupghome=home)
-        if gpg.import_keys(self.armored).sec_imported:
-            return None
+        gpg.import_keys(self.armored)
         for key in gpg.list_keys():
             if "e" in key["cap"].lower():
                 return str(key["fingerprint"])

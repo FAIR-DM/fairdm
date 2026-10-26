@@ -12,6 +12,8 @@ from django.core.management.base import SystemCheckError
 from django.db import utils as django_db_utils
 from django.test import override_settings
 
+from tests.keys import BACKUP_PUBLIC_KEY
+
 
 class TestDatabaseChecks:
     @override_settings(DATABASES={})
@@ -541,7 +543,10 @@ class TestCheckCommandIntegration:
     @override_settings(
         SECRET_KEY="a" * 50,
         DATABASES={
-            "default": {"ENGINE": "django.contrib.gis.db.backends.postgis", "NAME": "test"}
+            "default": {
+                "ENGINE": "django.contrib.gis.db.backends.postgis",
+                "NAME": "test",
+            }
         },
         CACHES={
             "default": {
@@ -555,6 +560,7 @@ class TestCheckCommandIntegration:
         CSRF_COOKIE_SECURE=True,
         CELERY_BROKER_URL="redis://localhost:6379/0",
         CELERY_TASK_ALWAYS_EAGER=False,
+        BACKUP_PUBLIC_KEY=BACKUP_PUBLIC_KEY,
     )
     def test_check_deploy_passes_with_valid_config(self):
         call_command("check", deploy=True)
@@ -1023,7 +1029,6 @@ class TestBackupKeyChecks:
 
     def test_a_missing_gpg_reports_e701(self, key_pair):
         from fairdm.backups.keys import BackupKey
-
         from fairdm.conf.checks import check_backup_key_usable
 
         with (
