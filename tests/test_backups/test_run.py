@@ -4,20 +4,23 @@ import io
 import shutil
 import subprocess
 import tarfile
+from datetime import datetime
 
 import gnupg
 import psycopg2
 import pytest
+from dbbackup import utils
 from dbbackup.db.exceptions import CommandConnectorError
 from dbbackup.db.postgresql import PgDumpBinaryConnector
 from django.contrib.gis.geos import Point
+from django.core.management import call_command
 from django.db import connection
 from psycopg2 import sql
 
 from demo.factories import RockSampleFactory
 from fairdm.backups.run import run_backup
 from fairdm.core.sample.models import Sample
-from tests.test_backups.conftest import KEEP
+from tests.test_backups.conftest import KEEP, generate_key
 
 
 def connection_url(name):
@@ -188,3 +191,109 @@ class TestRunBackupEncryption:
             tarfile.open(fileobj=backup, mode="r:gz") as tar,
         ):
             assert any(member.endswith("photo.txt") for member in tar.getnames())
+
+
+@pytest.mark.usefixtures("reseeded_after_flush", "transactional_db")
+class TestRestore:
+    @pytest.fixture(autouse=True)
+    def encrypted_backups(self, backup_storage, backup_tmp_dir, key_pair, settings):
+        """Encrypt every backup of the test to the session key."""
+        settings.BACKUP_PUBLIC_KEY = key_pair.public
+
+    @pytest.fixture
+    def private_key(self, monkeypatch, key_pair):
+        """Decrypt with the keyring that holds the private key, as a restoring container does."""
+        monkeypatch.setenv("GNUPGHOME", key_pair.home)
+        # The key has no passphrase, so the prompt is answered with nothing.
+        monkeypatch.setattr(utils, "getpass", lambda *args, **kwargs: "")
+
+    @pytest.fixture
+    def other_key(self, monkeypatch, tmp_path):
+        """Decrypt with a keyring that holds a private key the backups were not made for."""
+        home = tmp_path / "other-gpg"
+        home.mkdir(mode=0o700)
+        key = generate_key(home)
+        monkeypatch.setenv("GNUPGHOME", key.home)
+        monkeypatch.setattr(utils, "getpass", lambda *args, **kwargs: "")
+        return key
+
+    def sample_names(self):
+        """Return the names of the samples in the database."""
+        return set(Sample.objects.values_list("name", flat=True))
+
+    def test_listbackups_lists_each_backup_with_its_date(self, backup_storage):
+        run_backup("database")
+        run_backup("media")
+        out = io.StringIO()
+
+        call_command("listbackups", stdout=out)
+
+        today = datetime.now().astimezone().strftime("%x")
+        lines = out.getvalue().splitlines()[1:]
+        assert sorted(line.split()[0] for line in lines) == sorted(
+            backup_storage.list_backups()
+        )
+        assert all(today in line for line in lines)
+
+    @pytest.mark.usefixtures("private_key")
+    def test_dbrestore_gives_back_the_records_at_the_time_of_the_backup(self):
+        RockSampleFactory(name="Basalt")
+        run_backup("database")
+        Sample.objects.filter(name="Basalt").delete()
+        RockSampleFactory(name="Granite")
+
+        call_command("dbrestore", "--decrypt", "--noinput")
+
+        assert self.sample_names() == {"Basalt"}
+
+    @pytest.mark.usefixtures("private_key")
+    def test_dbrestore_with_no_file_name_takes_the_latest_backup(self):
+        RockSampleFactory(name="Basalt")
+        run_backup("database")
+        RockSampleFactory(name="Granite")
+        run_backup("database")
+        Sample.objects.all().delete()
+
+        call_command("dbrestore", "--decrypt", "--noinput")
+
+        assert self.sample_names() == {"Basalt", "Granite"}
+
+    @pytest.mark.usefixtures("private_key")
+    def test_mediarestore_gives_back_the_files(self, tmp_path):
+        photo = tmp_path / "media" / "photo.txt"
+        run_backup("media")
+        photo.write_text("changed since the backup")
+        extra = tmp_path / "media" / "later.txt"
+        extra.write_text("added since the backup")
+
+        call_command(
+            "mediarestore", "--decrypt", "--uncompress", "--replace", "--noinput"
+        )
+
+        assert photo.read_text() == "a file of the portal's media"
+
+    @pytest.mark.usefixtures("other_key")
+    def test_dbrestore_with_a_key_that_does_not_match_fails_and_changes_nothing(self):
+        RockSampleFactory(name="Basalt")
+        run_backup("database")
+        RockSampleFactory(name="Granite")
+
+        with pytest.raises(utils.DecryptionError):
+            call_command("dbrestore", "--decrypt", "--noinput")
+
+        assert self.sample_names() == {"Basalt", "Granite"}
+
+    @pytest.mark.usefixtures("other_key")
+    def test_mediarestore_with_a_key_that_does_not_match_fails_and_changes_nothing(
+        self, tmp_path
+    ):
+        photo = tmp_path / "media" / "photo.txt"
+        run_backup("media")
+        photo.write_text("changed since the backup")
+
+        with pytest.raises(utils.DecryptionError):
+            call_command(
+                "mediarestore", "--decrypt", "--uncompress", "--replace", "--noinput"
+            )
+
+        assert photo.read_text() == "changed since the backup"
