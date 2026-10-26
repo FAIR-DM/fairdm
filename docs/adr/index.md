@@ -46,4 +46,6 @@ do not restate earlier ones, only build past them.
 0037-autocomplete-fields-are-built-on-django-tomselect
 0038-each-autocomplete-scope-is-its-own-view
 0039-autocomplete-addresses-are-limited-per-caller
+0040-backup-schedules-are-periodic-tasks
+0041-backups-are-encrypted-to-a-public-key
 ```
