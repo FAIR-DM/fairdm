@@ -17,13 +17,13 @@ LABEL org.opencontainers.image.title="FairDM" \
 # GDAL, GEOS and PROJ come with gdal-bin. Debian's ldconfig cache lets Django find them with no
 # library path set.
 RUN apt-get update \
-    && apt-get install --yes --no-install-recommends gdal-bin libpq5 \
+    && apt-get install --yes --no-install-recommends gdal-bin gnupg libpq5 postgresql-client-17 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --gid 1000 fairdm \
     && useradd --uid 1000 --gid fairdm --create-home fairdm \
-    && mkdir -p /app/static /app/media /opt/venv /docker-entrypoint.d \
-    && chown -R fairdm:fairdm /app /opt/venv
+    && mkdir -p /app/static /app/media /opt/venv /docker-entrypoint.d /var/lib/fairdm/backups \
+    && chown -R fairdm:fairdm /app /opt/venv /var/lib/fairdm
 
 COPY --from=ghcr.io/astral-sh/uv:0.11 /uv /usr/local/bin/uv
 
@@ -36,6 +36,7 @@ ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
     PYTHONDONTWRITEBYTECODE=1 \
     PORT=8000 \
     DJANGO_ENV=production \
+    BACKUP_DIR=/var/lib/fairdm/backups \
     DJANGO_SETTINGS_MODULE=config.settings
 
 COPY --chmod=755 docker/entrypoint.sh /usr/local/bin/fairdm-entrypoint

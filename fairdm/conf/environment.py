@@ -44,6 +44,14 @@ env = Env(
     S3_BUCKET_NAME=(str, ""),
     S3_ACCESS_KEY_ID=(str, ""),
     S3_SECRET_ACCESS_KEY=(str, ""),
+    # Where a portal's local backups are written. Empty keeps the directory beside the project.
+    BACKUP_DIR=(str, ""),
+    # The bucket backups go to when media is on S3. Empty uses the media bucket.
+    BACKUP_S3_BUCKET_NAME=(str, ""),
+    BACKUP_KEEP=(int, 4),
+    # The armoured public key backups are encrypted to. Production requires it.
+    BACKUP_PUBLIC_KEY=(str, ""),
+    BACKUP_SERVER_NAME=(str, "fairdm"),
     REDIS_URL=(str, ""),
     USE_DOCKER=(bool, False),
     # Declared here so settings/logging.py needn't build its own Env.

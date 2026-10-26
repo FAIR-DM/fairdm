@@ -29,6 +29,7 @@ explanation covers why parts of FairDM work as they do. Explanation every reader
 - [How to add queryset methods to a measurement type](how-to/add-queryset-methods-to-a-measurement-type.md)
 - [How to add search and sort to a list view](how-to/add-search-and-sort-to-a-list-view.md)
 - [How to allow only some sites to call the API](how-to/allow-only-some-sites-to-call-the-api.md)
+- [How to back up a portal](how-to/back-up-a-portal.md)
 - [How to change a type's API address](how-to/change-a-types-api-address.md)
 - [How to change how the team page looks](how-to/change-how-the-team-page-looks.md)
 - [How to change the API rate limits](how-to/change-the-api-rate-limits.md)
@@ -71,6 +72,7 @@ explanation covers why parts of FairDM work as they do. Explanation every reader
 - [How to record sample relationships](how-to/record-sample-relationships.md)
 - [How to register a sample or measurement type](how-to/register-a-sample-or-measurement-type.md)
 - [How to render markdown in a template](how-to/render-markdown-in-a-template.md)
+- [How to restore a portal from a backup](how-to/restore-a-portal-from-a-backup.md)
 - [How to restrict a plugin to some users](how-to/restrict-a-plugin-to-some-users.md)
 - [How to restrict a record field to one sample type](how-to/restrict-a-record-field-to-one-sample-type.md)
 - [How to restrict API tokens to some people](how-to/restrict-api-tokens-to-some-people.md)
@@ -157,6 +159,7 @@ how-to/add-pages-to-a-plugin
 how-to/add-queryset-methods-to-a-measurement-type
 how-to/add-search-and-sort-to-a-list-view
 how-to/allow-only-some-sites-to-call-the-api
+how-to/back-up-a-portal
 how-to/change-a-types-api-address
 how-to/change-how-the-team-page-looks
 how-to/change-the-api-rate-limits
@@ -199,6 +202,7 @@ how-to/place-an-organization-on-a-map
 how-to/record-sample-relationships
 how-to/register-a-sample-or-measurement-type
 how-to/render-markdown-in-a-template
+how-to/restore-a-portal-from-a-backup
 how-to/restrict-a-plugin-to-some-users
 how-to/restrict-a-record-field-to-one-sample-type
 how-to/restrict-api-tokens-to-some-people

@@ -1,7 +1,7 @@
 # The development stack, built on the development image (docker/Dockerfile, target development).
 # `docker compose up` starts PostGIS, Redis, the development server on http://localhost:8000 and
-# a Celery worker, with the source mounted so edits reload and the virtual environment kept in
-# the `venv` volume. The first start installs the locked dependencies into that volume. To run
+# a Celery worker and Celery beat, with the source mounted so edits reload and the virtual
+# environment kept in the `venv` volume. The first start installs the locked dependencies into that volume. To run
 # Django on the host instead, start the databases alone with `docker compose up postgres redis`;
 # stack.development.env points the host at them.
 name: fairdm
@@ -44,6 +44,7 @@ services:
     volumes:
       - ./:/app
       - venv:/opt/venv
+      - backups:/var/lib/fairdm/backups
     ports:
       - "8000:8000"
     command: sh -c "uv sync --locked && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
@@ -64,6 +65,18 @@ services:
         condition: service_healthy
     command: sh -c "uv sync --locked && celery --app fairdm.conf.celery worker --loglevel INFO"
 
+  # One beat runs per portal: a second would queue every backup twice.
+  celerybeat:
+    <<: *django
+    ports: []
+    healthcheck:
+      disable: true
+    depends_on:
+      django:
+        condition: service_healthy
+    command: sh -c "uv sync --locked && celery --app fairdm.conf.celery beat --loglevel INFO"
+
 volumes:
   postgres: {}
   venv: {}
+  backups: {}

@@ -57,14 +57,18 @@ You need:
    POSTGRES_USER=<database user>
    POSTGRES_PASSWORD=<database password>
    REDIS_URL=redis://<redis host>:6379/0
+   BACKUP_PUBLIC_KEY=<the armoured public key on one line, with \n in place of each line break>
    ```
 
    [Container images](../reference/container-images.md#variables-a-production-portal-needs) lists the variables the production checks require, and [Settings](../reference/settings.md#environment-variables) describes each one.
 
-6. Start the portal.
+   The portal refuses to start in production without `BACKUP_PUBLIC_KEY`. [How to back up a portal](back-up-a-portal.md#encrypt-the-backups) shows how to create the key pair and write it on one line.
+
+6. Start the portal, with a volume at the directory it writes backups to.
 
    ```bash
-   docker run --rm --publish 8000:8000 --env-file /etc/my-portal/portal.env my-portal
+   docker run --rm --publish 8000:8000 --env-file /etc/my-portal/portal.env \
+     --volume my-portal-backups:/var/lib/fairdm/backups my-portal
    ```
 
 7. Point your proxy at port 8000 of the container. The portal redirects plain HTTP to HTTPS and trusts `X-Forwarded-Proto` for the original scheme. A request that reaches the container without the header gets a redirect and not a page.
@@ -74,6 +78,33 @@ You need:
    ```bash
    docker run --rm --env-file /etc/my-portal/portal.env my-portal python manage.py check --deploy
    ```
+
+## Run the worker and the scheduler
+
+Backups run as scheduled tasks, so the portal needs a Celery worker and Celery beat, the process that sends the tasks on their schedule. Start both from the same image and environment file, with the same volume at the backup directory. Run one beat for each portal: a second beat sends every task twice.
+
+```yaml
+services:
+  worker:
+    image: my-portal
+    env_file: /etc/my-portal/portal.env
+    command: worker --loglevel INFO
+    volumes:
+      - backups:/var/lib/fairdm/backups
+  beat:
+    image: my-portal
+    env_file: /etc/my-portal/portal.env
+    command: beat --loglevel INFO
+    volumes:
+      - backups:/var/lib/fairdm/backups
+
+volumes:
+  backups:
+    name: my-portal-backups
+    external: true
+```
+
+The volume is the `my-portal-backups` volume of step 6, which Docker created when the web container started, so Compose uses it and does not create a second one. The web, worker and beat containers share it (add it to the web service too, as in step 6) so that `manage.py backup` run in any of them writes where the others look. With media on S3, backups go to the bucket and the volume holds nothing. A worker still builds the media archive on its own local disk before it uploads it, so give it free disk of about twice the size of the media. See [How to back up a portal](back-up-a-portal.md).
 
 ## The result
 

@@ -8,6 +8,8 @@ from unittest import mock
 
 import pytest
 
+from tests.keys import BACKUP_PUBLIC_KEY
+
 
 @pytest.fixture
 def clean_env():
@@ -512,6 +514,7 @@ class TestBundledPortalBoots:
             # Production refuses SQLite and a per-process cache, so both are supplied. Neither is connected to.
             "DATABASE_URL": "postgresql://portal:portal@localhost:5432/portal",
             "REDIS_URL": "redis://localhost:6379/0",
+            "BACKUP_PUBLIC_KEY": BACKUP_PUBLIC_KEY,
         }
         result = subprocess.run(
             [sys.executable, "-c", "import django; django.setup()"],

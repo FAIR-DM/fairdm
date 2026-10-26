@@ -2,10 +2,11 @@
 
 This page lists the `manage.py` commands FairDM adds to a portal, with the arguments each takes, what it does and when it refuses to run. It does not cover the commands Django and other packages provide, and it does not say when to run a command. The [development accounts](development-accounts.md) the account commands create have a page of their own.
 
-FairDM adds six commands to every portal. The demo project in the FairDM repository adds four more, which a portal does not have.
+FairDM adds seven commands to every portal. The demo project in the FairDM repository adds four more, which a portal does not have.
 
 | Command | Does |
 |---|---|
+| [`backup`](#backup) | Backs up the database and the media now |
 | [`cleanup_permissions`](#cleanup_permissions) | Deletes permission rows that no model declares |
 | [`create_dev_accounts`](#create_dev_accounts) | Creates one development account for each portal role and one holding none |
 | [`generate_fake_data`](#generate_fake_data) | Fills a development database with projects, datasets, samples and measurements |
@@ -14,6 +15,20 @@ FairDM adds six commands to every portal. The demo project in the FairDM reposit
 | [`show_config`](#show_config) | Reports where the portal's settings came from |
 
 ## FairDM commands
+
+### backup
+
+```bash
+uv run python manage.py backup
+uv run python manage.py backup --database-only
+uv run python manage.py backup --media-only
+```
+
+Writes the backups the scheduled tasks write, in the foreground, to the `dbbackup` storage in [`STORAGES`](settings.md#storages). With no option it writes one database backup and one media archive. `--database-only` writes the database backup alone, and `--media-only` writes the media archive alone. The two options exclude each other.
+
+After each backup it removes the oldest of that kind beyond [`BACKUP_KEEP`](settings.md#backup_keep). Database backups and media archives are counted separately. A failed backup ends the command with an error and leaves the existing backups in place.
+
+The command needs `pg_dump` for the database backup. The [container images](container-images.md) carry it. [How to back up a portal](../how-to/back-up-a-portal.md) shows the command in a running container.
 
 ### cleanup_permissions
 

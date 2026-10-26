@@ -437,6 +437,13 @@ The groups are:
 
 ## Database
 
+### `BACKUP_PUBLIC_KEY`
+
+- **Type**: `str`
+- **Default**: `""`, from the environment variable of the same name
+- **What it does**: The public key every backup is encrypted to. With it set, each database and media backup is written as a `.gpg` file that only the holder of the private key reads. With it empty, backups are written unencrypted, which a development portal accepts. A production portal with it empty stops with [`fairdm.E700`](../../administrators/reference/configuration-checks.md#fairdm-e700-no-backup-public-key-is-set), and with a value that cannot encrypt with [`fairdm.E701`](../../administrators/reference/configuration-checks.md#fairdm-e701-the-backup-public-key-cannot-be-used). FairDM trusts this key for the length of a backup, so the key needs no signing or trusting on the server.
+- **Accepts**: An armoured OpenPGP public key, the text between `-----BEGIN PGP PUBLIC KEY BLOCK-----` and `-----END PGP PUBLIC KEY BLOCK-----`. In an env file it is one line with `\n` in place of each line break, because an env file holds one variable on each line. A real environment variable, or a Compose `environment:` entry, may hold it on several lines. A private key is refused. See [How to back up a portal](../how-to/back-up-a-portal.md#encrypt-the-backups).
+
 ### `DATABASES`
 
 - **Type**: `dict`
@@ -447,9 +454,23 @@ The groups are:
 ### `DBBACKUP_CLEANUP_KEEP`
 
 - **Type**: `int`
-- **Default**: `10`
-- **What it does**: How many database backups django-dbbackup keeps when it cleans up.
+- **Default**: `4`, from [`BACKUP_KEEP`](#backup_keep)
+- **What it does**: How many database backups django-dbbackup keeps. Each backup removes the oldest beyond this count.
 - **Accepts**: A whole number.
+
+### `DBBACKUP_CLEANUP_KEEP_MEDIA`
+
+- **Type**: `int`
+- **Default**: `4`, from [`BACKUP_KEEP`](#backup_keep)
+- **What it does**: How many media backups django-dbbackup keeps. It counts media backups on their own, apart from database backups.
+- **Accepts**: A whole number.
+
+### `DBBACKUP_CONNECTORS`
+
+- **Type**: `dict`
+- **Default**: `{"default": {"CONNECTOR": "dbbackup.db.postgresql.PgDumpBinaryConnector"}}`
+- **What it does**: How django-dbbackup dumps and restores the database. The connector writes PostgreSQL's custom format, which is already compressed and which `pg_restore` restores, PostGIS included, into an empty database.
+- **Accepts**: The format django-dbbackup reads.
 
 ### `DBBACKUP_FILENAME_TEMPLATE`
 
@@ -458,6 +479,13 @@ The groups are:
 - **What it does**: The file name of a database backup.
 - **Accepts**: A template with the placeholders django-dbbackup defines.
 
+### `DBBACKUP_HOSTNAME`
+
+- **Type**: `str`
+- **Default**: `"fairdm"`, from [`BACKUP_SERVER_NAME`](#backup_server_name)
+- **What it does**: The server name in the file name of a backup.
+- **Accepts**: A name without spaces.
+
 ### `DBBACKUP_MEDIA_FILENAME_TEMPLATE`
 
 - **Type**: `str`
@@ -465,19 +493,9 @@ The groups are:
 - **What it does**: The file name of a media backup.
 - **Accepts**: A template with the placeholders django-dbbackup defines.
 
-### `DBBACKUP_STORAGE`
-
-- **Type**: `str`
-- **Default**: `"django.core.files.storage.FileSystemStorage"`
-- **What it does**: The storage class django-dbbackup writes backups to.
-- **Accepts**: The dotted path of a storage class.
-
-### `DBBACKUP_STORAGE_OPTIONS`
-
-- **Type**: `dict`
-- **Default**: `{"location": "/app/dbbackups/"}`
-- **What it does**: The options given to the backup storage class. The default directory is inside the [container image](container-images.md) and is lost when the container is replaced.
-- **Accepts**: The keyword arguments of the storage class.
+```{note}
+django-dbbackup 5 refuses the two storage settings of the 4.x series, so FairDM no longer sets them. A portal that sets either moves its choice to `STORAGES["dbbackup"]`, described under [`STORAGES`](#storages).
+```
 
 ### `DEFAULT_AUTO_FIELD`
 
@@ -612,9 +630,9 @@ The groups are:
 ### `STORAGES`
 
 - **Type**: `dict`
-- **Default**: Production: `default` is `FileSystemStorage` at `BASE_DIR / "media"`, and `staticfiles` is `whitenoise.storage.CompressedStaticFilesStorage`. When `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` and `S3_BUCKET_NAME` are all set, `default` is `storages.backends.s3boto3.S3Boto3Storage`. Development: Django's plain file storage for both, and no S3.
-- **What it does**: The storage for uploaded files (`default`) and collected static files (`staticfiles`). FairDM does not compress or fingerprint static files.
-- **Accepts**: The format Django reads. Add a storage by assigning an item, such as `STORAGES["exports"] = {...}`.
+- **Default**: Production: `default` is `FileSystemStorage` at `BASE_DIR / "media"`, and `staticfiles` is `whitenoise.storage.CompressedStaticFilesStorage`. When `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` and `S3_BUCKET_NAME` are all set, `default` is `storages.backends.s3boto3.S3Boto3Storage`. Development: Django's plain file storage for both, and no S3. `dbbackup` is `FileSystemStorage` at the directory in `BACKUP_DIR`, or at `BASE_DIR / "backups"` when `BACKUP_DIR` is empty. When the three `S3_*` variables are set, `dbbackup` is `S3Boto3Storage` in the bucket `BACKUP_S3_BUCKET_NAME`, or in `S3_BUCKET_NAME` when that is empty, under the location `backups`.
+- **What it does**: The storage for uploaded files (`default`), collected static files (`staticfiles`) and backups (`dbbackup`). FairDM does not compress or fingerprint static files.
+- **Accepts**: The format Django reads. Add a storage by assigning an item, such as `STORAGES["exports"] = {...}`. Replace where backups go by assigning `STORAGES["dbbackup"]`. The `BACKUP_DIR` container image variable sets the directory the container writes backups to; see [Container images](container-images.md). Backups kept on local disk are lost with the server, and production reports [`fairdm.W700`](../../administrators/reference/configuration-checks.md#fairdm-w700-backups-are-kept-on-the-local-disk) for them.
 
 ### `THUMBNAIL_ALIASES`
 
@@ -1428,6 +1446,34 @@ These settings configure packages that FairDM installs. A portal rarely changes 
 `fairdm.setup()` reads these variables through django-environ. A variable can be set in the process environment, in `stack.env`, in `stack.<environment>.env` or in the file named by `env_file`, in the order [Configuration](configuration.md#environment-files) gives. The [container images](container-images.md) set or read a few more variables of their own.
 
 Three kinds of variable have no entry here. `DJANGO_ENV` and `SENTRY_DSN` are described above, because the variable and the setting share a name. The email variables `EMAIL_BACKEND`, `EMAIL_HOST`, `EMAIL_HOST_PASSWORD`, `EMAIL_HOST_USER`, `EMAIL_PORT` and `EMAIL_USE_TLS` are described under the [Email](#email) setting of the same name. `GDAL_LIBRARY_PATH` and `GEOS_LIBRARY_PATH` are described under [Database](#database) in the same way.
+
+### `BACKUP_DIR`
+
+- **Type**: `str`
+- **Default**: `""`, which keeps backups in `BASE_DIR / "backups"`. The [container images](container-images.md) set it to `/var/lib/fairdm/backups`.
+- **What it does**: The directory the local `dbbackup` storage in [`STORAGES`](#storages) writes backups to. It has no effect when the media is on S3, because the backups then go to a bucket.
+- **Accepts**: A directory path the portal can write to.
+
+### `BACKUP_KEEP`
+
+- **Type**: `int`
+- **Default**: `4`
+- **What it does**: Sets [`DBBACKUP_CLEANUP_KEEP`](#dbbackup_cleanup_keep) and [`DBBACKUP_CLEANUP_KEEP_MEDIA`](#dbbackup_cleanup_keep_media), the number of database backups and the number of media backups kept.
+- **Accepts**: A whole number, 1 or more.
+
+### `BACKUP_S3_BUCKET_NAME`
+
+- **Type**: `str`
+- **Default**: `""`, which keeps backups in the media bucket, `S3_BUCKET_NAME`
+- **What it does**: The S3 bucket backups are written to, under the location `backups`. It applies only when the media is on S3. Set it to a bucket of its own: a backup kept in the media bucket is lost with that bucket. With a bucket of its own, the media archive is not affected by the backups, and the bucket can have its own access rules and lifecycle. It uses the same credentials as the media, `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY`.
+- **Accepts**: The name of a bucket the media credentials can read and write.
+
+### `BACKUP_SERVER_NAME`
+
+- **Type**: `str`
+- **Default**: `"fairdm"`
+- **What it does**: Sets [`DBBACKUP_HOSTNAME`](#dbbackup_hostname), the server name in the file name of a backup.
+- **Accepts**: A name without spaces.
 
 ### `CONN_MAX_AGE`
 

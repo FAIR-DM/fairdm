@@ -1,5 +1,6 @@
 """Integration tests for fairdm.conf configuration checks."""
 
+import io
 import sys
 from unittest import mock
 
@@ -11,6 +12,8 @@ from django.core.management import call_command
 from django.core.management.base import SystemCheckError
 from django.db import utils as django_db_utils
 from django.test import override_settings
+
+from tests.keys import BACKUP_PUBLIC_KEY
 
 
 class TestDatabaseChecks:
@@ -541,7 +544,10 @@ class TestCheckCommandIntegration:
     @override_settings(
         SECRET_KEY="a" * 50,
         DATABASES={
-            "default": {"ENGINE": "django.contrib.gis.db.backends.postgis", "NAME": "test"}
+            "default": {
+                "ENGINE": "django.contrib.gis.db.backends.postgis",
+                "NAME": "test",
+            }
         },
         CACHES={
             "default": {
@@ -555,6 +561,7 @@ class TestCheckCommandIntegration:
         CSRF_COOKIE_SECURE=True,
         CELERY_BROKER_URL="redis://localhost:6379/0",
         CELERY_TASK_ALWAYS_EAGER=False,
+        BACKUP_PUBLIC_KEY=BACKUP_PUBLIC_KEY,
     )
     def test_check_deploy_passes_with_valid_config(self):
         call_command("check", deploy=True)
@@ -960,3 +967,222 @@ class TestApiProxyCountCheck:
             include_deployment_checks=False
         )
         assert DeployTags.production_critical not in check_api_proxy_count.tags
+
+
+class TestBackupKeyChecks:
+    @pytest.fixture(scope="class")
+    def key_pair(self, tmp_path_factory):
+        from tests.test_backups.conftest import generate_key
+
+        return generate_key(tmp_path_factory.mktemp("gpg"))
+
+    @pytest.fixture(scope="class")
+    def sign_only_key(self, tmp_path_factory):
+        from tests.test_backups.conftest import generate_key
+
+        return generate_key(tmp_path_factory.mktemp("gpg-sign"), key_usage="sign")
+
+    @pytest.fixture(scope="class")
+    def expired_key(self, tmp_path_factory):
+        from tests.test_backups.conftest import generate_expired_key
+
+        return generate_expired_key(tmp_path_factory.mktemp("gpg-expired"))
+
+    def test_no_key_reports_e700(self):
+        from fairdm.conf.checks import check_backup_key_present
+
+        with override_settings(BACKUP_PUBLIC_KEY=""):
+            errors = check_backup_key_present(app_configs=None)
+
+        assert [error.id for error in errors] == ["fairdm.E700"]
+        assert "BACKUP_PUBLIC_KEY" in errors[0].msg
+
+    def test_a_key_does_not_report_e700(self, key_pair):
+        from fairdm.conf.checks import check_backup_key_present
+
+        with override_settings(BACKUP_PUBLIC_KEY=key_pair.public):
+            assert check_backup_key_present(app_configs=None) == []
+
+    def test_a_key_that_is_not_an_armoured_public_key_reports_e701(self):
+        from fairdm.conf.checks import check_backup_key_usable
+
+        with override_settings(BACKUP_PUBLIC_KEY="not a key"):
+            errors = check_backup_key_usable(app_configs=None)
+
+        assert [error.id for error in errors] == ["fairdm.E701"]
+
+    def test_a_key_that_cannot_encrypt_reports_e701(self, sign_only_key):
+        from fairdm.conf.checks import check_backup_key_usable
+
+        with override_settings(BACKUP_PUBLIC_KEY=sign_only_key.public):
+            errors = check_backup_key_usable(app_configs=None)
+
+        assert [error.id for error in errors] == ["fairdm.E701"]
+
+    def test_an_expired_key_reports_e701(self, expired_key):
+        from fairdm.conf.checks import check_backup_key_usable
+
+        with override_settings(BACKUP_PUBLIC_KEY=expired_key.public):
+            errors = check_backup_key_usable(app_configs=None)
+
+        assert [error.id for error in errors] == ["fairdm.E701"]
+
+    def test_a_private_key_reports_e701(self, key_pair):
+        from fairdm.conf.checks import check_backup_key_usable
+
+        with override_settings(BACKUP_PUBLIC_KEY=key_pair.private):
+            errors = check_backup_key_usable(app_configs=None)
+
+        assert [error.id for error in errors] == ["fairdm.E701"]
+
+    def test_a_usable_key_reports_neither_error(self, key_pair):
+        from fairdm.conf.checks import check_backup_key_present, check_backup_key_usable
+
+        with override_settings(BACKUP_PUBLIC_KEY=key_pair.public):
+            assert check_backup_key_present(app_configs=None) == []
+            assert check_backup_key_usable(app_configs=None) == []
+
+    def test_a_missing_gpg_reports_e701(self, key_pair):
+        from fairdm.backups.keys import BackupKey
+        from fairdm.conf.checks import check_backup_key_usable
+
+        with (
+            override_settings(BACKUP_PUBLIC_KEY=key_pair.public),
+            mock.patch.object(
+                BackupKey, "fingerprint", new_callable=mock.PropertyMock
+            ) as fingerprint,
+        ):
+            fingerprint.side_effect = OSError("Unable to run gpg")
+            errors = check_backup_key_usable(app_configs=None)
+
+        assert [error.id for error in errors] == ["fairdm.E701"]
+
+    def test_an_os_error_reports_its_text_in_e701(self, key_pair):
+        from fairdm.backups.keys import BackupKey
+        from fairdm.conf.checks import check_backup_key_usable
+
+        with (
+            override_settings(BACKUP_PUBLIC_KEY=key_pair.public),
+            mock.patch.object(
+                BackupKey, "fingerprint", new_callable=mock.PropertyMock
+            ) as fingerprint,
+        ):
+            fingerprint.side_effect = OSError("Read-only file system: '/tmp'")
+            errors = check_backup_key_usable(app_configs=None)
+
+        assert "Read-only file system" in errors[0].msg
+
+    def test_no_key_is_not_reported_as_unusable(self):
+        from fairdm.conf.checks import check_backup_key_usable
+
+        with override_settings(BACKUP_PUBLIC_KEY=""):
+            assert check_backup_key_usable(app_configs=None) == []
+
+    @pytest.mark.parametrize(
+        "check", ["check_backup_key_present", "check_backup_key_usable"]
+    )
+    def test_checks_are_registered_with_the_production_critical_deploy_tags(
+        self, check
+    ):
+        from django.core.checks.registry import registry
+
+        from fairdm.conf import checks
+        from fairdm.conf.checks import DeployTags
+
+        registered = getattr(checks, check)
+        assert registered in registry.get_checks(include_deployment_checks=True)
+        assert registered not in registry.get_checks(include_deployment_checks=False)
+        assert {DeployTags.deploy, DeployTags.production_critical} <= set(
+            registered.tags
+        )
+
+    @override_settings(DJANGO_ENV="production", BACKUP_PUBLIC_KEY="", DEBUG=True)
+    def test_a_production_boot_with_no_key_refuses_and_names_the_key_with_other_errors(
+        self,
+    ):
+        from django.apps import apps
+
+        with pytest.raises(SystemCheckError) as exc_info:
+            apps.get_app_config("fairdm").ready()
+
+        message = str(exc_info.value)
+        assert "fairdm.E700" in message
+        assert "fairdm.E005" in message
+
+    @override_settings(DJANGO_ENV="development", BACKUP_PUBLIC_KEY="")
+    def test_a_development_boot_with_no_key_starts(self):
+        from django.apps import apps
+
+        apps.get_app_config("fairdm").ready()
+
+
+class TestBackupStorageCheck:
+    LOCAL = {"BACKEND": "django.core.files.storage.FileSystemStorage"}
+    S3 = {"BACKEND": "storages.backends.s3boto3.S3Boto3Storage"}
+
+    @pytest.fixture
+    def backup_storage_in(self, settings):
+        """Return a function that sets the environment and the backup storage."""
+
+        def configure(environment, storage):
+            settings.DJANGO_ENV = environment
+            settings.STORAGES = {**settings.STORAGES, "dbbackup": storage}
+
+        return configure
+
+    @pytest.mark.parametrize("environment", ["production", "staging", ""])
+    def test_local_backups_in_production_report_w700(
+        self, backup_storage_in, environment
+    ):
+        from fairdm.conf.checks import check_backup_storage_is_remote
+
+        backup_storage_in(environment, self.LOCAL)
+
+        messages = check_backup_storage_is_remote(app_configs=None)
+
+        assert [message.id for message in messages] == ["fairdm.W700"]
+        assert isinstance(messages[0], CheckWarning)
+
+    def test_s3_backups_in_production_report_nothing(self, backup_storage_in):
+        from fairdm.conf.checks import check_backup_storage_is_remote
+
+        backup_storage_in("production", self.S3)
+
+        assert check_backup_storage_is_remote(app_configs=None) == []
+
+    def test_local_backups_in_development_report_nothing(self, backup_storage_in):
+        from fairdm.conf.checks import check_backup_storage_is_remote
+
+        backup_storage_in("development", self.LOCAL)
+
+        assert check_backup_storage_is_remote(app_configs=None) == []
+
+    def test_w700_is_listed_by_the_check_command_and_silenceable(
+        self, backup_storage_in, settings
+    ):
+        backup_storage_in("production", self.LOCAL)
+        shown, silenced = io.StringIO(), io.StringIO()
+
+        call_command("check", stdout=shown, stderr=shown)
+        settings.SILENCED_SYSTEM_CHECKS = ["fairdm.W700"]
+        call_command("check", stdout=silenced, stderr=silenced)
+
+        assert "fairdm.W700" in shown.getvalue()
+        assert "fairdm.W700" not in silenced.getvalue()
+
+    def test_w700_does_not_stop_a_production_boot(self, backup_storage_in):
+        from django.core.checks.registry import registry
+
+        from fairdm.conf.checks import DeployTags, check_backup_storage_is_remote
+
+        backup_storage_in("production", self.LOCAL)
+
+        gate = registry.run_checks(
+            tags=[DeployTags.production_critical], include_deployment_checks=True
+        )
+
+        assert "fairdm.W700" not in [message.id for message in gate]
+        assert check_backup_storage_is_remote in registry.get_checks(
+            include_deployment_checks=False
+        )
+        assert DeployTags.production_critical not in check_backup_storage_is_remote.tags

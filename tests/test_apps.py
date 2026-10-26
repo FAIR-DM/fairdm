@@ -7,6 +7,8 @@ from pathlib import Path
 
 import pytest
 
+from tests.keys import BACKUP_PUBLIC_KEY
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 #: PARLER_LANGUAGES narrowed to agree with ``LANGUAGES = [en, de]``.
@@ -152,6 +154,7 @@ class TestParlerLanguagesCheck:
             "DJANGO_ALLOWED_HOSTS": "example.com",
             "DATABASE_URL": "postgresql://portal:portal@localhost:5432/portal",
             "REDIS_URL": "redis://localhost:6379/0",
+            "BACKUP_PUBLIC_KEY": BACKUP_PUBLIC_KEY,
             "PYTHONPATH": f"{tmp_path}{os.pathsep}{REPO_ROOT}",
         }
         return subprocess.run(

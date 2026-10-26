@@ -11,7 +11,7 @@ Both images are built from `docker/Dockerfile` in the FairDM repository. Neither
 | Dockerfile target | `runtime` | `development` |
 | Registry name | `ghcr.io/fair-dm/fairdm:<image version>` | `ghcr.io/fair-dm/fairdm:<image version>-dev` |
 | Built from | `python:3.13-slim` | The runtime image |
-| Added system packages | `gdal-bin`, `libpq5` | `build-essential`, `libpq-dev`, `git` |
+| Added system packages | `gdal-bin`, `gnupg`, `libpq5`, `postgresql-client-17` | `build-essential`, `libpq-dev`, `git` |
 | `DJANGO_ENV` | `production` | `development` |
 | Used for | Running a portal | Installing a portal's dependencies, and running a portal on your own machine |
 
@@ -26,7 +26,8 @@ Both images are published for `linux/amd64`. GDAL, GEOS and PROJ come with `gdal
 | Working directory | `/app` |
 | Python environment | `/opt/venv`, first on `PATH` |
 | User | `fairdm`, user id 1000, group id 1000 |
-| Directories created | `/app/static`, `/app/media`, `/opt/venv` and `/docker-entrypoint.d`, all owned by `fairdm` |
+| Directories created | `/app/static`, `/app/media`, `/opt/venv`, `/docker-entrypoint.d` and `/var/lib/fairdm/backups`, all owned by `fairdm` |
+| Backup tools | `pg_dump` and `pg_restore` of PostgreSQL 17, which write and read the database backups, and `gpg`, which encrypts them to `BACKUP_PUBLIC_KEY` |
 | Package manager | uv 0.11, copied from `ghcr.io/astral-sh/uv:0.11` |
 | Exposed port | `8000` |
 | Entrypoint | `fairdm-entrypoint` |
@@ -41,6 +42,7 @@ The images carry these OCI labels: `org.opencontainers.image.title`, `descriptio
 | `DJANGO_ENV` | `production` in the runtime image, `development` in the development image | See [DJANGO_ENV](settings.md#django_env) |
 | `DJANGO_SETTINGS_MODULE` | `config.settings` | Set another value in a portal whose settings module is elsewhere |
 | `PORT` | `8000` | gunicorn listens on `0.0.0.0:$PORT` |
+| `BACKUP_DIR` | `/var/lib/fairdm/backups` | Where a portal with local media writes its backups. Mount a volume here. See [BACKUP_DIR](settings.md#backup_dir) |
 | `UV_PROJECT_ENVIRONMENT` | `/opt/venv` | Keeps the environment outside `/app`, so a source tree mounted at `/app` never hides it |
 | `UV_LINK_MODE` | `copy` | |
 | `UV_PYTHON_DOWNLOADS` | `never` | uv uses the image's Python |
@@ -54,7 +56,7 @@ The images carry these OCI labels: `org.opencontainers.image.title`, `descriptio
 | --- | --- | --- |
 | `FAIRDM_START_DIR` | `/docker-entrypoint.d` | The directory the `web` command takes [start steps](#start-steps) from |
 | `WSGI_APP` | `config.wsgi:application` | The WSGI application gunicorn serves |
-| `CELERY_APP` | `config` | The application the `worker` command runs. Celery finds the Celery instance in that module. |
+| `CELERY_APP` | `config` | The application the `worker` and `beat` commands run. Celery finds the Celery instance in that module. |
 | `PORT` | `8000` | Read by gunicorn for its address |
 
 ## Variables a production portal needs
@@ -78,6 +80,7 @@ The first argument of `docker run` after the image name selects what the contain
 | --- | --- |
 | `web` (the default) | The [start sequence](#start-sequence), ending in gunicorn |
 | `worker [arguments]` | `celery --app $CELERY_APP worker` with the arguments you give. It runs no migration and no start step. |
+| `beat [arguments]` | `celery --app $CELERY_APP beat` with the arguments you give. It runs no migration and no start step. Run one beat for each portal. It sends the scheduled tasks, such as the weekly backups, to the workers. |
 | Anything else | The command as given, with no start sequence. `python manage.py shell` and a Compose `command:` line work without a wrapper. |
 
 ## Start sequence
@@ -105,7 +108,7 @@ A start step is a file in the start directory, `/docker-entrypoint.d` unless `FA
 | User, directory and environment | The user `fairdm`, in `/app`, with the container's environment |
 | A directory the `fairdm` user cannot read | Treated as empty, so no step runs |
 
-The `worker` command and any other command run no start steps. [How to add a start step to a container](../how-to/add-a-start-step-to-a-container.md) shows how to add one.
+The `worker`, `beat` and any other command run no start steps. [How to add a start step to a container](../how-to/add-a-start-step-to-a-container.md) shows how to add one.
 
 ## Portal image build arguments
 

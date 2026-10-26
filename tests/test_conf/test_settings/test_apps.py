@@ -5,6 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from tests.keys import BACKUP_PUBLIC_KEY
+
 
 class TestInstalledApps:
     def test_portal_apps_precede_fairdm_core(self, isolated_env, settings_module):
@@ -118,6 +120,7 @@ class TestTemplateAndStaticPrecedence:
             "DJANGO_DEBUG": "False",
             "DATABASE_URL": "postgres://portal:portal@localhost:5432/portal",
             "REDIS_URL": "redis://localhost:6379/1",
+            "BACKUP_PUBLIC_KEY": BACKUP_PUBLIC_KEY,
         }
         result = subprocess.run(
             [

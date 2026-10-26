@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **A portal backs up its database and media every week with no configuration.** The new
+  `fairdm.backups` app creates two periodic tasks, one for the database and one for the media, on
+  Sunday at 03:00 in `TIME_ZONE`. A schedule you change or a task you switch off is never reset.
+  `manage.py backup` writes both backups now, or one with `--database-only` or `--media-only`. The
+  settings `BACKUP_DIR`, `BACKUP_KEEP` and `BACKUP_SERVER_NAME` choose the directory, the number of
+  backups kept of each kind and the server name in the file names. The runtime image carries
+  `postgresql-client-17` and the directory `/var/lib/fairdm/backups`. See
+  [How to back up a portal](docs/developers/how-to/back-up-a-portal.md).
+
+- **Backups are encrypted to a public key.** With `BACKUP_PUBLIC_KEY` set to an armoured OpenPGP
+  public key, each database and media backup is written as a `.gpg` file only the private key
+  opens. The deployment checks `fairdm.E700` (no key) and `fairdm.E701` (not a public key that can
+  encrypt, a private key, or no `gpg`) report the setting. The runtime image carries `gnupg`. See
+  [How to back up a portal](docs/developers/how-to/back-up-a-portal.md#encrypt-the-backups).
+
+- **Backups follow the media to S3, and the scheduler runs in the images.** With the `S3_*`
+  variables set, backups go to the media bucket under `backups/`, or to the bucket in the new
+  `BACKUP_S3_BUCKET_NAME`, and the media archive leaves the backups out when they share a bucket.
+  Retention only touches the backup location. The new warning `fairdm.W700` reports a production
+  portal that keeps backups on its local disk. The images start Celery beat with the new `beat`
+  command, and the development compose file gains a `celerybeat` service and a `backups` volume.
+  See [How to back up a portal](docs/developers/how-to/back-up-a-portal.md) and
+  [How to deploy a portal in a container](docs/developers/how-to/deploy-a-portal-in-a-container.md#run-the-worker-and-the-scheduler).
+
+- **A portal restores from an encrypted backup with commands it already has.** `listbackups`,
+  `dbrestore --decrypt` and `mediarestore --decrypt --uncompress --replace` of django-dbbackup read
+  the backups in a one-off container whose gpg keyring holds the private key, and a key that does
+  not match stops the restore before anything changes. See
+  [How to restore a portal from a backup](docs/developers/how-to/restore-a-portal-from-a-backup.md).
+
+### Changed
+
+- **Breaking for upgrades: production now requires `BACKUP_PUBLIC_KEY`, and a custom image needs
+  `gpg`.** A production portal with no key, or with a key that cannot encrypt, stops at start-up
+  with `fairdm.E700` or `fairdm.E701`. Set the variable to the armoured public key and install
+  `gnupg` in an image you build yourself.
+- **Breaking for upgrades: a portal's own `DBBACKUP_STORAGE` or `DBBACKUP_STORAGE_OPTIONS` must
+  move to `STORAGES["dbbackup"]`.** django-dbbackup 5, which FairDM now requires at 5.3 or later,
+  stops with an error when either setting exists. FairDM no longer sets them, so a portal that never
+  set them has nothing to change. The default number of database backups kept falls from 10 to 4.
+
 ## [v0.2.1] - 2026-10-22
 
 ### Changed

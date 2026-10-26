@@ -10,6 +10,8 @@ production.
 
 from urllib.parse import quote
 
+from django.core.exceptions import ImproperlyConfigured
+
 env = globals()["env"]
 BASE_DIR = globals()["BASE_DIR"]
 
@@ -32,15 +34,22 @@ DATABASES = {
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)
 
-DBBACKUP_STORAGE = "django.core.files.storage.FileSystemStorage"
-DBBACKUP_STORAGE_OPTIONS = {"location": "/app/dbbackups/"}
+BACKUP_PUBLIC_KEY = env.str("BACKUP_PUBLIC_KEY", multiline=True)
+DBBACKUP_HOSTNAME = env("BACKUP_SERVER_NAME")
+DBBACKUP_CLEANUP_KEEP = DBBACKUP_CLEANUP_KEEP_MEDIA = env("BACKUP_KEEP")
+if DBBACKUP_CLEANUP_KEEP < 1:
+    # A keep of 0 deletes every backup after it is written, the new one included.
+    msg = "BACKUP_KEEP must be a whole number, 1 or more."
+    raise ImproperlyConfigured(msg)
+# The custom format is compressed and restores PostGIS into an empty database with pg_restore.
+DBBACKUP_CONNECTORS = {
+    "default": {"CONNECTOR": "dbbackup.db.postgresql.PgDumpBinaryConnector"}
+}
 
 DBBACKUP_FILENAME_TEMPLATE = "{databasename}-{servername}-{datetime}.{extension}"
 DBBACKUP_MEDIA_FILENAME_TEMPLATE = (
     "{databasename}_media-{servername}-{datetime}.{extension}"
 )
-
-DBBACKUP_CLEANUP_KEEP = 10
 
 # GeoDjango finds GDAL and GEOS on the system library path. None keeps that search.
 GDAL_LIBRARY_PATH = env("GDAL_LIBRARY_PATH") or None
