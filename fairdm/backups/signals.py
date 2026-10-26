@@ -13,14 +13,14 @@ DEFAULT_TASKS = [
 def seed_default_tasks(**kwargs):
     """Create each default backup task that does not exist, weekly on Sunday at 03:00.
 
-    A task that exists is never touched, so a portal that changed a schedule or switched a
-    task off keeps its choice.
+    A task that exists is never touched, so a portal that changed a schedule, switched a
+    task off or renamed it keeps its choice. A task is found by its task path.
 
     Args:
         **kwargs: The signal's arguments, unused.
     """
     for name, task in DEFAULT_TASKS:
-        if PeriodicTask.objects.filter(name=name).exists():
+        if PeriodicTask.objects.filter(task=task).exists():
             continue
         crontab, _created = CrontabSchedule.objects.get_or_create(
             minute="0",

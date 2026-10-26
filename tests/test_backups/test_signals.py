@@ -60,6 +60,15 @@ class TestSeedDefaultTasks:
         crontab = PeriodicTask.objects.get(task=MEDIA_TASK).crontab
         assert (crontab.minute, crontab.hour, crontab.day_of_week) == ("0", "3", "0")
 
+    def test_a_renamed_task_is_not_created_again(self):
+        PeriodicTask.objects.filter(task=DATABASE_TASK).update(name="Weekly dump")
+
+        seed_default_tasks()
+
+        periodic_tasks = PeriodicTask.objects.filter(task=DATABASE_TASK)
+        assert periodic_tasks.count() == 1
+        assert periodic_tasks.get().name == "Weekly dump"
+
     def test_running_again_adds_no_second_task_or_schedule(self):
         tasks = PeriodicTask.objects.filter(task__in=[DATABASE_TASK, MEDIA_TASK])
         schedules = CrontabSchedule.objects.count()
