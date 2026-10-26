@@ -24,21 +24,28 @@ The details are below.
 
 ## Findings that change the plan
 
-### FairDM's existing backup settings are ignored
+### FairDM's existing backup settings stop every backup
 
-django-dbbackup 5 removed `DBBACKUP_STORAGE` and `DBBACKUP_STORAGE_OPTIONS` (its checks list them
-as the historical W009 and W010). It now reads the `dbbackup` alias of `STORAGES`, and with no such
-alias falls back to `FileSystemStorage()` with no location, which is `MEDIA_ROOT`. Today a backup
-run by hand would therefore be written into the media directory, and the next media backup would
-contain it. The plan replaces both settings with `STORAGES["dbbackup"]`, and the settings reference
-loses the two entries that describe them.
+django-dbbackup 5 removed `DBBACKUP_STORAGE` and `DBBACKUP_STORAGE_OPTIONS`, and raises
+`RuntimeError` whenever either is set (`dbbackup/settings.py:6-11`), so today every `dbbackup` and
+`mediabackup` run fails. It now reads the `dbbackup` alias of `STORAGES`. The plan replaces both
+settings with `STORAGES["dbbackup"]`, and the settings reference loses the two entries that
+describe them. A portal that sets either name itself must move to `STORAGES["dbbackup"]`, and the
+changelog says so. The design depends on 5.3 throughout, so 5.3 becomes the dependency's floor.
+
+django-dbbackup reads all of its settings once, when `dbbackup.settings` is imported
+(`settings.py:20-38`), and `Storage.__init__` applies `STORAGE_OPTIONS` over any options passed in
+(`storage.py:65-67`). `override_settings` therefore does not reach it: tests patch the attributes
+of `dbbackup.settings` directly.
 
 ### A media backup walks the whole media storage
 
 `mediabackup` archives every file in the default storage. With backups in the media bucket under a
 prefix, as FR-016 asks, each media backup would contain every earlier backup, and its size would
-grow without bound. The same happens locally whenever the backup directory is inside `MEDIA_ROOT`.
-FairDM's media backup must skip the backup location when it lies inside the media storage. This
+grow without bound. Locally this cannot happen with FairDM's settings: `MEDIA_ROOT` is
+`BASE_DIR / "media"` and the backup directory is `BASE_DIR / "backups"` or `/var/lib/fairdm/backups`,
+so only the shared-bucket case needs handling. FairDM's media backup must skip the backup prefix
+when the backups share the media bucket. This
 is done with a subclass of django-dbbackup's `mediabackup` command that overrides
 `_explore_storage` and filters out the backup prefix. FairDM runs that subclass. It does not replace
 the `mediabackup` command, so a portal that calls it directly keeps upstream behaviour.
@@ -80,10 +87,18 @@ backup removes nothing. Both are tested rather than assumed.
   of its own (`GNUPGHOME` set for the duration of the call, under `DBBACKUP_TMP_DIR`), takes the
   fingerprint that gpg reports, and hands it to django-dbbackup as the recipient for that call. The
   portal configures only the key.
-- **Trust.** `DBBACKUP_GPG_ALWAYS_TRUST = True`, because the keyring holds only the one key the
-  portal supplied. In 5.3.1 the settings module assigns `GPG_ALWAYS_TRUST` twice and the second
-  assignment overwrites it with the recipient, so it is truthy whenever a recipient is set. FairDM
-  sets the setting explicitly and does not rely on that.
+- **Trust.** The keyring holds only the one key the portal supplied, so it is always trusted. In
+  5.3.1 the settings module assigns `GPG_ALWAYS_TRUST` and then overwrites it with
+  `DBBACKUP_GPG_RECIPIENT` (`settings.py:29-30`), which FairDM never sets. The setting
+  `DBBACKUP_GPG_ALWAYS_TRUST` therefore has no effect, and trust is off when the file is encrypted
+  (`utils.py:192`). A key just imported into a fresh keyring has unknown trust, and gpg refuses it as
+  a recipient. FairDM's backup function sets `dbbackup.settings.GPG_ALWAYS_TRUST = True` alongside
+  the recipient for the call, and restores both afterwards.
+- **A private key is refused.** A secret-key block also imports as a key that can encrypt. The check
+  treats any secret key material in `BACKUP_PUBLIC_KEY` as unusable (`fairdm.E701`), so the portal
+  never holds the key that decrypts its own backups.
+- **Line breaks.** `BACKUP_PUBLIC_KEY` is read with `multiline=True`, so a value written with `\n`
+  escapes on one line works as well as a quoted multi-line value.
 - **Restoring.** Decryption uses gpg's default keyring. The developer imports the private key into
   the one-off container that runs the restore. The portal never holds it.
 - **The production check.** FairDM imports `BACKUP_PUBLIC_KEY` into a temporary keyring and checks
@@ -138,6 +153,9 @@ workflow.
 - Importing a key and reading its fingerprint: **an installed package** once added, python-gnupg.
 - Skipping the backup prefix in a media archive: **new code**, a `_explore_storage` override on a
   subclass of django-dbbackup's media backup command. Upstream offers no exclusion option.
-- Handing the recipient and keyring to django-dbbackup for one call: **new code**, a small function
-  in `fairdm/backups/`.
+- Inspecting the key and handing its keyring, recipient and trust to django-dbbackup for one call:
+  **new code**, one class in `fairdm/backups/keys.py`, used by both the check and the backup
+  function.
 - Two Celery tasks and a `backup` management command that call it: **new code**, thin.
+- The `beat` start mode and the `celerybeat` service: **new code**, beside the existing `worker`
+  mode and `celeryworker` service.

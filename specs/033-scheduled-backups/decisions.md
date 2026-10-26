@@ -83,3 +83,35 @@ A backup by hand is not a story of its own either: the periodic task screens alr
 selected task at once, so it is one more scenario under US1. Restoring is a separate thing a
 developer sets out to do, and stays US2. Nothing was dropped. Every scenario and requirement of the
 first draft is still in the specification.
+
+## Trust in the backup key is set for each backup
+
+django-dbbackup 5.3.1 overwrites its `DBBACKUP_GPG_ALWAYS_TRUST` setting with
+`DBBACKUP_GPG_RECIPIENT` when it is imported, and FairDM never sets the recipient there, so trust
+would be off when a backup is encrypted. gpg refuses a key of unknown trust, so every encrypted
+backup would fail. The keyring FairDM builds for each backup holds only the portal's own public
+key, so FairDM sets trust on for the duration of the call, with the recipient, and restores both
+afterwards. The setting is not used at all, since it has no effect.
+
+## The plan's smaller corrections before building
+
+The plan was read against the installed packages before any code was written, and these changed:
+
+- django-dbbackup reads its settings once at import, so tests patch its settings module rather
+  than using `override_settings`, and the backup and restore tests use a transactional database,
+  because `pg_dump` and `pg_restore` use connections of their own.
+- A private key supplied as `BACKUP_PUBLIC_KEY` is refused like any other unusable key, so a portal
+  can never hold the key that decrypts its own backups.
+- Inspecting the key and preparing its keyring are one class, used by both the production check and
+  the backup, instead of two routines that each import the key.
+- The media backup skips the backup prefix only when the backups share the media bucket. Locally
+  the backup directory and the media directory are siblings, so there is nothing to skip.
+- The dependency floor becomes django-dbbackup 5.3, which the whole design relies on.
+- The test modules mirror the source tree, and the default-task receiver lives in `signals.py`, as
+  the repo's standards ask.
+- A placeholder task in the restore story was dropped. Any settings change the restore tests need is
+  made as their own green step.
+- `BACKUP_PUBLIC_KEY` accepts a key written with `\n` escapes on one line as well as a quoted
+  multi-line value.
+- Changing a schedule in the admin without a restart is the job of django-celery-beat's database
+  scheduler, and is not tested again here.
