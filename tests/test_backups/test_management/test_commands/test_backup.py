@@ -4,7 +4,7 @@ import pytest
 from django.core.management import call_command
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.usefixtures("reseeded_after_flush", "transactional_db")
 class TestBackupCommand:
     def test_writes_one_database_backup_and_one_media_archive(self, backup_storage):
         call_command("backup")

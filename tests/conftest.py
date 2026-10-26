@@ -8,15 +8,33 @@ from fairdm.factories import DatasetFactory, ProjectFactory, UserFactory
 from tests.test_contrib.test_autocomplete.conftest import in_request  # noqa: F401
 
 
+def seed_session_data():
+    """Write the data every test may rely on: the licences and the vocabulary terms."""
+    # Seed the recommended licences through the real deployment path
+    # (`fairdm/management/commands/seed_licenses.py`), the route a portal takes.
+    call_command("seed_licenses", verbosity=0)
+    from research_vocabs.models import Concept
+
+    Concept.preload()
+
+
 @pytest.fixture(scope="session")
 def django_db_setup(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
-        # Seed the recommended licences through the real deployment path
-        # (`fairdm/management/commands/seed_licenses.py`), the route a portal takes.
-        call_command("seed_licenses", verbosity=0)
-        from research_vocabs.models import Concept
+        seed_session_data()
 
-        Concept.preload()
+
+@pytest.fixture
+def reseeded_after_flush(django_db_blocker):
+    """Write the session's data again once a transactional test has flushed it.
+
+    A transactional test empties every table when it ends, and the tests that run after
+    it on the same worker still expect the licences and vocabulary terms. Request this
+    before ``transactional_db``, so its teardown runs after the flush.
+    """
+    yield
+    with django_db_blocker.unblock():
+        seed_session_data()
 
 
 @pytest.fixture

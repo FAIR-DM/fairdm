@@ -26,7 +26,7 @@ def connection_url(name):
     )
 
 
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.usefixtures("reseeded_after_flush", "transactional_db")
 class TestRunBackup:
     def test_database_backup_writes_one_database_backup(self, backup_storage):
         run_backup("database")
