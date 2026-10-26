@@ -140,7 +140,7 @@ def generate_expired_key(home):
     """
     home.chmod(0o700)
     environment = {**os.environ, "GNUPGHOME": str(home)}
-    subprocess.run(  # noqa: S603
+    subprocess.run(
         [  # noqa: S607
             "gpg",
             "--batch",
@@ -160,7 +160,7 @@ def generate_expired_key(home):
         check=True,
         capture_output=True,
     )
-    exported = subprocess.run(  # noqa: S603
+    exported = subprocess.run(
         ["gpg", "--armor", "--export", "expired@example.org"],  # noqa: S607
         env=environment,
         check=True,
