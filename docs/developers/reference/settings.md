@@ -442,7 +442,7 @@ The groups are:
 - **Type**: `str`
 - **Default**: `""`, from the environment variable of the same name
 - **What it does**: The public key every backup is encrypted to. With it set, each database and media backup is written as a `.gpg` file that only the holder of the private key reads. With it empty, backups are written unencrypted, which a development portal accepts. A production portal with it empty stops with [`fairdm.E700`](../../administrators/reference/configuration-checks.md#fairdm-e700-no-backup-public-key-is-set), and with a value that cannot encrypt with [`fairdm.E701`](../../administrators/reference/configuration-checks.md#fairdm-e701-the-backup-public-key-cannot-be-used). FairDM trusts this key for the length of a backup, so the key needs no signing or trusting on the server.
-- **Accepts**: An armoured OpenPGP public key, the text between `-----BEGIN PGP PUBLIC KEY BLOCK-----` and `-----END PGP PUBLIC KEY BLOCK-----`. The environment variable may hold it on several lines. A private key is refused. See [How to back up a portal](../how-to/back-up-a-portal.md#encrypt-the-backups).
+- **Accepts**: An armoured OpenPGP public key, the text between `-----BEGIN PGP PUBLIC KEY BLOCK-----` and `-----END PGP PUBLIC KEY BLOCK-----`. In an env file it is one line with `\n` in place of each line break, because an env file holds one variable on each line. A real environment variable, or a Compose `environment:` entry, may hold it on several lines. A private key is refused. See [How to back up a portal](../how-to/back-up-a-portal.md#encrypt-the-backups).
 
 ### `DATABASES`
 
@@ -1465,7 +1465,7 @@ Three kinds of variable have no entry here. `DJANGO_ENV` and `SENTRY_DSN` are de
 
 - **Type**: `str`
 - **Default**: `""`, which keeps backups in the media bucket, `S3_BUCKET_NAME`
-- **What it does**: The S3 bucket backups are written to, under the location `backups`. It applies only when the media is on S3. With a bucket of its own, the media archive is not affected by the backups, and the bucket can have its own access rules and lifecycle. It uses the same credentials as the media, `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY`.
+- **What it does**: The S3 bucket backups are written to, under the location `backups`. It applies only when the media is on S3. Set it to a bucket of its own: a backup kept in the media bucket is lost with that bucket. With a bucket of its own, the media archive is not affected by the backups, and the bucket can have its own access rules and lifecycle. It uses the same credentials as the media, `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY`.
 - **Accepts**: The name of a bucket the media credentials can read and write.
 
 ### `BACKUP_SERVER_NAME`

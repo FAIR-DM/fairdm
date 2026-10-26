@@ -16,7 +16,7 @@ Migrating the portal creates two periodic tasks. You see them in the admin under
 | Back up the database (`fairdm.backups.tasks.backup_database`) | Writes a dump of the database in PostgreSQL's custom format |
 | Back up the media (`fairdm.backups.tasks.backup_media`) | Writes a compressed archive of the media files |
 
-Each runs on Sunday at 03:00 in the portal's [`TIME_ZONE`](../reference/settings.md#time_zone). With media on the local disk, the backups go to the directory in [`BACKUP_DIR`](../reference/settings.md#backup_dir), `/var/lib/fairdm/backups` in the container images. With media on S3, they go to the media bucket under `backups/`, or to the bucket in [`BACKUP_S3_BUCKET_NAME`](../reference/settings.md#backup_s3_bucket_name) when you set it. After each backup the oldest beyond [`BACKUP_KEEP`](../reference/settings.md#backup_keep) are removed, four of each kind by default.
+Each runs on Sunday at 03:00 in the portal's [`TIME_ZONE`](../reference/settings.md#time_zone). With media on the local disk, the backups go to the directory in [`BACKUP_DIR`](../reference/settings.md#backup_dir), `/var/lib/fairdm/backups` in the container images. With media on S3, they go to the media bucket under `backups/`, or to the bucket in [`BACKUP_S3_BUCKET_NAME`](../reference/settings.md#backup_s3_bucket_name) when you set it. Set it to a bucket of its own: a backup kept in the media bucket is lost with that bucket. After each backup the oldest beyond [`BACKUP_KEEP`](../reference/settings.md#backup_keep) are removed, four of each kind by default.
 
 ```{warning}
 Mount a volume at the backup directory. Without one, the backups are lost when the container is replaced. A production portal that keeps backups on its local disk reports [`fairdm.W700`](../../administrators/reference/configuration-checks.md#fairdm-w700-backups-are-kept-on-the-local-disk).
@@ -62,7 +62,13 @@ A production portal encrypts every backup to a public key, and refuses to start 
    gpg --armor --export backups@example.org
    ```
 
-3. Set `BACKUP_PUBLIC_KEY` in the portal's environment to the whole output, from `-----BEGIN PGP PUBLIC KEY BLOCK-----` to `-----END PGP PUBLIC KEY BLOCK-----`. In an env file the value may span several lines inside quotes.
+3. Set `BACKUP_PUBLIC_KEY` in the portal's environment to the whole output, from `-----BEGIN PGP PUBLIC KEY BLOCK-----` to `-----END PGP PUBLIC KEY BLOCK-----`. An env file holds one variable on each line, so write the key on one line with `\n` in place of each line break. This command appends it to the file:
+
+   ```bash
+   echo "BACKUP_PUBLIC_KEY=$(gpg --armor --export backups@example.org | awk '{printf "%s\\n", $0}')" >> /etc/my-portal/portal.env
+   ```
+
+   A value on several lines works only as a real environment variable, or in the `environment:` section of a Compose file.
 
 4. Keep the private key off the portal. Export it with `gpg --armor --export-secret-keys backups@example.org`, store it in a password manager or on an offline medium, and keep a copy apart from the backups. Whoever loses the private key cannot read any backup made with the public key. The portal refuses a private key in `BACKUP_PUBLIC_KEY`.
 
