@@ -36,6 +36,8 @@ A check registered as a deployment check runs only when you pass `--deploy`. A c
 | `fairdm.E400` | Error | Yes, in every environment | Yes |
 | `fairdm.E500` | Error | Yes | No |
 | `fairdm.E501` | Error | Yes | No |
+| `fairdm.E700` | Error | Yes | No |
+| `fairdm.E701` | Error | Yes | No |
 | `fairdm.E600` | Error | No | Yes |
 | `fairdm.W601` | Warning | No | No |
 
@@ -193,6 +195,20 @@ REDIS_URL=redis://localhost:6379/1
 ```python
 REST_FRAMEWORK["NUM_PROXIES"] = 1
 ```
+
+## fairdm.E700: no backup public key is set
+
+- **Severity**: Error.
+- **Tags**: `security`, `deploy`, `production_critical`.
+- **Reports**: `BACKUP_PUBLIC_KEY` is empty. A production portal does not write unencrypted backups, so it does not start.
+- **Fix**: Set `BACKUP_PUBLIC_KEY` to an armoured OpenPGP public key. See [How to back up a portal](../../developers/how-to/back-up-a-portal.md#encrypt-the-backups).
+
+## fairdm.E701: the backup public key cannot be used
+
+- **Severity**: Error.
+- **Tags**: `security`, `deploy`, `production_critical`.
+- **Reports**: One of these. `BACKUP_PUBLIC_KEY` is not an armoured public key. The key cannot encrypt, as with a key that only signs. The value holds a private key, which the portal refuses so that it never holds the key that decrypts its backups. Or `gpg` is not installed, as in a custom image without `gnupg`.
+- **Fix**: Export the public key with `gpg --armor --export`, and set `BACKUP_PUBLIC_KEY` to its text. Remove a private key from the environment. In a custom image, install `gnupg`.
 
 ## What you can do with the checks
 

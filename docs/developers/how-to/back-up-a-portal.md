@@ -42,6 +42,32 @@ FairDM creates a task only when it is missing. A schedule you change, or a task 
 
 5. Keep more or fewer backups. Set `BACKUP_KEEP` in the environment to the number of backups of each kind to keep.
 
+## Encrypt the backups
+
+A production portal encrypts every backup to a public key, and refuses to start without one (see [`fairdm.E700`](../../administrators/reference/configuration-checks.md#fairdm-e700-no-backup-public-key-is-set) and [`fairdm.E701`](../../administrators/reference/configuration-checks.md#fairdm-e701-the-backup-public-key-cannot-be-used)). The portal holds only the public key, so a stolen backup is unreadable and the server cannot decrypt its own backups. A development portal with no key writes unencrypted backups.
+
+1. Create a key pair on your own computer, not on the portal's server.
+
+   ```bash
+   gpg --quick-generate-key "My Portal Backups <backups@example.org>" rsa4096 encr never
+   ```
+
+   Give the key a passphrase when gpg asks.
+
+2. Export the public key.
+
+   ```bash
+   gpg --armor --export backups@example.org
+   ```
+
+3. Set `BACKUP_PUBLIC_KEY` in the portal's environment to the whole output, from `-----BEGIN PGP PUBLIC KEY BLOCK-----` to `-----END PGP PUBLIC KEY BLOCK-----`. In an env file the value may span several lines inside quotes.
+
+4. Keep the private key off the portal. Export it with `gpg --armor --export-secret-keys backups@example.org`, store it in a password manager or on an offline medium, and keep a copy apart from the backups. Whoever loses the private key cannot read any backup made with the public key. The portal refuses a private key in `BACKUP_PUBLIC_KEY`.
+
+5. Check it. `python manage.py check --deploy` reports no `fairdm.E700` or `fairdm.E701`, and the next backup file ends in `.gpg`.
+
+The images FairDM publishes carry `gpg`. A custom image needs the `gnupg` package.
+
 ## Run a backup from your own code
 
 `run_backup` writes one backup, the same one the task and the command write. It takes `"database"` or `"media"` and raises when the backup fails.

@@ -437,6 +437,13 @@ The groups are:
 
 ## Database
 
+### `BACKUP_PUBLIC_KEY`
+
+- **Type**: `str`
+- **Default**: `""`, from the environment variable of the same name
+- **What it does**: The public key every backup is encrypted to. With it set, each database and media backup is written as a `.gpg` file that only the holder of the private key reads. With it empty, backups are written unencrypted, which a development portal accepts. A production portal with it empty stops with [`fairdm.E700`](../../administrators/reference/configuration-checks.md#fairdm-e700-no-backup-public-key-is-set), and with a value that cannot encrypt with [`fairdm.E701`](../../administrators/reference/configuration-checks.md#fairdm-e701-the-backup-public-key-cannot-be-used). FairDM trusts this key for the length of a backup, so the key needs no signing or trusting on the server.
+- **Accepts**: An armoured OpenPGP public key, the text between `-----BEGIN PGP PUBLIC KEY BLOCK-----` and `-----END PGP PUBLIC KEY BLOCK-----`. The environment variable may hold it on several lines. A private key is refused. See [How to back up a portal](../how-to/back-up-a-portal.md#encrypt-the-backups).
+
 ### `DATABASES`
 
 - **Type**: `dict`

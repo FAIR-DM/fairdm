@@ -18,8 +18,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `postgresql-client-17` and the directory `/var/lib/fairdm/backups`. See
   [How to back up a portal](docs/developers/how-to/back-up-a-portal.md).
 
+- **Backups are encrypted to a public key.** With `BACKUP_PUBLIC_KEY` set to an armoured OpenPGP
+  public key, each database and media backup is written as a `.gpg` file only the private key
+  opens. The deployment checks `fairdm.E700` (no key) and `fairdm.E701` (not a public key that can
+  encrypt, a private key, or no `gpg`) report the setting. The runtime image carries `gnupg`. See
+  [How to back up a portal](docs/developers/how-to/back-up-a-portal.md#encrypt-the-backups).
+
 ### Changed
 
+- **Breaking for upgrades: production now requires `BACKUP_PUBLIC_KEY`, and a custom image needs
+  `gpg`.** A production portal with no key, or with a key that cannot encrypt, stops at start-up
+  with `fairdm.E700` or `fairdm.E701`. Set the variable to the armoured public key and install
+  `gnupg` in an image you build yourself.
 - **Breaking for upgrades: a portal's own `DBBACKUP_STORAGE` or `DBBACKUP_STORAGE_OPTIONS` must
   move to `STORAGES["dbbackup"]`.** django-dbbackup 5, which FairDM now requires at 5.3 or later,
   stops with an error when either setting exists. FairDM no longer sets them, so a portal that never
