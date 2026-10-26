@@ -1,5 +1,6 @@
 """Integration tests for fairdm.conf configuration checks."""
 
+import io
 import sys
 from unittest import mock
 
@@ -1084,3 +1085,75 @@ class TestBackupKeyChecks:
         from django.apps import apps
 
         apps.get_app_config("fairdm").ready()
+
+
+class TestBackupStorageCheck:
+    LOCAL = {"BACKEND": "django.core.files.storage.FileSystemStorage"}
+    S3 = {"BACKEND": "storages.backends.s3boto3.S3Boto3Storage"}
+
+    @pytest.fixture
+    def backup_storage_in(self, settings):
+        """Return a function that sets the environment and the backup storage."""
+
+        def configure(environment, storage):
+            settings.DJANGO_ENV = environment
+            settings.STORAGES = {**settings.STORAGES, "dbbackup": storage}
+
+        return configure
+
+    @pytest.mark.parametrize("environment", ["production", "staging", ""])
+    def test_local_backups_in_production_report_w700(
+        self, backup_storage_in, environment
+    ):
+        from fairdm.conf.checks import check_backup_storage_is_remote
+
+        backup_storage_in(environment, self.LOCAL)
+
+        messages = check_backup_storage_is_remote(app_configs=None)
+
+        assert [message.id for message in messages] == ["fairdm.W700"]
+        assert isinstance(messages[0], CheckWarning)
+
+    def test_s3_backups_in_production_report_nothing(self, backup_storage_in):
+        from fairdm.conf.checks import check_backup_storage_is_remote
+
+        backup_storage_in("production", self.S3)
+
+        assert check_backup_storage_is_remote(app_configs=None) == []
+
+    def test_local_backups_in_development_report_nothing(self, backup_storage_in):
+        from fairdm.conf.checks import check_backup_storage_is_remote
+
+        backup_storage_in("development", self.LOCAL)
+
+        assert check_backup_storage_is_remote(app_configs=None) == []
+
+    def test_w700_is_listed_by_the_check_command_and_silenceable(
+        self, backup_storage_in, settings
+    ):
+        backup_storage_in("production", self.LOCAL)
+        shown, silenced = io.StringIO(), io.StringIO()
+
+        call_command("check", stdout=shown, stderr=shown)
+        settings.SILENCED_SYSTEM_CHECKS = ["fairdm.W700"]
+        call_command("check", stdout=silenced, stderr=silenced)
+
+        assert "fairdm.W700" in shown.getvalue()
+        assert "fairdm.W700" not in silenced.getvalue()
+
+    def test_w700_does_not_stop_a_production_boot(self, backup_storage_in):
+        from django.core.checks.registry import registry
+
+        from fairdm.conf.checks import DeployTags, check_backup_storage_is_remote
+
+        backup_storage_in("production", self.LOCAL)
+
+        gate = registry.run_checks(
+            tags=[DeployTags.production_critical], include_deployment_checks=True
+        )
+
+        assert "fairdm.W700" not in [message.id for message in gate]
+        assert check_backup_storage_is_remote in registry.get_checks(
+            include_deployment_checks=False
+        )
+        assert DeployTags.production_critical not in check_backup_storage_is_remote.tags
