@@ -38,6 +38,7 @@ A check registered as a deployment check runs only when you pass `--deploy`. A c
 | `fairdm.E501` | Error | Yes | No |
 | `fairdm.E700` | Error | Yes | No |
 | `fairdm.E701` | Error | Yes | No |
+| `fairdm.W700` | Warning | No | Yes |
 | `fairdm.E600` | Error | No | Yes |
 | `fairdm.W601` | Warning | No | No |
 
@@ -209,6 +210,13 @@ REST_FRAMEWORK["NUM_PROXIES"] = 1
 - **Tags**: `security`, `deploy`, `production_critical`.
 - **Reports**: One of these. `BACKUP_PUBLIC_KEY` is not an armoured public key. The key cannot encrypt, as with a key that only signs. The value holds a private key, which the portal refuses so that it never holds the key that decrypts its backups. Or `gpg` is not installed, as in a custom image without `gnupg`.
 - **Fix**: Export the public key with `gpg --armor --export`, and set `BACKUP_PUBLIC_KEY` to its text. Remove a private key from the environment. In a custom image, install `gnupg`.
+
+## fairdm.W700: backups are kept on the local disk
+
+- **Severity**: Warning.
+- **Tags**: `security`.
+- **Reports**: The `dbbackup` storage in `STORAGES` is a `FileSystemStorage` and the portal runs in production. Backups on the server's own disk are lost with the server. The check does not stop the portal starting, and `migrate` prints it.
+- **Fix**: Put the media on S3, so backups go to the bucket as well (see [`BACKUP_S3_BUCKET_NAME`](../../developers/reference/settings.md#backup_s3_bucket_name)), or assign `STORAGES["dbbackup"]` a storage that is off the server. To keep local backups on purpose, for example on a volume that is itself backed up, add `fairdm.W700` to `SILENCED_SYSTEM_CHECKS`.
 
 ## What you can do with the checks
 

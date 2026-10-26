@@ -4,7 +4,7 @@ A portal backs up its database and its media every week without any configuratio
 
 ## Before you start
 
-- The portal runs a Celery worker and Celery beat, the process that sends scheduled tasks. A portal started from the compose files in the FairDM repository runs the worker. Start beat with `celery --app fairdm.conf.celery beat --loglevel INFO`, from the same image and environment as the worker. Without beat, the tasks below exist but nothing sends them.
+- The portal runs a Celery worker and Celery beat, the process that sends scheduled tasks. The compose file in the FairDM repository runs both. In a container, start beat with the `beat` command of the image, from the same image and environment as the worker; see [How to deploy a portal in a container](deploy-a-portal-in-a-container.md#run-the-worker-and-the-scheduler). Run one beat for each portal. Without beat, the tasks below exist but nothing sends them.
 - You can sign in to the admin as a superuser.
 
 ## What runs by default
@@ -16,11 +16,13 @@ Migrating the portal creates two periodic tasks. You see them in the admin under
 | Back up the database (`fairdm.backups.tasks.backup_database`) | Writes a dump of the database in PostgreSQL's custom format |
 | Back up the media (`fairdm.backups.tasks.backup_media`) | Writes a compressed archive of the media files |
 
-Each runs on Sunday at 03:00 in the portal's [`TIME_ZONE`](../reference/settings.md#time_zone). The backups go to the directory in [`BACKUP_DIR`](../reference/settings.md#backup_dir), `/var/lib/fairdm/backups` in the container images. After each backup the oldest beyond [`BACKUP_KEEP`](../reference/settings.md#backup_keep) are removed, four of each kind by default.
+Each runs on Sunday at 03:00 in the portal's [`TIME_ZONE`](../reference/settings.md#time_zone). With media on the local disk, the backups go to the directory in [`BACKUP_DIR`](../reference/settings.md#backup_dir), `/var/lib/fairdm/backups` in the container images. With media on S3, they go to the media bucket under `backups/`, or to the bucket in [`BACKUP_S3_BUCKET_NAME`](../reference/settings.md#backup_s3_bucket_name) when you set it. After each backup the oldest beyond [`BACKUP_KEEP`](../reference/settings.md#backup_keep) are removed, four of each kind by default.
 
 ```{warning}
-Mount a volume at the backup directory. Without one, the backups are lost when the container is replaced.
+Mount a volume at the backup directory. Without one, the backups are lost when the container is replaced. A production portal that keeps backups on its local disk reports [`fairdm.W700`](../../administrators/reference/configuration-checks.md#fairdm-w700-backups-are-kept-on-the-local-disk).
 ```
+
+When the media and the backups share a bucket, the media archive leaves out everything under `backups/`, so a backup never contains the earlier ones. A worker builds the media archive on its local disk before it uploads it, so it needs free disk of about twice the size of the media.
 
 FairDM creates a task only when it is missing. A schedule you change, or a task you switch off, stays as you left it after the next migration.
 

@@ -24,6 +24,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   encrypt, a private key, or no `gpg`) report the setting. The runtime image carries `gnupg`. See
   [How to back up a portal](docs/developers/how-to/back-up-a-portal.md#encrypt-the-backups).
 
+- **Backups follow the media to S3, and the scheduler runs in the images.** With the `S3_*`
+  variables set, backups go to the media bucket under `backups/`, or to the bucket in the new
+  `BACKUP_S3_BUCKET_NAME`, and the media archive leaves the backups out when they share a bucket.
+  Retention only touches the backup location. The new warning `fairdm.W700` reports a production
+  portal that keeps backups on its local disk. The images start Celery beat with the new `beat`
+  command, and the development compose file gains a `celerybeat` service and a `backups` volume.
+  See [How to back up a portal](docs/developers/how-to/back-up-a-portal.md) and
+  [How to deploy a portal in a container](docs/developers/how-to/deploy-a-portal-in-a-container.md#run-the-worker-and-the-scheduler).
+
 ### Changed
 
 - **Breaking for upgrades: production now requires `BACKUP_PUBLIC_KEY`, and a custom image needs

@@ -630,9 +630,9 @@ django-dbbackup 5 refuses the two storage settings of the 4.x series, so FairDM 
 ### `STORAGES`
 
 - **Type**: `dict`
-- **Default**: Production: `default` is `FileSystemStorage` at `BASE_DIR / "media"`, and `staticfiles` is `whitenoise.storage.CompressedStaticFilesStorage`. When `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` and `S3_BUCKET_NAME` are all set, `default` is `storages.backends.s3boto3.S3Boto3Storage`. Development: Django's plain file storage for both, and no S3. `dbbackup` is `FileSystemStorage` at the directory in `BACKUP_DIR`, or at `BASE_DIR / "backups"` when `BACKUP_DIR` is empty.
+- **Default**: Production: `default` is `FileSystemStorage` at `BASE_DIR / "media"`, and `staticfiles` is `whitenoise.storage.CompressedStaticFilesStorage`. When `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` and `S3_BUCKET_NAME` are all set, `default` is `storages.backends.s3boto3.S3Boto3Storage`. Development: Django's plain file storage for both, and no S3. `dbbackup` is `FileSystemStorage` at the directory in `BACKUP_DIR`, or at `BASE_DIR / "backups"` when `BACKUP_DIR` is empty. When the three `S3_*` variables are set, `dbbackup` is `S3Boto3Storage` in the bucket `BACKUP_S3_BUCKET_NAME`, or in `S3_BUCKET_NAME` when that is empty, under the location `backups`.
 - **What it does**: The storage for uploaded files (`default`), collected static files (`staticfiles`) and backups (`dbbackup`). FairDM does not compress or fingerprint static files.
-- **Accepts**: The format Django reads. Add a storage by assigning an item, such as `STORAGES["exports"] = {...}`. Replace where backups go by assigning `STORAGES["dbbackup"]`. The `BACKUP_DIR` container image variable sets the directory the container writes backups to; see [Container images](container-images.md).
+- **Accepts**: The format Django reads. Add a storage by assigning an item, such as `STORAGES["exports"] = {...}`. Replace where backups go by assigning `STORAGES["dbbackup"]`. The `BACKUP_DIR` container image variable sets the directory the container writes backups to; see [Container images](container-images.md). Backups kept on local disk are lost with the server, and production reports [`fairdm.W700`](../../administrators/reference/configuration-checks.md#fairdm-w700-backups-are-kept-on-the-local-disk) for them.
 
 ### `THUMBNAIL_ALIASES`
 
@@ -1451,7 +1451,7 @@ Three kinds of variable have no entry here. `DJANGO_ENV` and `SENTRY_DSN` are de
 
 - **Type**: `str`
 - **Default**: `""`, which keeps backups in `BASE_DIR / "backups"`. The [container images](container-images.md) set it to `/var/lib/fairdm/backups`.
-- **What it does**: The directory the local `dbbackup` storage in [`STORAGES`](#storages) writes backups to.
+- **What it does**: The directory the local `dbbackup` storage in [`STORAGES`](#storages) writes backups to. It has no effect when the media is on S3, because the backups then go to a bucket.
 - **Accepts**: A directory path the portal can write to.
 
 ### `BACKUP_KEEP`
@@ -1460,6 +1460,13 @@ Three kinds of variable have no entry here. `DJANGO_ENV` and `SENTRY_DSN` are de
 - **Default**: `4`
 - **What it does**: Sets [`DBBACKUP_CLEANUP_KEEP`](#dbbackup_cleanup_keep) and [`DBBACKUP_CLEANUP_KEEP_MEDIA`](#dbbackup_cleanup_keep_media), the number of database backups and the number of media backups kept.
 - **Accepts**: A whole number.
+
+### `BACKUP_S3_BUCKET_NAME`
+
+- **Type**: `str`
+- **Default**: `""`, which keeps backups in the media bucket, `S3_BUCKET_NAME`
+- **What it does**: The S3 bucket backups are written to, under the location `backups`. It applies only when the media is on S3. With a bucket of its own, the media archive is not affected by the backups, and the bucket can have its own access rules and lifecycle. It uses the same credentials as the media, `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY`.
+- **Accepts**: The name of a bucket the media credentials can read and write.
 
 ### `BACKUP_SERVER_NAME`
 
