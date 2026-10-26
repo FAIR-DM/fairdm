@@ -982,6 +982,12 @@ class TestBackupKeyChecks:
 
         return generate_key(tmp_path_factory.mktemp("gpg-sign"), key_usage="sign")
 
+    @pytest.fixture(scope="class")
+    def expired_key(self, tmp_path_factory):
+        from tests.test_backups.conftest import generate_expired_key
+
+        return generate_expired_key(tmp_path_factory.mktemp("gpg-expired"))
+
     def test_no_key_reports_e700(self):
         from fairdm.conf.checks import check_backup_key_present
 
@@ -1009,6 +1015,14 @@ class TestBackupKeyChecks:
         from fairdm.conf.checks import check_backup_key_usable
 
         with override_settings(BACKUP_PUBLIC_KEY=sign_only_key.public):
+            errors = check_backup_key_usable(app_configs=None)
+
+        assert [error.id for error in errors] == ["fairdm.E701"]
+
+    def test_an_expired_key_reports_e701(self, expired_key):
+        from fairdm.conf.checks import check_backup_key_usable
+
+        with override_settings(BACKUP_PUBLIC_KEY=expired_key.public):
             errors = check_backup_key_usable(app_configs=None)
 
         assert [error.id for error in errors] == ["fairdm.E701"]

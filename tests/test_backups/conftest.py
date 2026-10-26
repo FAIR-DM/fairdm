@@ -1,5 +1,7 @@
 """Shared fixtures for tests/test_backups."""
 
+import os
+import subprocess
 from types import SimpleNamespace
 
 import gnupg
@@ -125,3 +127,50 @@ def backup_tmp_dir(monkeypatch, tmp_path):
     directory.mkdir()
     monkeypatch.setattr(dbbackup_settings, "TMP_DIR", str(directory))
     return directory
+
+
+def generate_expired_key(home):
+    """Generate an encrypt-capable key in ``home`` whose one-day lifetime ended in 2020.
+
+    Args:
+        home: The directory to use as the keyring.
+
+    Returns:
+        A namespace holding the armoured ``public`` key.
+    """
+    home.chmod(0o700)
+    environment = {**os.environ, "GNUPGHOME": str(home)}
+    subprocess.run(  # noqa: S603
+        [  # noqa: S607
+            "gpg",
+            "--batch",
+            "--pinentry-mode",
+            "loopback",
+            "--passphrase",
+            "",
+            "--faked-system-time",
+            "20200101T000000",
+            "--quick-generate-key",
+            "expired@example.org",
+            "rsa2048",
+            "sign,encr",
+            "1d",
+        ],
+        env=environment,
+        check=True,
+        capture_output=True,
+    )
+    exported = subprocess.run(  # noqa: S603
+        ["gpg", "--armor", "--export", "expired@example.org"],  # noqa: S607
+        env=environment,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return SimpleNamespace(public=exported.stdout)
+
+
+@pytest.fixture(scope="session")
+def expired_key(tmp_path_factory):
+    """An encrypt-capable public key that expired in 2020."""
+    return generate_expired_key(tmp_path_factory.mktemp("gpg-expired"))

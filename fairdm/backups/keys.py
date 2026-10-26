@@ -56,7 +56,7 @@ class BackupKey:
         gpg = gnupg.GPG(gnupghome=home)
         gpg.import_keys(self.armored)
         for key in gpg.list_keys():
-            if "e" in key["cap"].lower():
+            if "E" in key["cap"]:
                 return str(key["fingerprint"])
         return None
 

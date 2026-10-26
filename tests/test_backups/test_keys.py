@@ -4,6 +4,7 @@ import os
 
 import pytest
 from dbbackup import settings as dbbackup_settings
+
 from fairdm.backups.keys import BackupKey
 
 NOT_KEYS = ["", "not a key", "-----BEGIN PGP PUBLIC KEY BLOCK-----\nnot base64\n"]
@@ -19,6 +20,9 @@ class TestBackupKeyFingerprint:
 
     def test_a_key_that_cannot_encrypt_gives_none(self, sign_only_key, backup_tmp_dir):
         assert BackupKey(sign_only_key.public).fingerprint is None
+
+    def test_an_expired_key_gives_none(self, expired_key, backup_tmp_dir):
+        assert BackupKey(expired_key.public).fingerprint is None
 
     def test_a_private_key_gives_none(self, key_pair, backup_tmp_dir):
         assert "PRIVATE KEY BLOCK" in key_pair.private
