@@ -1,7 +1,7 @@
 """An in-memory stand-in for an S3 bucket, so no test reaches the network."""
 
 from django.core.files.base import ContentFile
-from storages.backends.s3 import S3Boto3Storage
+from storages.backends.s3boto3 import S3Boto3Storage
 from storages.utils import clean_name
 
 

@@ -87,7 +87,7 @@ class TestSkippingMediaBackup:
             (S3_BACKEND, {"bucket_name": "backups", "location": "backups"}),
         )
         buckets["media"][EARLIER_BACKUP] = b"a media file that is not a backup"
-        before = set(buckets["backups"])
+        before = set(buckets.get("backups", {}))
 
         call_command(SkippingMediaBackup(), compress=True)
 

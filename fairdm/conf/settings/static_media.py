@@ -2,7 +2,8 @@
 
 Owns static serving via WhiteNoise and media storage. Media storage is the local filesystem,
 switching to S3 when ``S3_ACCESS_KEY_ID``, ``S3_SECRET_ACCESS_KEY`` and ``S3_BUCKET_NAME``
-are all present. A portal supplies thumbnail aliases beyond the four core content types, and
+are all present. Backups follow the media: the local backup directory, or the media bucket under
+``backups`` (``BACKUP_S3_BUCKET_NAME`` names another bucket). A portal supplies thumbnail aliases beyond the four core content types, and
 any STORAGES entry it wants to add.
 """
 
@@ -46,6 +47,12 @@ STORAGES = {
     },
 }
 
+# django-dbbackup 5 reads its storage from here, not from DBBACKUP_STORAGE.
+STORAGES["dbbackup"] = {
+    "BACKEND": "django.core.files.storage.FileSystemStorage",
+    "OPTIONS": {"location": env("BACKUP_DIR") or str(BASE_DIR / "backups")},
+}
+
 if all(
     [
         env("S3_ACCESS_KEY_ID"),
@@ -57,12 +64,13 @@ if all(
     STORAGES["default"] = {
         "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
     }
-
-# django-dbbackup 5 reads its storage from here, not from DBBACKUP_STORAGE.
-STORAGES["dbbackup"] = {
-    "BACKEND": "django.core.files.storage.FileSystemStorage",
-    "OPTIONS": {"location": env("BACKUP_DIR") or str(BASE_DIR / "backups")},
-}
+    STORAGES["dbbackup"] = {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        "OPTIONS": {
+            "bucket_name": env("BACKUP_S3_BUCKET_NAME") or env("S3_BUCKET_NAME"),
+            "location": "backups",
+        },
+    }
 
 AWS_ACCESS_KEY_ID = env("S3_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = env("S3_SECRET_ACCESS_KEY")

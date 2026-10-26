@@ -7,6 +7,7 @@ from django.conf import settings
 from django.core.management import call_command
 
 from fairdm.backups.keys import BackupKey
+from fairdm.backups.media import SkippingMediaBackup
 
 
 def run_backup(kind: Literal["database", "media"]) -> None:
@@ -31,5 +32,8 @@ def run_backup(kind: Literal["database", "media"]) -> None:
             call_command("dbbackup", clean=True, compress=False, encrypt=bool(armored))
         else:
             call_command(
-                "mediabackup", clean=True, compress=True, encrypt=bool(armored)
+                SkippingMediaBackup(),
+                clean=True,
+                compress=True,
+                encrypt=bool(armored),
             )

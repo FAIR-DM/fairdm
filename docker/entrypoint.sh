@@ -3,6 +3,7 @@
 #
 #   web (default)  migrate, collect static files, run the start steps, then serve with gunicorn
 #   worker [args]  run a Celery worker; extra arguments go to Celery
+#   beat [args]    run Celery beat, the scheduler; extra arguments go to Celery. Run one per portal
 #   anything else  run as given
 #
 # Start steps are the executable files in FAIRDM_START_DIR (default /docker-entrypoint.d), run in
@@ -29,6 +30,10 @@ case "${1:-web}" in
   worker)
     shift
     exec celery --app "${CELERY_APP:-config}" worker "$@"
+    ;;
+  beat)
+    shift
+    exec celery --app "${CELERY_APP:-config}" beat "$@"
     ;;
   *)
     exec "$@"

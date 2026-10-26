@@ -268,6 +268,35 @@ def check_backup_key_usable(app_configs, **kwargs):
     ]
 
 
+@register(Tags.security)
+def check_backup_storage_is_remote(app_configs, **kwargs):
+    """Report fairdm.W700 when production keeps backups on the local disk."""
+    from django.apps import apps
+    from django.core.files.storage import FileSystemStorage
+    from django.utils.module_loading import import_string
+
+    from fairdm.apps import NON_PRODUCTION_ENVIRONMENTS
+
+    if (
+        apps.get_app_config("fairdm").resolved_environment()
+        in NON_PRODUCTION_ENVIRONMENTS
+    ):
+        return []
+    backend = settings.STORAGES.get("dbbackup", {}).get("BACKEND", "")
+    if not (backend and issubclass(import_string(backend), FileSystemStorage)):
+        return []
+    return [
+        CheckWarning(
+            "Backups are written to the local disk, so they are lost with the server.",
+            hint=(
+                "Put the media on S3 so backups go to the bucket, or point "
+                "STORAGES['dbbackup'] at storage that is off the server."
+            ),
+            id="fairdm.W700",
+        )
+    ]
+
+
 #: Cookie-name prefixes a browser silently discards unless the cookie is sent with
 #: ``Secure`` (RFC 6265bis, section 4.1.3).
 BROWSER_ENFORCED_SECURE_COOKIE_PREFIXES = ("__Secure-", "__Host-")
