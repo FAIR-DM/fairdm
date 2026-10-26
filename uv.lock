@@ -2135,7 +2135,7 @@ requires-dist = [
     { name = "django-cors-headers", specifier = ">=4.7.0,<5.0.0" },
     { name = "django-countries", specifier = ">=7.6.1,<10.0.0" },
     { name = "django-crispy-forms", specifier = ">=2.3,<3.0" },
-    { name = "django-dbbackup", specifier = ">=4.0.2,<6.0.0" },
+    { name = "django-dbbackup", specifier = ">=5.3,<6" },
     { name = "django-downloadview", specifier = ">=2.3.0,<3.0.0" },
     { name = "django-easy-icons", specifier = ">=0.6.0,<1.0.0" },
     { name = "django-environ", specifier = ">=0.10.0,<0.15.0" },

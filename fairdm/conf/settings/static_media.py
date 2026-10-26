@@ -58,6 +58,12 @@ if all(
         "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
     }
 
+# django-dbbackup 5 reads its storage from here, not from DBBACKUP_STORAGE.
+STORAGES["dbbackup"] = {
+    "BACKEND": "django.core.files.storage.FileSystemStorage",
+    "OPTIONS": {"location": env("BACKUP_DIR") or str(BASE_DIR / "backups")},
+}
+
 AWS_ACCESS_KEY_ID = env("S3_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = env("S3_SECRET_ACCESS_KEY")
 AWS_STORAGE_BUCKET_NAME = env("S3_BUCKET_NAME")

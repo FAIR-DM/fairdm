@@ -32,15 +32,17 @@ DATABASES = {
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)
 
-DBBACKUP_STORAGE = "django.core.files.storage.FileSystemStorage"
-DBBACKUP_STORAGE_OPTIONS = {"location": "/app/dbbackups/"}
+DBBACKUP_HOSTNAME = env("BACKUP_SERVER_NAME")
+DBBACKUP_CLEANUP_KEEP = DBBACKUP_CLEANUP_KEEP_MEDIA = env("BACKUP_KEEP")
+# The custom format is compressed and restores PostGIS into an empty database with pg_restore.
+DBBACKUP_CONNECTORS = {
+    "default": {"CONNECTOR": "dbbackup.db.postgresql.PgDumpBinaryConnector"}
+}
 
 DBBACKUP_FILENAME_TEMPLATE = "{databasename}-{servername}-{datetime}.{extension}"
 DBBACKUP_MEDIA_FILENAME_TEMPLATE = (
     "{databasename}_media-{servername}-{datetime}.{extension}"
 )
-
-DBBACKUP_CLEANUP_KEEP = 10
 
 # GeoDjango finds GDAL and GEOS on the system library path. None keeps that search.
 GDAL_LIBRARY_PATH = env("GDAL_LIBRARY_PATH") or None
