@@ -46,6 +46,10 @@ db_name=${POSTGRES_DB:-fairdm}
 db_user=${POSTGRES_USER:-postgres}
 db_password=${POSTGRES_PASSWORD:-postgres}
 
+# A production portal refuses to start without a public key to encrypt backups to. This is a
+# fixed key used by the test suite, whose private half was never kept.
+backup_public_key=$(cat "$(dirname "$0")/../tests/backup-public-key.asc")
+
 run_id=$$
 containers=()
 step_dir=$(mktemp -d)
@@ -101,7 +105,8 @@ start_portal() {
         env_args+=(-e "$line")
     done < <(portal_env)
     containers+=("$name")
-    "$docker" create --name "$name" --network "$network" "${env_args[@]}" "${args[@]}" \
+    "$docker" create --name "$name" --network "$network" "${env_args[@]}" \
+        -e "BACKUP_PUBLIC_KEY=$backup_public_key" "${args[@]}" \
         "$portal_image" "$@" >/dev/null
     if [ -n "${copy_into_start_dir:-}" ]; then
         "$docker" cp "$copy_into_start_dir/." "$name:/docker-entrypoint.d" >/dev/null
@@ -151,6 +156,17 @@ pass "the runtime image has the PostgreSQL client library"
 
 in_image "$runtime_image" 'uv --version >/dev/null' || fail "the runtime image has no uv"
 pass "the runtime image has uv"
+
+client_version=$(in_image "$runtime_image" 'pg_dump --version') \
+    || fail "the runtime image has no pg_dump"
+case "$client_version" in
+    *" 17."*) ;;
+    *) fail "the runtime image's pg_dump is not version 17: $client_version" ;;
+esac
+pass "the runtime image has the PostgreSQL 17 client tools"
+
+in_image "$runtime_image" 'gpg --version >/dev/null' || fail "the runtime image has no gpg"
+pass "the runtime image has gpg"
 
 for image in "$runtime_image" "$development_image"; do
     if in_image "$image" 'python -c "import fairdm"' >/dev/null 2>&1; then
@@ -237,6 +253,21 @@ if "$docker" logs "$worker" 2>&1 | grep -qE "Running migrations|Operations to pe
     fail "the worker ran the web start sequence" "$worker"
 fi
 pass "the worker command started Celery and ran none of the web start sequence"
+
+start_portal beat -- beat --loglevel INFO
+beat=$started
+waited=0
+until "$docker" logs "$beat" 2>&1 | grep -q "beat: Starting"; do
+    [ "$("$docker" inspect --format '{{.State.Running}}' "$beat")" = "true" ] \
+        || fail "beat exited" "$beat"
+    waited=$((waited + 2))
+    [ "$waited" -lt 120 ] || fail "beat did not start within 120 seconds" "$beat"
+    sleep 2
+done
+if "$docker" logs "$beat" 2>&1 | grep -qE "Running migrations|Operations to perform|static files"; then
+    fail "beat ran the web start sequence" "$beat"
+fi
+pass "the beat command started Celery beat and ran none of the web start sequence"
 
 POSTGRES_HOST_OVERRIDE=unreachable.invalid
 start_portal unreachable
