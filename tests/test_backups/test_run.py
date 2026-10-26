@@ -3,13 +3,13 @@
 import shutil
 import subprocess
 
-import psycopg
+import psycopg2
 import pytest
 from dbbackup.db.exceptions import CommandConnectorError
 from dbbackup.db.postgresql import PgDumpBinaryConnector
 from django.contrib.gis.geos import Point
 from django.db import connection
-from psycopg import sql
+from psycopg2 import sql
 
 from demo.factories import RockSampleFactory
 from fairdm.backups.run import run_backup
@@ -50,8 +50,11 @@ class TestRunBackup:
         target = f"{connection.settings_dict['NAME']}_restore"
         admin_url = connection_url("postgres")
 
-        with psycopg.connect(admin_url, autocommit=True) as admin:
-            admin.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(target)))
+        admin = psycopg2.connect(admin_url)
+        admin.autocommit = True
+        admin.cursor().execute(
+            sql.SQL("CREATE DATABASE {}").format(sql.Identifier(target))
+        )
         try:
             subprocess.run(  # noqa: S603
                 [
@@ -62,20 +65,23 @@ class TestRunBackup:
                 check=True,
                 capture_output=True,
             )
-            with psycopg.connect(connection_url(target)) as restored:
-                row = restored.execute(
+            restored = psycopg2.connect(connection_url(target))
+            try:
+                cursor = restored.cursor()
+                cursor.execute(
                     sql.SQL(
                         "SELECT ST_AsText(location) FROM {} WHERE name = %s"
                     ).format(sql.Identifier(Sample._meta.db_table)),
                     ["Basalt"],
-                ).fetchone()
-        finally:
-            with psycopg.connect(admin_url, autocommit=True) as admin:
-                admin.execute(
-                    sql.SQL("DROP DATABASE {} WITH (FORCE)").format(
-                        sql.Identifier(target)
-                    )
                 )
+                row = cursor.fetchone()
+            finally:
+                restored.close()
+        finally:
+            admin.cursor().execute(
+                sql.SQL("DROP DATABASE {} WITH (FORCE)").format(sql.Identifier(target))
+            )
+            admin.close()
 
         assert row == ("POINT(11.5 48.1)",)
 

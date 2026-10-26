@@ -5,7 +5,6 @@ from dbbackup import settings as dbbackup_settings
 from dbbackup import utils
 from dbbackup.storage import get_storage
 from django.core.files.base import ContentFile
-from django.db import connection
 
 KEEP = 2
 
@@ -44,6 +43,8 @@ def seed_backups(backup_storage):
     def seed(content_type, count):
         """Write ``count`` backups dated 2020, oldest first, and return their names.
 
+        django-dbbackup 5 names a dump after the database alias, ``default``.
+
         Args:
             content_type: ``"db"`` or ``"media"``.
             count: How many backups to write.
@@ -56,7 +57,7 @@ def seed_backups(backup_storage):
         for day in range(1, count + 1):
             name = utils.filename_generate(
                 extension,
-                database_name=connection.settings_dict["NAME"],
+                database_name="default",
                 content_type=content_type,
                 wildcard=f"2020-01-0{day}-000000",
             )

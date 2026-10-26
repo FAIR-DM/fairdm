@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     "allauth.usersessions",
     "dbbackup",
     "django_celery_beat",
+    "fairdm.backups",
     "django_cotton",
     "django_extensions",
     "django_setup_tools",
