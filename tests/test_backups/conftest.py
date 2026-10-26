@@ -1,5 +1,8 @@
 """Shared fixtures for tests/test_backups."""
 
+from types import SimpleNamespace
+
+import gnupg
 import pytest
 from dbbackup import settings as dbbackup_settings
 from dbbackup import utils
@@ -66,3 +69,59 @@ def seed_backups(backup_storage):
         return names
 
     return seed
+
+
+def generate_key(home, **options):
+    """Generate a key with no passphrase in the keyring at ``home``.
+
+    Args:
+        home: The directory to use as the keyring.
+        **options: Extra key parameters for ``gen_key_input``.
+
+    Returns:
+        A namespace of the keyring, ``fingerprint``, armoured ``public`` and ``private`` keys.
+    """
+    gpg = gnupg.GPG(gnupghome=str(home))
+    parameters = gpg.gen_key_input(
+        key_type="RSA",
+        key_length=2048,
+        name_email="backups@example.org",
+        no_protection=True,
+        **options,
+    )
+    fingerprint = gpg.gen_key(parameters).fingerprint
+    return SimpleNamespace(
+        home=str(home),
+        fingerprint=fingerprint,
+        public=gpg.export_keys(fingerprint),
+        private=gpg.export_keys(fingerprint, secret=True, passphrase=""),
+    )
+
+
+@pytest.fixture(scope="session")
+def key_pair(tmp_path_factory):
+    """An RSA 2048 key pair with no passphrase, in a keyring of its own.
+
+    That keyring trusts its own key ultimately, so a test that encrypts through it proves
+    nothing about trust. Encrypt through ``BackupKey.keyring()`` and decrypt here.
+    """
+    return generate_key(tmp_path_factory.mktemp("gpg"))
+
+
+@pytest.fixture(scope="session")
+def sign_only_key(tmp_path_factory):
+    """A key that can sign but not encrypt."""
+    return generate_key(tmp_path_factory.mktemp("gpg-sign"), key_usage="sign")
+
+
+@pytest.fixture
+def backup_tmp_dir(monkeypatch, tmp_path):
+    """Keep what django-dbbackup and ``BackupKey`` write while working in ``tmp_path``.
+
+    Returns:
+        The directory they write to.
+    """
+    directory = tmp_path / "work"
+    directory.mkdir()
+    monkeypatch.setattr(dbbackup_settings, "TMP_DIR", str(directory))
+    return directory
