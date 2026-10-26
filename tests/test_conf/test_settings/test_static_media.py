@@ -40,3 +40,39 @@ class TestStaticMedia:
         os.environ["DJANGO_ENV"] = "qa"
 
         settings_module()
+
+
+class TestBackupStorage:
+    def test_local_media_backs_up_to_a_filesystem_storage_at_backup_dir(
+        self, isolated_env, settings_module, monkeypatch
+    ):
+        os.environ["DJANGO_ENV"] = "qa"
+        monkeypatch.setenv("BACKUP_DIR", "/var/lib/fairdm/backups")
+
+        module = settings_module()
+
+        assert module.STORAGES["dbbackup"] == {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+            "OPTIONS": {"location": "/var/lib/fairdm/backups"},
+        }
+
+    def test_backup_dir_defaults_to_a_directory_beside_the_project(
+        self, isolated_env, settings_module, monkeypatch
+    ):
+        os.environ["DJANGO_ENV"] = "qa"
+        monkeypatch.delenv("BACKUP_DIR", raising=False)
+
+        module = settings_module()
+
+        location = module.STORAGES["dbbackup"]["OPTIONS"]["location"]
+        assert location == str(module.BASE_DIR / "backups")
+
+    def test_a_portal_assigning_its_own_backup_storage_after_setup_keeps_it(
+        self, isolated_env, settings_module
+    ):
+        os.environ["DJANGO_ENV"] = "qa"
+        own = {"BACKEND": "django.core.files.storage.InMemoryStorage"}
+
+        module = settings_module(after=f'STORAGES["dbbackup"] = {own!r}')
+
+        assert module.STORAGES["dbbackup"] == own
