@@ -1,25 +1,35 @@
 """Run one backup of the database or the media."""
 
+from contextlib import nullcontext
 from typing import Literal
 
+from django.conf import settings
 from django.core.management import call_command
+
+from fairdm.backups.keys import BackupKey
 
 
 def run_backup(kind: Literal["database", "media"]) -> None:
     """Write one backup and remove the oldest beyond the count to keep.
 
-    Any failure propagates, so a scheduled run fails rather than reporting a backup it did
-    not make.
+    The backup is encrypted to ``BACKUP_PUBLIC_KEY`` when it is set. Any failure propagates, so a
+    scheduled run fails rather than reporting a backup it did not make.
 
     Args:
         kind: ``"database"`` for a dump of the database, ``"media"`` for an archive of the
             media files.
 
     Raises:
-        Exception: Whatever the backup raises, such as a failed dump.
+        Exception: Whatever the backup raises, such as a failed dump or a key that cannot
+            encrypt.
     """
-    if kind == "database":
-        # The custom dump format is already compressed.
-        call_command("dbbackup", clean=True, compress=False)
-    else:
-        call_command("mediabackup", clean=True, compress=True)
+    armored = getattr(settings, "BACKUP_PUBLIC_KEY", "")
+    keyring = BackupKey(armored).keyring() if armored else nullcontext()
+    with keyring:
+        if kind == "database":
+            # The custom dump format is already compressed.
+            call_command("dbbackup", clean=True, compress=False, encrypt=bool(armored))
+        else:
+            call_command(
+                "mediabackup", clean=True, compress=True, encrypt=bool(armored)
+            )

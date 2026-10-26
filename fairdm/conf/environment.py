@@ -47,6 +47,8 @@ env = Env(
     # Where a portal's local backups are written. Empty keeps the directory beside the project.
     BACKUP_DIR=(str, ""),
     BACKUP_KEEP=(int, 4),
+    # The armoured public key backups are encrypted to. Production requires it.
+    BACKUP_PUBLIC_KEY=(str, ""),
     BACKUP_SERVER_NAME=(str, "fairdm"),
     REDIS_URL=(str, ""),
     USE_DOCKER=(bool, False),

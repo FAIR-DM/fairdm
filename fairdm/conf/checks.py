@@ -225,6 +225,49 @@ def check_debug_false(app_configs, **kwargs):
     return errors
 
 
+@register(Tags.security, DeployTags.deploy, DeployTags.production_critical, deploy=True)
+def check_backup_key_present(app_configs, **kwargs):
+    """Report fairdm.E700 when BACKUP_PUBLIC_KEY is not set."""
+    if getattr(settings, "BACKUP_PUBLIC_KEY", ""):
+        return []
+    return [
+        Error(
+            "BACKUP_PUBLIC_KEY is not set - production backups must be encrypted.",
+            hint="Set BACKUP_PUBLIC_KEY to an armoured OpenPGP public key.",
+            id="fairdm.E700",
+        )
+    ]
+
+
+@register(Tags.security, DeployTags.deploy, DeployTags.production_critical, deploy=True)
+def check_backup_key_usable(app_configs, **kwargs):
+    """Report fairdm.E701 when BACKUP_PUBLIC_KEY cannot be encrypted to, or gpg is missing."""
+    from fairdm.backups.keys import BackupKey
+
+    armored = getattr(settings, "BACKUP_PUBLIC_KEY", "")
+    if not armored:
+        return []
+    try:
+        usable = BackupKey(armored).fingerprint is not None
+    except OSError:
+        return [
+            Error(
+                "gpg is not installed, so backups cannot be encrypted.",
+                hint="Install gnupg in the image the portal runs from.",
+                id="fairdm.E701",
+            )
+        ]
+    if usable:
+        return []
+    return [
+        Error(
+            "BACKUP_PUBLIC_KEY is not an armoured public key that can encrypt.",
+            hint="Export it with `gpg --armor --export <key>`. A private key is refused.",
+            id="fairdm.E701",
+        )
+    ]
+
+
 #: Cookie-name prefixes a browser silently discards unless the cookie is sent with
 #: ``Secure`` (RFC 6265bis, section 4.1.3).
 BROWSER_ENFORCED_SECURE_COOKIE_PREFIXES = ("__Secure-", "__Host-")

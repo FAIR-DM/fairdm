@@ -32,6 +32,7 @@ DATABASES = {
 DATABASES["default"]["ATOMIC_REQUESTS"] = True
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)
 
+BACKUP_PUBLIC_KEY = env.str("BACKUP_PUBLIC_KEY", multiline=True)
 DBBACKUP_HOSTNAME = env("BACKUP_SERVER_NAME")
 DBBACKUP_CLEANUP_KEEP = DBBACKUP_CLEANUP_KEEP_MEDIA = env("BACKUP_KEEP")
 # The custom format is compressed and restores PostGIS into an empty database with pg_restore.
