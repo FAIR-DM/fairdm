@@ -80,6 +80,14 @@ run_backup("database")
 
 The two tasks, `backup_database` and `backup_media`, call it and carry their own time limits of 5 hours 50 minutes soft and 6 hours hard, in place of the one minute and five minutes every other task has.
 
+`run_backup` encrypts to `BACKUP_PUBLIC_KEY` when it is set. `BackupKey` is the class it and the deployment checks use to read that key. `fingerprint` is the fingerprint of a key that can encrypt, and `None` for text that is not a public key, a key that only signs and a private key.
+
+```python
+from fairdm.backups.keys import BackupKey
+
+BackupKey(armoured_text).fingerprint
+```
+
 ## If your portal sets its own backup storage
 
 django-dbbackup 5 no longer reads the two storage settings of the 4.x series, and refuses to start when either is set. Move the choice to `STORAGES["dbbackup"]` in your settings.
