@@ -91,31 +91,41 @@ putting it to him again. The longer reasoning is in [decisions.md](decisions.md)
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - A portal developer deploys a portal and its database and media are backed up every week (Priority: P1)
+### User Story 1 - A portal developer deploys a portal and it is backed up by default (Priority: P1)
 
 A portal developer deploys a portal on FairDM's images, with the scheduler running beside the web
 server and the worker as the deployment guide shows. They write no backup configuration. Every
-week the portal backs up its database and, separately, its media files, and keeps only the most
-recent backups of each.
+week the portal backs up its database and, separately, its media files. Every backup is encrypted
+to the public key the developer supplies, and a production portal without a key refuses to start.
+Backups go wherever the portal's storage settings point. When media is in S3, backups go to that
+bucket under a prefix of their own, or to a bucket the developer names. Otherwise they go to a
+local directory on a named volume, and in production the portal warns at every start that its
+backups are kept on the machine they protect. Only the most recent backups of each kind are kept.
 
-**Why this priority**: this is the feature. Everything else adjusts where, when or how the backups
-it produces are kept.
+After deployment the developer adjusts the backups in the administration interface's periodic
+tasks: they change a schedule, disable one, or run a backup there and then, for instance before an
+upgrade. Their changes hold through every later deployment.
 
-**Independent Test**: start a portal from the documented stack against an empty PostGIS database,
-run the two default tasks' backups, and find one database backup and one media backup in the
-backup location.
+**Why this priority**: this is the feature. Without it a portal has no backups.
+
+**Independent Test**: start a portal from the documented stack against an empty PostGIS database
+with a public key configured. Run both default tasks from the administration interface, and find
+one encrypted database backup and one encrypted media backup in the backup location. Change one
+task's schedule, disable the other, bring the database up to date again, and check that both
+changes stand.
 
 **Acceptance Scenarios**:
+
+*Backups by default*
 
 1. **Given** a portal whose database has just been brought up to date for the first time,
    **When** a developer lists its periodic tasks, **Then** there is one enabled task that backs up
    the database and one that backs up the media, each due weekly on Sunday at 03:00 in the portal's
    time zone.
-2. **Given** a portal deployed on the runtime image with the scheduler running, **When** a
-   database backup task falls due, **Then** a backup of the database is written to the backup
-   location.
-3. **Given** the same portal, **When** a media backup task falls due, **Then** an archive of the
-   media files is written to the backup location, separate from the database backup.
+2. **Given** a portal deployed on the runtime image with the scheduler running, **When** the
+   database task falls due, **Then** a backup of the database is written to the backup location.
+3. **Given** the same portal, **When** the media task falls due, **Then** an archive of the media
+   files is written to the backup location, separate from the database backup.
 4. **Given** a PostGIS database holding records with locations, **When** it is backed up and the
    backup is restored into an empty database, **Then** the records and their locations are
    present.
@@ -124,110 +134,60 @@ backup location.
    number kept does not change. Media backups are counted and removed on their own.
 6. **Given** a backup run that fails, **When** it ends, **Then** no existing backup has been
    removed, and the failure is reported as a failed task.
-7. **Given** a portal that configures none of the backup location, **When** it is deployed in a
-   container, **Then** backups are written to a location that survives the container being
-   replaced.
-8. **Given** a portal that already sets its own backup settings, **When** settings resolve,
+7. **Given** a portal that already sets its own backup settings, **When** settings resolve,
    **Then** the portal's values win over FairDM's.
 
----
+*Encryption*
 
-### User Story 2 - A portal developer supplies the key the backups are encrypted with (Priority: P1)
-
-A portal developer gives the portal a public encryption key through its environment. Every backup,
-database and media alike, is encrypted with it, so a backup is unreadable to anyone who holds the
-file but not the private key. A production portal given no key refuses to start.
-
-**Why this priority**: backups hold every record and every person's details, including those that
-are private. They are copied to places with weaker access control than the database, so they are
-encrypted from the first one.
-
-**Independent Test**: configure a key, take a backup, and check that the file cannot be read
-without the private key and restores with it. Then start a production portal without a key and
-check that it refuses.
-
-**Acceptance Scenarios**:
-
-1. **Given** a portal configured with a public key, **When** a database or media backup is taken,
+8. **Given** a portal configured with a public key, **When** a database or media backup is taken,
    **Then** the backup is encrypted to that key.
-2. **Given** an encrypted backup and the matching private key, **When** a developer restores it
-   following the documentation, **Then** the restore succeeds.
-3. **Given** a production portal with no encryption key, **When** it starts, **Then** it refuses
-   to start and the message names the missing key alongside any other production problem.
-4. **Given** a development portal with no encryption key, **When** a backup is taken, **Then** it
-   is written unencrypted and the portal starts normally.
-5. **Given** a key that is not a usable public key, **When** a production portal starts, **Then**
-   it refuses to start and says the key cannot be used.
+9. **Given** a production portal with no encryption key, or one that is not a usable public key,
+   **When** it starts, **Then** it refuses to start and says which, alongside any other production
+   problem.
+10. **Given** a development portal with no encryption key, **When** a backup is taken, **Then** it
+    is written unencrypted and the portal starts normally.
+
+*Where backups go*
+
+11. **Given** a portal with media stored locally and no backup location configured, **When** it is
+    deployed in a container, **Then** backups are written to a location that survives the
+    container being replaced.
+12. **Given** a portal storing media in S3, **When** a backup is taken, **Then** it is written to
+    the media bucket under a prefix that holds only backups, and no media file is overwritten.
+13. **Given** a portal storing media in S3 that names a separate backup bucket, **When** a backup
+    is taken, **Then** it is written to that bucket.
+14. **Given** a portal storing media in S3, **When** retention removes old backups, **Then** only
+    backups are removed, never media files.
+15. **Given** a production portal whose backups go to a local directory, **When** it starts,
+    **Then** a warning says its backups are kept on the machine they protect, and the portal still
+    starts. A portal that silences the warning does not see it.
+16. **Given** a production portal whose backups go to S3, **When** it starts, **Then** no such
+    warning is given.
+
+*Adjusting the backups after deployment*
+
+17. **Given** the default database task, **When** a developer gives it another schedule in the
+    administration interface, **Then** the next backup runs on the new schedule without the portal
+    being redeployed or restarted.
+18. **Given** a developer has disabled the media task, **When** its old schedule comes round,
+    **Then** no media backup is taken.
+19. **Given** a changed or disabled task, **When** the database is brought up to date again,
+    **Then** the task keeps the developer's schedule and its enabled state.
+20. **Given** a developer has deleted a default task, **When** the database is brought up to date
+    again, **Then** the task exists again with its default schedule.
+21. **Given** a running portal, **When** a developer runs a default task from the administration
+    interface, or runs the documented backup command in a container, **Then** a new backup is
+    written at once, encrypted, stored and counted like a scheduled one.
 
 ---
 
-### User Story 3 - A portal developer changes or turns off a backup schedule in the administration interface (Priority: P1)
-
-A portal developer decides weekly is wrong for their portal: a busy database every night, a large
-media store once a month, or no media backups at all because the storage service keeps its own
-copies. They change or disable the task in the administration interface's periodic tasks, and the
-change holds through every later deployment.
-
-**Why this priority**: a single schedule fits few portals, and the maintainer chose this screen as
-the one place a schedule is changed.
-
-**Independent Test**: change the database task's schedule and disable the media task in the
-administration interface, bring the database up to date again, and check that both changes still
-stand and that the scheduler follows them.
-
-**Acceptance Scenarios**:
-
-1. **Given** the default database task, **When** a developer gives it another schedule in the
-   administration interface, **Then** the next backup runs on the new schedule without the portal
-   being redeployed or restarted.
-2. **Given** a developer has disabled the media task, **When** its old schedule comes round,
-   **Then** no media backup is taken.
-3. **Given** a changed or disabled task, **When** the database is brought up to date again,
-   **Then** the task keeps the developer's schedule and its enabled state.
-4. **Given** a developer has deleted a default task, **When** the database is brought up to date
-   again, **Then** the task exists again with its default schedule.
-
----
-
-### User Story 4 - A portal developer whose media is in S3 gets backups off the machine with no extra setup (Priority: P2)
-
-A portal developer already stores the portal's media in an S3 bucket. Without configuring
-anything for backups, the backups go to that bucket under a prefix of their own. A developer who
-wants them elsewhere names a different bucket. A production portal whose backups would stay on
-the machine its database runs on is warned at every start.
-
-**Why this priority**: a backup on the machine it protects is lost with that machine, so a portal
-needs off-site backups. Most portals can still run safely without this story, which is why it is
-P2 rather than P1.
-
-**Independent Test**: start a portal with S3 media configured, take a backup, and find it under
-the backup prefix in the media bucket. Then start a production portal with local backups and read
-the warning.
-
-**Acceptance Scenarios**:
-
-1. **Given** a portal storing media in S3, **When** a backup is taken, **Then** it is written to
-   the media bucket under a prefix that holds only backups, and no media file is overwritten.
-2. **Given** a portal storing media in S3 that names a separate backup bucket, **When** a backup is
-   taken, **Then** it is written to that bucket.
-3. **Given** a production portal whose backups go to a local directory, **When** it starts,
-   **Then** a warning says its backups are kept on the machine they protect, and the portal still
-   starts.
-4. **Given** a production portal whose backups go to S3, **When** it starts, **Then** no such
-   warning is given.
-5. **Given** a portal that silences the warning, **When** it starts, **Then** the warning is not
-   shown.
-6. **Given** a portal storing media in S3, **When** retention removes old backups, **Then** only
-   backups are removed, never media files.
-
----
-
-### User Story 5 - A portal developer restores the portal from a backup (Priority: P2)
+### User Story 2 - A portal developer restores the portal from a backup (Priority: P2)
 
 Something has gone wrong: records were deleted by mistake, or the machine is gone. The portal
 developer finds the backups they have, picks one, and restores the database and the media from it
 by following the documentation. They have also practised it beforehand: the documentation shows
-them how to restore a backup into a separate, empty portal to check that their backups restore.
+them how to restore a backup into a separate, empty deployment to check that their backups
+restore.
 
 **Why this priority**: a backup that cannot be restored is not a backup. It is P2 because the
 tools to restore exist once US1 does, and this story makes their use dependable for someone who
@@ -248,29 +208,8 @@ another portal, and check that the restored portal shows the original records an
 4. **Given** a separate, empty deployment, **When** a developer follows the documentation's check
    that a backup restores, **Then** they end with a portal whose records and files match the
    backup, and the portal the backup came from is untouched.
-
----
-
-### User Story 6 - A portal developer takes a backup by hand before an upgrade (Priority: P3)
-
-Before moving the portal to a new FairDM version, the portal developer takes a database and media
-backup there and then, rather than relying on last Sunday's. The backup is encrypted, stored and
-counted like a scheduled one.
-
-**Why this priority**: an upgrade migrates the database, and the routine R26 asks for begins with a
-backup. Scheduled backups already make this possible by hand with the same commands, so it ranks
-lowest.
-
-**Independent Test**: run the documented commands in a running container and find a new
-encrypted backup of each kind in the backup location.
-
-**Acceptance Scenarios**:
-
-1. **Given** a running portal, **When** the developer runs the documented backup commands in its
-   container, **Then** one new database backup and one new media backup are written to the backup
-   location, encrypted like scheduled ones.
-2. **Given** backups taken by hand, **When** retention next runs, **Then** they are counted along
-   with scheduled backups.
+5. **Given** a backup and the wrong private key, **When** a developer restores it, **Then** the
+   restore fails before the database or the media is touched.
 
 ---
 
@@ -284,11 +223,10 @@ encrypted backup of each kind in the backup location.
 - **Two backups of the same kind run at once**, for instance a backup by hand started while a
   scheduled one is running. Each writes its own file. Neither replaces the other.
 - **Media is in S3 and very large.** The media backup still runs weekly by default. A developer
-  who relies on the storage service's own versioning disables the media task (US3).
+  who relies on the storage service's own versioning disables the media task in the administration interface.
 - **An empty media store.** The media backup produces an empty archive and succeeds.
 - **The portal's time zone changes.** The default tasks keep the time zone they were created
   with. A developer changes it in the administration interface like any other schedule.
-- **A restore with the wrong private key.** The restore fails before the database is touched.
 
 ## Requirements *(mandatory)*
 
@@ -314,32 +252,33 @@ encrypted backup of each kind in the backup location.
   documented stack MUST run it.
 - **FR-009** (US1): Backup settings a portal assigns itself MUST win over FairDM's, under the
   precedence order of `fairdm.setup()`.
-- **FR-010** (US2): When the portal's environment supplies a public encryption key, every backup,
+- **FR-010** (US1): When the portal's environment supplies a public encryption key, every backup,
   database and media alike, MUST be encrypted to it.
-- **FR-011** (US2): In production, a portal with no encryption key, or with one that cannot be
+- **FR-011** (US1): In production, a portal with no encryption key, or with one that cannot be
   used, MUST refuse to start, reported with the other production-critical checks.
-- **FR-012** (US2): In development, a portal with no encryption key MUST make unencrypted backups
+- **FR-012** (US1): In development, a portal with no encryption key MUST make unencrypted backups
   and start normally.
-- **FR-013** (US3): The schedule and enabled state of each default task MUST be changeable in the
+- **FR-013** (US1): The schedule and enabled state of each default task MUST be changeable in the
   administration interface, and a change MUST take effect without a redeploy or restart.
-- **FR-014** (US3): Bringing the database up to date MUST NOT change the schedule or enabled state
+- **FR-014** (US1): Bringing the database up to date MUST NOT change the schedule or enabled state
   of a default task that already exists.
-- **FR-015** (US3): When a backup runs MUST be decided by its periodic task alone. No environment
+- **FR-015** (US1): When a backup runs MUST be decided by its periodic task alone. No environment
   variable or setting decides it.
-- **FR-016** (US4): When media is stored in S3 and no backup location is configured, backups MUST
+- **FR-016** (US1): When media is stored in S3 and no backup location is configured, backups MUST
   be written to the media bucket under a prefix that holds only backups.
-- **FR-017** (US4): A portal MUST be able to send backups to a different S3 bucket through its
+- **FR-017** (US1): A portal MUST be able to send backups to a different S3 bucket through its
   environment.
-- **FR-018** (US4): Removing old backups MUST NOT remove anything outside the backup location.
-- **FR-019** (US4): In production, a portal whose backups go to a local directory MUST be warned at
+- **FR-018** (US1): Removing old backups MUST NOT remove anything outside the backup location.
+- **FR-019** (US1): In production, a portal whose backups go to a local directory MUST be warned at
   start-up that its backups are kept on the machine they protect. The warning MUST NOT stop the
   start, and MUST be silenceable like any other system check.
-- **FR-020** (US5): The documentation for portal developers MUST explain how to list backups,
+- **FR-020** (US2): The documentation for portal developers MUST explain how to list backups,
   restore the database, restore the media, and check that a backup restores into a separate
   deployment, including the encryption keys each step needs.
-- **FR-021** (US6): The documentation MUST give the commands that take a database and a media
-  backup by hand in a running container. Those backups MUST be encrypted, stored and counted like
-  scheduled ones.
+- **FR-021** (US1): A developer MUST be able to run either default task at once from the
+  administration interface, and the documentation MUST give the command that does the same in a
+  running container. A backup run this way MUST be encrypted, stored and counted like a scheduled
+  one.
 
 ### Key Entities
 
@@ -380,4 +319,4 @@ encrypted backup of each kind in the backup location.
 - The encryption key pair is created and kept by the group that runs the portal. FairDM never
   generates, stores or sends a private key.
 - Weekly is the default because the maintainer judged nightly too often for a typical research
-  portal. Portals that need more often change it under US3.
+  portal. Portals that need more often change it in the administration interface.

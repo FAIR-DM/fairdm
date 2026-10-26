@@ -72,3 +72,14 @@ throughout and adds no new term, keeping one name for one thing.
 #597 reports that neither image has a PostgreSQL client, so no backup can run in a container. That
 gap is a precondition of this feature rather than a separate decision, so FR-007 covers it and the
 feature's pull request closes #597.
+
+## Two stories, not six
+
+The first draft had six stories: default backups, the encryption key, changing a schedule, S3
+storage with its warning, restoring, and a backup by hand. The maintainer asked for them to be
+condensed. Encryption, the storage location, the warning and the schedule are all parts of one
+thing a developer gets, a portal that is backed up by default, so they are scenarios under US1.
+A backup by hand is not a story of its own either: the periodic task screens already run a
+selected task at once, so it is one more scenario under US1. Restoring is a separate thing a
+developer sets out to do, and stays US2. Nothing was dropped. Every scenario and requirement of the
+first draft is still in the specification.
