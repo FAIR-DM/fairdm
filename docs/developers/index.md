@@ -72,6 +72,7 @@ explanation covers why parts of FairDM work as they do. Explanation every reader
 - [How to record sample relationships](how-to/record-sample-relationships.md)
 - [How to register a sample or measurement type](how-to/register-a-sample-or-measurement-type.md)
 - [How to render markdown in a template](how-to/render-markdown-in-a-template.md)
+- [How to restore a portal from a backup](how-to/restore-a-portal-from-a-backup.md)
 - [How to restrict a plugin to some users](how-to/restrict-a-plugin-to-some-users.md)
 - [How to restrict a record field to one sample type](how-to/restrict-a-record-field-to-one-sample-type.md)
 - [How to restrict API tokens to some people](how-to/restrict-api-tokens-to-some-people.md)
@@ -201,6 +202,7 @@ how-to/place-an-organization-on-a-map
 how-to/record-sample-relationships
 how-to/register-a-sample-or-measurement-type
 how-to/render-markdown-in-a-template
+how-to/restore-a-portal-from-a-backup
 how-to/restrict-a-plugin-to-some-users
 how-to/restrict-a-record-field-to-one-sample-type
 how-to/restrict-api-tokens-to-some-people

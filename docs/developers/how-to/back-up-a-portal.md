@@ -70,6 +70,8 @@ A production portal encrypts every backup to a public key, and refuses to start 
 
 The images FairDM publishes carry `gpg`. A custom image needs the `gnupg` package.
 
+To bring a portal back from these backups, see [How to restore a portal from a backup](restore-a-portal-from-a-backup.md).
+
 ## Run a backup from your own code
 
 `run_backup` writes one backup, the same one the task and the command write. It takes `"database"` or `"media"` and raises when the backup fails.

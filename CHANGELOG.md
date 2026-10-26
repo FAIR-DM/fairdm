@@ -33,6 +33,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   See [How to back up a portal](docs/developers/how-to/back-up-a-portal.md) and
   [How to deploy a portal in a container](docs/developers/how-to/deploy-a-portal-in-a-container.md#run-the-worker-and-the-scheduler).
 
+- **A portal restores from an encrypted backup with commands it already has.** `listbackups`,
+  `dbrestore --decrypt` and `mediarestore --decrypt --uncompress --replace` of django-dbbackup read
+  the backups in a one-off container whose gpg keyring holds the private key, and a key that does
+  not match stops the restore before anything changes. See
+  [How to restore a portal from a backup](docs/developers/how-to/restore-a-portal-from-a-backup.md).
+
 ### Changed
 
 - **Breaking for upgrades: production now requires `BACKUP_PUBLIC_KEY`, and a custom image needs
