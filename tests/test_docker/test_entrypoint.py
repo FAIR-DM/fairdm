@@ -78,6 +78,36 @@ class TestWorkerAndPassThrough:
         assert calls == ["tool check"]
 
 
+class TestBeat:
+    def test_beat_runs_celery_beat_and_none_of_the_web_steps(self, run_entrypoint):
+        process, calls = run_entrypoint("beat")
+
+        assert process.returncode == 0
+        assert calls == ["celery --app config beat"]
+
+    def test_celery_app_sets_the_application_beat_runs(self, run_entrypoint):
+        process, calls = run_entrypoint("beat", CELERY_APP="portal.celery")
+
+        assert process.returncode == 0
+        assert calls == ["celery --app portal.celery beat"]
+
+    def test_extra_arguments_reach_celery_beat(self, run_entrypoint):
+        process, calls = run_entrypoint("beat", "--loglevel", "INFO")
+
+        assert process.returncode == 0
+        assert calls == ["celery --app config beat --loglevel INFO"]
+
+    def test_beat_runs_no_start_steps(self, run_entrypoint, tmp_path):
+        step = tmp_path / "10-first"
+        step.write_text('#!/bin/sh\necho "step 10-first" >> "$STAND_IN_LOG"\n')
+        step.chmod(0o755)
+
+        process, calls = run_entrypoint("beat", FAIRDM_START_DIR=str(tmp_path))
+
+        assert process.returncode == 0
+        assert calls == ["celery --app config beat"]
+
+
 class TestStartSteps:
     @pytest.fixture
     def start_dir(self, tmp_path):
