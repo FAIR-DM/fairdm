@@ -29,6 +29,7 @@ explanation covers why parts of FairDM work as they do. Explanation every reader
 - [How to add queryset methods to a measurement type](how-to/add-queryset-methods-to-a-measurement-type.md)
 - [How to add search and sort to a list view](how-to/add-search-and-sort-to-a-list-view.md)
 - [How to allow only some sites to call the API](how-to/allow-only-some-sites-to-call-the-api.md)
+- [How to back up a portal](how-to/back-up-a-portal.md)
 - [How to change a type's API address](how-to/change-a-types-api-address.md)
 - [How to change how the team page looks](how-to/change-how-the-team-page-looks.md)
 - [How to change the API rate limits](how-to/change-the-api-rate-limits.md)
@@ -157,6 +158,7 @@ how-to/add-pages-to-a-plugin
 how-to/add-queryset-methods-to-a-measurement-type
 how-to/add-search-and-sort-to-a-list-view
 how-to/allow-only-some-sites-to-call-the-api
+how-to/back-up-a-portal
 how-to/change-a-types-api-address
 how-to/change-how-the-team-page-looks
 how-to/change-the-api-rate-limits

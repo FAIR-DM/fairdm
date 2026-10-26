@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **A portal backs up its database and media every week with no configuration.** The new
+  `fairdm.backups` app creates two periodic tasks, one for the database and one for the media, on
+  Sunday at 03:00 in `TIME_ZONE`. A schedule you change or a task you switch off is never reset.
+  `manage.py backup` writes both backups now, or one with `--database-only` or `--media-only`. The
+  settings `BACKUP_DIR`, `BACKUP_KEEP` and `BACKUP_SERVER_NAME` choose the directory, the number of
+  backups kept of each kind and the server name in the file names. The runtime image carries
+  `postgresql-client-17` and the directory `/var/lib/fairdm/backups`. See
+  [How to back up a portal](docs/developers/how-to/back-up-a-portal.md).
+
+### Changed
+
+- **Breaking for upgrades: a portal's own `DBBACKUP_STORAGE` or `DBBACKUP_STORAGE_OPTIONS` must
+  move to `STORAGES["dbbackup"]`.** django-dbbackup 5, which FairDM now requires at 5.3 or later,
+  stops with an error when either setting exists. FairDM no longer sets them, so a portal that never
+  set them has nothing to change. The default number of database backups kept falls from 10 to 4.
+
 ## [v0.2.1] - 2026-10-22
 
 ### Changed

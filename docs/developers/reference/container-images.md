@@ -11,7 +11,7 @@ Both images are built from `docker/Dockerfile` in the FairDM repository. Neither
 | Dockerfile target | `runtime` | `development` |
 | Registry name | `ghcr.io/fair-dm/fairdm:<image version>` | `ghcr.io/fair-dm/fairdm:<image version>-dev` |
 | Built from | `python:3.13-slim` | The runtime image |
-| Added system packages | `gdal-bin`, `libpq5` | `build-essential`, `libpq-dev`, `git` |
+| Added system packages | `gdal-bin`, `libpq5`, `postgresql-client-17` | `build-essential`, `libpq-dev`, `git` |
 | `DJANGO_ENV` | `production` | `development` |
 | Used for | Running a portal | Installing a portal's dependencies, and running a portal on your own machine |
 
@@ -26,7 +26,7 @@ Both images are published for `linux/amd64`. GDAL, GEOS and PROJ come with `gdal
 | Working directory | `/app` |
 | Python environment | `/opt/venv`, first on `PATH` |
 | User | `fairdm`, user id 1000, group id 1000 |
-| Directories created | `/app/static`, `/app/media`, `/opt/venv` and `/docker-entrypoint.d`, all owned by `fairdm` |
+| Directories created | `/app/static`, `/app/media`, `/opt/venv`, `/docker-entrypoint.d` and `/var/lib/fairdm/backups`, all owned by `fairdm` |
 | Package manager | uv 0.11, copied from `ghcr.io/astral-sh/uv:0.11` |
 | Exposed port | `8000` |
 | Entrypoint | `fairdm-entrypoint` |
@@ -41,6 +41,7 @@ The images carry these OCI labels: `org.opencontainers.image.title`, `descriptio
 | `DJANGO_ENV` | `production` in the runtime image, `development` in the development image | See [DJANGO_ENV](settings.md#django_env) |
 | `DJANGO_SETTINGS_MODULE` | `config.settings` | Set another value in a portal whose settings module is elsewhere |
 | `PORT` | `8000` | gunicorn listens on `0.0.0.0:$PORT` |
+| `BACKUP_DIR` | `/var/lib/fairdm/backups` | Where a portal with local media writes its backups. See [BACKUP_DIR](settings.md#backup_dir) |
 | `UV_PROJECT_ENVIRONMENT` | `/opt/venv` | Keeps the environment outside `/app`, so a source tree mounted at `/app` never hides it |
 | `UV_LINK_MODE` | `copy` | |
 | `UV_PYTHON_DOWNLOADS` | `never` | uv uses the image's Python |
