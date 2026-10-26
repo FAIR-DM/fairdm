@@ -110,6 +110,7 @@ dependencies = [
     # every image field.
     "pillow>=11.0,<14.0",
     "django-tomselect>=2026.6.2,<2027",
+    "python-gnupg>=0.5.7",
 ]
 
 [project.urls]

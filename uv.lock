@@ -2094,6 +2094,7 @@ dependencies = [
     { name = "psycopg2-binary" },
     { name = "pyecharts" },
     { name = "pymdown-extensions" },
+    { name = "python-gnupg" },
     { name = "rapidfuzz" },
     { name = "redis" },
     { name = "requests" },
@@ -2186,6 +2187,7 @@ requires-dist = [
     { name = "psycopg2-binary", specifier = ">=2.9.13,<3.0.0" },
     { name = "pyecharts", specifier = ">=2.1.0,<3.0.0" },
     { name = "pymdown-extensions", specifier = ">=11.0.2,<13.0.0" },
+    { name = "python-gnupg", specifier = ">=0.5.7" },
     { name = "rapidfuzz", specifier = ">=3.14.6,<4.0.0" },
     { name = "redis", specifier = ">=4.5.2,<9.0.0" },
     { name = "requests", specifier = ">=2.32,<3.0" },
@@ -3867,6 +3869,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/6a/53/ed9d74092561d4b01a2ef1349d52cdbc135e526c245f366b089cfca6de49/python_dotenv-1.2.3.tar.gz", hash = "sha256:a20a594dabeaa385725aa239d5244871c143ecb356add8a20fcf23773a6c3a35", size = 58945, upload-time = "2026-08-16T16:54:54.067Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/0d/17/c5c6b53ddc18f297992099b3d9ec16c855c0ccc83263a21fe4d1c625ec6c/python_dotenv-1.2.3-py3-none-any.whl", hash = "sha256:904552145e8bfed22162c09dab1c2b9b54fefa7b23ba780f4f26ca0316b0f0d9", size = 22780, upload-time = "2026-08-16T16:54:52.473Z" },
+]
+
+[[package]]
+name = "python-gnupg"
+version = "0.5.7"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/bb/d4/47aa0f34b6a06a976063e3e0bf1512b140ec1e6efda83bc717fac58071db/python_gnupg-0.5.7.tar.gz", hash = "sha256:73ea46219f992b361eb1ce54cb0968101670654454916a3ee5df8bb9bf0cc8cc", size = 63974, upload-time = "2026-09-29T16:40:09.487Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7c/38/ffad2b8a27e7295e70616ab4d938cead165a56db4496558491f485fa3a87/python_gnupg-0.5.7-py2.py3-none-any.whl", hash = "sha256:dc7afba57a9bc50163c27c726c66cb2fc9692248597f5201f4f7d9eb6097dd1d", size = 22362, upload-time = "2026-09-29T16:40:08.189Z" },
 ]
 
 [[package]]

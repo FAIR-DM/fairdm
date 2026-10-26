@@ -17,7 +17,7 @@ LABEL org.opencontainers.image.title="FairDM" \
 # GDAL, GEOS and PROJ come with gdal-bin. Debian's ldconfig cache lets Django find them with no
 # library path set.
 RUN apt-get update \
-    && apt-get install --yes --no-install-recommends gdal-bin libpq5 postgresql-client-17 \
+    && apt-get install --yes --no-install-recommends gdal-bin gnupg libpq5 postgresql-client-17 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --gid 1000 fairdm \
