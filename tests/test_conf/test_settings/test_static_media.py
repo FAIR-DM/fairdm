@@ -2,6 +2,8 @@
 
 import os
 
+import pytest
+
 
 class TestStaticMedia:
     def test_local_filesystem_storage_when_s3_unconfigured(
@@ -71,6 +73,62 @@ class TestBackupStorage:
         self, isolated_env, settings_module
     ):
         os.environ["DJANGO_ENV"] = "qa"
+        own = {"BACKEND": "django.core.files.storage.InMemoryStorage"}
+
+        module = settings_module(after=f'STORAGES["dbbackup"] = {own!r}')
+
+        assert module.STORAGES["dbbackup"] == own
+
+
+class TestBackupStorageOnS3:
+    @pytest.fixture
+    def s3_media(self, isolated_env):
+        """Configure S3 media in the bucket ``my-bucket`` and no backup bucket."""
+        os.environ["DJANGO_ENV"] = "qa"
+        os.environ["S3_ACCESS_KEY_ID"] = "access-key"
+        os.environ["S3_SECRET_ACCESS_KEY"] = "secret-key"
+        os.environ["S3_BUCKET_NAME"] = "my-bucket"
+        os.environ.pop("BACKUP_S3_BUCKET_NAME", None)
+
+    @pytest.mark.usefixtures("s3_media")
+    def test_backups_go_to_the_media_bucket_under_backups(self, settings_module):
+        module = settings_module()
+
+        assert module.STORAGES["dbbackup"] == {
+            "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+            "OPTIONS": {"bucket_name": "my-bucket", "location": "backups"},
+        }
+
+    @pytest.mark.usefixtures("s3_media")
+    def test_backup_s3_bucket_name_sends_backups_to_that_bucket(
+        self, settings_module, monkeypatch
+    ):
+        monkeypatch.setenv("BACKUP_S3_BUCKET_NAME", "my-backups")
+
+        module = settings_module()
+
+        assert module.STORAGES["dbbackup"]["OPTIONS"] == {
+            "bucket_name": "my-backups",
+            "location": "backups",
+        }
+
+    @pytest.mark.usefixtures("s3_media")
+    def test_backup_dir_is_ignored_when_media_is_on_s3(
+        self, settings_module, monkeypatch
+    ):
+        monkeypatch.setenv("BACKUP_DIR", "/var/lib/fairdm/backups")
+
+        module = settings_module()
+
+        assert (
+            module.STORAGES["dbbackup"]["BACKEND"]
+            == "storages.backends.s3boto3.S3Boto3Storage"
+        )
+
+    @pytest.mark.usefixtures("s3_media")
+    def test_a_portal_assigning_its_own_backup_storage_after_setup_keeps_it(
+        self, settings_module
+    ):
         own = {"BACKEND": "django.core.files.storage.InMemoryStorage"}
 
         module = settings_module(after=f'STORAGES["dbbackup"] = {own!r}')
