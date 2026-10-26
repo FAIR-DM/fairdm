@@ -82,6 +82,8 @@ run_backup("database")
 
 The two tasks, `backup_database` and `backup_media`, call it and carry their own time limits of 5 hours 50 minutes soft and 6 hours hard, in place of the one minute and five minutes every other task has.
 
+`run_backup` writes the media archive with `SkippingMediaBackup`, a subclass of django-dbbackup's `mediabackup` command in `fairdm.backups.media`. It drops everything under the backup location when the backups and the media are S3 storages in the same bucket. It decides from the two storages' configured bucket and location, and never lists the bucket to find out.
+
 `run_backup` encrypts to `BACKUP_PUBLIC_KEY` when it is set. `BackupKey` is the class it and the deployment checks use to read that key. `fingerprint` is the fingerprint of a key that can encrypt, and `None` for text that is not a public key, a key that only signs and a private key.
 
 ```python
