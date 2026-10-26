@@ -9,6 +9,7 @@ from datetime import datetime
 import gnupg
 import psycopg2
 import pytest
+from dbbackup import settings as dbbackup_settings
 from dbbackup import utils
 from dbbackup.db.exceptions import CommandConnectorError
 from dbbackup.db.postgresql import PgDumpBinaryConnector
@@ -247,7 +248,9 @@ class TestRestore:
         assert self.sample_names() == {"Basalt"}
 
     @pytest.mark.usefixtures("private_key")
-    def test_dbrestore_with_no_file_name_takes_the_latest_backup(self):
+    def test_dbrestore_with_no_file_name_takes_the_latest_backup(self, monkeypatch):
+        # File names carry the time to the second, and both backups are taken within one.
+        monkeypatch.setattr(dbbackup_settings, "DATE_FORMAT", "%Y-%m-%d-%H%M%S%f")
         RockSampleFactory(name="Basalt")
         run_backup("database")
         RockSampleFactory(name="Granite")
