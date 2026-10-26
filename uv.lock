@@ -2187,7 +2187,7 @@ requires-dist = [
     { name = "psycopg2-binary", specifier = ">=2.9.13,<3.0.0" },
     { name = "pyecharts", specifier = ">=2.1.0,<3.0.0" },
     { name = "pymdown-extensions", specifier = ">=11.0.2,<13.0.0" },
-    { name = "python-gnupg", specifier = ">=0.5.7" },
+    { name = "python-gnupg", specifier = ">=0.5.7,<0.6" },
     { name = "rapidfuzz", specifier = ">=3.14.6,<4.0.0" },
     { name = "redis", specifier = ">=4.5.2,<9.0.0" },
     { name = "requests", specifier = ">=2.32,<3.0" },

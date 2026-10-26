@@ -1,7 +1,6 @@
 """The public key a portal's backups are encrypted to."""
 
 import os
-import shutil
 import tempfile
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -25,18 +24,16 @@ class BackupKey:
     def __init__(self, armored: str):
         self.armored = armored
 
-    @contextmanager
-    def home(self) -> Iterator[str]:
-        """Yield a new, empty keyring directory and remove it on exit.
+    def home(self) -> tempfile.TemporaryDirectory[str]:
+        """Return a new, empty keyring directory that is removed when its block ends.
 
-        Yields:
-            The path of the directory, under django-dbbackup's temporary directory.
+        Returns:
+            A context manager yielding the path of the directory, under django-dbbackup's
+            temporary directory.
         """
-        directory = tempfile.mkdtemp(dir=dbbackup_settings.TMP_DIR)
-        try:
-            yield directory
-        finally:
-            shutil.rmtree(directory, ignore_errors=True)
+        return tempfile.TemporaryDirectory(
+            dir=dbbackup_settings.TMP_DIR, ignore_cleanup_errors=True
+        )
 
     def import_into(self, home: str) -> str | None:
         """Import the key into the keyring at ``home``.

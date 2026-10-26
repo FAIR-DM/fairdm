@@ -249,10 +249,10 @@ def check_backup_key_usable(app_configs, **kwargs):
         return []
     try:
         usable = BackupKey(armored).fingerprint is not None
-    except OSError:
+    except OSError as error:
         return [
             Error(
-                "gpg is not installed, so backups cannot be encrypted.",
+                f"Backups cannot be encrypted: {error}",
                 hint="Install gnupg in the image the portal runs from.",
                 id="fairdm.E701",
             )

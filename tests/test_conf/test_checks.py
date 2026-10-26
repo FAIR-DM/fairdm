@@ -1057,6 +1057,21 @@ class TestBackupKeyChecks:
 
         assert [error.id for error in errors] == ["fairdm.E701"]
 
+    def test_an_os_error_reports_its_text_in_e701(self, key_pair):
+        from fairdm.backups.keys import BackupKey
+        from fairdm.conf.checks import check_backup_key_usable
+
+        with (
+            override_settings(BACKUP_PUBLIC_KEY=key_pair.public),
+            mock.patch.object(
+                BackupKey, "fingerprint", new_callable=mock.PropertyMock
+            ) as fingerprint,
+        ):
+            fingerprint.side_effect = OSError("Read-only file system: '/tmp'")
+            errors = check_backup_key_usable(app_configs=None)
+
+        assert "Read-only file system" in errors[0].msg
+
     def test_no_key_is_not_reported_as_unusable(self):
         from fairdm.conf.checks import check_backup_key_usable
 
