@@ -487,7 +487,7 @@ The groups are:
 - **Accepts**: A template with the placeholders django-dbbackup defines.
 
 ```{note}
-django-dbbackup 5 refuses `DBBACKUP_STORAGE` and `DBBACKUP_STORAGE_OPTIONS`, so FairDM no longer sets them. A portal that sets either moves its choice to `STORAGES["dbbackup"]`, described under [`STORAGES`](#storages).
+django-dbbackup 5 refuses the two storage settings of the 4.x series, so FairDM no longer sets them. A portal that sets either moves its choice to `STORAGES["dbbackup"]`, described under [`STORAGES`](#storages).
 ```
 
 ### `DEFAULT_AUTO_FIELD`

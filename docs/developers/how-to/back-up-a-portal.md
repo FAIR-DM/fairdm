@@ -13,8 +13,8 @@ Migrating the portal creates two periodic tasks. You see them in the admin under
 
 | Task | Does |
 | --- | --- |
-| Back up the database | Writes a dump of the database in PostgreSQL's custom format |
-| Back up the media | Writes a compressed archive of the media files |
+| Back up the database (`fairdm.backups.tasks.backup_database`) | Writes a dump of the database in PostgreSQL's custom format |
+| Back up the media (`fairdm.backups.tasks.backup_media`) | Writes a compressed archive of the media files |
 
 Each runs on Sunday at 03:00 in the portal's [`TIME_ZONE`](../reference/settings.md#time_zone). The backups go to the directory in [`BACKUP_DIR`](../reference/settings.md#backup_dir), `/var/lib/fairdm/backups` in the container images. After each backup the oldest beyond [`BACKUP_KEEP`](../reference/settings.md#backup_keep) are removed, four of each kind by default.
 
@@ -42,9 +42,21 @@ FairDM creates a task only when it is missing. A schedule you change, or a task 
 
 5. Keep more or fewer backups. Set `BACKUP_KEEP` in the environment to the number of backups of each kind to keep.
 
+## Run a backup from your own code
+
+`run_backup` writes one backup, the same one the task and the command write. It takes `"database"` or `"media"` and raises when the backup fails.
+
+```python
+from fairdm.backups.run import run_backup
+
+run_backup("database")
+```
+
+The two tasks, `backup_database` and `backup_media`, call it and carry their own time limits of 5 hours 50 minutes soft and 6 hours hard, in place of the one minute and five minutes every other task has.
+
 ## If your portal sets its own backup storage
 
-django-dbbackup 5 no longer reads `DBBACKUP_STORAGE` and `DBBACKUP_STORAGE_OPTIONS`, and refuses to start when either is set. Move the choice to `STORAGES["dbbackup"]` in your settings.
+django-dbbackup 5 no longer reads the two storage settings of the 4.x series, and refuses to start when either is set. Move the choice to `STORAGES["dbbackup"]` in your settings.
 
 ```python
 STORAGES["dbbackup"] = {
