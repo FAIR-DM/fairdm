@@ -6,7 +6,7 @@ FairDM now installs [django-literature](https://pypi.org/project/django-literatu
 
 - Back up the database, and read [How to back up a portal](back-up-a-portal.md) if the scheduled backups are not running. The command in step 4 changes the tables of the `literature` app, and a backup is the only way back.
 - Run the whole procedure against a copy of the database first.
-- Read the package's own guide, [Upgrade a database from the LiteratureItem schema](https://django-literature.readthedocs.io/en/latest/how-to/upgrade-a-database-from-the-literatureitem-schema.html). It lists what the command converts, what it refuses to convert, and how it reports a reference it cannot read. This guide does not repeat it.
+- Read the package's own guide, [Upgrade a database from the LiteratureItem schema](https://fair-dm.github.io/django-literature/how-to/upgrade-a-database-from-the-literatureitem-schema.html). It lists what the command converts, what it refuses to convert, and how it reports a reference it cannot read. This guide does not repeat it.
 
 ## Steps
 
