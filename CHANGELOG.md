@@ -49,7 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   move to `STORAGES["dbbackup"]`.** django-dbbackup 5, which FairDM now requires at 5.3 or later,
   stops with an error when either setting exists. FairDM no longer sets them, so a portal that never
   set them has nothing to change. The default number of database backups kept falls from 10 to 4.
-- **Breaking for upgrades: FairDM now installs django-literature 0.3.0 from PyPI, and references are
+- **Breaking for upgrades: FairDM now installs django-literature 0.3.1 from PyPI, and references are
   `literature.Item`.** `Dataset.reference`, `Dataset.related_literature` and
   `DatasetLiteratureRelation.literature_item` point at `literature.Item` in place of
   `literature.LiteratureItem`, so a portal that already holds references must move its database

@@ -1,6 +1,6 @@
 # How to upgrade a portal to django-literature 0.3
 
-FairDM now installs [django-literature](https://pypi.org/project/django-literature/) 0.3.0 from PyPI, which stores each reference as a `literature.Item` instead of a `literature.LiteratureItem`. You follow this guide once, when you move a portal that already holds references to the FairDM release that includes the change.
+FairDM now installs [django-literature](https://pypi.org/project/django-literature/) 0.3.1 from PyPI, which stores each reference as a `literature.Item` instead of a `literature.LiteratureItem`. You follow this guide once, when you move a portal that already holds references to the FairDM release that includes the change.
 
 ## Before you start
 

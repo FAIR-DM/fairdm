@@ -1255,16 +1255,16 @@ wheels = [
 
 [[package]]
 name = "django-literature"
-version = "0.3.0"
+version = "0.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bibtexparser" },
     { name = "django" },
     { name = "django-partial-date" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a3/5e/58b0e1e3e9ddfecd6ef821e3f3a72f1a378712d5948021b14fc6fb180d3d/django_literature-0.3.0.tar.gz", hash = "sha256:d5096c09bd3b4b55a5621ab3bf85464491f3337e10233e402685a142b6dc5e8f", size = 128717, upload-time = "2026-10-27T16:08:23.128Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a0/66/f89fffb8ffc0bdbe7ffa68897a44d6b2e9a4020466163e33a4e11a33f3b9/django_literature-0.3.1.tar.gz", hash = "sha256:6e06b3cc25ececd2d61c0deb8639c8626e78488f0e62aa4407fc7e910f89158b", size = 128789, upload-time = "2026-10-27T23:19:11.103Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/08/98/ab44a23589483856d5f2df849241a045c45835518405691b98d5c747e616/django_literature-0.3.0-py3-none-any.whl", hash = "sha256:d3f3a3c282b5e3ceb4b3d880280d086b72cd12914d37d35223982faca4b3d972", size = 143918, upload-time = "2026-10-27T16:08:21.363Z" },
+    { url = "https://files.pythonhosted.org/packages/36/a3/be4b4fb93383cba1ed5f9b99fee7b0ee67b50e665e6c1956876fed351d89/django_literature-0.3.1-py3-none-any.whl", hash = "sha256:ccb9916c2edc2605b8abc75b82608f121df827df1aea7696648cf3639ab21d08", size = 143993, upload-time = "2026-10-27T23:19:09.553Z" },
 ]
 
 [package.optional-dependencies]
@@ -2026,7 +2026,7 @@ requires-dist = [
     { name = "django-htmx", specifier = ">=1.29.0,<2.0.0" },
     { name = "django-import-export", specifier = ">=4.0.3,<5.0.0" },
     { name = "django-lifecycle", specifier = ">=1.2.4,<2.0.0" },
-    { name = "django-literature", extras = ["ui"], specifier = ">=0.3.0,<0.4.0" },
+    { name = "django-literature", extras = ["ui"], specifier = ">=0.3.1,<0.4.0" },
     { name = "django-markdownx", specifier = ">=4.0.11,<5.0.0" },
     { name = "django-meta", specifier = ">=2.1.0,<3.0.0" },
     { name = "django-model-utils", specifier = ">=4.3.1,<6.0.0" },
