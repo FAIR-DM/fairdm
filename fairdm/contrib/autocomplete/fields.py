@@ -24,7 +24,7 @@ from django_tomselect.widgets import (
     TomSelectModelMultipleWidget,
     TomSelectModelWidget,
 )
-from literature.models import LiteratureItem
+from literature.models import Item
 
 from fairdm.contrib.contributors.services.registries import Ror
 
@@ -506,7 +506,7 @@ class PublicationChoiceField(TomSelectModelChoiceField):
 
     def clean(self, value):
         """Accept the publication when it exists."""
-        self.queryset = LiteratureItem.objects.all()
+        self.queryset = Item.objects.all()
         return forms.ModelChoiceField.clean(self, self._clean_value(value))
 
 

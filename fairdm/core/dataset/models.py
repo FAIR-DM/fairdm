@@ -91,7 +91,7 @@ class DatasetLiteratureRelation(models.Model):
         verbose_name=_("dataset"),
     )
     literature_item = models.ForeignKey(
-        "literature.LiteratureItem",
+        "literature.Item",
         on_delete=models.CASCADE,
         related_name="dataset_relations",
         verbose_name=_("literature item"),
@@ -304,7 +304,7 @@ class Dataset(BaseModel):
         null=True,
     )
     reference = models.OneToOneField(
-        "literature.LiteratureItem",
+        "literature.Item",
         verbose_name=_("Data reference"),
         help_text=_("The data publication associated with this dataset."),
         null=True,
@@ -312,7 +312,7 @@ class Dataset(BaseModel):
         on_delete=models.SET_NULL,
     )
     related_literature: models.ManyToManyField = models.ManyToManyField(
-        "literature.LiteratureItem",
+        "literature.Item",
         help_text=_("Any literature that is related to this dataset."),
         through="DatasetLiteratureRelation",
         related_name="related_datasets",

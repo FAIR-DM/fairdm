@@ -4,7 +4,7 @@ import pytest
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import override_settings
-from literature.models import LiteratureItem
+from literature.models import Item
 
 from demo.models import RockSample
 from demo.seed.record_search import (
@@ -73,7 +73,9 @@ class TestSeedRecordSearch:
     def test_publications_carry_a_doi(self):
         seed()
 
-        assert LiteratureItem.objects.filter(item__DOI="10.5880/gfz.2024.011").exists()
+        assert Item.objects.filter(
+            item_identifiers__type="DOI", item_identifiers__value="10.5880/gfz.2024.011"
+        ).exists()
 
     def test_a_second_run_adds_nothing(self):
         seed()
@@ -81,7 +83,7 @@ class TestSeedRecordSearch:
             Project.objects.count(),
             Dataset.all_objects.count(),
             Sample.objects.count(),
-            LiteratureItem.objects.count(),
+            Item.objects.count(),
             Person.objects.count(),
         )
 
@@ -91,7 +93,7 @@ class TestSeedRecordSearch:
             Project.objects.count(),
             Dataset.all_objects.count(),
             Sample.objects.count(),
-            LiteratureItem.objects.count(),
+            Item.objects.count(),
             Person.objects.count(),
         )
 

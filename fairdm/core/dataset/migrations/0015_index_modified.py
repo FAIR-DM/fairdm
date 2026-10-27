@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
         ('dataset', '0014_alter_datasetdescription_value'),
         ('fairdm', '0001_initial'),
         ('licensing', '0002_alter_license_options_remove_license_url_and_more'),
-        ('literature', '0004_alter_literatureitem_options'),
+        ('literature', '0001_initial'),
         ('project', '0010_alter_projectdescription_value'),
         ('research_vocabs', '0002_alter_concept_unique_together'),
         ('taggit', '0006_rename_taggeditem_content_type_object_id_taggit_tagg_content_8fc721_idx'),

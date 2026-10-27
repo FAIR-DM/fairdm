@@ -356,7 +356,9 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         relations = sorted(
             DatasetLiteratureRelation.objects.filter(
                 dataset=self.base_object
-            ).select_related("literature_item"),
+            ).prefetch_related(
+                "literature_item__item_identifiers", "literature_item__item_dates"
+            ),
             key=lambda r: (
                 order.index(r.relationship_type)
                 if r.relationship_type in order
@@ -370,11 +372,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
                     relation.get_relationship_type_display(),
                 ),
                 "item": relation.literature_item,
-                "doi": relation.literature_item.get_doi(),
-                "year": (
-                    relation.literature_item.item.get("issued", {}).get("date-parts")
-                    or [[None]]
-                )[0][0],
+                "doi": relation.literature_item.doi,
+                "year": relation.literature_item.year,
             }
             for relation in relations
         ]
@@ -495,7 +494,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         dataset = self.base_object
         if dataset.reference_id:
             reference = dataset.reference
-            doi = reference.get_doi()
+            doi = reference.doi
             return {
                 "text": str(reference),
                 "link": f"https://doi.org/{doi}" if doi else None,

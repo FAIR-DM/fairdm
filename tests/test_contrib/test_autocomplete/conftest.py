@@ -231,14 +231,7 @@ def make_publication(db):
     """Return a function building a literature item with authors, a DOI and a year."""
 
     def make_publication(title, *, authors=(), doi="", year=None):
-        item = {"type": "article-journal", "title": title}
-        if authors:
-            item["author"] = [{"family": f, "given": g} for f, g in authors]
-        if doi:
-            item["DOI"] = doi
-        if year:
-            item["issued"] = {"date-parts": [[year]]}
-        return LiteratureItemFactory(item=item)
+        return LiteratureItemFactory(title=title, authors=authors, doi=doi, year=year)
 
     return make_publication
 
