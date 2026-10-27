@@ -49,6 +49,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   move to `STORAGES["dbbackup"]`.** django-dbbackup 5, which FairDM now requires at 5.3 or later,
   stops with an error when either setting exists. FairDM no longer sets them, so a portal that never
   set them has nothing to change. The default number of database backups kept falls from 10 to 4.
+- **Breaking for upgrades: FairDM now installs django-literature 0.3.0 from PyPI, and references are
+  `literature.Item`.** `Dataset.reference`, `Dataset.related_literature` and
+  `DatasetLiteratureRelation.literature_item` point at `literature.Item` in place of
+  `literature.LiteratureItem`, so a portal that already holds references must move its database
+  across with `upgrade_literature` before it migrates. The **Literature** entry of the main menu
+  opens the catalogue, which now lives at `/literature/` and not `/django-literature/`, and its
+  add, edit, import and delete pages require the `literature.add_item`, `literature.change_item`
+  and `literature.delete_item` permissions. django-select2 is no longer installed.
+  `LiteratureItemFactory` builds an `Item` and takes `doi`, `year` and `authors`. See
+  [How to upgrade a portal to django-literature 0.3](docs/developers/how-to/upgrade-a-portal-to-django-literature-0-3.md).
 
 ## [v0.2.1] - 2026-10-22
 

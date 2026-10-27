@@ -201,7 +201,7 @@ contradict.
 ## Literature
 
 A dataset names at most one data publication, and relates to any number of other items under a stated
-relationship type.
+relationship type. Both are `literature.Item` rows, such as `LiteratureItemFactory()` creates in a test.
 
 ```python
 dataset.reference = paper          # the publication describing this dataset

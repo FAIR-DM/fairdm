@@ -100,7 +100,7 @@ These factories each create one row of a record's metadata. None picks the recor
 | `MeasurementDescriptionFactory` | `MeasurementDescription` | `MeasurementConditions` | `value` (text) | `related` |
 | `MeasurementDateFactory` | `MeasurementDate` | `Setup` | `value` (a year, a month or a day) | `related` |
 | `MeasurementIdentifierFactory` | `MeasurementIdentifier` | `DOI` | `value` (a unique sequence) | `related` |
-| `LiteratureItemFactory` | `LiteratureItem` | | `citation_key` (a unique sequence), `item` (a journal article with a title) | Nothing |
+| `LiteratureItemFactory` | `literature.Item` | `article-journal` | `citation_key` (a unique sequence), `title`. Also takes `doi`, `year` (the issued year) and `authors` (`(family, given)` pairs), and no other field | Nothing |
 | `DatasetLiteratureRelationFactory` | `DatasetLiteratureRelation` | | `dataset` (a new dataset), `literature_item` (a new item), `relationship_type` (`IsCitedBy`) | Nothing |
 
 ## Faker provider

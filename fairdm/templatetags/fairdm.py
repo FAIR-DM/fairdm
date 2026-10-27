@@ -6,7 +6,6 @@ from django.db import models
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from literature import utils
 from pint.delegates.formatter.plain import PrettyFormatter
 from quantityfield import settings as qsettings
 
@@ -235,26 +234,6 @@ def plugin_url(context, view_name, *args, **kwargs):
         return ""
 
     return reverse(obj, view_name, *args, **kwargs)
-
-
-@register.filter
-def normalize_doi(doi):
-    """Normalize any DOI input to a full https://doi.org/ URL.
-
-    Examples:
-        - "10.1000/xyz123" → "https://doi.org/10.1000/xyz123"
-        - "doi:10.1000/xyz123" → "https://doi.org/10.1000/xyz123"
-        - "https://doi.org/10.1000/xyz123" → "https://doi.org/10.1000/xyz123"
-
-    Args:
-        doi: The DOI in any accepted form.
-
-    Returns:
-        The DOI URL, or ``None`` if the input does not look like a valid DOI.
-    """
-    if not doi:
-        return None
-    return utils.generic.normalize_doi(doi)
 
 
 @register.filter

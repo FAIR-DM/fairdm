@@ -120,8 +120,8 @@ Deleting a project deletes its datasets. A project that still has a public datas
 | `visibility` | `IntegerField`, indexed | `Visibility.PRIVATE` | Whether the dataset's metadata is shown to everyone. | A value of [`Visibility`](#choices). |
 | `published` | `BooleanField`, indexed | `False` | Whether the data beneath the dataset may be shown publicly. It is independent of `visibility`, which governs metadata only. | `True` or `False`. Set in the administration interface. |
 | `project` | `ForeignKey` to `project.Project` | `None` | The project the dataset belongs to. Related name `datasets`. Deleting the project deletes the dataset. | A project. Optional. |
-| `reference` | `OneToOneField` to `literature.LiteratureItem` | `None` | The data publication for the dataset. | A literature item. Optional. |
-| `related_literature` | `ManyToManyField` to `literature.LiteratureItem` through `DatasetLiteratureRelation` | Empty | Literature related to the dataset. | Literature items. Optional. |
+| `reference` | `OneToOneField` to `literature.Item` | `None` | The data publication for the dataset. | A literature item. Optional. |
+| `related_literature` | `ManyToManyField` to `literature.Item` through `DatasetLiteratureRelation` | Empty | Literature related to the dataset. | Literature items. Optional. |
 | `license` | `LicenseField` | The licence named by `FAIRDM_DEFAULT_LICENSE` | The licence the dataset's data is published under. | A licence. Optional. |
 | `created_by` | `ForeignKey` to `contributors.Person` | `None` | The person who created the dataset. Related name `created_datasets`. | Not editable. |
 | `contributors` | `GenericRelation` to `contributors.Contribution` | | The dataset's credits. | |
@@ -165,7 +165,7 @@ Use `all_objects` whenever you need private datasets. Following a relation to a 
 | Field | Type | Default | What it does | Accepts |
 |---|---|---|---|---|
 | `dataset` | `ForeignKey` to `Dataset` | None | The dataset. Related name `literature_relations`. | A dataset. |
-| `literature_item` | `ForeignKey` to `literature.LiteratureItem` | None | The literature item. Related name `dataset_relations`. | A literature item. |
+| `literature_item` | `ForeignKey` to `literature.Item` | None | The literature item. Related name `dataset_relations`. | A literature item. |
 | `relationship_type` | `CharField`, 50 characters | None | How the dataset relates to the item. | One of the 34 relation types of DataCite Metadata Schema 4.4, such as `IsCitedBy`, `Cites` or `IsDocumentedBy`. |
 
 The combination of dataset, item and type is unique.

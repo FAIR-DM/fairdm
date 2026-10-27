@@ -31,8 +31,8 @@ it stands.
 | `uuid` | `ShortUUIDField` | `unique`, `editable=False`, prefix `d` | `Dataset` |
 | `visibility` | `IntegerField` | `choices=Visibility`, default `PRIVATE`, **newly indexed** | `Dataset` |
 | `project` | `ForeignKey` → `project.Project` | `on_delete=CASCADE`, optional | `Dataset` |
-| `reference` | `OneToOneField` → `literature.LiteratureItem` | `on_delete=SET_NULL`, optional | `Dataset` |
-| `related_literature` | `ManyToManyField` → `literature.LiteratureItem` | through `DatasetLiteratureRelation` | `Dataset` |
+| `reference` | `OneToOneField` → `literature.Item` | `on_delete=SET_NULL`, optional | `Dataset` |
+| `related_literature` | `ManyToManyField` → `literature.Item` | through `DatasetLiteratureRelation` | `Dataset` |
 | `license` | `LicenseField` | optional, no column default | `Dataset` |
 | `contributors` | `GenericRelation` → `contributors.Contribution` | — | `Dataset` |
 | `created_by` | `ForeignKey` → `contributors.Person` | `on_delete=SET_NULL`, optional, `editable=False` | **new** |
@@ -236,17 +236,14 @@ gives it its first test that runs.
 | Field | Type | Constraints |
 |---|---|---|
 | `dataset` | `ForeignKey` → `Dataset` | `on_delete=CASCADE`, related name `literature_relations` |
-| `literature_item` | `ForeignKey` → `literature.LiteratureItem` | `on_delete=CASCADE`, related name `dataset_relations` |
+| `literature_item` | `ForeignKey` → `literature.Item` | `on_delete=CASCADE`, related name `dataset_relations` |
 | `relationship_type` | `CharField(50)` | `choices=DATACITE_RELATIONSHIP_TYPES` |
 
 `unique_together` on all three, so the same item may be related under two types but not twice under
 one (FR-016). `relationship_type` carries its own index.
 
-All eleven of its tests are skipped behind four class-level marks reading "Literature app not yet
-complete", and they reference a `LiteratureItemFactory` that exists nowhere in the repository —
-removing the skips would raise `NameError` rather than run them. The literature package is a live
-dependency and `LiteratureItem` exists, so the stated reason no longer holds. The missing factory is
-part of the work (T006, D-016).
+Its tests build the related items with `LiteratureItemFactory`, which creates a `literature.Item`
+(T006, D-016).
 
 `reference` is the separate one-to-one naming a dataset's own data publication. It is `SET_NULL`, so
 deleting that publication leaves the dataset intact with no publication named (FR-015).
