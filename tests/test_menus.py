@@ -112,3 +112,16 @@ class TestAdminGuideLinkVisibility:
         request.user = PersonFactory(is_staff=True)
 
         assert child.check(request) is True
+
+
+@pytest.mark.django_db
+class TestLiteratureMenuItem:
+    def test_the_menu_links_to_the_catalogue(self, client):
+        response = client.get(reverse("team"))
+
+        assert f'href="{reverse("literature:item-list")}"' in response.content.decode()
+
+    def test_the_catalogue_opens_for_an_anonymous_visitor(self, client):
+        response = client.get(reverse("literature:item-list"))
+
+        assert response.status_code == 200

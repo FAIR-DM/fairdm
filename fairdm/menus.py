@@ -89,7 +89,7 @@ AppMenu.extend(
         ),
         MenuItem(
             name=_("Literature"),
-            url="#",
+            view_name="literature:item-list",
             extra_context={"icon": "literature"},
         ),
         MenuGroup(
