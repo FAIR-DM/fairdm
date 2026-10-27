@@ -42,7 +42,7 @@ FairDM now installs [django-literature](https://pypi.org/project/django-literatu
    pip install --upgrade fairdm
    ```
 
-   The release depends on `django-literature[ui]` 0.3, so the package and its front end arrive with it. django-select2 is no longer installed. If the portal's own code imports it, add it to the portal's dependencies.
+   The release depends on `django-literature[ui]` 0.3.1 or later, so the package and its front end arrive with it. django-select2 is no longer installed. If the portal's own code imports it, add it to the portal's dependencies.
 
 4. Move the database across. Run `upgrade_literature` before anything else touches the database, then migrate.
 
@@ -52,6 +52,14 @@ FairDM now installs [django-literature](https://pypi.org/project/django-literatu
    ```
 
    The command keeps every reference's primary key, so the links from your datasets stay in place. If it stops and names references it cannot convert, correct or delete them as the package's guide describes, and run it again.
+
+   A portal that runs in a container migrates as soon as its web container starts, and that migration fails on the old tables. Stop the old web, worker and scheduler containers, then run the command in a one-off container of the new image before starting the new ones:
+
+   ```bash
+   docker run --rm --env-file /etc/my-portal/portal.env my-portal python manage.py upgrade_literature
+   ```
+
+   The web container then runs `migrate` itself when it starts. See [How to deploy a portal in a container](deploy-a-portal-in-a-container.md).
 
 5. Remove the stale content types of the old model.
 
