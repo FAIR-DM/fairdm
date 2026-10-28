@@ -81,12 +81,9 @@ The command ends with the line `Container yourportal-postgres-1  Healthy`.
    version = "0.1.0"
    requires-python = ">=3.13"
    dependencies = ["fairdm", "django-browser-reload"]
-
-   [tool.uv.sources]
-   fairdm = { git = "https://github.com/FAIR-DM/fairdm", tag = "v0.2.1" }
    ```
 
-   `tag` names the FairDM release to install. The other releases are on the [releases page](https://github.com/FAIR-DM/fairdm/releases). FairDM's development settings load `django-browser-reload` without installing it, so the portal lists it.
+   uv installs the latest FairDM release from [PyPI](https://pypi.org/project/fairdm/). FairDM's development settings load `django-browser-reload` without installing it, so the portal lists it.
 
 2. Install the locked dependencies into the image's virtual environment.
 
@@ -94,7 +91,7 @@ The command ends with the line `Container yourportal-postgres-1  Healthy`.
    docker compose run --rm django uv sync
    ```
 
-The first run pulls the image, which takes a few minutes. It ends with a list of installed packages that includes a line beginning `+ fairdm==0.2.1`.
+The first run pulls the image, which takes a few minutes. It ends with a list of installed packages that includes a line beginning `+ fairdm==`.
 
 ## 3. Create the portal and its app
 

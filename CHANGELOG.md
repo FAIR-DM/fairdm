@@ -41,6 +41,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **FairDM is published to PyPI.** Publishing a release uploads the package to PyPI, so a portal
+  depends on `fairdm` from PyPI (`uv add fairdm`) rather than on a git source pinned to a release
+  tag. The tutorial installs it that way.
+
 - **Breaking for upgrades: production now requires `BACKUP_PUBLIC_KEY`, and a custom image needs
   `gpg`.** A production portal with no key, or with a key that cannot encrypt, stops at start-up
   with `fairdm.E700` or `fairdm.E701`. Set the variable to the armoured public key and install

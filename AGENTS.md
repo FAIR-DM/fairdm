@@ -53,8 +53,8 @@ Required status checks (exact names, as they report on a pull request):
 
 CI calls the shared workflows in `django-mvp/shared`, pinned to `v0.6.0`, from
 `.github/workflows/build.yml` and `.github/workflows/tests.yml`. Releases run through
-`prepare-release.yml` → `tag-release.yml` and end at a GitHub release and a `v*` tag, which
-portals pin. `publish.yml` publishes to PyPI and runs only when started by hand.
+`prepare-release.yml` → `tag-release.yml` → `publish.yml`: a merged release pull request creates
+the `v*` tag and the GitHub release, and the published release uploads the package to PyPI.
 
 ## Development workflow
 
