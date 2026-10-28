@@ -182,11 +182,15 @@ class Command(BaseCommand):
 
         Returns:
             One ``(model, field, length)`` triple per field, ``length`` being the old
-            column's size.
+            column's size. A model whose table does not exist yet is skipped: ``migrate``
+            creates it with the new schema, so it has nothing to convert.
         """
         found = []
         with connection.cursor() as cursor:
+            existing = set(connection.introspection.table_names(cursor))
             for model in self.models_to_upgrade(database):
+                if model._meta.db_table not in existing:
+                    continue
                 fields = [
                     field
                     for field in model._meta.local_fields
@@ -214,13 +218,17 @@ class Command(BaseCommand):
             database: Its alias.
 
         Returns:
-            The ``MultiConceptField`` of each such table.
+            The ``MultiConceptField`` of each such table. A table that does not exist yet
+            is skipped, as in ``legacy_columns``.
         """
         found = []
         with connection.cursor() as cursor:
+            existing = set(connection.introspection.table_names(cursor))
             for model in self.models_to_upgrade(database):
                 for field in model._meta.local_many_to_many:
                     if not isinstance(field, MultiConceptField):
+                        continue
+                    if field.remote_field.through._meta.db_table not in existing:
                         continue
                     columns = {
                         column.name

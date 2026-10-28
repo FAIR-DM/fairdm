@@ -678,6 +678,21 @@ class TestPortalRolesPresent:
 
         assert check_portal_roles_present(app_configs=None) == []
 
+    @pytest.mark.parametrize(
+        "command", ["upgrade_literature", "upgrade_vocabularies", "sync_vocabularies"]
+    )
+    def test_stands_down_when_the_current_command_runs_before_migrate(
+        self, db, monkeypatch, command
+    ):
+        from fairdm.conf.checks import check_portal_roles_present
+        from fairdm.portal_roles import PortalRoles
+
+        PortalRoles.reconcile()
+        _delete_group_by_raw_sql(PortalRoles.DATA_CURATOR.name)
+        monkeypatch.setattr(sys, "argv", ["manage.py", command])
+
+        assert check_portal_roles_present(app_configs=None) == []
+
     def test_does_not_stand_down_for_an_unrelated_command(self, db, monkeypatch):
         from fairdm.conf.checks import check_portal_roles_present
         from fairdm.portal_roles import PortalRoles

@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **A portal whose database predates the portal roles can run the upgrade commands before
+  `migrate`.** The start-up check `fairdm.E500` refused every command except `migrate` while a
+  role was missing, so `upgrade_literature`, `upgrade_vocabularies` and `sync_vocabularies`, which
+  the upgrade guides run before `migrate`, stopped with "FairDM role(s) missing from the
+  database". The check now stands down for those three commands as well.
+
+- **`upgrade_vocabularies` no longer fails on a model whose table does not exist yet.** It asked
+  the database to describe the table of every model with a concept field, and PostgreSQL raised
+  `relation ... does not exist` for a table the portal's pending migrations have yet to create.
+  The command now skips such a model and such a through table, since `migrate` creates it with
+  the new schema.
+
 ## [v0.3.0] - 2026-10-28
 
 ### Added

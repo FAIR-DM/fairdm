@@ -157,7 +157,7 @@ REDIS_URL=redis://localhost:6379/1
 
 - **Severity**: Error.
 - **Tags**: `deploy`, `production_critical`.
-- **Reports**: One or more of the four shipped roles is not in the database: Portal Administrator, Data Curator, Community Manager, Developer. The message names each missing role. The check stands down while `migrate` runs, and it reports nothing when the group table cannot be read.
+- **Reports**: One or more of the four shipped roles is not in the database: Portal Administrator, Data Curator, Community Manager, Developer. The message names each missing role. The check stands down while `migrate` runs, and while `upgrade_literature`, `upgrade_vocabularies` or `sync_vocabularies` runs, because the upgrade guides run those before `migrate`. It reports nothing when the group table cannot be read.
 - **Fix**: Run `python manage.py migrate`, which installs the roles.
 
 ## fairdm.E501: development accounts exist outside development
