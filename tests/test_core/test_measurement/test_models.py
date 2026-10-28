@@ -26,6 +26,13 @@ from fairdm.core.measurement.models import (
     MeasurementIdentifier,
 )
 from fairdm.core.models import Measurement, Sample
+from fairdm.core.vocabularies import (
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    IDENTIFIER_TYPES,
+    collection_members,
+)
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
@@ -220,22 +227,31 @@ class TestMeasurementTimestamps:
 @pytest.mark.django_db
 class TestMeasurementContributions:
     def test_measurement_role_vocabulary_members(self):
-        assert Measurement.CONTRIBUTOR_ROLES.values == [
-            "MeasurementPreparation",
-            "MeasurementCollection",
-            "Support",
+        assert [
+            role.uri for role in collection_members(Measurement.CONTRIBUTOR_ROLES)
+        ] == [
+            f"{CONTRIBUTOR_ROLES}/measurement-preparation",
+            f"{CONTRIBUTOR_ROLES}/measurement-collection",
+            f"{CONTRIBUTOR_ROLES}/support",
         ]
 
     def test_contribution_records_contributor_and_roles(self, measurement):
         contributor = PersonFactory()
 
         contribution = measurement.add_contributor(
-            contributor, with_roles=["MeasurementCollection", "Support"]
+            contributor,
+            with_roles=[
+                f"{CONTRIBUTOR_ROLES}/measurement-collection",
+                f"{CONTRIBUTOR_ROLES}/support",
+            ],
         )
 
         assert contribution.contributor == contributor
-        role_names = set(contribution.roles.values_list("name", flat=True))
-        assert role_names == {"MeasurementCollection", "Support"}
+        role_names = set(contribution.roles.values_list("uri", flat=True))
+        assert role_names == {
+            f"{CONTRIBUTOR_ROLES}/measurement-collection",
+            f"{CONTRIBUTOR_ROLES}/support",
+        }
 
 
 @pytest.mark.django_db
@@ -297,42 +313,46 @@ class TestMeasurementVocabularyValidation:
         # "method" is not a member of the measurement description vocabulary.
         desc = MeasurementDescription.objects.create(
             related=measurement,
-            type="MeasurementSetup",
+            type_id=f"{DESCRIPTION_TYPES}/measurement-setup",
             value="XRF spectroscopy analysis",
         )
 
-        assert desc.type == "MeasurementSetup"
-        assert desc.VOCABULARY is not None
+        assert desc.type_id == f"{DESCRIPTION_TYPES}/measurement-setup"
+        assert desc.get_type_concepts()
 
     def test_measurement_date_uses_measurement_vocabulary(self, measurement):
         from fairdm.core.measurement.models import MeasurementDate
 
         # "measured" is not a member of the measurement date vocabulary.
         date = MeasurementDate.objects.create(
-            related=measurement, type="Setup", value="2024-01-15"
+            related=measurement, type_id=f"{DATE_TYPES}/setup", value="2024-01-15"
         )
 
-        assert date.type == "Setup"
-        assert date.VOCABULARY is not None
+        assert date.type_id == f"{DATE_TYPES}/setup"
+        assert date.get_type_concepts()
 
 
 @pytest.mark.django_db
 class TestMeasurementIdentifierVocabulary:
     def test_available_types_are_doi_only(self):
-        assert set(MeasurementIdentifier.VOCABULARY.values) == {"DOI"}
+        assert set(
+            [concept.uri for concept in MeasurementIdentifier.get_type_concepts()]
+        ) == {f"{IDENTIFIER_TYPES}/doi"}
 
     def test_no_type_names_a_sample_person_organisation_or_project(self):
-        assert set(MeasurementIdentifier.VOCABULARY.values).isdisjoint(
+        assert set(
+            [concept.uri for concept in MeasurementIdentifier.get_type_concepts()]
+        ).isdisjoint(
             {
-                "IGSN",
-                "ORCID",
-                "RESEARCHER_ID",
-                "ROR",
-                "WIKIDATA",
-                "ISNI",
-                "CROSSREF_FUNDER_ID",
-                "GRANT_NUMBER",
-                "PROPOSAL_ID",
+                f"{IDENTIFIER_TYPES}/igsn",
+                f"{IDENTIFIER_TYPES}/orcid",
+                f"{IDENTIFIER_TYPES}/researcher-id",
+                f"{IDENTIFIER_TYPES}/ror",
+                f"{IDENTIFIER_TYPES}/wikidata",
+                f"{IDENTIFIER_TYPES}/isni",
+                f"{IDENTIFIER_TYPES}/crossref-funder-id",
+                f"{IDENTIFIER_TYPES}/grant-number",
+                f"{IDENTIFIER_TYPES}/proposal-id",
             }
         )
 
@@ -367,30 +387,40 @@ class TestMeasurementMetadataRelations:
 @pytest.mark.django_db
 class TestMeasurementDescriptionVocabularyMembers:
     def test_available_types_are_named_one_by_one(self):
-        assert set(MeasurementDescription.VOCABULARY.values) == {
-            "MeasurementConditions",
-            "MeasurementSetup",
-            "MeasurementTearDown",
-            "Other",
+        assert set(
+            [concept.uri for concept in MeasurementDescription.get_type_concepts()]
+        ) == {
+            f"{DESCRIPTION_TYPES}/measurement-conditions",
+            f"{DESCRIPTION_TYPES}/measurement-setup",
+            f"{DESCRIPTION_TYPES}/measurement-tear-down",
+            f"{DESCRIPTION_TYPES}/other",
         }
 
     def test_a_description_type_is_drawn_from_the_measurement_collection(
         self, measurement
     ):
         description = MeasurementDescriptionFactory(
-            related=measurement, type="MeasurementSetup"
+            related=measurement, type_id=f"{DESCRIPTION_TYPES}/measurement-setup"
         )
-        assert description.type in MeasurementDescription.VOCABULARY.values
+        assert description.type_id in [
+            concept.uri for concept in MeasurementDescription.get_type_concepts()
+        ]
 
 
 @pytest.mark.django_db
 class TestMeasurementDateVocabularyMembers:
     def test_available_types_are_named_one_by_one(self):
-        assert set(MeasurementDate.VOCABULARY.values) == {"Setup", "TearDown"}
+        assert set(
+            [concept.uri for concept in MeasurementDate.get_type_concepts()]
+        ) == {f"{DATE_TYPES}/setup", f"{DATE_TYPES}/tear-down"}
 
     def test_a_date_type_is_drawn_from_the_measurement_collection(self, measurement):
-        date = MeasurementDateFactory(related=measurement, type="TearDown")
-        assert date.type in MeasurementDate.VOCABULARY.values
+        date = MeasurementDateFactory(
+            related=measurement, type_id=f"{DATE_TYPES}/tear-down"
+        )
+        assert date.type_id in [
+            concept.uri for concept in MeasurementDate.get_type_concepts()
+        ]
 
 
 @pytest.mark.django_db
@@ -399,56 +429,60 @@ class TestMeasurementMetadataTypeValidation:
         self, measurement
     ):
         description = MeasurementDescriptionFactory.build(
-            related=measurement, type="NotARealDescriptionType"
+            related=measurement, type=f"{DESCRIPTION_TYPES}/not-a-real-description-type"
         )
         with pytest.raises(ValidationError) as exc_info:
             description.full_clean()
-        assert "NotARealDescriptionType" in str(exc_info.value)
+        assert "not-a-real-description-type" in str(exc_info.value)
 
     def test_description_type_outside_the_vocabulary_is_refused_on_direct_save(
         self, measurement
     ):
         with pytest.raises(ValidationError) as exc_info:
             MeasurementDescriptionFactory(
-                related=measurement, type="NotARealDescriptionType"
+                related=measurement,
+                type=f"{DESCRIPTION_TYPES}/not-a-real-description-type",
             )
-        assert "NotARealDescriptionType" in str(exc_info.value)
+        assert "not-a-real-description-type" in str(exc_info.value)
 
     def test_date_type_outside_the_vocabulary_is_refused_by_full_clean(
         self, measurement
     ):
         date = MeasurementDateFactory.build(
-            related=measurement, type="NotARealDateType"
+            related=measurement, type=f"{DATE_TYPES}/not-a-real-date-type"
         )
         with pytest.raises(ValidationError) as exc_info:
             date.full_clean()
-        assert "NotARealDateType" in str(exc_info.value)
+        assert "not-a-real-date-type" in str(exc_info.value)
 
     def test_date_type_outside_the_vocabulary_is_refused_on_direct_save(
         self, measurement
     ):
         with pytest.raises(ValidationError) as exc_info:
-            MeasurementDateFactory(related=measurement, type="NotARealDateType")
-        assert "NotARealDateType" in str(exc_info.value)
+            MeasurementDateFactory(
+                related=measurement, type=f"{DATE_TYPES}/not-a-real-date-type"
+            )
+        assert "not-a-real-date-type" in str(exc_info.value)
 
     def test_identifier_type_outside_the_vocabulary_is_refused_by_full_clean(
         self, measurement
     ):
         identifier = MeasurementIdentifierFactory.build(
-            related=measurement, type="NotARealIdentifierType"
+            related=measurement, type=f"{IDENTIFIER_TYPES}/not-a-real-identifier-type"
         )
         with pytest.raises(ValidationError) as exc_info:
             identifier.full_clean()
-        assert "NotARealIdentifierType" in str(exc_info.value)
+        assert "not-a-real-identifier-type" in str(exc_info.value)
 
     def test_identifier_type_outside_the_vocabulary_is_refused_on_direct_save(
         self, measurement
     ):
         with pytest.raises(ValidationError) as exc_info:
             MeasurementIdentifierFactory(
-                related=measurement, type="NotARealIdentifierType"
+                related=measurement,
+                type=f"{IDENTIFIER_TYPES}/not-a-real-identifier-type",
             )
-        assert "NotARealIdentifierType" in str(exc_info.value)
+        assert "not-a-real-identifier-type" in str(exc_info.value)
 
 
 @pytest.mark.django_db
@@ -605,10 +639,12 @@ class TestMeasurementQuerySetOptimizations:
             detection_limit_ppm=2.0,
         )
         MeasurementDescription.objects.create(
-            related=measurement, type="MeasurementSetup", value="XRF analysis"
+            related=measurement,
+            type_id=f"{DESCRIPTION_TYPES}/measurement-setup",
+            value="XRF analysis",
         )
         MeasurementDate.objects.create(
-            related=measurement, type="Setup", value="2024-01-15"
+            related=measurement, type_id=f"{DATE_TYPES}/setup", value="2024-01-15"
         )
 
         with CaptureQueriesContext(connection) as context_without:
@@ -796,7 +832,9 @@ class TestMeasurementModel:
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
         user = PersonFactory()
 
-        contribution = measurement.add_contributor(user, with_roles=["Creator"])
+        contribution = measurement.add_contributor(
+            user, with_roles=[f"{CONTRIBUTOR_ROLES}/creator"]
+        )
 
         assert contribution is not None
         assert contribution.contributor == user
@@ -868,7 +906,9 @@ class TestMeasurementViews:
 class TestMeasurementPermissions:
     def test_measurement_contributor_relationship(self, user):
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
-        contribution = measurement.add_contributor(user, with_roles=["Creator"])
+        contribution = measurement.add_contributor(
+            user, with_roles=[f"{CONTRIBUTOR_ROLES}/creator"]
+        )
 
         assert measurement.contributors.count() == 1
         assert contribution.contributor == user
@@ -1081,45 +1121,52 @@ class TestMeasurementFAIRMetadata:
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
         description = MeasurementDescription.objects.create(
-            related=measurement, type="MeasurementSetup", value="XRF Analysis"
+            related=measurement,
+            type_id=f"{DESCRIPTION_TYPES}/measurement-setup",
+            value="XRF Analysis",
         )
 
-        assert description.type == "MeasurementSetup"
+        assert description.type_id == f"{DESCRIPTION_TYPES}/measurement-setup"
         assert description.related == measurement
         assert description.value == "XRF Analysis"
-        assert description.VOCABULARY is not None
+        assert description.get_type_concepts()
 
     def test_measurement_date_uses_measurement_vocabulary(self):
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
         measurement_date = MeasurementDate.objects.create(
-            related=measurement, type="Setup", value="2024-02-15"
+            related=measurement, type_id=f"{DATE_TYPES}/setup", value="2024-02-15"
         )
 
-        assert measurement_date.type == "Setup"
+        assert measurement_date.type_id == f"{DATE_TYPES}/setup"
         assert measurement_date.related == measurement
         assert measurement_date.value == "2024-02-15"
-        assert measurement_date.VOCABULARY is not None
+        assert measurement_date.get_type_concepts()
 
     def test_measurement_vocabulary_types_differ_from_sample_vocabularies(self):
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
         desc = MeasurementDescription.objects.create(
-            related=measurement, type="MeasurementSetup", value="Test"
+            related=measurement,
+            type_id=f"{DESCRIPTION_TYPES}/measurement-setup",
+            value="Test",
         )
 
-        assert desc.VOCABULARY is not None
-        assert hasattr(desc, "VOCABULARY")
+        assert desc.get_type_concepts()
 
     def test_measurement_can_have_multiple_descriptions_of_different_types(self):
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
         desc1 = MeasurementDescription.objects.create(
-            related=measurement, type="MeasurementSetup", value="XRF Spectroscopy"
+            related=measurement,
+            type_id=f"{DESCRIPTION_TYPES}/measurement-setup",
+            value="XRF Spectroscopy",
         )
 
         desc2 = MeasurementDescription.objects.create(
-            related=measurement, type="MeasurementConditions", value="Bruker S8 Tiger"
+            related=measurement,
+            type_id=f"{DESCRIPTION_TYPES}/measurement-conditions",
+            value="Bruker S8 Tiger",
         )
 
         descriptions = MeasurementDescription.objects.filter(related=measurement)
@@ -1133,11 +1180,11 @@ class TestMeasurementFAIRMetadata:
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
         date1 = MeasurementDate.objects.create(
-            related=measurement, type="Setup", value="2024-02-15"
+            related=measurement, type_id=f"{DATE_TYPES}/setup", value="2024-02-15"
         )
 
         date2 = MeasurementDate.objects.create(
-            related=measurement, type="TearDown", value="2024-02-10"
+            related=measurement, type_id=f"{DATE_TYPES}/tear-down", value="2024-02-10"
         )
 
         dates = MeasurementDate.objects.filter(related=measurement)
@@ -1153,7 +1200,9 @@ class TestMeasurementQuerySetOptimization:
     def test_with_related_prefetches_direct_relationships(self):
         for _ in range(5):
             measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
-            measurement.add_contributor(PersonFactory(), with_roles=["Creator"])
+            measurement.add_contributor(
+                PersonFactory(), with_roles=[f"{CONTRIBUTOR_ROLES}/creator"]
+            )
 
         with CaptureQueriesContext(connection) as queries:
             measurements = list(Measurement.objects.with_related().all())
@@ -1169,9 +1218,13 @@ class TestMeasurementQuerySetOptimization:
     def test_with_metadata_prefetches_descriptions_dates_identifiers(self):
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
         MeasurementDescription.objects.create(
-            related=measurement, type="MeasurementSetup", value="XRF"
+            related=measurement,
+            type_id=f"{DESCRIPTION_TYPES}/measurement-setup",
+            value="XRF",
         )
-        MeasurementDate.objects.create(related=measurement, type="Setup", value="2024")
+        MeasurementDate.objects.create(
+            related=measurement, type_id=f"{DATE_TYPES}/setup", value="2024"
+        )
 
         with CaptureQueriesContext(connection) as queries:
             measurements = list(Measurement.objects.with_metadata().all())
@@ -1190,7 +1243,9 @@ class TestMeasurementQuerySetOptimization:
                 sample=RockSampleFactory(), dataset=dataset
             )
             MeasurementDescription.objects.create(
-                related=measurement, type="MeasurementSetup", value="Test"
+                related=measurement,
+                type_id=f"{DESCRIPTION_TYPES}/measurement-setup",
+                value="Test",
             )
 
         measurements = (
@@ -1243,9 +1298,13 @@ class TestMeasurementQuerySetOptimization:
             m = ExampleMeasurementFactory(
                 sample=RockSampleFactory(), name=f"Measurement {i}"
             )
-            m.add_contributor(PersonFactory(), with_roles=["Creator"])
+            m.add_contributor(
+                PersonFactory(), with_roles=[f"{CONTRIBUTOR_ROLES}/creator"]
+            )
             MeasurementDescription.objects.create(
-                related=m, type="MeasurementSetup", value=f"Method {i}"
+                related=m,
+                type_id=f"{DESCRIPTION_TYPES}/measurement-setup",
+                value=f"Method {i}",
             )
             measurements.append(m)
 
@@ -1501,9 +1560,7 @@ class TestMeasurementEffectiveLocation:
 
         assert measurement.effective_location_for(None) is None
 
-    def test_a_visitor_gets_none_for_a_sample_they_may_not_open(
-        self, released, hidden
-    ):
+    def test_a_visitor_gets_none_for_a_sample_they_may_not_open(self, released, hidden):
         sample = RockSampleFactory(
             dataset=hidden, location=GEOSPoint(12.5, 41.5, srid=4326)
         )
@@ -1512,9 +1569,7 @@ class TestMeasurementEffectiveLocation:
         assert measurement.effective_location_for(None) is None
         assert measurement.effective_location_for(AnonymousUser()) is None
 
-    def test_a_person_who_may_open_the_sample_gets_its_location(
-        self, released, hidden
-    ):
+    def test_a_person_who_may_open_the_sample_gets_its_location(self, released, hidden):
         sample = RockSampleFactory(
             dataset=hidden, location=GEOSPoint(12.5, 41.5, srid=4326)
         )
@@ -1537,9 +1592,7 @@ class TestMeasurementEffectiveLocation:
 
         assert measurement.effective_location_for(PersonFactory(is_active=True)) is None
 
-    def test_changing_the_samples_location_leaves_the_measurements_own(
-        self, released
-    ):
+    def test_changing_the_samples_location_leaves_the_measurements_own(self, released):
         sample = RockSampleFactory(
             dataset=released, location=GEOSPoint(12.5, 41.5, srid=4326)
         )

@@ -1,3 +1,4 @@
+import controlled_vocabularies.fields
 import django.db.models.deletion
 import parler.fields
 import parler.models
@@ -9,7 +10,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ("research_vocabs", "0001_initial"),
+        ("controlled_vocabularies", "0001_initial"),
     ]
 
     operations = [
@@ -76,12 +77,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "keywords",
-                    models.ManyToManyField(
-                        blank=True,
-                        help_text="A set of keywords from controlled vocabularies describing the database.",
-                        to="research_vocabs.concept",
-                        verbose_name="Keywords",
-                    ),
+                    controlled_vocabularies.fields.MultiConceptField(blank=True, help_text='A set of keywords from controlled vocabularies describing the portal.', verbose_name='Keywords', vocabulary=()),
                 ),
             ],
             options={

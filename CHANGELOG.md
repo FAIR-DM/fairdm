@@ -59,6 +59,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and `literature.delete_item` permissions. django-select2 is no longer installed.
   `LiteratureItemFactory` builds an `Item` and takes `doi`, `year` and `authors`. See
   [How to upgrade a portal to django-literature 0.3](docs/developers/how-to/upgrade-a-portal-to-django-literature-0-3.md).
+- **Breaking for upgrades: every controlled term is stored as the address of a concept in a
+  published vocabulary.** FairDM's description, date and identifier types, contributor roles and
+  sample statuses are the concepts of the vocabularies in
+  [FAIR-DM/fairdm-vocabularies](https://github.com/FAIR-DM/fairdm-vocabularies), each at an
+  address under `https://w3id.org/fairdm/vocabularies/`, and are held through
+  [django-controlled-vocabularies](https://pypi.org/project/django-controlled-vocabularies/) 0.3.1
+  from PyPI. `Sample.status`, the `type` of every description, date and identifier row, and
+  `ContributorIdentifier.type` are `ConceptField`s limited to their record type's collection, and
+  `Contribution.roles` and the `keywords` of projects, datasets, samples, measurements and the
+  portal identity are `MultiConceptField`s. Code that names a term names its address, through the
+  constants in `fairdm.core.vocabularies`. A portal loads the vocabularies with
+  `sync_vocabularies`, and a portal that already holds data converts it with
+  `upgrade_vocabularies` before it migrates. `FAIRDM_PROJECT["keywords"]` lists the addresses of
+  vocabularies, not Python classes, and no longer offers the contributor roles as keywords by
+  default. The API gives a description, date or identifier type as its address, and a keyword's
+  vocabulary as the vocabulary's address. The DataCite metadata still names each type and role
+  as DataCite does. See
+  [How to upgrade a portal to vocabulary addresses](docs/developers/how-to/upgrade-a-portal-to-vocabulary-addresses.md).
+
+### Removed
+
+- **django-research-vocabs is no longer installed, and the migrations no longer refer to it.**
+  `fairdm.core.vocabularies` holds the addresses of FairDM's vocabularies in place of its
+  vocabulary classes. The unused choice lists in `fairdm.core.choices` and
+  `fairdm.contrib.contributors.choices` are gone, as are `GRID` from the identifier resolvers and
+  the `FairDMIdentifiers` duplicate in `fairdm.contrib.contributors.choices`.
 
 ## [v0.2.1] - 2026-10-22
 

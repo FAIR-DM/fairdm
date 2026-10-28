@@ -23,6 +23,12 @@ from fairdm.contrib.plugins.access import can_open
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample, SampleDate, SampleDescription
 from fairdm.core.sample.plugins import Overview
+from fairdm.core.vocabularies import (
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    SAMPLE_STATUS,
+)
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
@@ -119,7 +125,9 @@ class TestOverviewTemplateChoice:
         names = [t.name for t in _page(client, water).templates if t.name]
 
         assert "sample/sample_overview.html" in names
-        assert not any(n.startswith("demo/") and n.endswith("_overview.html") for n in names)
+        assert not any(
+            n.startswith("demo/") and n.endswith("_overview.html") for n in names
+        )
 
     @isolate_apps("demo")
     def test_a_subtype_with_no_template_of_its_own_uses_its_parents(self):
@@ -207,13 +215,13 @@ class TestOverviewMeasurements:
         self, client, rock
     ):
         shown = XRFMeasurementFactory(dataset=rock.dataset, sample=rock)
-        hidden = XRFMeasurementFactory(
-            dataset=_dataset(published=False), sample=rock
-        )
+        hidden = XRFMeasurementFactory(dataset=_dataset(published=False), sample=rock)
 
         response = _page(client, rock)
 
-        assert [e["measurement"].pk for e in response.context["measurements"]["items"]] == [shown.pk]
+        assert [
+            e["measurement"].pk for e in response.context["measurements"]["items"]
+        ] == [shown.pk]
         assert response.context["counts"]["measurements"] == 1
         assertNotContains(response, hidden.get_absolute_url())
 
@@ -307,7 +315,10 @@ class TestOverviewRelatedSamples:
     def test_the_summary_says_how_many_parents_and_subsamples_are_shown(
         self, client, rock, family
     ):
-        assert _page(client, rock).context["counts"]["related_desc"] == "1 parent · 1 subsample"
+        assert (
+            _page(client, rock).context["counts"]["related_desc"]
+            == "1 parent · 1 subsample"
+        )
 
     def test_a_sample_with_no_relations_says_none_are_recorded(self, client, rock):
         counts = _page(client, rock).context["counts"]
@@ -324,11 +335,13 @@ class TestOverviewHistory:
         self, client, rock
     ):
         for kind, value in [
-            ("Archival", "2024-03-05"),
-            ("Collected", "2023"),
-            ("Prepared", "2024-03"),
+            (f"{DATE_TYPES}/archival", "2024-03-05"),
+            (f"{DATE_TYPES}/collected", "2023"),
+            (f"{DATE_TYPES}/prepared", "2024-03"),
         ]:
-            SampleDate.objects.create(related=rock, type=kind, value=PartialDate(value))
+            SampleDate.objects.create(
+                related=rock, type_id=kind, value=PartialDate(value)
+            )
 
         steps = _page(client, rock).context["lifecycle"]
 
@@ -339,10 +352,14 @@ class TestOverviewHistory:
 
     def test_a_step_with_no_date_follows_the_dated_ones(self, client, rock):
         SampleDescription.objects.create(
-            related=rock, type="SamplePreparation", value="Cut and polished."
+            related=rock,
+            type_id=f"{DESCRIPTION_TYPES}/sample-preparation",
+            value="Cut and polished.",
         )
         SampleDate.objects.create(
-            related=rock, type="Collected", value=PartialDate("2024-01-02")
+            related=rock,
+            type_id=f"{DATE_TYPES}/collected",
+            value=PartialDate("2024-01-02"),
         )
 
         steps = _page(client, rock).context["lifecycle"]
@@ -352,7 +369,10 @@ class TestOverviewHistory:
         assert steps[1]["note"] == "Cut and polished."
 
     def test_people_credited_for_a_step_join_its_entry(self, client, rock):
-        rock.add_contributor(PersonFactory(is_active=True), with_roles=["Collection"])
+        rock.add_contributor(
+            PersonFactory(is_active=True),
+            with_roles=[f"{CONTRIBUTOR_ROLES}/collection"],
+        )
 
         steps = _page(client, rock).context["lifecycle"]
 
@@ -493,16 +513,22 @@ class TestOverviewTypeBadge:
 class TestOverviewStatus:
     """FR-039 and US-3 scenario 12."""
 
-    def test_a_destroyed_specimen_is_announced_as_kept_on_record(self, client, released):
-        sample = RockSampleFactory(dataset=released, status="destroyed")
+    def test_a_destroyed_specimen_is_announced_as_kept_on_record(
+        self, client, released
+    ):
+        sample = RockSampleFactory(
+            dataset=released, status=f"{SAMPLE_STATUS}/destroyed"
+        )
 
         response = _page(client, sample)
 
-        assert response.context["status"]["value"] == "destroyed"
+        assert response.context["status"]["value"] == f"{SAMPLE_STATUS}/destroyed"
         assert response.page.select_one(".alert-warning") is not None
 
-    def test_a_specimen_that_still_exists_carries_no_such_notice(self, client, released):
-        sample = RockSampleFactory(dataset=released, status="stored")
+    def test_a_specimen_that_still_exists_carries_no_such_notice(
+        self, client, released
+    ):
+        sample = RockSampleFactory(dataset=released, status=f"{SAMPLE_STATUS}/stored")
 
         response = _page(client, sample)
 
@@ -510,7 +536,9 @@ class TestOverviewStatus:
         assert response.page.select_one(".alert-warning") is None
 
     def test_a_status_never_recorded_reads_as_unknown(self, client, rock):
-        assert _page(client, rock).context["status"]["value"] == "unknown"
+        assert (
+            _page(client, rock).context["status"]["value"] == f"{SAMPLE_STATUS}/unknown"
+        )
 
     def test_the_details_card_carries_the_status_and_what_it_means(self, client, rock):
         details = _page(client, rock).context["details"]
@@ -598,6 +626,5 @@ class TestOverviewManageMenu:
 
     def test_the_editing_pages_keep_their_addresses(self, rock):
         assert self._addresses(rock) == [
-            f"/samples/{rock.uuid}/{segment}/"
-            for segment in self.EDITING_PAGES
+            f"/samples/{rock.uuid}/{segment}/" for segment in self.EDITING_PAGES
         ]

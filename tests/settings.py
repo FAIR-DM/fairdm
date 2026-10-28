@@ -20,6 +20,7 @@ fairdm.setup(
 )
 
 from config.settings import *
+from config.settings import CONTROLLED_VOCABULARIES  # noqa: F401 - not in its `__all__`
 
 # A test-only app hosting concrete Sample and Measurement subclasses. The registry
 # refuses the polymorphic bases, so the suite needs concrete types to register, and

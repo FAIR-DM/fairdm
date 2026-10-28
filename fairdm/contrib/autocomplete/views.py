@@ -47,6 +47,7 @@ from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.project.models import Project
 from fairdm.core.sample.models import Sample, SampleIdentifier
+from fairdm.core.vocabularies import ORCID, ROR
 from fairdm.models import TaggedItem
 from fairdm.utils.choices import Visibility
 
@@ -609,7 +610,7 @@ class ContributorAutocompleteView(LimitedAutocompleteMixin, AutocompleteModelVie
             A ``Q`` object over the kind's contributors.
         """
         identified = ContributorIdentifier.objects.filter(
-            type=self.identifier_type, value__iexact=query
+            type_id=self.identifier_type, value__iexact=query
         )
         return Q(pk__in=identified.values("related_id"))
 
@@ -695,7 +696,7 @@ class PersonAutocompleteView(ContributorAutocompleteView):
     """
 
     model = Person
-    identifier_type = "ORCID"
+    identifier_type = ORCID
     search_lookups = ["name__icontains", "alternative_names__icontains"]
     value_fields = []
     near_heading = _("People you have worked with")
@@ -780,7 +781,7 @@ class OrganizationAutocompleteView(ContributorAutocompleteView):
     """Offer organizations, found by name, alternative name or ROR, the researcher's own first."""
 
     model = Organization
-    identifier_type = "ROR"
+    identifier_type = ROR
     search_lookups = ["name__icontains", "alternative_names__icontains"]
     value_fields = []
     near_heading = _("Your organizations")

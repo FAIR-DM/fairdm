@@ -533,6 +533,8 @@ class TestParlerLanguagesChecks:
         assert check_parler_languages_subset_of_languages(app_configs=None) == []
 
 
+# The full check run includes the vocabulary checks, which read the database.
+@pytest.mark.django_db
 class TestCheckCommandIntegration:
     @override_settings(SECRET_KEY="")
     def test_check_deploy_fails_with_errors(self):
@@ -567,6 +569,8 @@ class TestCheckCommandIntegration:
         call_command("check", deploy=True)
 
 
+# The full check run includes the vocabulary checks, which read the database.
+@pytest.mark.django_db
 class TestDeployCommand:
     @pytest.mark.parametrize(
         "resolved_environment", ["production", "development", "qa", ""]
@@ -1158,7 +1162,7 @@ class TestBackupStorageCheck:
         assert check_backup_storage_is_remote(app_configs=None) == []
 
     def test_w700_is_listed_by_the_check_command_and_silenceable(
-        self, backup_storage_in, settings
+        self, backup_storage_in, settings, db
     ):
         backup_storage_in("production", self.LOCAL)
         shown, silenced = io.StringIO(), io.StringIO()

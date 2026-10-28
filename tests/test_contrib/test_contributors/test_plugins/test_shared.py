@@ -11,13 +11,13 @@ from urllib.parse import urlparse
 import pytest
 import requests
 from bs4 import BeautifulSoup
+from controlled_vocabularies.models import Record
 from django.contrib.auth.models import Group
 from django.contrib.messages import ERROR, get_messages
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.core.management import call_command
 from django.test import Client
 from guardian.utils import get_anonymous_user
-from research_vocabs.models import Concept
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.contrib.contributors.access import RecordAccess
@@ -31,6 +31,11 @@ from fairdm.contrib.contributors.models import (
 from fairdm.contrib.contributors.plugins.shared import NewPersonForm
 from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.contrib.plugins import reverse
+from fairdm.core.vocabularies import (
+    CONTRIBUTOR_ROLES,
+    IDENTIFIER_TYPES,
+    collection_members,
+)
 from fairdm.factories import (
     ContributionFactory,
     ContributorIdentifierFactory,
@@ -77,7 +82,7 @@ def links(response):
 def stored(record):
     """Everything stored about who is listed on a record, to compare before and after."""
     return sorted(
-        (c.pk, c.level, sorted(r.name for r in c.roles.all()))
+        (c.pk, c.level, sorted(r.uri for r in c.roles.all()))
         for c in record.contributors.all()
     )
 
@@ -127,7 +132,7 @@ def soup_of(response):
 
 
 def role_pks(*names):
-    found = Concept.objects.filter(vocabulary__name="fairdm-roles", name__in=names)
+    found = Record.objects.filter(scheme__uri=CONTRIBUTOR_ROLES, uri__in=names)
     return [str(pk) for pk in found.values_list("pk", flat=True)]
 
 
@@ -168,8 +173,10 @@ class TestContributorsTab:
     def test_nobody_else_is_offered_a_control(
         self, request, record, colleague, partner, viewer
     ):
-        user = None if viewer == "visitor" else request.getfixturevalue(
-            "newcomer" if viewer == "stranger" else viewer
+        user = (
+            None
+            if viewer == "visitor"
+            else request.getfixturevalue("newcomer" if viewer == "stranger" else viewer)
         )
 
         response = browser_as(user).get(tab(record))
@@ -228,7 +235,9 @@ class TestContributorsTabQueries:
         from django.db import connection
         from django.test.utils import CaptureQueriesContext
 
-        roles = Concept.objects.filter(name__in=record.CONTRIBUTOR_ROLES.values)
+        roles = Record.objects.filter(
+            uri__in=[role.uri for role in collection_members(record.CONTRIBUTOR_ROLES)]
+        )
         for _number in range(people - record.contributors.people().count()):
             credit = ContributionFactory(
                 content_object=record,
@@ -279,7 +288,10 @@ class TestChangingPagesRefuseAnyoneButAManager:
             (
                 "post",
                 page_of(record, "edit", pk=colleague.pk),
-                {"roles": role_pks("Creator"), "level": ContributionLevel.MANAGE},
+                {
+                    "roles": role_pks(f"{CONTRIBUTOR_ROLES}/creator"),
+                    "level": ContributionLevel.MANAGE,
+                },
             ),
             ("get", page_of(record, "remove", pk=colleague.pk), {}),
             ("post", page_of(record, "remove", pk=colleague.pk), {}),
@@ -391,7 +403,9 @@ class TestLevels:
             browser_as(newcomer).get(private_record.get_absolute_url()).status_code
             == 200
         )
-        assert browser_as(newcomer).get(changing_page(private_record)).status_code == 403
+        assert (
+            browser_as(newcomer).get(changing_page(private_record)).status_code == 403
+        )
         assert not newcomer.has_perm(
             f"{RecordAccess(private_record).kind}.change_{RecordAccess(private_record).kind}",
             private_record,
@@ -403,7 +417,9 @@ class TestLevels:
         manager = person_at(private_record, MANAGE)
         add_from_portal(private_record, manager, newcomer)
         contribution = private_record.contributors.get(contributor=newcomer)
-        names = list(private_record.CONTRIBUTOR_ROLES.values)[:1]
+        names = list(
+            [role.uri for role in collection_members(private_record.CONTRIBUTOR_ROLES)]
+        )[:1]
 
         response = browser_as(manager).post(
             page_of(private_record, "edit", pk=contribution.pk),
@@ -413,7 +429,7 @@ class TestLevels:
         contribution.refresh_from_db()
         assert response["Location"] == tab(private_record)
         assert contribution.level == EDIT
-        assert {r.name for r in contribution.roles.all()} == set(names)
+        assert {r.uri for r in contribution.roles.all()} == set(names)
 
     def test_changing_roles_does_not_change_the_level(self, private_record):
         manager = person_at(private_record, MANAGE)
@@ -423,7 +439,12 @@ class TestLevels:
         browser_as(manager).post(
             page_of(private_record, "edit", pk=contribution.pk),
             {
-                "roles": role_pks(private_record.CONTRIBUTOR_ROLES.values[0]),
+                "roles": role_pks(
+                    [
+                        role.uri
+                        for role in collection_members(private_record.CONTRIBUTOR_ROLES)
+                    ][0]
+                ),
                 "level": EDIT,
             },
         )
@@ -709,7 +730,10 @@ class TestAddFromPortal:
             page_of(record, "add-person"), {"q": colleague.contributor.name}
         )
 
-        results = {r["contributor"].pk: r["listed"] for r in response.context["adding"]["results"]}
+        results = {
+            r["contributor"].pk: r["listed"]
+            for r in response.context["adding"]["results"]
+        }
         assert results[colleague.contributor_id] is True
 
     def test_someone_already_listed_cannot_be_added_again(
@@ -783,13 +807,17 @@ class TestEditRoles:
     def test_only_the_record_types_roles_are_offered(self, record, manager, colleague):
         response = browser_as(manager).get(page_of(record, "edit", pk=colleague.pk))
 
-        offered = [r["concept"].name for r in response.context["roles"]]
-        assert offered == list(record.CONTRIBUTOR_ROLES.values)
+        offered = [r["concept"].uri for r in response.context["roles"]]
+        assert offered == list(
+            [role.uri for role in collection_members(record.CONTRIBUTOR_ROLES)]
+        )
 
     def test_the_roles_chosen_are_saved_and_the_level_is_left_alone(
         self, record, manager, colleague
     ):
-        names = list(record.CONTRIBUTOR_ROLES.values)[:2]
+        names = list(
+            [role.uri for role in collection_members(record.CONTRIBUTOR_ROLES)]
+        )[:2]
 
         response = browser_as(manager).post(
             page_of(record, "edit", pk=colleague.pk),
@@ -798,14 +826,16 @@ class TestEditRoles:
 
         colleague.refresh_from_db()
         assert response["Location"] == tab(record)
-        assert {r.name for r in colleague.roles.all()} == set(names)
+        assert {r.uri for r in colleague.roles.all()} == set(names)
         assert colleague.level == ContributionLevel.VIEW
 
     def test_a_role_from_another_record_types_group_is_refused(
         self, record, manager, colleague
     ):
-        elsewhere = Concept.objects.filter(vocabulary__name="fairdm-roles").exclude(
-            name__in=record.CONTRIBUTOR_ROLES.values
+        elsewhere = Record.objects.filter(
+            scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+        ).exclude(
+            uri__in=[role.uri for role in collection_members(record.CONTRIBUTOR_ROLES)]
         )[0]
         before = stored(record)
 
@@ -819,7 +849,13 @@ class TestEditRoles:
         assert stored(record) == before
 
     def test_no_role_is_allowed(self, record, manager, colleague):
-        colleague.roles.add(*Concept.objects.filter(name=record.CONTRIBUTOR_ROLES.values[0]))
+        colleague.roles.add(
+            *Record.objects.filter(
+                uri=[role.uri for role in collection_members(record.CONTRIBUTOR_ROLES)][
+                    0
+                ]
+            )
+        )
 
         response = browser_as(manager).post(
             page_of(record, "edit", pk=colleague.pk),
@@ -856,7 +892,12 @@ class TestEditKeepsALevelHeldFromAbove:
     def test_saving_roles_with_the_preselected_level_leaves_the_stored_level(
         self, inheriting
     ):
-        names = list(inheriting.dataset.CONTRIBUTOR_ROLES.values)[:2]
+        names = list(
+            [
+                role.uri
+                for role in collection_members(inheriting.dataset.CONTRIBUTOR_ROLES)
+            ]
+        )[:2]
 
         response = browser_as(inheriting.manager).post(
             page_of(inheriting.dataset, "edit", pk=inheriting.own.pk),
@@ -869,7 +910,7 @@ class TestEditKeepsALevelHeldFromAbove:
 
         inheriting.own.refresh_from_db()
         assert response["Location"] == tab(inheriting.dataset)
-        assert {r.name for r in inheriting.own.roles.all()} == set(names)
+        assert {r.uri for r in inheriting.own.roles.all()} == set(names)
         assert inheriting.own.level == ContributionLevel.VIEW
 
     def test_a_level_above_the_inherited_one_is_stored(self, inheriting):
@@ -892,9 +933,7 @@ class TestRemoveContributor:
         assert Contribution.objects.filter(pk=colleague.pk).exists()
 
     def test_confirming_removes_the_contributor(self, record, manager, colleague):
-        response = browser_as(manager).post(
-            page_of(record, "remove", pk=colleague.pk)
-        )
+        response = browser_as(manager).post(page_of(record, "remove", pk=colleague.pk))
 
         assert response["Location"] == tab(record)
         assert not Contribution.objects.filter(pk=colleague.pk).exists()
@@ -1052,7 +1091,11 @@ class TestLastManagerPages:
         response = browser_as(asker).post(
             page_of(record, "edit", pk=contribution.pk),
             {
-                "roles": role_pks(record.CONTRIBUTOR_ROLES.values[0]),
+                "roles": role_pks(
+                    [role.uri for role in collection_members(record.CONTRIBUTOR_ROLES)][
+                        0
+                    ]
+                ),
                 "level": ContributionLevel.EDIT,
             },
         )
@@ -1065,7 +1108,7 @@ class TestLastManagerPages:
         self, record, manager, asker
     ):
         contribution = record.contributors.get(contributor=manager)
-        names = [record.CONTRIBUTOR_ROLES.values[0]]
+        names = [[role.uri for role in collection_members(record.CONTRIBUTOR_ROLES)][0]]
 
         response = browser_as(asker).post(
             page_of(record, "edit", pk=contribution.pk),
@@ -1073,7 +1116,7 @@ class TestLastManagerPages:
         )
 
         assert response["Location"] == tab(record)
-        assert {r.name for r in contribution.roles.all()} == set(names)
+        assert {r.uri for r in contribution.roles.all()} == set(names)
 
     def test_lowering_one_of_two_managers_is_saved(self, record, manager, asker):
         other = PersonFactory(is_active=True, is_claimed=True, password="x")
@@ -1108,9 +1151,7 @@ class TestLastManagerPages:
         contribution = record.contributors.get(contributor=manager)
         before = stored(record)
 
-        response = browser_as(asker).post(
-            page_of(record, "remove", pk=contribution.pk)
-        )
+        response = browser_as(asker).post(page_of(record, "remove", pk=contribution.pk))
 
         assert response.status_code == 422
         assert response.context["refused"] is True
@@ -1373,8 +1414,10 @@ class TestAffiliationChoice:
         affiliate(colleague.contributor)
         colleague.affiliation = institutes.earlier
         colleague.save()
-        names = list(record.CONTRIBUTOR_ROLES.values)[:1]
-        colleague.roles.add(*Concept.objects.filter(name__in=names))
+        names = list(
+            [role.uri for role in collection_members(record.CONTRIBUTOR_ROLES)]
+        )[:1]
+        colleague.roles.add(*Record.objects.filter(uri__in=names))
 
         response = browser_as(manager).post(
             page_of(record, "edit", pk=colleague.pk),
@@ -1389,7 +1432,7 @@ class TestAffiliationChoice:
         assert response["Location"] == tab(record)
         assert colleague.affiliation == institutes.today
         assert colleague.level == ContributionLevel.VIEW
-        assert {r.name for r in colleague.roles.all()} == set(names)
+        assert {r.uri for r in colleague.roles.all()} == set(names)
         assert record.contributors.filter(contributor=institutes.today).count() == 1
 
     def test_the_edit_page_can_set_the_organization_to_none(
@@ -1411,7 +1454,9 @@ class TestAffiliationChoice:
     ):
         colleague.affiliation = institutes.today
         colleague.save()
-        names = list(record.CONTRIBUTOR_ROLES.values)[:1]
+        names = list(
+            [role.uri for role in collection_members(record.CONTRIBUTOR_ROLES)]
+        )[:1]
         before = stored(record)
 
         response = browser_as(manager).post(
@@ -1555,7 +1600,7 @@ def orcid_way(registry_network, recorded):
     return SimpleNamespace(
         page="add-person",
         model=Person,
-        type="ORCID",
+        type=f"{IDENTIFIER_TYPES}/orcid",
         term="Carberry",
         identifier=JOSIAH,
         stored=JOSIAH,
@@ -1584,7 +1629,7 @@ def ror_way(registry_network, recorded):
     return SimpleNamespace(
         page="add-organization",
         model=Organization,
-        type="ROR",
+        type=f"{IDENTIFIER_TYPES}/ror",
         term="Potsdam",
         identifier=f"https://ror.org/{GFZ}",
         stored=GFZ,
@@ -1813,7 +1858,7 @@ class TestAddFromRegistry:
         assert response.status_code == 302
         assert response["Location"] == page_of(record, "edit", pk=added.pk)
         assert contributor.name == way.name
-        assert contributor.identifiers.get().type == way.type
+        assert contributor.identifiers.get().type_id == way.type
 
     def test_a_person_added_from_orcid_has_no_account(
         self, record, manager, way_person
@@ -1982,7 +2027,9 @@ class TestAddFromRegistry:
         self, record, manager, way_person, affiliate, institutes
     ):
         held = affiliate(PersonFactory())
-        ContributorIdentifierFactory(related=held, type="ORCID", value=JOSIAH)
+        ContributorIdentifierFactory(
+            related=held, type_id=f"{IDENTIFIER_TYPES}/orcid", value=JOSIAH
+        )
 
         response = browser_as(manager).get(
             page_of(record, "add-person"),
@@ -2030,7 +2077,9 @@ class TestAddFromRegistry:
         self, record, manager, way_person
     ):
         held = PersonFactory()
-        ContributorIdentifierFactory(related=held, type="ORCID", value=JOSIAH)
+        ContributorIdentifierFactory(
+            related=held, type_id=f"{IDENTIFIER_TYPES}/orcid", value=JOSIAH
+        )
         ContributionFactory(content_object=record, contributor=held, level=None)
         before = made()
 
@@ -2051,7 +2100,9 @@ class TestAddFromRegistry:
         self, record, manager, way_person
     ):
         superuser = PersonFactory(is_active=True, is_superuser=True, password="x")
-        ContributorIdentifierFactory(related=superuser, type="ORCID", value=JOSIAH)
+        ContributorIdentifierFactory(
+            related=superuser, type_id=f"{IDENTIFIER_TYPES}/orcid", value=JOSIAH
+        )
         before = stored(record)
 
         response = browser_as(manager).post(
@@ -2518,10 +2569,14 @@ class TestPortalRoles:
     def test_a_data_curator_views_and_changes_a_private_record_they_are_not_on(
         self, private_record, team, curator
     ):
-        assert browser_as(curator).get(private_record.get_absolute_url()).status_code == 200
+        assert (
+            browser_as(curator).get(private_record.get_absolute_url()).status_code
+            == 200
+        )
         if changing_page(private_record):
             assert (
-                browser_as(curator).get(changing_page(private_record)).status_code == 200
+                browser_as(curator).get(changing_page(private_record)).status_code
+                == 200
             )
         assert browser_as(curator).get(tab(private_record)).status_code == 200
         for url in tab_pages(private_record, team.colleague)[1:]:
@@ -2562,7 +2617,8 @@ class TestPortalRoles:
         assert private_record.contributors.filter(contributor=newcomer).exists()
         assert not private_record.contributors.filter(contributor=curator).exists()
         assert all(
-            curator.pk not in credited_names(c) for c in private_record.contributors.all()
+            curator.pk not in credited_names(c)
+            for c in private_record.contributors.all()
         )
 
     def test_a_data_curator_raises_a_contributor_on_a_record_nobody_counts_on(

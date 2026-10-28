@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from typing import TYPE_CHECKING, Any, cast
 from urllib.parse import urlencode
 
+from controlled_vocabularies.models import Record
 from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -13,7 +14,6 @@ from django.db.models.manager import BaseManager
 from django.urls import NoReverseMatch
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.utils import extend_schema_field
-from research_vocabs.models import Concept
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.fields import get_error_detail
@@ -31,6 +31,7 @@ from fairdm.contrib.contributors.models import (
 )
 from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.core.models import Dataset, Measurement, Project, Sample
+from fairdm.core.vocabularies import ROR, notation
 
 if TYPE_CHECKING:
     from rest_framework.request import Request
@@ -452,52 +453,62 @@ class RecordListSerializer(serializers.ListSerializer):
 
 
 class DescriptionSerializer(serializers.Serializer):
-    """A typed description of a record."""
+    """A typed description of a record, its type given by the concept's address."""
 
-    type = serializers.CharField(read_only=True)
+    type = serializers.CharField(source="type_id", read_only=True)
     value = serializers.CharField(read_only=True)
 
 
 class DateSerializer(serializers.Serializer):
-    """A typed key date of a record, as a year, a month or a day."""
+    """A typed key date of a record, as a year, a month or a day, its type given by address."""
 
-    type = serializers.CharField(read_only=True)
+    type = serializers.CharField(source="type_id", read_only=True)
     value = serializers.CharField(read_only=True)
 
 
 class IdentifierSerializer(serializers.Serializer):
-    """A typed external identifier of a record."""
+    """A typed external identifier of a record, its type given by the concept's address."""
 
-    type = serializers.CharField(read_only=True)
+    type = serializers.CharField(source="type_id", read_only=True)
     value = serializers.CharField(read_only=True)
 
 
-class KeywordSerializer(serializers.Serializer):
-    """A controlled keyword of a record and the vocabulary it comes from."""
+class ConceptSerializer(serializers.Serializer):
+    """A concept: its address, its notation and its name in the reading language."""
 
-    name = serializers.CharField(read_only=True)
-    label = serializers.CharField(read_only=True)  # type: ignore[assignment]
     uri = serializers.CharField(read_only=True)
-    vocabulary = serializers.CharField(source="vocabulary.name", read_only=True)
+    name = serializers.SerializerMethodField()
+    label = serializers.CharField(source="display_label", read_only=True)  # type: ignore[assignment]
+
+    def get_name(self, concept) -> str:
+        """Give the concept's notation, or an empty string when it has none."""
+        return notation(concept)
 
 
-class RoleSerializer(serializers.Serializer):
+class KeywordSerializer(ConceptSerializer):
+    """A controlled keyword of a record and the address of the vocabulary it comes from."""
+
+    vocabulary = serializers.CharField(source="scheme.uri", read_only=True)
+
+
+class RoleSerializer(ConceptSerializer):
     """A role a contributor holds on a record."""
-
-    name = serializers.CharField(read_only=True)
-    label = serializers.CharField(read_only=True)  # type: ignore[assignment]
 
 
 class NameIdentifierSerializer(serializers.Serializer):
     """An identifier of a credited contributor, as DataCite gives a name identifier."""
 
     name_identifier = serializers.SerializerMethodField()
-    name_identifier_scheme = serializers.CharField(source="type", read_only=True)
+    name_identifier_scheme = serializers.SerializerMethodField()
     scheme_uri = serializers.SerializerMethodField()
 
     def get_name_identifier(self, identifier) -> str:
         """Give the address the identifier resolves to, or its value where it has none."""
         return str(identifier.resolver_url or identifier.value)
+
+    def get_name_identifier_scheme(self, identifier) -> str:
+        """Give the identifier type's notation, the scheme name DataCite uses."""
+        return notation(identifier.type)
 
     def get_scheme_uri(self, identifier) -> str | None:
         """Give the address of the scheme's resolver, or nothing for an unknown scheme."""
@@ -534,7 +545,7 @@ class CreditAffiliationSerializer(OrganizationReferenceSerializer):
             The identifier, or None when the organization holds none.
         """
         held = sorted(organization.identifiers.all(), key=lambda held: held.pk)
-        return next((i for i in held if i.type == "ROR"), held[0] if held else None)
+        return next((i for i in held if i.type_id == ROR), held[0] if held else None)
 
     def get_affiliation_identifier(self, organization) -> str | None:
         """Give the address the identifier resolves to, or its value where it has none."""
@@ -544,9 +555,9 @@ class CreditAffiliationSerializer(OrganizationReferenceSerializer):
         return str(identifier.resolver_url or identifier.value)
 
     def get_affiliation_identifier_scheme(self, organization) -> str | None:
-        """Give the kind of the identifier."""
+        """Give the kind of the identifier, as its type's notation."""
         identifier = self.identifier_of(organization)
-        return str(identifier.type) if identifier else None
+        return notation(identifier.type) if identifier else None
 
     def get_scheme_uri(self, organization) -> str | None:
         """Give the address of the identifier's scheme, or nothing for an unknown scheme."""
@@ -721,7 +732,9 @@ class RecordSerializer(CreatorCreditMixin, serializers.ModelSerializer):
         credits_ = (
             Contribution.objects.select_related("contributor", "affiliation")
             .prefetch_related(
-                "roles", "contributor__identifiers", "affiliation__identifiers"
+                "roles",
+                "contributor__identifiers__type",
+                "affiliation__identifiers__type",
             )
             .annotate(
                 given_name=F("contributor__person__first_name"),
@@ -732,7 +745,7 @@ class RecordSerializer(CreatorCreditMixin, serializers.ModelSerializer):
             "descriptions",
             "dates",
             "identifiers",
-            Prefetch("keywords", queryset=Concept.objects.select_related("vocabulary")),
+            Prefetch("keywords", queryset=Record.objects.select_related("scheme")),
             Prefetch("contributors", queryset=credits_),
         )
 
@@ -893,9 +906,9 @@ class BaseMeasurementSerializer(RecordSerializer):
 
 
 class ContributorIdentifierSerializer(serializers.Serializer):
-    """An identifier of a contributor, such as an ORCID iD, and the address it resolves to."""
+    """An identifier of a contributor, such as an ORCID iD, its type's address and its own."""
 
-    type = serializers.CharField(read_only=True)
+    type = serializers.CharField(source="type_id", read_only=True)
     value = serializers.CharField(read_only=True)
     link = serializers.CharField(source="resolver_url", read_only=True)
 

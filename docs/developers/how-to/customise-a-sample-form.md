@@ -114,4 +114,4 @@ class CoreSample(Sample):
 
 ## The result
 
-The type's form keeps everything the mixin provides: a dataset field that offers only the datasets the person may edit, the location input, and a status that starts at "unknown". It also carries your validation, order, widget and layout. Always pass `request` when you build the form yourself, because the dataset field needs it to know who is choosing. A form built with no request offers no dataset.
+The type's form keeps everything the mixin provides: a dataset field that offers only the datasets the person may edit, the location input, and a status drop-down that starts at "Unknown". It also carries your validation, order, widget and layout. Always pass `request` when you build the form yourself, because the dataset field needs it to know who is choosing. A form built with no request offers no dataset.

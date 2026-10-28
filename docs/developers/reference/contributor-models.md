@@ -54,7 +54,7 @@ Every class below is imported from `fairdm.contrib.contributors.models` unless a
 | `get_contributions_by_type(model_name)` | Queryset | The credits on one model, such as `"project"` |
 | `has_contribution_to(obj)` | `bool` | Whether the contributor is credited on `obj` |
 | `get_collaborators(limit=None, contributions=None)` | Queryset | The other contributors credited on the same records, most frequent first and ties by name. Each carries `collaboration_count` |
-| `add_to(obj, roles=None)` | `Contribution` | Credits the contributor on `obj`, adding `roles` (names from the roles vocabulary) to any credit already there. A person credited for the first time starts at the view level. An organization has no level |
+| `add_to(obj, roles=None)` | `Contribution` | Credits the contributor on `obj`, adding `roles` (addresses of contributor roles) to any credit already there. A person credited for the first time starts at the view level. An organization has no level |
 | `get_links_display()` | `list` of `{"url", "host"}` | One entry for each `http` or `https` link, in the order recorded. Other links are left out |
 | `get_language_names()` | `list` of `str` | The names of the recorded languages in the active language. An unknown code is kept as written |
 | `to_datacite()` | `dict` | The contributor as a DataCite creator or contributor object |
@@ -257,7 +257,7 @@ Two database constraints apply:
 | `object_id` | `CharField(max_length=23)` | None, required | The credited record's primary key as text | A key |
 | `content_object` | `GenericForeignKey` | | The credited record | |
 | `contributor` | `ForeignKey` to `Contributor` | `None`, nullable | The person or organization credited. Deleting the contributor sets this to `None`. Reached from the contributor as `contributions` | A contributor |
-| `roles` | `ConceptManyToManyField` to `FairDMRoles` | Empty | The roles on this credit | Concepts of the `fairdm-roles` vocabulary |
+| `roles` | `MultiConceptField` on the contributor roles vocabulary | Empty | The roles on this credit | Concepts of the contributor roles vocabulary |
 | `affiliation` | `ForeignKey` to `Organization` | `None` | The organization a person is credited from on this record. Kept on the credit and not read from the profile. Deleting the organization sets this to `None`. No reverse accessor | An organization, or `None` |
 | `level` | `PositiveSmallIntegerField` | `None` | What a person may do on the record. Empty for an organization | A value of `ContributionLevel`. See [Contribution levels and record access](contribution-levels-and-record-access.md) |
 
@@ -266,13 +266,13 @@ Two database constraints apply:
 Two rules protect the data:
 
 - A named constraint, `unique_contribution_per_contributor_object`, allows one row for each contributor and record. `clean()` refuses a second row with the message `This contributor is already credited on this object.`
-- A role from any vocabulary other than `fairdm-roles` is refused when it is written. A receiver on `Contribution.roles.through` raises `ValidationError` for `roles.add()` and `roles.set()`. `clean()` also refuses a stored off-vocabulary role.
+- A role from any other vocabulary is refused before it is written: `roles.add()` and `roles.set()` raise `ValidationError`.
 
-The roles a record's type offers are in its `CONTRIBUTOR_ROLES` attribute, a collection of `FairDMRoles`.
+The roles a record's type offers are the collection named by its `CONTRIBUTOR_ROLES` attribute, the address of one of the contributor roles vocabulary's collections.
 
 | Member | Returns | What it does |
 |---|---|---|
-| `Contribution.add_to(contributor, obj, roles=None, affiliation=None)` | `Contribution` | Credits `contributor` on `obj`. A credit already there is kept and `roles` (names) are added to it. `affiliation` is set only on a credit created by this call. A person credited for the first time starts at the view level. A sample or measurement held as its base class is credited under its real type |
+| `Contribution.add_to(contributor, obj, roles=None, affiliation=None)` | `Contribution` | Credits `contributor` on `obj`. A credit already there is kept and `roles` (role addresses) are added to it. `affiliation` is set only on a credit created by this call. A person credited for the first time starts at the view level. A sample or measurement held as its base class is credited under its real type |
 | `Contribution.starting_level(contributor)` | `ContributionLevel` or `None` | `VIEW` for a person, `None` for an organization |
 | `is_person()` | `bool` | Whether the contributor is a `Person` |
 | `get_absolute_url()` | `str` | The contributor's profile address |
@@ -283,7 +283,7 @@ The roles a record's type offers are in its `CONTRIBUTOR_ROLES` attribute, a col
 
 | Method | Returns | What it does |
 |---|---|---|
-| `by_role(role_name)` | Queryset | Credits whose roles include the named concept |
+| `by_role(role)` | Queryset | Credits whose roles include the role with this address |
 | `for_entity(obj)` | Queryset | Credits on one record |
 | `by_contributor(contributor)` | Queryset | Credits by one contributor across all records |
 | `people()` | Queryset | Credits of people, ordered by `order` then `pk`. Reads the contributor's polymorphic type and loads no contributor |
@@ -298,10 +298,10 @@ Move a credit through `Crediting.move`. Do not use `contribution.up()` or `contr
 | Field | Type | Default | What it holds | What it accepts |
 |---|---|---|---|---|
 | `related` | `ForeignKey` to `Contributor` | None, required | The contributor. Reached as `identifiers` | A contributor |
-| `type` | `CharField(max_length=50)` | None, required | The identifier scheme | One of the types below |
+| `type` | `ConceptField` on the identifier types vocabulary, limited to its contributor collection | None, required | The identifier scheme | The address of one of the types below |
 | `value` | `CharField(max_length=255)`, unique, indexed | None, required | The identifier | Text. No two identifiers of any record type share a value |
 
-`VOCABULARY` is `FairDMIdentifiers.from_collection("Contributor")`, which offers `ORCID`, `RESEARCHER_ID`, `ROR`, `WIKIDATA`, `ISNI` and `CROSSREF_FUNDER_ID`. A contributor holds at most one identifier of each type. A second is refused at the database and by `clean()`, with a message naming the type.
+The contributor collection offers, by identifier, `orcid`, `researcher-id`, `ror`, `wikidata`, `isni` and `crossref-funder-id`. A contributor holds at most one identifier of each type. A second is refused at the database and by `clean()`, with a message naming the type.
 
 `resolver_url` is the address the identifier resolves to, or `None` for a type with no resolver. ORCID, ROR, Wikidata, ISNI and Crossref Funder ID identifiers have one. A ResearcherID has none.
 

@@ -1,10 +1,10 @@
 """Forms for adding people and editing contributions."""
 
+from controlled_vocabularies.models import Record
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from mvp_forms.widgets import TomSelectMultiple
-from research_vocabs.models import Concept
 
 from fairdm.contrib.autocomplete.fields import OrganizationChoiceField
 from fairdm.contrib.contributors.models import (
@@ -12,6 +12,7 @@ from fairdm.contrib.contributors.models import (
     Organization,
     Person,
 )
+from fairdm.core.vocabularies import collection_members
 from fairdm.forms import ModelForm
 
 from .widgets import OrcidInputWidget
@@ -143,7 +144,8 @@ class UpdateContributionForm(ModelForm):
     """
 
     roles = forms.ModelMultipleChoiceField(
-        queryset=Concept.objects.none(),
+        queryset=Record.objects.none(),
+        to_field_name="uri",
         widget=TomSelectMultiple(
             counted=True,
             placeholder=_("Select roles"),
@@ -175,8 +177,10 @@ class UpdateContributionForm(ModelForm):
         self.fields[
             "affiliation"
         ].queryset = self.instance.contributor.affiliations.all()
-        roles_qs = Concept.get_for_vocabulary(
-            Contribution.roles_vocab.__class__
-        ).filter(name__in=self.base_object.CONTRIBUTOR_ROLES.values)
-        self.fields["roles"].queryset = roles_qs
-        self.fields["roles"].choices = roles_qs.values_list("id", "label")
+        offered = collection_members(self.base_object.CONTRIBUTOR_ROLES)
+        self.fields["roles"].queryset = Record.objects.filter(
+            uri__in=[role.uri for role in offered]
+        )
+        self.fields["roles"].choices = [
+            (role.uri, role.display_label()) for role in offered
+        ]

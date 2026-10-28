@@ -18,6 +18,7 @@ from fairdm.contrib.contributors.models import (
     ContributorIdentifier,
     Person,
 )
+from fairdm.core.vocabularies import CONTRIBUTOR_ROLES, IDENTIFIER_TYPES
 from fairdm.factories import (
     AffiliationFactory,
     ContributionFactory,
@@ -33,25 +34,27 @@ from fairdm.utils.choices import Visibility
 
 @pytest.fixture
 def contribution_roles(db):
-    from research_vocabs.models import Concept
+    from controlled_vocabularies.models import Record
 
-    return Concept.objects.filter(vocabulary__name="fairdm-roles")
+    return Record.objects.filter(
+        scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+    )
 
 
 @pytest.fixture
 def off_vocabulary_role(db):
-    from research_vocabs.models import Concept, Vocabulary
+    from controlled_vocabularies.models import ConceptScheme, Record
 
-    vocabulary = Vocabulary.objects.create(
-        name="not-fairdm-roles",
-        label="Not FairDM Roles",
+    vocabulary = ConceptScheme.objects.create(
         uri="https://example.com/vocabularies/not-fairdm-roles",
+        default_language="en",
+        data={"skos:prefLabel": [{"@value": "Not FairDM Roles", "@language": "en"}]},
     )
-    return Concept.objects.create(
-        vocabulary=vocabulary,
+    return Record.objects.create(
+        scheme=vocabulary,
+        type=Record.Type.CONCEPT,
         uri="https://example.com/vocabularies/not-fairdm-roles#outsider",
-        name="Outsider",
-        label="Outsider",
+        data={"skos:prefLabel": [{"@value": "Outsider", "@language": "en"}]},
     )
 
 
@@ -152,7 +155,7 @@ def contribution(db, person, project_for_contributions):
 def orcid_identifier(db, person):
     return ContributorIdentifier.objects.create(
         related=person,
-        type="ORCID",
+        type_id=f"{IDENTIFIER_TYPES}/orcid",
         value="0000-0001-2345-6789",
     )
 
@@ -161,7 +164,7 @@ def orcid_identifier(db, person):
 def ror_identifier(db, organization):
     return ContributorIdentifier.objects.create(
         related=organization,
-        type="ROR",
+        type_id=f"{IDENTIFIER_TYPES}/ror",
         value="https://ror.org/02nr0ka47",
     )
 
@@ -194,7 +197,7 @@ def audit_log_entry(db, person_a, person_b):
 
 @pytest.fixture
 def contributor_population(db):
-    from research_vocabs.models import Concept
+    from controlled_vocabularies.models import Record
 
     superuser = UserFactory(
         email="population-superuser@example.com",
@@ -238,11 +241,12 @@ def contributor_population(db):
         end_date="2020",
     )
 
-    # Two of the FairDMRoles vocabulary's own concepts, so no new Concept row
-    # has to invent a URI (Concept.uri is unique with no default).
-    creator_role = Concept.objects.get(vocabulary__name="fairdm-roles", name="Creator")
-    contributor_role = Concept.objects.get(
-        vocabulary__name="fairdm-roles", name="Contributor"
+    # Two of the contributor roles vocabulary's own concepts.
+    creator_role = Record.objects.get(
+        scheme__uri=CONTRIBUTOR_ROLES, uri=f"{CONTRIBUTOR_ROLES}/creator"
+    )
+    contributor_role = Record.objects.get(
+        scheme__uri=CONTRIBUTOR_ROLES, uri=f"{CONTRIBUTOR_ROLES}/contributor"
     )
 
     project = ProjectFactory()
@@ -310,21 +314,25 @@ def credited_world(db):
     private_dataset_mate = PersonFactory(email="private-dataset-mate@example.com")
 
     for record, roles in [
-        (public_project, ["Creator"]),
-        (private_project, ["Supervisor"]),
-        (public_dataset, ["DataCollector"]),
-        (private_dataset, ["Editor"]),
-        (dataset_in_private_project, ["Producer"]),
-        (public_sample, ["Researcher"]),
-        (sample_in_private_project, ["Sponsor"]),
-        (public_measurement, ["Support"]),
-        (measurement_in_private_project, ["Other"]),
+        (public_project, [f"{CONTRIBUTOR_ROLES}/creator"]),
+        (private_project, [f"{CONTRIBUTOR_ROLES}/supervisor"]),
+        (public_dataset, [f"{CONTRIBUTOR_ROLES}/data-collector"]),
+        (private_dataset, [f"{CONTRIBUTOR_ROLES}/editor"]),
+        (dataset_in_private_project, [f"{CONTRIBUTOR_ROLES}/producer"]),
+        (public_sample, [f"{CONTRIBUTOR_ROLES}/researcher"]),
+        (sample_in_private_project, [f"{CONTRIBUTOR_ROLES}/sponsor"]),
+        (public_measurement, [f"{CONTRIBUTOR_ROLES}/support"]),
+        (measurement_in_private_project, [f"{CONTRIBUTOR_ROLES}/other"]),
     ]:
         person.add_to(record, roles=roles)
     for record in (public_project, public_dataset):
         open_mate.add_to(record)
     sample_mate.add_to(public_sample)
-    for record in (private_project, dataset_in_private_project, sample_in_private_project):
+    for record in (
+        private_project,
+        dataset_in_private_project,
+        sample_in_private_project,
+    ):
         private_mate.add_to(record)
     private_dataset_mate.add_to(private_dataset)
     private_dataset_mate.add_to(private_sample)

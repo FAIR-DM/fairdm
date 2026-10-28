@@ -18,6 +18,7 @@ from fairdm.contrib.contributors.models import Contribution, Contributor
 from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins import reverse as plugin_reverse
 from fairdm.core.overview import format_authors, sentence_case
+from fairdm.core.vocabularies import DOI, IGSN
 from fairdm.views import FairDMTemplateView
 
 
@@ -76,7 +77,7 @@ class RecordOverviewPlugin(OverviewPlugin):
     """
 
     people_shown = 18
-    resolvable_identifier_types = ("DOI", "IGSN")
+    resolvable_identifier_types = (DOI, IGSN)
 
     def get_context_data(self, **kwargs):
         """Lead the People card to the record's Contributors tab and add the Manage menu."""
@@ -111,16 +112,16 @@ class RecordOverviewPlugin(OverviewPlugin):
         return contributions
 
     @staticmethod
-    def get_role_names(contribution) -> set[str]:
-        """Name the roles held on one credit.
+    def get_role_uris(contribution) -> set[str]:
+        """Give the addresses of the roles held on one credit.
 
         Args:
             contribution: A contribution, from :meth:`get_contributions`.
 
         Returns:
-            The names of its roles.
+            The addresses of its roles.
         """
-        return {role.name for role in contribution.roles.all()}
+        return {role.uri for role in contribution.roles.all()}
 
     @staticmethod
     def get_contributors_with_role(entries, role) -> list[Contributor]:
@@ -128,7 +129,7 @@ class RecordOverviewPlugin(OverviewPlugin):
 
         Args:
             entries: The record's credits, from :meth:`get_credits`.
-            role: The name of the role.
+            role: The address of the role.
 
         Returns:
             The contributors of every entry that holds it.
@@ -142,13 +143,15 @@ class RecordOverviewPlugin(OverviewPlugin):
         recorded on the credit itself, so a person credited with no organization has none.
 
         Returns:
-            One ``{"contributor", "roles": {name: label}, "affiliation"}`` entry per credit, in
+            One ``{"contributor", "roles": {address: label}, "affiliation"}`` entry per credit, in
             the order of :meth:`get_contributions`.
         """
         return [
             {
                 "contributor": credit.contributor,
-                "roles": {role.name: role.label for role in credit.roles.all()},
+                "roles": {
+                    role.uri: role.display_label() for role in credit.roles.all()
+                },
                 "affiliation": credit.affiliation,
             }
             for credit in self.get_contributions()
@@ -180,19 +183,19 @@ class RecordOverviewPlugin(OverviewPlugin):
         IGSN handle, which does not start with ``10.``, does not resolve there and stays unlinked.
 
         Returns:
-            One ``{"type", "value", "link"}`` entry per identifier; ``link`` is ``None`` for any
-            other type.
+            One ``{"type", "value", "link"}`` entry per identifier, ``type`` being the identifier
+            type's concept. ``link`` is ``None`` for any other type.
         """
         return [
             {
                 "type": identifier.type,
                 "value": identifier.value,
                 "link": f"https://doi.org/{identifier.value}"
-                if identifier.type in self.resolvable_identifier_types
+                if identifier.type_id in self.resolvable_identifier_types
                 and str(identifier.value).startswith("10.")
                 else None,
             }
-            for identifier in self.base_object.identifiers.all()
+            for identifier in self.base_object.identifiers.select_related("type")
         ]
 
     def get_citation(self, *, authors, year, title, link) -> str:
@@ -225,9 +228,10 @@ class RecordOverviewPlugin(OverviewPlugin):
         the year or the month is shown as recorded, never padded out to a day.
 
         Args:
-            steps: ``[(date_type, role, description_type, label)]``.
-            dates: The record's dates, by type.
-            descriptions: The record's descriptions, by type.
+            steps: ``[(date_type, role, description_type, label)]``, each type and role
+                given by its address.
+            dates: The record's dates, keyed by the address of their type.
+            descriptions: The record's descriptions, keyed by the address of their type.
             entries: The record's credits, from :meth:`get_credits`.
 
         Returns:

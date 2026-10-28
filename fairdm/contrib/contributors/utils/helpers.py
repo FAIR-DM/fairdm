@@ -1,8 +1,10 @@
 """Helpers for contributor avatars, role checks and contributions."""
 
+from controlled_vocabularies.models import Record
 from django.templatetags.static import static
 from easy_thumbnails.files import get_thumbnailer
-from research_vocabs.models import Concept
+
+from fairdm.core.vocabularies import CONTRIBUTOR_ROLES
 
 
 def get_contributor_avatar(contributor):
@@ -49,7 +51,7 @@ def current_user_has_role(request, obj, role):
     Args:
         request: The current request.
         obj: A project, dataset or sample with contributors.
-        role: A role name or a list of role names.
+        role: The address of a role, or a list of them.
 
     Returns:
         True when the user's contribution to the object includes any of the roles.
@@ -62,7 +64,7 @@ def current_user_has_role(request, obj, role):
         role = [role]
 
     if contribution_obj := obj.contributors.filter(contributor=current_user).first():
-        return any(role in contribution_obj.roles for role in role)
+        return contribution_obj.roles.filter(uri__in=role).exists()
 
     return False
 
@@ -73,7 +75,7 @@ def update_or_create_contribution(contributor, obj, roles=None):
     Args:
         contributor: The contributor to add.
         obj: The object to add them to. Needs a ``contributors`` manager and ``DEFAULT_ROLES``.
-        roles: Role names to add. Defaults to ``obj.DEFAULT_ROLES``.
+        roles: Addresses of the roles to add. Defaults to ``obj.DEFAULT_ROLES``.
 
     Returns:
         A ``(contribution, created)`` pair, where ``created`` is False when the contributor
@@ -82,10 +84,11 @@ def update_or_create_contribution(contributor, obj, roles=None):
     contribution, created = obj.contributors.get_or_create(
         contributor=contributor,
     )
-    roles_qs = Concept.objects.filter(vocabulary__name="fairdm-roles")
     if not roles:
         roles = obj.DEFAULT_ROLES
 
-    contribution.roles.add(*roles_qs.filter(name__in=roles))
+    contribution.roles.add(
+        *Record.objects.filter(scheme__uri=CONTRIBUTOR_ROLES, uri__in=roles)
+    )
 
     return contribution, created

@@ -9,6 +9,12 @@ from fairdm.core.measurement.models import (
     MeasurementDescription,
     MeasurementIdentifier,
 )
+from fairdm.core.vocabularies import (
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    IDENTIFIER_TYPES,
+)
 from fairdm.factories import (
     DatasetFactory,
     PersonFactory,
@@ -121,7 +127,8 @@ def build_measurements_with_related():
             # ~1 in 5 PersonFactory instances are inactive by default; pin it so a
             # permission-adjacent read never turns this into an intermittent failure.
             measurement.add_contributor(
-                PersonFactory(is_active=True), with_roles=["Creator"]
+                PersonFactory(is_active=True),
+                with_roles=[f"{CONTRIBUTOR_ROLES}/creator"],
             )
             measurements.append(measurement)
         return measurements
@@ -139,13 +146,17 @@ def build_measurements_with_metadata():
                 sample=RockSampleFactory(dataset=dataset), dataset=dataset
             )
             MeasurementDescription.objects.create(
-                related=measurement, type="MeasurementSetup", value=f"Method {i}"
+                related=measurement,
+                type_id=f"{DESCRIPTION_TYPES}/measurement-setup",
+                value=f"Method {i}",
             )
             MeasurementDate.objects.create(
-                related=measurement, type="Setup", value="2024-01-15"
+                related=measurement, type_id=f"{DATE_TYPES}/setup", value="2024-01-15"
             )
             MeasurementIdentifier.objects.create(
-                related=measurement, type="DOI", value=f"10.1234/meas.{dataset.pk}.{i}"
+                related=measurement,
+                type_id=f"{IDENTIFIER_TYPES}/doi",
+                value=f"10.1234/meas.{dataset.pk}.{i}",
             )
             measurements.append(measurement)
         return measurements

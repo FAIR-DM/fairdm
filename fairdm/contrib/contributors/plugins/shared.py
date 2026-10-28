@@ -5,6 +5,7 @@ whether the viewer can manage the record on every request. The changes themselve
 ``Crediting``.
 """
 
+from controlled_vocabularies.models import Record
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.views import redirect_to_login
@@ -19,7 +20,6 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from django_countries import countries
 from guardian.utils import get_anonymous_user
-from research_vocabs.models import Concept
 
 from fairdm import plugins
 from fairdm.contrib.plugins import Plugin, reverse
@@ -807,7 +807,7 @@ class ContributionEdit(ContributionPage):
             try:
                 crediting.update(
                     contribution,
-                    roles=Concept.objects.filter(pk__in=chosen_roles),
+                    roles=Record.objects.filter(pk__in=chosen_roles),
                     level=stored_level,
                     organization=organization,
                 )

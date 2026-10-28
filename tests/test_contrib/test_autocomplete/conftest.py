@@ -5,6 +5,7 @@ from django.contrib.auth.models import Group, Permission
 
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.sample.models import SampleIdentifier
+from fairdm.core.vocabularies import IDENTIFIER_TYPES
 from fairdm.factories import (
     AffiliationFactory,
     ContributionFactory,
@@ -159,7 +160,9 @@ def make_organization(db):
             country=country,
         )
         if ror:
-            ContributorIdentifierFactory(related=organization, type="ROR", value=ror)
+            ContributorIdentifierFactory(
+                related=organization, type_id=f"{IDENTIFIER_TYPES}/ror", value=ror
+            )
         return organization
 
     return make_organization
@@ -188,7 +191,9 @@ def make_person(db):
             **extra,
         )
         if orcid:
-            ContributorIdentifierFactory(related=person, type="ORCID", value=orcid)
+            ContributorIdentifierFactory(
+                related=person, type_id=f"{IDENTIFIER_TYPES}/orcid", value=orcid
+            )
         if organization is not None:
             AffiliationFactory(
                 person=person, organization=organization, is_primary=True
@@ -206,7 +211,7 @@ def make_sample(db):
         sample = ConcreteSampleFactory(name=name, dataset=dataset, local_id=local_id)
         if identifier:
             SampleIdentifier.objects.create(
-                related=sample, type="DOI", value=identifier
+                related=sample, type_id=f"{IDENTIFIER_TYPES}/doi", value=identifier
             )
         return sample
 

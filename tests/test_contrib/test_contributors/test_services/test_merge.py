@@ -2,6 +2,8 @@
 
 import pytest
 
+from fairdm.core.vocabularies import IDENTIFIER_TYPES
+
 
 @pytest.fixture
 def keep_person(db):
@@ -253,11 +255,13 @@ class TestMergeIdentifiers:
         from fairdm.contrib.contributors.services.merge import merge_persons
 
         ContributorIdentifier.objects.create(
-            related=discard_person, type="ORCID", value="0000-0000-0000-0001"
+            related=discard_person,
+            type_id=f"{IDENTIFIER_TYPES}/orcid",
+            value="0000-0000-0000-0001",
         )
         merge_persons(keep_person, discard_person)
         assert ContributorIdentifier.objects.filter(
-            related=keep_person, type="ORCID"
+            related=keep_person, type_id=f"{IDENTIFIER_TYPES}/orcid"
         ).exists()
 
     def test_duplicate_identifiers_not_duplicated(
@@ -267,7 +271,9 @@ class TestMergeIdentifiers:
         from fairdm.contrib.contributors.services.merge import merge_persons
 
         ContributorIdentifier.objects.create(
-            related=discard_person, type="ORCID", value="0000-0000-0000-9999"
+            related=discard_person,
+            type_id=f"{IDENTIFIER_TYPES}/orcid",
+            value="0000-0000-0000-9999",
         )
         merge_persons(keep_person, discard_person)
         assert ContributorIdentifier.objects.filter(

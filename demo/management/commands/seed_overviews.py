@@ -34,6 +34,6 @@ class Command(BaseCommand):
             )
         # Contributor roles are vocabulary concepts that exist in the database only once something
         # creates them. On a fresh database crediting a role would silently credit nothing.
-        call_command("preload", verbosity=0)
+        call_command("sync_vocabularies", verbosity=0)
         for seed in (ProjectSeed, SampleSeed, MeasurementSeed):
             seed(stdout=self.stdout, stderr=self.stderr).handle(*args, **options)

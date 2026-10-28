@@ -1,7 +1,7 @@
 """Tests for the contributor template tags."""
 
 import pytest
-from research_vocabs.models import Concept, Vocabulary
+from controlled_vocabularies.models import Record
 
 from fairdm.contrib.contributors.models import Contribution
 from fairdm.contrib.contributors.templatetags.contributor_tags import (
@@ -12,14 +12,13 @@ from fairdm.contrib.contributors.templatetags.contributor_tags import (
     has_role,
     split_contributors,
 )
+from fairdm.core.vocabularies import CONTRIBUTOR_ROLES
 from fairdm.factories import OrganizationFactory, PersonFactory
 
 
 @pytest.fixture
 def role():
-    vocab, _ = Vocabulary.objects.get_or_create(name="fairdm-roles")
-    role_concept, _ = Concept.objects.get_or_create(vocabulary=vocab, name="TestRole")
-    return role_concept
+    return Record.objects.get(uri=f"{CONTRIBUTOR_ROLES}/editor")
 
 
 @pytest.fixture
@@ -37,7 +36,7 @@ class TestByRoleFilter:
     def test_by_role_filters_contributions(self, contribution, role):
         contributions = Contribution.objects.all()
 
-        filtered = by_role(contributions, role.name)
+        filtered = by_role(contributions, role.uri)
 
         assert contribution in filtered
 
@@ -45,7 +44,7 @@ class TestByRoleFilter:
     def test_by_role_with_multiple_roles(self, contribution, role):
         contributions = Contribution.objects.all()
 
-        role_names = f"{role.name},NonExistentRole"
+        role_names = f"{role.uri},NonExistentRole"
         filtered = by_role(contributions, role_names)
 
         assert contribution in filtered
@@ -79,7 +78,7 @@ class TestByRoleFilter:
 class TestHasRoleFilter:
     @pytest.mark.django_db
     def test_has_role_returns_true_for_matching_role(self, contribution, role):
-        result = has_role(contribution, role.name)
+        result = has_role(contribution, role.uri)
 
         assert result is True
 
@@ -91,7 +90,7 @@ class TestHasRoleFilter:
 
     @pytest.mark.django_db
     def test_has_role_with_multiple_roles(self, contribution, role):
-        role_names = f"{role.name},AnotherRole"
+        role_names = f"{role.uri},AnotherRole"
         result = has_role(contribution, role_names)
 
         assert result is True
@@ -117,8 +116,12 @@ class TestHasRoleFilter:
 
 @pytest.mark.django_db
 class TestAsContributor:
-    def test_a_contribution_gives_its_contributor_as_its_concrete_type(self, contribution):
-        assert as_contributor(contribution) == contribution.contributor.get_real_instance()
+    def test_a_contribution_gives_its_contributor_as_its_concrete_type(
+        self, contribution
+    ):
+        assert (
+            as_contributor(contribution) == contribution.contributor.get_real_instance()
+        )
         assert type(as_contributor(contribution)).__name__ == "Person"
 
     def test_a_contributor_is_returned_as_it_is(self):
@@ -146,12 +149,16 @@ class TestAsContributors:
 @pytest.mark.django_db
 class TestContributorName:
     def test_the_preferred_name_by_default(self):
-        person = PersonFactory(first_name="Ada", last_name="Lovelace", name="Countess Lovelace")
+        person = PersonFactory(
+            first_name="Ada", last_name="Lovelace", name="Countess Lovelace"
+        )
 
         assert contributor_name(person) == "Countess Lovelace"
 
     def test_a_citation_format_uses_the_given_and_family_names(self):
-        person = PersonFactory(first_name="Ada", last_name="Lovelace", name="Countess Lovelace")
+        person = PersonFactory(
+            first_name="Ada", last_name="Lovelace", name="Countess Lovelace"
+        )
 
         assert contributor_name(person, "family_given") == "Lovelace, Ada"
 

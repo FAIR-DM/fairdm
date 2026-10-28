@@ -3,6 +3,7 @@
 import re
 from html import unescape
 
+from controlled_vocabularies.fields import MultiConceptField
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxLengthValidator
 from django.db.models import Manager, Model, QuerySet
@@ -14,7 +15,6 @@ from django.utils.text import Truncator
 from django.utils.translation import gettext_lazy as _
 from easy_thumbnails.fields import ThumbnailerImageField
 from model_utils import FieldTracker
-from research_vocabs.vocabularies import VocabularyBuilder
 from taggit.managers import TaggableManager
 
 from fairdm.contrib.contributors.choices import IdentifierLookup
@@ -24,6 +24,8 @@ from fairdm.db.models import PolymorphicModel
 from fairdm.models import TaggedItem
 from fairdm.utils import default_image_path, get_inheritance_chain
 from fairdm.utils.markdown import markdownify
+
+from .vocabularies import ABSTRACT, ISNI, collection_members
 
 
 class BaseModel(models.Model):
@@ -38,8 +40,7 @@ class BaseModel(models.Model):
     )
     name = models.CharField(_("name"), max_length=300, db_index=True)
 
-    keywords: models.ManyToManyField = models.ManyToManyField(
-        "research_vocabs.Concept",
+    keywords = MultiConceptField(
         verbose_name=_("keywords"),
         help_text=_("Controlled keywords for discoverability"),
         blank=True,
@@ -107,7 +108,7 @@ class BaseModel(models.Model):
 
         Args:
             contributor: The contributor to credit.
-            with_roles: Names of the ``fairdm-roles`` concepts to add to the credit.
+            with_roles: Addresses of the contributor role concepts to add to the credit.
 
         Returns:
             The contributor's credit on this object.
@@ -171,12 +172,12 @@ class BaseModel(models.Model):
         """Return the Abstract description, or ``None``.
 
         Returns:
-            The description of type ``Abstract``, if the record has one.
+            The description of the abstract type, if the record has one.
         """
         # Filtering a related manager always queries, even when prefetched. `all()` reads the
         # prefetch cache, so a list page does not cost one query per record.
         for description in self.descriptions.all():
-            if description.type == "Abstract":
+            if description.type_id == ABSTRACT:
                 return description
         return None
 
@@ -270,38 +271,29 @@ class GenericModelQuerySet(QuerySet):
     """QuerySet for GenericModel subclasses that provides vocabulary-based ordering."""
 
     def in_order(self):
-        """Order the rows by the order defined in the model's VOCABULARY attribute.
+        """Order the rows by the order of the collection their ``type`` field offers.
 
-        Rows whose type is not in the vocabulary sort to the end.
+        Rows whose type is not in the collection sort to the end.
 
         Returns:
-            A list of instances ordered according to ``VOCABULARY.values``.
-
-        Raises:
-            ValueError: The model defines no ``VOCABULARY``.
+            A list of instances in the collection's order.
 
         Example:
             # Get dataset descriptions in vocabulary order
             dataset.descriptions.in_order()
 
             # Chain with other queryset methods
-            dataset.descriptions.filter(type__in=['Abstract', 'Methods']).in_order()
+            dataset.descriptions.filter(type__in=[ABSTRACT, METHODS]).in_order()
         """
-        model = self.model
-        if model.VOCABULARY is None:
-            msg = f"{model.__name__} does not define a VOCABULARY attribute"
-            raise ValueError(msg)
-
-        vocabulary_order = model.VOCABULARY.values
-        items = list(self)
+        order = [concept.uri for concept in self.model.get_type_concepts()]
 
         def sort_key(item):
             try:
-                return vocabulary_order.index(item.type)
+                return order.index(item.type_id)
             except ValueError:
-                return len(vocabulary_order)
+                return len(order)
 
-        return sorted(items, key=sort_key)
+        return sorted(self, key=sort_key)
 
 
 class GenericModelManager(Manager):
@@ -312,18 +304,21 @@ class GenericModelManager(Manager):
         return GenericModelQuerySet(self.model, using=self._db)
 
     def in_order(self):
-        """Return every object in vocabulary order.
+        """Return every object in the order of the collection its ``type`` field offers.
 
         Returns:
-            A list of instances ordered according to ``VOCABULARY.values``.
+            A list of instances in the collection's order.
         """
         return self.get_queryset().in_order()
 
 
 class GenericModel(Model):
-    """Abstract base for the typed rows attached to a record, such as descriptions and dates."""
+    """Abstract base for the typed rows attached to a record, such as descriptions and dates.
 
-    VOCABULARY: VocabularyBuilder | None = None
+    Each concrete subclass declares ``type`` as a ``ConceptField`` restricted to the
+    collection of the vocabulary that its kind of record uses.
+    """
+
     modified = None
     added = None
 
@@ -332,12 +327,14 @@ class GenericModel(Model):
     class Meta:
         abstract = True
 
-    def __init_subclass__(cls):
-        """Limit the ``type`` choices to the subclass's vocabulary."""
-        if cls.VOCABULARY is not None:
-            cls.type.field.choices = cls.VOCABULARY.choices
+    @classmethod
+    def get_type_concepts(cls):
+        """Return the concepts the ``type`` field offers, in its collection's order.
 
-        return super().__init_subclass__()
+        Returns:
+            A list of ``controlled_vocabularies.Record`` concepts.
+        """
+        return collection_members(cls._meta.get_field("type").collection)
 
     def __str__(self):
         """Show the type and value."""
@@ -378,7 +375,6 @@ DESCRIPTION_MAX_LENGTH = 20000
 class AbstractDescription(GenericModel):
     """Abstract base for a typed free-text description of a record."""
 
-    type = models.CharField(max_length=50)
     value = models.TextField(validators=[MaxLengthValidator(DESCRIPTION_MAX_LENGTH)])
 
     class Meta:
@@ -397,7 +393,6 @@ class AbstractDescription(GenericModel):
 class AbstractDate(GenericModel):
     """Abstract base for a typed partial date on a record."""
 
-    type = models.CharField(max_length=50)
     value = PartialDateField(_("date"))
 
     class Meta:
@@ -424,7 +419,6 @@ class AbstractIdentifier(GenericModel):
     only the one being validated.
     """
 
-    type = models.CharField(max_length=50)
     value = models.CharField(
         _("identifier"), max_length=255, db_index=True, unique=True
     )
@@ -466,7 +460,7 @@ class AbstractIdentifier(GenericModel):
         Returns:
             The resolver URL registered for the identifier's type, or None when it has none.
         """
-        return IdentifierLookup.get(self.type)
+        return IdentifierLookup.get(self.type_id)
 
     def get_absolute_url(self):
         """Return the URL of the identifier's resolver page.
@@ -477,17 +471,6 @@ class AbstractIdentifier(GenericModel):
         root = self.get_root_url()
         if root is None:
             return None
-        value = (
-            func()
-            if (func := getattr(self, f"slugify_{self.type.lower()}", None))
-            else self.value
-        )
+        # An ISNI is written in groups of four, and its resolver takes it without the spaces.
+        value = self.value.replace(" ", "") if self.type_id == ISNI else self.value
         return f"{root}{value}"
-
-    def slugify_isni(self):
-        """Return the ISNI value with its spaces removed.
-
-        Returns:
-            The value as it appears in an ISNI URL.
-        """
-        return self.value.replace(" ", "")

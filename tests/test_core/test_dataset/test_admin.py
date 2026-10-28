@@ -19,6 +19,12 @@ from fairdm.core.dataset.models import (
     DatasetDescription,
     DatasetIdentifier,
 )
+from fairdm.core.vocabularies import (
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    IDENTIFIER_TYPES,
+    collection_members,
+)
 from fairdm.factories.core import (
     DatasetFactory,
     DatasetIdentifierFactory,
@@ -62,7 +68,9 @@ class TestDatasetAdminSearch:
         match = DatasetFactory(name="Climate Research Data")
         other = DatasetFactory(name="Ocean Temperature Readings")
         DatasetIdentifierFactory(
-            related=match, type="DOI", value="10.1234/climate-example"
+            related=match,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.1234/climate-example",
         )
 
         url = reverse("admin:dataset_dataset_changelist")
@@ -240,7 +248,7 @@ class TestInlineDescriptionEditing:
             "descriptions-MIN_NUM_FORMS": "0",
             "descriptions-MAX_NUM_FORMS": "1000",
             "descriptions-0-related": dataset.pk,
-            "descriptions-0-type": "Abstract",
+            "descriptions-0-type": f"{DESCRIPTION_TYPES}/abstract",
             "descriptions-0-value": "This is a test description added via inline form.",
             "dates-TOTAL_FORMS": "0",
             "dates-INITIAL_FORMS": "0",
@@ -265,7 +273,7 @@ class TestInlineDescriptionEditing:
         dataset = DatasetFactory(name="Test Dataset")
         existing_desc = DatasetDescription.objects.create(
             related=dataset,
-            type="Abstract",
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
             value="Original abstract text",
         )
 
@@ -281,7 +289,7 @@ class TestInlineDescriptionEditing:
             "descriptions-MAX_NUM_FORMS": "1000",
             "descriptions-0-id": existing_desc.pk,
             "descriptions-0-related": dataset.pk,
-            "descriptions-0-type": "Abstract",
+            "descriptions-0-type": f"{DESCRIPTION_TYPES}/abstract",
             "descriptions-0-value": "Updated abstract text",
             "dates-TOTAL_FORMS": "0",
             "dates-INITIAL_FORMS": "0",
@@ -328,7 +336,7 @@ class TestInlineDateEditing:
             "dates-MIN_NUM_FORMS": "0",
             "dates-MAX_NUM_FORMS": "1000",
             "dates-0-related": dataset.pk,
-            "dates-0-type": "Available",
+            "dates-0-type": f"{DATE_TYPES}/available",
             "dates-0-value": "2024-01-15",
             "identifiers-TOTAL_FORMS": "0",
             "identifiers-INITIAL_FORMS": "0",
@@ -380,15 +388,15 @@ class TestDatasetAdminInlines:
             {
                 "descriptions-TOTAL_FORMS": "1",
                 "descriptions-0-related": dataset.pk,
-                "descriptions-0-type": "Abstract",
+                "descriptions-0-type": f"{DESCRIPTION_TYPES}/abstract",
                 "descriptions-0-value": "An abstract added inline.",
                 "dates-TOTAL_FORMS": "1",
                 "dates-0-related": dataset.pk,
-                "dates-0-type": "Available",
+                "dates-0-type": f"{DATE_TYPES}/available",
                 "dates-0-value": "2024-01-15",
                 "identifiers-TOTAL_FORMS": "1",
                 "identifiers-0-related": dataset.pk,
-                "identifiers-0-type": "DOI",
+                "identifiers-0-type": f"{IDENTIFIER_TYPES}/doi",
                 "identifiers-0-value": "10.1234/inline-test",
             }
         )
@@ -400,18 +408,29 @@ class TestDatasetAdminInlines:
             "the change form's error list."
         )
         assert DatasetDescription.objects.filter(
-            related=dataset, type="Abstract", value="An abstract added inline."
+            related=dataset,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="An abstract added inline.",
         ).exists()
-        assert DatasetDate.objects.filter(related=dataset, type="Available").exists()
+        assert DatasetDate.objects.filter(
+            related=dataset, type_id=f"{DATE_TYPES}/available"
+        ).exists()
         assert DatasetIdentifier.objects.filter(
-            related=dataset, type="DOI", value="10.1234/inline-test"
+            related=dataset,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.1234/inline-test",
         ).exists()
 
 
 @pytest.mark.django_db
 class TestDatasetAdminInlineRowLimits:
     def test_description_inline_max_num_matches_vocabulary_size(self, admin_user):
-        vocabulary_size = len(Dataset.DESCRIPTION_TYPES.choices)
+        vocabulary_size = len(
+            [
+                (concept.uri, concept.display_label())
+                for concept in collection_members(Dataset.DESCRIPTION_TYPES)
+            ]
+        )
 
         admin_site = AdminSite()
         request = RequestFactory().get("/")
@@ -422,7 +441,12 @@ class TestDatasetAdminInlineRowLimits:
         assert formset.max_num == vocabulary_size
 
     def test_date_inline_max_num_matches_vocabulary_size(self, admin_user):
-        vocabulary_size = len(Dataset.DATE_TYPES.choices)
+        vocabulary_size = len(
+            [
+                (concept.uri, concept.display_label())
+                for concept in collection_members(Dataset.DATE_TYPES)
+            ]
+        )
 
         admin_site = AdminSite()
         request = RequestFactory().get("/")
@@ -433,7 +457,7 @@ class TestDatasetAdminInlineRowLimits:
         assert formset.max_num == vocabulary_size
 
     def test_identifier_inline_max_num_matches_vocabulary_size(self, admin_user):
-        vocabulary_size = len(Dataset.IDENTIFIER_TYPES)
+        vocabulary_size = len(collection_members(Dataset.IDENTIFIER_TYPES))
 
         admin_site = AdminSite()
         request = RequestFactory().get("/")
@@ -535,10 +559,14 @@ class TestDatasetAdminColumns:
     def test_columns_reflect_presence_and_absence_of_abstract_and_doi(self, rf):
         with_both = DatasetFactory(name="Fully Described Dataset")
         DatasetDescription.objects.create(
-            related=with_both, type="Abstract", value="An abstract."
+            related=with_both,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="An abstract.",
         )
         DatasetIdentifier.objects.create(
-            related=with_both, type="DOI", value="10.1234/with-both"
+            related=with_both,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.1234/with-both",
         )
         without_either = DatasetFactory(name="Bare Dataset")
 
@@ -561,10 +589,14 @@ class TestDatasetAdminColumnsQueryCount:
         for _ in range(5):
             dataset = DatasetFactory()
             DatasetDescription.objects.create(
-                related=dataset, type="Abstract", value="An abstract."
+                related=dataset,
+                type_id=f"{DESCRIPTION_TYPES}/abstract",
+                value="An abstract.",
             )
             DatasetIdentifier.objects.create(
-                related=dataset, type="DOI", value=f"10.1234/{dataset.pk}"
+                related=dataset,
+                type_id=f"{IDENTIFIER_TYPES}/doi",
+                value=f"10.1234/{dataset.pk}",
             )
         DatasetFactory()  # a row with neither, so both flags read False
 
@@ -602,8 +634,7 @@ class TestAutocompleteOnForeignKeys:
         assert response.status_code == 200
         content = response.content.decode()
         assert (
-            "autocomplete" in content.lower()
-            or "data-autocomplete" in content.lower()
+            "autocomplete" in content.lower() or "data-autocomplete" in content.lower()
         )
 
     def test_license_field_has_autocomplete(self, admin_client):
@@ -615,8 +646,7 @@ class TestAutocompleteOnForeignKeys:
         assert response.status_code == 200
         content = response.content.decode()
         assert (
-            "autocomplete" in content.lower()
-            or "data-autocomplete" in content.lower()
+            "autocomplete" in content.lower() or "data-autocomplete" in content.lower()
         )
 
 
@@ -674,7 +704,11 @@ class TestDatasetAdminLicenceWarning:
         cc_by = License.objects.get(name="CC BY 4.0")
         cc_by_sa = License.objects.get(name="CC BY-SA 4.0")
         dataset = DatasetFactory(name="Published Dataset", license=cc_by)
-        DatasetIdentifierFactory(related=dataset, type="DOI", value="10.1234/published")
+        DatasetIdentifierFactory(
+            related=dataset,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.1234/published",
+        )
 
         url = reverse("admin:dataset_dataset_change", args=[dataset.pk])
         response = admin_client.post(

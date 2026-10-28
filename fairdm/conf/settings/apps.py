@@ -88,7 +88,7 @@ INSTALLED_APPS = [
     "orbit",
     "literature",
     "licensing",
-    "research_vocabs",
+    "controlled_vocabularies",
     "ordered_model",
     "taggit",
     "import_export",
@@ -219,7 +219,7 @@ DJANGO_SETUP_TOOLS = {
         "always_run": [
             ("migrate", "--no-input"),
             ("collectstatic", "--noinput"),
-            ("preload",),
+            ("sync_vocabularies",),
             ("seed_licenses",),
             "django_setup_tools.scripts.sync_site_id",
         ],

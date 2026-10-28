@@ -7,6 +7,7 @@ from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
 
 from fairdm.contrib.contributors.services.crediting import Crediting
+from fairdm.core.vocabularies import CONTACT_PERSON, CREATOR, PROJECT_MEMBER
 from fairdm.views import FairDMCreateView, FairDMListView
 
 from ..models import Project
@@ -50,7 +51,7 @@ class ProjectCreateView(LoginRequiredMixin, FairDMCreateView):
         response: HttpResponse = super().form_valid(form)
 
         Crediting(self.object).make_creator(
-            self.request.user, roles=["Creator", "ProjectMember", "ContactPerson"]
+            self.request.user, roles=[CREATOR, PROJECT_MEMBER, CONTACT_PERSON]
         )
 
         return response

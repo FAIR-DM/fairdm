@@ -43,6 +43,12 @@ from fairdm.core.measurement.models import (
     MeasurementIdentifier,
 )
 from fairdm.core.project.models import Project
+from fairdm.core.vocabularies import (
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    IDENTIFIER_TYPES,
+)
 from fairdm.utils.choices import Visibility
 
 PROJECT = "Measurement page examples"
@@ -96,39 +102,50 @@ class MeasurementSeed(BaseCommand):
             location_elevation=112,
             location_uncertainty=25,
         )
-        for type_, value in [("Setup", "2025-06-10"), ("TearDown", "2025-06-11")]:
+        for type_, value in [
+            (f"{DATE_TYPES}/setup", "2025-06-10"),
+            (f"{DATE_TYPES}/tear-down", "2025-06-11"),
+        ]:
             MeasurementDate.objects.create(
-                related=full, type=type_, value=PartialDate(value)
+                related=full, type_id=type_, value=PartialDate(value)
             )
         for type_, value in [
             (
-                "MeasurementSetup",
+                f"{DESCRIPTION_TYPES}/measurement-setup",
                 "Calibrated against GA and GS-N reference materials the same morning.",
             ),
             (
-                "MeasurementConditions",
+                f"{DESCRIPTION_TYPES}/measurement-conditions",
                 "Fused bead of 0.6 g sample with 6 g lithium borate; loss on ignition determined separately.",
             ),
             (
-                "MeasurementTearDown",
+                f"{DESCRIPTION_TYPES}/measurement-tear-down",
                 "Bead archived with the sample; drift check on GA at the end of the run was within 0.8 %.",
             ),
             (
-                "Other",
+                f"{DESCRIPTION_TYPES}/other",
                 "The core is partly altered at this depth, which raises Fe relative to fresh granite.",
             ),
         ]:
-            MeasurementDescription.objects.create(related=full, type=type_, value=value)
+            MeasurementDescription.objects.create(
+                related=full, type_id=type_, value=value
+            )
         MeasurementIdentifier.objects.create(
-            related=full, type="DOI", value="10.60510/FDM.XRF.2025.0412"
+            related=full,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.60510/FDM.XRF.2025.0412",
         )
         full.add_contributor(
-            self.person("Jonas", "Weber"), with_roles=["MeasurementPreparation"]
+            self.person("Jonas", "Weber"),
+            with_roles=[f"{CONTRIBUTOR_ROLES}/measurement-preparation"],
         )
         full.add_contributor(
-            self.person("Lea", "Brandt"), with_roles=["MeasurementCollection"]
+            self.person("Lea", "Brandt"),
+            with_roles=[f"{CONTRIBUTOR_ROLES}/measurement-collection"],
         )
-        full.add_contributor(self.person("Mei", "Tanaka"), with_roles=["Support"])
+        full.add_contributor(
+            self.person("Mei", "Tanaka"), with_roles=[f"{CONTRIBUTOR_ROLES}/support"]
+        )
 
         for element in ("Si", "Al", "Ca", "K", "Mg", "Ti", "Mn", "Na", "P"):
             XRFMeasurementFactory(
@@ -141,7 +158,8 @@ class MeasurementSeed(BaseCommand):
             sample=sample, dataset=lab, name="206Pb/238U, spot 3"
         )
         other_lab.add_contributor(
-            self.person("Pieter", "de Vries"), with_roles=["MeasurementCollection"]
+            self.person("Pieter", "de Vries"),
+            with_roles=[f"{CONTRIBUTOR_ROLES}/measurement-collection"],
         )
         bare = XRFMeasurementFactory(
             sample=sample,

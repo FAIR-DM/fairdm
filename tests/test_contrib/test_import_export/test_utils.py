@@ -3,13 +3,14 @@
 import xml.etree.ElementTree as ET
 
 import pytest
+from controlled_vocabularies.models import Record
 from django.contrib.gis.geos import Point
 from django.test import RequestFactory
-from research_vocabs.models import Concept
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.contrib.contributors.models import Contribution
 from fairdm.contrib.import_export.utils import build_metadata
+from fairdm.core.vocabularies import CONTRIBUTOR_ROLES
 from fairdm.factories import DatasetFactory, OrganizationFactory, PersonFactory
 from fairdm.utils.choices import Visibility
 
@@ -52,9 +53,15 @@ class TestBuildMetadata:
     def test_a_described_and_credited_dataset_renders(self, dataset):
         person = PersonFactory()
         organization = OrganizationFactory()
-        Contribution.add_to(person, dataset, roles=["Creator", "DataCurator"])
-        Contribution.add_to(organization, dataset, roles=["Creator"])
-        dataset.keywords.add(Concept.objects.first())
+        Contribution.add_to(
+            person,
+            dataset,
+            roles=[f"{CONTRIBUTOR_ROLES}/creator", f"{CONTRIBUTOR_ROLES}/data-curator"],
+        )
+        Contribution.add_to(
+            organization, dataset, roles=[f"{CONTRIBUTOR_ROLES}/creator"]
+        )
+        dataset.keywords.add(Record.objects.first())
 
         root = metadata(dataset)
 

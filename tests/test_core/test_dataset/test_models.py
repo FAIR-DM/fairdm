@@ -26,6 +26,13 @@ from fairdm.core.dataset.models import (
     DatasetLiteratureRelation,
     DatasetQuerySet,
 )
+from fairdm.core.vocabularies import (
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    IDENTIFIER_TYPES,
+    collection_members,
+)
 from fairdm.factories import (
     DatasetFactory,
     DatasetIdentifierFactory,
@@ -480,31 +487,35 @@ class TestDatasetLicence:
 @pytest.mark.django_db
 class TestDatasetKeywords:
     def test_controlled_vocabulary_term_is_stored_as_a_reference(self):
-        from research_vocabs.models import Concept
+        from controlled_vocabularies.models import Record
 
         dataset = DatasetFactory()
-        # `Concept.preload()` runs once per session in tests/conftest.py.
-        term = Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+        # `sync_vocabularies` runs once per session in tests/conftest.py.
+        term = Record.objects.filter(
+            scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+        ).first()
         assert term is not None
 
         dataset.keywords.add(term)
 
         stored = dataset.keywords.get(pk=term.pk)
-        assert isinstance(stored, Concept)
-        assert stored.name == term.name
+        assert isinstance(stored, Record)
+        assert stored.uri == term.uri
 
     def test_free_tags_are_distinguishable_from_controlled_keywords(self):
-        from research_vocabs.models import Concept
+        from controlled_vocabularies.models import Record
 
         dataset = DatasetFactory()
-        keyword = Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+        keyword = Record.objects.filter(
+            scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+        ).first()
         dataset.keywords.add(keyword)
         dataset.tags.add("erosion")
 
         assert "erosion" in dataset.tags.names()
         assert dataset.keywords.count() == 1
-        assert all(isinstance(k, Concept) for k in dataset.keywords.all())
-        assert not dataset.keywords.filter(name="erosion").exists()
+        assert all(isinstance(k, Record) for k in dataset.keywords.all())
+        assert not dataset.keywords.filter(pref_label="erosion").exists()
 
 
 @pytest.mark.django_db
@@ -514,34 +525,40 @@ class TestDatasetContributions:
         person = PersonFactory()
 
         contribution = dataset.add_contributor(
-            person, with_roles=["Creator", "DataCollector"]
+            person,
+            with_roles=[
+                f"{CONTRIBUTOR_ROLES}/creator",
+                f"{CONTRIBUTOR_ROLES}/data-collector",
+            ],
         )
 
         assert contribution.contributor == person
-        assert set(contribution.roles.values_list("name", flat=True)) == {
-            "Creator",
-            "DataCollector",
+        assert set(contribution.roles.values_list("uri", flat=True)) == {
+            f"{CONTRIBUTOR_ROLES}/creator",
+            f"{CONTRIBUTOR_ROLES}/data-collector",
         }
         assert dataset.contributors.filter(pk=contribution.pk).exists()
 
     def test_role_vocabulary_members(self):
-        assert set(Dataset.CONTRIBUTOR_ROLES.values) == {
-            "Creator",
-            "ContactPerson",
-            "DataCollector",
-            "DataCurator",
-            "DataManager",
-            "Editor",
-            "Producer",
-            "RelatedPerson",
-            "Researcher",
-            "ProjectLeader",
-            "ProjectManager",
-            "ProjectMember",
-            "Supervisor",
-            "WorkPackageLeader",
-            "RightsHolder",
-            "Other",
+        assert set(
+            [role.uri for role in collection_members(Dataset.CONTRIBUTOR_ROLES)]
+        ) == {
+            f"{CONTRIBUTOR_ROLES}/creator",
+            f"{CONTRIBUTOR_ROLES}/contact-person",
+            f"{CONTRIBUTOR_ROLES}/data-collector",
+            f"{CONTRIBUTOR_ROLES}/data-curator",
+            f"{CONTRIBUTOR_ROLES}/data-manager",
+            f"{CONTRIBUTOR_ROLES}/editor",
+            f"{CONTRIBUTOR_ROLES}/producer",
+            f"{CONTRIBUTOR_ROLES}/related-person",
+            f"{CONTRIBUTOR_ROLES}/researcher",
+            f"{CONTRIBUTOR_ROLES}/project-leader",
+            f"{CONTRIBUTOR_ROLES}/project-manager",
+            f"{CONTRIBUTOR_ROLES}/project-member",
+            f"{CONTRIBUTOR_ROLES}/supervisor",
+            f"{CONTRIBUTOR_ROLES}/work-package-leader",
+            f"{CONTRIBUTOR_ROLES}/rights-holder",
+            f"{CONTRIBUTOR_ROLES}/other",
         }
 
 
@@ -584,16 +601,24 @@ class TestDatasetPrefetch:
         """Build a dataset carrying `count` records of each related type."""
         dataset = DatasetFactory()
 
-        for type_ in DatasetDescription.VOCABULARY.values[:count]:
-            DatasetDescription.objects.create(related=dataset, type=type_, value="x")
+        for type_ in [
+            concept.uri for concept in DatasetDescription.get_type_concepts()
+        ][:count]:
+            DatasetDescription.objects.create(related=dataset, type_id=type_, value="x")
 
-        for type_ in DatasetDate.VOCABULARY.values[:count]:
-            DatasetDate.objects.create(related=dataset, type=type_, value="2024-01-01")
+        for type_ in [concept.uri for concept in DatasetDate.get_type_concepts()][
+            :count
+        ]:
+            DatasetDate.objects.create(
+                related=dataset, type_id=type_, value="2024-01-01"
+            )
 
         # One identifier per (related, type) is enforced, so each gets a distinct type.
-        for i, type_ in enumerate(DatasetIdentifier.VOCABULARY.values[:count]):
+        for i, type_ in enumerate(
+            [concept.uri for concept in DatasetIdentifier.get_type_concepts()][:count]
+        ):
             DatasetIdentifierFactory(
-                related=dataset, type=type_, value=f"10.{9000 + i}/{dataset.pk}"
+                related=dataset, type_id=type_, value=f"10.{9000 + i}/{dataset.pk}"
             )
 
         for _ in range(count):
@@ -629,12 +654,6 @@ class TestDatasetTranslatable:
             assert isinstance(field.verbose_name, Promise), field_name
             assert isinstance(field.help_text, Promise), field_name
 
-    def test_vocabulary_terms_are_lazy(self):
-        from fairdm.core.vocabularies import FairDMIdentifiers
-
-        assert isinstance(FairDMIdentifiers.DOI["skos:prefLabel"], Promise)
-        assert isinstance(FairDMIdentifiers.DOI["skos:definition"], Promise)
-
 
 class TestDatasetVisibilityChoices:
     def test_visibility_vocabulary_members(self):
@@ -667,20 +686,26 @@ class TestDatasetDescription:
     def test_abstract_is_stored_under_its_type_and_retrievable_by_type(self):
         dataset = DatasetFactory()
         DatasetDescription.objects.create(
-            related=dataset, type="Abstract", value="A brief summary."
+            related=dataset,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="A brief summary.",
         )
 
-        retrieved = dataset.descriptions.get(type="Abstract")
+        retrieved = dataset.descriptions.get(type_id=f"{DESCRIPTION_TYPES}/abstract")
         assert retrieved.value == "A brief summary."
 
     def test_second_description_of_a_carried_type_is_refused_naming_the_type(self):
         dataset = DatasetFactory()
         DatasetDescription.objects.create(
-            related=dataset, type="Abstract", value="First abstract."
+            related=dataset,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="First abstract.",
         )
 
         duplicate = DatasetDescription(
-            related=dataset, type="Abstract", value="Second abstract."
+            related=dataset,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="Second abstract.",
         )
         with pytest.raises(ValidationError) as exc_info:
             duplicate.full_clean()
@@ -690,38 +715,46 @@ class TestDatasetDescription:
     def test_methods_description_is_accepted(self):
         dataset = DatasetFactory()
         description = DatasetDescription(
-            related=dataset, type="Methods", value="Samples were analysed by XRF."
+            related=dataset,
+            type_id=f"{DESCRIPTION_TYPES}/methods",
+            value="Samples were analysed by XRF.",
         )
 
         description.full_clean()
         description.save()
 
-        assert dataset.descriptions.get(type="Methods").value == (
-            "Samples were analysed by XRF."
-        )
+        assert dataset.descriptions.get(
+            type_id=f"{DESCRIPTION_TYPES}/methods"
+        ).value == ("Samples were analysed by XRF.")
 
     def test_two_descriptions_are_both_returned_each_under_its_own_type(self):
         dataset = DatasetFactory()
         DatasetDescription.objects.create(
-            related=dataset, type="Abstract", value="Abstract text."
+            related=dataset,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="Abstract text.",
         )
         DatasetDescription.objects.create(
-            related=dataset, type="Methods", value="Methods text."
+            related=dataset,
+            type_id=f"{DESCRIPTION_TYPES}/methods",
+            value="Methods text.",
         )
 
-        by_type = {d.type: d.value for d in dataset.descriptions.all()}
+        by_type = {d.type_id: d.value for d in dataset.descriptions.all()}
         assert by_type == {
-            "Abstract": "Abstract text.",
-            "Methods": "Methods text.",
+            f"{DESCRIPTION_TYPES}/abstract": "Abstract text.",
+            f"{DESCRIPTION_TYPES}/methods": "Methods text.",
         }
 
     def test_description_vocabulary_members(self):
-        assert set(DatasetDescription.VOCABULARY.values) == {
-            "Abstract",
-            "Methods",
-            "SeriesInformation",
-            "TechnicalInfo",
-            "Other",
+        assert set(
+            [concept.uri for concept in DatasetDescription.get_type_concepts()]
+        ) == {
+            f"{DESCRIPTION_TYPES}/abstract",
+            f"{DESCRIPTION_TYPES}/methods",
+            f"{DESCRIPTION_TYPES}/series-information",
+            f"{DESCRIPTION_TYPES}/technical-info",
+            f"{DESCRIPTION_TYPES}/other",
         }
 
 
@@ -730,7 +763,7 @@ class TestDatasetDate:
     def test_collection_start_is_stored_under_its_type(self):
         dataset = DatasetFactory()
         DatasetDate.objects.create(
-            related=dataset, type=DatasetDate.START_TYPE, value="2020-06-01"
+            related=dataset, type_id=DatasetDate.START_TYPE, value="2020-06-01"
         )
 
         stored = dataset.dates.get(type=DatasetDate.START_TYPE)
@@ -739,11 +772,11 @@ class TestDatasetDate:
     def test_second_collection_start_is_refused(self):
         dataset = DatasetFactory()
         DatasetDate.objects.create(
-            related=dataset, type=DatasetDate.START_TYPE, value="2020-01-01"
+            related=dataset, type_id=DatasetDate.START_TYPE, value="2020-01-01"
         )
 
         duplicate = DatasetDate(
-            related=dataset, type=DatasetDate.START_TYPE, value="2021-01-01"
+            related=dataset, type_id=DatasetDate.START_TYPE, value="2021-01-01"
         )
         with pytest.raises(ValidationError):
             duplicate.full_clean()
@@ -751,11 +784,11 @@ class TestDatasetDate:
     def test_collection_end_before_start_is_refused_naming_both_dates(self):
         dataset = DatasetFactory()
         DatasetDate.objects.create(
-            related=dataset, type=DatasetDate.START_TYPE, value="2020-06-01"
+            related=dataset, type_id=DatasetDate.START_TYPE, value="2020-06-01"
         )
 
         end = DatasetDate(
-            related=dataset, type=DatasetDate.END_TYPE, value="2019-05-01"
+            related=dataset, type_id=DatasetDate.END_TYPE, value="2019-05-01"
         )
         with pytest.raises(ValidationError) as exc_info:
             end.full_clean()
@@ -767,10 +800,10 @@ class TestDatasetDate:
     def test_moving_start_after_existing_end_is_refused(self):
         dataset = DatasetFactory()
         start = DatasetDate.objects.create(
-            related=dataset, type=DatasetDate.START_TYPE, value="2020-01-01"
+            related=dataset, type_id=DatasetDate.START_TYPE, value="2020-01-01"
         )
         DatasetDate.objects.create(
-            related=dataset, type=DatasetDate.END_TYPE, value="2020-12-31"
+            related=dataset, type_id=DatasetDate.END_TYPE, value="2020-12-31"
         )
 
         start.value = "2021-01-01"
@@ -780,7 +813,7 @@ class TestDatasetDate:
     def test_collection_end_with_no_start_is_accepted(self):
         dataset = DatasetFactory()
         end = DatasetDate(
-            related=dataset, type=DatasetDate.END_TYPE, value="2024-06-15"
+            related=dataset, type_id=DatasetDate.END_TYPE, value="2024-06-15"
         )
 
         end.full_clean()
@@ -788,25 +821,27 @@ class TestDatasetDate:
     def test_year_only_end_in_same_year_as_month_precision_start_is_accepted(self):
         dataset = DatasetFactory()
         DatasetDate.objects.create(
-            related=dataset, type=DatasetDate.START_TYPE, value="2020-06"
+            related=dataset, type_id=DatasetDate.START_TYPE, value="2020-06"
         )
 
-        end = DatasetDate(related=dataset, type=DatasetDate.END_TYPE, value="2020")
+        end = DatasetDate(related=dataset, type_id=DatasetDate.END_TYPE, value="2020")
         end.full_clean()
 
     def test_month_precision_end_before_month_precision_start_is_refused(self):
         dataset = DatasetFactory()
         DatasetDate.objects.create(
-            related=dataset, type=DatasetDate.START_TYPE, value="2020-06"
+            related=dataset, type_id=DatasetDate.START_TYPE, value="2020-06"
         )
 
-        end = DatasetDate(related=dataset, type=DatasetDate.END_TYPE, value="2020-03")
+        end = DatasetDate(
+            related=dataset, type_id=DatasetDate.END_TYPE, value="2020-03"
+        )
         with pytest.raises(ValidationError):
             end.full_clean()
 
     def test_date_with_no_value_is_refused(self):
         dataset = DatasetFactory()
-        date = DatasetDate(related=dataset, type="Available")
+        date = DatasetDate(related=dataset, type_id=f"{DATE_TYPES}/available")
 
         with pytest.raises(ValidationError) as exc_info:
             date.full_clean()
@@ -814,28 +849,32 @@ class TestDatasetDate:
         assert "value" in exc_info.value.error_dict
 
     def test_date_vocabulary_members(self):
-        assert set(DatasetDate.VOCABULARY.values) == {
-            "Available",
-            "CollectionStart",
-            "CollectionEnd",
-            "Submitted",
-            "Published",
-            "Withdrawn",
+        assert set([concept.uri for concept in DatasetDate.get_type_concepts()]) == {
+            f"{DATE_TYPES}/available",
+            f"{DATE_TYPES}/collection-start",
+            f"{DATE_TYPES}/collection-end",
+            f"{DATE_TYPES}/submitted",
+            f"{DATE_TYPES}/published",
+            f"{DATE_TYPES}/withdrawn",
         }
 
 
 @pytest.mark.django_db
 class TestDatasetIdentifier:
     def test_available_types_are_the_dataset_collection_only(self):
-        assert set(DatasetIdentifier.VOCABULARY.values) == {"DOI"}
-        assert set(DatasetIdentifier.VOCABULARY.values).isdisjoint(
+        assert set(
+            [concept.uri for concept in DatasetIdentifier.get_type_concepts()]
+        ) == {f"{IDENTIFIER_TYPES}/doi"}
+        assert set(
+            [concept.uri for concept in DatasetIdentifier.get_type_concepts()]
+        ).isdisjoint(
             {
-                "ORCID",
-                "RESEARCHER_ID",
-                "ROR",
-                "WIKIDATA",
-                "ISNI",
-                "CROSSREF_FUNDER_ID",
+                f"{IDENTIFIER_TYPES}/orcid",
+                f"{IDENTIFIER_TYPES}/researcher-id",
+                f"{IDENTIFIER_TYPES}/ror",
+                f"{IDENTIFIER_TYPES}/wikidata",
+                f"{IDENTIFIER_TYPES}/isni",
+                f"{IDENTIFIER_TYPES}/crossref-funder-id",
             }
         )
 
@@ -844,12 +883,16 @@ class TestDatasetIdentifier:
 
         project = ProjectFactory()
         ProjectIdentifier.objects.create(
-            related=project, type="DOI", value="10.5555/shared-value"
+            related=project,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.5555/shared-value",
         )
 
         dataset = DatasetFactory()
         clashing = DatasetIdentifier(
-            related=dataset, type="DOI", value="10.5555/shared-value"
+            related=dataset,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.5555/shared-value",
         )
         with pytest.raises(ValidationError) as exc_info:
             clashing.full_clean()
@@ -857,7 +900,13 @@ class TestDatasetIdentifier:
         assert "value" in exc_info.value.error_dict
 
     def test_dataset_identifier_types_agrees_with_the_related_models_binding(self):
-        assert DatasetIdentifier.VOCABULARY.choices == Dataset.IDENTIFIER_TYPES
+        assert [
+            (concept.uri, concept.display_label())
+            for concept in DatasetIdentifier.get_type_concepts()
+        ] == [
+            (concept.uri, concept.display_label())
+            for concept in collection_members(Dataset.IDENTIFIER_TYPES)
+        ]
 
 
 @pytest.mark.django_db
@@ -865,18 +914,18 @@ class TestDatasetDateValidation:
     def test_create_date_with_valid_type(self):
         dataset = DatasetFactory()
         dataset_date = DatasetDate.objects.create(
-            related=dataset, type="Available", value="2024-01-15"
+            related=dataset, type_id=f"{DATE_TYPES}/available", value="2024-01-15"
         )
 
         assert dataset_date.pk is not None
-        assert dataset_date.type == "Available"
+        assert dataset_date.type_id == f"{DATE_TYPES}/available"
         assert str(dataset_date.value) == "2024-01-15"
         assert dataset_date.related == dataset
 
     def test_date_type_vocabulary_validation(self):
         dataset = DatasetFactory()
         dataset_date = DatasetDate(
-            related=dataset, type="InvalidType", value="2024-01-15"
+            related=dataset, type_id=f"{DATE_TYPES}/invalid-type", value="2024-01-15"
         )
 
         with pytest.raises(ValidationError) as exc_info:
@@ -889,9 +938,12 @@ class TestDatasetDateValidation:
 
         dataset = DatasetFactory()
 
-        for type_code, _type_label in Dataset.DATE_TYPES.choices:
+        for type_code, _type_label in [
+            (concept.uri, concept.display_label())
+            for concept in collection_members(Dataset.DATE_TYPES)
+        ]:
             dataset_date = DatasetDate(
-                related=dataset, type=type_code, value="2024-01-15"
+                related=dataset, type_id=type_code, value="2024-01-15"
             )
             dataset_date.full_clean()
 
@@ -899,7 +951,7 @@ class TestDatasetDateValidation:
         dataset = DatasetFactory()
         dataset_date = DatasetDate(
             related=dataset,
-            type="Available",
+            type_id=f"{DATE_TYPES}/available",
         )
 
         with pytest.raises(ValidationError) as exc_info:
@@ -909,7 +961,7 @@ class TestDatasetDateValidation:
 
     def test_dataset_relationship_required(self):
         dataset_date = DatasetDate(
-            type="Available",
+            type_id=f"{DATE_TYPES}/available",
             value="2024-01-15",
         )
 
@@ -920,22 +972,22 @@ class TestDatasetDateValidation:
         dataset = DatasetFactory()
 
         DatasetDate.objects.create(
-            related=dataset, type="Available", value="2024-01-15"
+            related=dataset, type_id=f"{DATE_TYPES}/available", value="2024-01-15"
         )
 
         with pytest.raises(IntegrityError):
             DatasetDate.objects.create(
-                related=dataset, type="Available", value="2024-02-20"
+                related=dataset, type_id=f"{DATE_TYPES}/available", value="2024-02-20"
             )
 
     def test_multiple_date_types_allowed(self):
         dataset = DatasetFactory()
 
         DatasetDate.objects.create(
-            related=dataset, type="Available", value="2024-01-15"
+            related=dataset, type_id=f"{DATE_TYPES}/available", value="2024-01-15"
         )
         DatasetDate.objects.create(
-            related=dataset, type="Submitted", value="2024-02-01"
+            related=dataset, type_id=f"{DATE_TYPES}/submitted", value="2024-02-01"
         )
 
         assert dataset.dates.count() == 2
@@ -943,7 +995,7 @@ class TestDatasetDateValidation:
     def test_cascade_delete_with_dataset(self):
         dataset = DatasetFactory()
         DatasetDate.objects.create(
-            related=dataset, type="Available", value="2024-01-15"
+            related=dataset, type_id=f"{DATE_TYPES}/available", value="2024-01-15"
         )
 
         dataset_id = dataset.pk
@@ -957,16 +1009,20 @@ class TestDatasetDescriptionValidation:
     def test_create_description_with_valid_type(self):
         dataset = DatasetFactory()
         description = DatasetDescription.objects.create(
-            related=dataset, type="Abstract", value="This is an abstract"
+            related=dataset,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="This is an abstract",
         )
 
         assert description.pk is not None
-        assert description.type == "Abstract"
+        assert description.type_id == f"{DESCRIPTION_TYPES}/abstract"
 
     def test_description_type_vocabulary_validation(self):
         dataset = DatasetFactory()
         description = DatasetDescription(
-            related=dataset, type="InvalidType", value="Test description"
+            related=dataset,
+            type_id=f"{DESCRIPTION_TYPES}/invalid-type",
+            value="Test description",
         )
 
         with pytest.raises(ValidationError) as exc_info:
@@ -979,9 +1035,12 @@ class TestDatasetDescriptionValidation:
 
         dataset = DatasetFactory()
 
-        for type_code, _type_label in Dataset.DESCRIPTION_TYPES.choices:
+        for type_code, _type_label in [
+            (concept.uri, concept.display_label())
+            for concept in collection_members(Dataset.DESCRIPTION_TYPES)
+        ]:
             description = DatasetDescription(
-                related=dataset, type=type_code, value=f"Test {type_code}"
+                related=dataset, type_id=type_code, value=f"Test {type_code}"
             )
             description.full_clean()
 
@@ -989,7 +1048,7 @@ class TestDatasetDescriptionValidation:
         dataset = DatasetFactory()
         description = DatasetDescription(
             related=dataset,
-            type="Abstract",
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
         )
 
         with pytest.raises(ValidationError) as exc_info:
@@ -999,7 +1058,7 @@ class TestDatasetDescriptionValidation:
 
     def test_dataset_relationship_required(self):
         description = DatasetDescription(
-            type="Abstract",
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
             value="Test",
         )
 
@@ -1010,18 +1069,20 @@ class TestDatasetDescriptionValidation:
         dataset = DatasetFactory()
 
         DatasetDescription.objects.create(
-            related=dataset, type="Methods", value="Method 1"
+            related=dataset, type_id=f"{DESCRIPTION_TYPES}/methods", value="Method 1"
         )
 
         with pytest.raises(IntegrityError):
             DatasetDescription.objects.create(
-                related=dataset, type="Methods", value="Method 2"
+                related=dataset,
+                type_id=f"{DESCRIPTION_TYPES}/methods",
+                value="Method 2",
             )
 
     def test_cascade_delete_with_dataset(self):
         dataset = DatasetFactory()
         DatasetDescription.objects.create(
-            related=dataset, type="Abstract", value="Test"
+            related=dataset, type_id=f"{DESCRIPTION_TYPES}/abstract", value="Test"
         )
 
         dataset_id = dataset.pk
@@ -1035,16 +1096,18 @@ class TestDatasetIdentifierValidation:
     def test_create_identifier_with_valid_type(self):
         dataset = DatasetFactory()
         identifier = DatasetIdentifier.objects.create(
-            related=dataset, type="DOI", value="10.1000/xyz123"
+            related=dataset, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.1000/xyz123"
         )
 
         assert identifier.pk is not None
-        assert identifier.type == "DOI"
+        assert identifier.type_id == f"{IDENTIFIER_TYPES}/doi"
 
     def test_identifier_type_vocabulary_validation(self):
         dataset = DatasetFactory()
         identifier = DatasetIdentifier(
-            related=dataset, type="InvalidType", value="some-identifier"
+            related=dataset,
+            type_id=f"{IDENTIFIER_TYPES}/invalid-type",
+            value="some-identifier",
         )
 
         with pytest.raises(ValidationError) as exc_info:
@@ -1055,9 +1118,11 @@ class TestDatasetIdentifierValidation:
     def test_all_valid_identifier_types_accepted(self):
         dataset = DatasetFactory()
 
-        for type_code, _type_label in Dataset.IDENTIFIER_TYPES:
+        for type_code in [
+            concept.uri for concept in collection_members(Dataset.IDENTIFIER_TYPES)
+        ]:
             identifier = DatasetIdentifier(
-                related=dataset, type=type_code, value=f"test-{type_code}"
+                related=dataset, type_id=type_code, value=f"test-{type_code}"
             )
             identifier.full_clean()
 
@@ -1065,7 +1130,7 @@ class TestDatasetIdentifierValidation:
         dataset = DatasetFactory()
         identifier = DatasetIdentifier(
             related=dataset,
-            type="DOI",
+            type_id=f"{IDENTIFIER_TYPES}/doi",
         )
 
         with pytest.raises(ValidationError) as exc_info:
@@ -1075,7 +1140,7 @@ class TestDatasetIdentifierValidation:
 
     def test_dataset_relationship_required(self):
         identifier = DatasetIdentifier(
-            type="DOI",
+            type_id=f"{IDENTIFIER_TYPES}/doi",
             value="10.1000/xyz123",
         )
 
@@ -1088,22 +1153,24 @@ class TestDOISupport:
     def test_create_doi_identifier(self):
         dataset = DatasetFactory()
         doi = DatasetIdentifier.objects.create(
-            related=dataset, type="DOI", value="10.1000/xyz123"
+            related=dataset, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.1000/xyz123"
         )
 
-        assert doi.type == "DOI"
+        assert doi.type_id == f"{IDENTIFIER_TYPES}/doi"
         assert doi.value == "10.1000/xyz123"
 
     def test_query_datasets_with_doi(self):
         dataset_with_doi = DatasetFactory()
         DatasetIdentifier.objects.create(
-            related=dataset_with_doi, type="DOI", value="10.1000/xyz123"
+            related=dataset_with_doi,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.1000/xyz123",
         )
 
         dataset_without_doi = DatasetFactory()
 
         datasets_with_doi = Dataset.all_objects.filter(
-            identifiers__type="DOI"
+            identifiers__type=f"{IDENTIFIER_TYPES}/doi"
         ).distinct()
 
         assert dataset_with_doi in datasets_with_doi
@@ -1112,17 +1179,17 @@ class TestDOISupport:
     def test_get_doi_helper(self):
         dataset = DatasetFactory()
         DatasetIdentifier.objects.create(
-            related=dataset, type="DOI", value="10.1000/xyz123"
+            related=dataset, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.1000/xyz123"
         )
 
-        doi = dataset.identifiers.filter(type="DOI").first()
+        doi = dataset.identifiers.filter(type_id=f"{IDENTIFIER_TYPES}/doi").first()
         assert doi is not None
         assert doi.value == "10.1000/xyz123"
 
     def test_cascade_delete_with_dataset(self):
         dataset = DatasetFactory()
         DatasetIdentifier.objects.create(
-            related=dataset, type="DOI", value="10.1000/xyz123"
+            related=dataset, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.1000/xyz123"
         )
 
         dataset_id = dataset.pk
@@ -1134,12 +1201,14 @@ class TestDOISupport:
         dataset = DatasetFactory()
 
         DatasetIdentifier.objects.create(
-            related=dataset, type="DOI", value="10.1000/xyz123"
+            related=dataset, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.1000/xyz123"
         )
 
         with pytest.raises(IntegrityError):
             DatasetIdentifier.objects.create(
-                related=dataset, type="DOI", value="10.1000/different"
+                related=dataset,
+                type_id=f"{IDENTIFIER_TYPES}/doi",
+                value="10.1000/different",
             )
 
 
@@ -1586,7 +1655,9 @@ class TestDatasetModel:
         dataset = DatasetFactory()
         user = PersonFactory()
 
-        contribution = dataset.add_contributor(user, with_roles=["Creator"])
+        contribution = dataset.add_contributor(
+            user, with_roles=[f"{CONTRIBUTOR_ROLES}/creator"]
+        )
 
         assert contribution is not None
         assert contribution.contributor == user

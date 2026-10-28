@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
         ('dataset', '0015_index_modified'),
         ('fairdm', '0001_initial'),
         ('measurement', '0013_alter_measurementdescription_value'),
-        ('research_vocabs', '0002_alter_concept_unique_together'),
+        ("controlled_vocabularies", "0001_initial"),
         ('sample', '0010_alter_sampledescription_value'),
         ('taggit', '0006_rename_taggeditem_content_type_object_id_taggit_tagg_content_8fc721_idx'),
     ]

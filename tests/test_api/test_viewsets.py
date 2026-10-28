@@ -10,6 +10,12 @@ from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Organization, Person
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
+from fairdm.core.vocabularies import (
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    IDENTIFIER_TYPES,
+)
 from fairdm.factories import (
     DatasetFactory,
     OrganizationFactory,
@@ -378,11 +384,11 @@ class TestCompleteRecord:
         for name in self.METADATA:
             assert len(data[name]) == 1, name
         description = record.descriptions.get()
-        assert data["descriptions"][0]["type"] == description.type
+        assert data["descriptions"][0]["type"] == description.type_id
         assert data["descriptions"][0]["value"] == description.value
-        assert data["dates"][0]["type"] == record.dates.get().type
+        assert data["dates"][0]["type"] == record.dates.get().type_id
         assert data["identifiers"][0]["value"] == record.identifiers.get().value
-        assert data["keywords"][0]["name"] == record.keywords.get().name
+        assert data["keywords"][0]["uri"] == record.keywords.get().uri
 
     @pytest.mark.parametrize("kind", ["project", "dataset", "sample", "measurement"])
     def test_a_credited_contributor_is_named_with_roles_and_affiliation(
@@ -395,8 +401,8 @@ class TestCompleteRecord:
 
         assert credited["uuid"] == credit.contributor.uuid
         assert credited["affiliation"]["uuid"] == credit.affiliation.uuid
-        assert [role["name"] for role in credited["roles"]] == [
-            role.name for role in credit.roles.all()
+        assert [role["uri"] for role in credited["roles"]] == [
+            role.uri for role in credit.roles.all()
         ]
 
     def test_a_dataset_carries_its_licence_and_a_project_its_owner(
@@ -502,7 +508,7 @@ CREDIT_KEYS = {
 
 def add_credit(record, contributor, affiliation=None, roles=1):
     """Credit a contributor on a record, with the first roles of the roles vocabulary."""
-    from research_vocabs.models import Concept
+    from controlled_vocabularies.models import Record
 
     from fairdm.factories import ContributionFactory
 
@@ -512,7 +518,11 @@ def add_credit(record, contributor, affiliation=None, roles=1):
         affiliation=affiliation,
         level=None if contributor.is_organization else ContributionLevel.VIEW,
     )
-    credit.roles.add(*Concept.objects.filter(vocabulary__name="fairdm-roles")[:roles])
+    credit.roles.add(
+        *Record.objects.filter(scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT)[
+            :roles
+        ]
+    )
     return credit
 
 
@@ -529,10 +539,14 @@ class TestCredit:
 
         person = PersonFactory(first_name="Ada", last_name="Lovelace")
         ContributorIdentifierFactory(
-            related=person, type="ORCID", value="0000-0002-1825-0097"
+            related=person,
+            type_id=f"{IDENTIFIER_TYPES}/orcid",
+            value="0000-0002-1825-0097",
         )
         institute = OrganizationFactory(name="Analytical Institute")
-        ContributorIdentifierFactory(related=institute, type="ROR", value="03yrm5c26")
+        ContributorIdentifierFactory(
+            related=institute, type_id=f"{IDENTIFIER_TYPES}/ror", value="03yrm5c26"
+        )
         return person, institute
 
     @pytest.fixture
@@ -609,8 +623,8 @@ class TestCredit:
         )
         held = made["author"].roles.all()
         assert len(held) == 2
-        assert {(role["name"], role["label"]) for role in credit["roles"]} == {
-            (role.name, str(role.label)) for role in held
+        assert {(role["uri"], role["label"]) for role in credit["roles"]} == {
+            (role.uri, role.display_label()) for role in held
         }
 
     @pytest.mark.parametrize("kind", CREDIT_KINDS)
@@ -715,9 +729,13 @@ class TestCredit:
 
         person, _institute = author
         ContributorIdentifierFactory(
-            related=person, type="ISNI", value="0000 0001 2281 955X"
+            related=person,
+            type_id=f"{IDENTIFIER_TYPES}/isni",
+            value="0000 0001 2281 955X",
         )
-        ContributorIdentifierFactory(related=person, type="Wikidata", value="Q7259")
+        ContributorIdentifierFactory(
+            related=person, type=f"{IDENTIFIER_TYPES}/wikidata", value="Q7259"
+        )
         record = record_of("dataset")
         add_credit(record, person)
 
@@ -728,7 +746,7 @@ class TestCredit:
         } == {
             "ORCID",
             "ISNI",
-            "Wikidata",
+            "WIKIDATA",
         }
 
     def test_an_identifier_with_no_resolver_has_its_value_and_no_scheme_address(
@@ -737,7 +755,9 @@ class TestCredit:
         from fairdm.factories import ContributorIdentifierFactory, PersonFactory
 
         person = PersonFactory()
-        unresolved = ContributorIdentifierFactory(related=person, type="Local")
+        unresolved = ContributorIdentifierFactory(
+            related=person, type=f"{IDENTIFIER_TYPES}/researcher-id"
+        )
         record = record_of("dataset")
         add_credit(record, person)
 
@@ -746,7 +766,7 @@ class TestCredit:
         assert credit["name_identifiers"] == [
             {
                 "name_identifier": unresolved.value,
-                "name_identifier_scheme": "Local",
+                "name_identifier_scheme": "RESEARCHER_ID",
                 "scheme_uri": None,
             }
         ]
@@ -758,8 +778,12 @@ class TestCredit:
 
         person, _ = author
         institute = OrganizationFactory(name="Difference Works")
-        ContributorIdentifierFactory(related=institute, type="Wikidata", value="Q1")
-        ContributorIdentifierFactory(related=institute, type="ROR", value="04aj4c181")
+        ContributorIdentifierFactory(
+            related=institute, type=f"{IDENTIFIER_TYPES}/wikidata", value="Q1"
+        )
+        ContributorIdentifierFactory(
+            related=institute, type_id=f"{IDENTIFIER_TYPES}/ror", value="04aj4c181"
+        )
         record = record_of("dataset")
         add_credit(record, person, institute)
 
@@ -1142,7 +1166,9 @@ class TestContributor:
             links=["https://example.org/me"],
             lang=["en"],
         )
-        ContributorIdentifierFactory(related=person, type="ORCID")
+        ContributorIdentifierFactory(
+            related=person, type_id=f"{IDENTIFIER_TYPES}/orcid"
+        )
         AffiliationFactory(
             person=person, organization=OrganizationFactory(), is_primary=True
         )
@@ -1154,7 +1180,7 @@ class TestContributor:
 
         organisation = OrganizationFactory(parent=OrganizationFactory())
         ContributorIdentifierFactory(
-            related=organisation, type="ROR", value="03yrm5c26"
+            related=organisation, type_id=f"{IDENTIFIER_TYPES}/ror", value="03yrm5c26"
         )
         return organisation
 
@@ -1322,7 +1348,9 @@ class TestPeopleList:
         from fairdm.factories import ContributorIdentifierFactory
 
         person = PersonFactory(first_name="Ada", last_name="Lovelace")
-        identifier = ContributorIdentifierFactory(related=person, type="ORCID")
+        identifier = ContributorIdentifierFactory(
+            related=person, type_id=f"{IDENTIFIER_TYPES}/orcid"
+        )
 
         entry = listed()[person.uuid]
 
@@ -1331,7 +1359,7 @@ class TestPeopleList:
         assert entry["family_name"] == "Lovelace"
         assert entry["identifiers"] == [
             {
-                "type": "ORCID",
+                "type": f"{IDENTIFIER_TYPES}/orcid",
                 "value": identifier.value,
                 "link": f"https://orcid.org/{identifier.value}",
             }
@@ -1769,7 +1797,9 @@ class TestPerson:
             ContributorIdentifierFactory,
         )
 
-        ContributorIdentifierFactory(related=person, type="ORCID")
+        ContributorIdentifierFactory(
+            related=person, type_id=f"{IDENTIFIER_TYPES}/orcid"
+        )
         AffiliationFactory(
             person=person, organization=OrganizationFactory(), is_primary=True
         )
@@ -1878,14 +1908,14 @@ class TestOrganizationsList:
 
         organization = OrganizationFactory()
         ContributorIdentifierFactory(
-            related=organization, type="ROR", value="03yrm5c26"
+            related=organization, type_id=f"{IDENTIFIER_TYPES}/ror", value="03yrm5c26"
         )
 
         entry = listed()[organization.uuid]
 
         assert entry["identifiers"] == [
             {
-                "type": "ROR",
+                "type": f"{IDENTIFIER_TYPES}/ror",
                 "value": "03yrm5c26",
                 "link": "https://ror.org/03yrm5c26",
             }
@@ -2040,7 +2070,7 @@ class TestOrganization:
         from fairdm.factories import ContributorIdentifierFactory
 
         ContributorIdentifierFactory(
-            related=organization, type="ROR", value="03yrm5c26"
+            related=organization, type_id=f"{IDENTIFIER_TYPES}/ror", value="03yrm5c26"
         )
         entry = next(
             row
@@ -3044,9 +3074,13 @@ class TestChanging:
                 "added": "2001-01-01T00:00:00Z",
                 "modified": "2001-01-01T00:00:00Z",
                 "url": "http://example.org/elsewhere/",
-                "descriptions": [{"type": "Abstract", "value": "Overwritten"}],
-                "dates": [{"type": "Created", "value": "2001-01-01"}],
-                "identifiers": [{"type": "DOI", "value": "10.1234/overwritten"}],
+                "descriptions": [
+                    {"type": f"{DESCRIPTION_TYPES}/abstract", "value": "Overwritten"}
+                ],
+                "dates": [{"type": f"{DATE_TYPES}/created", "value": "2001-01-01"}],
+                "identifiers": [
+                    {"type": f"{IDENTIFIER_TYPES}/doi", "value": "10.1234/overwritten"}
+                ],
                 "keywords": [],
                 "contributors": [],
             }
@@ -3680,7 +3714,9 @@ class TestQueryCount:
         )
 
         person = PersonFactory(is_active=True, is_claimed=True)
-        ContributorIdentifierFactory(related=person, type="ORCID")
+        ContributorIdentifierFactory(
+            related=person, type_id=f"{IDENTIFIER_TYPES}/orcid"
+        )
         AffiliationFactory(
             person=person, organization=OrganizationFactory(), is_primary=True
         )
@@ -3692,7 +3728,9 @@ class TestQueryCount:
         from fairdm.factories import ContributorIdentifierFactory, OrganizationFactory
 
         organisation = OrganizationFactory(parent=OrganizationFactory())
-        ContributorIdentifierFactory(related=organisation, type="ROR")
+        ContributorIdentifierFactory(
+            related=organisation, type_id=f"{IDENTIFIER_TYPES}/ror"
+        )
 
     @pytest.fixture
     def grow(self, make_record, add_metadata):
@@ -3765,9 +3803,13 @@ class TestCreditQueries:
 
         for _ in range(people):
             person = PersonFactory()
-            ContributorIdentifierFactory(related=person, type="ORCID")
+            ContributorIdentifierFactory(
+                related=person, type_id=f"{IDENTIFIER_TYPES}/orcid"
+            )
             institute = OrganizationFactory()
-            ContributorIdentifierFactory(related=institute, type="ROR")
+            ContributorIdentifierFactory(
+                related=institute, type_id=f"{IDENTIFIER_TYPES}/ror"
+            )
             add_credit(record, person, institute, roles=2)
         add_credit(record, OrganizationFactory())
 
@@ -3876,7 +3918,9 @@ class TestReferencesFollowTheLists:
         from fairdm.factories import ContributorIdentifierFactory
 
         ContributorIdentifierFactory(
-            related=unlisted, type="ORCID", value="0000-0003-1415-9269"
+            related=unlisted,
+            type_id=f"{IDENTIFIER_TYPES}/orcid",
+            value="0000-0003-1415-9269",
         )
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         credit = add_credit(dataset, unlisted, roles=2)
@@ -3897,8 +3941,8 @@ class TestReferencesFollowTheLists:
                 "scheme_uri": "https://orcid.org/",
             }
         ]
-        assert {role["name"] for role in returned["roles"]} == {
-            role.name for role in credit.roles.all()
+        assert {role["uri"] for role in returned["roles"]} == {
+            role.uri for role in credit.roles.all()
         }
         assert len(returned["roles"]) == 2
 
@@ -4222,18 +4266,14 @@ class TestLocation:
         from demo.models import XRFMeasurement
 
         sample = RockSampleFactory(dataset=dataset, location=self.point())
-        measurement = make_record(
-            XRFMeasurement, dataset, sample=sample, location=None
-        )
+        measurement = make_record(XRFMeasurement, dataset, sample=sample, location=None)
 
         data = api_client.get(url_of(measurement)).json()
 
         assert data["location"] is None
         assert data["location_uncertainty"] is None
 
-    def test_an_organization_returns_its_point_without_an_elevation(
-        self, api_client
-    ):
+    def test_an_organization_returns_its_point_without_an_elevation(self, api_client):
         organization = OrganizationFactory(location=self.point())
 
         listed = api_client.get(reverse("api:organization-list")).json()["results"]

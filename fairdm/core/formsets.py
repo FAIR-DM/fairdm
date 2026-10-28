@@ -23,8 +23,8 @@ def date_ordering_formset(start_type, end_type, message):
     translatable as one unit.
 
     Args:
-        start_type: The date type value marking the start of the pair.
-        end_type: The date type value marking the end of the pair.
+        start_type: The address of the date type marking the start of the pair.
+        end_type: The address of the date type marking the end of the pair.
         message: The error message, using ``%(start)s`` and ``%(end)s``
             placeholders.
 
@@ -50,9 +50,11 @@ def date_ordering_formset(start_type, end_type, message):
                 # in `full_clean()`, which runs after the formset's own `clean()`.
                 if not isinstance(value, PartialDate):
                     value = PartialDate(value)
-                if form.cleaned_data.get("type") == start_type:
+                # The type field cleans to the concept, and the pair is named by address.
+                chosen = getattr(form.cleaned_data.get("type"), "uri", None)
+                if chosen == start_type:
                     start_value = value
-                elif form.cleaned_data.get("type") == end_type:
+                elif chosen == end_type:
                     end_value = value
 
             if start_value is None or end_value is None:

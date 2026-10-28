@@ -4,6 +4,8 @@ import json
 import logging
 from collections import Counter, defaultdict
 
+from controlled_vocabularies.fields import ConceptField, MultiConceptField
+from controlled_vocabularies.models import Record
 from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
@@ -25,12 +27,11 @@ from easy_icons import icon
 from easy_thumbnails.fields import ThumbnailerImageField
 from model_utils import FieldTracker
 from ordered_model.models import OrderedModel
-from research_vocabs.fields import ConceptManyToManyField
 from shortuuid.django_fields import ShortUUIDField
 
 from fairdm.core.abstract import AbstractIdentifier
 from fairdm.core.overview import format_partial_date
-from fairdm.core.vocabularies import FairDMIdentifiers, FairDMRoles
+from fairdm.core.vocabularies import CONTRIBUTOR_ROLES, IDENTIFIER_TYPES, ORCID, ROR
 from fairdm.db import models
 from fairdm.db.fields import PartialDateField
 from fairdm.db.models import PolymorphicModel, PrefetchPolymorphicManager
@@ -250,7 +251,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         Returns:
             The rendered icon.
         """
-        return icon(self.DEFAULT_IDENTIFIER)
+        return icon(self.DEFAULT_IDENTIFIER_ICON)
 
     def get_default_identifier(self):
         """Return the contributor's identifier of the default scheme.
@@ -262,7 +263,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
             The identifier, or None when there is none.
         """
         return next(
-            (i for i in self.identifiers.all() if i.type == self.DEFAULT_IDENTIFIER),
+            (i for i in self.identifiers.all() if i.type_id == self.DEFAULT_IDENTIFIER),
             None,
         )
 
@@ -553,7 +554,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         if contributions is None:
             contributions = self.contributions.prefetch_related("roles")
         return Counter(
-            role.label
+            role.display_label()
             for contribution in contributions
             for role in contribution.roles.all()
         )
@@ -668,7 +669,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
 
         Args:
             obj: A project, dataset, sample or measurement.
-            roles: Names of roles in the roles vocabulary.
+            roles: Addresses of contributor role concepts.
 
         Returns:
             The contribution, created if it did not exist.
@@ -683,7 +684,8 @@ class Person(AbstractUser, Contributor):
     See :attr:`account_state`.
 
     Attributes:
-        DEFAULT_IDENTIFIER: The identifier scheme shown by default.
+        DEFAULT_IDENTIFIER: The address of the identifier type shown by default.
+        DEFAULT_IDENTIFIER_ICON: The icon of that identifier type.
         objects: The person manager.
         email: Login address, null for an unclaimed profile created for attribution alone.
         is_claimed: Whether the person has claimed the account.
@@ -692,7 +694,8 @@ class Person(AbstractUser, Contributor):
         username: Removed, as people sign in by email.
     """
 
-    DEFAULT_IDENTIFIER = "ORCID"
+    DEFAULT_IDENTIFIER = ORCID
+    DEFAULT_IDENTIFIER_ICON = "ORCID"
 
     objects = UserManager()  # type: ignore[var-annotated]
 
@@ -834,7 +837,7 @@ class Person(AbstractUser, Contributor):
                         {"links": _("Invalid URL: %(url)s") % {"url": url}}
                     ) from None
 
-        orcid = self.identifiers.filter(type="ORCID").first() if self.pk else None
+        orcid = self.identifiers.filter(type_id=ORCID).first() if self.pk else None
         if orcid and not re.match(ORCID_PATTERN, orcid.value):
             raise ValidationError(
                 {
@@ -852,7 +855,7 @@ class Person(AbstractUser, Contributor):
         Returns:
             The identifier, or None when there is none.
         """
-        return self.identifiers.filter(type="ORCID").first()
+        return self.identifiers.filter(type_id=ORCID).first()
 
     def get_provider(self, provider: str):
         """Return the person's social account for a provider.
@@ -1063,7 +1066,7 @@ class Person(AbstractUser, Contributor):
         person = ORCIDTransform.update_or_create(orcid_id)
 
         if person and person.pk:
-            orcid_identifier = person.identifiers.filter(type="ORCID").first()
+            orcid_identifier = person.identifiers.filter(type_id=ORCID).first()
             if orcid_identifier:
                 transaction.on_commit(
                     lambda: sync_contributor_identifier.delay(orcid_identifier.pk)
@@ -1276,7 +1279,8 @@ class Organization(Contributor):
     An organisation can have members and sub-organisations, such as departments or research groups.
 
     Attributes:
-        DEFAULT_IDENTIFIER: The identifier scheme shown by default.
+        DEFAULT_IDENTIFIER: The address of the identifier type shown by default.
+        DEFAULT_IDENTIFIER_ICON: The icon of that identifier type.
         type: The kind of institution, from ROR's organisation types.
         members: The people affiliated with the organisation.
         parent: The organisation this one is part of.
@@ -1285,7 +1289,8 @@ class Organization(Contributor):
         location: The point where the organisation is, in WGS 84.
     """
 
-    DEFAULT_IDENTIFIER = "ROR"
+    DEFAULT_IDENTIFIER = ROR
+    DEFAULT_IDENTIFIER_ICON = "ROR"
     is_organization = True
 
     objects = PrefetchPolymorphicManager.from_queryset(OrganizationQuerySet)()  # type: ignore[assignment,misc]
@@ -1406,7 +1411,7 @@ class Organization(Contributor):
                     ) from None
 
         # Identifiers exist only after the first save.
-        if self.pk and (ror := self.identifiers.filter(type="ROR").first()):
+        if self.pk and (ror := self.identifiers.filter(type_id=ROR).first()):
             import re
 
             if not re.match(ROR_PATTERN, ror.value.removeprefix("https://ror.org/")):
@@ -1425,7 +1430,7 @@ class Organization(Contributor):
         if self.synced_data:
             ror = self.synced_data.get("id")
             if ror:
-                self.identifiers.get_or_create(type="ROR", defaults={"value": ror})
+                self.identifiers.get_or_create(type_id=ROR, defaults={"value": ror})
 
     @classmethod
     def from_ror(cls, ror, commit=True):
@@ -1446,7 +1451,7 @@ class Organization(Contributor):
         org, _created = RORTransform.update_or_create(ror)
 
         if commit:
-            ror_identifier = org.identifiers.filter(type="ROR").first()
+            ror_identifier = org.identifiers.filter(type_id=ROR).first()
             if ror_identifier:
                 transaction.on_commit(
                     lambda: sync_contributor_identifier.delay(ror_identifier.pk)
@@ -1613,7 +1618,7 @@ class Organization(Contributor):
             ``profile`` and ``links``.
         """
         return {
-            "ror": any(i.type == "ROR" for i in self.identifiers.all()),
+            "ror": any(i.type_id == ROR for i in self.identifiers.all()),
             "image": bool(self.image),
             "type": bool(self.type),
             "location": bool(self.city and self.country),
@@ -1749,16 +1754,11 @@ CONTRIBUTION_UNIQUE_PAIRING_MESSAGE = _(
     "This contributor is already credited on this object."
 )
 
-CONTRIBUTION_ROLES_VOCABULARY_MESSAGE = _(
-    "A contribution's roles must be drawn from the framework's roles vocabulary."
-)
-
 
 class Contribution(LifecycleModelMixin, OrderedModel):
     """A contributor's credit on a project, dataset, sample or measurement, based on the DataCite contributor schema.
 
     Attributes:
-        ROLES_VOCAB: The roles vocabulary.
         objects: The contribution manager.
         content_type: The type of the credited object.
         object_id: The id of the credited object.
@@ -1770,7 +1770,6 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         level: What a person may do on the credited object. Empty for an organisation.
     """
 
-    ROLES_VOCAB = FairDMRoles()
     objects = ContributionManager()
     content_type = models.ForeignKey(
         ContentType,
@@ -1795,8 +1794,9 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         on_delete=models.SET_NULL,
     )
 
-    roles = ConceptManyToManyField(
-        vocabulary=FairDMRoles,
+    roles = MultiConceptField(
+        vocabulary=CONTRIBUTOR_ROLES,
+        blank=True,
         verbose_name=_("roles"),
         help_text=_("The roles assigned to the contributor for this contribution."),
     )
@@ -1862,10 +1862,6 @@ class Contribution(LifecycleModelMixin, OrderedModel):
             if duplicate:
                 raise ValidationError(CONTRIBUTION_UNIQUE_PAIRING_MESSAGE)
 
-        # Many-to-many data is not validated on save; `refuse_off_vocabulary_role` is the real enforcement.
-        if self.pk and self.roles.exclude(vocabulary__name="fairdm-roles").exists():
-            raise ValidationError(CONTRIBUTION_ROLES_VOCABULARY_MESSAGE)
-
     @staticmethod
     def starting_level(contributor):
         """Return the level a contributor holds when first credited on a record.
@@ -1892,7 +1888,7 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         Args:
             contributor: The person or organisation to credit.
             obj: The project, dataset, sample or measurement.
-            roles: Names of roles in the roles vocabulary.
+            roles: Addresses of contributor role concepts.
             affiliation: The organisation to set on a newly created credit.
 
         Returns:
@@ -1911,12 +1907,9 @@ class Contribution(LifecycleModelMixin, OrderedModel):
             },
         )
         if roles:
-            from research_vocabs.models import Concept
-
-            roles_qs = Concept.objects.filter(
-                vocabulary__name="fairdm-roles", name__in=roles
+            contribution.roles.add(
+                *Record.objects.filter(scheme__uri=CONTRIBUTOR_ROLES, uri__in=roles)
             )
-            contribution.roles.add(*roles_qs)
         return contribution
 
     def save(self, *args, **kwargs):
@@ -1971,11 +1964,17 @@ class ContributorIdentifier(AbstractIdentifier, LifecycleModelMixin):
     specimen identifier such as an IGSN.
 
     Attributes:
-        VOCABULARY: The identifier types a contributor may hold.
+        type: The kind of identifier, from the contributor identifier types.
         related: The contributor the identifier belongs to.
     """
 
-    VOCABULARY = FairDMIdentifiers.from_collection("Contributor")
+    type = ConceptField(
+        vocabulary=IDENTIFIER_TYPES,
+        collection=f"{IDENTIFIER_TYPES}/contributor",
+        related_name="+",
+        verbose_name=_("type"),
+        help_text=_("The kind of identifier, from the contributor identifier types."),
+    )
     related = models.ForeignKey(
         "Contributor",
         verbose_name=_("contributor"),
@@ -1993,9 +1992,9 @@ class ContributorIdentifier(AbstractIdentifier, LifecycleModelMixin):
         from django.core.exceptions import ValidationError
 
         super().clean()
-        if self.related_id and self.type:
+        if self.related_id and self.type_id:
             duplicates = ContributorIdentifier.objects.filter(
-                related_id=self.related_id, type=self.type
+                related_id=self.related_id, type=self.type_id
             )
             if self.pk:
                 duplicates = duplicates.exclude(pk=self.pk)

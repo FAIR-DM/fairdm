@@ -7,6 +7,7 @@ import pytest
 from fairdm.contrib.contributors.models import (
     ContributorIdentifier,
 )
+from fairdm.core.vocabularies import IDENTIFIER_TYPES
 
 
 @pytest.mark.django_db
@@ -43,7 +44,7 @@ class TestORCIDSyncTask:
 
         identifier = ContributorIdentifier.objects.create(
             related=person,
-            type="ORCID",
+            type_id=f"{IDENTIFIER_TYPES}/orcid",
             value="0000-0002-1234-5678",
         )
 
@@ -113,7 +114,6 @@ class TestRORSyncTask:
         organization.refresh_from_db()
         assert organization.name == "Test University"
 
-
     def test_ror_sync_task_names_an_organization_that_has_no_name(
         self, registry_network, recorded, organization, ror_identifier
     ):
@@ -155,7 +155,7 @@ class TestPeriodicRefresh:
 
         ContributorIdentifier.objects.create(
             related=person,
-            type="OTHER",
+            type_id=f"{IDENTIFIER_TYPES}/researcher-id",
             value="custom-id-123",
         )
 

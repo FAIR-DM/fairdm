@@ -12,6 +12,12 @@ from fairdm import plugins
 from fairdm.contrib.plugins.access import has_perm
 from fairdm.core.overview import safe_reverse, sentence_case
 from fairdm.core.plugins import TypedOverviewPlugin
+from fairdm.core.vocabularies import (
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    DOI,
+)
 
 from .models import Measurement
 
@@ -42,9 +48,24 @@ class Overview(TypedOverviewPlugin):
     url_path = None
 
     procedure_steps = [
-        ("Setup", "MeasurementPreparation", "MeasurementSetup", _("Set up")),
-        (None, "MeasurementCollection", "MeasurementConditions", _("Measured")),
-        ("TearDown", None, "MeasurementTearDown", _("Taken down")),
+        (
+            f"{DATE_TYPES}/setup",
+            f"{CONTRIBUTOR_ROLES}/measurement-preparation",
+            f"{DESCRIPTION_TYPES}/measurement-setup",
+            _("Set up"),
+        ),
+        (
+            None,
+            f"{CONTRIBUTOR_ROLES}/measurement-collection",
+            f"{DESCRIPTION_TYPES}/measurement-conditions",
+            _("Measured"),
+        ),
+        (
+            f"{DATE_TYPES}/tear-down",
+            None,
+            f"{DESCRIPTION_TYPES}/measurement-tear-down",
+            _("Taken down"),
+        ),
     ]
     siblings_shown = 8
 
@@ -75,8 +96,8 @@ class Overview(TypedOverviewPlugin):
         context = super().get_context_data(**kwargs)
         measurement = self.base_object
         entries = self.get_credits()
-        descriptions = {d.type: d.value for d in measurement.descriptions.all()}
-        dates = {d.type: d.value for d in measurement.dates.all()}
+        descriptions = {d.type_id: d.value for d in measurement.descriptions.all()}
+        dates = {d.type_id: d.value for d in measurement.dates.all()}
         sample = measurement.sample
         sample_visible = (
             Sample.objects.filter(pk=sample.pk).visible_to(self.request.user).exists()
@@ -101,7 +122,7 @@ class Overview(TypedOverviewPlugin):
                 "procedure": self.get_timeline(
                     self.procedure_steps, dates, descriptions, entries
                 ),
-                "notes": descriptions.get("Other"),
+                "notes": descriptions.get(f"{DESCRIPTION_TYPES}/other"),
                 "sample": sample,
                 "sample_type": sentence_case(type(sample)._meta.verbose_name),
                 "sample_status": self.get_sample_status(),
@@ -150,13 +171,11 @@ class Overview(TypedOverviewPlugin):
         from fairdm.core.sample.plugins import Overview as SampleOverview
 
         sample = self.base_object.sample
-        status = getattr(sample.status, "name", sample.status)
-        if not status:
+        if not sample.status_id:
             return None
-        labels = dict(type(sample)._meta.get_field("status").choices)
         return {
-            "label": labels.get(status, status),
-            "variant": SampleOverview.status_variants.get(status, "neutral"),
+            "label": sample.get_status_label(),
+            "variant": SampleOverview.status_variants.get(sample.status_id, "neutral"),
         }
 
     def get_siblings(self):
@@ -204,8 +223,8 @@ class Overview(TypedOverviewPlugin):
             The card's title and text, with the note and its link when there is no DOI.
         """
         measurement = self.base_object
-        doi = next((i for i in identifiers if i["type"] == "DOI"), None)
-        setup = dates.get("Setup")
+        doi = next((i for i in identifiers if i["type"].uri == DOI), None)
+        setup = dates.get(f"{DATE_TYPES}/setup")
         title = gettext("%(name)s [%(type)s] of %(sample)s") % {
             "name": measurement.name,
             "type": str(type(measurement)._meta.verbose_name),
@@ -217,7 +236,7 @@ class Overview(TypedOverviewPlugin):
             "title": gettext("Citation"),
             "text": self.get_citation(
                 authors=self.get_contributors_with_role(
-                    entries, "MeasurementCollection"
+                    entries, f"{CONTRIBUTOR_ROLES}/measurement-collection"
                 ),
                 year=getattr(getattr(setup, "date", None), "year", None)
                 or measurement.added.year,

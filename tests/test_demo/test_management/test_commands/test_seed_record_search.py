@@ -21,6 +21,7 @@ from fairdm.contrib.contributors.models import (
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
 from fairdm.core.sample.models import Sample, SampleIdentifier
+from fairdm.core.vocabularies import IDENTIFIER_TYPES
 from fairdm.utils.choices import Visibility
 
 
@@ -55,9 +56,11 @@ class TestSeedRecordSearch:
         seed()
 
         assert Organization.objects.filter(
-            identifiers__type="ROR", identifiers__value="04z8jg394"
+            identifiers__type=f"{IDENTIFIER_TYPES}/ror", identifiers__value="04z8jg394"
         ).exists()
-        assert ContributorIdentifier.objects.filter(type="ORCID").exists()
+        assert ContributorIdentifier.objects.filter(
+            type_id=f"{IDENTIFIER_TYPES}/orcid"
+        ).exists()
 
     def test_two_people_are_left_unclaimed(self):
         seed()
@@ -68,13 +71,17 @@ class TestSeedRecordSearch:
         seed()
 
         assert RockSample.objects.filter(local_id="AS25-001").exists()
-        assert SampleIdentifier.objects.filter(type="IGSN").count() == 3
+        assert (
+            SampleIdentifier.objects.filter(type_id=f"{IDENTIFIER_TYPES}/igsn").count()
+            == 3
+        )
 
     def test_publications_carry_a_doi(self):
         seed()
 
         assert Item.objects.filter(
-            item_identifiers__type="DOI", item_identifiers__value="10.5880/gfz.2024.011"
+            item_identifiers__type="DOI",
+            item_identifiers__value="10.5880/gfz.2024.011",
         ).exists()
 
     def test_a_second_run_adds_nothing(self):

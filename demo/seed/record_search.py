@@ -25,6 +25,7 @@ from fairdm.contrib.contributors.models import (
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
 from fairdm.core.sample.models import Sample, SampleIdentifier
+from fairdm.core.vocabularies import IDENTIFIER_TYPES
 from fairdm.utils.choices import Visibility
 
 LARGE_SAMPLE_COUNT = 100_000
@@ -148,7 +149,9 @@ class RecordSearchSeed:
                     name=name, city=city, country=country
                 )
             ContributorIdentifier.objects.get_or_create(
-                related=organization, type="ROR", defaults={"value": ror}
+                related=organization,
+                type_id=f"{IDENTIFIER_TYPES}/ror",
+                defaults={"value": ror},
             )
             made[name] = organization
         return made
@@ -187,7 +190,9 @@ class RecordSearchSeed:
             )
             if orcid:
                 ContributorIdentifier.objects.get_or_create(
-                    related=person, type="ORCID", defaults={"value": orcid}
+                    related=person,
+                    type_id=f"{IDENTIFIER_TYPES}/orcid",
+                    defaults={"value": orcid},
                 )
             people.append(person)
         for first, last in UNCLAIMED:
@@ -244,7 +249,7 @@ class RecordSearchSeed:
             if number <= 3:
                 SampleIdentifier.objects.get_or_create(
                     related=sample,
-                    type="IGSN",
+                    type_id=f"{IDENTIFIER_TYPES}/igsn",
                     defaults={"value": f"10.58052/IEAS25{number:04d}"},
                 )
 

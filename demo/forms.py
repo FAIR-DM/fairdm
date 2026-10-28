@@ -56,7 +56,7 @@ def save(self, commit=True):
     instance = super().save(commit=commit)
     if commit and (doi := self.cleaned_data.get("doi")):
         DatasetIdentifier.objects.update_or_create(
-            related=instance, type="DOI", defaults={"value": doi}
+            related=instance, type_id=DOI, defaults={"value": doi}
         )
     return instance
 ```
@@ -167,6 +167,7 @@ from fairdm.contrib.autocomplete.fields import (
     SampleChoiceField,
 )
 from fairdm.core.sample.forms import SampleFormMixin
+from fairdm.core.vocabularies import DOI
 from fairdm.forms import ModelForm
 
 
@@ -352,7 +353,7 @@ class DatasetEnhancedFormExample(ModelForm):
             from fairdm.core.dataset.models import DatasetIdentifier
 
             doi_identifier = DatasetIdentifier.objects.filter(
-                related=self.instance, type="DOI"
+                related=self.instance, type_id=DOI
             ).first()
             if doi_identifier:
                 self.fields["doi"].initial = doi_identifier.value
@@ -369,11 +370,11 @@ class DatasetEnhancedFormExample(ModelForm):
             if doi_value:
                 DatasetIdentifier.objects.update_or_create(
                     related=instance,
-                    type="DOI",
+                    type_id=DOI,
                     defaults={"value": doi_value},
                 )
             else:
-                DatasetIdentifier.objects.filter(related=instance, type="DOI").delete()
+                DatasetIdentifier.objects.filter(related=instance, type_id=DOI).delete()
 
         return instance
 

@@ -239,16 +239,16 @@ class AffiliationManager(models.Manager.from_queryset(AffiliationQuerySet)):
 class ContributionQuerySet(OrderedModelQuerySet):
     """Contribution queryset with filters by role, entity and contributor."""
 
-    def by_role(self, role_name: str):
+    def by_role(self, role: str):
         """Filter contributions to those holding a role.
 
         Args:
-            role_name: Name of a concept in the roles vocabulary.
+            role: The address of a concept in the contributor roles vocabulary.
 
         Returns:
             Contributions with that role.
         """
-        return self.filter(roles__name=role_name)
+        return self.filter(roles__uri=role)
 
     def for_entity(self, obj):
         """Filter contributions to those credited on one object.

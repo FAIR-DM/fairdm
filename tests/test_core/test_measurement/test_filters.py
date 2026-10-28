@@ -16,6 +16,7 @@ from fairdm.core.measurement.models import (
     MeasurementDate,
     MeasurementDescription,
 )
+from fairdm.core.vocabularies import DATE_TYPES, DESCRIPTION_TYPES
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
@@ -296,12 +297,12 @@ class TestMeasurementFilterCrossRelationshipFiltering:
 
         MeasurementDescription.objects.create(
             related=measurement1,
-            type="MeasurementSetup",
+            type_id=f"{DESCRIPTION_TYPES}/measurement-setup",
             value="High precision analysis using XRF",
         )
         MeasurementDescription.objects.create(
             related=measurement2,
-            type="MeasurementSetup",
+            type_id=f"{DESCRIPTION_TYPES}/measurement-setup",
             value="Standard quality measurement",
         )
 
@@ -361,19 +362,21 @@ class TestMeasurementFilterCrossRelationshipFiltering:
         # Add dates ("Setup" is a real member of the Measurement date
         # vocabulary; PartialDateField accepts a string at any precision)
         MeasurementDate.objects.create(
-            related=measurement1, type="Setup", value="2024-01-15"
+            related=measurement1, type_id=f"{DATE_TYPES}/setup", value="2024-01-15"
         )
         MeasurementDate.objects.create(
-            related=measurement2, type="Setup", value="2024-02-20"
+            related=measurement2, type_id=f"{DATE_TYPES}/setup", value="2024-02-20"
         )
         MeasurementDate.objects.create(
-            related=measurement3, type="Setup", value="2024-03-10"
+            related=measurement3, type_id=f"{DATE_TYPES}/setup", value="2024-03-10"
         )
         MeasurementDate.objects.create(
-            related=measurement_year_month, type="Setup", value="2024-06"
+            related=measurement_year_month,
+            type_id=f"{DATE_TYPES}/setup",
+            value="2024-06",
         )
         MeasurementDate.objects.create(
-            related=measurement_year_only, type="Setup", value="2023"
+            related=measurement_year_only, type_id=f"{DATE_TYPES}/setup", value="2023"
         )
 
         filterset = MeasurementFilter(

@@ -6,18 +6,12 @@
 """
 
 from fairdm.contrib.contributors.utils.transforms import BaseTransform
-from fairdm.core.choices import PROJECT_ROLE_DATACITE_CONTRIBUTOR_TYPES
+from fairdm.core.vocabularies import ABSTRACT, CREATOR, DOI, notation
 
-#: DataCite's own descriptionType is a closed set. "Abstract" maps straight
-#: across; every other project description type maps to "Other" below and
-#: carries its own type alongside so it is not lost.
-_DATACITE_ABSTRACT_TYPE = "Abstract"
-
-#: A project's own identifier vocabulary names a DOI this way.
-_DOI_IDENTIFIER_TYPE = "DOI"
-
-#: The FairDM role that becomes a DataCite creator rather than a contributor.
-_CREATOR_ROLE = "Creator"
+# Each type and role is written as its concept's notation, which for every project role is
+# DataCite's own contributorType. DataCite's descriptionType is a closed set: the abstract maps
+# straight across, and every other project description type maps to "Other" and carries its own
+# type alongside so it is not lost.
 
 
 class ProjectDataCiteTransform(BaseTransform):
@@ -68,21 +62,11 @@ class ProjectDataCiteTransform(BaseTransform):
 
         return data
 
-    def _contributor_type(self, role_name: str) -> str:
-        """Return the DataCite ``contributorType`` for a project contribution role.
-
-        The equivalent member is named by its Python attribute (``"PROJECT_LEADER"``), which is
-        converted to DataCite's spelling (``"ProjectLeader"``) rather than read off the
-        translatable label.
-        """
-        member_name = PROJECT_ROLE_DATACITE_CONTRIBUTOR_TYPES.get(role_name, "OTHER")
-        return "".join(part.capitalize() for part in member_name.split("_"))
-
     def _descriptions(self, project) -> list:
         """Return each of the project's descriptions in DataCite's description shape."""
         entries = []
         for description in project.descriptions.all():
-            if description.type == _DATACITE_ABSTRACT_TYPE:
+            if description.type_id == ABSTRACT:
                 entries.append(
                     {"description": description.value, "descriptionType": "Abstract"}
                 )
@@ -91,7 +75,7 @@ class ProjectDataCiteTransform(BaseTransform):
                     {
                         "description": description.value,
                         "descriptionType": "Other",
-                        "type": description.type,
+                        "type": notation(description.type),
                     }
                 )
         return entries
@@ -102,7 +86,11 @@ class ProjectDataCiteTransform(BaseTransform):
         DataCite has no start/end pair. ``str()`` formats a ``PartialDate`` at its own precision.
         """
         return [
-            {"date": str(date.value), "dateType": "Other", "dateInformation": date.type}
+            {
+                "date": str(date.value),
+                "dateType": "Other",
+                "dateInformation": notation(date.type),
+            }
             for date in project.dates.all()
         ]
 
@@ -115,18 +103,18 @@ class ProjectDataCiteTransform(BaseTransform):
         primary = []
         alternate = []
         for identifier in project.identifiers.all():
-            if identifier.type == _DOI_IDENTIFIER_TYPE:
+            if identifier.type_id == DOI:
                 primary.append(
                     {
                         "identifier": identifier.value,
-                        "identifierType": _DOI_IDENTIFIER_TYPE,
+                        "identifierType": notation(identifier.type),
                     }
                 )
             else:
                 alternate.append(
                     {
                         "alternateIdentifier": identifier.value,
-                        "alternateIdentifierType": identifier.type,
+                        "alternateIdentifierType": notation(identifier.type),
                     }
                 )
         return primary, alternate
@@ -134,8 +122,8 @@ class ProjectDataCiteTransform(BaseTransform):
     def _contributions(self, project) -> tuple:
         """Split the project's contributions into DataCite's creators and contributors.
 
-        The ``Creator`` role becomes a creator. Every other role becomes a contributor carrying a
-        ``contributorType``.
+        The creator role becomes a creator. Every other role becomes a contributor carrying its
+        notation as the ``contributorType``.
         """
         creators = []
         contributors = []
@@ -144,15 +132,12 @@ class ProjectDataCiteTransform(BaseTransform):
                 continue
             representation = contribution.contributor.to_datacite()
             # `.all()` reads the prefetch cache; `.values_list()` would query per contribution.
-            for role_name in (role.name for role in contribution.roles.all()):
-                if role_name == _CREATOR_ROLE:
+            for role in contribution.roles.all():
+                if role.uri == CREATOR:
                     creators.append(representation)
                 else:
                     contributors.append(
-                        {
-                            **representation,
-                            "contributorType": self._contributor_type(role_name),
-                        }
+                        {**representation, "contributorType": notation(role)}
                     )
         return creators, contributors
 
@@ -187,7 +172,7 @@ class ProjectSchemaOrgTransform(BaseTransform):
             (
                 description
                 for description in project.descriptions.all()
-                if description.type == _DATACITE_ABSTRACT_TYPE
+                if description.type_id == ABSTRACT
             ),
             None,
         )

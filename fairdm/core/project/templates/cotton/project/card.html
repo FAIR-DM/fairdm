@@ -90,7 +90,7 @@
         <div class="record-card__keywords">
           {# Badges, not links: keyword filters are named from a setting, so there is no stable query parameter. #}
           {% for keyword in object.keywords.all %}
-            <span class="badge badge-ghost badge-sm">{{ keyword.label }}</span>
+            <span class="badge badge-ghost badge-sm">{{ keyword.display_label }}</span>
           {% endfor %}
         </div>
       {% endif %}

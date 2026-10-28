@@ -5,9 +5,9 @@ from django.test import RequestFactory
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.core.abstract import AbstractDate
-from fairdm.core.dataset.models import Dataset
-from fairdm.core.project.models import Project
+from fairdm.core.dataset.models import Dataset, DatasetDate
 from fairdm.core.measurement.models import Measurement
+from fairdm.core.project.models import Project, ProjectDate
 from fairdm.core.related_records import (
     DatasetDateInline,
     DatasetIdentifierInline,
@@ -34,9 +34,22 @@ from fairdm.factories import (
 )
 
 ROW_SET_CASES = [
-    (Project, ProjectDateInline, ProjectFactory, ProjectDateFactory, "Start"),
-    (Dataset, DatasetDateInline, DatasetFactory, DatasetDateFactory, "CollectionStart"),
+    (
+        Project,
+        ProjectDateInline,
+        ProjectFactory,
+        ProjectDateFactory,
+        ProjectDate.START_TYPE,
+    ),
+    (
+        Dataset,
+        DatasetDateInline,
+        DatasetFactory,
+        DatasetDateFactory,
+        DatasetDate.START_TYPE,
+    ),
 ]
+
 
 def make_measurement():
     """Make a measurement of a demo type on a sample in the same dataset."""
@@ -150,7 +163,12 @@ class TestRelatedRecordInline:
 
         formset = _formset_for(declaration_cls, parent_model, instance)
 
-        assert formset.max_num == len(declaration_cls.model.VOCABULARY.choices)
+        assert formset.max_num == len(
+            [
+                (concept.uri, concept.display_label())
+                for concept in declaration_cls.model.get_type_concepts()
+            ]
+        )
 
     @pytest.mark.parametrize(
         "parent_model, declaration_cls, parent_factory, row_factory",
@@ -160,7 +178,13 @@ class TestRelatedRecordInline:
         self, parent_model, declaration_cls, parent_factory, row_factory
     ):
         instance = parent_factory()
-        types = [choice for choice, _label in declaration_cls.model.VOCABULARY.choices]
+        types = [
+            choice
+            for choice, _label in [
+                (concept.uri, concept.display_label())
+                for concept in declaration_cls.model.get_type_concepts()
+            ]
+        ]
         for row_type in types:
             row_factory(related=instance, type=row_type)
         max_num = len(types)

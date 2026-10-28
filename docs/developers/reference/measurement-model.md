@@ -47,22 +47,22 @@ A field on a measurement type that has one of these names clashes with an inheri
 
 | Name | Value |
 |---|---|
-| `CONTRIBUTOR_ROLES` | The `Measurement` collection of `FairDMRoles`. |
-| `DATE_TYPES` | The `Measurement` collection of `FairDMDates`. |
-| `DESCRIPTION_TYPES` | The `Measurement` collection of `FairDMDescriptions`. |
+| `CONTRIBUTOR_ROLES` | The address of the measurement collection of the contributor roles. |
+| `DATE_TYPES` | The address of the measurement collection of the date types. |
+| `DESCRIPTION_TYPES` | The address of the measurement collection of the description types. |
 | `type_of` | `Measurement`. A class property that polymorphic queries use. |
 
 ## Descriptions, dates and identifiers
 
-`MeasurementDescription`, `MeasurementDate` and `MeasurementIdentifier` link to a measurement by `related` and are reached as `descriptions`, `dates` and `identifiers`. A measurement has at most one row of each type. Saving a row with a `type` outside the vocabulary raises a `ValidationError`, even through `objects.create()`.
+`MeasurementDescription`, `MeasurementDate` and `MeasurementIdentifier` link to a measurement by `related` and are reached as `descriptions`, `dates` and `identifiers`. A measurement has at most one row of each type. `type` is a `ConceptField` limited to the measurement collection of its vocabulary, and holds the concept's address. Saving a row with a `type` outside the collection raises a `ValidationError`, even through `objects.create()`. The types, by identifier:
 
 | Rows | Types | `value` |
 |---|---|---|
-| `MeasurementDescription` | `MeasurementConditions`, `MeasurementSetup`, `MeasurementTearDown`, `Other` | Text of at most 20,000 characters. |
-| `MeasurementDate` | `Setup`, `TearDown` | A partial date. See [Model fields](model-fields.md). |
-| `MeasurementIdentifier` | `DOI` | Text of at most 255 characters, unique across every kind of record. |
+| `MeasurementDescription` | `measurement-conditions`, `measurement-setup`, `measurement-tear-down`, `other` | Text of at most 20,000 characters. |
+| `MeasurementDate` | `setup`, `tear-down` | A partial date. See [Model fields](model-fields.md). |
+| `MeasurementIdentifier` | `doi` | Text of at most 255 characters, unique across every kind of record. |
 
-The roles a person or organization can hold on a measurement are `MeasurementPreparation`, `MeasurementCollection` and `Support`.
+The roles a person or organization can hold on a measurement, by identifier, are `measurement-preparation`, `measurement-collection` and `support`.
 
 ## Methods
 

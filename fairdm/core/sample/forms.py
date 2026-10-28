@@ -9,8 +9,9 @@ from mvp_forms.widgets import ImageInput
 
 from fairdm.contrib.autocomplete.fields import DatasetChoiceField
 from fairdm.contrib.contributors.choices import ContributionLevel
-from fairdm.core.forms import ManagerOnlyFieldsMixin
+from fairdm.core.forms import ConceptSelectField, ManagerOnlyFieldsMixin
 from fairdm.core.image_utils import IMAGE_HELP_TEXT, validate_image_file_size
+from fairdm.core.vocabularies import SAMPLE_STATUS_UNKNOWN
 from fairdm.utils.location.forms import LocationFormMixin
 
 from .models import Sample
@@ -83,8 +84,20 @@ class SampleFormMixin(LocationFormMixin, ManagerOnlyFieldsMixin):
                 self.fields["dataset"].queryset = Dataset.objects.none()
 
         if "status" in self.fields:
-            self.fields["status"].widget = forms.Select(attrs={"class": "form-select"})
-            self.fields["status"].initial = "unknown"
+            # A drop-down of the few custody states, in place of the search box.
+            current = self.fields["status"]
+            status = Sample._meta.get_field("status").formfield(
+                form_class=ConceptSelectField,
+                widget=forms.Select(attrs={"class": "form-select"}),
+                initial=SAMPLE_STATUS_UNKNOWN,
+                label=current.label,
+                help_text=current.help_text,
+                required=current.required,
+            )
+            status.queryset = status.queryset.complex_filter(
+                status.get_limit_choices_to()
+            )
+            self.fields["status"] = status
 
         self.helper = FormHelper()
         self.helper.form_tag = False

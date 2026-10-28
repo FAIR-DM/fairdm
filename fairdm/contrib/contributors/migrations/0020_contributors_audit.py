@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         ('auth', '0012_alter_user_first_name_max_length'),
         ('contenttypes', '0002_remove_content_type_name'),
         ('contributors', '0019_alter_contributoridentifier_type'),
-        ('research_vocabs', '0002_alter_concept_unique_together'),
+        ("controlled_vocabularies", "0001_initial"),
     ]
 
     operations = [

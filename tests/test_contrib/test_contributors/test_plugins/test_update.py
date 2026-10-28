@@ -12,8 +12,8 @@ from bs4 import BeautifulSoup
 from django.contrib import messages
 from django.contrib.auth.models import Group
 from django.contrib.messages import get_messages
-from django.core.management import call_command
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.management import call_command
 from django.test import Client
 from django.urls import reverse
 from django.utils import timezone
@@ -29,6 +29,7 @@ from fairdm.contrib.contributors.models import (
     Organization,
     Person,
 )
+from fairdm.core.vocabularies import CONTRIBUTOR_ROLES, IDENTIFIER_TYPES
 from fairdm.factories import (
     AffiliationFactory,
     OrganizationFactory,
@@ -157,14 +158,20 @@ class TestPersonUpdate:
         form = response.context["form"]
         assert form.has_error("name", code="required")
         assert form["profile"].value() == "Mathematician and writer."
-        assert form["links"].value() == "https://example.org/ada\nhttp://example.org/notes"
+        assert (
+            form["links"].value() == "https://example.org/ada\nhttp://example.org/notes"
+        )
         assert _stored(keeper) == before
 
     # Scenario 5
     @pytest.mark.parametrize(
         ("field", "value", "code"),
         [
-            ("links", "https://example.org/ok\nexample.org/missing-scheme", "invalid_entry"),
+            (
+                "links",
+                "https://example.org/ok\nexample.org/missing-scheme",
+                "invalid_entry",
+            ),
             ("lang", ["en", "xx"], "invalid_choice"),
         ],
     )
@@ -203,7 +210,9 @@ class TestPersonUpdate:
             is_active=True, password="x", with_image=True, name="Has A Photo"
         )
 
-        signed_in(person).post(_update_url(person), {**profile_data, "image-clear": "on"})
+        signed_in(person).post(
+            _update_url(person), {**profile_data, "image-clear": "on"}
+        )
 
         person.refresh_from_db()
         assert not person.image
@@ -331,7 +340,7 @@ class TestPersonUpdate:
         self, signed_in, keeper, profile_data
     ):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
-        keeper.add_to(project, roles=["Creator"])
+        keeper.add_to(project, roles=[f"{CONTRIBUTOR_ROLES}/creator"])
 
         signed_in(keeper).post(_update_url(keeper), profile_data)
 
@@ -584,7 +593,8 @@ class TestOrganizationUpdate:
         before = _organization_stored(organization)
 
         response = signed_in(kept_organization.owner).post(
-            _update_url(organization), {**organization_profile_data, "parent": chosen.pk}
+            _update_url(organization),
+            {**organization_profile_data, "parent": chosen.pk},
         )
 
         assert response.status_code == 200
@@ -636,7 +646,13 @@ class TestOrganizationUpdate:
         ],
     )
     def test_a_refused_entry_stores_nothing_and_is_reported_on_its_field(
-        self, signed_in, kept_organization, organization_profile_data, field, value, code
+        self,
+        signed_in,
+        kept_organization,
+        organization_profile_data,
+        field,
+        value,
+        code,
     ):
         organization = kept_organization.organization
         before = _organization_stored(organization)
@@ -874,7 +890,7 @@ class TestStoredRecordThatFailsValidation:
         self, signed_in, keeper, profile_data
     ):
         ContributorIdentifier.objects.create(
-            related=keeper, type="ORCID", value="not-an-orcid"
+            related=keeper, type_id=f"{IDENTIFIER_TYPES}/orcid", value="not-an-orcid"
         )
         before = _stored(keeper)
 
@@ -889,7 +905,7 @@ class TestStoredRecordThatFailsValidation:
     ):
         organization = kept_organization.organization
         ContributorIdentifier.objects.create(
-            related=organization, type="ROR", value="not-a-ror"
+            related=organization, type_id=f"{IDENTIFIER_TYPES}/ror", value="not-a-ror"
         )
         before = _organization_stored(organization)
 
@@ -1157,7 +1173,9 @@ class TestCommunityManagerUpdate:
     ):
         organization = OrganizationFactory(name="Created From ROR")
         ContributorIdentifier.objects.create(
-            related=organization, type="ROR", value="https://ror.org/02nr0ka47"
+            related=organization,
+            type_id=f"{IDENTIFIER_TYPES}/ror",
+            value="https://ror.org/02nr0ka47",
         )
 
         response = signed_in(community_manager).post(
@@ -1393,4 +1411,3 @@ class TestWhoMayEdit:
             response = Client().get(_update_url(contributor))
 
             assert response.url.startswith(reverse("account_login"))
-

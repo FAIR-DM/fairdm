@@ -5,6 +5,7 @@ import pytest
 from fairdm.contrib.contributors.choices import AccountState
 from fairdm.contrib.contributors.models import Affiliation, Contribution, Person
 from fairdm.contrib.contributors.tasks import detect_duplicate_contributors
+from fairdm.core.vocabularies import CONTRIBUTOR_ROLES
 
 
 class TestPersonQuerysets:
@@ -151,25 +152,20 @@ class TestPersonManagerCreation:
 class TestContributionByRole:
     @pytest.mark.django_db
     def test_by_role_filters_correctly(self, contribution):
-        from research_vocabs.models import Concept, Vocabulary
+        from controlled_vocabularies.models import Record
 
-        vocab, _ = Vocabulary.objects.get_or_create(name="fairdm-roles")
-        role, _ = Concept.objects.get_or_create(
-            vocabulary=vocab,
-            name="TestRole",
-        )
-
+        role = Record.objects.get(uri=f"{CONTRIBUTOR_ROLES}/editor")
         contribution.roles.add(role)
         contribution.save()
 
-        qs = Contribution.objects.by_role("TestRole")
+        qs = Contribution.objects.by_role(role.uri)
 
         assert qs.count() > 0
         assert contribution in qs
 
     @pytest.mark.django_db
     def test_by_role_excludes_non_matching(self, contribution):
-        qs = Contribution.objects.by_role("NonExistentRole")
+        qs = Contribution.objects.by_role(f"{CONTRIBUTOR_ROLES}/no-such-role")
 
         assert contribution not in qs
 
@@ -515,7 +511,7 @@ class TestQuerysetManagerParity:
     def test_credit_by_role_query_matches_between_queryset_and_manager(
         self, contributor_population
     ):
-        role_name = contributor_population.creator_role.name
+        role_name = contributor_population.creator_role.uri
 
         from_manager = set(Contribution.objects.by_role(role_name))
         from_queryset = set(Contribution.objects.all().by_role(role_name))
@@ -526,7 +522,9 @@ class TestQuerysetManagerParity:
 
 @pytest.mark.django_db
 class TestPersonQuerySetForCards:
-    def test_reading_a_card_costs_no_query_after_the_fetch(self, django_assert_num_queries):
+    def test_reading_a_card_costs_no_query_after_the_fetch(
+        self, django_assert_num_queries
+    ):
         from allauth.socialaccount.models import SocialAccount
 
         from fairdm.factories import (
@@ -537,7 +535,9 @@ class TestPersonQuerySetForCards:
 
         person = PersonFactory()
         identifier = ContributorIdentifierFactory(related=person)
-        SocialAccount.objects.create(user=person, provider="orcid", uid=identifier.value)
+        SocialAccount.objects.create(
+            user=person, provider="orcid", uid=identifier.value
+        )
         AffiliationFactory(person=person, is_primary=True)
         fetched = Person.objects.for_cards().get(pk=person.pk)
 
@@ -598,7 +598,9 @@ class TestContributionKinds:
 
         assert list(scoped.people()) == [second, first]
 
-    def test_the_kind_is_decided_in_the_query(self, credited, django_assert_num_queries):
+    def test_the_kind_is_decided_in_the_query(
+        self, credited, django_assert_num_queries
+    ):
         dataset, *_ = credited
         Contribution.objects.for_entity(dataset)
 

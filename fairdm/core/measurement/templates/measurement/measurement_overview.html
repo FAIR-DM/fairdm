@@ -98,7 +98,7 @@
             {% with keywords=sample.keywords.all %}
               {% if keywords %}
                 <ul class="flex flex-wrap gap-1" aria-label="{% translate 'Sample keywords' %}">
-                  {% for keyword in keywords %}<li class="badge badge-primary badge-soft badge-sm">{{ keyword.label }}</li>{% endfor %}
+                  {% for keyword in keywords %}<li class="badge badge-primary badge-soft badge-sm">{{ keyword.display_label }}</li>{% endfor %}
                 </ul>
               {% endif %}
             {% endwith %}

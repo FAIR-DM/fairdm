@@ -2,6 +2,8 @@
 
 from typing import NamedTuple
 
+from controlled_vocabularies.fields import ConceptField
+from controlled_vocabularies.models import Record
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.gis import geos
 from django.contrib.gis.db.models import PointField
@@ -21,10 +23,10 @@ from ..abstract import (
 from ..managers import PolymorphicManager
 from ..utils import CORE_PERMISSIONS
 from ..vocabularies import (
-    FairDMDates,
-    FairDMDescriptions,
-    FairDMIdentifiers,
-    FairDMRoles,
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    IDENTIFIER_TYPES,
 )
 from .managers import MeasurementQuerySet
 
@@ -67,9 +69,9 @@ class Measurement(BasePolymorphicModel):
         location_uncertainty: Metres within which the true place lies.
     """
 
-    CONTRIBUTOR_ROLES = FairDMRoles.from_collection("Measurement")
-    DESCRIPTION_TYPES = FairDMDescriptions.from_collection("Measurement")
-    DATE_TYPES = FairDMDates.from_collection("Measurement")
+    CONTRIBUTOR_ROLES = f"{CONTRIBUTOR_ROLES}/measurement"
+    DESCRIPTION_TYPES = f"{DESCRIPTION_TYPES}/measurement"
+    DATE_TYPES = f"{DATE_TYPES}/measurement"
 
     objects = PolymorphicManager.from_queryset(MeasurementQuerySet)()  # type: ignore[assignment,misc]
 
@@ -262,10 +264,11 @@ class Measurement(BasePolymorphicModel):
 
 
 class VocabularyGuardedSave:
-    """Refuse a ``type`` outside the record's own vocabulary, even on a direct save.
+    """Refuse a ``type`` outside the record's own collection, even on a direct save.
 
-    Django validates ``choices`` only in ``full_clean()``, which a manager's ``create()`` and a
-    bare ``save()`` never call. Subclasses set ``VOCABULARY_NOUN`` for the error message.
+    A concept field checks its collection only in ``full_clean()``, which a manager's
+    ``create()`` and a bare ``save()`` never call. Subclasses set ``VOCABULARY_NOUN`` for the
+    error message.
 
     Attributes:
         VOCABULARY_NOUN: The noun in "'x' is not a valid Measurement <noun> type."
@@ -274,14 +277,15 @@ class VocabularyGuardedSave:
     VOCABULARY_NOUN = ""
 
     def save(self, *args, **kwargs):
-        """Refuse a ``type`` that is not in the vocabulary, then save."""
+        """Refuse a ``type`` that is not in the collection, then save."""
         from django.core.exceptions import ValidationError
 
-        if self.type not in self.VOCABULARY.values:
+        restriction = self._meta.get_field("type").get_limit_choices_to()
+        if not Record.objects.filter(restriction, uri=self.type_id).exists():
             raise ValidationError(
                 {
                     "type": _("'%(type)s' is not a valid Measurement %(noun)s type.")
-                    % {"type": self.type, "noun": self.VOCABULARY_NOUN}
+                    % {"type": self.type_id, "noun": self.VOCABULARY_NOUN}
                 }
             )
         super().save(*args, **kwargs)
@@ -290,16 +294,30 @@ class VocabularyGuardedSave:
 class MeasurementDescription(VocabularyGuardedSave, AbstractDescription):
     """Typed free-text description of a measurement."""
 
-    VOCABULARY = FairDMDescriptions.from_collection("Measurement")
     VOCABULARY_NOUN = "description"
+    type = ConceptField(
+        vocabulary=DESCRIPTION_TYPES,
+        collection=f"{DESCRIPTION_TYPES}/measurement",
+        related_name="+",
+        verbose_name=_("type"),
+        help_text=_(
+            "What the description covers, from the measurement description types."
+        ),
+    )
     related = models.ForeignKey("Measurement", on_delete=models.CASCADE)
 
 
 class MeasurementDate(VocabularyGuardedSave, AbstractDate):
     """Typed date on a measurement."""
 
-    VOCABULARY = FairDMDates.from_collection("Measurement")
     VOCABULARY_NOUN = "date"
+    type = ConceptField(
+        vocabulary=DATE_TYPES,
+        collection=f"{DATE_TYPES}/measurement",
+        related_name="+",
+        verbose_name=_("type"),
+        help_text=_("What the date marks, from the measurement date types."),
+    )
     related = models.ForeignKey("Measurement", on_delete=models.CASCADE)
 
 
@@ -310,6 +328,12 @@ class MeasurementIdentifier(VocabularyGuardedSave, AbstractIdentifier):
     member added for another record type (such as IGSN for samples) cannot leak in here.
     """
 
-    VOCABULARY = FairDMIdentifiers.from_collection("Measurement")
     VOCABULARY_NOUN = "identifier"
+    type = ConceptField(
+        vocabulary=IDENTIFIER_TYPES,
+        collection=f"{IDENTIFIER_TYPES}/measurement",
+        related_name="+",
+        verbose_name=_("type"),
+        help_text=_("The kind of identifier, from the measurement identifier types."),
+    )
     related = models.ForeignKey("Measurement", on_delete=models.CASCADE)

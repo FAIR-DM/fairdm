@@ -82,14 +82,14 @@ When a form carries a crispy-forms helper with a form tag or buttons of its own,
 
 ## Descriptions
 
-`EditDescriptions` uses `VocabularyDescriptionsForm` from `fairdm.core.descriptions`. It makes one text area for each concept in the vocabulary of the record's description model, labelled with the concept's name and helped by its definition, so the page grows with the vocabulary. Saving writes, updates or deletes one row for each area: a non-blank area becomes one row of its type, and a blank one (including whitespace only) removes the row already stored.
+`EditDescriptions` uses `VocabularyDescriptionsForm` from `fairdm.core.descriptions`. It makes one text area for each concept in the collection the record's description model offers, in the collection's order, named after the concept's address, labelled with its name and helped by its definition, so the page grows with the vocabulary. Saving writes, updates or deletes one row for each area: a non-blank area becomes one row of its type, and a blank one (including whitespace only) removes the row already stored.
 
-| Record | Description vocabulary |
+| Record | Description collection |
 |---|---|
-| Project | `ProjectDescription.VOCABULARY` |
-| Dataset | `DatasetDescription.VOCABULARY` |
-| Sample | `SampleDescription.VOCABULARY` |
-| Measurement | `MeasurementDescription.VOCABULARY` |
+| Project | `ProjectDescription.get_type_concepts()` |
+| Dataset | `DatasetDescription.get_type_concepts()` |
+| Sample | `SampleDescription.get_type_concepts()` |
+| Measurement | `MeasurementDescription.get_type_concepts()` |
 
 ## Keywords
 
@@ -97,14 +97,14 @@ When a form carries a crispy-forms helper with a form tag or buttons of its own,
 
 ## Key dates and identifiers
 
-`EditKeyDates` and `EditIdentifiers` are sets of rows, one per date or identifier, each with a `type` and a `value`. Both use the template `editing/rows.html`. The types on offer are those in the record's vocabulary, and a record holds at most one row of each type.
+`EditKeyDates` and `EditIdentifiers` are sets of rows, one per date or identifier, each with a `type` and a `value`. Both use the template `editing/rows.html`. The types on offer are those of the record's collection, drawn as a drop-down in the collection's order, and a record holds at most one row of each type.
 
-| Record | Date vocabulary | Identifier vocabulary |
+| Record | Date collection | Identifier collection |
 |---|---|---|
-| Project | `ProjectDate.VOCABULARY` | `ProjectIdentifier.VOCABULARY` |
-| Dataset | `DatasetDate.VOCABULARY` | `DatasetIdentifier.VOCABULARY` |
-| Sample | `SampleDate.VOCABULARY` | `SampleIdentifier.VOCABULARY` |
-| Measurement | `MeasurementDate.VOCABULARY` | `MeasurementIdentifier.VOCABULARY` |
+| Project | `ProjectDate.get_type_concepts()` | `ProjectIdentifier.get_type_concepts()` |
+| Dataset | `DatasetDate.get_type_concepts()` | `DatasetIdentifier.get_type_concepts()` |
+| Sample | `SampleDate.get_type_concepts()` | `SampleIdentifier.get_type_concepts()` |
+| Measurement | `MeasurementDate.get_type_concepts()` | `MeasurementIdentifier.get_type_concepts()` |
 
 - A date is kept as precisely as it was entered: a year, a month and a full day are each stored and shown as entered.
 - An identifier value already recorded against any other record is refused, and so is the same value entered twice in one save.
@@ -115,7 +115,7 @@ When a form carries a crispy-forms helper with a form tag or buttons of its own,
 
 The row sets are declared in `fairdm/core/related_records.py`.
 
-`RelatedRecordInline` is the base, built on django-mvp's `InlineFormSet`. It fixes `fields = ("type", "value")`, `extra = 0` so that no blank rows appear beyond the existing ones, and caps the set at one row for each type in the model's vocabulary (`max_num`, with `validate_max`). A subclass names only its `model`:
+`RelatedRecordInline` is the base, built on django-mvp's `InlineFormSet`. It fixes `fields = ("type", "value")`, `extra = 0` so that no blank rows appear beyond the existing ones, draws `type` with `ConceptSelectField`, and caps the set at one row for each type in the model's collection (`max_num`, with `validate_max`). A subclass names only its `model`:
 
 ```python
 from fairdm.core.related_records import RelatedRecordInline

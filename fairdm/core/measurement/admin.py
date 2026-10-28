@@ -7,7 +7,6 @@ from polymorphic.admin import (
     PolymorphicChildModelFilter,
     PolymorphicParentModelAdmin,
 )
-from research_vocabs.models import Concept
 
 from fairdm.contrib.contributors.models import Contribution
 
@@ -41,7 +40,10 @@ class MeasurementDescriptionInline(admin.StackedInline):
 
     model = MeasurementDescription
     extra = 0
-    max_num = len(MeasurementDescription.VOCABULARY.values)
+
+    def get_max_num(self, request, obj=None, **kwargs):
+        """Allow one row for each type the collection offers."""
+        return len(self.model.get_type_concepts())
 
 
 class MeasurementDateInline(admin.StackedInline):
@@ -49,7 +51,10 @@ class MeasurementDateInline(admin.StackedInline):
 
     model = MeasurementDate
     extra = 0
-    max_num = len(MeasurementDate.VOCABULARY.values)
+
+    def get_max_num(self, request, obj=None, **kwargs):
+        """Allow one row for each type the collection offers."""
+        return len(self.model.get_type_concepts())
 
 
 class MeasurementIdentifierInline(admin.StackedInline):
@@ -57,7 +62,10 @@ class MeasurementIdentifierInline(admin.StackedInline):
 
     model = MeasurementIdentifier
     extra = 0
-    max_num = len(MeasurementIdentifier.VOCABULARY.values)
+
+    def get_max_num(self, request, obj=None, **kwargs):
+        """Allow one row for each type the collection offers."""
+        return len(self.model.get_type_concepts())
 
 
 class MeasurementContributionInline(GenericTabularInline):
@@ -67,16 +75,6 @@ class MeasurementContributionInline(GenericTabularInline):
     extra = 0
     ct_field = "content_type"
     ct_fk_field = "object_id"
-
-    def formfield_for_manytomany(self, db_field, request, **kwargs):
-        """Narrow ``roles`` to the roles vocabulary."""
-        # Otherwise the widget offers every Concept, and an off-vocabulary choice is refused
-        # by the `m2m_changed` receiver uncaught, which turns a field error into a 500.
-        if db_field.name == "roles":
-            kwargs["queryset"] = Concept.get_for_vocabulary(
-                Contribution.roles_vocab.__class__
-            )
-        return super().formfield_for_manytomany(db_field, request, **kwargs)
 
 
 class MeasurementChildAdmin(PolymorphicChildModelAdmin):

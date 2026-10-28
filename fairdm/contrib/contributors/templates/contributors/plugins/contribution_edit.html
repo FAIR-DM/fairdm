@@ -34,7 +34,7 @@
           {% for role in roles %}
             <label class="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" name="roles" value="{{ role.concept.pk }}" class="checkbox checkbox-sm" {% if role.checked %}checked{% endif %} />
-              <span>{{ role.concept.label }}</span>
+              <span>{{ role.concept.display_label }}</span>
             </label>
           {% endfor %}
         </div>

@@ -11,6 +11,7 @@ from hijack.contrib.admin import HijackUserAdminMixin
 from import_export.admin import ImportExportModelAdmin
 
 from fairdm.contrib.autocomplete.fields import PersonChoiceField
+from fairdm.core.vocabularies import ROR
 
 from .models import (
     Affiliation,
@@ -633,7 +634,7 @@ class OrganizationAdmin(admin.ModelAdmin):
 
         synced_count = 0
         for org in queryset:
-            ror_identifier = org.identifiers.filter(type="ROR").first()
+            ror_identifier = org.identifiers.filter(type_id=ROR).first()
 
             if ror_identifier:
                 sync_contributor_identifier.delay(ror_identifier.pk)

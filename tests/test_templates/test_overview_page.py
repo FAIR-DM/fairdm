@@ -1,6 +1,8 @@
 """Tests for the shared overview page skeleton, ``overview/page.html``."""
 
 import pytest
+
+from fairdm.core.vocabularies import IDENTIFIER_TYPES
 from fairdm.factories import PersonFactory, ProjectFactory
 
 SIDE_COLUMN_MARKERS = [
@@ -35,7 +37,11 @@ def page_context(db):
         "details": [{"label": "DETAILS-MARKER", "icon": "info", "text": "a value"}],
         "people": {"shown": [person], "more": 0, "total": 1},
         "identifiers": [
-            {"type": "DOI", "value": "10.1234/IDENTIFIER-MARKER", "link": None}
+            {
+                "type": f"{IDENTIFIER_TYPES}/doi",
+                "value": "10.1234/IDENTIFIER-MARKER",
+                "link": None,
+            }
         ],
         "funding": [{"funderName": "FUNDER-MARKER"}],
         "citation": {"title": "Citation", "text": "CITATION-MARKER"},
@@ -218,4 +224,3 @@ class TestChartLibrary:
 
         assert "/own/echarts.js" in html
         assert "echarts@" not in html
-

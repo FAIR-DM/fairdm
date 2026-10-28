@@ -47,7 +47,7 @@ class DatasetFilter(BaseListFilter):
             "uuid",
             "identifiers__value",
             "descriptions__value",
-            "keywords__name",
+            "keywords__search_text",
         ]
     )
 
@@ -71,7 +71,7 @@ class DatasetFilter(BaseListFilter):
         field_name="descriptions__type",
         lookup_expr="exact",
         label="Description Type",
-        help_text="Filter by description type (e.g., ABSTRACT, METHODS)",
+        help_text="Filter by the address of a description type",
         distinct=True,  # Prevent duplicate results from joins
     )
 
@@ -79,7 +79,7 @@ class DatasetFilter(BaseListFilter):
         field_name="dates__type",
         lookup_expr="exact",
         label="Date Type",
-        help_text="Filter by date type (e.g., COLLECTED, PUBLISHED)",
+        help_text="Filter by the address of a date type",
         distinct=True,
     )
 

@@ -3,9 +3,16 @@
 import pytest
 from django.db import connection
 
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.core.dataset.models import DatasetDescription
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
+from fairdm.core.vocabularies import (
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    IDENTIFIER_TYPES,
+)
 from fairdm.factories import PersonFactory
 from fairdm.factories.contributors import ContributorIdentifierFactory
 from fairdm.factories.core import (
@@ -18,7 +25,6 @@ from fairdm.factories.core import (
     ProjectIdentifierFactory,
     SampleDescriptionFactory,
 )
-from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
 
 @pytest.mark.django_db
@@ -27,22 +33,35 @@ class TestGenericModelQuerySet:
         dataset = DatasetFactory.create()
 
         DatasetDescriptionFactory.create(
-            related=dataset, type="Abstract", value="This is the abstract"
+            related=dataset,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="This is the abstract",
         )
         DatasetDescriptionFactory.create(
-            related=dataset, type="Other", value="Some other info"
+            related=dataset,
+            type_id=f"{DESCRIPTION_TYPES}/other",
+            value="Some other info",
         )
         DatasetDescriptionFactory.create(
-            related=dataset, type="Methods", value="The methods used"
+            related=dataset,
+            type_id=f"{DESCRIPTION_TYPES}/methods",
+            value="The methods used",
         )
         DatasetDescriptionFactory.create(
-            related=dataset, type="TechnicalInfo", value="Technical details"
+            related=dataset,
+            type_id=f"{DESCRIPTION_TYPES}/technical-info",
+            value="Technical details",
         )
 
         ordered = dataset.descriptions.in_order()
 
-        expected_types = ["Abstract", "Methods", "TechnicalInfo", "Other"]
-        actual_types = [d.type for d in ordered]
+        expected_types = [
+            f"{DESCRIPTION_TYPES}/abstract",
+            f"{DESCRIPTION_TYPES}/methods",
+            f"{DESCRIPTION_TYPES}/technical-info",
+            f"{DESCRIPTION_TYPES}/other",
+        ]
+        actual_types = [d.type_id for d in ordered]
 
         assert actual_types == expected_types
 
@@ -50,17 +69,25 @@ class TestGenericModelQuerySet:
         dataset = DatasetFactory.create()
 
         DatasetDateFactory.create(
-            related=dataset, type="CollectionEnd", value="2024-12-31"
+            related=dataset, type_id=f"{DATE_TYPES}/collection-end", value="2024-12-31"
         )
         DatasetDateFactory.create(
-            related=dataset, type="CollectionStart", value="2024-01-01"
+            related=dataset,
+            type_id=f"{DATE_TYPES}/collection-start",
+            value="2024-01-01",
         )
-        DatasetDateFactory.create(related=dataset, type="Available", value="2024-06-15")
+        DatasetDateFactory.create(
+            related=dataset, type_id=f"{DATE_TYPES}/available", value="2024-06-15"
+        )
 
         ordered = dataset.dates.in_order()
 
-        expected_types = ["Available", "CollectionStart", "CollectionEnd"]
-        actual_types = [d.type for d in ordered]
+        expected_types = [
+            f"{DATE_TYPES}/available",
+            f"{DATE_TYPES}/collection-start",
+            f"{DATE_TYPES}/collection-end",
+        ]
+        actual_types = [d.type_id for d in ordered]
 
         assert actual_types == expected_types
 
@@ -68,26 +95,40 @@ class TestGenericModelQuerySet:
         dataset = DatasetFactory.create()
 
         DatasetDescriptionFactory.create(
-            related=dataset, type="Abstract", value="Abstract 1"
+            related=dataset, type_id=f"{DESCRIPTION_TYPES}/abstract", value="Abstract 1"
         )
         DatasetDescriptionFactory.create(
-            related=dataset, type="Methods", value="Methods 1"
-        )
-        DatasetDescriptionFactory.create(related=dataset, type="Other", value="Other 1")
-        DatasetDescriptionFactory.create(
-            related=dataset, type="TechnicalInfo", value="Tech 1"
+            related=dataset, type_id=f"{DESCRIPTION_TYPES}/methods", value="Methods 1"
         )
         DatasetDescriptionFactory.create(
-            related=dataset, type="SeriesInformation", value="Series 1"
+            related=dataset, type_id=f"{DESCRIPTION_TYPES}/other", value="Other 1"
+        )
+        DatasetDescriptionFactory.create(
+            related=dataset,
+            type_id=f"{DESCRIPTION_TYPES}/technical-info",
+            value="Tech 1",
+        )
+        DatasetDescriptionFactory.create(
+            related=dataset,
+            type_id=f"{DESCRIPTION_TYPES}/series-information",
+            value="Series 1",
         )
 
         filtered = dataset.descriptions.filter(
-            type__in=["Other", "Abstract", "Methods"]
+            type__in=[
+                f"{DESCRIPTION_TYPES}/other",
+                f"{DESCRIPTION_TYPES}/abstract",
+                f"{DESCRIPTION_TYPES}/methods",
+            ]
         )
         ordered = filtered.in_order()
 
-        expected_types = ["Abstract", "Methods", "Other"]
-        actual_types = [d.type for d in ordered]
+        expected_types = [
+            f"{DESCRIPTION_TYPES}/abstract",
+            f"{DESCRIPTION_TYPES}/methods",
+            f"{DESCRIPTION_TYPES}/other",
+        ]
+        actual_types = [d.type_id for d in ordered]
 
         assert actual_types == expected_types
         assert len(ordered) == 3
@@ -97,13 +138,15 @@ class TestGenericModelQuerySet:
         dataset2 = DatasetFactory.create()
 
         DatasetDescriptionFactory.create(
-            related=dataset1, type="Other", value="Other 1"
+            related=dataset1, type_id=f"{DESCRIPTION_TYPES}/other", value="Other 1"
         )
         DatasetDescriptionFactory.create(
-            related=dataset1, type="Abstract", value="Abstract 1"
+            related=dataset1,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="Abstract 1",
         )
         DatasetDescriptionFactory.create(
-            related=dataset2, type="Methods", value="Methods 1"
+            related=dataset2, type_id=f"{DESCRIPTION_TYPES}/methods", value="Methods 1"
         )
 
         all_ordered = DatasetDescription.objects.in_order()
@@ -114,9 +157,13 @@ class TestGenericModelQuerySet:
         our_items = [
             d for d in all_ordered if d.value in ["Other 1", "Abstract 1", "Methods 1"]
         ]
-        actual_types = [d.type for d in our_items]
+        actual_types = [d.type_id for d in our_items]
 
-        assert actual_types == ["Abstract", "Methods", "Other"]
+        assert actual_types == [
+            f"{DESCRIPTION_TYPES}/abstract",
+            f"{DESCRIPTION_TYPES}/methods",
+            f"{DESCRIPTION_TYPES}/other",
+        ]
 
     def test_empty_queryset_in_order(self):
         dataset = DatasetFactory.create()
@@ -129,23 +176,13 @@ class TestGenericModelQuerySet:
         dataset = DatasetFactory.create()
 
         DatasetDescriptionFactory.create(
-            related=dataset, type="Abstract", value="Only one"
+            related=dataset, type_id=f"{DESCRIPTION_TYPES}/abstract", value="Only one"
         )
 
         ordered = dataset.descriptions.in_order()
 
         assert len(ordered) == 1
-        assert ordered[0].type == "Abstract"
-
-    def test_vocabulary_not_defined_raises_error(self):
-        from fairdm.core.abstract import GenericModel
-
-        class TestModelWithoutVocab(GenericModel):
-            class Meta:
-                app_label = "test"
-
-        with pytest.raises(ValueError, match="does not define a VOCABULARY attribute"):
-            TestModelWithoutVocab.objects.in_order()
+        assert ordered[0].type_id == f"{DESCRIPTION_TYPES}/abstract"
 
     def test_duplicate_type_raises_integrity_error(self):
         from django.db import IntegrityError
@@ -153,12 +190,16 @@ class TestGenericModelQuerySet:
         dataset = DatasetFactory.create()
 
         DatasetDescriptionFactory.create(
-            related=dataset, type="Abstract", value="First abstract"
+            related=dataset,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="First abstract",
         )
 
         with pytest.raises(IntegrityError):
             DatasetDescriptionFactory.create(
-                related=dataset, type="Abstract", value="Second abstract"
+                related=dataset,
+                type_id=f"{DESCRIPTION_TYPES}/abstract",
+                value="Second abstract",
             )
 
     def test_duplicate_type_different_related_object_allowed(self):
@@ -166,10 +207,14 @@ class TestGenericModelQuerySet:
         dataset2 = DatasetFactory.create()
 
         desc1 = DatasetDescriptionFactory.create(
-            related=dataset1, type="Abstract", value="First abstract"
+            related=dataset1,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="First abstract",
         )
         desc2 = DatasetDescriptionFactory.create(
-            related=dataset2, type="Abstract", value="Second abstract"
+            related=dataset2,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="Second abstract",
         )
 
         assert desc1.type == desc2.type
@@ -179,10 +224,14 @@ class TestGenericModelQuerySet:
         dataset = DatasetFactory.create()
 
         desc1 = DatasetDescriptionFactory.create(
-            related=dataset, type="Abstract", value="Abstract text"
+            related=dataset,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="Abstract text",
         )
         desc2 = DatasetDescriptionFactory.create(
-            related=dataset, type="Methods", value="Methods text"
+            related=dataset,
+            type_id=f"{DESCRIPTION_TYPES}/methods",
+            value="Methods text",
         )
 
         assert desc1.related == desc2.related
@@ -196,13 +245,17 @@ class TestAddContributor:
         dataset = DatasetFactory.create()
         person = PersonFactory()
 
-        first = dataset.add_contributor(person, with_roles=["DataCollector"])
-        second = dataset.add_contributor(person, with_roles=["Researcher"])
+        first = dataset.add_contributor(
+            person, with_roles=[f"{CONTRIBUTOR_ROLES}/data-collector"]
+        )
+        second = dataset.add_contributor(
+            person, with_roles=[f"{CONTRIBUTOR_ROLES}/researcher"]
+        )
 
         assert second.pk == first.pk
-        assert {role.name for role in second.roles.all()} == {
-            "DataCollector",
-            "Researcher",
+        assert {role.uri for role in second.roles.all()} == {
+            f"{CONTRIBUTOR_ROLES}/data-collector",
+            f"{CONTRIBUTOR_ROLES}/researcher",
         }
         assert dataset.contributors.filter(contributor=person).count() == 1
 
@@ -210,19 +263,29 @@ class TestAddContributor:
         dataset = DatasetFactory.create()
         person = PersonFactory()
 
-        dataset.add_contributor(person, with_roles=["DataCollector"])
-        contribution = dataset.add_contributor(person, with_roles=["DataCollector"])
+        dataset.add_contributor(
+            person, with_roles=[f"{CONTRIBUTOR_ROLES}/data-collector"]
+        )
+        contribution = dataset.add_contributor(
+            person, with_roles=[f"{CONTRIBUTOR_ROLES}/data-collector"]
+        )
 
-        assert [role.name for role in contribution.roles.all()] == ["DataCollector"]
+        assert [role.uri for role in contribution.roles.all()] == [
+            f"{CONTRIBUTOR_ROLES}/data-collector"
+        ]
 
     def test_crediting_without_roles_leaves_existing_roles_alone(self):
         dataset = DatasetFactory.create()
         person = PersonFactory()
 
-        dataset.add_contributor(person, with_roles=["DataCollector"])
+        dataset.add_contributor(
+            person, with_roles=[f"{CONTRIBUTOR_ROLES}/data-collector"]
+        )
         contribution = dataset.add_contributor(person)
 
-        assert {role.name for role in contribution.roles.all()} == {"DataCollector"}
+        assert {role.uri for role in contribution.roles.all()} == {
+            f"{CONTRIBUTOR_ROLES}/data-collector"
+        }
 
 
 @pytest.mark.django_db
@@ -303,9 +366,13 @@ class TestIdentifierAddress:
     @pytest.mark.parametrize(
         ("type_", "value", "address"),
         [
-            ("WIKIDATA", "Q42", "https://www.wikidata.org/wiki/Q42"),
             (
-                "CROSSREF_FUNDER_ID",
+                f"{IDENTIFIER_TYPES}/wikidata",
+                "Q42",
+                "https://www.wikidata.org/wiki/Q42",
+            ),
+            (
+                f"{IDENTIFIER_TYPES}/crossref-funder-id",
                 "10.13039/100000001",
                 "https://doi.org/10.13039/100000001",
             ),
@@ -313,21 +380,25 @@ class TestIdentifierAddress:
     )
     def test_a_type_with_a_resolver_gives_its_address(self, type_, value, address):
         identifier = ContributorIdentifierFactory(
-            related=PersonFactory(), type=type_, value=value
+            related=PersonFactory(), type_id=type_, value=value
         )
 
         assert identifier.get_absolute_url() == address
 
     def test_a_contributor_type_with_no_resolver_gives_no_address(self):
         identifier = ContributorIdentifierFactory(
-            related=PersonFactory(), type="RESEARCHER_ID", value="A-1234-2020"
+            related=PersonFactory(),
+            type_id=f"{IDENTIFIER_TYPES}/researcher-id",
+            value="A-1234-2020",
         )
 
         assert identifier.get_absolute_url() is None
 
     def test_a_record_type_with_no_resolver_gives_no_address(self):
         identifier = ProjectIdentifierFactory(
-            related=ProjectFactory(), type="GRANT_NUMBER", value="EAR-1234567"
+            related=ProjectFactory(),
+            type_id=f"{IDENTIFIER_TYPES}/grant-number",
+            value="EAR-1234567",
         )
 
         assert identifier.get_absolute_url() is None

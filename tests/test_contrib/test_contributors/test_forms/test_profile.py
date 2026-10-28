@@ -15,6 +15,7 @@ from fairdm.contrib.contributors.forms.profile import (
 )
 from fairdm.contrib.contributors.models import ContributorIdentifier
 from fairdm.core import image_utils
+from fairdm.core.vocabularies import IDENTIFIER_TYPES
 from fairdm.factories import OrganizationFactory, PersonFactory
 from fairdm.utils.location.forms import LocationField
 
@@ -499,7 +500,7 @@ def stored_record_failing_validation(
     if request.param == "person":
         record = PersonFactory(name="Before")
         ContributorIdentifier.objects.create(
-            related=record, type="ORCID", value="not-an-orcid"
+            related=record, type_id=f"{IDENTIFIER_TYPES}/orcid", value="not-an-orcid"
         )
         return SimpleNamespace(
             record=record,
@@ -507,7 +508,9 @@ def stored_record_failing_validation(
             data={**profile_data, "name": "After"},
         )
     record = OrganizationFactory(name="Before")
-    ContributorIdentifier.objects.create(related=record, type="ROR", value="not-a-ror")
+    ContributorIdentifier.objects.create(
+        related=record, type_id=f"{IDENTIFIER_TYPES}/ror", value="not-a-ror"
+    )
     return SimpleNamespace(
         record=record,
         form_class=OrganizationProfileForm,

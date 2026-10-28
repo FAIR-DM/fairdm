@@ -17,3 +17,22 @@ PORTAL_DESCRIPTION = "This research data portal provides a collaborative platfor
 
 
 FAIRDM_FACTORIES = {}
+
+# FairDM's vocabularies are loaded from the copies in the test fixtures, so neither the demo nor
+# the test suite fetches anything over the network.
+vocabulary_files = BASE_DIR / "tests" / "fixtures" / "vocabularies"  # noqa: F821
+
+CONTROLLED_VOCABULARIES = {
+    slug: {"source": vocabulary_files / f"{slug}.ttl"}
+    for slug in (
+        "contributor-roles",
+        "date-types",
+        "description-types",
+        "identifier-types",
+        "organization-types",
+        "project-status",
+        "relation-types",
+        "sample-relation-types",
+        "sample-status",
+    )
+}

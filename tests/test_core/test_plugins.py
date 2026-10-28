@@ -5,6 +5,7 @@ import pytest
 from fairdm.contrib.contributors.models import Organization, Person
 from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.core.plugins import RecordOverviewPlugin
+from fairdm.core.vocabularies import CONTRIBUTOR_ROLES, IDENTIFIER_TYPES
 from fairdm.factories import (
     AffiliationFactory,
     DatasetFactory,
@@ -26,11 +27,13 @@ def _plugin_for(record):
 class TestRecordOverviewPluginIdentifiers:
     def test_a_doi_links_to_doi_org(self):
         project = ProjectFactory()
-        ProjectIdentifierFactory(related=project, type="DOI", value="10.1234/abc")
+        ProjectIdentifierFactory(
+            related=project, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.1234/abc"
+        )
 
         [identifier] = _plugin_for(project).get_identifiers()
 
-        assert identifier["type"] == "DOI"
+        assert identifier["type"].uri == f"{IDENTIFIER_TYPES}/doi"
         assert identifier["value"] == "10.1234/abc"
         assert identifier["link"] == "https://doi.org/10.1234/abc"
 
@@ -43,7 +46,9 @@ class TestRecordOverviewPluginIdentifiers:
             rock_type="igneous",
             collection_date="2024-01-15",
         )
-        SampleIdentifierFactory(related=sample, type="IGSN", value="10.60516/AU1101")
+        SampleIdentifierFactory(
+            related=sample, type_id=f"{IDENTIFIER_TYPES}/igsn", value="10.60516/AU1101"
+        )
 
         [identifier] = _plugin_for(sample).get_identifiers()
 
@@ -58,7 +63,9 @@ class TestRecordOverviewPluginIdentifiers:
             rock_type="igneous",
             collection_date="2024-01-15",
         )
-        SampleIdentifierFactory(related=sample, type="IGSN", value="AU1101")
+        SampleIdentifierFactory(
+            related=sample, type_id=f"{IDENTIFIER_TYPES}/igsn", value="AU1101"
+        )
 
         [identifier] = _plugin_for(sample).get_identifiers()
 
@@ -67,7 +74,9 @@ class TestRecordOverviewPluginIdentifiers:
     def test_an_identifier_of_another_type_is_not_linked(self):
         project = ProjectFactory()
         ProjectIdentifierFactory(
-            related=project, type="GRANT_NUMBER", value="GRANT-2024-001"
+            related=project,
+            type_id=f"{IDENTIFIER_TYPES}/grant-number",
+            value="GRANT-2024-001",
         )
 
         [identifier] = _plugin_for(project).get_identifiers()
@@ -77,7 +86,9 @@ class TestRecordOverviewPluginIdentifiers:
     def test_a_grant_number_that_looks_like_a_doi_is_not_linked(self):
         project = ProjectFactory()
         ProjectIdentifierFactory(
-            related=project, type="GRANT_NUMBER", value="10.13039/501100001659"
+            related=project,
+            type_id=f"{IDENTIFIER_TYPES}/grant-number",
+            value="10.13039/501100001659",
         )
 
         [identifier] = _plugin_for(project).get_identifiers()
@@ -95,8 +106,14 @@ class TestRecordOverviewPluginCredits:
         project = ProjectFactory()
         person = PersonFactory(is_active=True)
         organisation = OrganizationFactory()
-        project.add_contributor(person, with_roles=["Creator", "ContactPerson"])
-        project.add_contributor(organisation, with_roles=["Other"])
+        project.add_contributor(
+            person,
+            with_roles=[
+                f"{CONTRIBUTOR_ROLES}/creator",
+                f"{CONTRIBUTOR_ROLES}/contact-person",
+            ],
+        )
+        project.add_contributor(organisation, with_roles=[f"{CONTRIBUTOR_ROLES}/other"])
         return project, person, organisation
 
     def test_each_credit_carries_its_contributor_as_its_own_subtype(self, credited):
@@ -118,7 +135,10 @@ class TestRecordOverviewPluginCredits:
             c for c in plugin.get_contributions() if c.contributor.pk == person.pk
         )
 
-        assert plugin.get_role_names(credit) == {"Creator", "ContactPerson"}
+        assert plugin.get_role_uris(credit) == {
+            f"{CONTRIBUTOR_ROLES}/creator",
+            f"{CONTRIBUTOR_ROLES}/contact-person",
+        }
 
     def test_the_contributors_holding_a_role_are_picked_out_of_the_credits(
         self, credited
@@ -129,9 +149,15 @@ class TestRecordOverviewPluginCredits:
         entries = plugin.get_credits()
 
         assert [
-            c.pk for c in plugin.get_contributors_with_role(entries, "Creator")
+            c.pk
+            for c in plugin.get_contributors_with_role(
+                entries, f"{CONTRIBUTOR_ROLES}/creator"
+            )
         ] == [person.pk]
-        assert plugin.get_contributors_with_role(entries, "Editor") == []
+        assert (
+            plugin.get_contributors_with_role(entries, f"{CONTRIBUTOR_ROLES}/editor")
+            == []
+        )
 
 
 @pytest.mark.django_db

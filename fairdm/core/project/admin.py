@@ -7,6 +7,8 @@ from django.db.models import Exists, OuterRef
 from django.http import HttpResponse
 from django.utils.translation import gettext_lazy as _
 
+from fairdm.core.vocabularies import ABSTRACT
+
 from ..choices import ProjectStatus
 from ..formsets import date_ordering_formset
 from .models import Project, ProjectDate, ProjectDescription, ProjectIdentifier
@@ -74,7 +76,7 @@ class ProjectAdmin(admin.ModelAdmin):
             .annotate(
                 _has_abstract=Exists(
                     ProjectDescription.objects.filter(
-                        related=OuterRef("pk"), type="Abstract"
+                        related=OuterRef("pk"), type=ABSTRACT
                     )
                 ),
                 _has_start_date=Exists(

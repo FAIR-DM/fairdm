@@ -8,6 +8,8 @@ from celery import shared_task
 from django.utils import timezone
 from requests.exceptions import RequestException
 
+from fairdm.core.vocabularies import ORCID, ROR
+
 logger = logging.getLogger(__name__)
 
 
@@ -40,9 +42,9 @@ def sync_contributor_identifier(identifier_pk: int) -> bool:
 
     contributor = identifier.related
 
-    if identifier.type == "ORCID":
+    if identifier.type_id == ORCID:
         return _sync_orcid(identifier, contributor)
-    elif identifier.type == "ROR":
+    elif identifier.type_id == ROR:
         return _sync_ror(identifier, contributor)
     else:
         logger.warning(f"Unknown identifier type: {identifier.type}")
@@ -185,7 +187,7 @@ def refresh_all_contributors() -> int:
 
     stale_threshold = timezone.now().date() - timedelta(days=7)
     stale_identifiers = ContributorIdentifier.objects.filter(
-        type__in=["ORCID", "ROR"],
+        type_id__in=[ORCID, ROR],
     ).filter(
         Q(related__last_synced__lt=stale_threshold)
         | Q(related__last_synced__isnull=True)

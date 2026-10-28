@@ -3,6 +3,12 @@
 import pytest
 
 from fairdm.core.project.transforms import to_datacite, to_json_ld
+from fairdm.core.vocabularies import (
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    IDENTIFIER_TYPES,
+)
 from fairdm.factories import (
     PersonFactory,
     ProjectDescriptionFactory,
@@ -19,23 +25,37 @@ class TestToDatacite:
             funding=[{"funderName": "Sample Agency", "awardNumber": "GRANT-42"}]
         )
         ProjectDescriptionFactory(
-            related=project, type="Abstract", value="An abstract."
+            related=project,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="An abstract.",
         )
         ProjectDescriptionFactory(
-            related=project, type="Objectives", value="Do the thing."
+            related=project,
+            type_id=f"{DESCRIPTION_TYPES}/objectives",
+            value="Do the thing.",
         )
-        ProjectDateFactory(related=project, type="Start", value="2024-01-01")
-        ProjectDateFactory(related=project, type="End", value="2024-12")
-        ProjectIdentifierFactory(
-            related=project, type="DOI", value="10.1234/example-project"
+        ProjectDateFactory(
+            related=project, type_id=f"{DATE_TYPES}/start", value="2024-01-01"
+        )
+        ProjectDateFactory(
+            related=project, type_id=f"{DATE_TYPES}/end", value="2024-12"
         )
         ProjectIdentifierFactory(
-            related=project, type="PROPOSAL_ID", value="PROP-2024-01"
+            related=project,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.1234/example-project",
+        )
+        ProjectIdentifierFactory(
+            related=project,
+            type_id=f"{IDENTIFIER_TYPES}/proposal-id",
+            value="PROP-2024-01",
         )
         creator = PersonFactory()
         member = PersonFactory()
-        project.add_contributor(creator, with_roles=["Creator"])
-        project.add_contributor(member, with_roles=["ProjectMember"])
+        project.add_contributor(creator, with_roles=[f"{CONTRIBUTOR_ROLES}/creator"])
+        project.add_contributor(
+            member, with_roles=[f"{CONTRIBUTOR_ROLES}/project-member"]
+        )
 
         data = to_datacite(project)
 
@@ -86,9 +106,15 @@ class TestToDatacite:
     def test_doi_becomes_the_records_primary_identifier(self):
         project = ProjectFactory(funding=None)
         ProjectIdentifierFactory(
-            related=project, type="DOI", value="10.5555/primary-example"
+            related=project,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.5555/primary-example",
         )
-        ProjectIdentifierFactory(related=project, type="GRANT_NUMBER", value="GRANT-99")
+        ProjectIdentifierFactory(
+            related=project,
+            type_id=f"{IDENTIFIER_TYPES}/grant-number",
+            value="GRANT-99",
+        )
 
         data = to_datacite(project)
 
@@ -139,7 +165,9 @@ class TestToJsonLd:
     def test_contributor_email_is_dropped_from_the_export(self):
         project = ProjectFactory(funding=None)
         person = PersonFactory(email="contributor@example.org")
-        project.add_contributor(person, with_roles=["ProjectMember"])
+        project.add_contributor(
+            person, with_roles=[f"{CONTRIBUTOR_ROLES}/project-member"]
+        )
 
         data = to_json_ld(project)
 

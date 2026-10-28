@@ -31,7 +31,7 @@ erDiagram
 | `uuid` | `ShortUUIDField` | Generated on save | The identifier used in addresses and the API. A prefix names the kind of record: `p`, `d`, `s` or `m`, followed by 22 characters. | Not editable. Unique. |
 | `name` | `CharField` | None | The record's title. | Up to 300 characters. Required. |
 | `image` | `ThumbnailerImageField` | `None` | A picture of the record. The stored source is limited to 2400 by 1600 pixels without cropping. | An image file. Optional. |
-| `keywords` | `ManyToManyField` to `research_vocabs.Concept` | Empty | Controlled keywords for discoverability. | Concepts from a vocabulary. Optional. |
+| `keywords` | `MultiConceptField` | Empty | Controlled keywords for discoverability. | Concepts from any loaded vocabulary. Optional. |
 | `tags` | `TaggableManager` through `fairdm.models.TaggedItem` | Empty | Free words. | Any text. Optional. |
 | `options` | `JSONField` | `None` | A place for settings of your own. | Any JSON value. Optional. |
 | `added` | `DateTimeField` | The time of creation | When the record was added. | Not editable. |
@@ -90,10 +90,10 @@ A value that is not a list of such objects fails validation with one of the code
 
 | Name | Value |
 |---|---|
-| `DEFAULT_ROLES` | `["ProjectMember"]` |
-| `CONTRIBUTOR_ROLES` | The `Project` collection of `FairDMRoles`. |
-| `DATE_TYPES` | The `Project` collection of `FairDMDates`. |
-| `DESCRIPTION_TYPES` | The `Project` collection of `FairDMDescriptions`. |
+| `DEFAULT_ROLES` | `[PROJECT_MEMBER]`, the address of the project member role |
+| `CONTRIBUTOR_ROLES` | The address of the project collection of the contributor roles. |
+| `DATE_TYPES` | The address of the project collection of the date types. |
+| `DESCRIPTION_TYPES` | The address of the project collection of the description types. |
 | `STATUS_CHOICES` | `ProjectStatus` |
 | `VISIBILITY` | `Visibility` |
 | `STATUS_BADGE_VARIANTS` | The theme colour name of each status on a project card. |
@@ -132,11 +132,11 @@ Deleting a project deletes its datasets. A project that still has a public datas
 
 | Name | Value |
 |---|---|
-| `DEFAULT_ROLES` | `["ProjectMember"]` |
-| `CONTRIBUTOR_ROLES` | The `Dataset` collection of `FairDMRoles`. |
-| `DATE_TYPES` | The `Dataset` collection of `FairDMDates`. |
-| `DESCRIPTION_TYPES` | The `Dataset` collection of `FairDMDescriptions`. |
-| `IDENTIFIER_TYPES` | The choices of the `Dataset` collection of `FairDMIdentifiers`. |
+| `DEFAULT_ROLES` | `[PROJECT_MEMBER]`, the address of the project member role |
+| `CONTRIBUTOR_ROLES` | The address of the dataset collection of the contributor roles. |
+| `DATE_TYPES` | The address of the dataset collection of the date types. |
+| `DESCRIPTION_TYPES` | The address of the dataset collection of the description types. |
+| `IDENTIFIER_TYPES` | The address of the dataset collection of the identifier types. |
 | `VISIBILITY_CHOICES` | `Visibility` |
 
 ### Properties and methods
@@ -200,27 +200,27 @@ A project and a dataset each carry typed rows. A row model exists for each pair,
 
 | Rows | `type` is drawn from | `value` | Rules |
 |---|---|---|---|
-| Descriptions | `FairDMDescriptions` | Text of at most 20,000 characters. | One row of each type for each record. |
-| Dates | `FairDMDates` | A partial date: a year, a year and month, or a full date. See [Model fields](model-fields.md). | One row of each type for each record. The end may not be before the start. |
-| Identifiers | `FairDMIdentifiers` | Text of at most 255 characters. | One row of each type for each record. The value is unique across every kind of record. |
+| Descriptions | The description types | Text of at most 20,000 characters. | One row of each type for each record. |
+| Dates | The date types | A partial date: a year, a year and month, or a full date. See [Model fields](model-fields.md). | One row of each type for each record. The end may not be before the start. |
+| Identifiers | The identifier types | Text of at most 255 characters. | One row of each type for each record. The value is unique across every kind of record. |
 
-The start and end types are `Start` and `End` for a project and `CollectionStart` and `CollectionEnd` for a dataset. The end is compared with the start at the coarser of their two precisions.
+`type` is a `ConceptField` limited to the record's collection of the vocabulary, and holds the concept's address: the vocabulary's address, a slash and the identifier listed below. The start and end types are `start` and `end` for a project, `ProjectDate.START_TYPE` and `ProjectDate.END_TYPE`, and `collection-start` and `collection-end` for a dataset. The end is compared with the start at the coarser of their two precisions.
 
-The types each record accepts:
+The types each record accepts, by identifier, in the order its collection lists them:
 
 | Record | Descriptions | Dates | Identifiers |
 |---|---|---|---|
-| Project | `Abstract`, `Introduction`, `Background`, `Objectives`, `ExpectedOutput`, `Conclusions`, `Other` | `Start`, `End` | `DOI`, `GRANT_NUMBER`, `PROPOSAL_ID` |
-| Dataset | `Abstract`, `Methods`, `SeriesInformation`, `TechnicalInfo`, `Other` | `Available`, `CollectionStart`, `CollectionEnd`, `Submitted`, `Published`, `Withdrawn` | `DOI` |
+| Project | `abstract`, `introduction`, `background`, `objectives`, `expected-output`, `conclusions`, `other` | `start`, `end` | `doi`, `grant-number`, `proposal-id` |
+| Dataset | `abstract`, `methods`, `series-information`, `technical-info`, `other` | `available`, `collection-start`, `collection-end`, `submitted`, `published`, `withdrawn` | `doi` |
 
-The roles a person or organization can hold on a record come from `FairDMRoles`:
+The roles a person or organization can hold on a record come from the contributor roles vocabulary, by identifier:
 
 | Record | Roles |
 |---|---|
-| Project | `Creator`, `ProjectLeader`, `ProjectMember`, `ProjectManager`, `ContactPerson`, `Other` |
-| Dataset | `Creator`, `ContactPerson`, `DataCollector`, `DataCurator`, `DataManager`, `Editor`, `Producer`, `RelatedPerson`, `Researcher`, `ProjectLeader`, `ProjectManager`, `ProjectMember`, `Supervisor`, `WorkPackageLeader`, `RightsHolder`, `Other` |
+| Project | `creator`, `project-leader`, `project-member`, `project-manager`, `contact-person`, `other` |
+| Dataset | `creator`, `contact-person`, `data-collector`, `data-curator`, `data-manager`, `editor`, `producer`, `related-person`, `researcher`, `project-leader`, `project-manager`, `project-member`, `supervisor`, `work-package-leader`, `rights-holder`, `other` |
 
-The vocabularies are in `fairdm.core.vocabularies`. See [Controlled vocabularies](../../explanation/controlled-vocabularies.md).
+The vocabularies' addresses are constants in `fairdm.core.vocabularies`, and `get_type_concepts()` on a row model returns the concepts its collection offers. See [Controlled vocabularies](../../explanation/controlled-vocabularies.md).
 
 ## Permissions
 

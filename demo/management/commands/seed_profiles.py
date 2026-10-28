@@ -40,6 +40,7 @@ from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.project.models import Project
 from fairdm.core.sample.models import Sample
+from fairdm.core.vocabularies import CONTRIBUTOR_ROLES, IDENTIFIER_TYPES
 from fairdm.portal_roles import PortalRoles
 
 SEED = "profiles"
@@ -216,7 +217,7 @@ class Command(BaseCommand):
         )
         helmholtz.save()
         ContributorIdentifier.objects.create(
-            related=helmholtz, type="ROR", value="0281dp749"
+            related=helmholtz, type_id=f"{IDENTIFIER_TYPES}/ror", value="0281dp749"
         )
 
         kit, _ = Organization.objects.get_or_create(
@@ -237,7 +238,9 @@ class Command(BaseCommand):
         kit.synced_data = {"id": "https://ror.org/04t3en479", "name": kit.name}
         kit.image.save("kit.png", ContentFile(logo("wide", 1)), save=False)
         kit.save()
-        ContributorIdentifier.objects.create(related=kit, type="ROR", value="04t3en479")
+        ContributorIdentifier.objects.create(
+            related=kit, type_id=f"{IDENTIFIER_TYPES}/ror", value="04t3en479"
+        )
 
         agw = self.new(
             Organization,
@@ -259,10 +262,10 @@ class Command(BaseCommand):
         tuebingen.save()
 
         # The organizations' own credits.
-        kit.add_to(self.showcase, ["HostingInstitution"])
+        kit.add_to(self.showcase, [f"{CONTRIBUTOR_ROLES}/hosting-institution"])
         if self.datasets:
-            helmholtz.add_to(self.datasets[0], ["Sponsor"])
-            kit.add_to(self.datasets[0], ["HostingInstitution"])
+            helmholtz.add_to(self.datasets[0], [f"{CONTRIBUTOR_ROLES}/sponsor"])
+            kit.add_to(self.datasets[0], [f"{CONTRIBUTOR_ROLES}/hosting-institution"])
         return {
             "helmholtz": helmholtz,
             "kit": kit,
@@ -294,7 +297,9 @@ class Command(BaseCommand):
         anna.image.save("anna.png", ContentFile(portrait(3)), save=False)
         anna.save()
         ContributorIdentifier.objects.create(
-            related=anna, type="ORCID", value="0000-0002-1825-0097"
+            related=anna,
+            type_id=f"{IDENTIFIER_TYPES}/orcid",
+            value="0000-0002-1825-0097",
         )
         SocialAccount.objects.create(
             user=anna, provider="orcid", uid="0000-0002-1825-0097"
@@ -319,19 +324,21 @@ class Command(BaseCommand):
             end_date="2019-03",
         )
         for sample in self.samples(9):
-            anna.add_to(sample, ["Collection"])
+            anna.add_to(sample, [f"{CONTRIBUTOR_ROLES}/collection"])
         for sample in self.samples(3, offset=9):
-            anna.add_to(sample, ["Preparation"])
+            anna.add_to(sample, [f"{CONTRIBUTOR_ROLES}/preparation"])
         for measurement in self.measurements(6):
-            anna.add_to(measurement, ["MeasurementCollection"])
+            anna.add_to(measurement, [f"{CONTRIBUTOR_ROLES}/measurement-collection"])
         for dataset in self.datasets[:3]:
-            anna.add_to(dataset, ["DataCurator"])
+            anna.add_to(dataset, [f"{CONTRIBUTOR_ROLES}/data-curator"])
 
         # An ORCID iD nobody has confirmed, and the owner of the university's record.
         tomas = self.mark(self.person("Tomás", "Oliveira"))
         tomas.save()
         ContributorIdentifier.objects.create(
-            related=tomas, type="ORCID", value="0000-0001-5109-3700"
+            related=tomas,
+            type_id=f"{IDENTIFIER_TYPES}/orcid",
+            value="0000-0001-5109-3700",
         )
         Affiliation.objects.create(
             person=tomas,
@@ -341,7 +348,7 @@ class Command(BaseCommand):
             start_date="2012",
         )
         for measurement in self.measurements(4, offset=6):
-            tomas.add_to(measurement, ["MeasurementCollection"])
+            tomas.add_to(measurement, [f"{CONTRIBUTOR_ROLES}/measurement-collection"])
 
         # The rest of the project team fill the university's member list.
         team = [
@@ -377,7 +384,7 @@ class Command(BaseCommand):
                     start_date=str(2015 + index),
                 )
             for sample in self.samples(2, offset=12 + 2 * index):
-                person.add_to(sample, ["Collection"])
+                person.add_to(sample, [f"{CONTRIBUTOR_ROLES}/collection"])
 
         # Your own profile, missing most things, and the owner of an institute's record.
         me = self.mark(users["regular.user"])
@@ -391,9 +398,9 @@ class Command(BaseCommand):
             start_date="2024-09",
         )
         if len(self.datasets) > 1:
-            me.add_to(self.datasets[1], ["DataCollector"])
+            me.add_to(self.datasets[1], [f"{CONTRIBUTOR_ROLES}/data-collector"])
         for sample in self.samples(2, offset=40):
-            me.add_to(sample, ["Collection"])
+            me.add_to(sample, [f"{CONTRIBUTOR_ROLES}/collection"])
 
         # The people around the institute's record: an administrator, an ordinary member and an
         # administrator whose affiliation has ended.
@@ -435,7 +442,10 @@ class Command(BaseCommand):
         ghost.set_unusable_password()
         ghost.save()
         for sample in self.samples(3, offset=30):
-            ghost.add_to(sample, ["Collection", "Storage"])
+            ghost.add_to(
+                sample,
+                [f"{CONTRIBUTOR_ROLES}/collection", f"{CONTRIBUTOR_ROLES}/storage"],
+            )
 
         # An account that has been closed, with a former affiliation.
         inactive = self.new(
@@ -458,17 +468,19 @@ class Command(BaseCommand):
             end_date="2022-06",
         )
         if self.datasets:
-            inactive.add_to(self.datasets[0], ["DataCollector"])
+            inactive.add_to(self.datasets[0], [f"{CONTRIBUTOR_ROLES}/data-collector"])
 
         # A name in a non-Latin script, with an unconfirmed ORCID iD.
         wang = self.new(Person, first_name="晓明", last_name="王", name="王晓明")
         wang.set_unusable_password()
         wang.save()
         ContributorIdentifier.objects.create(
-            related=wang, type="ORCID", value="0000-0003-1415-9269"
+            related=wang,
+            type_id=f"{IDENTIFIER_TYPES}/orcid",
+            value="0000-0003-1415-9269",
         )
         for measurement in self.measurements(2, offset=12):
-            wang.add_to(measurement, ["MeasurementPreparation"])
+            wang.add_to(measurement, [f"{CONTRIBUTOR_ROLES}/measurement-preparation"])
 
         # Credited on nothing and affiliated nowhere.
         nobody = self.new(

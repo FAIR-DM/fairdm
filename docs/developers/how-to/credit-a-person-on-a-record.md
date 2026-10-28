@@ -5,7 +5,7 @@ A credit lists a person on a project, dataset, sample or measurement, with the r
 ## Before you start
 
 - The person exists as a `Person`. To make one for attribution alone, see [How to create a ghost person](create-a-ghost-person.md).
-- The roles vocabulary is loaded into the database. Run `uv run python manage.py preload` on a fresh database.
+- The contributor roles vocabulary is loaded into the database. Run `uv run python manage.py sync_vocabularies` on a fresh database.
 
 ## Steps
 

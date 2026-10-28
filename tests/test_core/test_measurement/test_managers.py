@@ -15,6 +15,12 @@ from fairdm.core.measurement.models import (
     MeasurementDescription,
     MeasurementIdentifier,
 )
+from fairdm.core.vocabularies import (
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    IDENTIFIER_TYPES,
+)
 from fairdm.factories import ContributionFactory, DatasetFactory, PersonFactory
 from fairdm.utils.choices import Visibility
 
@@ -131,13 +137,17 @@ class TestWithMetadataPrefetchesRecords:
             sample=RockSampleFactory(dataset=dataset), dataset=dataset
         )
         MeasurementDescription.objects.create(
-            related=measurement, type="MeasurementSetup", value="XRF analysis"
+            related=measurement,
+            type_id=f"{DESCRIPTION_TYPES}/measurement-setup",
+            value="XRF analysis",
         )
         MeasurementDate.objects.create(
-            related=measurement, type="Setup", value="2024-01-15"
+            related=measurement, type_id=f"{DATE_TYPES}/setup", value="2024-01-15"
         )
         MeasurementIdentifier.objects.create(
-            related=measurement, type="DOI", value="10.1234/meas.1"
+            related=measurement,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.1234/meas.1",
         )
 
         (loaded,) = list(Measurement.objects.with_metadata().filter(pk=measurement.pk))
@@ -154,7 +164,9 @@ class TestWithMetadataPrefetchesRecords:
             sample=RockSampleFactory(dataset=dataset), dataset=dataset
         )
         MeasurementDescription.objects.create(
-            related=measurement, type="MeasurementSetup", value="XRF analysis"
+            related=measurement,
+            type_id=f"{DESCRIPTION_TYPES}/measurement-setup",
+            value="XRF analysis",
         )
 
         (loaded,) = list(Measurement.objects.filter(pk=measurement.pk))
@@ -177,10 +189,13 @@ class TestBothLoadingsComposeWithFilteringAndOrdering:
                 sample=RockSampleFactory(dataset=dataset), dataset=dataset, name=name
             )
             measurement.add_contributor(
-                PersonFactory(is_active=True), with_roles=["Creator"]
+                PersonFactory(is_active=True),
+                with_roles=[f"{CONTRIBUTOR_ROLES}/creator"],
             )
             MeasurementDescription.objects.create(
-                related=measurement, type="MeasurementSetup", value="Method"
+                related=measurement,
+                type_id=f"{DESCRIPTION_TYPES}/measurement-setup",
+                value="Method",
             )
             measurements.append(measurement)
 
@@ -292,9 +307,7 @@ class TestWithEffectiveLocation:
         found = queryset.with_effective_location(user)
         return {m.pk: m.effective_location for m in found}
 
-    def test_a_measurement_is_given_its_own_location_before_its_samples(
-        self, released
-    ):
+    def test_a_measurement_is_given_its_own_location_before_its_samples(self, released):
         sample = RockSampleFactory(
             dataset=released, location=GEOSPoint(12.5, 41.5, srid=4326)
         )
@@ -324,7 +337,9 @@ class TestWithEffectiveLocation:
         stranger = PersonFactory(is_active=True)
 
         for viewer in (None, AnonymousUser(), stranger):
-            assert self.located(Measurement.objects.all(), viewer)[measurement.pk] is None
+            assert (
+                self.located(Measurement.objects.all(), viewer)[measurement.pk] is None
+            )
 
     def test_the_samples_location_is_given_to_a_viewer_who_may_open_it(
         self, released, hidden

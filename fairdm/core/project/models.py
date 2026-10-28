@@ -1,5 +1,6 @@
 """Models for projects and their related descriptions, dates and identifiers."""
 
+from controlled_vocabularies.fields import ConceptField
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
@@ -19,10 +20,13 @@ from ..dates import precedes
 from ..managers import RecordLevelMixin
 from ..utils import CORE_PERMISSIONS
 from ..vocabularies import (
-    FairDMDates,
-    FairDMDescriptions,
-    FairDMIdentifiers,
-    FairDMRoles,
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    IDENTIFIER_TYPES,
+    PROJECT_END,
+    PROJECT_MEMBER,
+    PROJECT_START,
 )
 from .validators import validate_funding
 
@@ -92,10 +96,10 @@ class Project(BaseModel):
     should relate back to a project.
     """
 
-    DEFAULT_ROLES = ["ProjectMember"]
-    CONTRIBUTOR_ROLES = FairDMRoles.from_collection("Project")
-    DATE_TYPES = FairDMDates.from_collection("Project")
-    DESCRIPTION_TYPES = FairDMDescriptions.from_collection("Project")
+    DEFAULT_ROLES = [PROJECT_MEMBER]
+    CONTRIBUTOR_ROLES = f"{CONTRIBUTOR_ROLES}/project"
+    DATE_TYPES = f"{DATE_TYPES}/project"
+    DESCRIPTION_TYPES = f"{DESCRIPTION_TYPES}/project"
     STATUS_CHOICES = ProjectStatus
     VISIBILITY = Visibility
 
@@ -245,7 +249,13 @@ class Project(BaseModel):
 class ProjectDescription(AbstractDescription):
     """Typed prose about a project, at most one description per type."""
 
-    VOCABULARY = FairDMDescriptions.from_collection("Project")
+    type = ConceptField(
+        vocabulary=DESCRIPTION_TYPES,
+        collection=f"{DESCRIPTION_TYPES}/project",
+        related_name="+",
+        verbose_name=_("type"),
+        help_text=_("What the description covers, from the project description types."),
+    )
     related = models.ForeignKey("Project", on_delete=models.CASCADE)
 
     class Meta(AbstractDescription.Meta):
@@ -256,9 +266,11 @@ class ProjectDescription(AbstractDescription):
     def clean(self):
         """Refuse a second description of a type the project already carries."""
         super().clean()
-        if self.related_id and self.type:
+        if self.related_id and self.type_id:
             existing = (
-                ProjectDescription.objects.filter(related=self.related, type=self.type)
+                ProjectDescription.objects.filter(
+                    related=self.related, type=self.type_id
+                )
                 .exclude(pk=self.pk)
                 .exists()
             )
@@ -277,11 +289,17 @@ class ProjectDescription(AbstractDescription):
 class ProjectDate(AbstractDate):
     """Typed date on a project, at most one per type, with the end no earlier than the start."""
 
-    VOCABULARY = FairDMDates.from_collection("Project")
+    type = ConceptField(
+        vocabulary=DATE_TYPES,
+        collection=f"{DATE_TYPES}/project",
+        related_name="+",
+        verbose_name=_("type"),
+        help_text=_("What the date marks, from the project date types."),
+    )
     related = models.ForeignKey("Project", on_delete=models.CASCADE)
 
-    START_TYPE = "Start"
-    END_TYPE = "End"
+    START_TYPE = PROJECT_START
+    END_TYPE = PROJECT_END
 
     class Meta(AbstractDate.Meta):
         verbose_name = _("project date")
@@ -295,9 +313,9 @@ class ProjectDate(AbstractDate):
         if not self.related_id or not self.value:
             return
 
-        if self.type == self.START_TYPE:
+        if self.type_id == self.START_TYPE:
             start_value, end_value = self.value, self._sibling_value(self.END_TYPE)
-        elif self.type == self.END_TYPE:
+        elif self.type_id == self.END_TYPE:
             start_value, end_value = self._sibling_value(self.START_TYPE), self.value
         else:
             return
@@ -328,7 +346,13 @@ class ProjectDate(AbstractDate):
 class ProjectIdentifier(AbstractIdentifier):
     """Typed external identifier naming a project outside the portal."""
 
-    VOCABULARY = FairDMIdentifiers.from_collection("Project")
+    type = ConceptField(
+        vocabulary=IDENTIFIER_TYPES,
+        collection=f"{IDENTIFIER_TYPES}/project",
+        related_name="+",
+        verbose_name=_("type"),
+        help_text=_("The kind of identifier, from the project identifier types."),
+    )
     related = models.ForeignKey("Project", on_delete=models.CASCADE)
 
     class Meta(AbstractIdentifier.Meta):

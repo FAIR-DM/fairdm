@@ -111,8 +111,8 @@ class Overview(OverviewPlugin):
         return {
             "record": contributor,
             "identifiers": [
-                {"type": i.get_type_display(), "value": i.value, "link": i.resolver_url}
-                for i in contributor.identifiers.all()
+                {"type": i.get_type_label(), "value": i.value, "link": i.resolver_url}
+                for i in contributor.identifiers.select_related("type")
             ],
             "identifier": identifier,
             "identifier_url": identifier.resolver_url if identifier else None,

@@ -21,6 +21,7 @@ from fairdm.contrib.plugins.access import can_open
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
 from fairdm.core.project.plugins import Overview
+from fairdm.core.vocabularies import CONTRIBUTOR_ROLES, DATE_TYPES, IDENTIFIER_TYPES
 from fairdm.factories import (
     ContributionFactory,
     OrganizationFactory,
@@ -204,15 +205,13 @@ class TestAPrivateProjectsOtherTabs:
 
 @pytest.mark.django_db
 class TestEditPageForAModelLevelChangePermission:
-
-
     def test_a_user_holding_only_model_level_change_permission_is_refused(self, client):
         from django.contrib.auth.models import Permission
 
         from fairdm.factories import (
-    ProjectFactory,
-    UserFactory,
-)
+            ProjectFactory,
+            UserFactory,
+        )
 
         project = ProjectFactory()
         user = UserFactory()
@@ -234,9 +233,9 @@ class TestEditPageForAModelLevelChangePermission:
         from django.contrib.auth.models import Permission
 
         from fairdm.factories import (
-    ProjectFactory,
-    UserFactory,
-)
+            ProjectFactory,
+            UserFactory,
+        )
 
         project = ProjectFactory()
         user = UserFactory()
@@ -270,7 +269,9 @@ class TestDescriptionsPageOffersOneAreaPerVocabularyType:
         response = client.get(url)
 
         form = response.context["form"]
-        assert list(form.fields) == list(ProjectDescription.VOCABULARY.values)
+        assert list(form.fields) == list(
+            [concept.uri for concept in ProjectDescription.get_type_concepts()]
+        )
 
     def test_every_area_starts_empty_for_a_project_with_no_descriptions(
         self, client, user_with_change_permission
@@ -294,15 +295,17 @@ class TestDescriptionsPageAreasAreLabelledFromTheVocabulary:
 
         project = user_with_change_permission.project
         client.force_login(user_with_change_permission)
-        first_type = ProjectDescription.VOCABULARY.values[0]
-        concept = ProjectDescription.VOCABULARY.get_concept(first_type)
+        concept = ProjectDescription.get_type_concepts()[0]
+        first_type = concept.uri
 
         url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
         response = client.get(url)
 
         form = response.context["form"]
-        assert form.fields[first_type].label == concept.label()
-        assert form.fields[first_type].help_text == concept.definition()
+        assert form.fields[first_type].label == concept.display_label()
+        assert form.fields[first_type].help_text == concept.first_value(
+            "skos:definition"
+        )
 
 
 @pytest.mark.django_db
@@ -314,14 +317,16 @@ class TestSavingTextIntoOneAreaRecordsOnlyThatType:
 
         project = user_with_change_permission.project
         client.force_login(user_with_change_permission)
-        first_type = ProjectDescription.VOCABULARY.values[0]
+        first_type = [
+            concept.uri for concept in ProjectDescription.get_type_concepts()
+        ][0]
 
         url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
         client.post(url, data={first_type: "Some abstract text."})
 
         assert ProjectDescription.objects.filter(related=project).count() == 1
         row = ProjectDescription.objects.get(related=project)
-        assert row.type == first_type
+        assert row.type_id == first_type
         assert row.value == "Some abstract text."
 
 
@@ -334,9 +339,11 @@ class TestExistingDescriptionsShowInTheirOwnArea:
 
         project = user_with_change_permission.project
         client.force_login(user_with_change_permission)
-        first_type, second_type = ProjectDescription.VOCABULARY.values[:2]
+        first_type, second_type = [
+            concept.uri for concept in ProjectDescription.get_type_concepts()
+        ][:2]
         ProjectDescription.objects.create(
-            related=project, type=first_type, value="Existing abstract."
+            related=project, type_id=first_type, value="Existing abstract."
         )
 
         url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
@@ -354,9 +361,11 @@ class TestEditingAnExistingDescriptionPersists:
 
         project = user_with_change_permission.project
         client.force_login(user_with_change_permission)
-        first_type = ProjectDescription.VOCABULARY.values[0]
+        first_type = [
+            concept.uri for concept in ProjectDescription.get_type_concepts()
+        ][0]
         row = ProjectDescription.objects.create(
-            related=project, type=first_type, value="Original text."
+            related=project, type_id=first_type, value="Original text."
         )
 
         url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
@@ -376,9 +385,11 @@ class TestClearingAnAreaRemovesTheDescription:
 
         project = user_with_change_permission.project
         client.force_login(user_with_change_permission)
-        first_type = ProjectDescription.VOCABULARY.values[0]
+        first_type = [
+            concept.uri for concept in ProjectDescription.get_type_concepts()
+        ][0]
         ProjectDescription.objects.create(
-            related=project, type=first_type, value="Existing text."
+            related=project, type_id=first_type, value="Existing text."
         )
 
         url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
@@ -398,7 +409,9 @@ class TestRepeatSubmissionNeverDuplicatesAType:
 
         project = user_with_change_permission.project
         client.force_login(user_with_change_permission)
-        first_type = ProjectDescription.VOCABULARY.values[0]
+        first_type = [
+            concept.uri for concept in ProjectDescription.get_type_concepts()
+        ][0]
 
         url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
         client.post(url, data={first_type: "First."})
@@ -437,9 +450,11 @@ class TestEmptyAndWhitespaceOnlyAreasCreateNothing:
 
         project = user_with_change_permission.project
         client.force_login(user_with_change_permission)
-        first_type = ProjectDescription.VOCABULARY.values[0]
+        first_type = [
+            concept.uri for concept in ProjectDescription.get_type_concepts()
+        ][0]
         ProjectDescription.objects.create(
-            related=project, type=first_type, value="Existing text."
+            related=project, type_id=first_type, value="Existing text."
         )
 
         url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
@@ -459,7 +474,9 @@ class TestASuccessfulSubmissionRedirectsToTheProjectsPage:
 
         project = user_with_change_permission.project
         client.force_login(user_with_change_permission)
-        first_type = ProjectDescription.VOCABULARY.values[0]
+        first_type = [
+            concept.uri for concept in ProjectDescription.get_type_concepts()
+        ][0]
 
         url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
         response = client.post(url, data={first_type: "Some text."})
@@ -485,6 +502,7 @@ class TestProjectsOwnPageOffersTheDeletionLink:
 
         delete_url = reverse("project:delete", kwargs={"uuid": project.uuid})
         assertNotContains(response, f'href="{delete_url}"')
+
 
 @pytest.mark.django_db
 class TestUpdateDescriptionsAndDeletionEachLinkBackToTheProject:
@@ -515,6 +533,7 @@ class TestUpdateDescriptionsAndDeletionEachLinkBackToTheProject:
 
         project_url = reverse("project:overview", kwargs={"uuid": project.uuid})
         assertContains(response, f'href="{project_url}"')
+
 
 @pytest.mark.django_db
 class TestEveryLinkEachPageDrawsResolvesToARealAddress:
@@ -551,9 +570,7 @@ class TestEveryLinkEachPageDrawsResolvesToARealAddress:
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         client.force_login(self._permitted_user(project))
 
-        response = client.get(
-            reverse("project:edit", kwargs={"uuid": project.uuid})
-        )
+        response = client.get(reverse("project:edit", kwargs={"uuid": project.uuid}))
 
         hrefs = _hrefs(response.content.decode())
         assert hrefs
@@ -575,9 +592,7 @@ class TestEveryLinkEachPageDrawsResolvesToARealAddress:
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         client.force_login(self._permitted_user(project))
 
-        response = client.get(
-            reverse("project:delete", kwargs={"uuid": project.uuid})
-        )
+        response = client.get(reverse("project:delete", kwargs={"uuid": project.uuid}))
 
         hrefs = _hrefs(response.content.decode())
         assert hrefs
@@ -599,9 +614,7 @@ class TestTheDescriptionsPageGuardsAPrivateProjectsVisibility:
         client.force_login(user)
 
         response = client.get(
-            reverse(
-                "project:descriptions", kwargs={"uuid": private_project.uuid}
-            )
+            reverse("project:descriptions", kwargs={"uuid": private_project.uuid})
         )
 
         assert response.status_code in (403, 404)
@@ -613,15 +626,12 @@ class TestTheDescriptionsPageGuardsAPrivateProjectsVisibility:
         client.force_login(user)
 
         response = client.post(
-            reverse(
-                "project:descriptions", kwargs={"uuid": private_project.uuid}
-            ),
+            reverse("project:descriptions", kwargs={"uuid": private_project.uuid}),
             data={"Abstract": "written by someone who may not see this project"},
         )
 
         assert response.status_code in (403, 404)
         assert private_project.descriptions.count() == 0
-
 
     def test_a_visitor_holding_view_rights_still_reaches_it(
         self, client, private_project, user_with_no_permission
@@ -634,9 +644,7 @@ class TestTheDescriptionsPageGuardsAPrivateProjectsVisibility:
         client.force_login(user_with_no_permission)
 
         response = client.get(
-            reverse(
-                "project:descriptions", kwargs={"uuid": private_project.uuid}
-            )
+            reverse("project:descriptions", kwargs={"uuid": private_project.uuid})
         )
 
         assert response.status_code == 200
@@ -710,9 +718,7 @@ def _card_holding(page, tag):
 class TestOverviewFiguresAndChartsCountWhatTheViewerMaySee:
     """US-1 scenarios 1 and 2: a visitor's counts follow the datasets they may see."""
 
-    def test_a_visitor_counts_the_public_datasets_only(
-        self, client, overview_showcase
-    ):
+    def test_a_visitor_counts_the_public_datasets_only(self, client, overview_showcase):
         response = _page(client, overview_showcase.project)
 
         assert _figures(response.page)[:3] == ["2", "3", "2"]
@@ -807,7 +813,10 @@ class TestOverviewFiguresAndChartsCountWhatTheViewerMaySee:
     ):
         response = _page(client, overview_showcase.project)
 
-        rows = {row.pk: row.data_is_public for row in response.context["datasets_preview"]["rows"]}
+        rows = {
+            row.pk: row.data_is_public
+            for row in response.context["datasets_preview"]["rows"]
+        }
         assert rows == {
             overview_showcase.published.pk: True,
             overview_showcase.unpublished.pk: False,
@@ -847,7 +856,9 @@ class TestOverviewReadinessChecklistIsForTheTeam:
         self, client, overview_showcase, project_team_member
     ):
         ProjectIdentifierFactory(
-            related=overview_showcase.project, type="DOI", value="10.5555/ready"
+            related=overview_showcase.project,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.5555/ready",
         )
         client.force_login(project_team_member)
 
@@ -887,7 +898,9 @@ class TestOverviewNotices:
             status=Project.STATUS_CHOICES.SEARCHING_FOR_COLLABORATORS,
         )
         contact = PersonFactory(name="Contact Person", is_active=True)
-        project.add_contributor(contact, with_roles=["ContactPerson"])
+        project.add_contributor(
+            contact, with_roles=[f"{CONTRIBUTOR_ROLES}/contact-person"]
+        )
 
         response = _page(client, project)
 
@@ -900,7 +913,9 @@ class TestOverviewNotices:
             status=Project.STATUS_CHOICES.SEARCHING_FOR_COLLABORATORS,
         )
         leader = PersonFactory(name="Lead Person", is_active=True)
-        project.add_contributor(leader, with_roles=["ProjectLeader"])
+        project.add_contributor(
+            leader, with_roles=[f"{CONTRIBUTOR_ROLES}/project-leader"]
+        )
 
         response = _page(client, project)
 
@@ -935,8 +950,12 @@ class TestOverviewPeople:
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         manager = PersonFactory(name="Manager Person", is_active=True)
         leader = PersonFactory(name="Leader Person", is_active=True)
-        project.add_contributor(manager, with_roles=["ProjectManager"])
-        project.add_contributor(leader, with_roles=["ProjectLeader"])
+        project.add_contributor(
+            manager, with_roles=[f"{CONTRIBUTOR_ROLES}/project-manager"]
+        )
+        project.add_contributor(
+            leader, with_roles=[f"{CONTRIBUTOR_ROLES}/project-leader"]
+        )
 
         response = _page(client, project)
 
@@ -951,9 +970,9 @@ class TestOverviewPeople:
         assert shown & {p.pk for p in overview_showcase.leaders} == {
             p.pk for p in overview_showcase.leaders
         }
-        assert response.context["people"]["total"] == len(overview_showcase.leaders) + len(
-            overview_showcase.others
-        )
+        assert response.context["people"]["total"] == len(
+            overview_showcase.leaders
+        ) + len(overview_showcase.others)
 
     def test_the_card_draws_eighteen_faces_and_counts_the_rest(
         self, client, overview_showcase
@@ -962,13 +981,18 @@ class TestOverviewPeople:
 
         tiles = response.page.select("li[data-tip]")
         assert len(tiles) == 18
-        assert (response.context["people"]["more"], response.context["people"]["total"]) == (4, 22)
+        assert (
+            response.context["people"]["more"],
+            response.context["people"]["total"],
+        ) == (4, 22)
 
     def test_the_count_links_to_the_full_list_of_contributors(
         self, client, overview_showcase
     ):
         project = overview_showcase.project
-        contributors_url = reverse("project:contribution-list", kwargs={"uuid": project.uuid})
+        contributors_url = reverse(
+            "project:contribution-list", kwargs={"uuid": project.uuid}
+        )
 
         response = _page(client, project)
 
@@ -990,7 +1014,9 @@ class TestOverviewPeople:
     def test_a_leader_is_listed_in_the_people_card(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         leader = PersonFactory(is_active=True)
-        project.add_contributor(leader, with_roles=["ProjectLeader"])
+        project.add_contributor(
+            leader, with_roles=[f"{CONTRIBUTOR_ROLES}/project-leader"]
+        )
 
         response = _page(client, project)
 
@@ -1012,7 +1038,7 @@ class TestOverviewPeople:
 
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         organisation = OrganizationFactory(name="Institute")
-        project.add_contributor(organisation, with_roles=["Other"])
+        project.add_contributor(organisation, with_roles=[f"{CONTRIBUTOR_ROLES}/other"])
 
         response = _page(client, project)
 
@@ -1030,7 +1056,7 @@ class TestOverviewCitation:
         for first, last in names:
             project.add_contributor(
                 PersonFactory(first_name=first, last_name=last, is_active=True),
-                with_roles=["Creator"],
+                with_roles=[f"{CONTRIBUTOR_ROLES}/creator"],
             )
         return project
 
@@ -1042,9 +1068,7 @@ class TestOverviewCitation:
     def test_two_creators_are_joined_by_an_ampersand(self, client):
         project = self._project_with_creators(("Anna", "Keller"), ("Tomas", "Oliveira"))
 
-        assert self._citation(client, project).startswith(
-            "Keller, A. & Oliveira, T. ("
-        )
+        assert self._citation(client, project).startswith("Keller, A. & Oliveira, T. (")
 
     def test_several_creators_are_comma_separated_with_an_ampersand_before_the_last(
         self, client
@@ -1062,11 +1086,11 @@ class TestOverviewCitation:
     ):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         partner = OrganizationFactory(name="Acme Lab")
-        project.add_contributor(partner, with_roles=["Creator"])
+        project.add_contributor(partner, with_roles=[f"{CONTRIBUTOR_ROLES}/creator"])
         for first, last in (("Anna", "Keller"), ("Tomas", "Oliveira")):
             moving = project.add_contributor(
                 PersonFactory(first_name=first, last_name=last, is_active=True),
-                with_roles=["Creator"],
+                with_roles=[f"{CONTRIBUTOR_ROLES}/creator"],
             )
         Crediting(project).move(moving, "up")
 
@@ -1076,7 +1100,9 @@ class TestOverviewCitation:
 
     def test_a_project_with_a_doi_is_cited_by_it(self, client):
         project = self._project_with_creators(("Anna", "Keller"))
-        ProjectIdentifierFactory(related=project, type="DOI", value="10.5555/cited")
+        ProjectIdentifierFactory(
+            related=project, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.5555/cited"
+        )
 
         assert self._citation(client, project).endswith("https://doi.org/10.5555/cited")
 
@@ -1087,14 +1113,18 @@ class TestOverviewCitation:
 
         response = _page(client, project)
 
-        assert response.page.find(id="citation-text").get_text().endswith(
-            _overview_url(project)
+        assert (
+            response.page.find(id="citation-text")
+            .get_text()
+            .endswith(_overview_url(project))
         )
         assert response.context["citation"]["note"]
 
     def test_the_year_is_the_projects_start_year(self, client):
         project = self._project_with_creators(("Anna", "Keller"))
-        ProjectDateFactory(related=project, type="Start", value=PartialDate("2019-05"))
+        ProjectDateFactory(
+            related=project, type_id=f"{DATE_TYPES}/start", value=PartialDate("2019-05")
+        )
 
         assert "(2019)" in self._citation(client, project)
 
@@ -1102,9 +1132,9 @@ class TestOverviewCitation:
 @pytest.mark.django_db
 class TestOverviewTimeline:
     def _progress(self, client, project, start, end):
-        for type_, day in (("Start", start), ("End", end)):
+        for type_, day in ((f"{DATE_TYPES}/start", start), (f"{DATE_TYPES}/end", end)):
             ProjectDateFactory(
-                related=project, type=type_, value=PartialDate(day.isoformat())
+                related=project, type_id=type_, value=PartialDate(day.isoformat())
             )
         response = _page(client, project)
         return response, response.page.find("progress")
@@ -1155,7 +1185,9 @@ class TestOverviewTimeline:
         self, client
     ):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
-        ProjectDateFactory(related=project, type="Start", value=PartialDate("2020-01"))
+        ProjectDateFactory(
+            related=project, type_id=f"{DATE_TYPES}/start", value=PartialDate("2020-01")
+        )
 
         response = _page(client, project)
 
@@ -1166,8 +1198,12 @@ class TestOverviewTimeline:
         self, client
     ):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
-        ProjectDateFactory(related=project, type="Start", value=PartialDate("2020"))
-        ProjectDateFactory(related=project, type="End", value=PartialDate("2022-03"))
+        ProjectDateFactory(
+            related=project, type_id=f"{DATE_TYPES}/start", value=PartialDate("2020")
+        )
+        ProjectDateFactory(
+            related=project, type_id=f"{DATE_TYPES}/end", value=PartialDate("2022-03")
+        )
 
         response = _page(client, project)
 
@@ -1208,12 +1244,16 @@ class TestOverviewFunding:
         )
         response = _page(client, project)
         title = next(
-            h for h in response.page.select("h2.card-title") if h.get_text(strip=True) == "Funding"
+            h
+            for h in response.page.select("h2.card-title")
+            if h.get_text(strip=True) == "Funding"
         )
         card = title.find_parent(class_="card")
         return response, card.find_all("a")
 
-    @pytest.mark.parametrize("identifier", ["javascript:alert(1)", "10.13039/501100001659"])
+    @pytest.mark.parametrize(
+        "identifier", ["javascript:alert(1)", "10.13039/501100001659"]
+    )
     def test_a_funder_identifier_that_is_not_a_web_address_is_not_a_link(
         self, client, identifier
     ):
@@ -1265,9 +1305,7 @@ class TestOverviewCardsAlwaysShown:
         for card in self.SIDE_CARDS:
             assert response.page.select_one(f'[data-card="{card}"]') is not None, card
 
-    def test_a_project_with_no_dates_shows_the_progress_entry_in_details(
-        self, client
-    ):
+    def test_a_project_with_no_dates_shows_the_progress_entry_in_details(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
 
         response = _page(client, project)
@@ -1307,18 +1345,18 @@ class TestOverviewSchemaOrgDescription:
     def test_it_carries_no_contributor_email_address(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         person = PersonFactory(is_active=True)
-        project.add_contributor(person, with_roles=["Creator"])
+        project.add_contributor(person, with_roles=[f"{CONTRIBUTOR_ROLES}/creator"])
 
         response = _page(client, project)
 
         assert person.email not in response.content.decode()
 
-    def test_it_names_no_dataset_the_viewer_may_not_see(self, client, overview_showcase):
+    def test_it_names_no_dataset_the_viewer_may_not_see(
+        self, client, overview_showcase
+    ):
         response = _page(client, overview_showcase.project)
 
-        assert overview_showcase.private.name not in json.dumps(
-            _json_ld(response.page)
-        )
+        assert overview_showcase.private.name not in json.dumps(_json_ld(response.page))
 
 
 @pytest.mark.django_db
@@ -1511,6 +1549,7 @@ class TestOverviewManageMenu:
 
         assert visitor.page.find("a", href=add_url) is None
         assert team.page.find("a", href=add_url) is not None
+
 
 @pytest.mark.django_db
 class TestOverviewNotAvailableYet:

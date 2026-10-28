@@ -17,7 +17,7 @@ A sample has the fields of [every core record](core-models.md#fields-every-recor
 | `uuid` | `ShortUUIDField` | Generated, prefix `s` | The identifier used in addresses and the API. | Not editable. Unique. |
 | `dataset` | `ForeignKey` to `dataset.Dataset` | None | The dataset the sample first appeared in. Related name `samples`. Deleting the dataset deletes the sample. | A dataset. Required. |
 | `local_id` | `CharField`, 255 characters | `None` | The creator's own identifier for the sample within its dataset. It need not be unique. | Text. Optional. |
-| `status` | `ConceptField` on `FairDMSampleStatus` | `unknown` | The custody state of the physical specimen. | A [status](#status) name. |
+| `status` | `ConceptField` on the sample status vocabulary | The address of `unknown` | The custody state of the physical specimen. | The address of a [status](#status). |
 | `location` | `PointField`, SRID 4326 | `None` | Where the sample was taken, as a point in WGS 84. | A point. Optional. |
 | `location_elevation` | `FloatField` | `None` | Metres above mean sea level. Negative below it. | A number. Needs a location. |
 | `location_uncertainty` | `FloatField` | `None` | The distance in metres from the location within which the true place lies. | A number of zero or more. Needs a location. |
@@ -35,12 +35,12 @@ A field on a sample type that has one of these names clashes with an inherited f
 
 ## Status
 
-`Sample.status` takes one of the terms of `FairDMSampleStatus` in `fairdm.core.vocabularies`. A sample can move from any status to any other, including out of `destroyed`.
+`Sample.status` holds the address of one of the concepts of the sample status vocabulary, `https://w3id.org/fairdm/vocabularies/sample-status`, which `fairdm.core.vocabularies` names `SAMPLE_STATUS`. A concept's address is the vocabulary's address, a slash and the identifier below. A sample can move from any status to any other, including out of `destroyed`.
 
-| Name | Label | Meaning |
+| Identifier | Label | Meaning |
 |---|---|---|
 | `available` | Available | Accessible and not checked out, in storage or destroyed. |
-| `in_use` | In Use | Checked out or in active use. |
+| `in-use` | In Use | Checked out or in active use. |
 | `stored` | Stored | In long-term storage. |
 | `destroyed` | Destroyed | Consumed, destroyed or otherwise no longer physically available. |
 | `unknown` | Unknown | The custody state is not known. |
@@ -49,24 +49,24 @@ A field on a sample type that has one of these names clashes with an inherited f
 
 | Name | Value |
 |---|---|
-| `CONTRIBUTOR_ROLES` | The `Sample` collection of `FairDMRoles`. |
-| `DATE_TYPES` | The `Sample` collection of `FairDMDates`. |
-| `DESCRIPTION_TYPES` | The `Sample` collection of `FairDMDescriptions`. |
+| `CONTRIBUTOR_ROLES` | The address of the sample collection of the contributor roles. |
+| `DATE_TYPES` | The address of the sample collection of the date types. |
+| `DESCRIPTION_TYPES` | The address of the sample collection of the description types. |
 | `type_of` | `Sample`. A class property that polymorphic queries use. |
 
 ## Descriptions, dates and identifiers
 
-`SampleDescription`, `SampleDate` and `SampleIdentifier` link to a sample by `related` and are reached as `descriptions`, `dates` and `identifiers`. A sample has at most one row of each type. `full_clean()` refuses a `type` outside the vocabulary, but a plain `objects.create()` does not call it.
+`SampleDescription`, `SampleDate` and `SampleIdentifier` link to a sample by `related` and are reached as `descriptions`, `dates` and `identifiers`. A sample has at most one row of each type. `type` is a `ConceptField` limited to the sample collection of its vocabulary, and holds the concept's address. `full_clean()` refuses a `type` outside the collection, but a plain `objects.create()` does not call it. The types, by identifier, in the order their collections list them:
 
 | Rows | Types | `value` |
 |---|---|---|
-| `SampleDescription` | `SampleCollection`, `SamplePreparation`, `SampleStorage`, `SampleDestruction`, `Other` | Text of at most 20,000 characters. |
-| `SampleDate` | `Created`, `Destroyed`, `Collected`, `Returned`, `Prepared`, `Archival`, `Restored` | A partial date. See [Model fields](model-fields.md). |
-| `SampleIdentifier` | `IGSN`, `DOI` | Text of at most 255 characters, unique across every kind of record. |
+| `SampleDescription` | `sample-collection`, `sample-preparation`, `sample-storage`, `sample-destruction`, `other` | Text of at most 20,000 characters. |
+| `SampleDate` | `created`, `destroyed`, `collected`, `returned`, `prepared`, `archival`, `restored` | A partial date. See [Model fields](model-fields.md). |
+| `SampleIdentifier` | `igsn`, `doi` | Text of at most 255 characters, unique across every kind of record. |
 
-When an identifier is validated, a common display prefix is removed first: `https://doi.org/`, `http://doi.org/`, `https://igsn.org/`, `hdl.handle.net/`, `doi:` or `igsn:`. An `IGSN` must then be a DataCite DOI (`10.` followed by four to nine digits, a slash and a suffix) or a legacy handle beginning `10273/`. The match ignores case.
+When an identifier is validated, a common display prefix is removed first: `https://doi.org/`, `http://doi.org/`, `https://igsn.org/`, `hdl.handle.net/`, `doi:` or `igsn:`. An IGSN must then be a DataCite DOI (`10.` followed by four to nine digits, a slash and a suffix) or a legacy handle beginning `10273/`. The match ignores case.
 
-The roles a person or organization can hold on a sample are `Collection`, `Preparation`, `Storage`, `Destruction` and `Restoration`.
+The roles a person or organization can hold on a sample, by identifier, are `collection`, `preparation`, `storage`, `destruction` and `restoration`.
 
 ## SampleRelation
 

@@ -1,12 +1,11 @@
 """Table classes and column helpers for sample and measurement listings."""
 
 import django_tables2 as tables
+from controlled_vocabularies.fields import MultiConceptField
 from django.core.exceptions import FieldDoesNotExist
-from django.utils.html import format_html
-from django.utils.safestring import mark_safe
+from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext_lazy as _
 from easy_icons import icon
-from research_vocabs.fields import ConceptManyToManyField
 
 from fairdm.utils.choices import Visibility
 
@@ -23,7 +22,11 @@ def render_concept_many_to_many(value):
     if not value:
         return ""
 
-    return mark_safe(", ".join(f"<a href='{c.uri}'>{c.name}</a>" for c in value.all()))
+    return format_html_join(
+        ", ",
+        '<a href="{}">{}</a>',
+        ((concept.uri, concept.display_label()) for concept in value.all()),
+    )
 
 
 field_map = {
@@ -127,7 +130,7 @@ class BaseTable(tables.Table):
                 field = self._meta.model._meta.get_field(c.accessor)
             except FieldDoesNotExist:
                 continue
-            if isinstance(field, ConceptManyToManyField):
+            if isinstance(field, MultiConceptField):
                 c.render = render_concept_many_to_many
 
 

@@ -1,6 +1,7 @@
 """Filter sets for samples, including the reusable ``SampleFilterMixin``."""
 
 import django_filters
+from controlled_vocabularies.models import Record
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from mvp.filters import SearchFilter
@@ -9,7 +10,7 @@ from fairdm.contrib.autocomplete.fields import DatasetMultipleChoiceField
 from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
 from fairdm.core.measurement.filters import PartialDateFilter
 from fairdm.core.sample.models import Sample
-from fairdm.core.vocabularies import FairDMSampleStatus
+from fairdm.core.vocabularies import SAMPLE_STATUS
 
 
 class SampleFilterMixin(django_filters.FilterSet):
@@ -84,12 +85,14 @@ class SampleFilter(SampleFilterMixin, django_filters.FilterSet):
         date_before: Filter to dates on or before a date.
     """
 
-    # `status` is a `ConceptField` storing the concept's name as a string, so a
-    # `ModelChoiceFilter` never matches.
-    status = django_filters.ChoiceFilter(
+    # Chosen by the concept's slug, so the address of a filtered list stays readable.
+    status = django_filters.ModelChoiceFilter(
         field_name="status",
         label=_("Status"),
-        choices=FairDMSampleStatus().choices,
+        queryset=Record.objects.filter(
+            scheme__uri=SAMPLE_STATUS, type=Record.Type.CONCEPT
+        ).order_by("pref_label"),
+        to_field_name="slug",
         empty_label=_("Any status"),
     )
 

@@ -163,7 +163,9 @@ class TestContributorIdentifierFactory:
 
         identifier = ContributorIdentifierFactory(related=person)
 
-        assert identifier.type in ContributorIdentifier.VOCABULARY.values
+        assert identifier.type_id in [
+            concept.uri for concept in ContributorIdentifier.get_type_concepts()
+        ]
 
     def test_identifier_values_are_unique_across_instances(self):
         first = ContributorIdentifierFactory(related=PersonFactory())
