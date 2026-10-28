@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.3.1] - 2026-10-28
+
 ### Fixed
 
 - **A portal whose database predates the portal roles can run the upgrade commands before
