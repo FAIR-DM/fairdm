@@ -1020,7 +1020,7 @@ wheels = [
 
 [[package]]
 name = "django-controlled-vocabularies"
-version = "0.3.0"
+version = "0.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "defusedxml" },
@@ -1028,9 +1028,9 @@ dependencies = [
     { name = "django-tomselect" },
     { name = "rdflib" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fb/3c/d764448bf583b8cba078f3185b683dcc869cbb3985961316f18ded0d89f0/django_controlled_vocabularies-0.3.0.tar.gz", hash = "sha256:a08517c84cf6a79dc1e84b96df606688b71933a1af8a9221fb2e1919842e1df6", size = 68885, upload-time = "2026-10-28T08:44:20.564Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/74/87/81580122731f944d54f4a8356020581d660bce30cb0c978cda30c155ada7/django_controlled_vocabularies-0.3.1.tar.gz", hash = "sha256:a1eb22cb94eb6d3924f69eca1e69f7fc5fee6916fde406bae600aa2155987eb7", size = 68921, upload-time = "2026-10-28T14:51:36.753Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/39/b1/c626c88a4a18087dd29114ae244aa8ddc82dcd160dc6c2c166dcfa00acd5/django_controlled_vocabularies-0.3.0-py3-none-any.whl", hash = "sha256:6cce1217d5ed3138e1caba3f122abedb36e2fb7ee5220d42a045be6b8e4c430e", size = 90785, upload-time = "2026-10-28T08:44:19.152Z" },
+    { url = "https://files.pythonhosted.org/packages/ac/f5/b6872676569373213765f518ebc01ae60ae70a92a79e2364b2a602d8c7e1/django_controlled_vocabularies-0.3.1-py3-none-any.whl", hash = "sha256:2217b65f7edeed25c980e0b6267369e0a08b3e4d84e3eec35c244b32e8be9cbd", size = 90850, upload-time = "2026-10-28T14:51:35.429Z" },
 ]
 
 [[package]]
@@ -2019,7 +2019,7 @@ requires-dist = [
     { name = "django-cleanup", specifier = ">=8.1.0,<10.0.0" },
     { name = "django-contact-form", specifier = ">=2.1,<6.0" },
     { name = "django-content-license", specifier = ">=0.3.0,<0.4.0" },
-    { name = "django-controlled-vocabularies", specifier = ">=0.3.0,<0.4.0" },
+    { name = "django-controlled-vocabularies", specifier = ">=0.3.1,<0.4.0" },
     { name = "django-cors-headers", specifier = ">=4.7.0,<5.0.0" },
     { name = "django-countries", specifier = ">=7.6.1,<10.0.0" },
     { name = "django-crispy-forms", specifier = ">=2.3,<3.0" },

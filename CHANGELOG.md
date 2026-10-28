@@ -64,7 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   sample statuses are the concepts of the vocabularies in
   [FAIR-DM/fairdm-vocabularies](https://github.com/FAIR-DM/fairdm-vocabularies), each at an
   address under `https://w3id.org/fairdm/vocabularies/`, and are held through
-  [django-controlled-vocabularies](https://pypi.org/project/django-controlled-vocabularies/) 0.3
+  [django-controlled-vocabularies](https://pypi.org/project/django-controlled-vocabularies/) 0.3.1
   from PyPI. `Sample.status`, the `type` of every description, date and identifier row, and
   `ContributorIdentifier.type` are `ConceptField`s limited to their record type's collection, and
   `Contribution.roles` and the `keywords` of projects, datasets, samples, measurements and the

@@ -34,7 +34,7 @@ FairDM now stores every controlled term as the address of a concept in a publish
    }
    ```
 
-3. Install the new FairDM release. It depends on django-controlled-vocabularies 0.3 from PyPI and no longer on django-research-vocabs. If the portal's own code imports `research_vocabs`, port it to [django-controlled-vocabularies' concept fields](https://github.com/FAIR-DM/django-controlled-vocabularies/blob/main/docs/how-to/attach-a-concept-to-a-model.md) first. Remove `research_vocabs` from the portal's own `INSTALLED_APPS` if it lists it. FairDM adds `controlled_vocabularies` itself.
+3. Install the new FairDM release. It depends on django-controlled-vocabularies 0.3.1 or a later 0.3 release from PyPI and no longer on django-research-vocabs. If the portal's own code imports `research_vocabs`, port it to [django-controlled-vocabularies' concept fields](https://github.com/FAIR-DM/django-controlled-vocabularies/blob/main/docs/how-to/attach-a-concept-to-a-model.md) first. Remove `research_vocabs` from the portal's own `INSTALLED_APPS` if it lists it. FairDM adds `controlled_vocabularies` itself.
 
 4. Declare the vocabularies the portal loads. FairDM's fields name their vocabularies by address. Until those addresses are published, download the nine files in `vocabularies/` from [FAIR-DM/fairdm-vocabularies](https://github.com/FAIR-DM/fairdm-vocabularies), keep them with the portal, and declare each one:
 
