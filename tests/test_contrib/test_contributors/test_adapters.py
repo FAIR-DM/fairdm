@@ -9,6 +9,7 @@ from waffle.testutils import override_switch
 
 from fairdm.contrib.contributors.adapters import AccountAdapter, SocialAccountAdapter
 from fairdm.contrib.contributors.models import ContributorIdentifier, Person
+from fairdm.core.vocabularies import IDENTIFIER_TYPES
 
 ORCID_UID = "0000-0002-9999-0001"
 
@@ -41,7 +42,9 @@ def _make_sociallogin(uid: str, request=None) -> MagicMock:
 @pytest.fixture
 def unclaimed_person_with_orcid(db):
     person = Person.objects.create_unclaimed(first_name="Jim", last_name="Unclaimed")
-    ContributorIdentifier.objects.create(related=person, value=ORCID_UID, type="ORCID")
+    ContributorIdentifier.objects.create(
+        related=person, value=ORCID_UID, type_id=f"{IDENTIFIER_TYPES}/orcid"
+    )
     return person
 
 
@@ -52,7 +55,9 @@ def claimed_person_with_orcid(db):
     person = PersonFactory(
         email="claimed_orcid@example.com", is_active=True, is_claimed=True
     )
-    ContributorIdentifier.objects.create(related=person, value=ORCID_UID, type="ORCID")
+    ContributorIdentifier.objects.create(
+        related=person, value=ORCID_UID, type_id=f"{IDENTIFIER_TYPES}/orcid"
+    )
     return person
 
 
@@ -74,14 +79,14 @@ class TestPreSocialLoginORCID:
     ):
         sl = _make_sociallogin(ORCID_UID, request_mock)
         count_before = Person.objects.filter(
-            identifiers__value=ORCID_UID, identifiers__type="ORCID"
+            identifiers__value=ORCID_UID, identifiers__type=f"{IDENTIFIER_TYPES}/orcid"
         ).count()
 
         with contextlib.suppress(ImmediateHttpResponse):
             adapter.pre_social_login(request_mock, sl)
 
         count_after = Person.objects.filter(
-            identifiers__value=ORCID_UID, identifiers__type="ORCID"
+            identifiers__value=ORCID_UID, identifiers__type=f"{IDENTIFIER_TYPES}/orcid"
         ).count()
         assert count_after == count_before
 
@@ -115,7 +120,9 @@ def deactivated_unclaimed_person_with_orcid(db):
     person = Person.objects.create_unclaimed(first_name="Dana", last_name="Deactivated")
     person.is_active = False
     person.save(update_fields=["is_active"])
-    ContributorIdentifier.objects.create(related=person, value=ORCID_UID, type="ORCID")
+    ContributorIdentifier.objects.create(
+        related=person, value=ORCID_UID, type_id=f"{IDENTIFIER_TYPES}/orcid"
+    )
     return person
 
 
@@ -189,9 +196,11 @@ class TestSaveUserORCID:
 
         assert user.pk is not None
         assert user != claimed_person_with_orcid
-        assert not user.identifiers.filter(type="ORCID").exists()
+        assert not user.identifiers.filter(type_id=f"{IDENTIFIER_TYPES}/orcid").exists()
         assert (
-            ContributorIdentifier.objects.filter(value=ORCID_UID, type="ORCID").count()
+            ContributorIdentifier.objects.filter(
+                value=ORCID_UID, type_id=f"{IDENTIFIER_TYPES}/orcid"
+            ).count()
             == 1
         )
 

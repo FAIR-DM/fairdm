@@ -20,7 +20,7 @@ def get_formset(self, request, obj=None, **kwargs):
     inline = kwargs.get("inline")
     formset = super().get_formset(request, obj, **kwargs)
     if inline == MyInline:
-        formset.max_num = len(MyModel.VOCABULARY.choices)
+        formset.max_num = len(MyModel.get_type_concepts())
     return formset
 ```
 

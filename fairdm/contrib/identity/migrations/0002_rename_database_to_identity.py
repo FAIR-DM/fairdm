@@ -1,3 +1,4 @@
+import controlled_vocabularies.fields
 import django.db.models.deletion
 import easy_thumbnails.fields
 import fairdm.contrib.identity.models
@@ -9,7 +10,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("identity", "0001_initial"),
-        ("research_vocabs", "0002_alter_concept_unique_together"),
+        ("controlled_vocabularies", "0001_initial"),
     ]
 
     operations = [
@@ -153,11 +154,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="identity",
             name="keywords",
-            field=models.ManyToManyField(
-                blank=True,
-                help_text="A set of keywords from controlled vocabularies describing the portal.",
-                to="research_vocabs.concept",
-                verbose_name="Keywords",
-            ),
+            field=controlled_vocabularies.fields.MultiConceptField(blank=True, help_text='A set of keywords from controlled vocabularies describing the portal.', verbose_name='Keywords', vocabulary=()),
         ),
     ]

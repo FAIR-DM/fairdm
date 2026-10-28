@@ -10,6 +10,8 @@ from django.db.models import Exists, OuterRef
 from django.utils.translation import gettext_lazy as _
 from literature.models import Item
 
+from fairdm.core.vocabularies import ABSTRACT, DOI
+
 from ..formsets import date_ordering_formset
 from .models import Dataset, DatasetDate, DatasetDescription, DatasetIdentifier
 
@@ -32,7 +34,7 @@ class DescriptionInline(admin.StackedInline):
     def get_formset(self, request, obj=None, **kwargs):
         """Cap the formset at the number of description types."""
         formset = super().get_formset(request, obj, **kwargs)
-        vocabulary_size = len(Dataset.DESCRIPTION_TYPES.choices)
+        vocabulary_size = len(self.model.get_type_concepts())
         formset.max_num = vocabulary_size
         return formset
 
@@ -61,7 +63,7 @@ class DateInline(admin.StackedInline):
     def get_formset(self, request, obj=None, **kwargs):
         """Cap the formset at the number of date types."""
         formset = super().get_formset(request, obj, **kwargs)
-        vocabulary_size = len(Dataset.DATE_TYPES.choices)
+        vocabulary_size = len(self.model.get_type_concepts())
         formset.max_num = vocabulary_size
         return formset
 
@@ -76,7 +78,7 @@ class IdentifierInline(admin.TabularInline):
     def get_formset(self, request, obj=None, **kwargs):
         """Cap the formset at the number of identifier types."""
         formset = super().get_formset(request, obj, **kwargs)
-        formset.max_num = len(Dataset.IDENTIFIER_TYPES)
+        formset.max_num = len(self.model.get_type_concepts())
         return formset
 
 
@@ -152,12 +154,10 @@ class DatasetAdmin(admin.ModelAdmin):
         # The annotations avoid one `.exists()` query per row for `has_abstract` and `has_doi`.
         return Dataset.all_objects.all().annotate(
             _has_abstract=Exists(
-                DatasetDescription.objects.filter(
-                    related=OuterRef("pk"), type="Abstract"
-                )
+                DatasetDescription.objects.filter(related=OuterRef("pk"), type=ABSTRACT)
             ),
             _has_doi=Exists(
-                DatasetIdentifier.objects.filter(related=OuterRef("pk"), type="DOI")
+                DatasetIdentifier.objects.filter(related=OuterRef("pk"), type=DOI)
             ),
         )
 
@@ -174,7 +174,7 @@ class DatasetAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         """Save the dataset, warning when the licence of a dataset with a DOI changes."""
         if change and "license" in form.changed_data:
-            has_doi = DatasetIdentifier.objects.filter(related=obj, type="DOI").exists()
+            has_doi = DatasetIdentifier.objects.filter(related=obj, type=DOI).exists()
 
             if has_doi:
                 messages.warning(

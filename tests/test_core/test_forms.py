@@ -6,6 +6,7 @@ from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.forms import KeywordForm
 from fairdm.core.project.models import Project
+from fairdm.core.vocabularies import CONTRIBUTOR_ROLES
 from fairdm.factories import DatasetFactory, ProjectFactory
 
 
@@ -23,7 +24,7 @@ class TestKeywordForm:
         assert KeywordForm._meta.model is None
 
     def test_a_configured_vocabulary_adds_no_field(self, settings):
-        settings.FAIRDM_SAMPLE = {"keywords": ["fairdm.core.vocabularies.FairDMRoles"]}
+        settings.FAIRDM_SAMPLE = {"keywords": [CONTRIBUTOR_ROLES]}
 
         form = KeywordForm(instance=RockSampleFactory())
 

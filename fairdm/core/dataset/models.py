@@ -1,5 +1,6 @@
 """Models for datasets and their related descriptions, dates, identifiers and literature links."""
 
+from controlled_vocabularies.fields import ConceptField
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
@@ -19,10 +20,11 @@ from ..dates import precedes
 from ..managers import RecordLevelMixin
 from ..utils import CORE_PERMISSIONS
 from ..vocabularies import (
-    FairDMDates,
-    FairDMDescriptions,
-    FairDMIdentifiers,
-    FairDMRoles,
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    IDENTIFIER_TYPES,
+    PROJECT_MEMBER,
 )
 
 
@@ -233,13 +235,12 @@ class Dataset(BaseModel):
     ``CONTRIBUTOR_ROLES``.
     """
 
-    CONTRIBUTOR_ROLES = FairDMRoles.from_collection("Dataset")
-    DATE_TYPES = FairDMDates.from_collection("Dataset")
-    DESCRIPTION_TYPES = FairDMDescriptions.from_collection("Dataset")
-    # The "Dataset" collection, as `DatasetIdentifier.VOCABULARY` uses, not the unscoped vocabulary.
-    IDENTIFIER_TYPES = FairDMIdentifiers.from_collection("Dataset").choices
+    CONTRIBUTOR_ROLES = f"{CONTRIBUTOR_ROLES}/dataset"
+    DATE_TYPES = f"{DATE_TYPES}/dataset"
+    DESCRIPTION_TYPES = f"{DESCRIPTION_TYPES}/dataset"
+    IDENTIFIER_TYPES = f"{IDENTIFIER_TYPES}/dataset"
     VISIBILITY_CHOICES = Visibility
-    DEFAULT_ROLES = ["ProjectMember"]
+    DEFAULT_ROLES = [PROJECT_MEMBER]
 
     # `objects` is declared first, so Django takes it as `_default_manager`.
     objects = DatasetManager()  # type: ignore[misc]
@@ -415,7 +416,13 @@ class DatasetDescription(AbstractDescription):
     Enforced by ``clean()`` and by a database constraint.
     """
 
-    VOCABULARY = FairDMDescriptions.from_collection("Dataset")
+    type = ConceptField(
+        vocabulary=DESCRIPTION_TYPES,
+        collection=f"{DESCRIPTION_TYPES}/dataset",
+        related_name="+",
+        verbose_name=_("type"),
+        help_text=_("What the description covers, from the dataset description types."),
+    )
     related = models.ForeignKey("Dataset", on_delete=models.CASCADE)
 
     class Meta(AbstractDescription.Meta):
@@ -426,9 +433,11 @@ class DatasetDescription(AbstractDescription):
     def clean(self):
         """Refuse a second description of a type the dataset already carries."""
         super().clean()
-        if self.related_id and self.type:
+        if self.related_id and self.type_id:
             existing = (
-                DatasetDescription.objects.filter(related=self.related, type=self.type)
+                DatasetDescription.objects.filter(
+                    related=self.related, type=self.type_id
+                )
                 .exclude(pk=self.pk)
                 .exists()
             )
@@ -451,11 +460,17 @@ class DatasetDate(AbstractDate):
     the collection start.
     """
 
-    VOCABULARY = FairDMDates.from_collection("Dataset")
+    type = ConceptField(
+        vocabulary=DATE_TYPES,
+        collection=f"{DATE_TYPES}/dataset",
+        related_name="+",
+        verbose_name=_("type"),
+        help_text=_("What the date marks, from the dataset date types."),
+    )
     related = models.ForeignKey("Dataset", on_delete=models.CASCADE)
 
-    START_TYPE = "CollectionStart"
-    END_TYPE = "CollectionEnd"
+    START_TYPE = f"{DATE_TYPES}/collection-start"
+    END_TYPE = f"{DATE_TYPES}/collection-end"
 
     class Meta(AbstractDate.Meta):
         indexes = [
@@ -470,9 +485,9 @@ class DatasetDate(AbstractDate):
         if not self.related_id or not self.value:
             return
 
-        if self.type == self.START_TYPE:
+        if self.type_id == self.START_TYPE:
             start_value, end_value = self.value, self._sibling_value(self.END_TYPE)
-        elif self.type == self.END_TYPE:
+        elif self.type_id == self.END_TYPE:
             start_value, end_value = self._sibling_value(self.START_TYPE), self.value
         else:
             return
@@ -507,5 +522,11 @@ class DatasetIdentifier(AbstractIdentifier):
     cross-record check lives in ``AbstractIdentifier.clean()``.
     """
 
-    VOCABULARY = FairDMIdentifiers.from_collection("Dataset")
+    type = ConceptField(
+        vocabulary=IDENTIFIER_TYPES,
+        collection=f"{IDENTIFIER_TYPES}/dataset",
+        related_name="+",
+        verbose_name=_("type"),
+        help_text=_("The kind of identifier, from the dataset identifier types."),
+    )
     related = models.ForeignKey("Dataset", on_delete=models.CASCADE)

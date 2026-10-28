@@ -1,8 +1,8 @@
 """Tests for the person creation form and the contribution form."""
 
 import pytest
+from controlled_vocabularies.models import Record
 from mvp_forms.widgets import TomSelectMultiple
-from research_vocabs.models import Concept
 
 from fairdm.contrib.autocomplete.fields import OrganizationChoiceField
 from fairdm.contrib.contributors.forms.contribution import (
@@ -10,6 +10,7 @@ from fairdm.contrib.contributors.forms.contribution import (
     UpdateContributionForm,
 )
 from fairdm.contrib.contributors.models import Contribution, Person
+from fairdm.core.vocabularies import collection_members
 from fairdm.factories import (
     ContributionFactory,
     OrganizationFactory,
@@ -75,10 +76,12 @@ class TestUpdateContributionForm:
     def test_the_chosen_roles_are_saved(self):
         project = ProjectFactory()
         contribution = ContributionFactory(content_object=project)
-        allowed = Concept.objects.filter(name__in=project.CONTRIBUTOR_ROLES.values)
+        allowed = Record.objects.filter(
+            uri__in=[role.uri for role in collection_members(project.CONTRIBUTOR_ROLES)]
+        )
         role = allowed.first()
         form = UpdateContributionForm(
-            {"roles": [role.pk]}, instance=contribution, base_object=project
+            {"roles": [role.uri]}, instance=contribution, base_object=project
         )
 
         assert form.is_valid(), form.errors

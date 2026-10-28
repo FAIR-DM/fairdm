@@ -35,6 +35,6 @@ class Command(BaseCommand):
                 "is not a development one. The data signs in through accounts whose password is "
                 "written down."
             )
-        call_command("preload", verbosity=0)
+        call_command("sync_vocabularies", verbosity=0)
         RecordSearchSeed(stdout=self.stdout).handle(large=options["large"])
         self.stdout.write(self.style.SUCCESS("Seeded the record search records."))

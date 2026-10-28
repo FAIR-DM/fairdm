@@ -30,11 +30,8 @@ def _redis_cache() -> dict:
 
 CACHES = {
     "default": _redis_cache(),
-    "vocabularies": _redis_cache(),
 }
 
 COLLECTFASTA_CACHE = "collectfasta"
 
 COLLECTFASTA_THREADS = 8
-
-VOCABULARY_DEFAULT_CACHE = "default"

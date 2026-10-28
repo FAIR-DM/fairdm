@@ -5,6 +5,8 @@ import time
 from django.core.exceptions import ValidationError
 from import_export import fields, resources
 
+from fairdm.core.vocabularies import ORCID
+
 from .models import Affiliation, ContributorIdentifier, Organization, Person
 from .utils import update_or_create_from_orcid, update_or_create_from_ror
 
@@ -76,7 +78,7 @@ class PersonResource(resources.ModelResource):
         """
         if orcid := row.get("orcid"):
             existing = ContributorIdentifier.objects.filter(
-                value=orcid, type="ORCID"
+                value=orcid, type_id=ORCID
             ).first()
             if (
                 existing

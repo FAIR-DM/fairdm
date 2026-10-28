@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
         ('licensing', '0002_alter_license_options_remove_license_url_and_more'),
         ('literature', '0001_initial'),
         ('project', '0010_alter_projectdescription_value'),
-        ('research_vocabs', '0002_alter_concept_unique_together'),
+        ("controlled_vocabularies", "0001_initial"),
         ('taggit', '0006_rename_taggeditem_content_type_object_id_taggit_tagg_content_8fc721_idx'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]

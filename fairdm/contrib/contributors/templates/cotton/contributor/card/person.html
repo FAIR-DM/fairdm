@@ -18,7 +18,7 @@
           {% endif %}
           {% if roles %}
             <div class="flex flex-wrap justify-center gap-1">
-              {% for role in roles %}<c-badge text="{{ role.label }}" size="sm" class="badge-soft" />{% endfor %}
+              {% for role in roles %}<c-badge text="{{ role.display_label }}" size="sm" class="badge-soft" />{% endfor %}
             </div>
           {% endif %}
           {% if portal_roles %}

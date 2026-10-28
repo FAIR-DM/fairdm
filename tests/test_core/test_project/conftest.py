@@ -3,6 +3,7 @@
 import pytest
 
 from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.core.vocabularies import CONTRIBUTOR_ROLES
 from fairdm.factories import ContributionFactory, ProjectFactory, UserFactory
 from fairdm.utils.choices import Visibility
 
@@ -73,10 +74,16 @@ def overview_showcase(db):
         PersonFactory(name="Leader Two", is_active=True),
     ]
     for leader in leaders:
-        project.add_contributor(leader, with_roles=["ProjectLeader", "Creator"])
+        project.add_contributor(
+            leader,
+            with_roles=[
+                f"{CONTRIBUTOR_ROLES}/project-leader",
+                f"{CONTRIBUTOR_ROLES}/creator",
+            ],
+        )
     others = [PersonFactory(name=f"Other {n:02d}", is_active=True) for n in range(20)]
     for person in others:
-        project.add_contributor(person, with_roles=["Other"])
+        project.add_contributor(person, with_roles=[f"{CONTRIBUTOR_ROLES}/other"])
 
     cc0 = License.objects.get(name="CC0 1.0")
     published = DatasetFactory(

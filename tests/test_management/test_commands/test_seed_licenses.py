@@ -82,7 +82,7 @@ class TestAPortalThatDeclinesTheStep:
         )
 
         # The framework steps say nothing about licences. What is worth running is every other step that
-        # loads reference data, `preload` above all.
+        # loads reference data, `sync_vocabularies` above all.
         framework_steps = {"migrate", "collectstatic"}
         remaining = [
             step

@@ -65,9 +65,7 @@ class TestFalseyHeadersRenderEmpty:
 
 @pytest.mark.django_db
 class TestSampleListingLeadsWithIconColumns:
-    def test_the_first_visible_column_is_the_dataset(
-        self, client, published_dataset
-    ):
+    def test_the_first_visible_column_is_the_dataset(self, client, published_dataset):
         RockSampleFactory(dataset=published_dataset)
         slug = registry.get_for_model(RockSample).get_slug()
 
@@ -288,9 +286,7 @@ class TestLocationColumns:
 
         assert self.cells(response, measurement) == (52.5, 13.4)
 
-    def test_a_measurement_with_none_shows_its_samples_location(
-        self, client, released
-    ):
+    def test_a_measurement_with_none_shows_its_samples_location(self, client, released):
         sample = RockSampleFactory(
             dataset=released, location=Point(12.5, 41.9, srid=4326)
         )

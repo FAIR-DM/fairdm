@@ -11,7 +11,7 @@ def by_role(contributions, roles=None):
 
     Args:
         contributions: The contributions queryset.
-        roles: A comma-separated string or a list of role names. Empty returns all.
+        roles: A comma-separated string or a list of role addresses. Empty returns all.
 
     Returns:
         The filtered contributions.
@@ -20,7 +20,7 @@ def by_role(contributions, roles=None):
         return contributions
     if isinstance(roles, str):
         roles = roles.split(",")
-    return contributions.filter(roles__name__in=roles)
+    return contributions.filter(roles__uri__in=roles)
 
 
 @register.filter
@@ -29,7 +29,7 @@ def has_role(contribution, roles=None):
 
     Args:
         contribution: The contribution.
-        roles: A comma-separated string or a list of role names.
+        roles: A comma-separated string or a list of role addresses.
 
     Returns:
         True when a role matches. With no roles the contribution itself is returned.
@@ -38,7 +38,7 @@ def has_role(contribution, roles=None):
         return contribution
     if isinstance(roles, str):
         roles = roles.split(",")
-    return contribution.roles.filter(name__in=roles).exists()
+    return contribution.roles.filter(uri__in=roles).exists()
 
 
 @register.filter

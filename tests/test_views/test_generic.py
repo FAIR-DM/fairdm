@@ -290,7 +290,9 @@ class TestFairDMHomeViewRecordTypes:
 
         types = view.get_record_types(Sample, self.models)
 
-        rock = next(kind for kind in types["shown"] if kind["url"] == reverse("rocksample-list"))
+        rock = next(
+            kind for kind in types["shown"] if kind["url"] == reverse("rocksample-list")
+        )
         assert rock["count"] == 2
 
     def test_records_a_visitor_may_not_open_are_not_counted(self):

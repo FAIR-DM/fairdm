@@ -9,6 +9,7 @@ from fairdm.contrib.contributors.forms.organization import (
     OrganizationProfileForm,
 )
 from fairdm.contrib.contributors.services.registries import RegistryUnavailable, Ror
+from fairdm.core.vocabularies import IDENTIFIER_TYPES
 from fairdm.factories import OrganizationFactory
 from fairdm.utils.location.forms import LocationField
 
@@ -62,7 +63,7 @@ class TestOrganizationCreateForm:
         organization = form.save()
 
         assert organization.identifiers.filter(
-            type="ROR", value__endswith="04z8jg394"
+            type_id=f"{IDENTIFIER_TYPES}/ror", value__endswith="04z8jg394"
         ).exists()
 
     def test_the_form_is_saved_without_a_ror_id_while_ror_is_down(self, monkeypatch):

@@ -19,6 +19,15 @@ from fairdm.core.project.models import (
     ProjectDescription,
     ProjectIdentifier,
 )
+from fairdm.core.vocabularies import (
+    CONTRIBUTOR_ROLES,
+    CREATOR,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    IDENTIFIER_TYPES,
+    collection_members,
+    notation,
+)
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
@@ -230,18 +239,15 @@ class TestProjectPreDeleteSignal:
 @pytest.mark.django_db
 class TestProjectDescriptionModel:
     def test_description_type_choices_are_scoped_to_project(self):
-        # Django does not validate choices on save, so this asserts the choices set on
-        # the field, against literal member names rather than the vocabulary they were
-        # copied from.
-        codes = {code for code, _label in ProjectDescription.type.field.choices}
+        codes = {concept.uri for concept in ProjectDescription.get_type_concepts()}
         assert codes == {
-            "Abstract",
-            "Introduction",
-            "Background",
-            "Objectives",
-            "ExpectedOutput",
-            "Conclusions",
-            "Other",
+            f"{DESCRIPTION_TYPES}/abstract",
+            f"{DESCRIPTION_TYPES}/introduction",
+            f"{DESCRIPTION_TYPES}/background",
+            f"{DESCRIPTION_TYPES}/objectives",
+            f"{DESCRIPTION_TYPES}/expected-output",
+            f"{DESCRIPTION_TYPES}/conclusions",
+            f"{DESCRIPTION_TYPES}/other",
         }
         assert "Methods" not in codes  # a dataset-only description type
 
@@ -257,11 +263,15 @@ class TestProjectDescriptionModel:
         )
 
         ProjectDescription.objects.create(
-            related=project, type="Abstract", value="First abstract"
+            related=project,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="First abstract",
         )
 
         desc2 = ProjectDescription(
-            related=project, type="Abstract", value="Second abstract"
+            related=project,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="Second abstract",
         )
 
         with pytest.raises(ValidationError) as exc_info:
@@ -273,29 +283,36 @@ class TestProjectDescriptionModel:
     def test_duplicate_description_type_refused_at_database(self):
         project = ProjectFactory()
         ProjectDescription.objects.create(
-            related=project, type="Abstract", value="First abstract"
+            related=project,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="First abstract",
         )
 
         with pytest.raises(IntegrityError):
             ProjectDescription.objects.create(
-                related=project, type="Abstract", value="Second abstract"
+                related=project,
+                type_id=f"{DESCRIPTION_TYPES}/abstract",
+                value="Second abstract",
             )
 
 
 @pytest.mark.django_db
 class TestProjectDateModel:
     def test_date_type_choices_are_scoped_to_project(self):
-        # Asserted against literal member names, as for the description type.
-        codes = {code for code, _label in ProjectDate.type.field.choices}
-        assert codes == {"Start", "End"}
+        codes = {concept.uri for concept in ProjectDate.get_type_concepts()}
+        assert codes == {f"{DATE_TYPES}/start", f"{DATE_TYPES}/end"}
 
     def test_second_start_date_on_project_is_refused(self):
         from fairdm.factories.core import ProjectDateFactory
 
         project = ProjectFactory()
-        ProjectDateFactory(related=project, type="Start", value="2020-01-01")
+        ProjectDateFactory(
+            related=project, type_id=f"{DATE_TYPES}/start", value="2020-01-01"
+        )
 
-        duplicate = ProjectDate(related=project, type="Start", value="2021-01-01")
+        duplicate = ProjectDate(
+            related=project, type_id=f"{DATE_TYPES}/start", value="2021-01-01"
+        )
         with pytest.raises(ValidationError):
             duplicate.full_clean()
 
@@ -303,16 +320,24 @@ class TestProjectDateModel:
         from fairdm.factories.core import ProjectDateFactory
 
         project = ProjectFactory()
-        ProjectDateFactory(related=project, type="Start", value="2020-01-01")
+        ProjectDateFactory(
+            related=project, type_id=f"{DATE_TYPES}/start", value="2020-01-01"
+        )
 
         with pytest.raises(IntegrityError):
-            ProjectDateFactory(related=project, type="Start", value="2021-01-01")
+            ProjectDateFactory(
+                related=project, type_id=f"{DATE_TYPES}/start", value="2021-01-01"
+            )
 
     def test_end_date_before_start_date_raises_error(self):
         project = ProjectFactory()
-        ProjectDate.objects.create(related=project, type="Start", value="2020-06-01")
+        ProjectDate.objects.create(
+            related=project, type_id=f"{DATE_TYPES}/start", value="2020-06-01"
+        )
 
-        end = ProjectDate(related=project, type="End", value="2019-05-01")
+        end = ProjectDate(
+            related=project, type_id=f"{DATE_TYPES}/end", value="2019-05-01"
+        )
         with pytest.raises(ValidationError) as exc_info:
             end.full_clean()
 
@@ -323,9 +348,11 @@ class TestProjectDateModel:
     def test_changing_start_to_after_end_is_refused(self):
         project = ProjectFactory()
         start = ProjectDate.objects.create(
-            related=project, type="Start", value="2020-01-01"
+            related=project, type_id=f"{DATE_TYPES}/start", value="2020-01-01"
         )
-        ProjectDate.objects.create(related=project, type="End", value="2020-12-31")
+        ProjectDate.objects.create(
+            related=project, type_id=f"{DATE_TYPES}/end", value="2020-12-31"
+        )
 
         start.value = "2021-01-01"
         with pytest.raises(ValidationError):
@@ -333,22 +360,28 @@ class TestProjectDateModel:
 
     def test_end_date_with_no_start_date_is_accepted(self):
         project = ProjectFactory()
-        end = ProjectDate(related=project, type="End", value="2024-06-15")
+        end = ProjectDate(
+            related=project, type_id=f"{DATE_TYPES}/end", value="2024-06-15"
+        )
 
         end.full_clean()
 
     def test_year_only_end_in_same_year_as_month_precision_start_is_accepted(self):
         project = ProjectFactory()
-        ProjectDate.objects.create(related=project, type="Start", value="2020-06")
+        ProjectDate.objects.create(
+            related=project, type_id=f"{DATE_TYPES}/start", value="2020-06"
+        )
 
-        end = ProjectDate(related=project, type="End", value="2020")
+        end = ProjectDate(related=project, type_id=f"{DATE_TYPES}/end", value="2020")
         end.full_clean()
 
     def test_month_precision_end_before_month_precision_start_is_refused(self):
         project = ProjectFactory()
-        ProjectDate.objects.create(related=project, type="Start", value="2020-06")
+        ProjectDate.objects.create(
+            related=project, type_id=f"{DATE_TYPES}/start", value="2020-06"
+        )
 
-        end = ProjectDate(related=project, type="End", value="2020-03")
+        end = ProjectDate(related=project, type_id=f"{DATE_TYPES}/end", value="2020-03")
         with pytest.raises(ValidationError):
             end.full_clean()
 
@@ -522,33 +555,54 @@ class TestProjectModelIntegration:
         project = ProjectFactory()
         user = PersonFactory()
 
-        contribution = project.add_contributor(user, with_roles=["Creator"])
+        contribution = project.add_contributor(
+            user, with_roles=[f"{CONTRIBUTOR_ROLES}/creator"]
+        )
 
         assert contribution is not None
         assert contribution.contributor == user
         assert project.contributors.filter(pk=contribution.pk).exists()
 
         roles = list(contribution.roles.all())
-        assert [role.name for role in roles] == ["Creator"]
+        assert [role.uri for role in roles] == [f"{CONTRIBUTOR_ROLES}/creator"]
 
 
 @pytest.mark.django_db
 class TestProjectRoleDataciteMapping:
+    # The DataCite export writes a role's notation as its contributorType, so every project
+    # role but the creator, which DataCite lists apart, must carry one DataCite accepts.
+    DATACITE_CONTRIBUTOR_TYPES = {
+        "ContactPerson",
+        "DataCollector",
+        "DataCurator",
+        "DataManager",
+        "Distributor",
+        "Editor",
+        "HostingInstitution",
+        "Producer",
+        "ProjectLeader",
+        "ProjectManager",
+        "ProjectMember",
+        "RegistrationAgency",
+        "RegistrationAuthority",
+        "RelatedPerson",
+        "Researcher",
+        "ResearchGroup",
+        "RightsHolder",
+        "Sponsor",
+        "Supervisor",
+        "WorkPackageLeader",
+        "Other",
+    }
+
     def test_every_project_role_has_a_datacite_contributor_type(self):
-        from fairdm.core.choices import (
-            PROJECT_ROLE_DATACITE_CONTRIBUTOR_TYPES,
-            DataciteContributorRoles,
-        )
+        notations = {
+            notation(role)
+            for role in collection_members(Project.CONTRIBUTOR_ROLES)
+            if role.uri != CREATOR
+        }
 
-        project_role_names = set(Project.CONTRIBUTOR_ROLES.values)
-        unmapped = project_role_names - set(PROJECT_ROLE_DATACITE_CONTRIBUTOR_TYPES)
-        assert not unmapped, f"no DataCite mapping recorded for: {unmapped}"
-
-        datacite_names = set(DataciteContributorRoles().values)
-        missing = {
-            PROJECT_ROLE_DATACITE_CONTRIBUTOR_TYPES[name] for name in project_role_names
-        } - datacite_names
-        assert not missing, f"mapped to a non-existent DataCite role: {missing}"
+        assert notations <= self.DATACITE_CONTRIBUTOR_TYPES
 
 
 @pytest.mark.django_db
@@ -683,59 +737,67 @@ class TestProjectDescriptions:
 
         ProjectDescription.objects.create(
             related=project,
-            type="Abstract",
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
             value="This project studies the impact of X on Y using Z methodology.",
         )
 
         ProjectDescription.objects.create(
             related=project,
-            type="Objectives",
+            type_id=f"{DESCRIPTION_TYPES}/objectives",
             value="We aim to quantify the effect across ten sites using XRF.",
         )
 
         descriptions = project.descriptions.all()
         assert descriptions.count() == 2
 
-        types = [d.type for d in descriptions]
-        assert "Abstract" in types
-        assert "Objectives" in types
+        types = [d.type_id for d in descriptions]
+        assert f"{DESCRIPTION_TYPES}/abstract" in types
+        assert f"{DESCRIPTION_TYPES}/objectives" in types
 
-        abstract_desc = project.descriptions.get(type="Abstract")
+        abstract_desc = project.descriptions.get(
+            type_id=f"{DESCRIPTION_TYPES}/abstract"
+        )
         assert "impact of X on Y" in abstract_desc.value
 
-        objectives_desc = project.descriptions.get(type="Objectives")
+        objectives_desc = project.descriptions.get(
+            type_id=f"{DESCRIPTION_TYPES}/objectives"
+        )
         assert "XRF" in objectives_desc.value
 
 
 @pytest.mark.django_db
 class TestProjectKeywordsAndTags:
     def test_controlled_vocabulary_term_is_stored_as_a_reference(self):
-        from research_vocabs.models import Concept
+        from controlled_vocabularies.models import Record
 
         project = ProjectFactory()
-        # `Concept.preload()` runs once per session in tests/conftest.py.
-        term = Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+        # `sync_vocabularies` runs once per session in tests/conftest.py.
+        term = Record.objects.filter(
+            scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+        ).first()
         assert term is not None
 
         project.keywords.add(term)
 
         stored = project.keywords.get(pk=term.pk)
-        assert isinstance(stored, Concept)
-        assert stored.vocabulary.name == "fairdm-roles"
-        assert stored.name == term.name
+        assert isinstance(stored, Record)
+        assert stored.scheme.uri == CONTRIBUTOR_ROLES
+        assert stored.uri == term.uri
 
     def test_free_tags_are_distinguishable_from_controlled_keywords(self):
-        from research_vocabs.models import Concept
+        from controlled_vocabularies.models import Record
 
         project = ProjectFactory()
-        keyword = Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+        keyword = Record.objects.filter(
+            scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+        ).first()
         project.keywords.add(keyword)
         project.tags.add("erosion")
 
         assert "erosion" in project.tags.names()
         assert project.keywords.count() == 1
-        assert all(isinstance(k, Concept) for k in project.keywords.all())
-        assert not project.keywords.filter(name="erosion").exists()
+        assert all(isinstance(k, Record) for k in project.keywords.all())
+        assert not project.keywords.filter(pref_label="erosion").exists()
 
 
 @pytest.mark.django_db
@@ -754,25 +816,25 @@ class TestProjectDates:
 
         ProjectDate.objects.create(
             related=project,
-            type="Start",
+            type_id=f"{DATE_TYPES}/start",
             value="2024-01-01",  # PartialDateField takes a string
         )
 
         ProjectDate.objects.create(
             related=project,
-            type="End",
+            type_id=f"{DATE_TYPES}/end",
             value="2025-12-31",
         )
 
         dates = project.dates.all()
         assert dates.count() == 2
 
-        types = [d.type for d in dates]
-        assert "Start" in types
-        assert "End" in types
+        types = [d.type_id for d in dates]
+        assert f"{DATE_TYPES}/start" in types
+        assert f"{DATE_TYPES}/end" in types
 
-        start = project.dates.get(type="Start")
-        end = project.dates.get(type="End")
+        start = project.dates.get(type_id=f"{DATE_TYPES}/start")
+        end = project.dates.get(type_id=f"{DATE_TYPES}/end")
         assert start.value < end.value
 
 
@@ -791,68 +853,82 @@ class TestProjectIdentifiers:
         )
 
         ProjectIdentifier.objects.create(
-            related=project, type="ISNI", value="0000 0001 2283 4400"
+            related=project,
+            type_id=f"{IDENTIFIER_TYPES}/isni",
+            value="0000 0001 2283 4400",
         )
 
         ProjectIdentifier.objects.create(
             related=project,
-            type="CROSSREF_FUNDER_ID",
+            type_id=f"{IDENTIFIER_TYPES}/crossref-funder-id",
             value="https://doi.org/10.13039/100000001",
         )
 
         identifiers = project.identifiers.all()
         assert identifiers.count() == 2
 
-        types = [i.type for i in identifiers]
-        assert "ISNI" in types
-        assert "CROSSREF_FUNDER_ID" in types
+        types = [i.type_id for i in identifiers]
+        assert f"{IDENTIFIER_TYPES}/isni" in types
+        assert f"{IDENTIFIER_TYPES}/crossref-funder-id" in types
 
-        isni_identifier = project.identifiers.get(type="ISNI")
+        isni_identifier = project.identifiers.get(type_id=f"{IDENTIFIER_TYPES}/isni")
         assert isni_identifier.value == "0000 0001 2283 4400"
 
-        funder_identifier = project.identifiers.get(type="CROSSREF_FUNDER_ID")
+        funder_identifier = project.identifiers.get(
+            type_id=f"{IDENTIFIER_TYPES}/crossref-funder-id"
+        )
         assert funder_identifier.value == "https://doi.org/10.13039/100000001"
 
     def test_doi_attached_to_project_stored_under_doi_type(self):
         project = ProjectFactory()
 
-        ProjectIdentifierFactory(related=project, type="DOI", value="10.1234/example")
+        ProjectIdentifierFactory(
+            related=project, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.1234/example"
+        )
 
-        doi = project.identifiers.get(type="DOI")
+        doi = project.identifiers.get(type_id=f"{IDENTIFIER_TYPES}/doi")
         assert doi.value == "10.1234/example"
 
     def test_grant_number_stored_alongside_doi(self):
         project = ProjectFactory()
-        ProjectIdentifierFactory(related=project, type="DOI", value="10.1234/example")
-
         ProjectIdentifierFactory(
-            related=project, type="GRANT_NUMBER", value="GRANT-2024-001"
+            related=project, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.1234/example"
         )
 
-        types = set(project.identifiers.values_list("type", flat=True))
-        assert types == {"DOI", "GRANT_NUMBER"}
+        ProjectIdentifierFactory(
+            related=project,
+            type_id=f"{IDENTIFIER_TYPES}/grant-number",
+            value="GRANT-2024-001",
+        )
+
+        types = set(project.identifiers.values_list("type_id", flat=True))
+        assert types == {f"{IDENTIFIER_TYPES}/doi", f"{IDENTIFIER_TYPES}/grant-number"}
 
     def test_duplicate_identifier_value_across_projects_is_refused(self):
         project_a = ProjectFactory()
         project_b = ProjectFactory()
-        ProjectIdentifierFactory(related=project_a, type="DOI", value="10.1234/shared")
+        ProjectIdentifierFactory(
+            related=project_a, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.1234/shared"
+        )
 
         with pytest.raises(IntegrityError):
             ProjectIdentifierFactory(
-                related=project_b, type="DOI", value="10.1234/shared"
+                related=project_b,
+                type_id=f"{IDENTIFIER_TYPES}/doi",
+                value="10.1234/shared",
             )
 
     def test_identifier_type_choices_are_scoped_to_project(self):
-        codes = {code for code, _label in ProjectIdentifier.type.field.choices}
+        codes = {concept.uri for concept in ProjectIdentifier.get_type_concepts()}
 
-        assert "DOI" in codes
-        assert "GRANT_NUMBER" in codes
+        assert f"{IDENTIFIER_TYPES}/doi" in codes
+        assert f"{IDENTIFIER_TYPES}/grant-number" in codes
         assert not codes & {
-            "ORCID",
-            "RESEARCHER_ID",
-            "ROR",
-            "WIKIDATA",
-            "ISNI",
+            f"{IDENTIFIER_TYPES}/orcid",
+            f"{IDENTIFIER_TYPES}/researcher-id",
+            f"{IDENTIFIER_TYPES}/ror",
+            f"{IDENTIFIER_TYPES}/wikidata",
+            f"{IDENTIFIER_TYPES}/isni",
         }
 
 
@@ -985,7 +1061,6 @@ class TestProjectTranslationBinding:
             "fairdm.core.project.filters",
             "fairdm.core.project.validators",
             "fairdm.core.choices",
-            "fairdm.core.vocabularies",
         ],
     )
     # Asserts the binding: a module using `gettext` at import time would still look
@@ -1021,12 +1096,14 @@ class TestProjectWithMetadataQueryCount:
 
         project = ProjectFactory()
         for type_ in descriptions:
-            ProjectDescriptionFactory(related=project, type=type_)
+            ProjectDescriptionFactory(related=project, type_id=type_)
         for type_, value in dates:
-            ProjectDateFactory(related=project, type=type_, value=value)
+            ProjectDateFactory(related=project, type_id=type_, value=value)
         for type_, value in identifiers:
-            ProjectIdentifierFactory(related=project, type=type_, value=value)
-        project.add_contributor(PersonFactory(), with_roles=["Creator"])
+            ProjectIdentifierFactory(related=project, type_id=type_, value=value)
+        project.add_contributor(
+            PersonFactory(), with_roles=[f"{CONTRIBUTOR_ROLES}/creator"]
+        )
         for term in keyword_terms:
             project.keywords.add(term)
         return project
@@ -1034,16 +1111,18 @@ class TestProjectWithMetadataQueryCount:
     def test_query_count_does_not_grow_with_related_record_count(
         self, django_assert_num_queries
     ):
-        from research_vocabs.models import Concept
+        from controlled_vocabularies.models import Record
 
         keyword_terms = list(
-            Concept.objects.filter(vocabulary__name="fairdm-roles")[:2]
+            Record.objects.filter(
+                scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+            )[:2]
         )
 
         small = self._build_project_with_metadata(
-            descriptions=["Abstract"],
-            dates=[("Start", "2020-01-01")],
-            identifiers=[("DOI", "10.1234/small")],
+            descriptions=[f"{DESCRIPTION_TYPES}/abstract"],
+            dates=[(f"{DATE_TYPES}/start", "2020-01-01")],
+            identifiers=[(f"{IDENTIFIER_TYPES}/doi", "10.1234/small")],
             keyword_terms=keyword_terms[:1],
         )
 
@@ -1052,11 +1131,14 @@ class TestProjectWithMetadataQueryCount:
 
         large = [
             self._build_project_with_metadata(
-                descriptions=["Abstract", "Objectives"],
-                dates=[("Start", "2020-01-01"), ("End", "2021-01-01")],
+                descriptions=[
+                    f"{DESCRIPTION_TYPES}/abstract",
+                    f"{DESCRIPTION_TYPES}/objectives",
+                ],
+                dates=[(f"{DATE_TYPES}/start", "2020-01-01"), (f"{DATE_TYPES}/end", "2021-01-01")],
                 identifiers=[
-                    ("DOI", f"10.1234/large-{i}"),
-                    ("GRANT_NUMBER", f"GRANT-{i}"),
+                    (f"{IDENTIFIER_TYPES}/doi", f"10.1234/large-{i}"),
+                    (f"{IDENTIFIER_TYPES}/grant-number", f"GRANT-{i}"),
                 ],
                 keyword_terms=keyword_terms,
             )
@@ -1104,7 +1186,9 @@ class TestProjectListDataAnnotation:
     def test_dataset_count_is_not_multiplied_by_other_joined_rows(self):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         DatasetFactory(project=project, visibility=Visibility.PUBLIC)
-        ProjectDescriptionFactory(related=project, type="Abstract")
+        ProjectDescriptionFactory(
+            related=project, type_id=f"{DESCRIPTION_TYPES}/abstract"
+        )
 
         annotated = Project.objects.with_list_data().get(pk=project.pk)
 
@@ -1121,7 +1205,9 @@ class TestProjectAbstractSummary:
     def test_summary_is_empty_when_the_only_description_is_another_type(self):
         project = ProjectFactory()
         ProjectDescriptionFactory(
-            related=project, type="Objectives", value="Not the abstract."
+            related=project,
+            type_id=f"{DESCRIPTION_TYPES}/objectives",
+            value="Not the abstract.",
         )
 
         assert project.get_abstract_summary() == ""
@@ -1130,7 +1216,7 @@ class TestProjectAbstractSummary:
         project = ProjectFactory()
         ProjectDescriptionFactory(
             related=project,
-            type="Abstract",
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
             value="## Heading\n\nSome **bold** and _italic_ prose.",
         )
 
@@ -1147,7 +1233,7 @@ class TestProjectAbstractSummary:
         project = ProjectFactory()
         ProjectDescriptionFactory(
             related=project,
-            type="Abstract",
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
             value="## Background\n\nBorehole temperature logs were collected.",
         )
 
@@ -1160,7 +1246,7 @@ class TestProjectAbstractSummary:
         project = ProjectFactory()
         ProjectDescriptionFactory(
             related=project,
-            type="Abstract",
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
             value="A [link](https://example.org) and a list:\n\n- one\n- two",
         )
 
@@ -1175,7 +1261,9 @@ class TestProjectAbstractSummary:
         # Markdown escapes `&`, and left as an entity the card would print `&amp;`.
         project = ProjectFactory()
         ProjectDescriptionFactory(
-            related=project, type="Abstract", value="Rock & roll geochemistry"
+            related=project,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="Rock & roll geochemistry",
         )
 
         summary = project.get_abstract_summary()
@@ -1187,7 +1275,7 @@ class TestProjectAbstractSummary:
         project = ProjectFactory()
         ProjectDescriptionFactory(
             related=project,
-            type="Abstract",
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
             value="First paragraph.\n\nSecond paragraph.\n\n- item one\n- item two",
         )
 
@@ -1199,7 +1287,11 @@ class TestProjectAbstractSummary:
 
     def test_summary_is_capped_at_400_characters(self):
         project = ProjectFactory()
-        ProjectDescriptionFactory(related=project, type="Abstract", value="word " * 300)
+        ProjectDescriptionFactory(
+            related=project,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="word " * 300,
+        )
 
         summary = project.get_abstract_summary()
 
@@ -1207,14 +1299,20 @@ class TestProjectAbstractSummary:
 
     def test_a_long_summary_ends_with_an_ellipsis(self):
         project = ProjectFactory()
-        ProjectDescriptionFactory(related=project, type="Abstract", value="word " * 300)
+        ProjectDescriptionFactory(
+            related=project,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="word " * 300,
+        )
 
         assert project.get_abstract_summary().endswith("…")
 
     def test_a_short_summary_is_returned_whole_and_untruncated(self):
         project = ProjectFactory()
         ProjectDescriptionFactory(
-            related=project, type="Abstract", value="A short abstract."
+            related=project,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="A short abstract.",
         )
 
         assert project.get_abstract_summary() == "A short abstract."
@@ -1223,7 +1321,7 @@ class TestProjectAbstractSummary:
         project = ProjectFactory()
         ProjectDescriptionFactory(
             related=project,
-            type="Abstract",
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
             value="Safe prose. <script>alert(1)</script>",
         )
 
@@ -1249,7 +1347,9 @@ class TestProjectMetaDescription:
     def test_returns_the_abstracts_text_when_one_exists(self):
         project = ProjectFactory()
         ProjectDescriptionFactory(
-            related=project, type="Abstract", value="A concise summary."
+            related=project,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="A concise summary.",
         )
 
         assert project.get_meta_description() == "A concise summary."

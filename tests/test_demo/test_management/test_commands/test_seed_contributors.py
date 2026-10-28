@@ -65,7 +65,9 @@ class TestDataCuratorRecord:
 
         record = stepping_in_record()
         assert record.visibility == Visibility.PRIVATE
-        assert not record.contributors.filter(contributor_id=Person.objects.get(email=CURATOR).pk).exists()
+        assert not record.contributors.filter(
+            contributor_id=Person.objects.get(email=CURATOR).pk
+        ).exists()
 
     def test_nobody_on_the_record_counts_as_able_to_manage_it(self):
         seed()
@@ -113,9 +115,11 @@ class TestKeepRecords:
 
         assert addresses() == before
         assert Person.objects.get(email=CURATOR).groups.exists()
-        assert stepping_in_record().contributors.filter(
-            level=ContributionLevel.MANAGE
-        ).exists()
+        assert (
+            stepping_in_record()
+            .contributors.filter(level=ContributionLevel.MANAGE)
+            .exists()
+        )
 
     def test_it_changes_no_existing_address_and_is_safe_to_repeat(self):
         seed()

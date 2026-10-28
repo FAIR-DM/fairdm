@@ -311,9 +311,7 @@ FAIRDM_DATASET = {
 }
 
 FAIRDM_PROJECT = {
-    "keywords": [
-        "fairdm.core.vocabularies.FairDMRoles",
-    ],
+    "keywords": [],
 }
 
 FAIRDM_DEFAULT_LICENSE = "CC BY 4.0"

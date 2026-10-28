@@ -10,7 +10,6 @@ import importlib
 import pytest
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.db import connection
 from django.db.migrations.loader import MigrationLoader
 from django.test import override_settings
 from guardian.models import GroupObjectPermission, UserObjectPermission

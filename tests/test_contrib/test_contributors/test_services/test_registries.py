@@ -22,6 +22,7 @@ from fairdm.contrib.contributors.services.registries import (
     RegistryUnavailable,
     Ror,
 )
+from fairdm.core.vocabularies import IDENTIFIER_TYPES
 from fairdm.factories import (
     ContributorIdentifierFactory,
     OrganizationFactory,
@@ -241,9 +242,7 @@ class TestFetchOrcid:
         body = recorded("orcid-record")
         for group in body["activities-summary"]["employments"]["affiliation-group"]:
             for summary in group["summaries"]:
-                summary["employment-summary"]["end-date"] = {
-                    "year": {"value": "1990"}
-                }
+                summary["employment-summary"]["end-date"] = {"year": {"value": "1990"}}
         registry_network.answer(orcid_record_address(JOSIAH), body)
 
         record = Orcid().fetch(JOSIAH)
@@ -357,7 +356,9 @@ class TestSearchRor:
 
         found = Ror().search(term)
 
-        assert [call.url for call in registry_network.calls] == [ror_record_address(GFZ)]
+        assert [call.url for call in registry_network.calls] == [
+            ror_record_address(GFZ)
+        ]
         assert [r["id"] for r in found["results"]] == [f"https://ror.org/{GFZ}"]
         assert found["more"] is False
 
@@ -555,7 +556,9 @@ class TestProfileFromRegistry:
         assert isinstance(person, Person)
         assert (person.first_name, person.last_name) == ("Josiah", "Carberry")
         assert person.name == "Josiah Carberry"
-        assert person.identifiers.get(type="ORCID").value == JOSIAH
+        assert (
+            person.identifiers.get(type_id=f"{IDENTIFIER_TYPES}/orcid").value == JOSIAH
+        )
         assert person.email is None
         assert not person.has_usable_password()
         assert person.account_state == AccountState.GHOST
@@ -566,8 +569,13 @@ class TestProfileFromRegistry:
         self, orcid_record
     ):
         held = PersonFactory(name="J. Carberry")
-        ContributorIdentifierFactory(related=held, type="ORCID", value=JOSIAH)
-        people, identifiers = Person.objects.count(), ContributorIdentifier.objects.count()
+        ContributorIdentifierFactory(
+            related=held, type_id=f"{IDENTIFIER_TYPES}/orcid", value=JOSIAH
+        )
+        people, identifiers = (
+            Person.objects.count(),
+            ContributorIdentifier.objects.count(),
+        )
 
         person = Orcid().profile(orcid_record)
 
@@ -596,14 +604,18 @@ class TestProfileFromRegistry:
         organization.refresh_from_db()
         assert isinstance(organization, Organization)
         assert organization.name == "GFZ Helmholtz Centre for Geosciences"
-        assert organization.identifiers.get(type="ROR").value == GFZ
+        assert (
+            organization.identifiers.get(type_id=f"{IDENTIFIER_TYPES}/ror").value == GFZ
+        )
 
     @pytest.mark.parametrize("stored", [GFZ, f"https://ror.org/{GFZ}"])
     def test_the_organization_the_portal_already_holds_under_the_id_is_returned(
         self, ror_record, stored
     ):
         held = OrganizationFactory(name="GFZ Potsdam")
-        ContributorIdentifierFactory(related=held, type="ROR", value=stored)
+        ContributorIdentifierFactory(
+            related=held, type_id=f"{IDENTIFIER_TYPES}/ror", value=stored
+        )
         count = Organization.objects.count()
 
         organization = Ror().profile(ror_record)

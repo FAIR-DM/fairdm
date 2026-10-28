@@ -28,7 +28,7 @@ This app is responsible for:
 ### Tables (`tables.py`)
 
 - **`BaseTable`**: shared rendering - the UUID column, dataset/location icons, per-field-type CSS
-  classes, and `ConceptManyToManyField` rendering
+  classes, and `MultiConceptField` rendering
 - **`SampleTable`**: adds latitude/longitude and a linkified location column
 - **`MeasurementTable`**: adds the same location columns, read through the measurement's own
   sample, and a sample column that links to the sample's page when the sample's own dataset is
@@ -97,5 +97,5 @@ class RockSampleConfig(BaseSampleConfiguration):
 
 - `django-tables2`: table rendering
 - `django-filter`: filtering, via the registry-generated filterset
-- `research-vocabs`: `ConceptManyToManyField` rendering
+- `django-controlled-vocabularies`: `MultiConceptField` rendering
 - `easy-icons`: icon rendering

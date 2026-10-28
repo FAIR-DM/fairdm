@@ -57,7 +57,7 @@ dependencies = [
     'psycopg2-binary (>=2.9.13,<3.0.0)',
     'redis>=4.5.2,<9.0.0',
     'whitenoise (>=6.4.0,<7.0.0)',
-    'django-research-vocabs @ git+https://github.com/SamuelJennings/django-research-vocabs',
+    'django-controlled-vocabularies (>=0.3.0,<0.4.0)',
     'shortuuid (>=1.0.13,<2.0.0)',
     'django-literature[ui] (>=0.3.1,<0.4.0)',
     'django-extensions (>=4.1,<5.0)',
@@ -143,10 +143,6 @@ fairdm-docs = { git = "https://github.com/FAIR-DM/fairdm-docs" }
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
-
-[tool.hatch.metadata]
-# django-research-vocabs is declared as a git URL above.
-allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["fairdm", "demo"]
@@ -346,7 +342,7 @@ known_first_party = ["fairdm", "demo"]
 # Django packages whose distribution name differs from the name they are
 # imported under. Without this, deptry reads every one of them as declared but
 # never used.
-package_module_name_map = { django-environ = "environ", django-filter = "django_filters", django-import-export = "import_export", django-meta = "meta", django-model-utils = "model_utils", django-parler = "parler", django-pint = ["django_pint", "quantityfield"], django-solo = "solo", django-split-settings = "split_settings", django-braces = "braces", django-auto-prefetch = "auto_prefetch", django-guardian = "guardian", django-polymorphic = "polymorphic", django-content-license = "licensing", django-flex-menus = "flex_menu", django-easy-icons = "easy_icons", django-mvp = "mvp", django-mvp-charts = "mvp_charts", django-mvp-compliance = "mvp_compliance", django-hijack = "hijack", django-research-vocabs = "research_vocabs", django-literature = "literature", django-ordered-model = "ordered_model", django-taggit = "taggit", django-waffle = "waffle" }
+package_module_name_map = { django-environ = "environ", django-filter = "django_filters", django-import-export = "import_export", django-meta = "meta", django-model-utils = "model_utils", django-parler = "parler", django-pint = ["django_pint", "quantityfield"], django-solo = "solo", django-split-settings = "split_settings", django-braces = "braces", django-auto-prefetch = "auto_prefetch", django-guardian = "guardian", django-polymorphic = "polymorphic", django-content-license = "licensing", django-flex-menus = "flex_menu", django-easy-icons = "easy_icons", django-mvp = "mvp", django-mvp-charts = "mvp_charts", django-mvp-compliance = "mvp_compliance", django-hijack = "hijack", django-controlled-vocabularies = "controlled_vocabularies", django-literature = "literature", django-ordered-model = "ordered_model", django-taggit = "taggit", django-waffle = "waffle" }
 
 [tool.deptry.per_rule_ignores]
 # DEP002 = declared but never imported. Django wires most of its moving parts

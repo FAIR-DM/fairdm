@@ -23,6 +23,16 @@ from fairdm.core.overview import (
 )
 from fairdm.core.plugins import RecordOverviewPlugin
 from fairdm.core.sample.models import Sample
+from fairdm.core.vocabularies import (
+    ABSTRACT,
+    CONTACT_PERSON,
+    CONTRIBUTOR_ROLES,
+    CREATOR,
+    DOI,
+    PROJECT_END,
+    PROJECT_LEADER,
+    PROJECT_START,
+)
 from fairdm.utils.choices import Visibility
 from fairdm.views import FairDMTemplateView
 
@@ -72,7 +82,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
     Attributes:
         dataset_preview: How many datasets the page lists before it hands over to the Datasets
             page.
-        lead_roles: The roles that name the people a visitor should see first, in this order.
+        lead_roles: The addresses of the roles that name the people a visitor should see first,
+            in this order.
     """
 
     url_path = None
@@ -80,7 +91,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
     check = staticmethod(project_is_visible)
     template_name = "project/project_detail.html"
     dataset_preview = 5
-    lead_roles = ["ProjectLeader", "ProjectManager"]
+    lead_roles = [PROJECT_LEADER, f"{CONTRIBUTOR_ROLES}/project-manager"]
 
     def get_context_data(self, **kwargs):
         """Add the project and everything the overview page draws.
@@ -178,13 +189,19 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         return result
 
     def get_descriptions(self):
-        """List the project's descriptions in the vocabulary's own order, abstract first."""
-        by_type = {d.type: d.value for d in self.base_object.descriptions.all()}
-        labels = dict(ProjectDescription.VOCABULARY.choices)
+        """List the project's descriptions in the order of the project description types.
+
+        The abstract comes first. Each entry's ``type`` is the type's address.
+        """
+        by_type = {d.type_id: d.value for d in self.base_object.descriptions.all()}
         return [
-            {"type": t, "label": labels.get(t, t), "value": by_type[t]}
-            for t in ProjectDescription.VOCABULARY.values
-            if by_type.get(t)
+            {
+                "type": concept.uri,
+                "label": concept.display_label(),
+                "value": by_type[concept.uri],
+            }
+            for concept in ProjectDescription.get_type_concepts()
+            if by_type.get(concept.uri)
         ]
 
     def get_progress(self):
@@ -194,8 +211,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             The start and end as recorded and as dates, the percentage elapsed, the year the
             project is in and a label saying where it stands.
         """
-        dates = {d.type: d.value for d in self.base_object.dates.all()}
-        start, end = dates.get("Start"), dates.get("End")
+        dates = {d.type_id: d.value for d in self.base_object.dates.all()}
+        start, end = dates.get(PROJECT_START), dates.get(PROJECT_END)
         start_date, end_date = as_date(start), as_date(end)
         result = {
             "start": start,
@@ -236,18 +253,20 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         contributions = self.get_contributions()
         ranked_leads, contact, others = [], None, []
         for contribution in contributions:
-            roles = self.get_role_names(contribution)
+            roles = self.get_role_uris(contribution)
             entry = {
                 "contributor": contribution.contributor,
                 "roles": [
-                    r.label for r in contribution.roles.all() if r.name != "Creator"
+                    r.display_label()
+                    for r in contribution.roles.all()
+                    if r.uri != CREATOR
                 ],
             }
-            if "ContactPerson" in roles and contact is None:
+            if CONTACT_PERSON in roles and contact is None:
                 contact = entry
             if roles & set(self.lead_roles):
-                ranked_leads.append((0 if "ProjectLeader" in roles else 1, entry))
-            elif "ContactPerson" not in roles:
+                ranked_leads.append((0 if PROJECT_LEADER in roles else 1, entry))
+            elif CONTACT_PERSON not in roles:
                 others.append(entry)
         leads = [entry for _rank, entry in sorted(ranked_leads, key=lambda t: t[0])]
         return {
@@ -361,12 +380,12 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         creators = [
             c.contributor
             for c in self.get_contributions()
-            if "Creator" in self.get_role_names(c)
+            if CREATOR in self.get_role_uris(c)
         ]
-        start = {d.type: d.value for d in project.dates.all()}.get("Start")
+        start = {d.type_id: d.value for d in project.dates.all()}.get(PROJECT_START)
         year = as_date(start).year if as_date(start) else project.added.year
         doi = next(
-            (i.value for i in project.identifiers.all() if i.type == "DOI"), None
+            (i.value for i in project.identifiers.all() if i.type_id == DOI), None
         )
         link = (
             f"https://doi.org/{doi}"
@@ -402,7 +421,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         items = [
             (
                 gettext("An abstract describes the project"),
-                "Abstract" in descriptions,
+                ABSTRACT in descriptions,
                 urls["descriptions"],
             ),
             (

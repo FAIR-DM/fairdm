@@ -2,12 +2,14 @@
 
 from contextlib import contextmanager
 
+from controlled_vocabularies.models import Record
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils.translation import gettext as _
 from guardian.conf import settings as guardian_settings
-from research_vocabs.models import Concept
+
+from fairdm.core.vocabularies import CONTRIBUTOR_ROLES, collection_members
 
 from ..access import RecordAccess
 from ..choices import ContributionLevel
@@ -111,14 +113,10 @@ class Crediting:
         """Return the contribution roles the record's type offers.
 
         Returns:
-            The concepts of the roles vocabulary that its group names for this type, in the
-            vocabulary's order.
+            The concepts of the contributor roles collection for this type, in the
+            collection's order.
         """
-        names = list(self.record.CONTRIBUTOR_ROLES.values)
-        concepts = Concept.objects.filter(
-            vocabulary__name="fairdm-roles", name__in=names
-        )
-        return sorted(concepts, key=lambda concept: names.index(concept.name))
+        return collection_members(self.record.CONTRIBUTOR_ROLES)
 
     def add(self, contributor, *, organization=None):
         """List a contributor on the record, last of its kind. A person starts at the view level.
@@ -183,7 +181,7 @@ class Crediting:
 
         Args:
             contribution: The contribution to change.
-            roles: Concepts of the roles vocabulary, none or more.
+            roles: Concepts of the contributor roles vocabulary, none or more.
             level: The level to give a person, a ``ContributionLevel``. None leaves it as it
                 is. Ignored for an organization.
             organization: The organization a person is credited from, listed on the record too
@@ -336,8 +334,8 @@ class Crediting:
 
         Args:
             user: The person who created the record.
-            roles: Names of roles in the roles vocabulary to give them. They are not checked
-                against the record type's group.
+            roles: Addresses of contributor role concepts to give them. They are not checked
+                against the record type's collection.
 
         Returns:
             The creator's contribution, or None for a superuser.
@@ -351,8 +349,8 @@ class Crediting:
             contribution.level = ContributionLevel.MANAGE
             contribution.save(update_fields=["level"])
             contribution.roles.add(
-                *Concept.objects.filter(
-                    vocabulary__name="fairdm-roles", name__in=list(roles)
+                *Record.objects.filter(
+                    scheme__uri=CONTRIBUTOR_ROLES, uri__in=list(roles)
                 )
             )
         return contribution

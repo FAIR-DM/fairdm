@@ -54,7 +54,9 @@ class TestNextVersion:
         ("bump", "expected"),
         [("patch", "1.10.1"), ("minor", "1.11.0"), ("major", "2.0.0")],
     )
-    def test_a_bump_counts_on_from_the_newest_image_release(self, repository, bump, expected):
+    def test_a_bump_counts_on_from_the_newest_image_release(
+        self, repository, bump, expected
+    ):
         directory = repository("image-v1.2.3", "image-v1.10.0", "image-v1.9.9")
 
         result = run(directory, bump)
@@ -85,7 +87,9 @@ class TestNextVersion:
         assert result.stdout.strip() == "2.0.0"
 
     @pytest.mark.parametrize("bump", ["1.2.3", "1.0.0"])
-    def test_an_explicit_version_not_above_the_newest_is_refused(self, repository, bump):
+    def test_an_explicit_version_not_above_the_newest_is_refused(
+        self, repository, bump
+    ):
         directory = repository("image-v1.2.3")
 
         result = run(directory, bump)

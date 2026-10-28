@@ -18,16 +18,18 @@ Key Features
       # Create 2 descriptions
       project = ProjectFactory(descriptions=2)
 
-      # Create specific description types
+      # Create specific description types, named by address
       project = ProjectFactory(
-          descriptions=2, descriptions__types=["Abstract", "Methods"]
+          descriptions=2,
+          descriptions__types=[ABSTRACT, f"{DESCRIPTION_TYPES}/introduction"],
       )
 
-3. **Vocabulary Validation**: All description/date types are validated against model
-   VOCABULARY attributes. Invalid types raise ValueError.
+3. **Vocabulary Validation**: All description/date types are validated against the collection
+   the model's ``type`` field offers. Invalid types raise ValueError.
 
-4. **Controlled Vocabularies**: Default types come from the model's VOCABULARY (e.g.,
-   ``ProjectDescription.VOCABULARY.values``), ensuring factories create valid test data.
+4. **Controlled Vocabularies**: Default types come from that collection (e.g.,
+   ``ProjectDescription.get_type_concepts()``), ensuring factories create valid test data. The
+   vocabularies must be loaded, as the test suite does once per session.
 
 Factories Available
 -------------------
@@ -71,7 +73,8 @@ With metadata (opt-in)::
 Custom types::
 
     project = ProjectFactory(
-        descriptions=3, descriptions__types=["Abstract", "Introduction", "Objectives"]
+        descriptions=2,
+        descriptions__types=[ABSTRACT, f"{DESCRIPTION_TYPES}/objectives"],
     )
 
 Batch creation::
@@ -80,8 +83,10 @@ Batch creation::
 
 Type validation::
 
-    # Raises ValueError - "InvalidType" not in ProjectDescription.VOCABULARY
-    project = ProjectFactory(descriptions=1, descriptions__types=["InvalidType"])
+    # Raises ValueError - the address is not in the project description types
+    project = ProjectFactory(
+        descriptions=1, descriptions__types=[f"{DESCRIPTION_TYPES}/invalid"]
+    )
 
 For more details, see:
 - Portal developers: docs/developers/how-to/test-a-portal-with-fairdm-factories.md
@@ -119,40 +124,47 @@ from fairdm.core.sample.models import (
     SampleIdentifier,
     SampleRelation,
 )
+from fairdm.core.vocabularies import (
+    ABSTRACT,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    DOI,
+    PROJECT_START,
+)
 
-from . import utils  # noqa: F401 # Ensure utils is imported for the custom Provider
 from .contributors import (
     OrganizationFactory,
 )
+from .utils import ConceptFieldFactory
 
 
-class ProjectDescriptionFactory(DjangoModelFactory):
+class ProjectDescriptionFactory(ConceptFieldFactory):
     """Factory for creating ProjectDescription instances."""
 
     class Meta:
         model = ProjectDescription
 
-    type = "Abstract"
+    type = ABSTRACT
     value = Faker("text", max_nb_chars=300)
 
 
-class ProjectDateFactory(DjangoModelFactory):
+class ProjectDateFactory(ConceptFieldFactory):
     """Factory for creating ProjectDate instances."""
 
     class Meta:
         model = ProjectDate
 
-    type = "Start"
+    type = PROJECT_START
     value = Faker("partial_date")
 
 
-class ProjectIdentifierFactory(DjangoModelFactory):
+class ProjectIdentifierFactory(ConceptFieldFactory):
     """Factory for creating ProjectIdentifier instances."""
 
     class Meta:
         model = ProjectIdentifier
 
-    type = "DOI"
+    type = DOI
     value = Faker("bothify", text="10.####/project-?????")
 
 
@@ -163,9 +175,9 @@ class ProjectFactory(DjangoModelFactory):
 
     To create descriptions/dates:
         ProjectFactory(descriptions=2)  # Creates 2 descriptions with default types
-        ProjectFactory(descriptions=2, descriptions__types=["Abstract", "Methods"])  # Specify types
+        ProjectFactory(descriptions=2, descriptions__types=[ABSTRACT, f"{DESCRIPTION_TYPES}/objectives"])
         ProjectFactory(dates=1)  # Creates 1 date with default type
-        ProjectFactory(dates=2, dates__types=["Created", "Updated"])  # Specify types
+        ProjectFactory(dates=2, dates__types=[PROJECT_START, PROJECT_END])
 
     Image (opt-in, issue #323):
         ProjectFactory()  # No image, no file written
@@ -210,7 +222,9 @@ class ProjectFactory(DjangoModelFactory):
                 f"descriptions must be an int, got {type(extracted).__name__}"
             )
 
-        valid_types = ProjectDescription.VOCABULARY.values
+        valid_types = [
+            concept.uri for concept in ProjectDescription.get_type_concepts()
+        ]
         types = kwargs.get("types", valid_types)
 
         if "types" in kwargs:
@@ -238,7 +252,7 @@ class ProjectFactory(DjangoModelFactory):
         if not isinstance(extracted, int):
             raise TypeError(f"dates must be an int, got {type(extracted).__name__}")
 
-        valid_types = ProjectDate.VOCABULARY.values
+        valid_types = [concept.uri for concept in ProjectDate.get_type_concepts()]
         types = kwargs.get("types", valid_types)
 
         if "types" in kwargs:
@@ -258,33 +272,33 @@ class ProjectFactory(DjangoModelFactory):
             ProjectDateFactory(related=obj, type=types[i])
 
 
-class DatasetDescriptionFactory(DjangoModelFactory):
+class DatasetDescriptionFactory(ConceptFieldFactory):
     """Factory for creating DatasetDescription instances."""
 
     class Meta:
         model = DatasetDescription
 
-    type = "Abstract"
+    type = ABSTRACT
     value = Faker("text", max_nb_chars=300)
 
 
-class DatasetDateFactory(DjangoModelFactory):
+class DatasetDateFactory(ConceptFieldFactory):
     """Factory for creating DatasetDate instances."""
 
     class Meta:
         model = DatasetDate
 
-    type = "Available"
+    type = f"{DATE_TYPES}/available"
     value = Faker("partial_date")
 
 
-class DatasetIdentifierFactory(DjangoModelFactory):
+class DatasetIdentifierFactory(ConceptFieldFactory):
     """Factory for creating DatasetIdentifier instances."""
 
     class Meta:
         model = DatasetIdentifier
 
-    type = "DOI"
+    type = DOI
     value = factory.Sequence(lambda n: f"10.{1000 + n}/dataset-{n}")
 
 
@@ -357,7 +371,7 @@ class DatasetFactory(DjangoModelFactory):
 
     To create descriptions/dates:
         DatasetFactory(descriptions=2)  # Creates 2 descriptions
-        DatasetFactory(descriptions=2, descriptions__types=["Abstract", "Methods"])
+        DatasetFactory(descriptions=2, descriptions__types=[ABSTRACT, f"{DESCRIPTION_TYPES}/methods"])
         DatasetFactory(dates=1)  # Creates 1 date
 
     Image (opt-in, issue #323): same as ProjectFactory above.
@@ -401,7 +415,9 @@ class DatasetFactory(DjangoModelFactory):
                 f"descriptions must be an int, got {type(extracted).__name__}"
             )
 
-        valid_types = DatasetDescription.VOCABULARY.values
+        valid_types = [
+            concept.uri for concept in DatasetDescription.get_type_concepts()
+        ]
         types = kwargs.get("types", valid_types)
 
         if "types" in kwargs:
@@ -429,7 +445,7 @@ class DatasetFactory(DjangoModelFactory):
         if not isinstance(extracted, int):
             raise TypeError(f"dates must be an int, got {type(extracted).__name__}")
 
-        valid_types = DatasetDate.VOCABULARY.values
+        valid_types = [concept.uri for concept in DatasetDate.get_type_concepts()]
         types = kwargs.get("types", valid_types)
 
         if "types" in kwargs:
@@ -449,38 +465,38 @@ class DatasetFactory(DjangoModelFactory):
             DatasetDateFactory(related=obj, type=types[i])
 
 
-class SampleDescriptionFactory(DjangoModelFactory):
+class SampleDescriptionFactory(ConceptFieldFactory):
     """Factory for creating SampleDescription instances."""
 
     class Meta:
         model = SampleDescription
 
-    type = "SampleCollection"
+    type = f"{DESCRIPTION_TYPES}/sample-collection"
     value = Faker("text", max_nb_chars=300)
 
 
-class SampleDateFactory(DjangoModelFactory):
+class SampleDateFactory(ConceptFieldFactory):
     """Factory for creating SampleDate instances."""
 
     class Meta:
         model = SampleDate
 
-    type = "Created"
+    type = f"{DATE_TYPES}/created"
     value = Faker("partial_date")
 
 
-class SampleIdentifierFactory(DjangoModelFactory):
+class SampleIdentifierFactory(ConceptFieldFactory):
     """Factory for creating SampleIdentifier instances."""
 
     class Meta:
         model = SampleIdentifier
 
-    type = "DOI"
+    type = DOI
     # AbstractIdentifier.value is unique across every record that carries identifiers.
     value = factory.Sequence(lambda n: f"10.{2000 + n}/sample-{n}")
 
 
-class SampleFactory(DjangoModelFactory):
+class SampleFactory(ConceptFieldFactory):
     """Abstract factory for creating Sample instances.
 
     ``Sample`` is a polymorphic base that cannot be created directly (only a registered
@@ -501,7 +517,6 @@ class SampleFactory(DjangoModelFactory):
 
     name = Faker("word")
     local_id = Faker("bothify", text="SAMPLE-####")
-    status = "unknown"
 
     dataset = SubFactory(DatasetFactory)
     location = None
@@ -517,7 +532,7 @@ class SampleFactory(DjangoModelFactory):
                 f"descriptions must be an int, got {type(extracted).__name__}"
             )
 
-        valid_types = SampleDescription.VOCABULARY.values
+        valid_types = [concept.uri for concept in SampleDescription.get_type_concepts()]
         types = kwargs.get("types", valid_types)
 
         if "types" in kwargs:
@@ -545,7 +560,7 @@ class SampleFactory(DjangoModelFactory):
         if not isinstance(extracted, int):
             raise TypeError(f"dates must be an int, got {type(extracted).__name__}")
 
-        valid_types = SampleDate.VOCABULARY.values
+        valid_types = [concept.uri for concept in SampleDate.get_type_concepts()]
         types = kwargs.get("types", valid_types)
 
         if "types" in kwargs:
@@ -565,33 +580,33 @@ class SampleFactory(DjangoModelFactory):
             SampleDateFactory(related=obj, type=types[i])
 
 
-class MeasurementDescriptionFactory(DjangoModelFactory):
+class MeasurementDescriptionFactory(ConceptFieldFactory):
     """Factory for creating MeasurementDescription instances."""
 
     class Meta:
         model = MeasurementDescription
 
-    type = "MeasurementConditions"
+    type = f"{DESCRIPTION_TYPES}/measurement-conditions"
     value = Faker("text", max_nb_chars=300)
 
 
-class MeasurementDateFactory(DjangoModelFactory):
+class MeasurementDateFactory(ConceptFieldFactory):
     """Factory for creating MeasurementDate instances."""
 
     class Meta:
         model = MeasurementDate
 
-    type = "Setup"
+    type = f"{DATE_TYPES}/setup"
     value = Faker("partial_date")
 
 
-class MeasurementIdentifierFactory(DjangoModelFactory):
+class MeasurementIdentifierFactory(ConceptFieldFactory):
     """Factory for creating MeasurementIdentifier instances."""
 
     class Meta:
         model = MeasurementIdentifier
 
-    type = "DOI"
+    type = DOI
     value = factory.Sequence(lambda n: f"10.{4000 + n}/measurement-{n}")
 
 
@@ -637,7 +652,9 @@ class MeasurementFactory(DjangoModelFactory):
                 f"descriptions must be an int, got {type(extracted).__name__}"
             )
 
-        valid_types = MeasurementDescription.VOCABULARY.values
+        valid_types = [
+            concept.uri for concept in MeasurementDescription.get_type_concepts()
+        ]
         types = kwargs.get("types", valid_types)
 
         if "types" in kwargs:
@@ -665,7 +682,7 @@ class MeasurementFactory(DjangoModelFactory):
         if not isinstance(extracted, int):
             raise TypeError(f"dates must be an int, got {type(extracted).__name__}")
 
-        valid_types = MeasurementDate.VOCABULARY.values
+        valid_types = [concept.uri for concept in MeasurementDate.get_type_concepts()]
         types = kwargs.get("types", valid_types)
 
         if "types" in kwargs:

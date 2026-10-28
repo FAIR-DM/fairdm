@@ -22,10 +22,11 @@ Opt-in to metadata creation::
         dates=1,  # Create 1 date
     )
 
-Specify custom types (validated against model VOCABULARY)::
+Specify custom types by address (validated against the model's collection)::
 
     project = ProjectFactory(
-        descriptions=3, descriptions__types=["Abstract", "Introduction", "Objectives"]
+        descriptions=2,
+        descriptions__types=[ABSTRACT, f"{DESCRIPTION_TYPES}/objectives"],
     )
 
 Available Factories

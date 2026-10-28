@@ -100,7 +100,7 @@
               {% if keywords %}
                 <ul class="flex flex-wrap gap-1" aria-label="{% translate 'Keywords' %}">
                   {% for keyword in keywords %}
-                    <li class="badge badge-primary badge-sm">{{ keyword.label }}</li>
+                    <li class="badge badge-primary badge-sm">{{ keyword.display_label }}</li>
                   {% endfor %}
                 </ul>
               {% endif %}

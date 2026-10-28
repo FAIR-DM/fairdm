@@ -7,7 +7,6 @@ from polymorphic.admin import (
     PolymorphicChildModelFilter,
     PolymorphicParentModelAdmin,
 )
-from research_vocabs.models import Concept
 
 from fairdm.contrib.contributors.models import Contribution
 
@@ -51,7 +50,7 @@ class SampleDescriptionInline(admin.StackedInline):
     def get_formset(self, request, obj=None, **kwargs):
         """Cap the formset at the number of description types."""
         formset = super().get_formset(request, obj, **kwargs)
-        formset.max_num = len(SampleDescription.VOCABULARY.values)
+        formset.max_num = len(self.model.get_type_concepts())
         return formset
 
 
@@ -64,7 +63,7 @@ class SampleDateInline(admin.StackedInline):
     def get_formset(self, request, obj=None, **kwargs):
         """Cap the formset at the number of date types."""
         formset = super().get_formset(request, obj, **kwargs)
-        formset.max_num = len(SampleDate.VOCABULARY.values)
+        formset.max_num = len(self.model.get_type_concepts())
         return formset
 
 
@@ -77,7 +76,7 @@ class SampleIdentifierInline(admin.StackedInline):
     def get_formset(self, request, obj=None, **kwargs):
         """Cap the formset at the number of identifier types."""
         formset = super().get_formset(request, obj, **kwargs)
-        formset.max_num = len(SampleIdentifier.VOCABULARY.values)
+        formset.max_num = len(self.model.get_type_concepts())
         return formset
 
 
@@ -88,16 +87,6 @@ class SampleContributionInline(GenericTabularInline):
     extra = 0
     ct_field = "content_type"
     ct_fk_field = "object_id"
-
-    def formfield_for_manytomany(self, db_field, request, **kwargs):
-        """Narrow ``roles`` to the roles vocabulary."""
-        # Otherwise the widget offers every Concept, and an off-vocabulary choice is refused
-        # by the `m2m_changed` receiver uncaught, which turns a field error into a 500.
-        if db_field.name == "roles":
-            kwargs["queryset"] = Concept.get_for_vocabulary(
-                Contribution.roles_vocab.__class__
-            )
-        return super().formfield_for_manytomany(db_field, request, **kwargs)
 
 
 class SampleRelationInline(admin.TabularInline):

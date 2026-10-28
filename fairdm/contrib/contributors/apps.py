@@ -13,29 +13,15 @@ class ContributorsConfig(AppConfig):
     verbose_name = _("Community")
 
     def ready(self):
-        """Connect the signal receivers for claiming and for protecting roles and credit."""
+        """Connect the signal receivers for claiming and for protecting the shipped portal roles."""
         from allauth.account.signals import email_confirmed
         from django.contrib.auth.models import Group
-        from django.db.models.signals import (
-            m2m_changed,
-            pre_delete,
-            pre_save,
-        )
+        from django.db.models.signals import pre_delete, pre_save
 
-        from .models import Contribution
-        from .receivers import (
-            refuse_off_vocabulary_role,
-            refuse_shipped_role_deletion,
-            refuse_shipped_role_rename,
-        )
+        from .receivers import refuse_shipped_role_deletion, refuse_shipped_role_rename
         from .signals import handle_email_confirmed
 
         email_confirmed.connect(handle_email_confirmed)
-        m2m_changed.connect(
-            refuse_off_vocabulary_role,
-            sender=Contribution.roles.through,
-            dispatch_uid="contributors.refuse_off_vocabulary_role",
-        )
         pre_delete.connect(
             refuse_shipped_role_deletion,
             sender=Group,

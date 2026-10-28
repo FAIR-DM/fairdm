@@ -8,6 +8,7 @@ from demo.filters import RockSampleFilter
 from demo.models import RockSample, WaterSample
 from fairdm.core.models import Dataset
 from fairdm.core.sample.filters import SampleFilter, SampleFilterMixin
+from fairdm.core.vocabularies import SAMPLE_STATUS
 from fairdm.factories import ProjectFactory
 from fairdm.utils.choices import Visibility
 
@@ -61,20 +62,21 @@ class TestSampleFilterStatusFiltering:
         available = RockSample.objects.create(
             name="Available Rock",
             dataset=dataset,
-            status="available",
+            status_id=f"{SAMPLE_STATUS}/available",
             rock_type="igneous",
             collection_date="2024-01-01",
         )
         stored = RockSample.objects.create(
             name="Stored Rock",
             dataset=dataset,
-            status="stored",
+            status_id=f"{SAMPLE_STATUS}/stored",
             rock_type="igneous",
             collection_date="2024-01-01",
         )
 
         filterset = SampleFilter(
-            data={"status": "available"}, queryset=RockSample.objects.all()
+            data={"status": "available"},
+            queryset=RockSample.objects.all(),
         )
 
         assert filterset.is_valid()
@@ -224,7 +226,7 @@ class TestSampleFilterCombinedFilters:
         target_sample = RockSample.objects.create(
             name="Target Rock",
             dataset=dataset,
-            status="available",
+            status_id=f"{SAMPLE_STATUS}/available",
             rock_type="igneous",
             collection_date="2024-01-01",
         )
@@ -242,14 +244,14 @@ class TestSampleFilterCombinedFilters:
         excluded_sample2 = RockSample.objects.create(
             name="Excluded Rock 2",
             dataset=dataset,
-            status="available",
+            status_id=f"{SAMPLE_STATUS}/available",
             rock_type="igneous",
             collection_date="2024-01-01",
         )
         excluded_sample2.descriptions.create(text="Normal properties")
 
         filterset = SampleFilter(
-            data={"status": "available", "description": "Special"},
+            data={"status": f"{SAMPLE_STATUS}/available", "description": "Special"},
             queryset=RockSample.objects.all(),
         )
         assert filterset.is_valid()

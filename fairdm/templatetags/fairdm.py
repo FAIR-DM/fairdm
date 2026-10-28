@@ -9,6 +9,7 @@ from django.utils.safestring import mark_safe
 from pint.delegates.formatter.plain import PrettyFormatter
 from quantityfield import settings as qsettings
 
+from fairdm.core.vocabularies import notation
 from fairdm.utils.markdown import markdownify
 
 register = template.Library()
@@ -60,6 +61,19 @@ def is_active(context, url):
     if context["request"].path.startswith(url):
         return "active"
     return ""
+
+
+@register.filter(name="notation")
+def notation_filter(concept):
+    """Write a concept as the code it was stored as before it had an address.
+
+    Args:
+        concept: A ``controlled_vocabularies.Record``, or ``None``.
+
+    Returns:
+        The concept's ``skos:notation``, or an empty string.
+    """
+    return notation(concept)
 
 
 @register.filter

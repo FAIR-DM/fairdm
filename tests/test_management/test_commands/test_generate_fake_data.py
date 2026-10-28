@@ -13,7 +13,7 @@ class TestAddContributors:
         project = ProjectFactory()
         people = [PersonFactory(), PersonFactory()]
 
-        Command()._add_contributors(project, people, is_project=True)
+        Command()._add_contributors(project, people)
 
         credits = Contribution.objects.filter(object_id=project.pk)
         assert credits.count() == 2
@@ -24,7 +24,7 @@ class TestAddContributors:
         project = ProjectFactory()
         person = PersonFactory()
 
-        Command()._add_contributors(project, [person, person], is_project=True)
+        Command()._add_contributors(project, [person, person])
 
         credits = Contribution.objects.filter(object_id=project.pk, contributor=person)
         assert credits.count() == 1

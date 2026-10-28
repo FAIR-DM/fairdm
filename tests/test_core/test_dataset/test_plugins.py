@@ -28,12 +28,12 @@ from fairdm.core.dataset.models import (
     DatasetLiteratureRelation,
 )
 from fairdm.core.dataset.plugins import Overview
+from fairdm.core.vocabularies import CONTRIBUTOR_ROLES, DATE_TYPES, DESCRIPTION_TYPES
 from fairdm.factories import (
     ContributionFactory,
     DatasetDateFactory,
     DatasetDescriptionFactory,
     DatasetFactory,
-    DatasetIdentifierFactory,
     DatasetLiteratureRelationFactory,
     LiteratureItemFactory,
     OrganizationFactory,
@@ -378,7 +378,9 @@ class TestDescriptionsPageOffersOneAreaPerVocabularyType:
         response = client.get(url)
 
         form = response.context["form"]
-        assert list(form.fields) == list(DatasetDescription.VOCABULARY.values)
+        assert list(form.fields) == list(
+            [concept.uri for concept in DatasetDescription.get_type_concepts()]
+        )
 
     def test_every_area_starts_empty_for_a_dataset_with_no_descriptions(
         self, client, user_with_change_permission
@@ -400,15 +402,17 @@ class TestDescriptionsPageAreasAreLabelledFromTheVocabulary:
     ):
         dataset = user_with_change_permission.dataset
         client.force_login(user_with_change_permission)
-        first_type = DatasetDescription.VOCABULARY.values[0]
-        concept = DatasetDescription.VOCABULARY.get_concept(first_type)
+        concept = DatasetDescription.get_type_concepts()[0]
+        first_type = concept.uri
 
         url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
 
         form = response.context["form"]
-        assert form.fields[first_type].label == concept.label()
-        assert form.fields[first_type].help_text == concept.definition()
+        assert form.fields[first_type].label == concept.display_label()
+        assert form.fields[first_type].help_text == concept.first_value(
+            "skos:definition"
+        )
 
 
 @pytest.mark.django_db
@@ -418,14 +422,16 @@ class TestSavingTextIntoOneAreaRecordsOnlyThatType:
     ):
         dataset = user_with_change_permission.dataset
         client.force_login(user_with_change_permission)
-        first_type = DatasetDescription.VOCABULARY.values[0]
+        first_type = [
+            concept.uri for concept in DatasetDescription.get_type_concepts()
+        ][0]
 
         url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         client.post(url, data={first_type: "Some abstract text."})
 
         assert DatasetDescription.objects.filter(related=dataset).count() == 1
         row = DatasetDescription.objects.get(related=dataset)
-        assert row.type == first_type
+        assert row.type_id == first_type
         assert row.value == "Some abstract text."
 
 
@@ -436,9 +442,11 @@ class TestExistingDescriptionsShowInTheirOwnArea:
     ):
         dataset = user_with_change_permission.dataset
         client.force_login(user_with_change_permission)
-        first_type, second_type = DatasetDescription.VOCABULARY.values[:2]
+        first_type, second_type = [
+            concept.uri for concept in DatasetDescription.get_type_concepts()
+        ][:2]
         DatasetDescription.objects.create(
-            related=dataset, type=first_type, value="Existing abstract."
+            related=dataset, type_id=first_type, value="Existing abstract."
         )
 
         url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
@@ -454,9 +462,11 @@ class TestEditingAnExistingDescriptionPersists:
     def test_the_changed_text_persists(self, client, user_with_change_permission):
         dataset = user_with_change_permission.dataset
         client.force_login(user_with_change_permission)
-        first_type = DatasetDescription.VOCABULARY.values[0]
+        first_type = [
+            concept.uri for concept in DatasetDescription.get_type_concepts()
+        ][0]
         row = DatasetDescription.objects.create(
-            related=dataset, type=first_type, value="Original text."
+            related=dataset, type_id=first_type, value="Original text."
         )
 
         url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
@@ -474,7 +484,9 @@ class TestRepeatSubmissionNeverDuplicatesAType:
     ):
         dataset = user_with_change_permission.dataset
         client.force_login(user_with_change_permission)
-        first_type = DatasetDescription.VOCABULARY.values[0]
+        first_type = [
+            concept.uri for concept in DatasetDescription.get_type_concepts()
+        ][0]
 
         url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         client.post(url, data={first_type: "First."})
@@ -498,9 +510,11 @@ class TestClearingAnAreaRemovesTheDescription:
     ):
         dataset = user_with_change_permission.dataset
         client.force_login(user_with_change_permission)
-        first_type = DatasetDescription.VOCABULARY.values[0]
+        first_type = [
+            concept.uri for concept in DatasetDescription.get_type_concepts()
+        ][0]
         DatasetDescription.objects.create(
-            related=dataset, type=first_type, value="Existing text."
+            related=dataset, type_id=first_type, value="Existing text."
         )
 
         url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
@@ -529,9 +543,11 @@ class TestEmptyAndWhitespaceOnlyAreasCreateNothing:
     ):
         dataset = user_with_change_permission.dataset
         client.force_login(user_with_change_permission)
-        first_type = DatasetDescription.VOCABULARY.values[0]
+        first_type = [
+            concept.uri for concept in DatasetDescription.get_type_concepts()
+        ][0]
         DatasetDescription.objects.create(
-            related=dataset, type=first_type, value="Existing text."
+            related=dataset, type_id=first_type, value="Existing text."
         )
 
         url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
@@ -549,7 +565,9 @@ class TestASuccessfulSubmissionRedirectsToTheDatasetsPage:
     ):
         dataset = user_with_change_permission.dataset
         client.force_login(user_with_change_permission)
-        first_type = DatasetDescription.VOCABULARY.values[0]
+        first_type = [
+            concept.uri for concept in DatasetDescription.get_type_concepts()
+        ][0]
 
         url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         response = client.post(url, data={first_type: "Some text."})
@@ -587,6 +605,7 @@ class TestEachOfTheFourPagesStatesItsOwnPermission:
 
         request = _request_for(AnonymousUser())
         assert can_open(_ChildStatingNone, request, None) is True
+
 
 @pytest.mark.django_db
 class TestEachOfTheFourPagesGuardsAPrivateDatasetsVisibility:
@@ -643,6 +662,7 @@ class TestTheDatasetsOwnPageOffersTheDeletionLink:
         delete_url = reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
         assertNotContains(response, f'href="{delete_url}"')
 
+
 @pytest.mark.django_db
 class TestNoLinkIsOfferedForAnActionTheViewerCannotUse:
     def test_a_user_who_may_only_view_sees_no_update_or_descriptions_link(self, client):
@@ -663,6 +683,7 @@ class TestNoLinkIsOfferedForAnActionTheViewerCannotUse:
         )
         assertNotContains(response, f'href="{update_url}"')
         assertNotContains(response, f'href="{descriptions_url}"')
+
 
 @pytest.mark.django_db
 class TestEveryLinkTheDatasetsPagesDrawResolvesToARealAddress:
@@ -689,9 +710,7 @@ class TestEveryLinkTheDatasetsPagesDrawResolvesToARealAddress:
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         client.force_login(self._permitted_user(dataset))
 
-        response = client.get(
-            reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
-        )
+        response = client.get(reverse("dataset:edit", kwargs={"uuid": dataset.uuid}))
 
         hrefs = _hrefs(response.content.decode())
         assert hrefs
@@ -713,9 +732,7 @@ class TestEveryLinkTheDatasetsPagesDrawResolvesToARealAddress:
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         client.force_login(self._permitted_user(dataset))
 
-        response = client.get(
-            reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
-        )
+        response = client.get(reverse("dataset:delete", kwargs={"uuid": dataset.uuid}))
 
         hrefs = _hrefs(response.content.decode())
         assert hrefs
@@ -732,9 +749,7 @@ class TestUpdateDescriptionsAndDeletionEachLinkBackToTheDataset:
         )
         client.force_login(user)
 
-        response = client.get(
-            reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
-        )
+        response = client.get(reverse("dataset:edit", kwargs={"uuid": dataset.uuid}))
 
         dataset_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
         assertContains(response, f'href="{dataset_url}"')
@@ -753,6 +768,7 @@ class TestUpdateDescriptionsAndDeletionEachLinkBackToTheDataset:
 
         dataset_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
         assertContains(response, f'href="{dataset_url}"')
+
 
 @pytest.mark.django_db
 class TestRenderingEachOfTheDatasetsPagesEmitsNoDeprecationWarning:
@@ -927,7 +943,9 @@ class TestOverviewWhatAVisitorSeesBeforePublication:
 
     def test_a_visitor_is_shown_the_abstract(self, client, holding):
         DatasetDescriptionFactory(
-            related=holding, type="Abstract", value="Cores from the rift."
+            related=holding,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="Cores from the rift.",
         )
 
         response = _page(client, holding)
@@ -978,13 +996,23 @@ class TestOverviewReadinessChecklist:
         self, client
     ):
         dataset = DatasetFactory(visibility=Visibility.PRIVATE, published=False)
-        DatasetDescriptionFactory(related=dataset, type="Abstract", value="Cores.")
-        DatasetDescriptionFactory(related=dataset, type="Methods", value="Drilled.")
+        DatasetDescriptionFactory(
+            related=dataset, type_id=f"{DESCRIPTION_TYPES}/abstract", value="Cores."
+        )
+        DatasetDescriptionFactory(
+            related=dataset, type_id=f"{DESCRIPTION_TYPES}/methods", value="Drilled."
+        )
         DatasetDateFactory(
-            related=dataset, type="CollectionStart", value=PartialDate("2024-01-01")
+            related=dataset,
+            type_id=f"{DATE_TYPES}/collection-start",
+            value=PartialDate("2024-01-01"),
         )
         dataset.add_contributor(
-            PersonFactory(is_active=True), with_roles=["Creator", "ContactPerson"]
+            PersonFactory(is_active=True),
+            with_roles=[
+                f"{CONTRIBUTOR_ROLES}/creator",
+                f"{CONTRIBUTOR_ROLES}/contact-person",
+            ],
         )
         from demo.factories import RockSampleFactory
 
@@ -1014,11 +1042,11 @@ class TestOverviewCitation:
     ):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         partner = OrganizationFactory(name="Acme Lab")
-        dataset.add_contributor(partner, with_roles=["Creator"])
+        dataset.add_contributor(partner, with_roles=[f"{CONTRIBUTOR_ROLES}/creator"])
         for first, last in (("Anna", "Keller"), ("Tomas", "Oliveira")):
             moving = dataset.add_contributor(
                 PersonFactory(first_name=first, last_name=last, is_active=True),
-                with_roles=["Creator"],
+                with_roles=[f"{CONTRIBUTOR_ROLES}/creator"],
             )
         Crediting(dataset).move(moving, "up")
 
@@ -1029,10 +1057,14 @@ class TestOverviewCitation:
     def test_without_one_the_year_is_the_published_date(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         DatasetDateFactory(
-            related=dataset, type="Published", value=PartialDate("2021-05-04")
+            related=dataset,
+            type_id=f"{DATE_TYPES}/published",
+            value=PartialDate("2021-05-04"),
         )
         DatasetDateFactory(
-            related=dataset, type="Available", value=PartialDate("2022-01-01")
+            related=dataset,
+            type_id=f"{DATE_TYPES}/available",
+            value=PartialDate("2022-01-01"),
         )
 
         assert "(2021)" in self._citation(client, dataset)
@@ -1040,7 +1072,9 @@ class TestOverviewCitation:
     def test_without_a_published_date_the_year_is_the_available_date(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         DatasetDateFactory(
-            related=dataset, type="Available", value=PartialDate("2022-01-01")
+            related=dataset,
+            type_id=f"{DATE_TYPES}/available",
+            value=PartialDate("2022-01-01"),
         )
 
         assert "(2022)" in self._citation(client, dataset)
@@ -1153,13 +1187,13 @@ class TestOverviewTimeline:
             added=datetime(2022, 11, 10, tzinfo=UTC)
         )
         for type_, value in (
-            ("Available", "2025-06-01"),
-            ("Published", "2025-05-01"),
-            ("Submitted", "2025-04-01"),
-            ("CollectionStart", "2023-02-01"),
-            ("CollectionEnd", "2023-09-30"),
+            (f"{DATE_TYPES}/available", "2025-06-01"),
+            (f"{DATE_TYPES}/published", "2025-05-01"),
+            (f"{DATE_TYPES}/submitted", "2025-04-01"),
+            (f"{DATE_TYPES}/collection-start", "2023-02-01"),
+            (f"{DATE_TYPES}/collection-end", "2023-09-30"),
         ):
-            DatasetDateFactory(related=dataset, type=type_, value=PartialDate(value))
+            DatasetDateFactory(related=dataset, type_id=type_, value=PartialDate(value))
 
         steps = self._steps(_page(client, dataset).page)
 
@@ -1175,7 +1209,9 @@ class TestOverviewTimeline:
     ):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         DatasetDateFactory(
-            related=dataset, type="Withdrawn", value=PartialDate("2999-01-01")
+            related=dataset,
+            type_id=f"{DATE_TYPES}/withdrawn",
+            value=PartialDate("2999-01-01"),
         )
         when = date_format(date(2999, 1, 1), "SHORT_DATE_FORMAT")
 
@@ -1184,16 +1220,18 @@ class TestOverviewTimeline:
         assert when in response.page.select_one(".alert").get_text()
         assert self._steps(response.page)[-1] == when
 
-    def test_a_collection_period_is_shown_as_precisely_as_it_was_recorded(
-        self, client
-    ):
+    def test_a_collection_period_is_shown_as_precisely_as_it_was_recorded(self, client):
         year_only = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         month_only = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         DatasetDateFactory(
-            related=year_only, type="CollectionStart", value=PartialDate("2023")
+            related=year_only,
+            type_id=f"{DATE_TYPES}/collection-start",
+            value=PartialDate("2023"),
         )
         DatasetDateFactory(
-            related=month_only, type="CollectionStart", value=PartialDate("2023-02")
+            related=month_only,
+            type_id=f"{DATE_TYPES}/collection-start",
+            value=PartialDate("2023-02"),
         )
 
         year_steps = self._steps(_page(client, year_only).page)
@@ -1208,7 +1246,11 @@ class TestOverviewTimeline:
 
     def test_a_withdrawal_recorded_to_the_year_is_shown_as_the_year(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
-        DatasetDateFactory(related=dataset, type="Withdrawn", value=PartialDate("2999"))
+        DatasetDateFactory(
+            related=dataset,
+            type_id=f"{DATE_TYPES}/withdrawn",
+            value=PartialDate("2999"),
+        )
 
         response = _page(client, dataset)
 
@@ -1381,7 +1423,7 @@ class TestOverviewSchemaOrgDescription:
     def test_it_carries_no_contributor_email_address(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         person = PersonFactory(is_active=True)
-        dataset.add_contributor(person, with_roles=["Creator"])
+        dataset.add_contributor(person, with_roles=[f"{CONTRIBUTOR_ROLES}/creator"])
 
         response = _page(client, dataset)
 

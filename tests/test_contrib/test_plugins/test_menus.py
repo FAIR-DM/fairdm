@@ -5,11 +5,11 @@ from django.urls import reverse
 from django.views.generic import TemplateView
 
 from demo.factories import RockSampleFactory
-from fairdm.utils.choices import Visibility
-from fairdm.factories import DatasetFactory
 from fairdm import plugins
 from fairdm.contrib.plugins import Plugin
 from fairdm.core.sample.models import Sample
+from fairdm.factories import DatasetFactory
+from fairdm.utils.choices import Visibility
 
 
 def entry_labels(model):

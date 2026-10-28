@@ -54,10 +54,11 @@ how to programmatically create metadata:
 
    ```python
    from fairdm.core.dataset.models import DatasetIdentifier
+   from fairdm.core.vocabularies import ABSTRACT, DATE_TYPES, DESCRIPTION_TYPES, DOI
 
    # Assign a DOI to a dataset
    doi = DatasetIdentifier.objects.create(
-       related=my_dataset, type="DOI", value="10.5061/dryad.12345"
+       related=my_dataset, type_id=DOI, value="10.5061/dryad.12345"
    )
 
    # Access DOI through convenience property
@@ -66,7 +67,7 @@ how to programmatically create metadata:
 
    # Query datasets by DOI
    dataset = Dataset.objects.filter(
-       identifiers__type="DOI", identifiers__value="10.5061/dryad.12345"
+       identifiers__type=DOI, identifiers__value="10.5061/dryad.12345"
    ).first()
    ```
 
@@ -82,24 +83,28 @@ how to programmatically create metadata:
    # Rich descriptions (one per type)
    DatasetDescription.objects.create(
        related=my_dataset,
-       type="Abstract",
+       type_id=ABSTRACT,
        value="This dataset contains XRF measurements...",
    )
    DatasetDescription.objects.create(
-       related=my_dataset, type="Methods", value="Samples were analyzed using..."
+       related=my_dataset,
+       type_id=f"{DESCRIPTION_TYPES}/methods",
+       value="Samples were analyzed using...",
    )
 
    # Temporal metadata (one per type)
    DatasetDate.objects.create(
        related=my_dataset,
-       type="Available",
+       type_id=f"{DATE_TYPES}/available",
        value="2024-01-15",  # PartialDate format: YYYY, YYYY-MM, or YYYY-MM-DD
    )
-   DatasetDate.objects.create(related=my_dataset, type="Published", value="2024-06-01")
+   DatasetDate.objects.create(
+       related=my_dataset, type_id=f"{DATE_TYPES}/published", value="2024-06-01"
+   )
 
    # Additional identifiers (must be globally unique)
    DatasetIdentifier.objects.create(
-       related=my_dataset, type="DOI", value="10.5194/essd-12-345-2024"
+       related=my_dataset, type_id=DOI, value="10.5194/essd-12-345-2024"
    )
    ```
 

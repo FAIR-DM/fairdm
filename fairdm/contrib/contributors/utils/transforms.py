@@ -14,6 +14,13 @@ from fairdm.contrib.contributors.models import (
     Organization,
     Person,
 )
+from fairdm.core.vocabularies import (
+    IDENTIFIER_TYPES,
+    ORCID,
+    ROR,
+    collection_members,
+    notation,
+)
 
 
 class BaseTransform:
@@ -127,7 +134,7 @@ class DataCiteTransform(BaseTransform):
             identifiers.append(
                 {
                     "nameIdentifier": default_id.value,
-                    "nameIdentifierScheme": default_id.type,
+                    "nameIdentifierScheme": notation(default_id.type),
                     "schemeURI": (
                         default_id.get_url() if hasattr(default_id, "get_url") else None
                     ),
@@ -186,12 +193,18 @@ class DataCiteTransform(BaseTransform):
             if identifiers := data.get("nameIdentifiers"):
                 from fairdm.contrib.contributors.models import ContributorIdentifier
 
+                # DataCite names a scheme by its code, which is the identifier type's notation.
+                types = {
+                    notation(concept): concept
+                    for concept in collection_members(f"{IDENTIFIER_TYPES}/contributor")
+                }
                 for id_data in identifiers:
-                    ContributorIdentifier.objects.update_or_create(
-                        type=id_data.get("nameIdentifierScheme"),
-                        value=id_data.get("nameIdentifier"),
-                        defaults={"related": instance},
-                    )
+                    if concept := types.get(id_data.get("nameIdentifierScheme")):
+                        ContributorIdentifier.objects.update_or_create(
+                            type=concept,
+                            value=id_data.get("nameIdentifier"),
+                            defaults={"related": instance},
+                        )
 
         return instance
 
@@ -315,14 +328,14 @@ class SchemaOrgTransform(BaseTransform):
                 if "orcid.org/" in id_url:
                     orcid = id_url.split("orcid.org/")[-1]
                     ContributorIdentifier.objects.update_or_create(
-                        type="ORCID",
+                        type_id=ORCID,
                         value=orcid,
                         defaults={"related": instance},
                     )
                 elif "ror.org/" in id_url:
                     ror = id_url.split("ror.org/")[-1]
                     ContributorIdentifier.objects.update_or_create(
-                        type="ROR",
+                        type_id=ROR,
                         value=ror,
                         defaults={"related": instance},
                     )
@@ -356,7 +369,7 @@ class CSLJSONTransform(BaseTransform):
                 "literal": contributor.name,
             }
 
-        if (orcid := contributor.get_default_identifier()) and orcid.type == "ORCID":
+        if (orcid := contributor.get_default_identifier()) and orcid.type_id == ORCID:
             data["ORCID"] = f"https://orcid.org/{orcid.value}"
 
         if isinstance(contributor, Person) and (
@@ -386,7 +399,7 @@ class CSLJSONTransform(BaseTransform):
                 orcid.split("orcid.org/")[-1] if "orcid.org/" in orcid else orcid
             )
             instance = Contributor.objects.filter(
-                identifiers__type="ORCID",
+                identifiers__type_id=ORCID,
                 identifiers__value=orcid_value,
             ).first()
 
@@ -409,7 +422,7 @@ class CSLJSONTransform(BaseTransform):
                     orcid.split("orcid.org/")[-1] if "orcid.org/" in orcid else orcid
                 )
                 ContributorIdentifier.objects.update_or_create(
-                    type="ORCID",
+                    type_id=ORCID,
                     value=orcid_value,
                     defaults={"related": instance},
                 )
@@ -484,7 +497,7 @@ class ORCIDTransform(BaseTransform):
             raise TypeError(msg)
 
         orcid = contributor.get_default_identifier()
-        orcid_value = orcid.value if orcid and orcid.type == "ORCID" else None
+        orcid_value = orcid.value if orcid and orcid.type_id == ORCID else None
 
         data = {
             "orcid-identifier": {
@@ -576,7 +589,7 @@ class ORCIDTransform(BaseTransform):
                 person.save()
                 if orcid:
                     ContributorIdentifier.objects.update_or_create(
-                        type="ORCID",
+                        type_id=ORCID,
                         value=orcid,
                         defaults={"related": person},
                     )
@@ -737,7 +750,7 @@ class RORTransform(BaseTransform):
             raise TypeError(msg)
 
         ror = contributor.get_default_identifier()
-        ror_value = ror.value if ror and ror.type == "ROR" else None
+        ror_value = ror.value if ror and ror.type_id == ROR else None
         ror_url = f"https://ror.org/{ror_value}" if ror_value else None
 
         data = {
@@ -814,7 +827,7 @@ class RORTransform(BaseTransform):
             org.save()
             if ror_id:
                 ContributorIdentifier.objects.update_or_create(
-                    type="ROR",
+                    type_id=ROR,
                     value=ror_id,
                     defaults={"related": org},
                 )

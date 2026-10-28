@@ -11,10 +11,15 @@ from demo.models import RockSample, XRFMeasurement
 from fairdm.contrib.import_export.resources import MeasurementResource, SampleResource
 from fairdm.core.models import Dataset, Sample
 from fairdm.factories import DatasetFactory
-from fairdm.utils.choices import Visibility
 from fairdm.registry.config import ModelConfiguration
+from fairdm.utils.choices import Visibility
 
-LOCATION_COLUMNS = ["latitude", "longitude", "location_elevation", "location_uncertainty"]
+LOCATION_COLUMNS = [
+    "latitude",
+    "longitude",
+    "location_elevation",
+    "location_uncertainty",
+]
 
 
 def at(longitude, latitude):
@@ -23,9 +28,7 @@ def at(longitude, latitude):
 
 def reference(name, model):
     """A column that names the related record by its primary key."""
-    return Field(
-        attribute=name, column_name=name, widget=ForeignKeyWidget(model, "pk")
-    )
+    return Field(attribute=name, column_name=name, widget=ForeignKeyWidget(model, "pk"))
 
 
 def resource_for(model, target, fields, **references):
@@ -202,9 +205,7 @@ class TestImport:
             },
         ],
     )
-    def test_a_row_that_cannot_be_read_is_reported_and_not_saved(
-        self, dataset, cells
-    ):
+    def test_a_row_that_cannot_be_read_is_reported_and_not_saved(self, dataset, cells):
         result = self.load(
             sample_resource(dataset),
             self.row(dataset, name="good", latitude="49.0", longitude="8.4"),

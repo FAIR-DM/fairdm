@@ -25,11 +25,20 @@ from fairdm.core.overview import (
 )
 from fairdm.core.plugins import RecordOverviewPlugin
 from fairdm.core.sample.models import Sample
+from fairdm.core.vocabularies import (
+    ABSTRACT,
+    CONTACT_PERSON,
+    CREATOR,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    DOI,
+)
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
 
 from .models import (
     Dataset,
+    DatasetDate,
     DatasetDescription,
     DatasetLiteratureRelation,
 )
@@ -275,17 +284,21 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         return {"state": "public", "label": gettext("Unpublished")}
 
     def get_descriptions(self):
-        """List the dataset's descriptions in the vocabulary's own order.
+        """List the dataset's descriptions in the order of the dataset description types.
 
         Returns:
-            One entry per description type the dataset has text for.
+            One entry per description type the dataset has text for, ``type`` being the
+            type's address.
         """
-        by_type = {d.type: d.value for d in self.base_object.descriptions.all()}
-        labels = dict(DatasetDescription.VOCABULARY.choices)
+        by_type = {d.type_id: d.value for d in self.base_object.descriptions.all()}
         return [
-            {"type": t, "label": labels.get(t, t), "value": by_type[t]}
-            for t in DatasetDescription.VOCABULARY.values
-            if by_type.get(t)
+            {
+                "type": concept.uri,
+                "label": concept.display_label(),
+                "value": by_type[concept.uri],
+            }
+            for concept in DatasetDescription.get_type_concepts()
+            if by_type.get(concept.uri)
         ]
 
     def get_dates(self):
@@ -295,15 +308,16 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             The collection start and end and the available, submitted, published and withdrawn
             dates, each ``None`` when not recorded, and the withdrawal written out as recorded.
         """
-        values = {d.type: d.value for d in self.base_object.dates.all()}
+        values = {d.type_id: d.value for d in self.base_object.dates.all()}
+        withdrawn = values.get(f"{DATE_TYPES}/withdrawn")
         return {
-            "collection_start": values.get("CollectionStart"),
-            "collection_end": values.get("CollectionEnd"),
-            "available": values.get("Available"),
-            "submitted": values.get("Submitted"),
-            "published": values.get("Published"),
-            "withdrawn": values.get("Withdrawn"),
-            "withdrawn_text": format_partial_date(values.get("Withdrawn")),
+            "collection_start": values.get(DatasetDate.START_TYPE),
+            "collection_end": values.get(DatasetDate.END_TYPE),
+            "available": values.get(f"{DATE_TYPES}/available"),
+            "submitted": values.get(f"{DATE_TYPES}/submitted"),
+            "published": values.get(f"{DATE_TYPES}/published"),
+            "withdrawn": withdrawn,
+            "withdrawn_text": format_partial_date(withdrawn),
         }
 
     def get_team(self):
@@ -316,15 +330,15 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         contributions = self.get_contributions()
         creators, has_contact = [], False
         for contribution in contributions:
-            roles = self.get_role_names(contribution)
-            if "Creator" in roles:
+            roles = self.get_role_uris(contribution)
+            if CREATOR in roles:
                 creators.append(
                     {
                         "contributor": contribution.contributor,
-                        "roles": [r.label for r in contribution.roles.all()],
+                        "roles": [r.display_label() for r in contribution.roles.all()],
                     }
                 )
-            has_contact = has_contact or "ContactPerson" in roles
+            has_contact = has_contact or CONTACT_PERSON in roles
         return {
             "creators": creators,
             "has_contact": has_contact,
@@ -506,7 +520,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         when = as_date(page["dates"]["published"] or page["dates"]["available"])
         year = when.year if when else dataset.added.year
         doi = next(
-            (i.value for i in dataset.identifiers.all() if i.type == "DOI"), None
+            (i.value for i in dataset.identifiers.all() if i.type_id == DOI), None
         )
         link = (
             f"https://doi.org/{doi}"
@@ -538,7 +552,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         dataset = self.base_object
         url = self.request.build_absolute_uri(dataset.get_absolute_url())
         abstract = next(
-            (d["value"] for d in page["descriptions"] if d["type"] == "Abstract"), ""
+            (d["value"] for d in page["descriptions"] if d["type"] == ABSTRACT), ""
         )
         data = OrderedDict(
             [
@@ -555,7 +569,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             data["description"] = abstract
         if dataset.license_id:
             data["license"] = dataset.license.canonical_url or dataset.license.name
-        keywords = [k.label for k in dataset.keywords.all()]
+        keywords = [k.display_label() for k in dataset.keywords.all()]
         if keywords:
             data["keywords"] = keywords
         creators = []
@@ -618,13 +632,13 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         items = [
             (
                 gettext("An abstract describes the data"),
-                "Abstract" in described,
+                ABSTRACT in described,
                 urls["descriptions"],
                 True,
             ),
             (
                 gettext("The methods are described"),
-                "Methods" in described,
+                f"{DESCRIPTION_TYPES}/methods" in described,
                 urls["descriptions"],
                 True,
             ),

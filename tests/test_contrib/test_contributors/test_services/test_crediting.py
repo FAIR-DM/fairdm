@@ -3,17 +3,18 @@
 from types import SimpleNamespace
 
 import pytest
+from controlled_vocabularies.models import Record
 from django.core.exceptions import ValidationError
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from guardian.utils import get_anonymous_user
-from research_vocabs.models import Concept
 
 from fairdm.contrib.contributors.access import RecordAccess
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Contribution
 from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.core.project.models import Project
+from fairdm.core.vocabularies import CONTRIBUTOR_ROLES, collection_members
 from fairdm.factories import AffiliationFactory, OrganizationFactory, PersonFactory
 from fairdm.utils.choices import Visibility
 
@@ -21,7 +22,7 @@ RECORDS = ["project", "dataset", "sample", "measurement"]
 
 
 def role(name):
-    return Concept.objects.get(vocabulary__name="fairdm-roles", name=name)
+    return Record.objects.get(scheme__uri=CONTRIBUTOR_ROLES, uri=name)
 
 
 @pytest.fixture
@@ -98,8 +99,8 @@ class TestOfferedRoles:
 
         offered = Crediting(record).offered_roles()
 
-        assert [concept.name for concept in offered] == list(
-            record.CONTRIBUTOR_ROLES.values
+        assert [concept.uri for concept in offered] == list(
+            [role.uri for role in collection_members(record.CONTRIBUTOR_ROLES)]
         )
 
 
@@ -109,27 +110,33 @@ class TestUpdate:
         contribution = grant(record_chain.project, somebody, None)
 
         Crediting(record_chain.project).update(
-            contribution, roles=[role("Creator"), role("ProjectLeader")]
+            contribution,
+            roles=[
+                role(f"{CONTRIBUTOR_ROLES}/creator"),
+                role(f"{CONTRIBUTOR_ROLES}/project-leader"),
+            ],
         )
 
-        assert {r.name for r in contribution.roles.all()} == {
-            "Creator",
-            "ProjectLeader",
+        assert {r.uri for r in contribution.roles.all()} == {
+            f"{CONTRIBUTOR_ROLES}/creator",
+            f"{CONTRIBUTOR_ROLES}/project-leader",
         }
 
     def test_the_roles_replace_those_held(self, record_chain, somebody, grant):
         contribution = grant(record_chain.project, somebody, None)
-        contribution.roles.add(role("Creator"))
+        contribution.roles.add(role(f"{CONTRIBUTOR_ROLES}/creator"))
 
         Crediting(record_chain.project).update(
-            contribution, roles=[role("ProjectMember")]
+            contribution, roles=[role(f"{CONTRIBUTOR_ROLES}/project-member")]
         )
 
-        assert [r.name for r in contribution.roles.all()] == ["ProjectMember"]
+        assert [r.uri for r in contribution.roles.all()] == [
+            f"{CONTRIBUTOR_ROLES}/project-member"
+        ]
 
     def test_no_role_is_allowed(self, record_chain, somebody, grant):
         contribution = grant(record_chain.project, somebody, None)
-        contribution.roles.add(role("Creator"))
+        contribution.roles.add(role(f"{CONTRIBUTOR_ROLES}/creator"))
 
         Crediting(record_chain.project).update(contribution, roles=[])
 
@@ -139,8 +146,10 @@ class TestUpdate:
         self, record_chain, somebody, grant
     ):
         contribution = grant(record_chain.project, somebody, None)
-        elsewhere = Concept.objects.filter(vocabulary__name="fairdm-roles").exclude(
-            name__in=Project.CONTRIBUTOR_ROLES.values
+        elsewhere = Record.objects.filter(
+            scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+        ).exclude(
+            uri__in=[role.uri for role in collection_members(Project.CONTRIBUTOR_ROLES)]
         )[0]
 
         with pytest.raises(ValidationError) as refused:
@@ -154,7 +163,9 @@ class TestUpdate:
     ):
         contribution = grant(record_chain.project, somebody, ContributionLevel.MANAGE)
 
-        Crediting(record_chain.project).update(contribution, roles=[role("Creator")])
+        Crediting(record_chain.project).update(
+            contribution, roles=[role(f"{CONTRIBUTOR_ROLES}/creator")]
+        )
 
         contribution.refresh_from_db()
         assert contribution.level == ContributionLevel.MANAGE
@@ -239,7 +250,7 @@ class TestUpdateLevel:
         with pytest.raises(ValidationError):
             Crediting(record_chain.dataset).update(
                 contribution,
-                roles=[role("Creator")],
+                roles=[role(f"{CONTRIBUTOR_ROLES}/creator")],
                 level=ContributionLevel.VIEW,
             )
 
@@ -250,8 +261,13 @@ class TestUpdateLevel:
     ):
         grant(record_chain.project, somebody, ContributionLevel.MANAGE)
         contribution = grant(record_chain.dataset, somebody, ContributionLevel.MANAGE)
-        elsewhere = Concept.objects.filter(vocabulary__name="fairdm-roles").exclude(
-            name__in=record_chain.dataset.CONTRIBUTOR_ROLES.values
+        elsewhere = Record.objects.filter(
+            scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+        ).exclude(
+            uri__in=[
+                role.uri
+                for role in collection_members(record_chain.dataset.CONTRIBUTOR_ROLES)
+            ]
         )[0]
 
         with pytest.raises(ValidationError) as refused:
@@ -409,7 +425,7 @@ class TestCreditedFrom:
         crediting = Crediting(record_chain.dataset)
         contribution = crediting.add(somebody, organization=organization)
 
-        crediting.update(contribution, roles=[role("Creator")])
+        crediting.update(contribution, roles=[role(f"{CONTRIBUTOR_ROLES}/creator")])
 
         contribution.refresh_from_db()
         assert contribution.affiliation == organization
@@ -418,8 +434,10 @@ class TestCreditedFrom:
         first = OrganizationFactory()
         crediting = Crediting(record_chain.project)
         contribution = crediting.add(somebody, organization=first)
-        elsewhere = Concept.objects.filter(vocabulary__name="fairdm-roles").exclude(
-            name__in=Project.CONTRIBUTOR_ROLES.values
+        elsewhere = Record.objects.filter(
+            scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+        ).exclude(
+            uri__in=[role.uri for role in collection_members(Project.CONTRIBUTOR_ROLES)]
         )[0]
         other = OrganizationFactory()
 
@@ -524,12 +542,16 @@ class TestMakeCreator:
 
     def test_the_roles_given_are_held(self, record_chain, somebody):
         contribution = Crediting(record_chain.dataset).make_creator(
-            somebody, roles=["Creator", "ContactPerson"]
+            somebody,
+            roles=[
+                f"{CONTRIBUTOR_ROLES}/creator",
+                f"{CONTRIBUTOR_ROLES}/contact-person",
+            ],
         )
 
-        assert set(contribution.roles.values_list("name", flat=True)) == {
-            "Creator",
-            "ContactPerson",
+        assert set(contribution.roles.values_list("uri", flat=True)) == {
+            f"{CONTRIBUTOR_ROLES}/creator",
+            f"{CONTRIBUTOR_ROLES}/contact-person",
         }
 
     def test_no_stored_permission_row_is_written(self, record_chain, somebody):
@@ -584,7 +606,7 @@ class TestLastManager:
         self, record_chain, manager, grant
     ):
         contribution = grant(record_chain.dataset, manager, ContributionLevel.MANAGE)
-        contribution.roles.set([role("Creator")])
+        contribution.roles.set([role(f"{CONTRIBUTOR_ROLES}/creator")])
 
         with pytest.raises(ValidationError) as refused:
             Crediting(record_chain.dataset).update(
@@ -594,7 +616,7 @@ class TestLastManager:
         assert refused.value.code == "last_manager"
         contribution.refresh_from_db()
         assert contribution.level == ContributionLevel.MANAGE
-        assert list(contribution.roles.all()) == [role("Creator")]
+        assert list(contribution.roles.all()) == [role(f"{CONTRIBUTOR_ROLES}/creator")]
 
     def test_a_stale_contribution_is_judged_by_what_is_stored(
         self, record_chain, manager, grant
@@ -653,10 +675,12 @@ class TestLastManager:
         contribution = grant(record_chain.dataset, manager, ContributionLevel.MANAGE)
 
         Crediting(record_chain.dataset).update(
-            contribution, roles=[role("Creator")], level=ContributionLevel.MANAGE
+            contribution,
+            roles=[role(f"{CONTRIBUTOR_ROLES}/creator")],
+            level=ContributionLevel.MANAGE,
         )
 
-        assert list(contribution.roles.all()) == [role("Creator")]
+        assert list(contribution.roles.all()) == [role(f"{CONTRIBUTOR_ROLES}/creator")]
 
     def test_a_manager_through_the_dataset_counts(self, record_chain, manager, grant):
         above = PersonFactory(is_active=True, is_claimed=True, password="x")

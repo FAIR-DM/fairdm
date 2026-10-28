@@ -7,22 +7,23 @@ from fairdm.core.dataset.models import Dataset, DatasetDate
 from fairdm.core.formsets import date_ordering_formset
 from fairdm.core.project.models import Project, ProjectDate
 from fairdm.factories import DatasetFactory, ProjectFactory
+from fairdm.core.vocabularies import DATE_TYPES
 
 DATE_ORDER_CASES = [
     (
         Project,
         ProjectDate,
         ProjectFactory,
-        "Start",
-        "End",
+        ProjectDate.START_TYPE,
+        ProjectDate.END_TYPE,
         "The project's end date (%(end)s) cannot be before its start date (%(start)s).",
     ),
     (
         Dataset,
         DatasetDate,
         DatasetFactory,
-        "CollectionStart",
-        "CollectionEnd",
+        DatasetDate.START_TYPE,
+        DatasetDate.END_TYPE,
         "The dataset's collection end date (%(end)s) cannot be "
         "before its collection start date (%(start)s).",
     ),
@@ -145,9 +146,9 @@ class TestDateOrderingFormSet:
             "The dataset's collection end date (%(end)s) cannot be "
             "before its collection start date (%(start)s).",
             {
-                f"{prefix}-0-type": "Submitted",
+                f"{prefix}-0-type": f"{DATE_TYPES}/submitted",
                 f"{prefix}-0-value": "2020-06-01",
-                f"{prefix}-1-type": "Published",
+                f"{prefix}-1-type": f"{DATE_TYPES}/published",
                 f"{prefix}-1-value": "2010-01-01",
             },
         )

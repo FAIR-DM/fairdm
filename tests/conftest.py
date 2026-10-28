@@ -9,13 +9,12 @@ from tests.test_contrib.test_autocomplete.conftest import in_request  # noqa: F4
 
 
 def seed_session_data():
-    """Write the data every test may rely on: the licences and the vocabulary terms."""
+    """Write the data every test may rely on: the licences and FairDM's vocabularies."""
     # Seed the recommended licences through the real deployment path
     # (`fairdm/management/commands/seed_licenses.py`), the route a portal takes.
     call_command("seed_licenses", verbosity=0)
-    from research_vocabs.models import Concept
-
-    Concept.preload()
+    # Read from the copies `CONTROLLED_VOCABULARIES` declares, never over the network.
+    call_command("sync_vocabularies", verbosity=0)
 
 
 @pytest.fixture(scope="session")
@@ -29,7 +28,7 @@ def reseeded_after_flush(django_db_blocker):
     """Write the session's data again once a transactional test has flushed it.
 
     A transactional test empties every table when it ends, and the tests that run after
-    it on the same worker still expect the licences and vocabulary terms. Request this
+    it on the same worker still expect the licences and vocabularies. Request this
     before ``transactional_db``, so its teardown runs after the flush.
     """
     yield

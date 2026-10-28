@@ -4,6 +4,7 @@ import pytest
 from django.contrib import admin
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.test import RequestFactory
 from django.urls import reverse
 
@@ -22,6 +23,13 @@ from fairdm.core.sample.models import (
     SampleDescription,
     SampleIdentifier,
     SampleRelation,
+)
+from fairdm.core.vocabularies import (
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    IDENTIFIER_TYPES,
+    SAMPLE_STATUS,
 )
 from fairdm.factories.core import DatasetFactory
 from fairdm.registry import registry
@@ -123,14 +131,16 @@ class TestSampleAdminFilters:
 
     def test_filter_by_status(self, admin_client):
         match = RockSampleFactory()
-        match.status = "available"
+        match.status_id = f"{SAMPLE_STATUS}/available"
         match.save()
         other = RockSampleFactory()
-        other.status = "stored"
+        other.status_id = f"{SAMPLE_STATUS}/stored"
         other.save()
 
         url = reverse("admin:sample_sample_changelist")
-        response = admin_client.get(url, {"status__exact": "available"})
+        response = admin_client.get(
+            url, {"status__exact": f"{SAMPLE_STATUS}/available"}
+        )
 
         assert response.status_code == 200
         pks = _result_pks(response)
@@ -141,17 +151,20 @@ class TestSampleAdminFilters:
         dataset1 = DatasetFactory()
         dataset2 = DatasetFactory()
         match = RockSampleFactory(dataset=dataset1)
-        match.status = "available"
+        match.status_id = f"{SAMPLE_STATUS}/available"
         match.save()
         same_dataset = RockSampleFactory(dataset=dataset1)
-        same_dataset.status = "stored"
+        same_dataset.status_id = f"{SAMPLE_STATUS}/stored"
         same_dataset.save()
         RockSampleFactory(dataset=dataset2)
 
         url = reverse("admin:sample_sample_changelist")
         response = admin_client.get(
             url,
-            {"dataset__id__exact": str(dataset1.pk), "status__exact": "available"},
+            {
+                "dataset__id__exact": str(dataset1.pk),
+                "status__exact": f"{SAMPLE_STATUS}/available",
+            },
         )
 
         assert response.status_code == 200
@@ -191,7 +204,7 @@ class TestSampleAdminInlines:
             "name": sample.name,
             "dataset": sample.dataset.pk,
             "local_id": sample.local_id or "",
-            "status": "unknown",
+            "status": f"{SAMPLE_STATUS}/unknown",
             "rock_type": sample.rock_type,
             "collection_date": sample.collection_date,
             "descriptions-TOTAL_FORMS": "0",
@@ -227,7 +240,7 @@ class TestSampleAdminInlines:
             {
                 "descriptions-TOTAL_FORMS": "1",
                 "descriptions-0-related": sample.pk,
-                "descriptions-0-type": "SampleCollection",
+                "descriptions-0-type": f"{DESCRIPTION_TYPES}/sample-collection",
                 "descriptions-0-value": "Added inline.",
             }
         )
@@ -239,7 +252,9 @@ class TestSampleAdminInlines:
             "the change form's error list."
         )
         assert SampleDescription.objects.filter(
-            related=sample, type="SampleCollection", value="Added inline."
+            related=sample,
+            type_id=f"{DESCRIPTION_TYPES}/sample-collection",
+            value="Added inline.",
         ).exists()
 
     def test_date_can_be_added_from_the_specimens_own_page(self, admin_client):
@@ -249,7 +264,7 @@ class TestSampleAdminInlines:
             {
                 "dates-TOTAL_FORMS": "1",
                 "dates-0-related": sample.pk,
-                "dates-0-type": "Collected",
+                "dates-0-type": f"{DATE_TYPES}/collected",
                 "dates-0-value": "2024-01-15",
             }
         )
@@ -260,7 +275,9 @@ class TestSampleAdminInlines:
             "A 200 here means the formset rejected the submission - check "
             "the change form's error list."
         )
-        assert SampleDate.objects.filter(related=sample, type="Collected").exists()
+        assert SampleDate.objects.filter(
+            related=sample, type_id=f"{DATE_TYPES}/collected"
+        ).exists()
 
     def test_identifier_can_be_added_from_the_specimens_own_page(self, admin_client):
         sample = RockSampleFactory(dataset=DatasetFactory(visibility=Visibility.PUBLIC))
@@ -269,7 +286,7 @@ class TestSampleAdminInlines:
             {
                 "identifiers-TOTAL_FORMS": "1",
                 "identifiers-0-related": sample.pk,
-                "identifiers-0-type": "DOI",
+                "identifiers-0-type": f"{IDENTIFIER_TYPES}/doi",
                 "identifiers-0-value": "10.1234/inline-test",
             }
         )
@@ -281,19 +298,21 @@ class TestSampleAdminInlines:
             "the change form's error list."
         )
         assert SampleIdentifier.objects.filter(
-            related=sample, type="DOI", value="10.1234/inline-test"
+            related=sample,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.1234/inline-test",
         ).exists()
 
     def test_contribution_can_be_added_from_the_specimens_own_page(self, admin_client):
-        from research_vocabs.models import Concept
+        from controlled_vocabularies.models import Record
 
         from fairdm.contrib.contributors.models import Contribution
         from fairdm.factories import PersonFactory
 
         sample = RockSampleFactory(dataset=DatasetFactory(visibility=Visibility.PUBLIC))
         contributor = PersonFactory()
-        role = Concept.objects.filter(
-            vocabulary__name="fairdm-roles", name="Collection"
+        role = Record.objects.filter(
+            scheme__uri=CONTRIBUTOR_ROLES, uri=f"{CONTRIBUTOR_ROLES}/collection"
         ).first()
         assert role is not None
 
@@ -303,7 +322,7 @@ class TestSampleAdminInlines:
             {
                 f"{prefix}-TOTAL_FORMS": "1",
                 f"{prefix}-0-contributor": contributor.pk,
-                f"{prefix}-0-roles": [role.pk],
+                f"{prefix}-0-roles": [role.uri],
             }
         )
 
@@ -365,21 +384,25 @@ class TestSampleContributionInlineRoleVocabulary:
     # An off-vocabulary role reaches the m2m_changed receiver, which refuses it
     # uncaught inside Django's atomic block, so the change request 500s.
     def _off_vocabulary_role():
-        from research_vocabs.models import Concept, Vocabulary
+        from controlled_vocabularies.models import ConceptScheme, Record
 
-        vocabulary, _ = Vocabulary.objects.get_or_create(
-            name="not-fairdm-roles",
+        vocabulary, _ = ConceptScheme.objects.get_or_create(
+            uri="https://example.com/vocabularies/not-fairdm-roles",
             defaults={
-                "label": "Not FairDM Roles",
-                "uri": "https://example.com/vocabularies/not-fairdm-roles",
+                "default_language": "en",
+                "data": {
+                    "skos:prefLabel": [
+                        {"@value": "Not FairDM Roles", "@language": "en"}
+                    ]
+                },
             },
         )
-        concept, _ = Concept.objects.get_or_create(
-            vocabulary=vocabulary,
-            name="Outsider",
+        concept, _ = Record.objects.get_or_create(
+            uri="https://example.com/vocabularies/not-fairdm-roles#outsider",
             defaults={
-                "uri": "https://example.com/vocabularies/not-fairdm-roles#outsider",
-                "label": "Outsider",
+                "scheme": vocabulary,
+                "type": Record.Type.CONCEPT,
+                "data": {"skos:prefLabel": [{"@value": "Outsider", "@language": "en"}]},
             },
         )
         return concept
@@ -443,14 +466,17 @@ class TestSampleContributionInlineRoleVocabulary:
         )
         formset_class = contribution_inline.get_formset(request, sample)
 
-        roles_queryset = formset_class.form.base_fields["roles"].queryset
-        assert off_vocabulary_role not in roles_queryset
+        roles = formset_class.form().fields["roles"]
+        with pytest.raises(ValidationError):
+            roles.clean([off_vocabulary_role.uri])
 
 
 @pytest.mark.django_db
 class TestSampleAdminInlineLimits:
     def test_description_inline_max_num_matches_vocabulary_size(self, admin_user):
-        vocabulary_size = len(SampleDescription.VOCABULARY.values)
+        vocabulary_size = len(
+            [concept.uri for concept in SampleDescription.get_type_concepts()]
+        )
 
         request = RequestFactory().get("/")
         request.user = admin_user
@@ -460,7 +486,9 @@ class TestSampleAdminInlineLimits:
         assert formset.max_num == vocabulary_size
 
     def test_date_inline_max_num_matches_vocabulary_size(self, admin_user):
-        vocabulary_size = len(SampleDate.VOCABULARY.values)
+        vocabulary_size = len(
+            [concept.uri for concept in SampleDate.get_type_concepts()]
+        )
 
         request = RequestFactory().get("/")
         request.user = admin_user
@@ -470,7 +498,9 @@ class TestSampleAdminInlineLimits:
         assert formset.max_num == vocabulary_size
 
     def test_identifier_inline_max_num_matches_vocabulary_size(self, admin_user):
-        vocabulary_size = len(SampleIdentifier.VOCABULARY.values)
+        vocabulary_size = len(
+            [concept.uri for concept in SampleIdentifier.get_type_concepts()]
+        )
 
         request = RequestFactory().get("/")
         request.user = admin_user
@@ -488,7 +518,7 @@ class TestSampleAdminInlineLimits:
         original_max_num = inline.get_formset(request).max_num
 
         monkeypatch.setattr(
-            SampleDescription.VOCABULARY, "_choices", [("A", "A"), ("B", "B")]
+            SampleDescription, "get_type_concepts", classmethod(lambda cls: [None] * 2)
         )
 
         shrunk_max_num = inline.get_formset(request).max_num
@@ -504,7 +534,9 @@ class TestSampleAdminInlineLimits:
         inline = SampleDateInline(Sample, AdminSite())
         original_max_num = inline.get_formset(request).max_num
 
-        monkeypatch.setattr(SampleDate.VOCABULARY, "_choices", [("A", "A")])
+        monkeypatch.setattr(
+            SampleDate, "get_type_concepts", classmethod(lambda cls: [None])
+        )
 
         shrunk_max_num = inline.get_formset(request).max_num
 
@@ -520,9 +552,7 @@ class TestSampleAdminInlineLimits:
         original_max_num = inline.get_formset(request).max_num
 
         monkeypatch.setattr(
-            SampleIdentifier.VOCABULARY,
-            "_choices",
-            [("A", "A"), ("B", "B"), ("C", "C")],
+            SampleIdentifier, "get_type_concepts", classmethod(lambda cls: [None] * 3)
         )
 
         grown_max_num = inline.get_formset(request).max_num
@@ -655,7 +685,7 @@ class TestSampleAdminReachesPrivateDatasets:
             data={
                 "name": sample.name,
                 "dataset": private.pk,
-                "status": "unknown",
+                "status": f"{SAMPLE_STATUS}/unknown",
                 "rock_type": sample.rock_type,
                 "collection_date": sample.collection_date,
             },

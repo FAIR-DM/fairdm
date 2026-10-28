@@ -25,6 +25,9 @@ from fairdm.contrib.contributors.models import (
     Organization,
     Person,
 )
+from fairdm.core.vocabularies import ORCID
+
+from .utils import ConceptFieldFactory
 
 User = get_user_model()
 
@@ -120,7 +123,7 @@ class OrganizationFactory(ContributorFactory):
         model = Organization
 
 
-class ContributorIdentifierFactory(DjangoModelFactory):
+class ContributorIdentifierFactory(ConceptFieldFactory):
     """Factory for creating ContributorIdentifier instances.
 
     ``AbstractIdentifier.value`` carries a database-level uniqueness constraint across
@@ -133,7 +136,7 @@ class ContributorIdentifierFactory(DjangoModelFactory):
     class Meta:
         model = ContributorIdentifier
 
-    type = "ORCID"
+    type = ORCID
     value = factory.Sequence(lambda n: f"0000-0001-{n:04d}-{n:04d}")
 
 

@@ -12,7 +12,7 @@
     <c-heading align="start" :eyebrow="about_eyebrow" title="{% translate 'Built by researchers, for researchers' %}" :lead="description" />
     {% if keywords %}
       <div class="mt-6 dce:flex dce:flex-wrap dce:gap-2">
-        {% for keyword in keywords %}<c-badge ghost text="{{ keyword.label }}" />{% endfor %}
+        {% for keyword in keywords %}<c-badge ghost text="{{ keyword.display_label }}" />{% endfor %}
       </div>
     {% endif %}
     {% if authority %}

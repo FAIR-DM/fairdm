@@ -49,6 +49,13 @@ from fairdm.core.sample.models import (
     SampleIdentifier,
     SampleRelation,
 )
+from fairdm.core.vocabularies import (
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    IDENTIFIER_TYPES,
+    SAMPLE_STATUS,
+)
 from fairdm.utils.choices import Visibility
 
 PROJECT = "Sample page examples"
@@ -133,7 +140,7 @@ class SampleSeed(BaseCommand):
             dataset=cores,
             name="GPK-2 core, 3512 m",
             local_id="GPK2-C14-3512",
-            status="stored",
+            status=f"{SAMPLE_STATUS}/stored",
             rock_type="igneous",
             collection_date=date(2025, 4, 3),
             mineral_content="K-feldspar, quartz, plagioclase, biotite; altered to illite along fractures.",
@@ -142,40 +149,50 @@ class SampleSeed(BaseCommand):
             location_uncertainty=10,
         )
         SampleIdentifier.objects.create(
-            related=core, type="IGSN", value="10.60510/FDM.GPK2C143512"
+            related=core,
+            type_id=f"{IDENTIFIER_TYPES}/igsn",
+            value="10.60510/FDM.GPK2C143512",
         )
         for type_, value in [
-            ("Collected", "2025-04-03"),
-            ("Prepared", "2025-05-19"),
-            ("Archival", "2025-07-01"),
+            (f"{DATE_TYPES}/collected", "2025-04-03"),
+            (f"{DATE_TYPES}/prepared", "2025-05-19"),
+            (f"{DATE_TYPES}/archival", "2025-07-01"),
         ]:
             SampleDate.objects.create(
-                related=core, type=type_, value=PartialDate(value)
+                related=core, type_id=type_, value=PartialDate(value)
             )
         for type_, value in [
             (
-                "SampleCollection",
+                f"{DESCRIPTION_TYPES}/sample-collection",
                 "Recovered by wireline coring from the GPK-2 well. Orientation marked on recovery.",
             ),
             (
-                "SamplePreparation",
+                f"{DESCRIPTION_TYPES}/sample-preparation",
                 "Slabbed along the long axis; one half crushed and milled below 63 µm for XRF.",
             ),
             (
-                "SampleStorage",
+                f"{DESCRIPTION_TYPES}/sample-storage",
                 "Archive half held at the BGR core repository, Berlin-Spandau, box 2025-117.",
             ),
             (
-                "Other",
+                f"{DESCRIPTION_TYPES}/other",
                 "Fracture zone at 3509\u20133514 m. The core is partly altered, which shows in the potassium values.",
             ),
         ]:
-            SampleDescription.objects.create(related=core, type=type_, value=value)
-        core.add_contributor(self.person("Lea", "Brandt"), with_roles=["Collection"])
+            SampleDescription.objects.create(related=core, type_id=type_, value=value)
         core.add_contributor(
-            self.person("Jonas", "Weber"), with_roles=["Collection", "Preparation"]
+            self.person("Lea", "Brandt"), with_roles=[f"{CONTRIBUTOR_ROLES}/collection"]
         )
-        core.add_contributor(self.person("Mei", "Tanaka"), with_roles=["Storage"])
+        core.add_contributor(
+            self.person("Jonas", "Weber"),
+            with_roles=[
+                f"{CONTRIBUTOR_ROLES}/collection",
+                f"{CONTRIBUTOR_ROLES}/preparation",
+            ],
+        )
+        core.add_contributor(
+            self.person("Mei", "Tanaka"), with_roles=[f"{CONTRIBUTOR_ROLES}/storage"]
+        )
 
         for _ in range(8):
             XRFMeasurementFactory(sample=core, dataset=cores)
@@ -185,7 +202,7 @@ class SampleSeed(BaseCommand):
             split = RockSampleFactory(
                 dataset=cores,
                 name=f"GPK-2 core, 3512 m, split {letter}",
-                status="in_use",
+                status=f"{SAMPLE_STATUS}/in-use",
             )
             SampleRelation.objects.create(source=split, target=core, type="child_of")
         return core
@@ -194,19 +211,26 @@ class SampleSeed(BaseCommand):
         water = WaterSampleFactory(
             dataset=cores,
             name="Rittershoffen brine, GRT-1, sample 4",
-            status="destroyed",
+            status=f"{SAMPLE_STATUS}/destroyed",
         )
-        for type_, value in [("Collected", "2025-08-12"), ("Destroyed", "2025-09-30")]:
+        for type_, value in [
+            (f"{DATE_TYPES}/collected", "2025-08-12"),
+            (f"{DATE_TYPES}/destroyed", "2025-09-30"),
+        ]:
             SampleDate.objects.create(
-                related=water, type=type_, value=PartialDate(value)
+                related=water, type_id=type_, value=PartialDate(value)
             )
         SampleDescription.objects.create(
             related=water,
-            type="SampleDestruction",
+            type_id=f"{DESCRIPTION_TYPES}/sample-destruction",
             value="Consumed entirely by the isotope analysis.",
         )
         water.add_contributor(
-            self.person("Yusuf", "Demir"), with_roles=["Collection", "Destruction"]
+            self.person("Yusuf", "Demir"),
+            with_roles=[
+                f"{CONTRIBUTOR_ROLES}/collection",
+                f"{CONTRIBUTOR_ROLES}/destruction",
+            ],
         )
         for _ in range(2):
             ICP_MS_MeasurementFactory(sample=water, dataset=cores)

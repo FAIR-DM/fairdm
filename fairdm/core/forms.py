@@ -1,13 +1,17 @@
-"""Base form, the manager-only fields mixin and the keyword form shared by the core forms."""
+"""Base form, the manager-only fields mixin, the keyword form and the concept drop-down shared by the core forms."""
 
 import copy
 from typing import ClassVar
 
+from controlled_vocabularies.forms import DeclinesAdminRelatedWrapperMixin
 from crispy_forms.helper import FormHelper
-from django.forms import ModelForm
+from django.forms import ModelChoiceField, ModelForm, Select
+from django.forms.models import ModelChoiceIterator
 from django.utils.translation import gettext_lazy as _
 
 from fairdm.contrib.autocomplete.fields import TagsField
+
+from .vocabularies import collection_members
 
 
 class ManagerOnlyFieldsMixin:
@@ -106,3 +110,51 @@ class KeywordForm(ModelForm):
             instance.tags.set(self.cleaned_data["tags"])
 
         return instance
+
+
+class CollectionOrderIterator(ModelChoiceIterator):
+    """Yield a concept field's choices in the order of the collection it is limited to.
+
+    A field with no collection lists its concepts by name.
+    """
+
+    def __iter__(self):
+        """Yield the empty choice, then one choice per concept."""
+        if self.field.empty_label is not None:
+            yield ("", self.field.empty_label)
+        concepts = list(self.queryset)
+        collection = getattr(self.field.model_field, "collection", None)
+        if collection:
+            order = [concept.uri for concept in collection_members(collection)]
+            concepts.sort(
+                key=lambda c: order.index(c.uri) if c.uri in order else len(order)
+            )
+        else:
+            concepts.sort(key=lambda c: c.display_label().casefold())
+        for concept in concepts:
+            yield self.choice(concept)
+
+
+class ConceptSelectField(DeclinesAdminRelatedWrapperMixin, ModelChoiceField):
+    """A concept field drawn as a drop-down of the concepts it offers.
+
+    For a short, closed list such as the description, date and identifier types, in place of
+    the search box a concept field renders by default. Pass it as the ``form_class`` of a
+    ``ConceptField``'s form field. Each concept is shown by its name in the reading language.
+
+    Args:
+        *args: Passed to ``ModelChoiceField``.
+        model_field: The ``ConceptField`` the form field was built from.
+        **kwargs: Passed to ``ModelChoiceField``.
+    """
+
+    iterator = CollectionOrderIterator
+
+    def __init__(self, *args, model_field=None, **kwargs):
+        self.model_field = model_field
+        kwargs.setdefault("widget", Select)
+        super().__init__(*args, **kwargs)
+
+    def label_from_instance(self, obj):
+        """Return the concept's name in the reading language."""
+        return obj.display_label()

@@ -1,8 +1,8 @@
 """Development data for the Contributors tab on projects, datasets, samples and measurements."""
 
+from controlled_vocabularies.models import Record
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from research_vocabs.models import Concept
 
 from demo.factories import RockSampleFactory, XRFMeasurementFactory
 from fairdm.contrib.contributors.choices import ContributionLevel
@@ -12,6 +12,7 @@ from fairdm.contrib.plugins import reverse
 from fairdm.core.choices import ProjectStatus
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
+from fairdm.core.vocabularies import CONTRIBUTOR_ROLES
 from fairdm.utils.choices import Visibility
 
 from .common import data_curator, example_accounts, remove_own_projects
@@ -85,36 +86,76 @@ class ContributorSeed(BaseCommand):
             created_by=creator,
         )
         self.credit(
-            project, regular, ["Creator", "ProjectLeader"], ContributionLevel.MANAGE
+            project,
+            regular,
+            [f"{CONTRIBUTOR_ROLES}/creator", f"{CONTRIBUTOR_ROLES}/project-leader"],
+            ContributionLevel.MANAGE,
         )
-        self.credit(project, anna, ["ProjectMember"], ContributionLevel.EDIT)
-        self.credit(project, mei, ["ProjectMember"], ContributionLevel.VIEW)
+        self.credit(
+            project,
+            anna,
+            [f"{CONTRIBUTOR_ROLES}/project-member"],
+            ContributionLevel.EDIT,
+        )
+        self.credit(
+            project,
+            mei,
+            [f"{CONTRIBUTOR_ROLES}/project-member"],
+            ContributionLevel.VIEW,
+        )
         self.credit(project, institute, [])
 
         team = self.dataset(
             project, "Private dataset with a full team", Visibility.PRIVATE, creator
         )
         self.credit(
-            team, regular, ["Creator", "ContactPerson"], ContributionLevel.MANAGE
+            team,
+            regular,
+            [f"{CONTRIBUTOR_ROLES}/creator", f"{CONTRIBUTOR_ROLES}/contact-person"],
+            ContributionLevel.MANAGE,
         )
-        self.credit(team, lea, ["Creator", "DataCollector"], ContributionLevel.MANAGE)
-        self.credit(team, staff, ["DataCurator"], ContributionLevel.EDIT)
-        self.credit(team, yusuf, ["DataCollector"], ContributionLevel.VIEW)
-        self.credit(team, mei, ["Researcher"], ContributionLevel.EDIT)
+        self.credit(
+            team,
+            lea,
+            [f"{CONTRIBUTOR_ROLES}/creator", f"{CONTRIBUTOR_ROLES}/data-collector"],
+            ContributionLevel.MANAGE,
+        )
+        self.credit(
+            team, staff, [f"{CONTRIBUTOR_ROLES}/data-curator"], ContributionLevel.EDIT
+        )
+        self.credit(
+            team, yusuf, [f"{CONTRIBUTOR_ROLES}/data-collector"], ContributionLevel.VIEW
+        )
+        self.credit(
+            team, mei, [f"{CONTRIBUTOR_ROLES}/researcher"], ContributionLevel.EDIT
+        )
         self.credit(team, visitor, [], ContributionLevel.VIEW)
-        self.credit(team, no_account, ["Supervisor"], ContributionLevel.EDIT)
+        self.credit(
+            team,
+            no_account,
+            [f"{CONTRIBUTOR_ROLES}/supervisor"],
+            ContributionLevel.EDIT,
+        )
         self.credit(
             team,
             long_name,
-            ["RightsHolder", "Editor", "Producer"],
+            [
+                f"{CONTRIBUTOR_ROLES}/rights-holder",
+                f"{CONTRIBUTOR_ROLES}/editor",
+                f"{CONTRIBUTOR_ROLES}/producer",
+            ],
             ContributionLevel.VIEW,
         )
-        self.credit(team, institute, ["Other"])
+        self.credit(team, institute, [f"{CONTRIBUTOR_ROLES}/other"])
         self.credit(team, survey, [])
 
         solo = self.dataset(None, SOLO, Visibility.PRIVATE, creator)
-        self.credit(solo, staff, ["Creator"], ContributionLevel.MANAGE)
-        self.credit(solo, yusuf, ["DataCollector"], ContributionLevel.VIEW)
+        self.credit(
+            solo, staff, [f"{CONTRIBUTOR_ROLES}/creator"], ContributionLevel.MANAGE
+        )
+        self.credit(
+            solo, yusuf, [f"{CONTRIBUTOR_ROLES}/data-collector"], ContributionLevel.VIEW
+        )
 
         self.dataset(
             project, "Dataset nobody is credited on yet", Visibility.PRIVATE, creator
@@ -126,7 +167,9 @@ class ContributorSeed(BaseCommand):
             Visibility.PUBLIC,
             creator,
         )
-        self.credit(crowd, regular, ["Creator"], ContributionLevel.MANAGE)
+        self.credit(
+            crowd, regular, [f"{CONTRIBUTOR_ROLES}/creator"], ContributionLevel.MANAGE
+        )
         for n in range(CROWD):
             person = self.person(
                 FIRST_NAMES[n % len(FIRST_NAMES)], LAST_NAMES[n % len(LAST_NAMES)]
@@ -134,18 +177,24 @@ class ContributorSeed(BaseCommand):
             self.credit(
                 crowd,
                 person,
-                ["Creator"] if n < 8 else ["DataCollector"],
+                [f"{CONTRIBUTOR_ROLES}/creator"]
+                if n < 8
+                else [f"{CONTRIBUTOR_ROLES}/data-collector"],
                 ContributionLevel.VIEW,
             )
 
         sample = RockSampleFactory(dataset=team, name="Core GPK-3, 2210 m")
-        self.credit(sample, yusuf, ["Collection"], ContributionLevel.VIEW)
-        self.credit(sample, lea, ["Preparation"], None)
+        self.credit(
+            sample, yusuf, [f"{CONTRIBUTOR_ROLES}/collection"], ContributionLevel.VIEW
+        )
+        self.credit(sample, lea, [f"{CONTRIBUTOR_ROLES}/preparation"], None)
         measurement = XRFMeasurementFactory(
             sample=sample, dataset=team, name="Fe, fused bead, run 88"
         )
-        self.credit(measurement, lea, ["MeasurementCollection"], None)
-        self.credit(measurement, institute, ["Support"])
+        self.credit(
+            measurement, lea, [f"{CONTRIBUTOR_ROLES}/measurement-collection"], None
+        )
+        self.credit(measurement, institute, [f"{CONTRIBUTOR_ROLES}/support"])
 
         self.affiliate()
         stepped_in = self.step_in(creator)
@@ -254,9 +303,19 @@ class ContributorSeed(BaseCommand):
         listed = set(record.contributors.values_list("contributor_id", flat=True))
         ingrid = self.person("Ingrid", "Solberg", account=False)
         if ingrid.pk not in listed:
-            self.credit(record, ingrid, ["Supervisor"], ContributionLevel.MANAGE)
+            self.credit(
+                record,
+                ingrid,
+                [f"{CONTRIBUTOR_ROLES}/supervisor"],
+                ContributionLevel.MANAGE,
+            )
         if yusuf.pk not in listed:
-            self.credit(record, yusuf, ["DataCollector"], ContributionLevel.VIEW)
+            self.credit(
+                record,
+                yusuf,
+                [f"{CONTRIBUTOR_ROLES}/data-collector"],
+                ContributionLevel.VIEW,
+            )
             contribution = record.contributors.get(contributor=yusuf)
             Crediting(record).update(
                 contribution,
@@ -294,9 +353,7 @@ class ContributorSeed(BaseCommand):
         contribution = crediting.add(contributor)
         crediting.update(
             contribution,
-            roles=Concept.objects.filter(
-                vocabulary__name="fairdm-roles", name__in=roles
-            ),
+            roles=Record.objects.filter(scheme__uri=CONTRIBUTOR_ROLES, uri__in=roles),
             level=level,
         )
         if level is None and not contributor.is_organization:

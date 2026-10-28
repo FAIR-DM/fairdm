@@ -3,6 +3,7 @@
 import pytest
 from rest_framework.test import APIClient
 
+from fairdm.core.vocabularies import CONTRIBUTOR_ROLES
 from fairdm.factories import DatasetFactory, ProjectFactory, UserFactory
 from fairdm.utils.choices import Visibility
 
@@ -124,7 +125,7 @@ def make_record():
 @pytest.fixture
 def add_metadata():
     """Return a function recording one of each kind of metadata on a record."""
-    from research_vocabs.models import Concept
+    from controlled_vocabularies.models import Record
 
     from fairdm.contrib.contributors.choices import ContributionLevel
     from fairdm.core.models import Dataset, Measurement, Project, Sample
@@ -172,7 +173,9 @@ def add_metadata():
         date(related=record)
         identifier(related=record)
         record.keywords.add(
-            Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+            Record.objects.filter(
+                scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+            ).first()
         )
         credit = ContributionFactory(
             content_object=record,
@@ -181,7 +184,9 @@ def add_metadata():
             level=ContributionLevel.VIEW,
         )
         credit.roles.add(
-            Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+            Record.objects.filter(
+                scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+            ).first()
         )
         return record
 

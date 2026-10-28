@@ -3,6 +3,12 @@
 import pytest
 from django.contrib.auth import get_user_model
 
+from fairdm.core.vocabularies import (
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    IDENTIFIER_TYPES,
+)
 from fairdm.factories import (
     DatasetFactory,
     PersonFactory,
@@ -81,10 +87,14 @@ def each_registered_sample_type(db, dataset):
 
 @pytest.fixture
 def sample_with_all_related(db, rock_sample):
-    SampleDescriptionFactory(related=rock_sample, type="SampleCollection")
-    SampleDateFactory(related=rock_sample, type="Created")
-    SampleIdentifierFactory(related=rock_sample, type="DOI")
-    rock_sample.add_contributor(PersonFactory(), with_roles=["Collection"])
+    SampleDescriptionFactory(
+        related=rock_sample, type_id=f"{DESCRIPTION_TYPES}/sample-collection"
+    )
+    SampleDateFactory(related=rock_sample, type_id=f"{DATE_TYPES}/created")
+    SampleIdentifierFactory(related=rock_sample, type_id=f"{IDENTIFIER_TYPES}/doi")
+    rock_sample.add_contributor(
+        PersonFactory(), with_roles=[f"{CONTRIBUTOR_ROLES}/collection"]
+    )
     return rock_sample
 
 

@@ -6,6 +6,7 @@ measurement of the demo portal's registered types, so a registered type is what 
 
 import pytest
 from bs4 import BeautifulSoup
+from controlled_vocabularies.models import Record
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit
 from django.conf import settings
@@ -14,7 +15,6 @@ from django.shortcuts import resolve_url
 from django.test import Client, RequestFactory
 from django.urls import NoReverseMatch, reverse
 from partial_date import PartialDate
-from research_vocabs.models import Concept
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm import plugins
@@ -45,6 +45,7 @@ from fairdm.core.sample.models import (
     SampleIdentifier,
     SampleRelation,
 )
+from fairdm.core.vocabularies import CONTRIBUTOR_ROLES, DATE_TYPES, IDENTIFIER_TYPES
 from fairdm.factories import (
     ContributionFactory,
     DatasetDateFactory,
@@ -67,7 +68,7 @@ KINDS = ("project", "dataset", "sample", "measurement")
 PAGES = ("edit", "descriptions", "keywords", "key-dates", "identifiers")
 # The order the Manage menu offers every page in, delete last.
 MENU_ORDER = (*PAGES, "delete")
-ROLES = "fairdm.core.vocabularies.FairDMRoles"
+ROLES = CONTRIBUTOR_ROLES
 # Per record type: the setting that names its keyword vocabularies and the key it sits under.
 KEYWORD_SETTINGS = {
     "project": ("FAIRDM_PROJECT", "keywords"),
@@ -89,10 +90,30 @@ CORE_MODELS = {
 }
 # Per record type: the model of a date row, the factory that makes one, and two of its types.
 DATES = {
-    "project": (ProjectDate, ProjectDateFactory, "Start", "End"),
-    "dataset": (DatasetDate, DatasetDateFactory, "CollectionStart", "CollectionEnd"),
-    "sample": (SampleDate, SampleDateFactory, "Collected", "Prepared"),
-    "measurement": (MeasurementDate, MeasurementDateFactory, "Setup", "TearDown"),
+    "project": (
+        ProjectDate,
+        ProjectDateFactory,
+        f"{DATE_TYPES}/start",
+        f"{DATE_TYPES}/end",
+    ),
+    "dataset": (
+        DatasetDate,
+        DatasetDateFactory,
+        f"{DATE_TYPES}/collection-start",
+        f"{DATE_TYPES}/collection-end",
+    ),
+    "sample": (
+        SampleDate,
+        SampleDateFactory,
+        f"{DATE_TYPES}/collected",
+        f"{DATE_TYPES}/prepared",
+    ),
+    "measurement": (
+        MeasurementDate,
+        MeasurementDateFactory,
+        f"{DATE_TYPES}/setup",
+        f"{DATE_TYPES}/tear-down",
+    ),
 }
 # Per record type: the model of an identifier row and the factory that makes one. Every
 # vocabulary offers a DOI.
@@ -274,7 +295,11 @@ def without_vocabularies(settings):
 
 def roles(count=2):
     """Return concepts of the roles vocabulary to use as keywords."""
-    found = list(Concept.objects.filter(vocabulary__name="fairdm-roles")[:count])
+    found = list(
+        Record.objects.filter(scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT)[
+            :count
+        ]
+    )
     assert len(found) == count
     return found
 
@@ -304,9 +329,7 @@ def hrefs(element):
 class TestRegistration:
     @pytest.mark.parametrize("kind", KINDS)
     @pytest.mark.parametrize("page", PAGES)
-    def test_the_page_sits_beneath_the_records_address(
-        self, make_case, kind, page
-    ):
+    def test_the_page_sits_beneath_the_records_address(self, make_case, kind, page):
         case = make_case(kind)
 
         assert case.url(page) == f"{case.root_url}{page}/"
@@ -343,13 +366,17 @@ class TestRegistration:
     @pytest.mark.parametrize("kind", KINDS)
     def test_the_delete_page_is_not_a_tab(self, kind):
         model = CORE_MODELS[kind]
-        reverse(f"{kind}:delete", kwargs={"uuid": "00000000-0000-0000-0000-000000000000"})
+        reverse(
+            f"{kind}:delete", kwargs={"uuid": "00000000-0000-0000-0000-000000000000"}
+        )
         plugins.registry.get_urls_for_model(model)
         menu = plugins.registry.get_plugin_menu_for_model(model)
 
         assert f"{kind}:delete" not in [item.view_name for item in menu.children]
 
-    @pytest.mark.parametrize("name", ["project:overview-delete", "dataset:overview-delete"])
+    @pytest.mark.parametrize(
+        "name", ["project:overview-delete", "dataset:overview-delete"]
+    )
     def test_the_delete_pages_they_replace_are_gone(self, name):
         with pytest.raises(NoReverseMatch):
             reverse(name, kwargs={"uuid": "00000000-0000-0000-0000-000000000000"})
@@ -378,7 +405,9 @@ class TestAccess:
         reader = person_at(case, ContributionLevel.VIEW)
         client = browser_as(reader)
         description_model = DESCRIPTION_MODELS[kind]
-        first_type = description_model.VOCABULARY.values[0]
+        first_type = [concept.uri for concept in description_model.get_type_concepts()][
+            0
+        ]
 
         assert client.get(case.url(page)).status_code == 403
         response = client.post(
@@ -436,7 +465,7 @@ class TestAccess:
         case = make_case(kind, public=True)
         editor = person_at(case, ContributionLevel.EDIT)
         client = browser_as(editor)
-        first_type = DESCRIPTION_MODELS[kind].VOCABULARY.values[0]
+        first_type = DESCRIPTION_MODELS[kind].get_type_concepts()[0].uri
         opened = client.get(case.url(page))
         payload = form_payload(main_form(opened))
         payload.update({"name": "Changed", first_type: "A description"})
@@ -448,7 +477,6 @@ class TestAccess:
         case.record.refresh_from_db()
         assert case.record.name != "Changed"
         assert not DESCRIPTION_MODELS[kind].objects.filter(related=case.record).exists()
-
 
     @pytest.mark.parametrize("kind", KINDS)
     def test_a_person_who_may_manage_opens_the_delete_page(
@@ -613,7 +641,9 @@ class TestManageMenu:
 
         response = browser_as(manager).get(case.own_url)
 
-        contributors = reverse("project:contribution-list", kwargs={"uuid": case.record.uuid})
+        contributors = reverse(
+            "project:contribution-list", kwargs={"uuid": case.record.uuid}
+        )
         assert contributors not in hrefs(manage_menu(response))
 
     def test_the_sample_keywords_page_stays_in_the_menu(self, make_case, person_at):
@@ -777,7 +807,6 @@ class TestEditDetails:
 
         assert ("visibility" in response.context["form"].fields) is offered
 
-
     @pytest.mark.parametrize("kind", ["sample", "measurement"])
     def test_a_manager_cannot_move_a_sample_or_a_measurement(
         self, make_case, person_at, kind
@@ -846,7 +875,10 @@ class TestEditDetails:
             rows_payload("dates", [{"type": date_type, "value": "2020-01-01"}])
         )
         payload.update(
-            rows_payload("identifiers", [{"type": "DOI", "value": "10.1/stray"}])
+            rows_payload(
+                "identifiers",
+                [{"type": f"{IDENTIFIER_TYPES}/doi", "value": "10.1/stray"}],
+            )
         )
 
         response = client.post(case.url("edit"), payload)
@@ -872,7 +904,9 @@ class TestEditKeyDates:
         assert response.status_code == 200
         row_set = only_row_set(response, "dates")
         offered = [value for value, _label in row_set.empty_form.fields["type"].choices]
-        assert [value for value in offered if value] == list(model.VOCABULARY.values)
+        assert [value for value in offered if value] == list(
+            [concept.uri for concept in model.get_type_concepts()]
+        )
         assert row_set.initial_form_count() == 1
         assert len(row_set.forms) == 1
         assert row_set.forms[0]["type"].value() == recorded
@@ -908,7 +942,7 @@ class TestEditKeyDates:
         assert response.url == case.own_url
         assert [m.level for m in get_messages(response.wsgi_request)] == [SUCCESS]
         stored = case.record.dates.get()
-        assert (stored.type, str(stored.value)) == (added, "2020-06-01")
+        assert (stored.type_id, str(stored.value)) == (added, "2020-06-01")
 
     @pytest.mark.parametrize("kind", KINDS)
     def test_changing_a_date_stores_the_new_value(self, make_case, person_at, kind):
@@ -1053,8 +1087,8 @@ class TestEditKeyDates:
             rows_payload(
                 "dates",
                 [
-                    {"type": "Setup", "value": "2020-06-01"},
-                    {"type": "TearDown", "value": "2010-01-01"},
+                    {"type": f"{DATE_TYPES}/setup", "value": "2020-06-01"},
+                    {"type": f"{DATE_TYPES}/tear-down", "value": "2010-01-01"},
                 ],
             ),
         )
@@ -1097,17 +1131,23 @@ class TestEditIdentifiers:
         case = make_case(kind)
         editor = person_at(case, ContributionLevel.EDIT)
         model, factory = IDENTIFIERS[kind]
-        factory(related=case.record, type="DOI", value="10.1/recorded")
+        factory(
+            related=case.record,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.1/recorded",
+        )
 
         response = browser_as(editor).get(case.url("identifiers"))
 
         assert response.status_code == 200
         row_set = only_row_set(response, "identifiers")
         offered = [value for value, _label in row_set.empty_form.fields["type"].choices]
-        assert [value for value in offered if value] == list(model.VOCABULARY.values)
+        assert [value for value in offered if value] == list(
+            [concept.uri for concept in model.get_type_concepts()]
+        )
         assert row_set.initial_form_count() == 1
         assert len(row_set.forms) == 1
-        assert row_set.forms[0]["type"].value() == "DOI"
+        assert row_set.forms[0]["type"].value() == f"{IDENTIFIER_TYPES}/doi"
         assert row_set.forms[0]["value"].value() == "10.1/recorded"
 
     @pytest.mark.parametrize("kind", KINDS)
@@ -1119,14 +1159,20 @@ class TestEditIdentifiers:
 
         response = browser_as(editor).post(
             case.url("identifiers"),
-            rows_payload("identifiers", [{"type": "DOI", "value": "10.1/added"}]),
+            rows_payload(
+                "identifiers",
+                [{"type": f"{IDENTIFIER_TYPES}/doi", "value": "10.1/added"}],
+            ),
         )
 
         assert response.status_code == 302
         assert response.url == case.own_url
         assert [m.level for m in get_messages(response.wsgi_request)] == [SUCCESS]
         stored = case.record.identifiers.get()
-        assert (stored.type, stored.value) == ("DOI", "10.1/added")
+        assert (stored.type_id, stored.value) == (
+            f"{IDENTIFIER_TYPES}/doi",
+            "10.1/added",
+        )
 
     @pytest.mark.parametrize("kind", KINDS)
     def test_changing_an_identifier_stores_the_new_value(
@@ -1135,13 +1181,23 @@ class TestEditIdentifiers:
         case = make_case(kind)
         editor = person_at(case, ContributionLevel.EDIT)
         _model, factory = IDENTIFIERS[kind]
-        row = factory(related=case.record, type="DOI", value="10.1/original")
+        row = factory(
+            related=case.record,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.1/original",
+        )
 
         response = browser_as(editor).post(
             case.url("identifiers"),
             rows_payload(
                 "identifiers",
-                [{"id": row.pk, "type": "DOI", "value": "10.1/changed"}],
+                [
+                    {
+                        "id": row.pk,
+                        "type": f"{IDENTIFIER_TYPES}/doi",
+                        "value": "10.1/changed",
+                    }
+                ],
                 initial=1,
             ),
         )
@@ -1155,7 +1211,9 @@ class TestEditIdentifiers:
         case = make_case(kind)
         editor = person_at(case, ContributionLevel.EDIT)
         _model, factory = IDENTIFIERS[kind]
-        row = factory(related=case.record, type="DOI", value="10.1/doomed")
+        row = factory(
+            related=case.record, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.1/doomed"
+        )
 
         response = browser_as(editor).post(
             case.url("identifiers"),
@@ -1164,7 +1222,7 @@ class TestEditIdentifiers:
                 [
                     {
                         "id": row.pk,
-                        "type": "DOI",
+                        "type": f"{IDENTIFIER_TYPES}/doi",
                         "value": "10.1/doomed",
                         "DELETE": "on",
                     }
@@ -1184,11 +1242,16 @@ class TestEditIdentifiers:
         editor = person_at(case, ContributionLevel.EDIT)
         other = make_case(kind)
         _model, factory = IDENTIFIERS[kind]
-        factory(related=other.record, type="DOI", value="10.1/taken")
+        factory(
+            related=other.record, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.1/taken"
+        )
 
         response = browser_as(editor).post(
             case.url("identifiers"),
-            rows_payload("identifiers", [{"type": "DOI", "value": "10.1/taken"}]),
+            rows_payload(
+                "identifiers",
+                [{"type": f"{IDENTIFIER_TYPES}/doi", "value": "10.1/taken"}],
+            ),
         )
 
         assert response.status_code == 200
@@ -1207,8 +1270,8 @@ class TestEditIdentifiers:
             rows_payload(
                 "identifiers",
                 [
-                    {"type": "DOI", "value": "10.1/twice"},
-                    {"type": "GRANT_NUMBER", "value": "10.1/twice"},
+                    {"type": f"{IDENTIFIER_TYPES}/doi", "value": "10.1/twice"},
+                    {"type": f"{IDENTIFIER_TYPES}/grant-number", "value": "10.1/twice"},
                 ],
             ),
         )
@@ -1226,8 +1289,8 @@ class TestEditIdentifiers:
             rows_payload(
                 "identifiers",
                 [
-                    {"type": "DOI", "value": "10.1/valid"},
-                    {"type": "GRANT_NUMBER", "value": ""},
+                    {"type": f"{IDENTIFIER_TYPES}/doi", "value": "10.1/valid"},
+                    {"type": f"{IDENTIFIER_TYPES}/grant-number", "value": ""},
                 ],
             ),
         )
@@ -1243,7 +1306,11 @@ class TestEditIdentifiers:
         editor = person_at(case, ContributionLevel.EDIT)
         client = browser_as(editor)
         _model, factory = IDENTIFIERS[kind]
-        recorded = factory(related=case.record, type="DOI", value="10.1/recorded")
+        recorded = factory(
+            related=case.record,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.1/recorded",
+        )
         portal_id = case.record.uuid
 
         opened = client.get(case.url("identifiers"))
@@ -1256,7 +1323,13 @@ class TestEditIdentifiers:
 
         payload = rows_payload(
             "identifiers",
-            [{"id": recorded.pk, "type": "DOI", "value": "10.1/another"}],
+            [
+                {
+                    "id": recorded.pk,
+                    "type": f"{IDENTIFIER_TYPES}/doi",
+                    "value": "10.1/another",
+                }
+            ],
             initial=1,
         )
         payload["uuid"] = "00000000-0000-4000-8000-000000000000"
@@ -1276,13 +1349,17 @@ class TestEditDescriptions:
         case = make_case(kind)
         editor = person_at(case, ContributionLevel.EDIT)
         model = DESCRIPTION_MODELS[kind]
-        recorded = model.VOCABULARY.values[0]
-        model.objects.create(related=case.record, type=recorded, value="Written down")
+        recorded = [concept.uri for concept in model.get_type_concepts()][0]
+        model.objects.create(
+            related=case.record, type_id=recorded, value="Written down"
+        )
 
         response = browser_as(editor).get(case.url("descriptions"))
 
         form = response.context["form"]
-        assert list(form.fields) == list(model.VOCABULARY.values)
+        assert list(form.fields) == list(
+            [concept.uri for concept in model.get_type_concepts()]
+        )
         assert form[recorded].value() == "Written down"
 
     @pytest.mark.parametrize("kind", KINDS)
@@ -1293,8 +1370,8 @@ class TestEditDescriptions:
         editor = person_at(case, ContributionLevel.EDIT)
         client = browser_as(editor)
         model = DESCRIPTION_MODELS[kind]
-        first, second = model.VOCABULARY.values[:2]
-        model.objects.create(related=case.record, type=second, value="To be removed")
+        first, second = [concept.uri for concept in model.get_type_concepts()][:2]
+        model.objects.create(related=case.record, type_id=second, value="To be removed")
 
         response = client.post(
             case.url("descriptions"), {first: "Newly written", second: ""}
@@ -1312,7 +1389,7 @@ class TestEditDescriptions:
     ):
         case = make_case(kind)
         editor = person_at(case, ContributionLevel.EDIT)
-        first = DESCRIPTION_MODELS[kind].VOCABULARY.values[0]
+        first = DESCRIPTION_MODELS[kind].get_type_concepts()[0].uri
 
         response = browser_as(editor).post(case.url("descriptions"), {first: "Text"})
 
@@ -1494,7 +1571,6 @@ class TestOverviewPrompts:
         addresses = {item["url"] for item in response.context["readiness"]["items"]}
         assert case.url("keywords") in addresses
 
-
     @pytest.mark.parametrize("kind", ["project", "dataset"])
     def test_the_readiness_items_for_dates_and_identifiers_carry_their_pages(
         self, make_case, person_at, kind
@@ -1560,7 +1636,11 @@ class TestDeleteRecord:
         self, make_case, person_at, kind
     ):
         case = make_case(kind, public=False)
-        held = Case("dataset", dataset_of(case)) if kind in {"sample", "measurement"} else case
+        held = (
+            Case("dataset", dataset_of(case))
+            if kind in {"sample", "measurement"}
+            else case
+        )
         manager = person_at(held, ContributionLevel.MANAGE)
         client = browser_as(manager)
         landing = landing_for(case)
@@ -1644,9 +1724,7 @@ class TestDeleteRecord:
         assert row in listed
 
     @pytest.mark.parametrize("kind", ["sample", "measurement"])
-    def test_the_page_does_not_list_the_record_itself(
-        self, make_case, person_at, kind
-    ):
+    def test_the_page_does_not_list_the_record_itself(self, make_case, person_at, kind):
         case = make_case(kind, public=False)
         manager = person_at(case, ContributionLevel.MANAGE)
 

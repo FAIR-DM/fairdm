@@ -32,7 +32,7 @@
 {% endblock overview.badges %}
 
 {% block overview.notices %}
-  {% if status.value == "destroyed" %}
+  {% if status.destroyed %}
     <c-alert variant="warning" icon="warning" soft>
       <span>{% translate "This specimen has been destroyed and can't be re-examined. Its record and measurements are kept." %}</span>
     </c-alert>

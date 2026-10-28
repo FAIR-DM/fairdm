@@ -4,6 +4,8 @@ import logging
 import random
 
 import faker
+from controlled_vocabularies.fields import ConceptField
+from factory.django import DjangoModelFactory
 from faker.providers import BaseProvider
 
 logger = logging.getLogger(__name__)
@@ -117,3 +119,28 @@ try:
     Faker.add_provider(FairDMProvider)
 except ImportError:
     pass
+
+
+class ConceptFieldFactory(DjangoModelFactory):
+    """A factory whose concept fields take the address of a concept as well as the concept.
+
+    A concept field holds a concept's address in its column, but assigning the address itself
+    to the field is refused, so an address given for one is stored through the field's column.
+    """
+
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def _adjust_kwargs(cls, **kwargs):
+        """Pass each concept field given as an address on as its column's value.
+
+        A value given for the column itself wins over the field's declared default.
+        """
+        for field in cls._meta.model._meta.concrete_fields:
+            if isinstance(field, ConceptField) and isinstance(
+                kwargs.get(field.name), str
+            ):
+                value = kwargs.pop(field.name)
+                kwargs.setdefault(field.attname, value)
+        return kwargs

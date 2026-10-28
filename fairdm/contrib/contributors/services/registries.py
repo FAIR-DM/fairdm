@@ -10,6 +10,8 @@ from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from django_countries import countries
 
+from fairdm.core.vocabularies import ORCID, ROR
+
 from ..choices import OrganizationType
 from ..models import (
     ORCID_PATTERN,
@@ -266,7 +268,7 @@ class Orcid:
             The person, or None.
         """
         held = (
-            ContributorIdentifier.objects.filter(type="ORCID", value=record["id"])
+            ContributorIdentifier.objects.filter(type_id=ORCID, value=record["id"])
             .select_related("related")
             .first()
         )
@@ -290,7 +292,7 @@ class Orcid:
                 person = Person.objects.create_unclaimed(
                     record["given"], record["family"], name=record["name"]
                 )
-                person.identifiers.create(type="ORCID", value=record["id"])
+                person.identifiers.create(type_id=ORCID, value=record["id"])
             return person
 
 
@@ -411,7 +413,7 @@ class Ror:
         ror_id = self.identifier_in(record["id"])
         held = (
             ContributorIdentifier.objects.filter(
-                type="ROR", value__in=[ror_id, f"https://ror.org/{ror_id}"]
+                type_id=ROR, value__in=[ror_id, f"https://ror.org/{ror_id}"]
             )
             .select_related("related")
             .first()
@@ -434,6 +436,6 @@ class Ror:
             if organization is None:
                 organization = Organization.objects.create(name=record["name"])
                 organization.identifiers.create(
-                    type="ROR", value=self.identifier_in(record["id"])
+                    type_id=ROR, value=self.identifier_in(record["id"])
                 )
             return organization

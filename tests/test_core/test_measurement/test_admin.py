@@ -5,6 +5,7 @@ from django.contrib import admin
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ValidationError
 from django.test import RequestFactory
 from django.urls import reverse
 
@@ -16,6 +17,7 @@ from fairdm.core.measurement.models import (
     MeasurementDescription,
     MeasurementIdentifier,
 )
+from fairdm.core.vocabularies import DATE_TYPES, DESCRIPTION_TYPES, IDENTIFIER_TYPES
 from fairdm.registry import registry
 from tests.registry_models.models import ConcreteMeasurement, ConcreteSample
 
@@ -260,7 +262,7 @@ class TestMeasurementAdminInlines:
     def test_inline_metadata_can_be_created(self, measurement_admin, measurement):
         description = MeasurementDescription.objects.create(
             related=measurement,
-            type="MeasurementSetup",
+            type_id=f"{DESCRIPTION_TYPES}/measurement-setup",
             value="XRF analysis method description",
         )
 
@@ -269,7 +271,7 @@ class TestMeasurementAdminInlines:
 
     def test_inline_dates_can_be_created(self, measurement_admin, measurement):
         date = MeasurementDate.objects.create(
-            related=measurement, type="Setup", value="2024-01-15"
+            related=measurement, type_id=f"{DATE_TYPES}/setup", value="2024-01-15"
         )
 
         assert date.related == measurement
@@ -277,7 +279,9 @@ class TestMeasurementAdminInlines:
 
     def test_inline_identifiers_can_be_created(self, measurement_admin, measurement):
         identifier = MeasurementIdentifier.objects.create(
-            related=measurement, type="DOI", value="10.1234/meas.123"
+            related=measurement,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.1234/meas.123",
         )
 
         assert identifier.related == measurement
@@ -304,21 +308,25 @@ class TestMeasurementAdminInlines:
 class TestMeasurementContributionInlineRoleVocabulary:
     @staticmethod
     def _off_vocabulary_role():
-        from research_vocabs.models import Concept, Vocabulary
+        from controlled_vocabularies.models import ConceptScheme, Record
 
-        vocabulary, _ = Vocabulary.objects.get_or_create(
-            name="not-fairdm-roles",
+        vocabulary, _ = ConceptScheme.objects.get_or_create(
+            uri="https://example.com/vocabularies/not-fairdm-roles",
             defaults={
-                "label": "Not FairDM Roles",
-                "uri": "https://example.com/vocabularies/not-fairdm-roles",
+                "default_language": "en",
+                "data": {
+                    "skos:prefLabel": [
+                        {"@value": "Not FairDM Roles", "@language": "en"}
+                    ]
+                },
             },
         )
-        concept, _ = Concept.objects.get_or_create(
-            vocabulary=vocabulary,
-            name="Outsider",
+        concept, _ = Record.objects.get_or_create(
+            uri="https://example.com/vocabularies/not-fairdm-roles#outsider",
             defaults={
-                "uri": "https://example.com/vocabularies/not-fairdm-roles#outsider",
-                "label": "Outsider",
+                "scheme": vocabulary,
+                "type": Record.Type.CONCEPT,
+                "data": {"skos:prefLabel": [{"@value": "Outsider", "@language": "en"}]},
             },
         )
         return concept
@@ -414,8 +422,9 @@ class TestMeasurementContributionInlineRoleVocabulary:
         )
         formset_class = contribution_inline.get_formset(request, xrf)
 
-        roles_queryset = formset_class.form.base_fields["roles"].queryset
-        assert off_vocabulary_role not in roles_queryset
+        roles = formset_class.form().fields["roles"]
+        with pytest.raises(ValidationError):
+            roles.clean([off_vocabulary_role.uri])
 
 
 @pytest.mark.django_db
@@ -423,21 +432,25 @@ class TestMeasurementAdminInlineRowCaps:
     def test_description_inline_row_cap_matches_vocabulary(self):
         from fairdm.core.measurement.admin import MeasurementDescriptionInline
 
-        assert MeasurementDescriptionInline.max_num == len(
-            MeasurementDescription.VOCABULARY.values
+        assert MeasurementDescriptionInline(Measurement, admin.site).get_max_num(
+            None
+        ) == len(
+            [concept.uri for concept in MeasurementDescription.get_type_concepts()]
         )
 
     def test_date_inline_row_cap_matches_vocabulary(self):
         from fairdm.core.measurement.admin import MeasurementDateInline
 
-        assert MeasurementDateInline.max_num == len(MeasurementDate.VOCABULARY.values)
+        assert MeasurementDateInline(Measurement, admin.site).get_max_num(None) == len(
+            [concept.uri for concept in MeasurementDate.get_type_concepts()]
+        )
 
     def test_identifier_inline_row_cap_matches_vocabulary(self):
         from fairdm.core.measurement.admin import MeasurementIdentifierInline
 
-        assert MeasurementIdentifierInline.max_num == len(
-            MeasurementIdentifier.VOCABULARY.values
-        )
+        assert MeasurementIdentifierInline(Measurement, admin.site).get_max_num(
+            None
+        ) == len([concept.uri for concept in MeasurementIdentifier.get_type_concepts()])
 
     def test_contribution_inline_is_not_row_capped(self):
         from fairdm.core.measurement.admin import MeasurementContributionInline
@@ -470,19 +483,21 @@ class TestMeasurementAdminSharedInlines:
 class TestMeasurementAdminVocabularyCorrectness:
     def test_measurement_description_uses_measurement_vocabulary(self, measurement):
         description = MeasurementDescription.objects.create(
-            related=measurement, type="MeasurementSetup", value="Test method"
+            related=measurement,
+            type_id=f"{DESCRIPTION_TYPES}/measurement-setup",
+            value="Test method",
         )
 
-        assert description.VOCABULARY is not None
-        assert description.type == "MeasurementSetup"
+        assert description.get_type_concepts()
+        assert description.type_id == f"{DESCRIPTION_TYPES}/measurement-setup"
 
     def test_measurement_date_uses_measurement_vocabulary(self, measurement):
         date = MeasurementDate.objects.create(
-            related=measurement, type="Setup", value="2024-01-15"
+            related=measurement, type_id=f"{DATE_TYPES}/setup", value="2024-01-15"
         )
 
-        assert date.VOCABULARY is not None
-        assert date.type == "Setup"
+        assert date.get_type_concepts()
+        assert date.type_id == f"{DATE_TYPES}/setup"
 
 
 @pytest.mark.django_db

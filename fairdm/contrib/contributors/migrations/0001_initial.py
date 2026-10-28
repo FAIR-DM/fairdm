@@ -1,3 +1,4 @@
+import controlled_vocabularies.fields
 import auto_prefetch
 import django.db.models.deletion
 import django.db.models.manager
@@ -6,10 +7,8 @@ import django.utils.timezone
 import django_lifecycle.mixins
 import easy_thumbnails.fields
 import fairdm.contrib.contributors.models
-import fairdm.core.vocabularies
 import fairdm.utils.models
 import fairdm.utils.utils
-import research_vocabs.fields
 import shortuuid.django_fields
 from django.conf import settings
 from django.db import migrations, models
@@ -22,7 +21,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ("auth", "0012_alter_user_first_name_max_length"),
         ("contenttypes", "0002_remove_content_type_name"),
-        ("research_vocabs", "0002_alter_concept_unique_together"),
+        ("controlled_vocabularies", "0001_initial"),
     ]
 
     operations = [
@@ -389,17 +388,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "type",
-                    models.CharField(
-                        choices=[
-                            ("CROSSREF_FUNDER_ID", "Crossref Funder ID"),
-                            ("ISNI", "ISNI"),
-                            ("ORCID", "ORCID iD"),
-                            ("ROR", "ROR"),
-                            ("RESEARCHER_ID", "ResearcherID"),
-                            ("WIKIDATA", "Wikidata"),
-                        ],
-                        max_length=50,
-                    ),
+                    controlled_vocabularies.fields.ConceptField(collection='https://w3id.org/fairdm/vocabularies/identifier-types/contributor', help_text='The kind of identifier, from the contributor identifier types.', related_name='+', verbose_name='type', vocabulary=('https://w3id.org/fairdm/vocabularies/identifier-types',)),
                 ),
                 (
                     "value",
@@ -614,13 +603,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "roles",
-                    research_vocabs.fields.ConceptManyToManyField(
-                        help_text="The roles assigned to the contributor for this contribution.",
-                        related_name="+",
-                        to="research_vocabs.concept",
-                        verbose_name="roles",
-                        vocabulary=fairdm.core.vocabularies.FairDMRoles,
-                    ),
+                    controlled_vocabularies.fields.MultiConceptField(blank=True, help_text='The roles assigned to the contributor for this contribution.', verbose_name='roles', vocabulary=('https://w3id.org/fairdm/vocabularies/contributor-roles',)),
                 ),
             ],
             options={

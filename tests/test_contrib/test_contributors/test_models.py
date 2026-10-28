@@ -2,7 +2,6 @@
 
 import json
 from datetime import date
-
 from unittest.mock import patch
 
 import pytest
@@ -32,6 +31,7 @@ from fairdm.contrib.contributors.models import (
     OrganizationMember,
     Person,
 )
+from fairdm.core.vocabularies import CONTRIBUTOR_ROLES, IDENTIFIER_TYPES
 from fairdm.factories import (
     AffiliationFactory,
     ContributionFactory,
@@ -516,7 +516,7 @@ class TestOrganizationCreationAndValidation:
 
     @pytest.mark.django_db
     def test_organization_default_identifier_is_ror(self):
-        assert Organization.DEFAULT_IDENTIFIER == "ROR"
+        assert Organization.DEFAULT_IDENTIFIER == f"{IDENTIFIER_TYPES}/ror"
 
 
 class TestOrganizationTypeValidation:
@@ -606,7 +606,10 @@ class TestOrganizationFromRor:
         assert organization.name == "GFZ Helmholtz Centre for Geosciences"
         assert organization.city == "Potsdam"
         assert organization.country.code == "DE"
-        assert organization.identifiers.get(type="ROR").value == "04z8jg394"
+        assert (
+            organization.identifiers.get(type_id=f"{IDENTIFIER_TYPES}/ror").value
+            == "04z8jg394"
+        )
 
     def test_schedules_a_full_sync_after_commit(
         self, registry_network, recorded, django_capture_on_commit_callbacks
@@ -615,13 +618,17 @@ class TestOrganizationFromRor:
             "https://api.ror.org/v2/organizations/04z8jg394", recorded("ror-record")
         )
 
-        with patch(
-            "fairdm.contrib.contributors.tasks.sync_contributor_identifier.delay"
-        ) as delay:
-            with django_capture_on_commit_callbacks(execute=True):
-                organization = Organization.from_ror("04z8jg394")
+        with (
+            patch(
+                "fairdm.contrib.contributors.tasks.sync_contributor_identifier.delay"
+            ) as delay,
+            django_capture_on_commit_callbacks(execute=True),
+        ):
+            organization = Organization.from_ror("04z8jg394")
 
-        delay.assert_called_once_with(organization.identifiers.get(type="ROR").pk)
+        delay.assert_called_once_with(
+            organization.identifiers.get(type_id=f"{IDENTIFIER_TYPES}/ror").pk
+        )
 
     def test_without_commit_schedules_no_sync(
         self, registry_network, recorded, django_capture_on_commit_callbacks
@@ -630,11 +637,13 @@ class TestOrganizationFromRor:
             "https://api.ror.org/v2/organizations/04z8jg394", recorded("ror-record")
         )
 
-        with patch(
-            "fairdm.contrib.contributors.tasks.sync_contributor_identifier.delay"
-        ) as delay:
-            with django_capture_on_commit_callbacks(execute=True):
-                Organization.from_ror("04z8jg394", commit=False)
+        with (
+            patch(
+                "fairdm.contrib.contributors.tasks.sync_contributor_identifier.delay"
+            ) as delay,
+            django_capture_on_commit_callbacks(execute=True),
+        ):
+            Organization.from_ror("04z8jg394", commit=False)
 
         delay.assert_not_called()
 
@@ -1019,8 +1028,12 @@ class TestContributionUniqueness:
     def test_crediting_again_under_a_new_role_accumulates_via_contributor_add_to(
         self, person, project_for_contributions
     ):
-        person.add_to(project_for_contributions, roles=["DataCollector"])
-        contribution = person.add_to(project_for_contributions, roles=["Researcher"])
+        person.add_to(
+            project_for_contributions, roles=[f"{CONTRIBUTOR_ROLES}/data-collector"]
+        )
+        contribution = person.add_to(
+            project_for_contributions, roles=[f"{CONTRIBUTOR_ROLES}/researcher"]
+        )
 
         assert (
             Contribution.objects.filter(
@@ -1028,16 +1041,23 @@ class TestContributionUniqueness:
             ).count()
             == 1
         )
-        role_names = set(contribution.roles.values_list("name", flat=True))
-        assert role_names == {"DataCollector", "Researcher"}
+        role_names = set(contribution.roles.values_list("uri", flat=True))
+        assert role_names == {
+            f"{CONTRIBUTOR_ROLES}/data-collector",
+            f"{CONTRIBUTOR_ROLES}/researcher",
+        }
 
     @pytest.mark.django_db
     def test_crediting_again_under_a_new_role_accumulates_via_contribution_add_to(
         self, person, project_for_contributions
     ):
-        Contribution.add_to(person, project_for_contributions, roles=["DataCollector"])
+        Contribution.add_to(
+            person,
+            project_for_contributions,
+            roles=[f"{CONTRIBUTOR_ROLES}/data-collector"],
+        )
         contribution = Contribution.add_to(
-            person, project_for_contributions, roles=["Researcher"]
+            person, project_for_contributions, roles=[f"{CONTRIBUTOR_ROLES}/researcher"]
         )
 
         assert (
@@ -1046,16 +1066,21 @@ class TestContributionUniqueness:
             ).count()
             == 1
         )
-        role_names = set(contribution.roles.values_list("name", flat=True))
-        assert role_names == {"DataCollector", "Researcher"}
+        role_names = set(contribution.roles.values_list("uri", flat=True))
+        assert role_names == {
+            f"{CONTRIBUTOR_ROLES}/data-collector",
+            f"{CONTRIBUTOR_ROLES}/researcher",
+        }
 
 
 class TestContributionRoles:
     @pytest.mark.django_db
     def test_role_from_the_roles_vocabulary_is_accepted(self, contribution):
-        from research_vocabs.models import Concept
+        from controlled_vocabularies.models import Record
 
-        role = Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+        role = Record.objects.filter(
+            scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+        ).first()
         contribution.roles.add(role)
 
         contribution.full_clean()
@@ -1070,7 +1095,7 @@ class TestContributionRoles:
 
         with (
             transaction.atomic(),
-            pytest.raises(ValidationError, match="roles vocabulary"),
+            pytest.raises(ValidationError, match="not a valid concept"),
         ):
             contribution.roles.add(off_vocabulary_role)
 
@@ -1083,7 +1108,7 @@ class TestContributionRoles:
     ):
         assert contribution_roles.count() > 1
 
-        role = contribution_roles.get(name="Creator")
+        role = contribution_roles.get(uri=f"{CONTRIBUTOR_ROLES}/creator")
         contribution.roles.add(role)
 
         contribution.full_clean()
@@ -1215,7 +1240,7 @@ class TestContributorIdentifierUniqueness:
 
     @pytest.mark.django_db
     def test_person_default_identifier_is_orcid(self):
-        assert Person.DEFAULT_IDENTIFIER == "ORCID"
+        assert Person.DEFAULT_IDENTIFIER == f"{IDENTIFIER_TYPES}/orcid"
 
 
 class TestIdentifierUniquePerType:
@@ -1225,7 +1250,9 @@ class TestIdentifierUniquePerType:
     ):
         with pytest.raises(IntegrityError):
             ContributorIdentifier.objects.create(
-                related=person, type="ORCID", value="0000-0001-9999-9999"
+                related=person,
+                type_id=f"{IDENTIFIER_TYPES}/orcid",
+                value="0000-0001-9999-9999",
             )
 
     @pytest.mark.django_db
@@ -1233,7 +1260,9 @@ class TestIdentifierUniquePerType:
         self, orcid_identifier, person
     ):
         duplicate = ContributorIdentifier(
-            related=person, type="ORCID", value="0000-0001-9999-9999"
+            related=person,
+            type_id=f"{IDENTIFIER_TYPES}/orcid",
+            value="0000-0001-9999-9999",
         )
 
         with pytest.raises(ValidationError) as excinfo:
@@ -1246,7 +1275,9 @@ class TestIdentifierUniquePerType:
         self, orcid_identifier, person
     ):
         second = ContributorIdentifier(
-            related=person, type="RESEARCHER_ID", value="A-1234-2020"
+            related=person,
+            type_id=f"{IDENTIFIER_TYPES}/researcher-id",
+            value="A-1234-2020",
         )
 
         second.clean()
@@ -1262,7 +1293,9 @@ class TestIdentifierValueUniqueAcrossContributors:
     ):
         with pytest.raises(IntegrityError):
             ContributorIdentifier.objects.create(
-                related=organization, type="ROR", value=orcid_identifier.value
+                related=organization,
+                type_id=f"{IDENTIFIER_TYPES}/ror",
+                value=orcid_identifier.value,
             )
 
     @pytest.mark.django_db
@@ -1270,7 +1303,9 @@ class TestIdentifierValueUniqueAcrossContributors:
         self, orcid_identifier, organization
     ):
         duplicate = ContributorIdentifier(
-            related=organization, type="ROR", value=orcid_identifier.value
+            related=organization,
+            type_id=f"{IDENTIFIER_TYPES}/ror",
+            value=orcid_identifier.value,
         )
 
         with pytest.raises(ValidationError):
@@ -1286,7 +1321,7 @@ class TestIdentifierValueUniqueAcrossContributors:
             ContributorIdentifier, fields=["type", "value"]
         )
         form = form_class(
-            data={"type": "ROR", "value": orcid_identifier.value},
+            data={"type": f"{IDENTIFIER_TYPES}/ror", "value": orcid_identifier.value},
             instance=ContributorIdentifier(related=organization),
         )
 
@@ -1310,20 +1345,30 @@ class TestDefaultIdentifier:
         assert person.get_default_identifier() is None
 
 
+@pytest.mark.django_db
 class TestContributorIdentifierVocabulary:
     def test_available_types_are_the_union_of_person_and_organization_types(self):
-        assert set(ContributorIdentifier.VOCABULARY.values) == {
-            "ORCID",
-            "RESEARCHER_ID",
-            "ROR",
-            "WIKIDATA",
-            "ISNI",
-            "CROSSREF_FUNDER_ID",
+        assert set(
+            [concept.uri for concept in ContributorIdentifier.get_type_concepts()]
+        ) == {
+            f"{IDENTIFIER_TYPES}/orcid",
+            f"{IDENTIFIER_TYPES}/researcher-id",
+            f"{IDENTIFIER_TYPES}/ror",
+            f"{IDENTIFIER_TYPES}/wikidata",
+            f"{IDENTIFIER_TYPES}/isni",
+            f"{IDENTIFIER_TYPES}/crossref-funder-id",
         }
 
     def test_no_type_names_a_sample_or_project(self):
-        assert set(ContributorIdentifier.VOCABULARY.values).isdisjoint(
-            {"IGSN", "DOI", "GRANT_NUMBER", "PROPOSAL_ID"}
+        assert set(
+            [concept.uri for concept in ContributorIdentifier.get_type_concepts()]
+        ).isdisjoint(
+            {
+                f"{IDENTIFIER_TYPES}/igsn",
+                f"{IDENTIFIER_TYPES}/doi",
+                f"{IDENTIFIER_TYPES}/grant-number",
+                f"{IDENTIFIER_TYPES}/proposal-id",
+            }
         )
 
 
@@ -1385,7 +1430,7 @@ class TestPersonNameInternationalization:
 class TestMultipleRolesPerContribution:
     @pytest.mark.django_db
     def test_contribution_multiple_roles(self, db):
-        from research_vocabs.models import Concept
+        from controlled_vocabularies.models import Record
 
         project = ProjectFactory()
         person = PersonFactory()
@@ -1394,7 +1439,9 @@ class TestMultipleRolesPerContribution:
             contributor=person,
         )
 
-        roles_qs = Concept.objects.filter(vocabulary__name="fairdm-roles")
+        roles_qs = Record.objects.filter(
+            scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+        )
         author_role = roles_qs.first()
         editor_role = roles_qs.last()
 
@@ -1742,7 +1789,9 @@ class TestDefaultIdentifierReadsAPrefetch:
 @pytest.mark.django_db
 class TestInitials:
     def test_a_person_uses_their_given_and_family_names(self):
-        person = PersonFactory(first_name="ada", last_name="lovelace", name="The Countess")
+        person = PersonFactory(
+            first_name="ada", last_name="lovelace", name="The Countess"
+        )
 
         assert person.get_initials() == "AL"
 
@@ -1884,7 +1933,9 @@ class TestOrcidIsAuthenticated:
         from allauth.socialaccount.models import SocialAccount
 
         person = PersonFactory()
-        SocialAccount.objects.create(user=person, provider="orcid", uid="0000-0001-0000-0001")
+        SocialAccount.objects.create(
+            user=person, provider="orcid", uid="0000-0001-0000-0001"
+        )
 
         assert person.orcid_is_authenticated is True
 
@@ -1946,9 +1997,7 @@ class TestGetVisibleContributions:
             world.person.get_visible_contributions(AnonymousUser())
         )
 
-    def test_a_member_of_a_private_project_does_not_get_it_listed(
-        self, credited_world
-    ):
+    def test_a_member_of_a_private_project_does_not_get_it_listed(self, credited_world):
         world = credited_world
         member = PersonFactory(is_active=True)
         ContributionFactory(
@@ -2018,9 +2067,7 @@ class TestGetVisibleContributions:
 
         kinds = {
             contribution.kind
-            for contribution in world.person.get_visible_contributions(
-                AnonymousUser()
-            )
+            for contribution in world.person.get_visible_contributions(AnonymousUser())
         }
 
         assert kinds == {"project", "dataset", "sample", "measurement"}
@@ -2074,7 +2121,9 @@ class TestVisibleRoleCounts:
 
     def test_each_role_counts_the_records_it_is_held_on(self, credited_world):
         world = credited_world
-        world.person.add_to(world.public_dataset, roles=["Creator"])
+        world.person.add_to(
+            world.public_dataset, roles=[f"{CONTRIBUTOR_ROLES}/creator"]
+        )
         contributions = world.person.get_visible_contributions(AnonymousUser())
 
         counts = world.person.get_role_counts(contributions)
@@ -2090,7 +2139,9 @@ class TestVisibleCollaborators:
         world = credited_world
         contributions = world.person.get_visible_contributions(AnonymousUser())
 
-        collaborators = list(world.person.get_collaborators(contributions=contributions))
+        collaborators = list(
+            world.person.get_collaborators(contributions=contributions)
+        )
 
         assert world.private_mate not in collaborators
         assert world.private_dataset_mate not in collaborators
@@ -2099,7 +2150,9 @@ class TestVisibleCollaborators:
         world = credited_world
         contributions = world.person.get_visible_contributions(AnonymousUser())
 
-        collaborators = list(world.person.get_collaborators(contributions=contributions))
+        collaborators = list(
+            world.person.get_collaborators(contributions=contributions)
+        )
 
         assert collaborators == [world.open_mate, world.sample_mate]
         assert collaborators[0].collaboration_count == 2
@@ -2144,10 +2197,16 @@ class TestPersonAffiliationHistory:
     def test_the_primary_affiliation_leads_and_the_rest_follow_by_name(self, db):
         person = PersonFactory()
         primary = AffiliationFactory(
-            person=person, organization=OrganizationFactory(name="Zeta"), is_primary=True
+            person=person,
+            organization=OrganizationFactory(name="Zeta"),
+            is_primary=True,
         )
-        beta = AffiliationFactory(person=person, organization=OrganizationFactory(name="Beta"))
-        alpha = AffiliationFactory(person=person, organization=OrganizationFactory(name="Alpha"))
+        beta = AffiliationFactory(
+            person=person, organization=OrganizationFactory(name="Beta")
+        )
+        alpha = AffiliationFactory(
+            person=person, organization=OrganizationFactory(name="Alpha")
+        )
 
         history = person.get_affiliation_history()
 
@@ -2205,9 +2264,7 @@ class TestAffiliationDisplay:
             ("2020-03-14", date_format(date(2020, 3, 14), "SHORT_DATE_FORMAT")),
         ],
     )
-    def test_a_date_is_shown_as_precisely_as_it_was_recorded(
-        self, recorded, expected
-    ):
+    def test_a_date_is_shown_as_precisely_as_it_was_recorded(self, recorded, expected):
         affiliation = AffiliationFactory(start_date=recorded, end_date=recorded)
 
         affiliation.refresh_from_db()
@@ -2272,7 +2329,9 @@ class TestPublicSchemaOrg:
 @pytest.mark.django_db
 class TestContributorLinks:
     def test_each_link_is_named_by_its_site(self):
-        person = PersonFactory(links=["https://www.github.com/someone", "https://x.test/a"])
+        person = PersonFactory(
+            links=["https://www.github.com/someone", "https://x.test/a"]
+        )
 
         assert person.get_links_display() == [
             {"url": "https://www.github.com/someone", "host": "github.com"},
@@ -2287,14 +2346,18 @@ class TestContributorLinks:
 class TestIdentifierResolverUrl:
     def test_a_type_with_a_resolver_links_to_it(self):
         identifier = ContributorIdentifier.objects.create(
-            related=PersonFactory(), type="ORCID", value="0000-0001-2345-6789"
+            related=PersonFactory(),
+            type_id=f"{IDENTIFIER_TYPES}/orcid",
+            value="0000-0001-2345-6789",
         )
 
         assert identifier.resolver_url == "https://orcid.org/0000-0001-2345-6789"
 
     def test_a_type_with_no_resolver_has_no_link(self):
         identifier = ContributorIdentifier.objects.create(
-            related=PersonFactory(), type="RESEARCHER_ID", value="A-1234-2020"
+            related=PersonFactory(),
+            type_id=f"{IDENTIFIER_TYPES}/researcher-id",
+            value="A-1234-2020",
         )
 
         assert identifier.resolver_url is None
@@ -2394,9 +2457,7 @@ class TestOrganizationIsManagedBy:
         "type", [Affiliation.MembershipType.OWNER, Affiliation.MembershipType.ADMIN]
     )
     def test_an_ended_affiliation_does_not_count(self, type):
-        affiliation = AffiliationFactory(
-            type=type, start_date="2010", end_date="2014"
-        )
+        affiliation = AffiliationFactory(type=type, start_date="2010", end_date="2014")
 
         assert affiliation.organization.is_managed_by(affiliation.person) is False
 
@@ -2547,7 +2608,9 @@ class TestPersonProfileCompleteness:
     def test_an_orcid_id_typed_in_is_not_connected(self):
         person = PersonFactory()
         ContributorIdentifier.objects.create(
-            related=person, type="ORCID", value="0000-0001-2345-6789"
+            related=person,
+            type_id=f"{IDENTIFIER_TYPES}/orcid",
+            value="0000-0001-2345-6789",
         )
 
         assert person.get_profile_completeness()["orcid"] is False
@@ -2610,7 +2673,9 @@ class TestOrganizationRecordCompleteness:
             links=["https://example.org"],
         )
         ContributorIdentifier.objects.create(
-            related=organization, type="ROR", value="https://ror.org/02nr0ka47"
+            related=organization,
+            type_id=f"{IDENTIFIER_TYPES}/ror",
+            value="https://ror.org/02nr0ka47",
         )
 
         assert all(organization.get_record_completeness().values())
@@ -2618,13 +2683,17 @@ class TestOrganizationRecordCompleteness:
     def test_only_a_ror_identifier_counts_as_the_ror_item(self):
         organization = OrganizationFactory()
         ContributorIdentifier.objects.create(
-            related=organization, type="ISNI", value="0000000121032683"
+            related=organization,
+            type_id=f"{IDENTIFIER_TYPES}/isni",
+            value="0000000121032683",
         )
 
         assert organization.get_record_completeness()["ror"] is False
 
         ContributorIdentifier.objects.create(
-            related=organization, type="ROR", value="https://ror.org/02nr0ka47"
+            related=organization,
+            type_id=f"{IDENTIFIER_TYPES}/ror",
+            value="https://ror.org/02nr0ka47",
         )
 
         assert organization.get_record_completeness()["ror"] is True
@@ -2654,7 +2723,9 @@ class TestOrganizationRecordCompleteness:
 
 @pytest.mark.django_db
 class TestPersonLocationDisplay:
-    def test_it_is_the_city_and_country_of_the_current_verified_primary_affiliation(self):
+    def test_it_is_the_city_and_country_of_the_current_verified_primary_affiliation(
+        self,
+    ):
         person = PersonFactory()
         organization = OrganizationFactory(city="Potsdam", country="DE")
         AffiliationFactory(person=person, organization=organization, is_primary=True)
@@ -2816,9 +2887,7 @@ class TestPersonIsEditableBy:
 
         assert person.is_editable_by(holder) is False
 
-    def test_a_community_manager_may_edit_an_unclaimed_person(
-        self, community_manager
-    ):
+    def test_a_community_manager_may_edit_an_unclaimed_person(self, community_manager):
         person = PersonFactory(is_active=True, is_claimed=False)
 
         assert person.is_editable_by(community_manager) is True
@@ -2878,6 +2947,7 @@ class TestPersonIsEditableBy:
 
         assert person.is_editable_by(curator) is False
 
+
 @pytest.mark.django_db
 class TestOrganizationRorIdentifier:
     @pytest.mark.parametrize("value", ["02nr0ka47", "https://ror.org/02nr0ka47"])
@@ -2886,7 +2956,7 @@ class TestOrganizationRorIdentifier:
     ):
         organization = OrganizationFactory()
         ContributorIdentifier.objects.create(
-            related=organization, type="ROR", value=value
+            related=organization, type_id=f"{IDENTIFIER_TYPES}/ror", value=value
         )
 
         organization.full_clean()
@@ -2904,7 +2974,7 @@ class TestOrganizationRorIdentifier:
     def test_a_malformed_ror_still_fails_on_the_identifiers_field(self, value):
         organization = OrganizationFactory()
         ContributorIdentifier.objects.create(
-            related=organization, type="ROR", value=value
+            related=organization, type_id=f"{IDENTIFIER_TYPES}/ror", value=value
         )
 
         with pytest.raises(ValidationError) as error:
@@ -3008,7 +3078,9 @@ class TestOrganizationIsEditableBy:
 
     def _joined(self, organization, type, **kwargs):
         person = PersonFactory(is_active=True, password="x")
-        AffiliationFactory(person=person, organization=organization, type=type, **kwargs)
+        AffiliationFactory(
+            person=person, organization=organization, type=type, **kwargs
+        )
         return person
 
     @pytest.mark.parametrize(

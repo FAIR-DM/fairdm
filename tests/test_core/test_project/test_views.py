@@ -19,6 +19,7 @@ from fairdm.core.choices import ProjectStatus
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
 from fairdm.core.project.views import ProjectCreateView, ProjectListView
+from fairdm.core.vocabularies import CONTRIBUTOR_ROLES, DESCRIPTION_TYPES
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
@@ -424,8 +425,12 @@ class TestProjectCreateViewExtended:
 
         contributor = project.contributors.filter(contributor=user).first()
         assert contributor is not None, "User should be a contributor"
-        role_names = list(contributor.roles.values_list("name", flat=True))
-        for role in ["Creator", "ProjectMember", "ContactPerson"]:
+        role_names = list(contributor.roles.values_list("uri", flat=True))
+        for role in [
+            f"{CONTRIBUTOR_ROLES}/creator",
+            f"{CONTRIBUTOR_ROLES}/project-member",
+            f"{CONTRIBUTOR_ROLES}/contact-person",
+        ]:
             assert role in role_names, f"Missing contributor role: {role}"
 
     def test_create_view_derives_from_portal_create_base(self):
@@ -898,7 +903,7 @@ class TestProjectCardRendering:
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         ProjectDescriptionFactory(
             related=project,
-            type="Abstract",
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
             value="## Objectives\n\nWe measure **heat flow** across the rift.",
         )
         response, html = self._card_html(client)
@@ -910,22 +915,26 @@ class TestProjectCardRendering:
     def test_card_caps_a_long_abstract_at_400_characters(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         ProjectDescriptionFactory(
-            related=project, type="Abstract", value="borehole " * 200
+            related=project,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="borehole " * 200,
         )
         response, _ = self._card_html(client)
         assert len(project.get_abstract_summary()) <= 400
         assertContains(response, project.get_abstract_summary()[:120])
 
     def test_card_renders_keywords_as_badges_and_not_as_links(self, client):
-        from research_vocabs.models import Concept
+        from controlled_vocabularies.models import Record
 
-        keyword = Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+        keyword = Record.objects.filter(
+            scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+        ).first()
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         project.keywords.add(keyword)
         response, html = self._card_html(client)
-        assertContains(response, keyword.label)
+        assertContains(response, keyword.display_label())
         assert f'href="?keywords={keyword.pk}"' not in html
-        assert f">{keyword.label}</a>" not in html
+        assert f">{keyword.display_label()}</a>" not in html
 
     def test_card_shows_the_project_uuid_with_a_copy_control(
         self, client, public_project
@@ -973,16 +982,20 @@ class TestProjectCardRendering:
 class TestProjectListingQueryCount:
     @staticmethod
     def _build_projects(count):
-        from research_vocabs.models import Concept
+        from controlled_vocabularies.models import Record
 
-        keywords = list(Concept.objects.filter(vocabulary__name="fairdm-roles")[:3])
+        keywords = list(
+            Record.objects.filter(
+                scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+            )[:3]
+        )
         for index in range(count):
             project = ProjectFactory(
                 name=f"Survey {index}", visibility=Visibility.PUBLIC
             )
             ProjectDescriptionFactory(
                 related=project,
-                type="Abstract",
+                type_id=f"{DESCRIPTION_TYPES}/abstract",
                 value=f"## Survey {index}\n\nWe measured **heat flow** here.",
             )
             project.keywords.add(*keywords)
@@ -1015,15 +1028,19 @@ class TestProjectListingQueryCount:
 class TestProjectCardEmitsNoTemplateComments:
     # A multi-line `{# #}` is not a comment: its text is emitted verbatim (#330).
     def test_no_comment_syntax_survives_into_the_rendered_page(self, client):
-        from research_vocabs.models import Concept
+        from controlled_vocabularies.models import Record
 
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         project.keywords.add(
-            *Concept.objects.filter(vocabulary__name="fairdm-roles")[:3]
+            *Record.objects.filter(
+                scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+            )[:3]
         )
         project.add_contributor(PersonFactory())
         ProjectDescriptionFactory(
-            related=project, type="Abstract", value="An abstract."
+            related=project,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="An abstract.",
         )
 
         html = client.get(reverse("project-list")).content.decode()

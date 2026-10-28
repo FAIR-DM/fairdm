@@ -1,24 +1,7 @@
-"""Signal receivers that keep credit roles and shipped portal roles consistent."""
+"""Signal receivers that keep the shipped portal roles in place."""
 
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-
-
-def refuse_off_vocabulary_role(sender, action, reverse, model, pk_set, **kwargs):
-    """Refuse a role from any vocabulary other than the roles vocabulary before it is written."""
-    # `pre_add` covers `roles.add()` and the add half of `roles.set()`. Forms narrow their querysets
-    # first, so this backstops fixtures, commands and direct calls. Reverse writes have no accessor.
-    if action != "pre_add" or reverse or not pk_set:
-        return
-
-    from .models import CONTRIBUTION_ROLES_VOCABULARY_MESSAGE
-
-    if (
-        model.objects.filter(pk__in=pk_set)
-        .exclude(vocabulary__name="fairdm-roles")
-        .exists()
-    ):
-        raise ValidationError(CONTRIBUTION_ROLES_VOCABULARY_MESSAGE)
 
 
 def refuse_shipped_role_deletion(sender, instance, **kwargs):

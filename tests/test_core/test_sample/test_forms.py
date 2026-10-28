@@ -12,6 +12,7 @@ from demo.models import RockSample, WaterSample
 from fairdm.contrib.autocomplete.fields import DatasetChoiceField
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.sample.forms import SampleFormMixin
+from fairdm.core.vocabularies import SAMPLE_STATUS
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
@@ -112,7 +113,7 @@ class TestSampleFormValidation:
 
         form = RockSampleForm()
 
-        assert form.fields["status"].initial == "unknown"
+        assert form.fields["status"].initial == f"{SAMPLE_STATUS}/unknown"
 
 
 @pytest.mark.django_db

@@ -8,7 +8,7 @@
     <div class="fw-semibold text-truncate">{{ contribution.contributor }}</div>
     <div class="text-secondary small text-truncate">
       {% for role in contribution.roles.all %}
-        <span class="me-1">{{ role.label }}
+        <span class="me-1">{{ role.display_label }}
           {% if not forloop.last %}|{% endif %}
         </span>
       {% endfor %}

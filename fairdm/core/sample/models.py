@@ -2,6 +2,7 @@
 
 import re
 
+from controlled_vocabularies.fields import ConceptField
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.gis.db.models import PointField
 from django.core.exceptions import ValidationError
@@ -11,7 +12,6 @@ from django.dispatch import receiver
 from django.utils.functional import classproperty
 from django.utils.translation import gettext_lazy as _
 from polymorphic.managers import PolymorphicManager
-from research_vocabs.fields import ConceptField
 from shortuuid.django_fields import ShortUUIDField
 
 from fairdm.db import models
@@ -25,11 +25,13 @@ from ..abstract import (
 )
 from ..utils import CORE_PERMISSIONS
 from ..vocabularies import (
-    FairDMDates,
-    FairDMDescriptions,
-    FairDMIdentifiers,
-    FairDMRoles,
-    FairDMSampleStatus,
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    IDENTIFIER_TYPES,
+    IGSN,
+    SAMPLE_STATUS,
+    SAMPLE_STATUS_UNKNOWN,
 )
 from .managers import SampleQuerySet
 
@@ -74,9 +76,9 @@ class Sample(BasePolymorphicModel):
         objects: The manager, with the ``SampleQuerySet`` helpers.
     """
 
-    CONTRIBUTOR_ROLES = FairDMRoles.from_collection("Sample")
-    DATE_TYPES = FairDMDates.from_collection("Sample")
-    DESCRIPTION_TYPES = FairDMDescriptions.from_collection("Sample")
+    CONTRIBUTOR_ROLES = f"{CONTRIBUTOR_ROLES}/sample"
+    DATE_TYPES = f"{DATE_TYPES}/sample"
+    DESCRIPTION_TYPES = f"{DESCRIPTION_TYPES}/sample"
 
     dataset = models.ForeignKey(
         "dataset.Dataset",
@@ -108,8 +110,9 @@ class Sample(BasePolymorphicModel):
     status = ConceptField(
         verbose_name=_("status"),
         help_text=_("The current custody status of the physical specimen."),
-        vocabulary=FairDMSampleStatus,
-        default="unknown",
+        vocabulary=SAMPLE_STATUS,
+        default=SAMPLE_STATUS_UNKNOWN,
+        related_name="+",
     )
 
     location = PointField(
@@ -309,69 +312,49 @@ def block_base_sample_creation(sender, instance, **kwargs):
 class SampleDescription(AbstractDescription):
     """Typed free-text description of a sample."""
 
-    VOCABULARY = FairDMDescriptions.from_collection("Sample")
+    type = ConceptField(
+        vocabulary=DESCRIPTION_TYPES,
+        collection=f"{DESCRIPTION_TYPES}/sample",
+        related_name="+",
+        verbose_name=_("type"),
+        help_text=_("What the description covers, from the sample description types."),
+    )
     related = models.ForeignKey("Sample", on_delete=models.CASCADE)
-
-    def clean(self):
-        """Refuse a description type outside the vocabulary."""
-        super().clean()
-
-        if self.type:
-            valid_types = self.VOCABULARY.values
-            if self.type not in valid_types:
-                raise ValidationError(
-                    {
-                        "type": _("'%(type)s' is not a valid Sample description type.")
-                        % {"type": self.type}
-                    }
-                )
 
 
 class SampleDate(AbstractDate):
     """Typed date on a sample."""
 
-    VOCABULARY = FairDMDates.from_collection("Sample")
+    type = ConceptField(
+        vocabulary=DATE_TYPES,
+        collection=f"{DATE_TYPES}/sample",
+        related_name="+",
+        verbose_name=_("type"),
+        help_text=_("What the date marks, from the sample date types."),
+    )
     related = models.ForeignKey("Sample", on_delete=models.CASCADE)
-
-    def clean(self):
-        """Refuse a date type outside the vocabulary."""
-        super().clean()
-
-        if self.type:
-            valid_types = self.VOCABULARY.values
-            if self.type not in valid_types:
-                raise ValidationError(
-                    {
-                        "type": _("'%(type)s' is not a valid Sample date type.")
-                        % {"type": self.type}
-                    }
-                )
 
 
 class SampleIdentifier(AbstractIdentifier):
     """Typed external identifier of a sample, from the sample identifier collection (IGSN and DOI)."""
 
-    VOCABULARY = FairDMIdentifiers.from_collection("Sample")
+    type = ConceptField(
+        vocabulary=IDENTIFIER_TYPES,
+        collection=f"{IDENTIFIER_TYPES}/sample",
+        related_name="+",
+        verbose_name=_("type"),
+        help_text=_("The kind of identifier, from the sample identifier types."),
+    )
     related = models.ForeignKey("Sample", on_delete=models.CASCADE)
 
     def clean(self):
-        """Refuse an identifier type outside the vocabulary and an invalid IGSN."""
+        """Refuse an invalid IGSN."""
         # The IGSN check runs first because it normalises `self.value`, and the uniqueness check
         # in `super().clean()` compares it exactly. Two display variants would otherwise both pass.
-        if self.type == "IGSN" and self.value:
+        if self.type_id == IGSN and self.value:
             self._validate_igsn_format()
 
         super().clean()
-
-        if self.type:
-            valid_types = self.VOCABULARY.values
-            if self.type not in valid_types:
-                raise ValidationError(
-                    {
-                        "type": _("'%(type)s' is not a valid Sample identifier type.")
-                        % {"type": self.type}
-                    }
-                )
 
     def _validate_igsn_format(self):
         """Normalise and validate ``self.value`` as an IGSN.

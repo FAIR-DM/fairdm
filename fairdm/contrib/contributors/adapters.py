@@ -11,6 +11,7 @@ from django.http import HttpRequest
 
 from fairdm.contrib.contributors.models import ContributorIdentifier
 from fairdm.contrib.contributors.utils.transforms import ORCIDTransform
+from fairdm.core.vocabularies import ORCID
 
 
 def is_provider(name, sociallogin):
@@ -71,7 +72,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
             The profile, or None when no identifier row matches.
         """
         existing = ContributorIdentifier.objects.filter(
-            value=orcid_id, type="ORCID"
+            value=orcid_id, type_id=ORCID
         ).first()
         if existing:
             return existing.related
@@ -119,7 +120,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
             if not adopted_user and existing_user is None:
                 user.identifiers.create(
                     value=orcid_id,
-                    type="ORCID",
+                    type_id=ORCID,
                 )
             return user
 

@@ -17,7 +17,6 @@ from fairdm.factories import (
     DatasetFactory,
     OrganizationFactory,
     PersonFactory,
-    ProjectFactory,
 )
 
 VIEW, EDIT, MANAGE = (
@@ -71,9 +70,7 @@ class TestRecordsAbove:
             record_chain.project,
         ]
 
-    def test_a_measurement_follows_its_own_dataset_not_its_samples(
-        self, record_chain
-    ):
+    def test_a_measurement_follows_its_own_dataset_not_its_samples(self, record_chain):
         assert RecordAccess(record_chain.measurement).above == [
             record_chain.other_dataset,
             record_chain.project,
@@ -312,9 +309,7 @@ class TestManagers:
         ],
         ids=["inactive", "never_signed_in"],
     )
-    def test_a_person_who_cannot_sign_in_is_left_out(
-        self, record_chain, grant, state
-    ):
+    def test_a_person_who_cannot_sign_in_is_left_out(self, record_chain, grant, state):
         person = PersonFactory(password="x", **state)
         grant(record_chain.dataset, person, MANAGE)
 
@@ -343,7 +338,9 @@ class TestCanManage:
     def test_a_person_holding_change_for_the_whole_portal_may(
         self, record_chain, signed_in
     ):
-        signed_in.user_permissions.add(Permission.objects.get(codename="change_dataset"))
+        signed_in.user_permissions.add(
+            Permission.objects.get(codename="change_dataset")
+        )
         signed_in = type(signed_in).objects.get(pk=signed_in.pk)
 
         assert RecordAccess(record_chain.dataset).can_manage(signed_in) is True
@@ -351,7 +348,9 @@ class TestCanManage:
     def test_change_for_datasets_does_not_reach_a_project(
         self, record_chain, signed_in
     ):
-        signed_in.user_permissions.add(Permission.objects.get(codename="change_dataset"))
+        signed_in.user_permissions.add(
+            Permission.objects.get(codename="change_dataset")
+        )
         signed_in = type(signed_in).objects.get(pk=signed_in.pk)
 
         assert RecordAccess(record_chain.project).can_manage(signed_in) is False
@@ -370,7 +369,9 @@ class TestRequiredLevel:
     @pytest.mark.parametrize("model", [Project, Dataset, Sample, Measurement])
     def test_every_permission_a_record_type_declares_is_given_a_level(self, model):
         meta = model._meta
-        declared = {f"{action}_{meta.model_name}" for action in meta.default_permissions}
+        declared = {
+            f"{action}_{meta.model_name}" for action in meta.default_permissions
+        }
         declared |= {codename for codename, _name in meta.permissions}
 
         assert declared - set(REQUIRED_LEVEL) == set()

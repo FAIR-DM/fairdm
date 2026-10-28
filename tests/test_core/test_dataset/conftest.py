@@ -3,6 +3,7 @@
 import pytest
 
 from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.core.vocabularies import DATE_TYPES, DESCRIPTION_TYPES
 from fairdm.factories import (
     ContributionFactory,
     DatasetDateFactory,
@@ -28,8 +29,8 @@ def private_dataset(db):
 @pytest.fixture
 def dataset_with_full_metadata(db):
     dataset = DatasetFactory()
-    DatasetDescriptionFactory(related=dataset, type="Abstract")
-    DatasetDateFactory(related=dataset, type="Available")
+    DatasetDescriptionFactory(related=dataset, type_id=f"{DESCRIPTION_TYPES}/abstract")
+    DatasetDateFactory(related=dataset, type_id=f"{DATE_TYPES}/available")
     DatasetIdentifierFactory(related=dataset)
     DatasetLiteratureRelationFactory(dataset=dataset)
     ContributionFactory(content_object=dataset)

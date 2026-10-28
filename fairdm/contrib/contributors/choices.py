@@ -2,8 +2,16 @@
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from research_vocabs.builder.skos import Concept
-from research_vocabs.vocabularies import VocabularyBuilder
+
+from fairdm.core.vocabularies import (
+    CROSSREF_FUNDER_ID,
+    DOI,
+    IGSN,
+    ISNI,
+    ORCID,
+    ROR,
+    WIKIDATA,
+)
 
 
 class OrganizationType(models.TextChoices):
@@ -21,23 +29,6 @@ class OrganizationType(models.TextChoices):
     GOVERNMENT = "government", _("Government")
     FACILITY = "facility", _("Facility")
     OTHER = "other", _("Other")
-
-
-class PersonalIdentifiers(models.TextChoices):
-    """Identifier schemes for a person."""
-
-    ORCID = "ORCID", "ORCID"
-    RESEARCHER_ID = "ResearcherID", "ResearcherID"
-
-
-class OrganizationalIdentifiers(models.TextChoices):
-    """Identifier schemes for an organisation."""
-
-    ROR = "ROR", "ROR"
-    GRID = "GRID", "GRID"
-    WIKIDATA = "Wikidata", "Wikidata"
-    ISNI = "ISNI", "ISNI"
-    CROSSREF_FUNDER_ID = "Crossref Funder ID", "Crossref Funder ID"
 
 
 class ContributionLevel(models.IntegerChoices):
@@ -64,24 +55,13 @@ class AccountState(models.TextChoices):
     INACTIVE = "inactive", _("Inactive")
 
 
-class FairDMIdentifiers(VocabularyBuilder):
-    """Vocabulary of identifier schemes."""
-
-    ORCID = Concept(
-        prefLabel=_("ORCID"),
-        definition=_("Open Researcher and Contributor ID."),
-    )
-
-
-# Keyed by the identifier type as it is stored: the member names of
-# ``fairdm.core.vocabularies.FairDMIdentifiers``. A type with no resolver has no entry.
+# Keyed by the address of the identifier type. A type with no resolver has no entry.
 IdentifierLookup = {
-    "ORCID": "https://orcid.org/",
-    "ROR": "https://ror.org/",
-    "GRID": "https://www.grid.ac/institutes/",
-    "WIKIDATA": "https://www.wikidata.org/wiki/",
-    "ISNI": "https://isni.org/isni/",
-    "CROSSREF_FUNDER_ID": "https://doi.org/",
-    "IGSN": "https://igsn.org/",
-    "DOI": "https://doi.org/",
+    ORCID: "https://orcid.org/",
+    ROR: "https://ror.org/",
+    WIKIDATA: "https://www.wikidata.org/wiki/",
+    ISNI: "https://isni.org/isni/",
+    CROSSREF_FUNDER_ID: "https://doi.org/",
+    IGSN: "https://igsn.org/",
+    DOI: "https://doi.org/",
 }

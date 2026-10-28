@@ -1,5 +1,6 @@
 """Singleton models holding the portal's branding and governing authority."""
 
+from controlled_vocabularies.fields import MultiConceptField
 from django.contrib import admin
 from django.db import models
 from django.utils.text import slugify
@@ -98,8 +99,7 @@ class Authority(BrandAssets, SingletonModel, TranslatableModel):
 class Identity(BrandAssets, SingletonModel, TranslatableModel):
     """Portal identity configuration including branding and metadata."""
 
-    keywords: models.ManyToManyField = models.ManyToManyField(
-        "research_vocabs.Concept",
+    keywords = MultiConceptField(
         verbose_name=_("Keywords"),
         help_text=_(
             "A set of keywords from controlled vocabularies describing the portal."

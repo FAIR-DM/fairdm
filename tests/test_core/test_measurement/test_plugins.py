@@ -20,6 +20,7 @@ from fairdm import plugins
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.measurement.models import Measurement, MeasurementDate
 from fairdm.core.measurement.plugins import Overview
+from fairdm.core.vocabularies import DATE_TYPES, IDENTIFIER_TYPES, SAMPLE_STATUS
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
@@ -235,7 +236,7 @@ class TestOverviewSample:
         assertContains(response, xrf.sample.get_absolute_url())
 
     def test_the_sample_card_carries_the_samples_status(self, client, released):
-        sample = RockSampleFactory(dataset=released, status="stored")
+        sample = RockSampleFactory(dataset=released, status=f"{SAMPLE_STATUS}/stored")
         measurement = XRFMeasurementFactory(dataset=released, sample=sample)
 
         status = _page(client, measurement).context["sample_status"]
@@ -393,7 +394,9 @@ class TestOverviewProcedure:
     """FR-041: how the measurement was made, put back together from dates, roles and descriptions."""
 
     def test_a_dated_step_appears_in_the_timeline(self, client, xrf):
-        MeasurementDate.objects.create(related=xrf, type="Setup", value="2024-01-15")
+        MeasurementDate.objects.create(
+            related=xrf, type_id=f"{DATE_TYPES}/setup", value="2024-01-15"
+        )
 
         steps = _page(client, xrf).context["procedure"]
 
@@ -423,7 +426,7 @@ class TestOverviewCitation:
         from fairdm.core.measurement.models import MeasurementIdentifier
 
         MeasurementIdentifier.objects.create(
-            related=xrf, type="DOI", value="10.1234/meas.1"
+            related=xrf, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.1234/meas.1"
         )
 
         citation = _page(client, xrf).context["citation"]
@@ -550,9 +553,7 @@ class TestOverviewLocation:
         assert shown.source == "sample"
         assert shown.elevation == 40.0
 
-    def test_a_sample_the_viewer_may_not_open_gives_no_location(
-        self, client, released
-    ):
+    def test_a_sample_the_viewer_may_not_open_gives_no_location(self, client, released):
         measurement = self._measurement(
             released, sample_location=GEOSPoint(12.5, 41.5, srid=4326), hidden=True
         )

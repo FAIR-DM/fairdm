@@ -5,6 +5,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 
 from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.core.vocabularies import IDENTIFIER_TYPES
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
@@ -376,9 +377,11 @@ class TestPeopleFilters:
         holder = PersonFactory()
         other = PersonFactory()
         ContributorIdentifierFactory(
-            related=holder, type="ORCID", value="0000-0002-1825-0097"
+            related=holder,
+            type_id=f"{IDENTIFIER_TYPES}/orcid",
+            value="0000-0002-1825-0097",
         )
-        ContributorIdentifierFactory(related=other, type="ORCID")
+        ContributorIdentifierFactory(related=other, type_id=f"{IDENTIFIER_TYPES}/orcid")
 
         found = self.found(APIClient(), identifier="0000-0002-1825-0097")
 
@@ -398,7 +401,9 @@ class TestPeopleFilters:
 
         holder = PersonFactory()
         ContributorIdentifierFactory(
-            related=holder, type="ORCID", value="0000-0002-1825-0097"
+            related=holder,
+            type_id=f"{IDENTIFIER_TYPES}/orcid",
+            value="0000-0002-1825-0097",
         )
         PersonFactory()
 
@@ -413,7 +418,7 @@ class TestPeopleFilters:
 
         holder = PersonFactory()
         ContributorIdentifierFactory(
-            related=holder, type="ISNI", value="0000000121032683"
+            related=holder, type_id=f"{IDENTIFIER_TYPES}/isni", value="0000000121032683"
         )
 
         found = self.found(APIClient(), identifier="0000 0001 2103 2683")
@@ -432,7 +437,9 @@ class TestPeopleFilters:
 
         administrator = PersonFactory(is_superuser=True, is_staff=True)
         ContributorIdentifierFactory(
-            related=administrator, type="ORCID", value="0000-0003-1415-9265"
+            related=administrator,
+            type_id=f"{IDENTIFIER_TYPES}/orcid",
+            value="0000-0003-1415-9265",
         )
         PersonFactory()
 
@@ -450,11 +457,15 @@ class TestPeopleFilters:
         institute = OrganizationFactory()
         holder = AffiliationFactory(organization=institute).person
         ContributorIdentifierFactory(
-            related=holder, type="ORCID", value="0000-0002-1825-0097"
+            related=holder,
+            type_id=f"{IDENTIFIER_TYPES}/orcid",
+            value="0000-0002-1825-0097",
         )
         outsider = PersonFactory()
         ContributorIdentifierFactory(
-            related=outsider, type="ORCID", value="0000-0001-5109-3700"
+            related=outsider,
+            type_id=f"{IDENTIFIER_TYPES}/orcid",
+            value="0000-0001-5109-3700",
         )
 
         found = self.found(
@@ -558,8 +569,12 @@ class TestOrganizationFilters:
 
         holder = OrganizationFactory()
         other = OrganizationFactory()
-        ContributorIdentifierFactory(related=holder, type="ROR", value="03yrm5c26")
-        ContributorIdentifierFactory(related=other, type="ROR", value="05gq02987")
+        ContributorIdentifierFactory(
+            related=holder, type_id=f"{IDENTIFIER_TYPES}/ror", value="03yrm5c26"
+        )
+        ContributorIdentifierFactory(
+            related=other, type_id=f"{IDENTIFIER_TYPES}/ror", value="05gq02987"
+        )
 
         found = self.found(APIClient(), identifier="03yrm5c26")
 
@@ -578,7 +593,9 @@ class TestOrganizationFilters:
         from fairdm.factories import ContributorIdentifierFactory, OrganizationFactory
 
         holder = OrganizationFactory()
-        ContributorIdentifierFactory(related=holder, type="ROR", value="03yrm5c26")
+        ContributorIdentifierFactory(
+            related=holder, type_id=f"{IDENTIFIER_TYPES}/ror", value="03yrm5c26"
+        )
         OrganizationFactory()
 
         found = self.found(APIClient(), identifier=sent)
@@ -600,7 +617,9 @@ class TestOrganizationFilters:
         university = OrganizationFactory()
         australian = OrganizationFactory(parent=university, country="AU")
         german = OrganizationFactory(parent=university, country="DE")
-        ContributorIdentifierFactory(related=german, type="ROR", value="03yrm5c26")
+        ContributorIdentifierFactory(
+            related=german, type_id=f"{IDENTIFIER_TYPES}/ror", value="03yrm5c26"
+        )
 
         by_parent_and_country = self.found(
             APIClient(), parent_organization=university.uuid, country="AU"

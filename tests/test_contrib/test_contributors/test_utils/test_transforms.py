@@ -10,6 +10,7 @@ from fairdm.contrib.contributors.utils.transforms import (
     RORTransform,
     SchemaOrgTransform,
 )
+from fairdm.core.vocabularies import IDENTIFIER_TYPES
 
 
 @pytest.mark.django_db
@@ -150,7 +151,9 @@ class TestRORRoundTrip:
         assert org.country.code == "DE"
         assert org.location.y == pytest.approx(52.39886)
         assert org.location.x == pytest.approx(13.06566)
-        assert org.identifiers.get(type="ROR").value == "04z8jg394"
+        assert (
+            org.identifiers.get(type_id=f"{IDENTIFIER_TYPES}/ror").value == "04z8jg394"
+        )
 
     def test_ror_import_reads_other_names_and_links(self, recorded):
         org = RORTransform().import_data(recorded("ror-record"), save=False)
@@ -184,9 +187,7 @@ class TestRORRoundTrip:
 
         assert org.links == ["https://example.org"]
 
-    def test_ror_import_of_a_place_without_coordinates_sets_no_location(
-        self, recorded
-    ):
+    def test_ror_import_of_a_place_without_coordinates_sets_no_location(self, recorded):
         body = recorded("ror-record")
         place = body["locations"][0]["geonames_details"]
         place["lat"] = place["lng"] = None

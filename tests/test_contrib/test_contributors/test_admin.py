@@ -9,6 +9,7 @@ from django.test import RequestFactory
 from django.urls import reverse
 
 from fairdm.contrib.contributors.models import Affiliation, Organization, Person
+from fairdm.core.vocabularies import IDENTIFIER_TYPES
 
 
 @pytest.mark.django_db
@@ -268,7 +269,7 @@ class TestOrganizationAdminRORSync:
 
         ror_id = ContributorIdentifier.objects.create(
             related=organization,
-            type="ROR",
+            type_id=f"{IDENTIFIER_TYPES}/ror",
             value="https://ror.org/abc123",
         )
 

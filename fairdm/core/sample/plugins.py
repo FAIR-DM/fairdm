@@ -10,6 +10,15 @@ from fairdm.contrib.plugins.access import has_perm
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.overview import safe_reverse, sentence_case
 from fairdm.core.plugins import TypedOverviewPlugin
+from fairdm.core.vocabularies import (
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    IGSN,
+    SAMPLE_STATUS,
+    SAMPLE_STATUS_DESTROYED,
+    SAMPLE_STATUS_UNKNOWN,
+)
 
 from .models import Sample, SampleRelation
 
@@ -42,26 +51,55 @@ class Overview(TypedOverviewPlugin):
     fallback_template = "sample/sample_overview.html"
 
     lifecycle = [
-        ("Created", None, None, _("Created")),
-        ("Collected", "Collection", "SampleCollection", _("Collected")),
-        ("Prepared", "Preparation", "SamplePreparation", _("Prepared")),
-        ("Archival", "Storage", "SampleStorage", _("Archived")),
-        ("Returned", None, None, _("Returned")),
-        ("Restored", "Restoration", None, _("Restored")),
-        ("Destroyed", "Destruction", "SampleDestruction", _("Destroyed")),
+        (f"{DATE_TYPES}/created", None, None, _("Created")),
+        (
+            f"{DATE_TYPES}/collected",
+            f"{CONTRIBUTOR_ROLES}/collection",
+            f"{DESCRIPTION_TYPES}/sample-collection",
+            _("Collected"),
+        ),
+        (
+            f"{DATE_TYPES}/prepared",
+            f"{CONTRIBUTOR_ROLES}/preparation",
+            f"{DESCRIPTION_TYPES}/sample-preparation",
+            _("Prepared"),
+        ),
+        (
+            f"{DATE_TYPES}/archival",
+            f"{CONTRIBUTOR_ROLES}/storage",
+            f"{DESCRIPTION_TYPES}/sample-storage",
+            _("Archived"),
+        ),
+        (f"{DATE_TYPES}/returned", None, None, _("Returned")),
+        (
+            f"{DATE_TYPES}/restored",
+            f"{CONTRIBUTOR_ROLES}/restoration",
+            None,
+            _("Restored"),
+        ),
+        (
+            f"{DATE_TYPES}/destroyed",
+            f"{CONTRIBUTOR_ROLES}/destruction",
+            f"{DESCRIPTION_TYPES}/sample-destruction",
+            _("Destroyed"),
+        ),
     ]
     status_variants = {
-        "available": "success",
-        "in_use": "info",
-        "stored": "neutral",
-        "destroyed": "error",
+        f"{SAMPLE_STATUS}/available": "success",
+        f"{SAMPLE_STATUS}/in-use": "info",
+        f"{SAMPLE_STATUS}/stored": "neutral",
+        SAMPLE_STATUS_DESTROYED: "error",
     }
     status_meanings = {
-        "available": _("The specimen can be requested for further study."),
-        "in_use": _("The specimen is being worked on and may not be available."),
-        "stored": _("The specimen is archived and can be retrieved."),
-        "destroyed": _("The specimen no longer exists. Its data remains."),
-        "unknown": _("Where the specimen is now has not been recorded."),
+        f"{SAMPLE_STATUS}/available": _(
+            "The specimen can be requested for further study."
+        ),
+        f"{SAMPLE_STATUS}/in-use": _(
+            "The specimen is being worked on and may not be available."
+        ),
+        f"{SAMPLE_STATUS}/stored": _("The specimen is archived and can be retrieved."),
+        SAMPLE_STATUS_DESTROYED: _("The specimen no longer exists. Its data remains."),
+        SAMPLE_STATUS_UNKNOWN: _("Where the specimen is now has not been recorded."),
     }
     measurements_shown = 10
 
@@ -72,8 +110,8 @@ class Overview(TypedOverviewPlugin):
         context = super().get_context_data(**kwargs)
         sample = self.base_object
         entries = self.get_credits()
-        descriptions = {d.type: d.value for d in sample.descriptions.all()}
-        dates = {d.type: d.value for d in sample.dates.all()}
+        descriptions = {d.type_id: d.value for d in sample.descriptions.all()}
+        dates = {d.type_id: d.value for d in sample.dates.all()}
         measurements = self.get_measurements()
         relations = self.get_related_samples()
         status = self.get_status()
@@ -95,7 +133,7 @@ class Overview(TypedOverviewPlugin):
                 "lifecycle": self.get_timeline(
                     self.lifecycle, dates, descriptions, entries
                 ),
-                "notes": descriptions.get("Other"),
+                "notes": descriptions.get(f"{DESCRIPTION_TYPES}/other"),
                 "measurements": measurements,
                 "relations": relations,
                 "location": sample.location,
@@ -120,18 +158,17 @@ class Overview(TypedOverviewPlugin):
         """Read the sample's custody status as the page shows it.
 
         Returns:
-            The stored value, its label, the badge colour, and what it means for re-examining the
-            specimen.
+            The address of the stored status, its label, the badge colour, what it means for
+            re-examining the specimen and whether the specimen is destroyed.
         """
         sample = self.base_object
-        # The status field hands back a vocabulary concept, not its stored string.
-        value = getattr(sample.status, "name", sample.status) or "unknown"
-        labels = dict(type(sample)._meta.get_field("status").choices)
+        value = sample.status_id or SAMPLE_STATUS_UNKNOWN
         return {
             "value": value,
-            "label": labels.get(value, value),
+            "label": sample.get_status_label() or value,
             "variant": self.status_variants.get(value),
             "meaning": self.status_meanings.get(value, ""),
+            "destroyed": value == SAMPLE_STATUS_DESTROYED,
         }
 
     def get_details(self, project, status):
@@ -178,10 +215,12 @@ class Overview(TypedOverviewPlugin):
             The card's title and text, with a note when the sample has no IGSN.
         """
         sample = self.base_object
-        igsn = next((i for i in identifiers if i["type"] == "IGSN"), None)
-        collected = dates.get("Collected")
+        igsn = next((i for i in identifiers if i["type"].uri == IGSN), None)
+        collected = dates.get(f"{DATE_TYPES}/collected")
         text = self.get_citation(
-            authors=self.get_contributors_with_role(entries, "Collection"),
+            authors=self.get_contributors_with_role(
+                entries, f"{CONTRIBUTOR_ROLES}/collection"
+            ),
             year=getattr(getattr(collected, "date", None), "year", None)
             or sample.added.year,
             title=f"{sample.name} [{type(sample)._meta.verbose_name}]",

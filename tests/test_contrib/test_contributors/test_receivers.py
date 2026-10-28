@@ -80,7 +80,7 @@ class TestRefuseOffVocabularyRole:
     ):
         with (
             transaction.atomic(),
-            pytest.raises(ValidationError, match="roles vocabulary"),
+            pytest.raises(ValidationError, match="not a valid concept"),
         ):
             contribution.roles.add(off_vocabulary_role)
 
@@ -94,7 +94,7 @@ class TestRefuseOffVocabularyRole:
 
         with (
             transaction.atomic(),
-            pytest.raises(ValidationError, match="roles vocabulary"),
+            pytest.raises(ValidationError, match="not a valid concept"),
         ):
             contribution.roles.set([off_vocabulary_role])
 
@@ -107,7 +107,7 @@ class TestRefuseOffVocabularyRole:
 
         with (
             transaction.atomic(),
-            pytest.raises(ValidationError, match="roles vocabulary"),
+            pytest.raises(ValidationError, match="not a valid concept"),
         ):
             contribution.roles.add(genuine_role, off_vocabulary_role)
 
@@ -137,7 +137,7 @@ class TestProductionWritePathsRefuseOffVocabularyRoles:
 
         with (
             transaction.atomic(),
-            pytest.raises(ValidationError, match="roles vocabulary"),
+            pytest.raises(ValidationError, match="not a valid concept"),
         ):
             contribution.roles.add(off_vocabulary_role)
 
@@ -150,7 +150,7 @@ class TestProductionWritePathsRefuseOffVocabularyRoles:
 
         with (
             transaction.atomic(),
-            pytest.raises(ValidationError, match="roles vocabulary"),
+            pytest.raises(ValidationError, match="not a valid concept"),
         ):
             contribution.roles.add(off_vocabulary_role)
 
@@ -163,7 +163,7 @@ class TestProductionWritePathsRefuseOffVocabularyRoles:
 
         with (
             transaction.atomic(),
-            pytest.raises(ValidationError, match="roles vocabulary"),
+            pytest.raises(ValidationError, match="not a valid concept"),
         ):
             contribution.roles.add(off_vocabulary_role)
 

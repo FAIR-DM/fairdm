@@ -18,6 +18,7 @@ from fairdm.core.dataset.models import Dataset
 from fairdm.core.dataset.views import DatasetCreateView
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
+from fairdm.core.vocabularies import CONTRIBUTOR_ROLES, DATE_TYPES, DESCRIPTION_TYPES
 from fairdm.factories import (
     ContributionFactory,
     DatasetDescriptionFactory,
@@ -136,7 +137,7 @@ class TestDatasetListingSearch:
         other = DatasetFactory(visibility=Visibility.PUBLIC)
         DatasetDescriptionFactory(
             related=target,
-            type="Abstract",
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
             value="A rare assemblage of pyroxenite xenoliths from the Rio Grande rift",
         )
         response = client.get(reverse("dataset-list"), {"q": "pyroxenite"})
@@ -145,13 +146,15 @@ class TestDatasetListingSearch:
         assert other not in entries
 
     def test_search_by_keyword_returns_the_dataset(self, client):
-        from research_vocabs.models import Concept
+        from controlled_vocabularies.models import Record
 
         target = DatasetFactory(visibility=Visibility.PUBLIC)
         other = DatasetFactory(visibility=Visibility.PUBLIC)
-        term = Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+        term = Record.objects.filter(
+            scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+        ).first()
         target.keywords.add(term)
-        response = client.get(reverse("dataset-list"), {"q": term.name})
+        response = client.get(reverse("dataset-list"), {"q": term.pref_label})
         entries = list(response.context["object_list"])
         assert target in entries
         assert other not in entries
@@ -209,9 +212,14 @@ class TestDatasetListingFilters:
         from fairdm.factories import DatasetDescriptionFactory
 
         matching = DatasetFactory(visibility=Visibility.PUBLIC)
-        DatasetDescriptionFactory(related=matching, type="Abstract")
+        DatasetDescriptionFactory(
+            related=matching, type_id=f"{DESCRIPTION_TYPES}/abstract"
+        )
         other = DatasetFactory(visibility=Visibility.PUBLIC)
-        response = client.get(reverse("dataset-list"), {"description_type": "Abstract"})
+        response = client.get(
+            reverse("dataset-list"),
+            {"description_type": f"{DESCRIPTION_TYPES}/abstract"},
+        )
         entries = list(response.context["object_list"])
         assert matching in entries
         assert other not in entries
@@ -220,9 +228,11 @@ class TestDatasetListingFilters:
         from fairdm.factories import DatasetDateFactory
 
         matching = DatasetFactory(visibility=Visibility.PUBLIC)
-        DatasetDateFactory(related=matching, type="Available")
+        DatasetDateFactory(related=matching, type_id=f"{DATE_TYPES}/available")
         other = DatasetFactory(visibility=Visibility.PUBLIC)
-        response = client.get(reverse("dataset-list"), {"date_type": "Available"})
+        response = client.get(
+            reverse("dataset-list"), {"date_type": f"{DATE_TYPES}/available"}
+        )
         entries = list(response.context["object_list"])
         assert matching in entries
         assert other not in entries
@@ -236,8 +246,8 @@ class TestDatasetListingFiltersAllRunWithoutError:
             "o": "name",
             "license": license_obj.pk,
             "project": project.pk,
-            "description_type": "Abstract",
-            "date_type": "Available",
+            "description_type": f"{DESCRIPTION_TYPES}/abstract",
+            "date_type": f"{DATE_TYPES}/available",
             "image": "true",
         }[field_name]
 
@@ -249,8 +259,10 @@ class TestDatasetListingFiltersAllRunWithoutError:
         dataset = DatasetFactory(
             license=license_obj, project=project, visibility=Visibility.PUBLIC
         )
-        DatasetDescriptionFactory(related=dataset, type="Abstract")
-        DatasetDateFactory(related=dataset, type="Available")
+        DatasetDescriptionFactory(
+            related=dataset, type_id=f"{DESCRIPTION_TYPES}/abstract"
+        )
+        DatasetDateFactory(related=dataset, type_id=f"{DATE_TYPES}/available")
 
         response = client.get(reverse("dataset-list"))
         rendered_fields = list(response.context["filter"].form.fields)
@@ -443,8 +455,12 @@ class TestDatasetCreateView:
 
         contributor = dataset.contributors.filter(contributor=user).first()
         assert contributor is not None, "User should be a contributor"
-        role_names = list(contributor.roles.values_list("name", flat=True))
-        for role in ["Creator", "ProjectMember", "ContactPerson"]:
+        role_names = list(contributor.roles.values_list("uri", flat=True))
+        for role in [
+            f"{CONTRIBUTOR_ROLES}/creator",
+            f"{CONTRIBUTOR_ROLES}/project-member",
+            f"{CONTRIBUTOR_ROLES}/contact-person",
+        ]:
             assert role in role_names, f"Missing contributor role: {role}"
 
 
@@ -672,7 +688,10 @@ class TestDatasetCreatePagePermissionAssignment:
         assert RecordAccess(dataset).own_level(user) == ContributionLevel.MANAGE
         assert not UserObjectPermission.objects.exists()
         roles = dataset.contributors.get(contributor=user).roles
-        assert {"Creator", "ContactPerson"} <= set(roles.values_list("name", flat=True))
+        assert {
+            f"{CONTRIBUTOR_ROLES}/creator",
+            f"{CONTRIBUTOR_ROLES}/contact-person",
+        } <= set(roles.values_list("uri", flat=True))
 
     def test_a_superuser_creates_a_dataset_without_being_credited(self, client):
         admin = UserFactory(is_superuser=True, is_staff=True)
@@ -1339,18 +1358,22 @@ class TestDatasetPermissions:
 class TestDatasetListingQueryCount:
     @staticmethod
     def _build_datasets(count):
-        from research_vocabs.models import Concept
+        from controlled_vocabularies.models import Record
 
         from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
-        keywords = list(Concept.objects.filter(vocabulary__name="fairdm-roles")[:3])
+        keywords = list(
+            Record.objects.filter(
+                scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+            )[:3]
+        )
         for index in range(count):
             dataset = DatasetFactory(
                 name=f"Survey {index}", visibility=Visibility.PUBLIC
             )
             DatasetDescriptionFactory(
                 related=dataset,
-                type="Abstract",
+                type_id=f"{DESCRIPTION_TYPES}/abstract",
                 value=f"## Survey {index}\n\nWe measured **heat flow** here.",
             )
             dataset.keywords.add(*keywords)
@@ -1500,7 +1523,7 @@ class TestDatasetCardRendering:
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         DatasetDescriptionFactory(
             related=dataset,
-            type="Abstract",
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
             value="## Objectives\n\nWe measure **heat flow** across the rift.",
         )
         response, html = self._card_html(client)
@@ -1510,15 +1533,17 @@ class TestDatasetCardRendering:
         assert "**heat flow**" not in html
 
     def test_card_renders_keywords_as_badges_and_not_as_links(self, client):
-        from research_vocabs.models import Concept
+        from controlled_vocabularies.models import Record
 
-        keyword = Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+        keyword = Record.objects.filter(
+            scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+        ).first()
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         dataset.keywords.add(keyword)
         response, html = self._card_html(client)
-        assertContains(response, keyword.label)
+        assertContains(response, keyword.display_label())
         assert f'href="?keywords={keyword.pk}"' not in html
-        assert f">{keyword.label}</a>" not in html
+        assert f">{keyword.display_label()}</a>" not in html
 
     def test_card_shows_the_dataset_uuid_with_a_copy_control(
         self, client, public_dataset
@@ -1551,15 +1576,19 @@ class TestDatasetCardRendering:
         assertContains(response, "Ada Lovelace")
 
     def test_no_comment_syntax_survives_into_the_rendered_page(self, client):
-        from research_vocabs.models import Concept
+        from controlled_vocabularies.models import Record
 
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         dataset.keywords.add(
-            *Concept.objects.filter(vocabulary__name="fairdm-roles")[:3]
+            *Record.objects.filter(
+                scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+            )[:3]
         )
         dataset.add_contributor(PersonFactory())
         DatasetDescriptionFactory(
-            related=dataset, type="Abstract", value="An abstract."
+            related=dataset,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="An abstract.",
         )
 
         _, html = self._card_html(client)

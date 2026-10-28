@@ -11,6 +11,12 @@ from fairdm.core.project.models import (
     ProjectDescription,
     ProjectIdentifier,
 )
+from fairdm.core.vocabularies import (
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    IDENTIFIER_TYPES,
+)
 from fairdm.factories import (
     OrganizationFactory,
     PersonFactory,
@@ -59,7 +65,9 @@ class TestAdminSearchByName:
     def test_search_by_external_identifier(self, admin_client):
         project = ProjectFactory(name="Climate Research Study")
         ProjectIdentifierFactory(
-            related=project, type="DOI", value="10.1234/climate-example"
+            related=project,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.1234/climate-example",
         )
 
         url = reverse("admin:project_project_changelist")
@@ -152,7 +160,7 @@ class TestAdminInlineEditing:
             "descriptions-MIN_NUM_FORMS": "0",
             "descriptions-MAX_NUM_FORMS": "1000",
             "descriptions-0-related": project.pk,
-            "descriptions-0-type": "Abstract",
+            "descriptions-0-type": f"{DESCRIPTION_TYPES}/abstract",
             "descriptions-0-value": "This is a test description added via inline form.",
             # Empty inline formsets still need their management forms.
             "dates-TOTAL_FORMS": "0",
@@ -187,21 +195,21 @@ class TestAdminInlineEditing:
             "descriptions-MIN_NUM_FORMS": "0",
             "descriptions-MAX_NUM_FORMS": "1000",
             "descriptions-0-related": project.pk,
-            "descriptions-0-type": "Abstract",
+            "descriptions-0-type": f"{DESCRIPTION_TYPES}/abstract",
             "descriptions-0-value": "This is a test description added via inline form.",
             "dates-TOTAL_FORMS": "1",
             "dates-INITIAL_FORMS": "0",
             "dates-MIN_NUM_FORMS": "0",
             "dates-MAX_NUM_FORMS": "1000",
             "dates-0-related": project.pk,
-            "dates-0-type": "Start",
+            "dates-0-type": f"{DATE_TYPES}/start",
             "dates-0-value": "2024-06-01",
             "identifiers-TOTAL_FORMS": "1",
             "identifiers-INITIAL_FORMS": "0",
             "identifiers-MIN_NUM_FORMS": "0",
             "identifiers-MAX_NUM_FORMS": "1000",
             "identifiers-0-related": project.pk,
-            "identifiers-0-type": "DOI",
+            "identifiers-0-type": f"{IDENTIFIER_TYPES}/doi",
             "identifiers-0-value": "10.1234/inline-test",
             "_continue": "Save and continue editing",
         }
@@ -211,11 +219,15 @@ class TestAdminInlineEditing:
         assert response.status_code in [200, 302]
 
         assert ProjectDescription.objects.filter(
-            related=project, type="Abstract"
+            related=project, type_id=f"{DESCRIPTION_TYPES}/abstract"
         ).exists()
-        assert ProjectDate.objects.filter(related=project, type="Start").exists()
+        assert ProjectDate.objects.filter(
+            related=project, type_id=f"{DATE_TYPES}/start"
+        ).exists()
         assert ProjectIdentifier.objects.filter(
-            related=project, type="DOI", value="10.1234/inline-test"
+            related=project,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.1234/inline-test",
         ).exists()
 
 
@@ -240,10 +252,10 @@ class TestAdminDateInlineOrdering:
             "dates-MIN_NUM_FORMS": "0",
             "dates-MAX_NUM_FORMS": "1000",
             "dates-0-related": project.pk,
-            "dates-0-type": "Start",
+            "dates-0-type": f"{DATE_TYPES}/start",
             "dates-0-value": "2020-06-01",
             "dates-1-related": project.pk,
-            "dates-1-type": "End",
+            "dates-1-type": f"{DATE_TYPES}/end",
             "dates-1-value": "2010-01-01",
             "identifiers-TOTAL_FORMS": "0",
             "identifiers-INITIAL_FORMS": "0",
@@ -264,9 +276,13 @@ class TestAdminListDisplayColumns:
         self, admin_client, rf
     ):
         with_both = ProjectFactory(name="Fully Described Project")
-        ProjectDate.objects.create(related=with_both, type="Start", value="2024-01-01")
+        ProjectDate.objects.create(
+            related=with_both, type_id=f"{DATE_TYPES}/start", value="2024-01-01"
+        )
         ProjectDescription.objects.create(
-            related=with_both, type="Abstract", value="An abstract."
+            related=with_both,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="An abstract.",
         )
         without_either = ProjectFactory(name="Bare Project")
 
@@ -303,10 +319,12 @@ class TestAdminListDisplayColumnsQueryCount:
         for _ in range(5):
             project = ProjectFactory()
             ProjectDate.objects.create(
-                related=project, type="Start", value="2024-01-01"
+                related=project, type_id=f"{DATE_TYPES}/start", value="2024-01-01"
             )
             ProjectDescription.objects.create(
-                related=project, type="Abstract", value="An abstract."
+                related=project,
+                type_id=f"{DESCRIPTION_TYPES}/abstract",
+                value="An abstract.",
             )
         ProjectFactory()  # a row with neither, so both flags read False
 
@@ -392,13 +410,21 @@ class TestAdminExportActionsQueryCount:
             funding=[{"funderName": "Sample Agency", "awardNumber": "GRANT-1"}]
         )
         ProjectDescriptionFactory(
-            related=project, type="Abstract", value="An abstract."
+            related=project,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="An abstract.",
         )
-        ProjectDateFactory(related=project, type="Start", value="2020-01-01")
+        ProjectDateFactory(
+            related=project, type_id=f"{DATE_TYPES}/start", value="2020-01-01"
+        )
         ProjectIdentifierFactory(
-            related=project, type="DOI", value=f"10.1234/{project.pk}"
+            related=project,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value=f"10.1234/{project.pk}",
         )
-        project.add_contributor(PersonFactory(), with_roles=["Creator"])
+        project.add_contributor(
+            PersonFactory(), with_roles=[f"{CONTRIBUTOR_ROLES}/creator"]
+        )
         return project
 
     @pytest.mark.parametrize("action", ["export_json", "export_datacite"])

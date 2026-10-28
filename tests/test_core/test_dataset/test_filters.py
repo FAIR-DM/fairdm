@@ -12,6 +12,7 @@ from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.dataset.filters import DatasetFilter
 from fairdm.core.dataset.models import Dataset
+from fairdm.core.vocabularies import DATE_TYPES, DESCRIPTION_TYPES
 from fairdm.factories import (
     ContributionFactory,
     DatasetDateFactory,
@@ -144,11 +145,14 @@ class TestProjectFilter:
 class TestCrossRelationshipFilters:
     def test_filter_by_description_type(self):
         matching = DatasetFactory()
-        DatasetDescriptionFactory(related=matching, type="Abstract")
+        DatasetDescriptionFactory(
+            related=matching, type_id=f"{DESCRIPTION_TYPES}/abstract"
+        )
         other = DatasetFactory()
 
         filterset = DatasetFilter(
-            data={"description_type": "Abstract"}, queryset=Dataset.all_objects.all()
+            data={"description_type": f"{DESCRIPTION_TYPES}/abstract"},
+            queryset=Dataset.all_objects.all(),
         )
 
         assert filterset.is_valid()
@@ -157,11 +161,12 @@ class TestCrossRelationshipFilters:
 
     def test_filter_by_date_type(self):
         matching = DatasetFactory()
-        DatasetDateFactory(related=matching, type="Available")
+        DatasetDateFactory(related=matching, type_id=f"{DATE_TYPES}/available")
         other = DatasetFactory()
 
         filterset = DatasetFilter(
-            data={"date_type": "Available"}, queryset=Dataset.all_objects.all()
+            data={"date_type": f"{DATE_TYPES}/available"},
+            queryset=Dataset.all_objects.all(),
         )
 
         assert filterset.is_valid()
@@ -198,20 +203,28 @@ class TestMultipleFilterCombinations:
         other_project = ProjectFactory(visibility=Visibility.PUBLIC)
 
         ds_match = DatasetFactory(license=cc_by, project=project)
-        DatasetDescriptionFactory(related=ds_match, type="Abstract")
+        DatasetDescriptionFactory(
+            related=ds_match, type_id=f"{DESCRIPTION_TYPES}/abstract"
+        )
 
         wrong_project = DatasetFactory(license=cc_by, project=other_project)
-        DatasetDescriptionFactory(related=wrong_project, type="Abstract")
+        DatasetDescriptionFactory(
+            related=wrong_project, type_id=f"{DESCRIPTION_TYPES}/abstract"
+        )
         wrong_license = DatasetFactory(license=cc0, project=project)
-        DatasetDescriptionFactory(related=wrong_license, type="Abstract")
+        DatasetDescriptionFactory(
+            related=wrong_license, type_id=f"{DESCRIPTION_TYPES}/abstract"
+        )
         wrong_type = DatasetFactory(license=cc_by, project=project)
-        DatasetDescriptionFactory(related=wrong_type, type="Methods")
+        DatasetDescriptionFactory(
+            related=wrong_type, type_id=f"{DESCRIPTION_TYPES}/methods"
+        )
 
         filterset = DatasetFilter(
             data={
                 "license": cc_by.id,
                 "project": [project.id],
-                "description_type": "Abstract",
+                "description_type": f"{DESCRIPTION_TYPES}/abstract",
             },
             queryset=Dataset.all_objects.all(),
             request=_anonymous_request(),
@@ -227,19 +240,25 @@ class TestFilterPerformance:
     def test_cross_relationship_filter_query_count(self, django_assert_num_queries):
         def count_matches():
             filterset = DatasetFilter(
-                data={"description_type": "Abstract"},
+                data={"description_type": f"{DESCRIPTION_TYPES}/abstract"},
                 queryset=Dataset.all_objects.all(),
             )
             return filterset.qs.count()
 
-        DatasetDescriptionFactory(related=DatasetFactory(), type="Abstract")
+        DatasetDescriptionFactory(
+            related=DatasetFactory(), type_id=f"{DESCRIPTION_TYPES}/abstract"
+        )
         with CaptureQueriesContext(connection) as one_record:
             assert count_matches() == 1
 
         for _ in range(24):
-            DatasetDescriptionFactory(related=DatasetFactory(), type="Abstract")
+            DatasetDescriptionFactory(
+                related=DatasetFactory(), type_id=f"{DESCRIPTION_TYPES}/abstract"
+            )
         for _ in range(25):
-            DatasetDescriptionFactory(related=DatasetFactory(), type="Methods")
+            DatasetDescriptionFactory(
+                related=DatasetFactory(), type_id=f"{DESCRIPTION_TYPES}/methods"
+            )
 
         with django_assert_num_queries(len(one_record)):
             assert count_matches() == 25

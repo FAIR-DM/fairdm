@@ -7,6 +7,7 @@ from import_export.instance_loaders import ModelInstanceLoader
 
 from fairdm.contrib.contributors.models import ContributorIdentifier, Person
 from fairdm.contrib.contributors.resources import PersonResource
+from fairdm.core.vocabularies import IDENTIFIER_TYPES
 from fairdm.factories import PersonFactory
 
 ORCID_ID = "0000-0002-1111-2222"
@@ -83,7 +84,7 @@ class TestGetInstanceRefusesClaimedPerson:
             email="claimed-import@example.com", is_active=True, is_claimed=True
         )
         ContributorIdentifier.objects.create(
-            related=claimed, value=ORCID_ID, type="ORCID"
+            related=claimed, value=ORCID_ID, type_id=f"{IDENTIFIER_TYPES}/orcid"
         )
         original_name = claimed.name
         original_email = claimed.email

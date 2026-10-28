@@ -13,6 +13,7 @@ from fairdm.core.measurement.models import (
 )
 from fairdm.core.project.models import Project, ProjectDate, ProjectDescription
 from fairdm.core.sample.models import Sample, SampleDate, SampleDescription
+from fairdm.core.vocabularies import DATE_TYPES, DESCRIPTION_TYPES, SAMPLE_STATUS
 from fairdm.factories import (
     DatasetFactory,
     MeasurementFactory,
@@ -105,14 +106,14 @@ class TestCoreFactoriesBasic:
         assert sample_desc.related == sample
         assert measurement_desc.related == measurement
 
-        assert project_desc.type == "Abstract"
-        assert dataset_desc.type == "Abstract"
+        assert project_desc.type_id == f"{DESCRIPTION_TYPES}/abstract"
+        assert dataset_desc.type_id == f"{DESCRIPTION_TYPES}/abstract"
         # "Abstract" is not a member of the sample description vocabulary, so the factory default is
         # "SampleCollection", a real member.
-        assert sample_desc.type == "SampleCollection"
+        assert sample_desc.type_id == f"{DESCRIPTION_TYPES}/sample-collection"
         # "Abstract" is not a member of the measurement description vocabulary, so the factory default
         # is "MeasurementConditions", a real member.
-        assert measurement_desc.type == "MeasurementConditions"
+        assert measurement_desc.type_id == f"{DESCRIPTION_TYPES}/measurement-conditions"
 
     def test_date_factories_with_related_objects(self):
         project = ProjectFactory()
@@ -130,14 +131,14 @@ class TestCoreFactoriesBasic:
         assert sample_date.related == sample
         assert measurement_date.related == measurement
 
-        assert project_date.type == "Start"
+        assert project_date.type_id == f"{DATE_TYPES}/start"
         # "Created" is not a member of the dataset date vocabulary, so the factory default is
         # "Available", a real member.
-        assert dataset_date.type == "Available"
-        assert sample_date.type == "Created"
+        assert dataset_date.type_id == f"{DATE_TYPES}/available"
+        assert sample_date.type_id == f"{DATE_TYPES}/created"
         # "Created" is not a member of the measurement date vocabulary, so the factory default is
         # "Setup", a real member.
-        assert measurement_date.type == "Setup"
+        assert measurement_date.type_id == f"{DATE_TYPES}/setup"
 
     def test_factories_support_build_mode(self):
         project = ProjectFactory.build()
@@ -197,7 +198,7 @@ class TestCoreFactoriesBasic:
 
         assert sample.local_id is not None
         assert sample.local_id.startswith("SAMPLE-")
-        assert sample.status == "unknown"
+        assert sample.status_id == f"{SAMPLE_STATUS}/unknown"
         assert sample.location is None
 
     def test_dataset_factory_license_handling(self):
@@ -267,10 +268,18 @@ class TestFactoryVocabularyValidation:
 
     def test_factories_accept_valid_vocabulary_types(self):
         project = ProjectFactory(
-            descriptions=2, descriptions__types=["Abstract", "Introduction"]
+            descriptions=2,
+            descriptions__types=[
+                f"{DESCRIPTION_TYPES}/abstract",
+                f"{DESCRIPTION_TYPES}/introduction",
+            ],
         )
         dataset = DatasetFactory(
-            descriptions=2, descriptions__types=["Abstract", "Methods"]
+            descriptions=2,
+            descriptions__types=[
+                f"{DESCRIPTION_TYPES}/abstract",
+                f"{DESCRIPTION_TYPES}/methods",
+            ],
         )
 
         assert ProjectDescription.objects.filter(related=project).count() == 2
@@ -281,8 +290,8 @@ class TestFactoryVocabularyValidation:
                 "type", flat=True
             )
         )
-        assert "Abstract" in desc_types
-        assert "Introduction" in desc_types
+        assert f"{DESCRIPTION_TYPES}/abstract" in desc_types
+        assert f"{DESCRIPTION_TYPES}/introduction" in desc_types
 
     def test_factories_use_vocabulary_defaults(self):
         project = ProjectFactory(descriptions=2)
@@ -290,8 +299,10 @@ class TestFactoryVocabularyValidation:
         descriptions = ProjectDescription.objects.filter(related=project)
         assert descriptions.count() == 2
 
-        desc_types = list(descriptions.values_list("type", flat=True))
-        vocab_values = ProjectDescription.VOCABULARY.values
+        desc_types = list(descriptions.values_list("type_id", flat=True))
+        vocab_values = [
+            concept.uri for concept in ProjectDescription.get_type_concepts()
+        ]
 
         for dtype in desc_types:
             assert dtype in vocab_values
@@ -339,22 +350,24 @@ class TestProjectFactories:
 
     def test_project_description_factory(self):
         project = ProjectFactory()
-        description = ProjectDescriptionFactory(related=project, type="Abstract")
+        description = ProjectDescriptionFactory(
+            related=project, type_id=f"{DESCRIPTION_TYPES}/abstract"
+        )
 
         assert isinstance(description, ProjectDescription)
         assert description.pk is not None
         assert description.related == project
-        assert description.type == "Abstract"
+        assert description.type_id == f"{DESCRIPTION_TYPES}/abstract"
         assert description.value
 
     def test_project_date_factory(self):
         project = ProjectFactory()
-        date = ProjectDateFactory(related=project, type="Created")
+        date = ProjectDateFactory(related=project, type_id=f"{DATE_TYPES}/created")
 
         assert isinstance(date, ProjectDate)
         assert date.pk is not None
         assert date.related == project
-        assert date.type == "Created"
+        assert date.type_id == f"{DATE_TYPES}/created"
         assert date.value
 
     def test_project_factory_image_stays_under_media_root(self, tmp_path):
@@ -414,22 +427,24 @@ class TestDatasetFactories:
 
     def test_dataset_description_factory(self):
         dataset = DatasetFactory()
-        description = DatasetDescriptionFactory(related=dataset, type="Methods")
+        description = DatasetDescriptionFactory(
+            related=dataset, type_id=f"{DESCRIPTION_TYPES}/methods"
+        )
 
         assert isinstance(description, DatasetDescription)
         assert description.pk is not None
         assert description.related == dataset
-        assert description.type == "Methods"
+        assert description.type_id == f"{DESCRIPTION_TYPES}/methods"
         assert description.value
 
     def test_dataset_date_factory(self):
         dataset = DatasetFactory()
-        date = DatasetDateFactory(related=dataset, type="Available")
+        date = DatasetDateFactory(related=dataset, type_id=f"{DATE_TYPES}/available")
 
         assert isinstance(date, DatasetDate)
         assert date.pk is not None
         assert date.related == dataset
-        assert date.type == "Available"
+        assert date.type_id == f"{DATE_TYPES}/available"
         assert date.value
 
 
@@ -463,22 +478,24 @@ class TestSampleFactories:
 
     def test_sample_description_factory(self):
         sample = RockSampleFactory()
-        description = SampleDescriptionFactory(related=sample, type="Technical Info")
+        description = SampleDescriptionFactory(
+            related=sample, type=f"{DESCRIPTION_TYPES}/sample-storage"
+        )
 
         assert isinstance(description, SampleDescription)
         assert description.pk is not None
         assert description.related == sample
-        assert description.type == "Technical Info"
+        assert description.type_id == f"{DESCRIPTION_TYPES}/sample-storage"
         assert description.value
 
     def test_sample_date_factory(self):
         sample = RockSampleFactory()
-        date = SampleDateFactory(related=sample, type="Collected")
+        date = SampleDateFactory(related=sample, type_id=f"{DATE_TYPES}/collected")
 
         assert isinstance(date, SampleDate)
         assert date.pk is not None
         assert date.related == sample
-        assert date.type == "Collected"
+        assert date.type_id == f"{DATE_TYPES}/collected"
         assert date.value
 
 
@@ -532,23 +549,25 @@ class TestMeasurementFactories:
     def test_measurement_description_factory(self):
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
         description = MeasurementDescriptionFactory(
-            related=measurement, type="MeasurementConditions"
+            related=measurement, type_id=f"{DESCRIPTION_TYPES}/measurement-conditions"
         )
 
         assert isinstance(description, MeasurementDescription)
         assert description.pk is not None
         assert description.related == measurement
-        assert description.type == "MeasurementConditions"
+        assert description.type_id == f"{DESCRIPTION_TYPES}/measurement-conditions"
         assert description.value
 
     def test_measurement_date_factory(self):
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
-        date = MeasurementDateFactory(related=measurement, type="Setup")
+        date = MeasurementDateFactory(
+            related=measurement, type_id=f"{DATE_TYPES}/setup"
+        )
 
         assert isinstance(date, MeasurementDate)
         assert date.pk is not None
         assert date.related == measurement
-        assert date.type == "Setup"
+        assert date.type_id == f"{DATE_TYPES}/setup"
         assert date.value
 
 
@@ -559,8 +578,10 @@ class TestFactoryIntegration:
         org = OrganizationFactory()
 
         project = ProjectFactory(owner=org)
-        ProjectDescriptionFactory(related=project, type="Abstract")
-        ProjectDateFactory(related=project, type="Created")
+        ProjectDescriptionFactory(
+            related=project, type_id=f"{DESCRIPTION_TYPES}/abstract"
+        )
+        ProjectDateFactory(related=project, type_id=f"{DATE_TYPES}/created")
         ContributionFactory(content_object=project, contributor=person)
         ContributionFactory(content_object=project, contributor=org)
 
@@ -569,8 +590,10 @@ class TestFactoryIntegration:
         dataset = DatasetFactory(
             project=project, visibility=Dataset.VISIBILITY_CHOICES.PUBLIC
         )
-        DatasetDescriptionFactory(related=dataset, type="Methods")
-        DatasetDateFactory(related=dataset, type="Available")
+        DatasetDescriptionFactory(
+            related=dataset, type_id=f"{DESCRIPTION_TYPES}/methods"
+        )
+        DatasetDateFactory(related=dataset, type_id=f"{DATE_TYPES}/available")
         ContributionFactory(content_object=dataset, contributor=person)
 
         sample1 = RockSampleFactory(dataset=dataset)

@@ -16,6 +16,7 @@ from fairdm.core.measurement.models import (
     MeasurementIdentifier,
 )
 from fairdm.core.models import Measurement
+from fairdm.core.vocabularies import DATE_TYPES, DESCRIPTION_TYPES, IDENTIFIER_TYPES
 from fairdm.factories.core import (
     MeasurementDateFactory,
     MeasurementDescriptionFactory,
@@ -31,21 +32,21 @@ class TestMeasurementDescriptionFactory:
 
         description = MeasurementDescriptionFactory(related=measurement)
 
-        assert description.type in {
-            "MeasurementConditions",
-            "MeasurementSetup",
-            "MeasurementTearDown",
-            "Other",
+        assert description.type_id in {
+            f"{DESCRIPTION_TYPES}/measurement-conditions",
+            f"{DESCRIPTION_TYPES}/measurement-setup",
+            f"{DESCRIPTION_TYPES}/measurement-tear-down",
+            f"{DESCRIPTION_TYPES}/other",
         }
 
     def test_two_descriptions_of_different_types_do_not_collide(self):
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
         first = MeasurementDescriptionFactory(
-            related=measurement, type="MeasurementSetup"
+            related=measurement, type_id=f"{DESCRIPTION_TYPES}/measurement-setup"
         )
         second = MeasurementDescriptionFactory(
-            related=measurement, type="MeasurementTearDown"
+            related=measurement, type_id=f"{DESCRIPTION_TYPES}/measurement-tear-down"
         )
 
         assert MeasurementDescription.objects.filter(related=measurement).count() == 2
@@ -59,13 +60,17 @@ class TestMeasurementDateFactory:
 
         date = MeasurementDateFactory(related=measurement)
 
-        assert date.type in {"Setup", "TearDown"}
+        assert date.type_id in {f"{DATE_TYPES}/setup", f"{DATE_TYPES}/tear-down"}
 
     def test_two_dates_of_different_types_do_not_collide(self):
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
 
-        first = MeasurementDateFactory(related=measurement, type="Setup")
-        second = MeasurementDateFactory(related=measurement, type="TearDown")
+        first = MeasurementDateFactory(
+            related=measurement, type_id=f"{DATE_TYPES}/setup"
+        )
+        second = MeasurementDateFactory(
+            related=measurement, type_id=f"{DATE_TYPES}/tear-down"
+        )
 
         assert MeasurementDate.objects.filter(related=measurement).count() == 2
         assert first.type != second.type
@@ -78,7 +83,7 @@ class TestMeasurementIdentifierFactory:
 
         identifier = MeasurementIdentifierFactory(related=measurement)
 
-        assert identifier.type in {"DOI"}
+        assert identifier.type_id == f"{IDENTIFIER_TYPES}/doi"
 
     def test_identifier_values_are_unique_across_instances(self):
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())

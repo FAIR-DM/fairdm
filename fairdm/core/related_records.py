@@ -8,6 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from mvp.views.inline import InlineFormSet
 
 from .dataset.models import DatasetDate, DatasetIdentifier
+from .forms import ConceptSelectField
 from .formsets import date_ordering_formset
 from .measurement.models import MeasurementDate, MeasurementIdentifier
 from .project.models import ProjectDate, ProjectIdentifier
@@ -26,9 +27,10 @@ class RelatedRecordInline(InlineFormSet):
     extra = 0
 
     def get_factory_kwargs(self):
-        """Cap the row set at one row per type the model's vocabulary offers."""
+        """Cap the row set at one row per type the collection offers, and draw types as a drop-down."""
         kwargs = super().get_factory_kwargs()
-        kwargs["max_num"] = len(self.model.VOCABULARY.choices)
+        kwargs["field_classes"] = {"type": ConceptSelectField}
+        kwargs["max_num"] = len(self.model.get_type_concepts())
         kwargs["validate_max"] = True
         return kwargs
 

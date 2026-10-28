@@ -6,6 +6,7 @@ from django.http import HttpResponse
 from django.utils.translation import gettext_lazy as _
 
 from fairdm.contrib.contributors.services.crediting import Crediting
+from fairdm.core.vocabularies import CONTACT_PERSON, CREATOR, PROJECT_MEMBER
 from fairdm.views import FairDMCreateView, FairDMListView
 
 from .filters import DatasetFilter
@@ -19,7 +20,7 @@ class DatasetCreateView(LoginRequiredMixin, FairDMCreateView):
     model = Dataset
     form_class = DatasetCreateForm
     page_title = _("Create a Dataset")
-    default_roles = ["Creator", "ProjectMember", "ContactPerson"]
+    default_roles = [CREATOR, PROJECT_MEMBER, CONTACT_PERSON]
 
     def get_form_kwargs(self):
         """Pass the request to the form for user-specific filtering."""
@@ -38,7 +39,7 @@ class DatasetCreateView(LoginRequiredMixin, FairDMCreateView):
         response: HttpResponse = super().form_valid(form)
 
         Crediting(self.object).make_creator(
-            self.request.user, roles=["Creator", "ProjectMember", "ContactPerson"]
+            self.request.user, roles=[CREATOR, PROJECT_MEMBER, CONTACT_PERSON]
         )
 
         return response

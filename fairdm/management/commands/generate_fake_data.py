@@ -29,7 +29,6 @@ from importlib import import_module
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from research_vocabs.models import Concept
 
 from fairdm.contrib.contributors.models import Contribution, Organization, Person
 from fairdm.core.dataset.models import DatasetDate, DatasetDescription
@@ -37,6 +36,7 @@ from fairdm.core.measurement.models import MeasurementDate, MeasurementDescripti
 from fairdm.core.models import Dataset, Measurement, Project, Sample
 from fairdm.core.project.models import ProjectDate, ProjectDescription
 from fairdm.core.sample.models import SampleDate, SampleDescription
+from fairdm.core.vocabularies import collection_members
 from fairdm.factories import (
     DatasetFactory,
     OrganizationFactory,
@@ -322,7 +322,7 @@ class Command(BaseCommand):
         project_contributors = random.sample(
             all_contributors, min(num_contributors, len(all_contributors))
         )
-        self._add_contributors(project, project_contributors, is_project=True)
+        self._add_contributors(project, project_contributors)
 
         # A project owner must be an Organization.
         for contributor in project_contributors:
@@ -383,7 +383,7 @@ class Command(BaseCommand):
         dataset_contributors = random.sample(
             all_contributors, min(num_contributors, len(all_contributors))
         )
-        self._add_contributors(dataset, dataset_contributors, is_project=False)
+        self._add_contributors(dataset, dataset_contributors)
 
         self.stdout.write(f"    ✓ Created dataset: {dataset.name}")
 
@@ -467,12 +467,7 @@ class Command(BaseCommand):
             description_model: The description model for ``obj``.
             count: How many descriptions to add, capped by the available types.
         """
-        description_types = [
-            "Abstract",
-            "Methods",
-            "Technical Info",
-            "Table of Contents",
-        ]
+        description_types = description_model.get_type_concepts()
         # Sampled to avoid breaking the UniqueConstraint on related and type.
         selected_types = random.sample(
             description_types, min(count, len(description_types))
@@ -481,7 +476,10 @@ class Command(BaseCommand):
             description_model.objects.create(
                 related=obj,
                 type=desc_type,
-                value=f"This is a {desc_type.lower()} description for {obj.name}.",
+                value=(
+                    f"This is a {desc_type.display_label().lower()} description "
+                    f"for {obj.name}."
+                ),
             )
 
     def _add_dates(self, obj, date_model, count):
@@ -492,14 +490,7 @@ class Command(BaseCommand):
             date_model: The date model for ``obj``.
             count: How many dates to add, capped by the available types.
         """
-        date_types = [
-            "Created",
-            "Updated",
-            "Issued",
-            "Submitted",
-            "Accepted",
-            "Available",
-        ]
+        date_types = date_model.get_type_concepts()
         # Sampled to avoid breaking the UniqueConstraint on related and type.
         selected_types = random.sample(date_types, min(count, len(date_types)))
         for date_type in selected_types:
@@ -509,35 +500,14 @@ class Command(BaseCommand):
                 value="2024",
             )
 
-    def _add_contributors(self, obj, contributors, is_project=False):
+    def _add_contributors(self, obj, contributors):
         """Add contributors with varied roles to an object.
 
         Args:
             obj: The project or dataset to credit contributors on.
             contributors: The contributors to credit.
-            is_project: Whether ``obj`` is a project, which offers a different set of roles.
         """
-        if is_project:
-            available_roles = [
-                "Creator",
-                "ProjectLeader",
-                "ProjectManager",
-                "Researcher",
-                "ContactPerson",
-            ]
-        else:
-            available_roles = [
-                "Creator",
-                "Contributor",
-                "DataCollector",
-                "DataCurator",
-                "DataManager",
-                "Editor",
-                "Researcher",
-                "ContactPerson",
-            ]
-
-        roles_qs = Concept.objects.filter(vocabulary__name="fairdm-roles")
+        available_roles = collection_members(obj.CONTRIBUTOR_ROLES)
 
         for contributor in contributors:
             num_roles = random.randint(1, 3)
@@ -549,4 +519,4 @@ class Command(BaseCommand):
             contribution = Contribution.add_to(contributor, obj)
 
             if selected_roles:
-                contribution.roles.add(*roles_qs.filter(name__in=selected_roles))
+                contribution.roles.add(*selected_roles)

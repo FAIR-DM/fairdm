@@ -15,6 +15,7 @@ project somebody else made under the same name.
 import random
 from datetime import timedelta
 
+from controlled_vocabularies.models import ConceptScheme, Record
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import transaction
@@ -23,7 +24,6 @@ from licensing.models import License
 from literature.converters import from_csl_json
 from literature.models import Item
 from partial_date import PartialDate
-from research_vocabs.models import Concept, Vocabulary
 
 from demo.factories import (
     ICP_MS_MeasurementFactory,
@@ -54,6 +54,12 @@ from fairdm.core.project.models import (
     ProjectIdentifier,
 )
 from fairdm.core.sample.models import Sample
+from fairdm.core.vocabularies import (
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    IDENTIFIER_TYPES,
+)
 from fairdm.utils.choices import Visibility
 
 SHOWCASE = "Thermal regime and groundwater flow of the Upper Rhine Graben"
@@ -101,18 +107,34 @@ EXPECTED_OUTPUT = (
 )
 
 PEOPLE = [
-    ("Anna", "Keller", ["Creator", "ProjectLeader"]),
-    ("Tomás", "Oliveira", ["Creator", "ProjectManager", "ContactPerson"]),
-    ("Lea", "Brandt", ["Creator", "ProjectMember"]),
-    ("Yusuf", "Demir", ["ProjectMember"]),
-    ("Chloé", "Martin", ["ProjectMember"]),
-    ("Jonas", "Weber", ["ProjectMember"]),
-    ("Mei", "Tanaka", ["ProjectMember"]),
-    ("Pieter", "de Vries", ["ProjectMember"]),
-    ("Sofia", "Rossi", ["ProjectMember"]),
-    ("Lukas", "Hofmann", ["ProjectMember"]),
-    ("Ingrid", "Lund", ["ProjectMember"]),
-    ("Omar", "Haddad", ["Other"]),
+    (
+        "Anna",
+        "Keller",
+        [f"{CONTRIBUTOR_ROLES}/creator", f"{CONTRIBUTOR_ROLES}/project-leader"],
+    ),
+    (
+        "Tomás",
+        "Oliveira",
+        [
+            f"{CONTRIBUTOR_ROLES}/creator",
+            f"{CONTRIBUTOR_ROLES}/project-manager",
+            f"{CONTRIBUTOR_ROLES}/contact-person",
+        ],
+    ),
+    (
+        "Lea",
+        "Brandt",
+        [f"{CONTRIBUTOR_ROLES}/creator", f"{CONTRIBUTOR_ROLES}/project-member"],
+    ),
+    ("Yusuf", "Demir", [f"{CONTRIBUTOR_ROLES}/project-member"]),
+    ("Chloé", "Martin", [f"{CONTRIBUTOR_ROLES}/project-member"]),
+    ("Jonas", "Weber", [f"{CONTRIBUTOR_ROLES}/project-member"]),
+    ("Mei", "Tanaka", [f"{CONTRIBUTOR_ROLES}/project-member"]),
+    ("Pieter", "de Vries", [f"{CONTRIBUTOR_ROLES}/project-member"]),
+    ("Sofia", "Rossi", [f"{CONTRIBUTOR_ROLES}/project-member"]),
+    ("Lukas", "Hofmann", [f"{CONTRIBUTOR_ROLES}/project-member"]),
+    ("Ingrid", "Lund", [f"{CONTRIBUTOR_ROLES}/project-member"]),
+    ("Omar", "Haddad", [f"{CONTRIBUTOR_ROLES}/other"]),
 ]
 
 DATASETS = [
@@ -181,19 +203,25 @@ class ProjectSeed(BaseCommand):
         )
 
     def keywords(self):
-        vocabulary, _ = Vocabulary.objects.get_or_create(
-            name="demo-research-topics",
+        uri = "https://www.fairdm.org/vocabularies/demo-research-topics"
+        vocabulary, _ = ConceptScheme.objects.get_or_create(
+            uri=uri,
             defaults={
-                "label": "Research topics",
-                "uri": "https://www.fairdm.org/vocabularies/demo-research-topics",
+                "default_language": "en",
+                "data": {
+                    "skos:prefLabel": [{"@value": "Research topics", "@language": "en"}]
+                },
             },
         )
         concepts = []
         for name, label in KEYWORDS:
-            concept, _ = Concept.objects.get_or_create(
-                vocabulary=vocabulary,
-                name=name,
-                defaults={"label": label, "uri": f"{vocabulary.uri}/{name}"},
+            concept, _ = Record.objects.get_or_create(
+                uri=f"{uri}/{name}",
+                defaults={
+                    "scheme": vocabulary,
+                    "type": Record.Type.CONCEPT,
+                    "data": {"skos:prefLabel": [{"@value": label, "@language": "en"}]},
+                },
             )
             concepts.append(concept)
         return concepts
@@ -250,29 +278,41 @@ class ProjectSeed(BaseCommand):
         )
         project.keywords.set(keywords)
         for type_, value in [
-            ("Abstract", ABSTRACT),
-            ("Objectives", OBJECTIVES),
-            ("Background", BACKGROUND),
-            ("ExpectedOutput", EXPECTED_OUTPUT),
+            (f"{DESCRIPTION_TYPES}/abstract", ABSTRACT),
+            (f"{DESCRIPTION_TYPES}/objectives", OBJECTIVES),
+            (f"{DESCRIPTION_TYPES}/background", BACKGROUND),
+            (f"{DESCRIPTION_TYPES}/expected-output", EXPECTED_OUTPUT),
         ]:
-            ProjectDescription.objects.create(related=project, type=type_, value=value)
+            ProjectDescription.objects.create(
+                related=project, type_id=type_, value=value
+            )
         ProjectDate.objects.create(
-            related=project, type="Start", value=PartialDate("2024-03-01")
+            related=project,
+            type_id=f"{DATE_TYPES}/start",
+            value=PartialDate("2024-03-01"),
         )
         ProjectDate.objects.create(
-            related=project, type="End", value=PartialDate("2028-02-29")
+            related=project,
+            type_id=f"{DATE_TYPES}/end",
+            value=PartialDate("2028-02-29"),
         )
         ProjectIdentifier.objects.create(
-            related=project, type="DOI", value="10.5880/fairdm.2024.001"
+            related=project,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.5880/fairdm.2024.001",
         )
         ProjectIdentifier.objects.create(
-            related=project, type="GRANT_NUMBER", value="DFG 461295877"
+            related=project,
+            type_id=f"{IDENTIFIER_TYPES}/grant-number",
+            value="DFG 461295877",
         )
 
         for first, last, roles in PEOPLE:
             project.add_contributor(self.person(first, last), with_roles=roles)
-        project.add_contributor(owner, with_roles=["Other"])
-        project.add_contributor(users["super.user"], with_roles=["ProjectManager"])
+        project.add_contributor(owner, with_roles=[f"{CONTRIBUTOR_ROLES}/other"])
+        project.add_contributor(
+            users["super.user"], with_roles=[f"{CONTRIBUTOR_ROLES}/project-manager"]
+        )
         grant_team_rights(users["staff.user"], project)
 
         start = timezone.now() - timedelta(days=int(365 * 2.5))
@@ -323,7 +363,9 @@ class ProjectSeed(BaseCommand):
             visibility=Visibility.PRIVATE,
             created_by=users["super.user"],
         )
-        project.add_contributor(users["staff.user"], with_roles=["Creator"])
+        project.add_contributor(
+            users["staff.user"], with_roles=[f"{CONTRIBUTOR_ROLES}/creator"]
+        )
         grant_team_rights(users["staff.user"], project)
 
     def sparse(self, users):
@@ -336,7 +378,7 @@ class ProjectSeed(BaseCommand):
         )
         ProjectDescription.objects.create(
             related=project,
-            type="Abstract",
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
             value=(
                 "We are looking for laboratories willing to date a shared set of apatite "
                 "and zircon reference samples, so that inter-laboratory differences can be "
@@ -345,7 +387,12 @@ class ProjectSeed(BaseCommand):
         )
         person = self.person("Hannah", "Vogel")
         project.add_contributor(
-            person, with_roles=["Creator", "ProjectLeader", "ContactPerson"]
+            person,
+            with_roles=[
+                f"{CONTRIBUTOR_ROLES}/creator",
+                f"{CONTRIBUTOR_ROLES}/project-leader",
+                f"{CONTRIBUTOR_ROLES}/contact-person",
+            ],
         )
         dataset = Dataset.all_objects.create(
             name="Round 1 reference ages", project=project, visibility=Visibility.PUBLIC
@@ -389,7 +436,7 @@ class ProjectSeed(BaseCommand):
         cores.keywords.set(keywords[:3] + keywords[5:])
         DatasetDescription.objects.create(
             related=cores,
-            type="Abstract",
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
             value=(
                 "Rock cores recovered from the GPK and EPS boreholes at Soultz-sous-Forêts, "
                 "between 1.4 and 5 km depth, with their X-ray fluorescence major and trace "
@@ -399,7 +446,7 @@ class ProjectSeed(BaseCommand):
         )
         DatasetDescription.objects.create(
             related=cores,
-            type="Methods",
+            type_id=f"{DESCRIPTION_TYPES}/methods",
             value=(
                 "Core sections were cut at roughly 25 m intervals, crushed and milled to below "
                 "63 µm. Fused beads were measured on a wavelength-dispersive XRF spectrometer; "
@@ -408,30 +455,58 @@ class ProjectSeed(BaseCommand):
         )
         DatasetDescription.objects.create(
             related=cores,
-            type="TechnicalInfo",
+            type_id=f"{DESCRIPTION_TYPES}/technical-info",
             value="Concentrations are in ppm by mass. Depths are measured depth along hole.",
         )
         for type_, value in [
-            ("CollectionStart", "2024-05-02"),
-            ("CollectionEnd", "2025-10-17"),
-            ("Submitted", "2026-01-20"),
-            ("Published", "2026-03-04"),
-            ("Available", "2026-03-04"),
+            (f"{DATE_TYPES}/collection-start", "2024-05-02"),
+            (f"{DATE_TYPES}/collection-end", "2025-10-17"),
+            (f"{DATE_TYPES}/submitted", "2026-01-20"),
+            (f"{DATE_TYPES}/published", "2026-03-04"),
+            (f"{DATE_TYPES}/available", "2026-03-04"),
         ]:
             DatasetDate.objects.create(
-                related=cores, type=type_, value=PartialDate(value)
+                related=cores, type_id=type_, value=PartialDate(value)
             )
         DatasetIdentifier.objects.create(
-            related=cores, type="DOI", value="10.5880/fairdm.2026.014"
+            related=cores,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.5880/fairdm.2026.014",
         )
-        cores.add_contributor(people["Keller"], with_roles=["Creator", "Supervisor"])
-        cores.add_contributor(people["Brandt"], with_roles=["Creator", "DataCollector"])
-        cores.add_contributor(people["Demir"], with_roles=["Creator", "Researcher"])
         cores.add_contributor(
-            people["Oliveira"], with_roles=["ContactPerson", "DataManager"]
+            people["Keller"],
+            with_roles=[
+                f"{CONTRIBUTOR_ROLES}/creator",
+                f"{CONTRIBUTOR_ROLES}/supervisor",
+            ],
         )
-        cores.add_contributor(people["Tanaka"], with_roles=["DataCurator"])
-        cores.add_contributor(people["Weber"], with_roles=["DataCollector"])
+        cores.add_contributor(
+            people["Brandt"],
+            with_roles=[
+                f"{CONTRIBUTOR_ROLES}/creator",
+                f"{CONTRIBUTOR_ROLES}/data-collector",
+            ],
+        )
+        cores.add_contributor(
+            people["Demir"],
+            with_roles=[
+                f"{CONTRIBUTOR_ROLES}/creator",
+                f"{CONTRIBUTOR_ROLES}/researcher",
+            ],
+        )
+        cores.add_contributor(
+            people["Oliveira"],
+            with_roles=[
+                f"{CONTRIBUTOR_ROLES}/contact-person",
+                f"{CONTRIBUTOR_ROLES}/data-manager",
+            ],
+        )
+        cores.add_contributor(
+            people["Tanaka"], with_roles=[f"{CONTRIBUTOR_ROLES}/data-curator"]
+        )
+        cores.add_contributor(
+            people["Weber"], with_roles=[f"{CONTRIBUTOR_ROLES}/data-collector"]
+        )
         for key, title, year, doi, relation in [
             (
                 "brandt2026heat",
@@ -467,14 +542,24 @@ class ProjectSeed(BaseCommand):
         )
         DatasetDescription.objects.create(
             related=soil,
-            type="Abstract",
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
             value=(
                 "Soil gas and soil chemistry along two transects across the eastern "
                 "boundary fault near Bruchsal, to test whether fluid pathways reach the surface."
             ),
         )
         DatasetDate.objects.create(
-            related=soil, type="CollectionStart", value=PartialDate("2025-06")
+            related=soil,
+            type_id=f"{DATE_TYPES}/collection-start",
+            value=PartialDate("2025-06"),
         )
-        soil.add_contributor(people["Martin"], with_roles=["Creator", "ContactPerson"])
-        soil.add_contributor(people["Hofmann"], with_roles=["DataCollector"])
+        soil.add_contributor(
+            people["Martin"],
+            with_roles=[
+                f"{CONTRIBUTOR_ROLES}/creator",
+                f"{CONTRIBUTOR_ROLES}/contact-person",
+            ],
+        )
+        soil.add_contributor(
+            people["Hofmann"], with_roles=[f"{CONTRIBUTOR_ROLES}/data-collector"]
+        )

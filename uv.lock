@@ -1019,6 +1019,21 @@ wheels = [
 ]
 
 [[package]]
+name = "django-controlled-vocabularies"
+version = "0.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "defusedxml" },
+    { name = "django" },
+    { name = "django-tomselect" },
+    { name = "rdflib" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/fb/3c/d764448bf583b8cba078f3185b683dcc869cbb3985961316f18ded0d89f0/django_controlled_vocabularies-0.3.0.tar.gz", hash = "sha256:a08517c84cf6a79dc1e84b96df606688b71933a1af8a9221fb2e1919842e1df6", size = 68885, upload-time = "2026-10-28T08:44:20.564Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/39/b1/c626c88a4a18087dd29114ae244aa8ddc82dcd160dc6c2c166dcfa00acd5/django_controlled_vocabularies-0.3.0-py3-none-any.whl", hash = "sha256:6cce1217d5ed3138e1caba3f122abedb36e2fb7ee5220d42a045be6b8e4c430e", size = 90785, upload-time = "2026-10-28T08:44:19.152Z" },
+]
+
+[[package]]
 name = "django-cors-headers"
 version = "4.9.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1500,15 +1515,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-research-vocabs"
-version = "0.1.0"
-source = { git = "https://github.com/SamuelJennings/django-research-vocabs#07aba62bdc5bfe16e6f4cab7f33abc3aec1b3620" }
-dependencies = [
-    { name = "django" },
-    { name = "rdflib" },
-]
-
-[[package]]
 name = "django-rest-knox"
 version = "5.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1919,6 +1925,7 @@ dependencies = [
     { name = "django-cleanup" },
     { name = "django-contact-form" },
     { name = "django-content-license" },
+    { name = "django-controlled-vocabularies" },
     { name = "django-cors-headers" },
     { name = "django-countries" },
     { name = "django-crispy-forms" },
@@ -1950,7 +1957,6 @@ dependencies = [
     { name = "django-pint" },
     { name = "django-polymorphic" },
     { name = "django-redis" },
-    { name = "django-research-vocabs" },
     { name = "django-setup-tools" },
     { name = "django-social-share" },
     { name = "django-solo" },
@@ -2013,6 +2019,7 @@ requires-dist = [
     { name = "django-cleanup", specifier = ">=8.1.0,<10.0.0" },
     { name = "django-contact-form", specifier = ">=2.1,<6.0" },
     { name = "django-content-license", specifier = ">=0.3.0,<0.4.0" },
+    { name = "django-controlled-vocabularies", specifier = ">=0.3.0,<0.4.0" },
     { name = "django-cors-headers", specifier = ">=4.7.0,<5.0.0" },
     { name = "django-countries", specifier = ">=7.6.1,<10.0.0" },
     { name = "django-crispy-forms", specifier = ">=2.3,<3.0" },
@@ -2044,7 +2051,6 @@ requires-dist = [
     { name = "django-pint", specifier = ">=0.7.3,<1.1.0" },
     { name = "django-polymorphic", specifier = ">=4.11.7,<5.0.0" },
     { name = "django-redis", specifier = ">=5.2.0,<8.0.0" },
-    { name = "django-research-vocabs", git = "https://github.com/SamuelJennings/django-research-vocabs" },
     { name = "django-setup-tools", specifier = ">=0.2.5,<0.3.0" },
     { name = "django-social-share", specifier = ">=2.3.0,<3.0.0" },
     { name = "django-solo", specifier = ">=2.2.0,<3.0.0" },

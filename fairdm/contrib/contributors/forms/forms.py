@@ -1,10 +1,13 @@
 """Inline formsets and forms for identifiers and affiliations."""
 
+from controlled_vocabularies.models import Record
 from django import forms
 from django.forms.models import BaseInlineFormSet
 from django.utils.translation import gettext_lazy as _
 
 from fairdm.contrib.autocomplete.fields import OrganizationChoiceField
+from fairdm.core.forms import ConceptSelectField
+from fairdm.core.vocabularies import IDENTIFIER_TYPES, collection_members
 
 from ..models import Affiliation, ContributorIdentifier, Organization, Person
 
@@ -30,7 +33,7 @@ class UserIdentifierFormSet(BaseInlineFormSet):
         if self.queryset is not None:
             for obj in self.queryset:
                 if obj != current_instance:
-                    existing_types.add(obj.type)
+                    existing_types.add(obj.type_id)
 
         kwargs["existing_types"] = existing_types
         return kwargs
@@ -51,28 +54,25 @@ class UserIdentifierForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         if contributor_instance:
-            vocabulary = self._meta.model.VOCABULARY
             if isinstance(contributor_instance, Person):
-                filtered_vocab = vocabulary.from_collection("Person")
+                collection = f"{IDENTIFIER_TYPES}/person"
             elif isinstance(contributor_instance, Organization):
-                filtered_vocab = vocabulary.from_collection("Organization")
+                collection = f"{IDENTIFIER_TYPES}/organization"
             else:
-                filtered_vocab = vocabulary
+                collection = f"{IDENTIFIER_TYPES}/contributor"
 
-            all_choices = filtered_vocab.choices
-
-            current_type = self.instance.type if self.instance.pk else None
-            available_choices = [
-                (value, label)
-                for value, label in all_choices
-                if value == "" or value == current_type or value not in existing_types
+            current_type = self.instance.type_id if self.instance.pk else None
+            available = [
+                concept.uri
+                for concept in collection_members(collection)
+                if concept.uri == current_type or concept.uri not in existing_types
             ]
-
-            self.fields["type"].choices = available_choices
+            self.fields["type"].queryset = Record.objects.filter(uri__in=available)
 
     class Meta:
         model = ContributorIdentifier
         fields = ["type", "value"]
+        field_classes = {"type": ConceptSelectField}
         labels = {
             "type": _("Type"),
             "value": _("Value"),

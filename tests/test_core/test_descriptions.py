@@ -25,30 +25,33 @@ class TestVocabularyDescriptionsForm:
             related_model=related_model, instance=instance
         )
 
-        assert list(form.fields) == list(related_model.VOCABULARY.values)
+        assert list(form.fields) == list(
+            [concept.uri for concept in related_model.get_type_concepts()]
+        )
 
     @pytest.mark.parametrize("related_model, parent_factory", DESCRIPTION_CASES)
     def test_each_area_is_labelled_with_the_concepts_name_and_definition(
         self, related_model, parent_factory
     ):
         instance = parent_factory()
-        vocabulary = related_model.VOCABULARY
-        first_type = vocabulary.values[0]
-        concept = vocabulary.get_concept(first_type)
+        concept = related_model.get_type_concepts()[0]
+        first_type = concept.uri
 
         form = VocabularyDescriptionsForm(
             related_model=related_model, instance=instance
         )
 
-        assert form.fields[first_type].label == concept.label()
-        assert form.fields[first_type].help_text == concept.definition()
+        assert form.fields[first_type].label == concept.display_label()
+        assert form.fields[first_type].help_text == concept.first_value(
+            "skos:definition"
+        )
 
     @pytest.mark.parametrize("related_model, parent_factory", DESCRIPTION_CASES)
     def test_saving_text_into_one_area_writes_exactly_one_row_of_that_type(
         self, related_model, parent_factory
     ):
         instance = parent_factory()
-        first_type = related_model.VOCABULARY.values[0]
+        first_type = [concept.uri for concept in related_model.get_type_concepts()][0]
 
         form = VocabularyDescriptionsForm(
             related_model=related_model,
@@ -61,7 +64,7 @@ class TestVocabularyDescriptionsForm:
 
         assert related_model._default_manager.filter(related=instance).count() == 1
         row = related_model._default_manager.get(related=instance)
-        assert row.type == first_type
+        assert row.type_id == first_type
         assert row.value == "Some descriptive text."
 
     @pytest.mark.parametrize("related_model, parent_factory", DESCRIPTION_CASES)
@@ -71,7 +74,7 @@ class TestVocabularyDescriptionsForm:
         from fairdm.core.abstract import DESCRIPTION_MAX_LENGTH
 
         instance = parent_factory()
-        first_type = related_model.VOCABULARY.values[0]
+        first_type = [concept.uri for concept in related_model.get_type_concepts()][0]
 
         form = VocabularyDescriptionsForm(
             related_model=related_model,

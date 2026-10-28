@@ -13,6 +13,7 @@ from fairdm.contrib.autocomplete.fields import (
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Contribution
 from fairdm.core.dataset.forms import DatasetCreateForm, DatasetForm
+from fairdm.core.vocabularies import CONTRIBUTOR_ROLES
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
@@ -39,7 +40,9 @@ class TestFormQuerysetFiltering:
             contributor=user,
             level=ContributionLevel.EDIT,
         )
-        Contribution.add_to(other_user, other_project, roles=["Contributor"])
+        Contribution.add_to(
+            other_user, other_project, roles=[f"{CONTRIBUTOR_ROLES}/contributor"]
+        )
 
         request = factory.get("/")
         request.user = user

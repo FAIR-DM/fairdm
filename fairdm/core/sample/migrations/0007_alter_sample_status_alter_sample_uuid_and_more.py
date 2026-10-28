@@ -1,8 +1,7 @@
 # The branch's schema changes for the sample record, squashed into one file (Article IX).
 # The status data migration stays standalone, which the same article exempts.
 
-import fairdm.core.vocabularies
-import research_vocabs.fields
+import controlled_vocabularies.fields
 import shortuuid.django_fields
 from django.db import migrations, models
 
@@ -17,7 +16,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='sample',
             name='status',
-            field=research_vocabs.fields.ConceptField(default='unknown', help_text='The current custody status of the physical specimen.', max_length=9, verbose_name='status', vocabulary=fairdm.core.vocabularies.FairDMSampleStatus),
+            field=controlled_vocabularies.fields.ConceptField(default='https://w3id.org/fairdm/vocabularies/sample-status/unknown', help_text='The current custody status of the physical specimen.', related_name='+', verbose_name='status', vocabulary=('https://w3id.org/fairdm/vocabularies/sample-status',)),
         ),
         migrations.AlterField(
             model_name='sample',
@@ -27,6 +26,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='sampleidentifier',
             name='type',
-            field=models.CharField(choices=[('IGSN', 'IGSN'), ('DOI', 'DOI')], max_length=50),
+            field=controlled_vocabularies.fields.ConceptField(collection='https://w3id.org/fairdm/vocabularies/identifier-types/sample', help_text='The kind of identifier, from the sample identifier types.', related_name='+', verbose_name='type', vocabulary=('https://w3id.org/fairdm/vocabularies/identifier-types',)),
         ),
     ]

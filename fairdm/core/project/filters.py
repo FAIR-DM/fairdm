@@ -1,8 +1,8 @@
 """Filters for the project list page."""
 
 import django_filters as df
+from controlled_vocabularies.models import ConceptScheme, Record
 from django import forms
-from django.utils.module_loading import import_string
 from django.utils.translation import gettext_lazy as _
 from mvp.filters import SearchFilter, SortFilter
 from mvp_forms.widgets import TomSelectMultiple
@@ -22,8 +22,9 @@ class ProjectFilter(BaseListFilter):
     """Filter for the project list, by status, owner, tag, contributor and keywords.
 
     The search matches the name, the uuid and the identifiers. The sort offers name and
-    date created. Keyword filters are created from the ``FAIRDM_PROJECT["keywords"]``
-    setting.
+    date created. One keyword filter is created for each vocabulary address the
+    ``FAIRDM_PROJECT["keywords"]`` setting lists, and a single one over every keyword when it
+    lists none.
     """
 
     q = SearchFilter(fields=["uuid", "name", "identifiers__value"])
@@ -63,24 +64,21 @@ class ProjectFilter(BaseListFilter):
         if self.queryset is not None:
             self.queryset = self.queryset.get_visible()
 
-        from research_vocabs.models import Concept
-
-        vocabularies = get_setting("PROJECT", "keywords") or []
-
+        vocabularies = self.keyword_vocabularies()
         if vocabularies:
-            for vocab_path in vocabularies:
-                vocab_class = import_string(vocab_path)
-                vocab_name = vocab_class._meta.name
-                field_name = vocab_class.__name__
-                filter_name = f"keywords_{field_name}"
-
+            names = dict(
+                ConceptScheme.objects.filter(uri__in=vocabularies.values()).values_list(
+                    "uri", "pref_label"
+                )
+            )
+            for filter_name, uri in vocabularies.items():
                 self.filters[filter_name] = df.ModelMultipleChoiceFilter(
                     field_name="keywords",
-                    queryset=Concept.objects.filter(
-                        vocabulary__name=vocab_name, projects__isnull=False
+                    queryset=Record.objects.filter(
+                        scheme__uri=uri, projects__isnull=False
                     ).distinct(),
                     conjoined=True,
-                    label=field_name,
+                    label=names.get(uri) or uri,
                     widget=TomSelectMultiple(
                         counted=True,
                         placeholder=_("Any"),
@@ -91,25 +89,34 @@ class ProjectFilter(BaseListFilter):
         else:
             self.filters["keywords"] = df.ModelMultipleChoiceFilter(
                 field_name="keywords",
-                queryset=Concept.objects.filter(projects__isnull=False).distinct(),
+                queryset=Record.objects.filter(projects__isnull=False).distinct(),
                 conjoined=True,
                 label=_("Keywords"),
                 widget=forms.CheckboxSelectMultiple,
             )
 
+    @staticmethod
+    def keyword_vocabularies():
+        """Return the keyword filters the ``FAIRDM_PROJECT["keywords"]`` setting asks for.
+
+        Returns:
+            The address of each vocabulary the setting names, keyed by the name of its filter:
+            ``keywords_`` followed by the last part of the address.
+        """
+        return {
+            f"keywords_{uri.rstrip('/').rsplit('/', 1)[-1]}": uri
+            for uri in get_setting("PROJECT", "keywords") or []
+        }
+
     @property
     def form(self):
-        """Include the dynamically created keyword filters in the form."""
+        """Include the keyword filters in the form."""
         if not hasattr(self, "_form"):
-            vocabularies = get_setting("PROJECT", "keywords") or []
-            if vocabularies:
-                vocab_fields = [
-                    f"keywords_{import_string(vocab).__name__}"
-                    for vocab in vocabularies
-                ]
-                self._meta.fields = [*list(self._meta.fields), *vocab_fields]
-            else:
-                self._meta.fields = [*list(self._meta.fields), "keywords"]
+            vocabularies = self.keyword_vocabularies()
+            self._meta.fields = [
+                *list(self._meta.fields),
+                *(vocabularies or ["keywords"]),
+            ]
             self._form = super().form
         return self._form
 

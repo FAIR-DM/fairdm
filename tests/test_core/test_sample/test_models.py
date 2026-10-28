@@ -5,6 +5,7 @@ from datetime import date
 from types import SimpleNamespace
 
 import pytest
+from controlled_vocabularies.models import Record
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
@@ -22,7 +23,14 @@ from fairdm.core.sample.models import (
     SampleRelation,
 )
 from fairdm.core.utils import assign_perm
-from fairdm.core.vocabularies import FairDMSampleStatus
+from fairdm.core.vocabularies import (
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    IDENTIFIER_TYPES,
+    SAMPLE_STATUS,
+    collection_members,
+)
 from fairdm.factories import (
     DatasetFactory,
     PersonFactory,
@@ -42,7 +50,7 @@ class TestSampleModelCreation:
             name="Test Rock",
             dataset=dataset,
             local_id="ROCK-001",
-            status="available",
+            status_id=f"{SAMPLE_STATUS}/available",
             rock_type="igneous",
             collection_date="2024-01-15",
         )
@@ -51,7 +59,7 @@ class TestSampleModelCreation:
         assert sample.name == "Test Rock"
         assert sample.dataset == dataset
         assert sample.local_id == "ROCK-001"
-        assert sample.status == "available"
+        assert sample.status_id == f"{SAMPLE_STATUS}/available"
         assert sample.uuid.startswith("s")
         assert sample.added is not None
         assert sample.modified is not None
@@ -71,7 +79,7 @@ class TestSampleModelCreation:
         assert sample.pk is not None
         assert sample.name == "Minimal Water"
         assert sample.dataset == dataset
-        assert sample.status == "unknown"
+        assert sample.status_id == f"{SAMPLE_STATUS}/unknown"
 
     def test_sample_uuid_is_unique(self, rock_sample, water_sample):
         assert rock_sample.uuid != water_sample.uuid
@@ -150,34 +158,38 @@ class TestSamplePolymorphism:
 @pytest.mark.django_db
 class TestSampleModelValidation:
     def test_sample_status_transitions_unrestricted(self, rock_sample):
-        rock_sample.status = "available"
+        rock_sample.status_id = f"{SAMPLE_STATUS}/available"
         rock_sample.save()
         rock_sample.refresh_from_db()
-        assert rock_sample.status.name == "available"
+        assert rock_sample.status_id == f"{SAMPLE_STATUS}/available"
 
-        rock_sample.status = "in_use"
+        rock_sample.status_id = f"{SAMPLE_STATUS}/in-use"
         rock_sample.save()
         rock_sample.refresh_from_db()
-        assert rock_sample.status.name == "in_use"
+        assert rock_sample.status_id == f"{SAMPLE_STATUS}/in-use"
 
-        rock_sample.status = "stored"
+        rock_sample.status_id = f"{SAMPLE_STATUS}/stored"
         rock_sample.save()
         rock_sample.refresh_from_db()
-        assert rock_sample.status.name == "stored"
+        assert rock_sample.status_id == f"{SAMPLE_STATUS}/stored"
 
 
+@pytest.mark.django_db
 class TestSampleStatusVocabulary:
     def test_members_are_custody_states(self):
-        assert set(Sample.status_vocab.values) == {
-            "available",
-            "in_use",
-            "stored",
-            "destroyed",
-            "unknown",
+        offered = Record.objects.filter(
+            Sample._meta.get_field("status").get_limit_choices_to()
+        )
+        assert set(offered.values_list("uri", flat=True)) == {
+            f"{SAMPLE_STATUS}/available",
+            f"{SAMPLE_STATUS}/in-use",
+            f"{SAMPLE_STATUS}/stored",
+            f"{SAMPLE_STATUS}/destroyed",
+            f"{SAMPLE_STATUS}/unknown",
         }
 
-    def test_vocabulary_class_is_fairdm_sample_status(self):
-        assert Sample.status_vocab.__class__ is FairDMSampleStatus
+    def test_the_field_names_the_sample_status_vocabulary(self):
+        assert Sample._meta.get_field("status").vocabulary_uris() == (SAMPLE_STATUS,)
 
 
 @pytest.mark.django_db
@@ -191,24 +203,30 @@ class TestSampleStatusDefault:
         )
         sample.refresh_from_db()
 
-        assert sample.status.name == "unknown"
+        assert sample.status_id == f"{SAMPLE_STATUS}/unknown"
 
 
 @pytest.mark.django_db
 class TestSampleStatusTransitions:
-    STATES = ["available", "in_use", "stored", "destroyed", "unknown"]
+    STATES = [
+        f"{SAMPLE_STATUS}/available",
+        f"{SAMPLE_STATUS}/in-use",
+        f"{SAMPLE_STATUS}/stored",
+        f"{SAMPLE_STATUS}/destroyed",
+        f"{SAMPLE_STATUS}/unknown",
+    ]
 
     @pytest.mark.parametrize("start, end", list(itertools.permutations(STATES, 2)))
     def test_transition_is_accepted(self, rock_sample, start, end):
-        rock_sample.status = start
+        rock_sample.status_id = start
         rock_sample.save()
         rock_sample.refresh_from_db()
-        assert rock_sample.status.name == start
+        assert rock_sample.status_id == start
 
-        rock_sample.status = end
+        rock_sample.status_id = end
         rock_sample.save()
         rock_sample.refresh_from_db()
-        assert rock_sample.status.name == end
+        assert rock_sample.status_id == end
 
 
 @pytest.mark.django_db
@@ -224,7 +242,7 @@ class TestNoRemoteVocabulary:
         monkeypatch.setattr(socket.socket, "connect", _refuse_connect)
 
         loaded = Sample.objects.get(pk=rock_sample.pk)
-        assert loaded.status.name == "unknown"
+        assert loaded.status_id == f"{SAMPLE_STATUS}/unknown"
 
         created = RockSample.objects.create(
             name="Offline Rock",
@@ -233,26 +251,7 @@ class TestNoRemoteVocabulary:
             collection_date="2024-01-15",
         )
         created.refresh_from_db()
-        assert created.status.name == "unknown"
-
-    def test_vocabulary_graph_builds_from_scratch_without_network(self, monkeypatch):
-        import socket
-
-        def _refuse_connect(*args, **kwargs):
-            raise AssertionError("an outbound network call was attempted")
-
-        monkeypatch.setattr(socket.socket, "connect", _refuse_connect)
-        monkeypatch.setattr(FairDMSampleStatus, "graph", None)
-
-        vocab = FairDMSampleStatus()
-
-        assert set(vocab.values) == {
-            "available",
-            "in_use",
-            "stored",
-            "destroyed",
-            "unknown",
-        }
+        assert created.status_id == f"{SAMPLE_STATUS}/unknown"
 
 
 @pytest.mark.django_db
@@ -279,18 +278,15 @@ class TestStatusMigration:
             temperature_celsius=15.0,
         )
 
-        # Bypass the ORM entirely for the mutation: reading these rows back through
-        # ConceptField.from_db_value would raise ValueError, the very defect this
-        # migration exists to fix, before the migration ever ran.
         table = Sample._meta.db_table
         with connection.cursor() as cursor:
             cursor.execute(
-                f"UPDATE {table} SET status = %s WHERE id = %s",  # noqa: S608
-                ["complete", rock.pk],
+                f"UPDATE {table} SET status_id = %s WHERE id = %s",  # noqa: S608
+                [f"{SAMPLE_STATUS}/stored", rock.pk],
             )
             cursor.execute(
-                f"UPDATE {table} SET status = %s WHERE id = %s",  # noqa: S608
-                ["ongoing", water.pk],
+                f"UPDATE {table} SET status_id = %s WHERE id = %s",  # noqa: S608
+                [f"{SAMPLE_STATUS}/destroyed", water.pk],
             )
 
         migration = importlib.import_module(
@@ -303,8 +299,8 @@ class TestStatusMigration:
         schema_editor = SimpleNamespace(connection=connection)
         migration.migrate_status_to_unknown(django_apps, schema_editor)
 
-        assert Sample.objects.get(pk=rock.pk).status.name == "unknown"
-        assert Sample.objects.get(pk=water.pk).status.name == "unknown"
+        assert Sample.objects.get(pk=rock.pk).status_id == f"{SAMPLE_STATUS}/unknown"
+        assert Sample.objects.get(pk=water.pk).status_id == f"{SAMPLE_STATUS}/unknown"
 
 
 @pytest.mark.django_db
@@ -330,7 +326,11 @@ class TestBaseSampleRefused:
 
     def test_form_refuses_a_bare_sample(self, dataset):
         form = SampleForm(
-            data={"name": "Direct", "dataset": dataset.pk, "status": "unknown"}
+            data={
+                "name": "Direct",
+                "dataset": dataset.pk,
+                "status": f"{SAMPLE_STATUS}/unknown",
+            }
         )
 
         assert not form.is_valid()
@@ -577,7 +577,7 @@ class TestSampleLocation:
         data = {
             "name": sample.name,
             "dataset": dataset.pk,
-            "status": "unknown",
+            "status": f"{SAMPLE_STATUS}/unknown",
             "location_first": "",
             "location_second": "",
             "location_elevation": "",
@@ -598,51 +598,62 @@ class TestSampleLocation:
 @pytest.mark.django_db
 class TestSampleKeywords:
     def test_controlled_vocabulary_term_is_stored_as_a_reference(self, rock_sample):
-        from research_vocabs.models import Concept
+        from controlled_vocabularies.models import Record
 
-        term = Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+        term = Record.objects.filter(
+            scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+        ).first()
         assert term is not None
 
         rock_sample.keywords.add(term)
 
         stored = rock_sample.keywords.get(pk=term.pk)
-        assert isinstance(stored, Concept)
-        assert stored.name == term.name
+        assert isinstance(stored, Record)
+        assert stored.uri == term.uri
 
     def test_free_tags_are_distinguishable_from_controlled_keywords(self, rock_sample):
-        from research_vocabs.models import Concept
+        from controlled_vocabularies.models import Record
 
-        keyword = Concept.objects.filter(vocabulary__name="fairdm-roles").first()
+        keyword = Record.objects.filter(
+            scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+        ).first()
         rock_sample.keywords.add(keyword)
         rock_sample.tags.add("erosion")
 
         assert "erosion" in rock_sample.tags.names()
         assert rock_sample.keywords.count() == 1
-        assert all(isinstance(k, Concept) for k in rock_sample.keywords.all())
-        assert not rock_sample.keywords.filter(name="erosion").exists()
+        assert all(isinstance(k, Record) for k in rock_sample.keywords.all())
+        assert not rock_sample.keywords.filter(pref_label="erosion").exists()
 
 
 @pytest.mark.django_db
 class TestSampleContributions:
     def test_sample_role_vocabulary_members(self):
-        assert Sample.CONTRIBUTOR_ROLES.values == [
-            "Collection",
-            "Preparation",
-            "Storage",
-            "Destruction",
-            "Restoration",
+        assert [role.uri for role in collection_members(Sample.CONTRIBUTOR_ROLES)] == [
+            f"{CONTRIBUTOR_ROLES}/collection",
+            f"{CONTRIBUTOR_ROLES}/preparation",
+            f"{CONTRIBUTOR_ROLES}/storage",
+            f"{CONTRIBUTOR_ROLES}/destruction",
+            f"{CONTRIBUTOR_ROLES}/restoration",
         ]
 
     def test_contribution_records_contributor_and_roles(self, rock_sample):
         contributor = PersonFactory()
 
         contribution = rock_sample.add_contributor(
-            contributor, with_roles=["Collection", "Preparation"]
+            contributor,
+            with_roles=[
+                f"{CONTRIBUTOR_ROLES}/collection",
+                f"{CONTRIBUTOR_ROLES}/preparation",
+            ],
         )
 
         assert contribution.contributor == contributor
-        role_names = set(contribution.roles.values_list("name", flat=True))
-        assert role_names == {"Collection", "Preparation"}
+        role_names = set(contribution.roles.values_list("uri", flat=True))
+        assert role_names == {
+            f"{CONTRIBUTOR_ROLES}/collection",
+            f"{CONTRIBUTOR_ROLES}/preparation",
+        }
 
 
 @pytest.mark.django_db
@@ -672,10 +683,14 @@ class TestSamplePrefetch:
         from fairdm.factories import DatasetFactory
 
         dataset = DatasetFactory()
-        description_types = SampleDescription.VOCABULARY.values
-        date_types = SampleDate.VOCABULARY.values
-        identifier_types = SampleIdentifier.VOCABULARY.values
-        role_types = Sample.CONTRIBUTOR_ROLES.values
+        description_types = [
+            concept.uri for concept in SampleDescription.get_type_concepts()
+        ]
+        date_types = [concept.uri for concept in SampleDate.get_type_concepts()]
+        identifier_types = [
+            concept.uri for concept in SampleIdentifier.get_type_concepts()
+        ]
+        role_types = [role.uri for role in collection_members(Sample.CONTRIBUTOR_ROLES)]
 
         for _ in range(n_samples):
             sample = RockSampleFactory(dataset=dataset)
@@ -745,15 +760,6 @@ class TestSampleTranslatable:
             assert isinstance(field.verbose_name, Promise), field_name
             assert isinstance(field.help_text, Promise), field_name
 
-    def test_vocabulary_terms_are_lazy(self):
-        from django.utils.functional import Promise
-
-        from fairdm.core.vocabularies import FairDMDescriptions
-
-        assert isinstance(
-            FairDMDescriptions.SampleCollection["skos:prefLabel"], Promise
-        )
-
 
 @pytest.mark.django_db
 class TestSampleQuerySetOptimizations:
@@ -810,9 +816,13 @@ class TestSampleQuerySetOptimizations:
             collection_date=date.today(),
         )
         SampleDescription.objects.create(
-            related=sample, type="abstract", value="Test description"
+            related=sample,
+            type_id=f"{DESCRIPTION_TYPES}/sample-collection",
+            value="Test description",
         )
-        SampleDate.objects.create(related=sample, type="collected", value="2024-01-15")
+        SampleDate.objects.create(
+            related=sample, type_id=f"{DATE_TYPES}/collected", value="2024-01-15"
+        )
 
         with CaptureQueriesContext(connection) as context_without:
             samples_without = list(RockSample.objects.filter(pk=sample.pk))
@@ -983,7 +993,9 @@ class TestSampleModel:
         sample = RockSampleFactory()
         user = PersonFactory()
 
-        contribution = sample.add_contributor(user, with_roles=["Creator"])
+        contribution = sample.add_contributor(
+            user, with_roles=[f"{CONTRIBUTOR_ROLES}/creator"]
+        )
 
         assert contribution is not None
         assert contribution.contributor == user
@@ -1035,7 +1047,7 @@ class TestSampleForm:
         form_data = {
             "name": "Test Sample",
             "dataset": dataset.pk,
-            "status": "unknown",
+            "status": f"{SAMPLE_STATUS}/unknown",
         }
         form = SampleForm(data=form_data)
 
@@ -1079,7 +1091,9 @@ class TestSampleViews:
 class TestSamplePermissions:
     def test_sample_contributor_relationship(self, user):
         sample = RockSampleFactory()
-        contribution = sample.add_contributor(user, with_roles=["Creator"])
+        contribution = sample.add_contributor(
+            user, with_roles=[f"{CONTRIBUTOR_ROLES}/creator"]
+        )
 
         assert sample.contributors.count() == 1
         assert contribution.contributor == user
@@ -1098,8 +1112,8 @@ class TestSampleQuerySetWithRelated:
         sample = RockSampleFactory()
         user1 = PersonFactory()
         user2 = PersonFactory()
-        sample.add_contributor(user1, with_roles=["Creator"])
-        sample.add_contributor(user2, with_roles=["Editor"])
+        sample.add_contributor(user1, with_roles=[f"{CONTRIBUTOR_ROLES}/creator"])
+        sample.add_contributor(user2, with_roles=[f"{CONTRIBUTOR_ROLES}/editor"])
 
         result = Sample.objects.with_related().get(pk=sample.pk)
         contributors = list(result.contributors.all())
@@ -1128,10 +1142,14 @@ class TestSampleQuerySetWithMetadata:
     def test_with_metadata_prefetches_descriptions(self):
         sample = RockSampleFactory()
         desc1 = SampleDescription.objects.create(
-            related=sample, type="Abstract", value="Description 1"
+            related=sample,
+            type_id=f"{DESCRIPTION_TYPES}/abstract",
+            value="Description 1",
         )
         desc2 = SampleDescription.objects.create(
-            related=sample, type="Methods", value="Description 2"
+            related=sample,
+            type_id=f"{DESCRIPTION_TYPES}/methods",
+            value="Description 2",
         )
 
         result = Sample.objects.with_metadata().get(pk=sample.pk)
@@ -1144,10 +1162,10 @@ class TestSampleQuerySetWithMetadata:
     def test_with_metadata_prefetches_dates(self):
         sample = RockSampleFactory()
         date1 = SampleDate.objects.create(
-            related=sample, type="Created", value="2024-01-01"
+            related=sample, type_id=f"{DATE_TYPES}/created", value="2024-01-01"
         )
         date2 = SampleDate.objects.create(
-            related=sample, type="Published", value="2024-06-01"
+            related=sample, type_id=f"{DATE_TYPES}/published", value="2024-06-01"
         )
 
         result = Sample.objects.with_metadata().get(pk=sample.pk)
@@ -1652,30 +1670,41 @@ class TestSingleTraversalImplementation:
 @pytest.mark.django_db
 class TestSampleDescriptions:
     def test_description_is_stored_and_retrievable_by_type(self, rock_sample):
-        SampleDescriptionFactory(related=rock_sample, type="SampleCollection")
-
-        stored = SampleDescription.objects.get(
-            related=rock_sample, type="SampleCollection"
+        SampleDescriptionFactory(
+            related=rock_sample, type_id=f"{DESCRIPTION_TYPES}/sample-collection"
         )
 
-        assert stored.type == "SampleCollection"
-        assert rock_sample.descriptions.get(type="SampleCollection") == stored
+        stored = SampleDescription.objects.get(
+            related=rock_sample, type_id=f"{DESCRIPTION_TYPES}/sample-collection"
+        )
+
+        assert stored.type_id == f"{DESCRIPTION_TYPES}/sample-collection"
+        assert (
+            rock_sample.descriptions.get(
+                type_id=f"{DESCRIPTION_TYPES}/sample-collection"
+            )
+            == stored
+        )
 
 
 @pytest.mark.django_db
 class TestSampleDescriptionVocabulary:
     def test_vocabulary_members_are_the_sample_description_collection(self):
-        assert set(SampleDescription.VOCABULARY.values) == {
-            "SampleCollection",
-            "SamplePreparation",
-            "SampleStorage",
-            "SampleDestruction",
-            "Other",
+        assert set(
+            [concept.uri for concept in SampleDescription.get_type_concepts()]
+        ) == {
+            f"{DESCRIPTION_TYPES}/sample-collection",
+            f"{DESCRIPTION_TYPES}/sample-preparation",
+            f"{DESCRIPTION_TYPES}/sample-storage",
+            f"{DESCRIPTION_TYPES}/sample-destruction",
+            f"{DESCRIPTION_TYPES}/other",
         }
 
     def test_type_outside_the_vocabulary_is_refused_naming_the_type(self, rock_sample):
         description = SampleDescription(
-            related=rock_sample, type="NotARealType", value="text"
+            related=rock_sample,
+            type_id=f"{DESCRIPTION_TYPES}/not-a-real-type",
+            value="text",
         )
 
         with pytest.raises(ValidationError) as exc_info:
@@ -1683,14 +1712,16 @@ class TestSampleDescriptionVocabulary:
 
         assert "type" in exc_info.value.error_dict
         message = str(exc_info.value.error_dict["type"][0])
-        assert "NotARealType" in message
+        assert "not-a-real-type" in message
 
 
 @pytest.mark.django_db
 class TestSampleDescriptionValidationReturns:
     def test_full_clean_of_a_valid_description_does_not_raise(self, rock_sample):
         description = SampleDescription(
-            related=rock_sample, type="SampleCollection", value="text"
+            related=rock_sample,
+            type_id=f"{DESCRIPTION_TYPES}/sample-collection",
+            value="text",
         )
 
         description.full_clean()
@@ -1699,28 +1730,34 @@ class TestSampleDescriptionValidationReturns:
 @pytest.mark.django_db
 class TestSampleDates:
     def test_date_is_stored_under_its_type(self, rock_sample):
-        SampleDateFactory(related=rock_sample, type="Collected")
+        SampleDateFactory(related=rock_sample, type_id=f"{DATE_TYPES}/collected")
 
-        stored = SampleDate.objects.get(related=rock_sample, type="Collected")
+        stored = SampleDate.objects.get(
+            related=rock_sample, type_id=f"{DATE_TYPES}/collected"
+        )
 
-        assert stored.type == "Collected"
+        assert stored.type_id == f"{DATE_TYPES}/collected"
 
 
 @pytest.mark.django_db
 class TestSampleDateVocabulary:
     def test_vocabulary_members_are_the_sample_date_collection(self):
-        assert set(SampleDate.VOCABULARY.values) == {
-            "Created",
-            "Destroyed",
-            "Collected",
-            "Returned",
-            "Prepared",
-            "Archival",
-            "Restored",
+        assert set([concept.uri for concept in SampleDate.get_type_concepts()]) == {
+            f"{DATE_TYPES}/created",
+            f"{DATE_TYPES}/destroyed",
+            f"{DATE_TYPES}/collected",
+            f"{DATE_TYPES}/returned",
+            f"{DATE_TYPES}/prepared",
+            f"{DATE_TYPES}/archival",
+            f"{DATE_TYPES}/restored",
         }
 
     def test_type_outside_the_vocabulary_is_refused(self, rock_sample):
-        date = SampleDate(related=rock_sample, type="NotARealType", value="2024-01-15")
+        date = SampleDate(
+            related=rock_sample,
+            type_id=f"{DATE_TYPES}/not-a-real-type",
+            value="2024-01-15",
+        )
 
         with pytest.raises(ValidationError) as exc_info:
             date.full_clean()
@@ -1731,7 +1768,9 @@ class TestSampleDateVocabulary:
 @pytest.mark.django_db
 class TestSampleDateValidationReturns:
     def test_full_clean_of_a_valid_date_does_not_raise(self, rock_sample):
-        date = SampleDate(related=rock_sample, type="Collected", value="2024-01-15")
+        date = SampleDate(
+            related=rock_sample, type_id=f"{DATE_TYPES}/collected", value="2024-01-15"
+        )
 
         date.full_clean()
 
@@ -1740,41 +1779,49 @@ class TestSampleDateValidationReturns:
 class TestSampleIdentifiers:
     def test_igsn_is_stored_under_the_igsn_type(self, rock_sample):
         identifier = SampleIdentifierFactory(
-            related=rock_sample, type="IGSN", value="10.60516/AU1101"
+            related=rock_sample,
+            type_id=f"{IDENTIFIER_TYPES}/igsn",
+            value="10.60516/AU1101",
         )
 
         stored = SampleIdentifier.objects.get(pk=identifier.pk)
 
-        assert stored.type == "IGSN"
+        assert stored.type_id == f"{IDENTIFIER_TYPES}/igsn"
         assert stored.value == "10.60516/AU1101"
 
     def test_doi_is_stored_under_the_doi_type(self, rock_sample):
         identifier = SampleIdentifierFactory(
-            related=rock_sample, type="DOI", value="10.1000/sample-doi"
+            related=rock_sample,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.1000/sample-doi",
         )
 
         stored = SampleIdentifier.objects.get(pk=identifier.pk)
 
-        assert stored.type == "DOI"
+        assert stored.type_id == f"{IDENTIFIER_TYPES}/doi"
         assert stored.value == "10.1000/sample-doi"
 
 
 @pytest.mark.django_db
 class TestSampleIdentifierVocabulary:
     def test_available_types_are_igsn_and_doi_only(self):
-        assert set(SampleIdentifier.VOCABULARY.values) == {"IGSN", "DOI"}
+        assert set(
+            [concept.uri for concept in SampleIdentifier.get_type_concepts()]
+        ) == {f"{IDENTIFIER_TYPES}/igsn", f"{IDENTIFIER_TYPES}/doi"}
 
     def test_no_type_names_a_person_organisation_or_project(self):
-        assert set(SampleIdentifier.VOCABULARY.values).isdisjoint(
+        assert set(
+            [concept.uri for concept in SampleIdentifier.get_type_concepts()]
+        ).isdisjoint(
             {
-                "ORCID",
-                "RESEARCHER_ID",
-                "ROR",
-                "WIKIDATA",
-                "ISNI",
-                "CROSSREF_FUNDER_ID",
-                "GRANT_NUMBER",
-                "PROPOSAL_ID",
+                f"{IDENTIFIER_TYPES}/orcid",
+                f"{IDENTIFIER_TYPES}/researcher-id",
+                f"{IDENTIFIER_TYPES}/ror",
+                f"{IDENTIFIER_TYPES}/wikidata",
+                f"{IDENTIFIER_TYPES}/isni",
+                f"{IDENTIFIER_TYPES}/crossref-funder-id",
+                f"{IDENTIFIER_TYPES}/grant-number",
+                f"{IDENTIFIER_TYPES}/proposal-id",
             }
         )
 
@@ -1792,13 +1839,17 @@ class TestIGSNFormat:
         ],
     )
     def test_well_formed_igsn_is_accepted(self, rock_sample, value):
-        identifier = SampleIdentifier(related=rock_sample, type="IGSN", value=value)
+        identifier = SampleIdentifier(
+            related=rock_sample, type_id=f"{IDENTIFIER_TYPES}/igsn", value=value
+        )
 
         identifier.full_clean()
 
     def test_malformed_igsn_is_refused(self, rock_sample):
         identifier = SampleIdentifier(
-            related=rock_sample, type="IGSN", value="not-an-identifier"
+            related=rock_sample,
+            type_id=f"{IDENTIFIER_TYPES}/igsn",
+            value="not-an-identifier",
         )
 
         with pytest.raises(ValidationError) as exc_info:
@@ -1813,7 +1864,9 @@ class TestIGSNNormalisation:
     # index and the cross-record check both compare the stored string exactly.
     def test_bare_value_is_stored_unchanged(self, rock_sample):
         identifier = SampleIdentifier(
-            related=rock_sample, type="IGSN", value="10.60516/AU1101"
+            related=rock_sample,
+            type_id=f"{IDENTIFIER_TYPES}/igsn",
+            value="10.60516/AU1101",
         )
         identifier.full_clean()
         identifier.save()
@@ -1825,11 +1878,15 @@ class TestIGSNNormalisation:
         self, dataset
     ):
         first = create_rock_sample("First", dataset)
-        SampleIdentifierFactory(related=first, type="IGSN", value="10.60516/AU1101")
+        SampleIdentifierFactory(
+            related=first, type_id=f"{IDENTIFIER_TYPES}/igsn", value="10.60516/AU1101"
+        )
 
         second = create_rock_sample("Second", dataset)
         clashing = SampleIdentifier(
-            related=second, type="IGSN", value="doi:10.60516/AU1101"
+            related=second,
+            type_id=f"{IDENTIFIER_TYPES}/igsn",
+            value="doi:10.60516/AU1101",
         )
 
         with pytest.raises(ValidationError) as exc_info:
@@ -1844,11 +1901,15 @@ class TestSampleIdentifierUniqueness:
         from fairdm.core.dataset.models import DatasetIdentifier
 
         DatasetIdentifier.objects.create(
-            related=dataset, type="DOI", value="10.5555/shared-across-records"
+            related=dataset,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.5555/shared-across-records",
         )
 
         clashing = SampleIdentifier(
-            related=rock_sample, type="DOI", value="10.5555/shared-across-records"
+            related=rock_sample,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.5555/shared-across-records",
         )
 
         with pytest.raises(ValidationError) as exc_info:
@@ -1857,10 +1918,16 @@ class TestSampleIdentifierUniqueness:
         assert "value" in exc_info.value.error_dict
 
     def test_second_identifier_of_a_type_already_carried_is_refused(self, rock_sample):
-        SampleIdentifierFactory(related=rock_sample, type="DOI", value="10.1000/first")
+        SampleIdentifierFactory(
+            related=rock_sample,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.1000/first",
+        )
 
         second = SampleIdentifier(
-            related=rock_sample, type="DOI", value="10.1000/second"
+            related=rock_sample,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.1000/second",
         )
 
         with pytest.raises(ValidationError):
@@ -1871,7 +1938,9 @@ class TestSampleIdentifierUniqueness:
 class TestSampleIdentifierValidationReturns:
     def test_full_clean_of_a_valid_identifier_does_not_raise(self, rock_sample):
         identifier = SampleIdentifier(
-            related=rock_sample, type="DOI", value="10.1000/valid-identifier"
+            related=rock_sample,
+            type_id=f"{IDENTIFIER_TYPES}/doi",
+            value="10.1000/valid-identifier",
         )
 
         identifier.full_clean()
