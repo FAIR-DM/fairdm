@@ -2,8 +2,8 @@
 
 from io import StringIO
 
-from braces.views import MessageMixin
 from django import forms
+from django.contrib import messages
 from django.core.files.base import ContentFile
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext as _
@@ -23,7 +23,7 @@ from .forms import ExportForm, ImportForm
 from .utils import DataPackage, get_export_formats, get_import_formats
 
 
-class BaseImportExportView(MessageMixin, FormView):
+class BaseImportExportView(FormView):
     """Base view for importing and exporting a dataset's records with django-import-export.
 
     Attributes:
@@ -205,10 +205,10 @@ class DataImportView(BaseImportExportView):
         result = self.handle_import(file)
 
         if (result and result.has_errors()) or result.has_validation_errors():
-            self.messages.error("There were errors in the import.")
+            messages.error(self.request, "There were errors in the import.")
             return self.result_has_errors(result, form)
         else:
-            self.messages.success("Data imported successfully.")
+            messages.success(self.request, "Data imported successfully.")
 
         return super().form_valid(form)
 

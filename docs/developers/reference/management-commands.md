@@ -98,7 +98,7 @@ Takes no arguments. Creates the three licences FairDM recommends if they do not 
 
 - It is safe to run again. A licence is matched by name, and one that already exists is left unchanged, even if you edited it.
 - When it cannot read the fixture, it prints a warning on standard error, creates nothing and exits normally.
-- The `DJANGO_SETUP_TOOLS` setting runs it on every start in the `always_run` step, so an existing portal gets the licences on its next deployment.
+- Run it on every deployment, beside `sync_vocabularies`, so an existing portal gets the licences on its next one. A portal does that with a [start step](container-images.md#start-sequence).
 
 ### show_config
 

@@ -176,25 +176,3 @@ class TestDevelopmentWithoutRedis:
         assert module.CACHES["default"]["LOCATION"] == "redis://cachehost:6380/2"
         assert module.CELERY_BROKER_URL == "redis://cachehost:6380/2"
         assert module.CELERY_TASK_ALWAYS_EAGER is False
-
-
-class TestSetupToolsCommands:
-    def test_no_environment_declares_a_scaffold_placeholder(
-        self, isolated_env, settings_module
-    ):
-        os.environ["DJANGO_ENV"] = "development"
-
-        commands = settings_module().DJANGO_SETUP_TOOLS
-
-        declared = [
-            step
-            for profile in commands.values()
-            for key in ("on_initial", "always_run")
-            for step in profile.get(key, [])
-        ]
-        flattened = " ".join(
-            step if isinstance(step, str) else " ".join(step) for step in declared
-        )
-
-        assert "myapp" not in flattened
-        assert "some_extra_func" not in flattened

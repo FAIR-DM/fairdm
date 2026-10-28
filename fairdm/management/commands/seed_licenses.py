@@ -15,10 +15,8 @@ not seeded: they fail the Open Definition, and a framework named for
 reusability should not present "no derivatives" as a recommendation for
 research data. A portal that wants one adds it itself.
 
-It runs in the deployment pipeline's ``always_run`` step
-(``fairdm/conf/settings/apps.py``, ``DJANGO_SETUP_TOOLS``), beside the
-vocabulary ``preload`` step, so an existing portal picks it up on its next
-deploy. It is idempotent, keyed on ``License.name`` (``unique=True`` on
+A portal runs it on every deploy, beside ``sync_vocabularies``, so an existing
+portal picks it up on its next one. It is idempotent, keyed on ``License.name`` (``unique=True`` on
 ``licensing.models.License``), and leaves alone a licence a portal has already
 edited under one of these three names.
 

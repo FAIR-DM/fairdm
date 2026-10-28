@@ -271,7 +271,6 @@ class TestShippedOverrides:
         "environment",
         "checks",
         "addons",
-        "orbit",
         "urls",
         "celery",
     }

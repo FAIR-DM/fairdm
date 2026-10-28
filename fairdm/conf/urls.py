@@ -5,7 +5,6 @@ from django.conf.urls.static import static
 from django.urls import include, path
 from django.views import defaults as default_views
 from django.views.i18n import JavaScriptCatalog
-from markdownx.views import MarkdownifyView
 from mvp.views.account import AccountCenterView
 
 from fairdm.views.generic import FairDMHomeView
@@ -32,17 +31,9 @@ urlpatterns = [
     # the same view, has to come after the include.
     path("account-center/", AccountCenterView.as_view(), name="account-center"),
     path("legal/", include("mvp_compliance.urls")),
-    path("contact/", include("django_contact_form.urls")),
     path("autocomplete/", include("fairdm.contrib.autocomplete.urls")),
     path("i18n/", include("django.conf.urls.i18n")),
-    # Preview only: django-markdownx also ships an unauthenticated image upload view.
-    path(
-        "markdownx/markdownify/",
-        MarkdownifyView.as_view(),
-        name="markdownx_markdownify",
-    ),
     path("hijack/", include("hijack.urls")),
-    path("orbit/", include("orbit.urls")),
 ]
 
 if addon_urls:

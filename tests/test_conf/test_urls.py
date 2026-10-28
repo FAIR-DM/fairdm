@@ -1,4 +1,4 @@
-"""Route smoke tests for the account, legal and ``markdownx/`` routes in ``fairdm/conf/urls.py``."""
+"""Route smoke tests for the account and legal routes in ``fairdm/conf/urls.py``."""
 
 import pytest
 from django.urls import reverse
@@ -90,24 +90,3 @@ class TestLegalDocumentRoutes:
         client.post(reverse("hijack:release"))
 
         assert client.session["_auth_user_id"] == str(administrator.pk)
-
-
-class TestMarkdownxRoutes:
-    def test_markdownify_endpoint_renders_posted_content(self, db, client):
-        response = client.post("/markdownx/markdownify/", {"content": "**bold**"})
-
-        assert response.status_code == 200
-        assert b"<strong>bold</strong>" in response.content
-
-    def test_markdownify_endpoint_rejects_get(self, db, client):
-        response = client.get("/markdownx/markdownify/")
-
-        assert response.status_code == 405
-
-    def test_image_upload_endpoint_is_not_exposed(self, db, client):
-        # The library's upload view writes to media storage without authenticating anyone.
-        response = client.post(
-            "/markdownx/upload/", {}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
-        )
-
-        assert response.status_code == 404

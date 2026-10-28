@@ -58,13 +58,6 @@ The groups are:
 - **What it does**: The name of the environment. It selects the override modules that `fairdm.setup()` applies and the `stack.<environment>.env` file it reads. FairDM also reads it at start-up: only the value `development` skips the production-critical checks.
 - **Accepts**: Any string. A name with no override module gets the production baseline. `fairdm.setup()` sets the setting from the environment variable, so set the variable and not the setting.
 
-### `DJANGO_SETUP_TOOLS`
-
-- **Type**: `dict`
-- **Default**: One entry under the key `""` with two lists. `on_initial` runs `makemigrations --no-input`, `migrate --no-input`, `createsuperuser --no-input` with the first and last name from `DJANGO_SUPERUSER_FIRSTNAME` and `DJANGO_SUPERUSER_LASTNAME`, and `loaddata django-waffle`. `always_run` runs `migrate --no-input`, `collectstatic --noinput`, `sync_vocabularies`, `seed_licenses` and the script `django_setup_tools.scripts.sync_site_id`.
-- **What it does**: The commands and scripts that the django-setup-tools app runs. The [container images](container-images.md) do not use it, and run their own [start sequence](container-images.md#start-sequence).
-- **Accepts**: The format django-setup-tools reads: a dictionary of lists, each item a tuple holding a command name and its arguments, or the dotted path of a script.
-
 ### `FAIRDM_APPS`
 
 - **Type**: `list[str]`
@@ -154,7 +147,7 @@ The groups are:
 ### `MIDDLEWARE`
 
 - **Type**: `list[str]`
-- **Default**: In this order, `SecurityMiddleware`, WhiteNoise, Orbit, django-cors-headers, sessions, CSRF, authentication, `mvp_compliance.middleware.AgreementMiddleware`, messages, locale, common, current site, clickjacking, allauth's account middleware, django-htmx, django-tomselect and django-hijack. Development appends `django_browser_reload.middleware.BrowserReloadMiddleware`.
+- **Default**: In this order, `SecurityMiddleware`, WhiteNoise, django-cors-headers, sessions, CSRF, authentication, `mvp_compliance.middleware.AgreementMiddleware`, messages, locale, common, current site, clickjacking, allauth's account middleware, django-htmx, django-tomselect and django-hijack. Development appends `django_browser_reload.middleware.BrowserReloadMiddleware`.
 - **What it does**: The request and response middleware. Security, WhiteNoise and authentication must keep their places, and the agreement middleware must come after authentication.
 - **Accepts**: A list of dotted paths. Add a portal's own middleware by assignment after `fairdm.setup()`.
 
@@ -1157,15 +1150,6 @@ The Celery settings use the `CELERY_` prefix, which FairDM's Celery application 
 - **What it does**: The formats FairDM accepts for import. Only formats that can import are offered.
 - **Accepts**: A list of django-import-export format classes.
 
-### `MARKDOWNX_MARKDOWNIFY_FUNCTION`
-
-- **Type**: `str`
-- **Default**: `"fairdm.utils.markdown.markdownify"`
-- **What it does**: The function django-markdownx uses to render the editor's preview. It is the same function the `safe_markdown` filter uses, so the preview matches the page.
-- **Accepts**: The dotted path of a function that takes markdown and returns HTML. Keep the default so preview and page agree.
-
-## REST API
-
 ### `CORS_ALLOW_ALL_ORIGINS`
 
 - **Type**: `bool`
@@ -1324,13 +1308,6 @@ django-mvp-compliance reads these settings. FairDM sets one of them. [Legal docu
 - **Default**: Production: the root logger writes `INFO` and above to the console. `django.request` errors and `django.security.DisallowedHost` go to the site administrators by email when `DEBUG` is off. Development: replaces the whole dictionary with console logging, where the `fairdm` logger is at `DEBUG`, `django` at `INFO` and `django.db.backends` at `WARNING`, and no email.
 - **What it does**: Django's logging configuration.
 - **Accepts**: Django's format. Add a logger by assigning an item, such as `LOGGING["loggers"]["my_app"] = {"handlers": ["console"], "level": "INFO"}`.
-
-### `ORBIT_CONFIG`
-
-- **Type**: `dict`
-- **Default**: `{"AUTH_CHECK": "fairdm.conf.orbit.dashboard_access"}`
-- **What it does**: Configures the Orbit dashboard at `/orbit/`, which records requests, queries and exceptions. FairDM's check opens the dashboard when `DEBUG` is on and otherwise allows only signed-in superusers.
-- **Accepts**: django-orbit's format. Change who may view the dashboard by assigning another function to `AUTH_CHECK`.
 
 ### `SENTRY_DSN`
 
@@ -1593,20 +1570,6 @@ Three kinds of variable have no entry here. `DJANGO_ENV` and `SENTRY_DSN` are de
 - **Default**: `"super.user@example.com"`
 - **What it does**: The email address of the first administrator account, and the address in [`ADMINS`](#admins).
 - **Accepts**: An email address.
-
-### `DJANGO_SUPERUSER_FIRSTNAME`
-
-- **Type**: `str`
-- **Default**: `"Super"`
-- **What it does**: The first name given to the administrator account that [`DJANGO_SETUP_TOOLS`](#django_setup_tools) creates.
-- **Accepts**: Any string.
-
-### `DJANGO_SUPERUSER_LASTNAME`
-
-- **Type**: `str`
-- **Default**: `"User"`
-- **What it does**: The last name given to the administrator account that [`DJANGO_SETUP_TOOLS`](#django_setup_tools) creates.
-- **Accepts**: Any string.
 
 ### `DJANGO_SUPERUSER_PASSWORD`
 
