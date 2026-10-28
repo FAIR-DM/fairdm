@@ -45,4 +45,4 @@ Every project, dataset, sample and measurement has `get_abstract_summary()`. It 
 
 The result is plain text and Django escapes it like any other string. Do not add `|safe` or `safe_markdown` after it. Use `safe_markdown` for the formatting and `get_abstract_summary` for the words.
 
-The filter is listed in [Template tags](../reference/template-tags.md). To let people write markdown in a form of your own, see [How to add a markdown field to a form](add-a-markdown-field-to-a-form.md).
+The filter is listed in [Template tags](../reference/template-tags.md).

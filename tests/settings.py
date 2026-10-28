@@ -69,11 +69,6 @@ EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 MEDIA_ROOT = os.path.join(tempfile.gettempdir(), f"fairdm-test-media-{os.getpid()}")
 STATIC_ROOT = os.path.join(tempfile.gettempdir(), f"fairdm-test-static-{os.getpid()}")
 
-# django-orbit records a row per query and per signal through the connection of the page under
-# test, which swamps query-count budgets. Turned off, its watchers are never installed.
-ORBIT = {"ENABLED": False}
-
-
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
 

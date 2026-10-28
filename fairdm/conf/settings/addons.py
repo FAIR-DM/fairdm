@@ -1,7 +1,7 @@
 """Third-party package settings and FairDM's own framework configuration.
 
 Owns the consolidated settings for activity stream, solo, waffle, flex-menus, easy-icons,
-import/export, django-markdownx and meta tags, plus FairDM's identifiers, coordinate fields,
+import/export, markdown and meta tags, plus FairDM's identifiers, coordinate fields,
 dataset and project keywords and the MVP page shell. A portal supplies its own
 ``FAIRDM_CONFIG``/``PAGE_CONFIG`` branding and any additional identifier schemes under
 ``FAIRDM_ALLOWED_IDENTIFIERS``.
@@ -53,12 +53,6 @@ MVP_CONFIG = {
         # navbar copies would double them.
         "navbar": {"end": []},
     },
-}
-
-# Orbit's dashboard defaults to open access when DEBUG is False; dashboard_access restricts
-# it to superusers in production. Override AUTH_CHECK to change who can view it.
-ORBIT_CONFIG = {
-    "AUTH_CHECK": "fairdm.conf.orbit.dashboard_access",
 }
 
 # Addresses a person who has not agreed to a required document can still reach. Without this
@@ -228,7 +222,7 @@ IMPORT_EXPORT_FORMATS = [LaTex, *DEFAULT_FORMATS]
 
 IMPORT_FORMATS = [CSV, TSV, XLS, XLSX, ODS]
 
-# Read by both the page renderer and the live preview, so the two never diverge.
+# Read by the ``safe_markdown`` filter and fairdm.utils.markdown.markdownify.
 FAIRDM_MARKDOWN_EXTENSIONS = [
     "markdown.extensions.extra",
     "markdown.extensions.nl2br",
@@ -237,8 +231,6 @@ FAIRDM_MARKDOWN_EXTENSIONS = [
     "pymdownx.magiclink",
     "pymdownx.tilde",
 ]
-
-MARKDOWNX_MARKDOWNIFY_FUNCTION = "fairdm.utils.markdown.markdownify"
 
 ALLOWED_URL_SCHEMES = [
     "https",

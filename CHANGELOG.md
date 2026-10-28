@@ -86,6 +86,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `fairdm.contrib.contributors.choices` are gone, as are `GRID` from the identifier resolvers and
   the `FairDMIdentifiers` duplicate in `fairdm.contrib.contributors.choices`.
 
+- **Eleven runtime dependencies FairDM no longer uses are gone**: django-admin-extra-buttons,
+  django-braces, django-classy-tags, django-contact-form, django-extensions, django-markdownx,
+  django-orbit, django-setup-tools, django-social-share, django-widget-tweaks and flower. With them
+  go the contact page at `/contact/` and its footer link, the Orbit dashboard at `/orbit/` and its
+  middleware, the markdown preview address `/markdownx/markdownify/`, and the settings
+  `DJANGO_SETUP_TOOLS`, `MARKDOWNX_MARKDOWNIFY_FUNCTION` and `ORBIT_CONFIG`. A portal that imports
+  or installs one of these packages itself now declares it as its own dependency. A portal that
+  wants a markdown editor installs django-markdownx and points its preview at
+  `fairdm.utils.markdown.markdownify`. A portal database keeps the `orbit_orbitentry` table
+  django-orbit created. Nothing reads it, and `python manage.py migrate orbit zero`, run before
+  upgrading, drops it.
+
 ## [v0.2.1] - 2026-10-22
 
 ### Changed

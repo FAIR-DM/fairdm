@@ -15,7 +15,6 @@ explanation covers why parts of FairDM work as they do. Explanation every reader
 
 - [How to add a factory for a portal model](how-to/add-a-factory-for-a-portal-model.md)
 - [How to add a filter to a sample type](how-to/add-a-filter-to-a-sample-type.md)
-- [How to add a markdown field to a form](how-to/add-a-markdown-field-to-a-form.md)
 - [How to add a measurement type](how-to/add-a-measurement-type.md)
 - [How to add a record field to a form](how-to/add-a-record-field-to-a-form.md)
 - [How to add a sample type](how-to/add-a-sample-type.md)
@@ -147,7 +146,6 @@ tutorial
 
 how-to/add-a-factory-for-a-portal-model
 how-to/add-a-filter-to-a-sample-type
-how-to/add-a-markdown-field-to-a-form
 how-to/add-a-measurement-type
 how-to/add-a-record-field-to-a-form
 how-to/add-a-sample-type

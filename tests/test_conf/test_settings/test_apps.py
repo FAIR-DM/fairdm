@@ -146,14 +146,3 @@ class TestGroupsFixtureRemoved:
         repo_root = Path(__file__).resolve().parents[3]
 
         assert not (repo_root / "fairdm" / "fixtures" / "groups.json").exists()
-
-    def test_on_initial_no_longer_loads_the_groups_fixture(
-        self, isolated_env, settings_module
-    ):
-        os.environ["DJANGO_ENV"] = "qa"
-
-        module = settings_module()
-
-        on_initial = module.DJANGO_SETUP_TOOLS[""]["on_initial"]
-
-        assert ("loaddata", "groups") not in on_initial

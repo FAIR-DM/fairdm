@@ -16,7 +16,6 @@ BASE_DIR = globals()["BASE_DIR"]
 # Order matters: the admin apps must come early.
 INSTALLED_APPS = [
     "adminactions",
-    "admin_extra_buttons",
     "fairdm.contrib.admin.apps.FairDMAdminConfig",
     "fairdm.contrib.admin.apps.FairDMAdminSite",
     "django.contrib.auth",
@@ -66,15 +65,12 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "fairdm.backups",
     "django_cotton",
-    "django_extensions",
-    "django_setup_tools",
     "django_tables2",
     "easy_icons",
     "easy_thumbnails",
     "flex_menu",
     "meta",
     "solo",
-    "django_contact_form",
     "storages",
     "django_filters",
     "crispy_forms",
@@ -82,10 +78,7 @@ INSTALLED_APPS = [
     # Below mvp_forms, whose django_tomselect/tomselect.html replaces this app's own.
     "django_tomselect",
     "literature.ui",
-    "widget_tweaks",
-    "django_social_share",
     "django_htmx",
-    "orbit",
     "literature",
     "licensing",
     "controlled_vocabularies",
@@ -95,7 +88,6 @@ INSTALLED_APPS = [
     "waffle",
     "guardian",
     "django_countries",
-    "markdownx",
     "hijack",
     "hijack.contrib.admin",
     "fairdm.api",
@@ -110,8 +102,6 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    # Wraps the app stack to record requests, queries and exceptions.
-    "orbit.middleware.OrbitMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -200,28 +190,3 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = ["daisyui"]
 CRISPY_TEMPLATE_PACK = "daisyui"
 
 DJANGO_TABLES2_TEMPLATE = "django_tables2/bootstrap5-mvp.html"
-
-DJANGO_SETUP_TOOLS = {
-    "": {
-        "on_initial": [
-            ("makemigrations", "--no-input"),
-            ("migrate", "--no-input"),
-            (
-                "createsuperuser",
-                "--no-input",
-                "--first_name",
-                env("DJANGO_SUPERUSER_FIRSTNAME", default="Super"),
-                "--last_name",
-                env("DJANGO_SUPERUSER_LASTNAME", default="User"),
-            ),
-            ("loaddata", "django-waffle"),
-        ],
-        "always_run": [
-            ("migrate", "--no-input"),
-            ("collectstatic", "--noinput"),
-            ("sync_vocabularies",),
-            ("seed_licenses",),
-            "django_setup_tools.scripts.sync_site_id",
-        ],
-    },
-}
