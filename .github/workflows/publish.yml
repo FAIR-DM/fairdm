@@ -1,18 +1,20 @@
 name: Publish
 
-# Publishes to PyPI, and runs only when started by hand.
+# Publishes to PyPI when a release is published (or a v* tag is pushed by a
+# user). Release creation itself is owned by the Tag Release workflow; the
+# CHANGELOG section is written before release by Prepare Release.
 #
-# FairDM is released on GitHub: Prepare Release opens the release pull request,
-# and Tag Release creates the tag and the GitHub release when it merges. Portals
-# pin FairDM to a release tag. FairDM is not published to PyPI yet, because two
-# of its dependencies, django-literature and django-research-vocabs, are
-# installed from git, and PyPI refuses a package that depends on a git URL.
-# Once both come from PyPI, add the `release: published` trigger back here.
-#
-# PyPI trusted publishing watches this filename, so the trusted publisher must
-# be configured against `publish.yml` before the first PyPI release.
+# Note: releases/tags created by the Tag Release workflow with the default
+# GITHUB_TOKEN do not trigger this workflow — set the RELEASE_TOKEN org secret
+# (see django-mvp/shared README, Release Flow) or run this manually via
+# workflow_dispatch.
 
 on:
+  push:
+    tags:
+      - "v*"
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
@@ -28,10 +30,12 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v10.2.0
+        uses: astral-sh/setup-uv@v10.3.2
         with:
           python-version: '3.13'
 
+      # --check fails when uv.lock is out of date with pyproject.toml, so a
+      # release never ships from a tree whose lockfile disagrees with it.
       - name: Build package
         run: |
           uv lock --check
