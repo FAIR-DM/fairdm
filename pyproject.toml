@@ -59,7 +59,8 @@ dependencies = [
     'whitenoise (>=6.4.0,<7.0.0)',
     'django-research-vocabs @ git+https://github.com/SamuelJennings/django-research-vocabs',
     'shortuuid (>=1.0.13,<2.0.0)',
-    'django-literature @ git+https://github.com/SamuelJennings/django-literature',
+    'django-literature[ui] (>=0.3.1,<0.4.0)',
+    'django-extensions (>=4.1,<5.0)',
     'django-widget-tweaks (>=1.5.0,<2.0.0)',
     'django-ordered-model (>=3.7.4,<4.0.0)',
     'django-taggit (>=6.1.0,<7.0.0)',
@@ -144,7 +145,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.metadata]
-# django-research-vocabs and django-literature are declared as git URLs above.
+# django-research-vocabs is declared as a git URL above.
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
@@ -361,6 +362,7 @@ DEP002 = [
     "django-contact-form",
     "django-cors-headers",
     "django-dbbackup",
+    "django-extensions",
     "django-htmx",
     "django-mvp-accounts",
     "django-mvp-charts",

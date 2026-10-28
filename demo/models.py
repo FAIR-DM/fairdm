@@ -15,11 +15,20 @@ how to programmatically create metadata:
 
    ```python
    from fairdm.core.dataset.models import DatasetLiteratureRelation
-   from literature.models import LiteratureItem
+   from literature.converters import from_csl_json
 
    # Create a literature reference
-   paper = LiteratureItem.objects.create(
-       title="XRF Analysis Methods", authors="Smith, J.; Doe, A.", year=2024
+   paper = from_csl_json(
+       {
+           "id": "smith2024xrf",
+           "type": "article-journal",
+           "title": "XRF Analysis Methods",
+           "author": [
+               {"family": "Smith", "given": "J."},
+               {"family": "Doe", "given": "A."},
+           ],
+           "issued": {"date-parts": [[2024]]},
+       }
    )
 
    # Link to dataset with relationship type
@@ -254,7 +263,7 @@ improve performance. Use these patterns in your views and APIs:
   class attributes: DATE_TYPES, DESCRIPTION_TYPES, IDENTIFIER_TYPES)
 - unique_together constraints ensure only one metadata entry per type per dataset
 - DOIs should be assigned via DatasetIdentifier, not the reference field
-- The reference field is for the primary data publication (LiteratureItem)
+- The reference field is for the primary data publication (``literature.Item``)
 
 See Also:
     - Developer Guide > Models > Dataset Metadata

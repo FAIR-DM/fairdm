@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("dataset", "0007_add_unique_type_constraints"),
-        ("literature", "0004_alter_literatureitem_options"),
+        ("literature", "0001_initial"),
         ("project", "0005_add_unique_type_constraints"),
         ("research_vocabs", "0002_alter_concept_unique_together"),
     ]
@@ -164,7 +164,7 @@ class Migration(migrations.Migration):
             field=auto_prefetch.ForeignKey(
                 on_delete=django.db.models.deletion.CASCADE,
                 related_name="dataset_relations",
-                to="literature.literatureitem",
+                to="literature.item",
                 verbose_name="literature item",
             ),
         ),
@@ -181,7 +181,7 @@ class Migration(migrations.Migration):
                 related_name="related_datasets",
                 related_query_name="related_dataset",
                 through="dataset.DatasetLiteratureRelation",
-                to="literature.literatureitem",
+                to="literature.item",
             ),
         ),
         migrations.AddIndex(

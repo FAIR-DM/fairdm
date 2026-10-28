@@ -20,7 +20,8 @@ from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
 from licensing.models import License
-from literature.models import LiteratureItem
+from literature.converters import from_csl_json
+from literature.models import Item
 from partial_date import PartialDate
 from research_vocabs.models import Concept, Vocabulary
 
@@ -361,18 +362,15 @@ class ProjectSeed(BaseCommand):
         grant_team_rights(users["staff.user"], project, dataset, draft)
 
     def literature(self, key, title, year, doi, kind="article-journal"):
-        item, _ = LiteratureItem.objects.get_or_create(
-            citation_key=key,
-            defaults={
-                "item": {
-                    "type": kind,
-                    "title": title,
-                    "DOI": doi,
-                    "issued": {"date-parts": [[year]]},
-                }
-            },
+        return Item.objects.filter(citation_key=key).first() or from_csl_json(
+            {
+                "id": key,
+                "type": kind,
+                "title": title,
+                "DOI": doi,
+                "issued": {"date-parts": [[year]]},
+            }
         )
-        return item
 
     def dataset_metadata(self, users, keywords, showcase):
         """Dataset-level metadata for the showcase's datasets, so each access state has a fully

@@ -82,6 +82,7 @@ explanation covers why parts of FairDM work as they do. Explanation every reader
 - [How to sign in as each portal role while developing](how-to/sign-in-as-each-portal-role-while-developing.md)
 - [How to sync a profile from ORCID or ROR without Celery](how-to/sync-a-profile-from-orcid-or-ror-without-celery.md)
 - [How to test a portal with FairDM factories](how-to/test-a-portal-with-fairdm-factories.md)
+- [How to upgrade a portal to django-literature 0.3](how-to/upgrade-a-portal-to-django-literature-0-3.md)
 - [How to use a controlled vocabulary in a model](how-to/use-a-controlled-vocabulary-in-a-model.md)
 - [How to use a sample form in a view](how-to/use-a-sample-form-in-a-view.md)
 - [How to write a custom form or filter for a measurement type](how-to/write-a-custom-form-or-filter-for-a-measurement-type.md)
@@ -212,6 +213,7 @@ how-to/show-part-of-a-page-to-a-records-team
 how-to/sign-in-as-each-portal-role-while-developing
 how-to/sync-a-profile-from-orcid-or-ror-without-celery
 how-to/test-a-portal-with-fairdm-factories
+how-to/upgrade-a-portal-to-django-literature-0-3
 how-to/use-a-controlled-vocabulary-in-a-model
 how-to/use-a-sample-form-in-a-view
 how-to/write-a-custom-form-or-filter-for-a-measurement-type

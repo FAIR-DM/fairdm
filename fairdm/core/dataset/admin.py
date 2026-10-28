@@ -8,17 +8,17 @@ bulk action of its own, so visibility can only be changed one dataset at a time.
 from django.contrib import admin, messages
 from django.db.models import Exists, OuterRef
 from django.utils.translation import gettext_lazy as _
-from literature.models import LiteratureItem
+from literature.models import Item
 
 from ..formsets import date_ordering_formset
 from .models import Dataset, DatasetDate, DatasetDescription, DatasetIdentifier
 
 
-@admin.register(LiteratureItem)
-class LiteratureItemAdmin(admin.ModelAdmin):
-    """Minimal admin for LiteratureItem, required by the autocomplete on ``DatasetAdmin.reference``."""
+@admin.register(Item)
+class ItemAdmin(admin.ModelAdmin):
+    """Minimal admin for literature items, required by the autocomplete on ``DatasetAdmin.reference``."""
 
-    search_fields = ("title", "authors")
+    search_fields = ("title", "citation_key")
     list_display = ("title",)
 
 

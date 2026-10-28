@@ -289,24 +289,50 @@ class DatasetIdentifierFactory(DjangoModelFactory):
 
 
 class LiteratureItemFactory(DjangoModelFactory):
-    """Factory for creating literature.LiteratureItem instances.
+    """Factory for creating literature.Item instances.
 
-    ``LiteratureItem.save()`` derives ``type`` and ``title`` from the ``item``
-    CSL-JSON blob, and falls back to generating ``citation_key`` from the
-    title when one isn't supplied - so an explicit, sequence-guarded
-    ``citation_key`` is provided here to satisfy its uniqueness constraint.
+    The item is built from a CSL JSON dictionary with ``literature.converters.from_csl_json``,
+    so the DOI, the issued year and the authors are stored as the package stores them.
+
+    Args:
+        citation_key: The reference's key. A unique sequence by default.
+        title: The title. Derived from the citation key by default.
+        type: The CSL item type. ``article-journal`` by default.
+        doi: A DOI to store as an identifier.
+        year: The year of the issued date.
+        authors: ``(family, given)`` pairs, in order.
     """
 
     class Meta:
-        model = "literature.LiteratureItem"
+        model = "literature.Item"
 
     citation_key = factory.Sequence(lambda n: f"literature-item-{n}")
-    item = factory.LazyAttribute(
-        lambda o: {
-            "type": "article-journal",
-            "title": f"Test Literature Item {o.citation_key}",
+    type = "article-journal"
+    title = factory.LazyAttribute(lambda o: f"Test Literature Item {o.citation_key}")
+    doi = None
+    year = None
+    authors = ()
+
+    @classmethod
+    def _create(cls, model_class, *args, **kwargs):
+        """Store the item through ``from_csl_json`` rather than ``Item.objects.create``."""
+        from literature.converters import from_csl_json
+
+        csl = {
+            "id": kwargs["citation_key"],
+            "type": kwargs["type"],
+            "title": kwargs["title"],
         }
-    )
+        if kwargs["doi"]:
+            csl["DOI"] = kwargs["doi"]
+        if kwargs["year"]:
+            csl["issued"] = {"date-parts": [[kwargs["year"]]]}
+        if kwargs["authors"]:
+            csl["author"] = [
+                {"family": family, "given": given}
+                for family, given in kwargs["authors"]
+            ]
+        return from_csl_json(csl)
 
 
 class DatasetLiteratureRelationFactory(DjangoModelFactory):

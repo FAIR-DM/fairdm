@@ -11,7 +11,8 @@ import datetime
 
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection, transaction
-from literature.models import LiteratureItem
+from literature.converters import from_csl_json
+from literature.models import Item
 
 from demo.models import RockSample
 from demo.seed.common import example_accounts, grant_team_rights
@@ -250,18 +251,17 @@ class RecordSearchSeed:
     def publications(self):
         """Add the publications, each with authors, a year and a DOI."""
         for title, authors, year, doi in PUBLICATIONS:
-            if LiteratureItem.objects.filter(title=title).exists():
+            if Item.objects.filter(title=title).exists():
                 continue
-            LiteratureItem.objects.create(
-                type="article-journal",
-                title=title,
-                item={
+            from_csl_json(
+                {
+                    "id": doi,
                     "type": "article-journal",
                     "title": title,
                     "author": [{"family": author, "given": ""} for author in authors],
                     "issued": {"date-parts": [[year]]},
                     "DOI": doi,
-                },
+                }
             )
 
     def large_dataset(self, count=LARGE_SAMPLE_COUNT):

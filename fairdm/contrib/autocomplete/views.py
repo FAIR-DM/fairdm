@@ -7,7 +7,16 @@ import math
 from django.apps import apps
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
-from django.db.models import Case, CharField, IntegerField, Q, Value, When
+from django.db.models import (
+    Case,
+    CharField,
+    Exists,
+    IntegerField,
+    OuterRef,
+    Q,
+    Value,
+    When,
+)
 from django.db.models.functions import Cast
 from django.http import JsonResponse
 from django.template.loader import render_to_string
@@ -16,7 +25,8 @@ from django_tomselect.autocompletes import (
     AutocompleteIterablesView,
     AutocompleteModelView,
 )
-from literature.models import LiteratureItem
+from literature.choices import IdentifierType
+from literature.models import Item, ItemIdentifier
 from taggit.models import Tag
 
 from fairdm.contrib.autocomplete.throttling import (
@@ -802,8 +812,12 @@ class PublicationAutocompleteView(LimitedAutocompleteMixin, AutocompleteModelVie
     plays no part.
     """
 
-    model = LiteratureItem
-    search_lookups = ["title__icontains", "item__author__icontains"]
+    model = Item
+    search_lookups = [
+        "title__icontains",
+        "item_names__name__family__icontains",
+        "item_names__name__literal__icontains",
+    ]
     value_fields = ["title"]
 
     @classmethod
@@ -838,14 +852,22 @@ class PublicationAutocompleteView(LimitedAutocompleteMixin, AutocompleteModelVie
         queryset = self.apply_filters(self.hook_queryset(self.model.objects.all()))
         ordering = ["title", "pk"]
         if self.query:
-            exact = Q(item__DOI__iexact=self.bare_doi(self.query))
-            queryset = queryset.filter(
-                self._build_simple_search_q(self.query) | exact
-            ).annotate(
-                exact_rank=Case(
-                    When(exact, then=Value(0)),
-                    default=Value(1),
-                    output_field=IntegerField(),
+            exact = Exists(
+                ItemIdentifier.objects.filter(
+                    item=OuterRef("pk"),
+                    type=IdentifierType.DOI,
+                    value__iexact=self.bare_doi(self.query),
+                )
+            )
+            queryset = (
+                queryset.filter(self._build_simple_search_q(self.query) | Q(exact))
+                .distinct()
+                .annotate(
+                    exact_rank=Case(
+                        When(exact, then=Value(0)),
+                        default=Value(1),
+                        output_field=IntegerField(),
+                    )
                 )
             )
             ordering.insert(0, "exact_rank")
@@ -853,20 +875,17 @@ class PublicationAutocompleteView(LimitedAutocompleteMixin, AutocompleteModelVie
 
     def hook_prepare_results(self, results):
         """Give each result its authors, year and DOI, and its row drawn on the server."""
-        items = dict(
-            self.model.objects.filter(pk__in=[r["id"] for r in results]).values_list(
-                "pk", "item"
-            )
-        )
+        items = self.model.objects.filter(
+            pk__in=[r["id"] for r in results]
+        ).prefetch_related("item_names__name", "item_dates", "item_identifiers")
+        items = {item.pk: item for item in items}
         for result in results:
             item = items[result["id"]]
-            authors = [
-                author.get("family") or author.get("literal") or author.get("name")
-                for author in item.get("author") or []
-            ]
-            result["authors"] = ", ".join(filter(None, authors))
-            result["year"] = self.year_of(item)
-            result["doi"] = item.get("DOI") or ""
+            result["authors"] = ", ".join(
+                author.family or author.literal for author in item.authors
+            )
+            result["year"] = item.year
+            result["doi"] = item.doi or ""
             result["html"] = render_to_string(
                 "autocomplete/record_option.html",
                 {
@@ -882,21 +901,6 @@ class PublicationAutocompleteView(LimitedAutocompleteMixin, AutocompleteModelVie
                 request=self.request,
             )
         return results
-
-    @staticmethod
-    def year_of(item):
-        """Read the year a publication was issued from its CSL data.
-
-        Args:
-            item: The publication's CSL JSON.
-
-        Returns:
-            The year, or ``None`` when the data gives none.
-        """
-        try:
-            return int(item["issued"]["date-parts"][0][0])
-        except (KeyError, IndexError, TypeError, ValueError):
-            return None
 
 
 class TagAutocompleteView(LimitedAutocompleteMixin, AutocompleteModelView):

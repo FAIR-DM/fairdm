@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ("dataset", "0001_initial"),
         ("fairdm", "0001_initial"),
-        ("literature", "0004_alter_literatureitem_options"),
+        ("literature", "0001_initial"),
         ("project", "0001_initial"),
         (
             "taggit",
@@ -43,7 +43,7 @@ class Migration(migrations.Migration):
                 help_text="The data publication associated with this dataset.",
                 null=True,
                 on_delete=django.db.models.deletion.SET_NULL,
-                to="literature.literatureitem",
+                to="literature.item",
             ),
         ),
         migrations.AddField(
@@ -54,7 +54,7 @@ class Migration(migrations.Migration):
                 help_text="Any literature that is related to this dataset.",
                 related_name="related_datasets",
                 related_query_name="related_dataset",
-                to="literature.literatureitem",
+                to="literature.item",
             ),
         ),
         migrations.AddField(

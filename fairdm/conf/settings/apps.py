@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     "mvp_forms",
     # Below mvp_forms, whose django_tomselect/tomselect.html replaces this app's own.
     "django_tomselect",
+    "literature.ui",
     "widget_tweaks",
     "django_social_share",
     "django_htmx",

@@ -15,7 +15,7 @@ from .setup import addon_urls
 urlpatterns = [
     path("", include("fairdm.contrib.admin.urls")),
     path(r"jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
-    path("django-literature/", include("literature.urls")),
+    path("literature/", include("literature.ui.urls")),
     path("", FairDMHomeView.as_view(), name="home"),
     path("", include("fairdm.core.urls")),
     path("", include("fairdm.contrib.collections.urls")),

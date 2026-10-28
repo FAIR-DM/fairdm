@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("dataset", "0003_alter_dataset_options"),
-        ("literature", "0004_alter_literatureitem_options"),
+        ("literature", "0001_initial"),
     ]
 
     operations = [
@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 help_text="The data publication associated with this dataset.",
                 null=True,
                 on_delete=django.db.models.deletion.SET_NULL,
-                to="literature.literatureitem",
+                to="literature.item",
                 verbose_name="Data reference",
             ),
         ),
