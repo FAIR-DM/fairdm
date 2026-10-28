@@ -406,6 +406,14 @@ def check_celery_async(app_configs, **kwargs):
 #: `post_migrate` is the only thing that creates them, and the check fires before it.
 MIGRATE_COMMAND_NAME = "migrate"
 
+#: The commands the upgrade guides run in a one-off container before `migrate`, because
+#: `migrate` fails on the old tables until they have converted them. On a database that
+#: predates the portal roles the roles are still missing while they run, so the roles check
+#: stands down for them as it does for `migrate`.
+PRE_MIGRATE_COMMAND_NAMES = frozenset(
+    {"upgrade_literature", "upgrade_vocabularies", "sync_vocabularies"}
+)
+
 #: Exceptions that mean the database cannot be read (unmigrated table, no engine to resolve,
 #: a test harness refusing database access). A check that queries one treats them as
 #: "nothing to report", so an unmigrated database does not look like a misconfigured portal.
@@ -424,7 +432,7 @@ def check_portal_roles_present(app_configs, **kwargs):
 
     from django.contrib.auth.models import Group
 
-    if MIGRATE_COMMAND_NAME in sys.argv:
+    if MIGRATE_COMMAND_NAME in sys.argv or PRE_MIGRATE_COMMAND_NAMES & set(sys.argv):
         return []
 
     from fairdm.portal_roles import PortalRoles

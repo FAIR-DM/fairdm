@@ -122,7 +122,7 @@ uv run python manage.py upgrade_vocabularies
 uv run python manage.py upgrade_vocabularies --database=archive
 ```
 
-Takes `--database`, the alias of the database to convert, `default` unless given. It converts a database that stored terms with django-research-vocabs, which FairDM used before it stored them by their vocabulary addresses, and is run once, before `migrate`.
+Takes `--database`, the alias of the database to convert, `default` unless given. It converts a database that stored terms with django-research-vocabs, which FairDM used before it stored them by their vocabulary addresses, and is run once, before `migrate`. It skips a model whose table does not exist yet, because `migrate` creates that table with the new schema.
 
 - A database that holds nothing from django-research-vocabs is reported and left unchanged, so a new portal never needs it.
 - When the tables of django-controlled-vocabularies are missing, it creates them and stops, so that `sync_vocabularies` can load the vocabularies before it runs again.

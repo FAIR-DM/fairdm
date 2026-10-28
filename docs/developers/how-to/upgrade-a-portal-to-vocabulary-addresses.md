@@ -4,6 +4,7 @@ FairDM now stores every controlled term as the address of a concept in a publish
 
 ## Before you start
 
+- Migrate the database with FairDM 0.2.1, the release before this one, first, with the portal's own migrations applied as they were at that release. This guide works only on a database that release has fully migrated: on an older one the commands read tables and columns that are not there yet. A container portal does this by running `migrate` in a one-off container of its previous image.
 - Back up the database, and read [How to back up a portal](back-up-a-portal.md) if the scheduled backups are not running. The command in step 5 changes the tables of every record that carries a description, date, identifier, keyword, contributor role or sample status, and a backup is the only way back.
 - Run the whole procedure against a copy of the database first.
 - On PostgreSQL, the database user that runs the migrations must be allowed to create the `pg_trgm` extension, or the extension must exist already. A migration of django-controlled-vocabularies enables it for concept search. To create it once as a superuser:

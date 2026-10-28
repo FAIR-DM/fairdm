@@ -182,6 +182,19 @@ class TestUpgradeVocabularies:
         description.refresh_from_db()
         assert description.type_id == ABSTRACT
 
+    def test_a_model_whose_table_does_not_exist_yet_is_skipped(self, legacy):
+        # A portal's own pending migrations create tables the old database never had.
+        project = ProjectFactory()
+        legacy.describe(project, "Abstract", "An abstract.")
+        with connection.cursor() as cursor:
+            cursor.execute("DROP TABLE project_projectdate CASCADE")
+            cursor.execute("DROP TABLE project_project_keywords CASCADE")
+        assert not table_exists("project_projectdate")
+
+        run()
+
+        assert ProjectDescription.objects.get(related=project).type_id == ABSTRACT
+
     def test_a_stored_type_name_becomes_the_address_of_its_concept(self, legacy):
         project = ProjectFactory()
         legacy.describe(project, "Abstract", "An abstract.")
