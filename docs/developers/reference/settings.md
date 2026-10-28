@@ -61,7 +61,7 @@ The groups are:
 ### `DJANGO_SETUP_TOOLS`
 
 - **Type**: `dict`
-- **Default**: One entry under the key `""` with two lists. `on_initial` runs `makemigrations --no-input`, `migrate --no-input`, `createsuperuser --no-input` with the first and last name from `DJANGO_SUPERUSER_FIRSTNAME` and `DJANGO_SUPERUSER_LASTNAME`, and `loaddata django-waffle`. `always_run` runs `migrate --no-input`, `collectstatic --noinput`, `preload`, `seed_licenses` and the script `django_setup_tools.scripts.sync_site_id`.
+- **Default**: One entry under the key `""` with two lists. `on_initial` runs `makemigrations --no-input`, `migrate --no-input`, `createsuperuser --no-input` with the first and last name from `DJANGO_SUPERUSER_FIRSTNAME` and `DJANGO_SUPERUSER_LASTNAME`, and `loaddata django-waffle`. `always_run` runs `migrate --no-input`, `collectstatic --noinput`, `sync_vocabularies`, `seed_licenses` and the script `django_setup_tools.scripts.sync_site_id`.
 - **What it does**: The commands and scripts that the django-setup-tools app runs. The [container images](container-images.md) do not use it, and run their own [start sequence](container-images.md#start-sequence).
 - **Accepts**: The format django-setup-tools reads: a dictionary of lists, each item a tuple holding a command name and its arguments, or the dotted path of a script.
 
@@ -523,9 +523,9 @@ django-dbbackup 5 refuses the two storage settings of the 4.x series, so FairDM 
 ### `CACHES`
 
 - **Type**: `dict`
-- **Default**: Production: two aliases, `default` and `vocabularies`, each a `django_redis.cache.RedisCache` whose `LOCATION` is `REDIS_URL`, with the `DefaultClient` and `IGNORE_EXCEPTIONS` set to `True`. When `REDIS_URL` is unset the location is the placeholder `redis://unconfigured.invalid:6379/0`. Development without `REDIS_URL`: both aliases are Django's in-process `LocMemCache`.
+- **Default**: Production: one alias, `default`, a `django_redis.cache.RedisCache` whose `LOCATION` is `REDIS_URL`, with the `DefaultClient` and `IGNORE_EXCEPTIONS` set to `True`. When `REDIS_URL` is unset the location is the placeholder `redis://unconfigured.invalid:6379/0`. Development without `REDIS_URL`: Django's in-process `LocMemCache`.
 - **What it does**: The portal's caches. They also hold the API and sign-in rate counts, so a production portal needs a cache shared by all its processes. A production portal without one stops with `fairdm.E200`.
-- **Accepts**: The format Django reads. Keep both aliases. Change one option by assigning an item, such as `CACHES["default"]["TIMEOUT"] = 600`.
+- **Accepts**: The format Django reads. Keep the `default` alias. Change one option by assigning an item, such as `CACHES["default"]["TIMEOUT"] = 600`.
 
 ### `COLLECTFASTA_CACHE`
 
@@ -540,13 +540,6 @@ django-dbbackup 5 refuses the two storage settings of the 4.x series, so FairDM 
 - **Default**: `8`
 - **What it does**: The number of threads django-collectfasta would use. It has no effect unless a portal installs collectfasta.
 - **Accepts**: A whole number.
-
-### `VOCABULARY_DEFAULT_CACHE`
-
-- **Type**: `str`
-- **Default**: `"default"`
-- **What it does**: The cache alias that django-research-vocabs stores vocabulary data in.
-- **Accepts**: A key of `CACHES`.
 
 ## Static and media files
 
@@ -1146,9 +1139,9 @@ The Celery settings use the `CELERY_` prefix, which FairDM's Celery application 
 ### `FAIRDM_PROJECT`
 
 - **Type**: `dict`
-- **Default**: `{"keywords": ["fairdm.core.vocabularies.FairDMRoles"]}`
-- **What it does**: The `keywords` key lists the vocabularies that get a keyword filter on the project list. Each becomes a filter named `keywords_<ClassName>`. Without any, the list offers one generic `keywords` filter across all vocabularies.
-- **Accepts**: A dictionary with a `keywords` list of dotted paths, each to a `research_vocabs` vocabulary class. Keep the setting defined, because FairDM reads it without a fallback. See [How to filter projects by vocabulary keywords](../how-to/filter-projects-by-vocabulary-keywords.md).
+- **Default**: `{"keywords": []}`
+- **What it does**: The `keywords` key lists the vocabularies that get a keyword filter on the project list. Each becomes a filter named `keywords_` followed by the last part of the vocabulary's address. Without any, the list offers one generic `keywords` filter across all vocabularies.
+- **Accepts**: A dictionary with a `keywords` list of the addresses of loaded vocabularies, such as `"https://vocab.example.org/science-keywords"`. Keep the setting defined, because FairDM reads it without a fallback. See [How to filter projects by vocabulary keywords](../how-to/filter-projects-by-vocabulary-keywords.md).
 
 ### `IMPORT_EXPORT_FORMATS`
 

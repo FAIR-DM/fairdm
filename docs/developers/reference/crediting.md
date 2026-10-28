@@ -13,11 +13,11 @@ Each refusal is a `ValidationError` with a code, so a page can attach it to a fi
 | Method | Returns | What it does |
 |---|---|---|
 | `add(contributor, *, organization=None)` | `Contribution` | Lists the contributor last among its own kind. A person starts at the view level, an organization with no level. `organization` is the organization a person is credited from on this record, which is listed on the record too when it is not already. `None` credits the person from none. Ignored for an organization. Adds no roles |
-| `update(contribution, *, roles, level=None, organization=UNCHANGED)` | `None` | Replaces the roles with `roles` (concepts of the roles vocabulary, possibly none). For a person it also sets `level` when one is given and `organization` when it is not `UNCHANGED`. `level` and `organization` are ignored for an organization |
+| `update(contribution, *, roles, level=None, organization=UNCHANGED)` | `None` | Replaces the roles with `roles` (concepts of the contributor roles vocabulary, possibly none). For a person it also sets `level` when one is given and `organization` when it is not `UNCHANGED`. `level` and `organization` are ignored for an organization |
 | `remove(contribution)` | `None` | Deletes the credit, and the level goes with it |
 | `move(contribution, direction)` | `None` | Moves the credit one place earlier (`"up"`) or later (`"down"`) among the credits of its own kind. Changes nothing for the first moving earlier or the last moving later |
 | `make_creator(user, *, roles=())` | `Contribution` or `None` | Lists the person who made the record at the manage level, with the named roles, or raises their existing entry to it. Does nothing and returns `None` for a superuser. The roles are names, and are not checked against the record type's group |
-| `offered_roles()` | `list` of concepts | The concepts the record's `CONTRIBUTOR_ROLES` group offers, in the vocabulary's order |
+| `offered_roles()` | `list` of concepts | The concepts of the collection the record's `CONTRIBUTOR_ROLES` names, in the collection's order |
 | `credited_from()` | `dict` | Organization id to the list of people credited from it on this record, in their order |
 | `list_organization(organization)` | `None` | Lists an organization on the record, unless it already is |
 | `would_leave_no_manager(contribution, level=None)` | `bool` | Whether removing the credit (`level=None`) or lowering it to `level` leaves a record that has someone who can manage it with nobody. Changes nothing |

@@ -10,9 +10,9 @@ FairDM adds seven commands to every portal. The demo project in the FairDM repos
 | [`cleanup_permissions`](#cleanup_permissions) | Deletes permission rows that no model declares |
 | [`create_dev_accounts`](#create_dev_accounts) | Creates one development account for each portal role and one holding none |
 | [`generate_fake_data`](#generate_fake_data) | Fills a development database with projects, datasets, samples and measurements |
-| [`preload`](#preload) | Loads the vocabulary concepts a portal needs |
 | [`seed_licenses`](#seed_licenses) | Creates the recommended licences |
 | [`show_config`](#show_config) | Reports where the portal's settings came from |
+| [`upgrade_vocabularies`](#upgrade_vocabularies) | Converts a database that stored terms with django-research-vocabs |
 
 ## FairDM commands
 
@@ -88,16 +88,6 @@ Fills the database with a hierarchy of fake records: people, organizations, proj
 `--clear` deletes every measurement, sample, dataset, project, credit, person and organization in the database, including real people and your own account. Never use it on a portal that holds real data.
 ```
 
-### preload
-
-```bash
-uv run python manage.py preload
-```
-
-Takes no arguments. Calls `preload()` on every installed model that defines it. For FairDM that loads the concepts of the controlled vocabularies the portal uses, such as contributor roles and description and date types, into the database. Anything that credits a role needs them to exist.
-
-It is safe to run again. The `DJANGO_SETUP_TOOLS` setting runs it on every start in the `always_run` step, with `migrate`, `collectstatic` and `seed_licenses`. See [Settings](settings.md).
-
 ### seed_licenses
 
 ```bash
@@ -124,6 +114,24 @@ Takes one optional argument, the name of a setting.
 - The value passes through Django's setting cleanser first, so a secret such as a key or password is masked.
 
 [How FairDM configures a portal](../../explanation/how-fairdm-configures-a-portal.md) explains the layers.
+
+### upgrade_vocabularies
+
+```bash
+uv run python manage.py upgrade_vocabularies
+uv run python manage.py upgrade_vocabularies --database=archive
+```
+
+Takes `--database`, the alias of the database to convert, `default` unless given. It converts a database that stored terms with django-research-vocabs, which FairDM used before it stored them by their vocabulary addresses, and is run once, before `migrate`.
+
+- A database that holds nothing from django-research-vocabs is reported and left unchanged, so a new portal never needs it.
+- When the tables of django-controlled-vocabularies are missing, it creates them and stops, so that `sync_vocabularies` can load the vocabularies before it runs again.
+- It stops, and changes no stored term, while any of FairDM's five vocabularies is not loaded.
+- It matches each stored type name and sample status to the concept of its field's vocabulary whose `skos:notation` is that name. It matches a keyword or role from one of FairDM's own vocabularies by notation in the same way, and one from any other vocabulary by the address django-research-vocabs held for it.
+- It matches every value before it writes anything. If any value has no match, it lists every one with its field and how many rows hold it, and changes nothing.
+- Otherwise it stores every term by its address in one transaction, moves the keywords and roles into tables that point at the loaded concepts, drops the tables of django-research-vocabs and removes its migration records.
+
+[How to upgrade a portal to vocabulary addresses](../how-to/upgrade-a-portal-to-vocabulary-addresses.md) walks through the whole upgrade.
 
 ## Demo project commands
 

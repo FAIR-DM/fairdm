@@ -4,14 +4,15 @@ This guide gives the project list one filter for each controlled vocabulary you 
 
 ## Before you start
 
-- You have a vocabulary class, a `VocabularyBuilder` subclass from `research_vocabs`, whose concepts are in the database. To write one, see [How to use a controlled vocabulary in a model](use-a-controlled-vocabulary-in-a-model.md). For what a controlled vocabulary is, see [Controlled vocabularies](../../explanation/controlled-vocabularies.md).
+- The vocabulary is loaded into the portal, declared in `CONTROLLED_VOCABULARIES` and loaded with `python manage.py sync_vocabularies`. See [How to use a controlled vocabulary in a model](use-a-controlled-vocabulary-in-a-model.md). For what a controlled vocabulary is, see [Controlled vocabularies](../../explanation/controlled-vocabularies.md).
+- You know the address of the vocabulary's concept scheme.
 - At least one project carries a concept of the vocabulary as a keyword. The filter offers only the concepts that a project uses.
 
 ## Steps
 
 1. Open the settings module that calls `fairdm.setup()`.
 
-2. After the `fairdm.setup()` call, set `FAIRDM_PROJECT` with the dotted import path of each vocabulary class under `"keywords"`.
+2. After the `fairdm.setup()` call, set `FAIRDM_PROJECT` with the address of each vocabulary under `"keywords"`.
 
    ```python
    import fairdm
@@ -20,8 +21,8 @@ This guide gives the project list one filter for each controlled vocabulary you 
 
    FAIRDM_PROJECT = {
        "keywords": [
-           "myportal.vocabularies.ScienceKeywords",
-           "myportal.vocabularies.Instruments",
+           "https://vocab.example.org/science-keywords",
+           "https://vocab.example.org/instruments",
        ],
    }
    ```
@@ -32,10 +33,10 @@ This guide gives the project list one filter for each controlled vocabulary you 
 
 ## The result
 
-The filter panel of the project list shows one filter for each vocabulary you listed. Each filter is named from its class, with the prefix `keywords_`, so `myportal.vocabularies.ScienceKeywords` becomes `keywords_ScienceKeywords`. The class name is its label, and the vocabulary's own `Meta.name` scopes the concepts the filter offers.
+The filter panel of the project list shows one filter for each vocabulary you listed. Each filter is named from the last part of its vocabulary's address, with the prefix `keywords_`, so `https://vocab.example.org/science-keywords` becomes `keywords_science-keywords`. The vocabulary's own name is its label, and the filter offers only the concepts of that vocabulary.
 
 Each filter is a searchable list with a tick beside each chosen concept and a count in place of the chosen names. It lists only the concepts that at least one project uses.
 
 Choosing two keywords in one filter keeps the projects that carry both, so each further keyword narrows the list. A keyword chosen in one vocabulary's filter and another chosen in a second vocabulary's filter also keep the projects that carry both.
 
-If you set `"keywords"` to an empty list, the project list falls back to one `keywords` filter that spans every vocabulary and draws as a plain checkbox list.
+FairDM sets `"keywords"` to an empty list. The project list then has one `keywords` filter that spans every vocabulary and draws as a plain checkbox list.

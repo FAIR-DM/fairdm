@@ -57,10 +57,10 @@ Every record also carries its metadata, which is read-only.
 
 | Field | Holds |
 |---|---|
-| `descriptions` | `{"type", "value"}` for each description |
-| `dates` | `{"type", "value"}` for each key date, as a year, a month or a day |
-| `identifiers` | `{"type", "value"}` for each external identifier, such as a DOI |
-| `keywords` | `{"name", "label", "uri", "vocabulary"}` for each controlled keyword |
+| `descriptions` | `{"type", "value"}` for each description, `type` being the address of the description type |
+| `dates` | `{"type", "value"}` for each key date, as a year, a month or a day, `type` being the address of the date type |
+| `identifiers` | `{"type", "value"}` for each external identifier, such as a DOI, `type` being the address of the identifier type |
+| `keywords` | `{"uri", "name", "label", "vocabulary"}` for each controlled keyword: its address, its notation, its name in the reading language and the address of its vocabulary |
 | `contributors` | One credit for each person or organization credited, in the order the record's team set. See [Credits](#credits) |
 
 A sample of the example type:
@@ -72,7 +72,7 @@ A sample of the example type:
   "uuid": "sxXGUGgXRVStFw3jbpBWQeM",
   "name": "PL-14",
   "local_id": "SAMPLE-5165",
-  "status": "unknown",
+  "status": "https://w3id.org/fairdm/vocabularies/sample-status/unknown",
   "dataset": {
     "uuid": "dV4DYUk6ohGJdizhxJotoZ8",
     "url": "https://portal.example.org/api/v1/datasets/dV4DYUk6ohGJdizhxJotoZ8/"
@@ -83,9 +83,16 @@ A sample of the example type:
   "modified": "2026-10-08T23:25:13.385372Z",
   "species": "Quercus robur",
   "collected_on": "2024-05-02",
-  "descriptions": [{"type": "SampleCollection", "value": "Taken from the north edge."}],
-  "dates": [{"type": "Created", "value": "2024-05"}],
-  "identifiers": [{"type": "IGSN", "value": "10.60516/AU1101"}],
+  "descriptions": [
+    {
+      "type": "https://w3id.org/fairdm/vocabularies/description-types/sample-collection",
+      "value": "Taken from the north edge."
+    }
+  ],
+  "dates": [{"type": "https://w3id.org/fairdm/vocabularies/date-types/created", "value": "2024-05"}],
+  "identifiers": [
+    {"type": "https://w3id.org/fairdm/vocabularies/identifier-types/igsn", "value": "10.60516/AU1101"}
+  ],
   "keywords": [],
   "contributors": []
 }
@@ -150,7 +157,13 @@ A credit holds what a harvester needs to attribute a record without asking the A
     "affiliation_identifier_scheme": "ROR",
     "scheme_uri": "https://ror.org/"
   },
-  "roles": [{"name": "DataCollector", "label": "Data collector"}]
+  "roles": [
+    {
+      "uri": "https://w3id.org/fairdm/vocabularies/contributor-roles/data-collector",
+      "name": "DataCollector",
+      "label": "Data Collector"
+    }
+  ]
 }
 ```
 
@@ -166,7 +179,7 @@ A credit holds what a harvester needs to attribute a record without asking the A
 | `affiliation.affiliation_identifier` | `affiliationIdentifier`. The organization's ROR ID where it has one, and otherwise its first identifier |
 | `affiliation.affiliation_identifier_scheme` | `affiliationIdentifierScheme` |
 | `affiliation.scheme_uri` | `schemeURI` of the affiliation |
-| `roles` | The roles from the portal's own vocabulary as `{"name", "label"}`. An export maps them to DataCite's `contributorType` |
+| `roles` | The roles as `{"uri", "name", "label"}`: the role's address, its notation and its name. The notation is DataCite's `contributorType` |
 | `uuid`, `url` | None. The short identifier and the API address of the person or organization |
 | `affiliation.uuid`, `affiliation.url` | None. The same for the organization |
 
@@ -186,7 +199,7 @@ A list entry holds:
 |---|---|
 | `url`, `html_url`, `uuid` | The person's address in the API, their page on the portal and their short identifier |
 | `name`, `given_name`, `family_name` | The name they are known by, and their given and family name |
-| `identifiers` | `{"type", "value", "link"}` for each identifier, such as an ORCID iD |
+| `identifiers` | `{"type", "value", "link"}` for each identifier, such as an ORCID iD, `type` being the address of the identifier type |
 | `primary_affiliation` | `{"uuid", "url", "name"}` for the organization of their primary affiliation, or `null` when that affiliation is unverified or has ended |
 
 `added` and `modified` are not returned. A list can still be ordered by either and narrowed with `modified_after` and `modified_before`.
@@ -230,7 +243,7 @@ A list entry holds:
 | `type` | The kind of organization as its stored code, such as `education`, or `null` |
 | `country` | The two-letter country code, or `null` |
 | `location` | The organization's point as a GeoJSON `Point`, longitude first, or `null`. See [Location](#location) |
-| `identifiers` | `{"type", "value", "link"}` for each identifier, such as a ROR ID |
+| `identifiers` | `{"type", "value", "link"}` for each identifier, such as a ROR ID, `type` being the address of the identifier type |
 
 `added` and `modified` are not returned. They are available for ordering and for `modified_after` and `modified_before`.
 

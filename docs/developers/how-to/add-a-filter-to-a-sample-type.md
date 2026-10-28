@@ -65,14 +65,19 @@ class CoreSample(Sample):
 
    Declare it in the class body, as in step 2.
 
-4. Add a filter for a field that stores a term from a vocabulary. Such a field stores the term's name as a string, so give a `ChoiceFilter` the vocabulary's choices. The sample status is one.
+4. Add a filter for a field that holds a concept from a vocabulary. Such a field is a foreign key to the concept, so give a `ModelChoiceFilter` the vocabulary's concepts. Choosing them by slug keeps the address of a filtered list readable. The sample status is one.
 
    ```python
-   from fairdm.core.vocabularies import FairDMSampleStatus
+   from controlled_vocabularies.models import Record
 
-   status = django_filters.ChoiceFilter(
+   from fairdm.core.vocabularies import SAMPLE_STATUS
+
+   status = django_filters.ModelChoiceFilter(
        label="Status",
-       choices=FairDMSampleStatus().choices,
+       queryset=Record.objects.filter(
+           scheme__uri=SAMPLE_STATUS, type=Record.Type.CONCEPT
+       ).order_by("pref_label"),
+       to_field_name="slug",
        empty_label="Any status",
    )
    ```

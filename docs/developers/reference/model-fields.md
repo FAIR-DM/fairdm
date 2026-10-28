@@ -13,7 +13,7 @@ class CoreSample(Sample):
     depth = models.QuantityField("meter")
 ```
 
-`ConceptField` is not part of FairDM. Import it from `research_vocabs.fields`.
+`ConceptField` and `MultiConceptField` are not part of FairDM. Import them from `controlled_vocabularies.fields`.
 
 ## Quantity fields
 
@@ -101,14 +101,27 @@ A year-only value is stored as the first of January and a year-and-month value a
 
 | | |
 |---|---|
-| Import | `research_vocabs.fields.ConceptField` |
-| Signature | `ConceptField(vocabulary=..., include_only=None, **kwargs)`. Pass `vocabulary` by keyword. |
-| Default | `vocabulary` is required, and leaving it out raises `MissingConceptSchemeError`. `include_only` is `None`, which offers every term. `verbose_name` defaults to the vocabulary's label. |
-| Stores | The term's name as text, in a `CharField`. `max_length` is the length of the longest term name. |
-| Python value | A `research_vocabs.core.Concept` when read from the database. Its `str()` is the name, and it has `label()` and `definition()`. |
-| Form field | A choice field. The choices are the vocabulary's terms, or the terms in `include_only`. |
-| Accepts | The name of a term, or a `Concept`. A name that is not in the vocabulary raises `ValueError`. The name may use only letters, digits, `-`, `_` and `.`. |
+| Import | `controlled_vocabularies.fields.ConceptField` |
+| Signature | `ConceptField(vocabulary=None, collection=None, branch=None, **kwargs)`. Pass the arguments by keyword. |
+| Default | `vocabulary` is `None`, which admits a concept of any loaded vocabulary. `collection` and `branch` are `None`, which offer every concept of the vocabulary. |
+| Stores | The concept's address, in a foreign key to `controlled_vocabularies.Record` by its `uri`, with `on_delete=PROTECT`. The column is `<field name>_id`. |
+| Python value | The `Record` the address names. `record.uri` is its address, `record.display_label()` its name in the reading language, and `record.first_value("skos:notation")` its notation. |
+| Form field | A search box over the concepts the field admits. FairDM's own forms draw the description, date and identifier types and the sample status as a drop-down instead, through `fairdm.core.forms.ConceptSelectField`. |
+| Accepts | A `Record`, or an address assigned to `<field name>_id`. `full_clean()` refuses a concept the field does not admit. |
 
-`vocabulary` is a vocabulary class, never a string. `include_only` is a list of term names that narrows the choices.
+`vocabulary` is the address of a concept scheme, several addresses, or a `Vocabulary(uri)` from the same module. A slug raises `TypeError` when the field is declared. `collection` is the address of one of the vocabulary's collections and limits the field to its members, and `branch` is the address of a concept and limits the field to it and every concept below it. Each needs exactly one vocabulary.
 
-The field adds a class attribute `<field name>_vocab` that holds the vocabulary instance, so a model with a `status` field has `status_vocab`. The migration for the field records the vocabulary class by its import path, and `max_length`, so a term whose name is longer than the longest existing one changes the migration. The vocabulary classes are described in [Controlled vocabularies](../../explanation/controlled-vocabularies.md).
+The field adds `get_<field name>_label()` and `get_<field name>_uri()` to the model. Its migration records the addresses only. `python manage.py sync_vocabularies` loads the vocabulary. The vocabularies FairDM uses are described in [Controlled vocabularies](../../explanation/controlled-vocabularies.md).
+
+## MultiConceptField
+
+| | |
+|---|---|
+| Import | `controlled_vocabularies.fields.MultiConceptField` |
+| Signature | `MultiConceptField(vocabulary=None, collection=None, branch=None, **kwargs)`, as `ConceptField`. |
+| Stores | A set of concepts, in a table that links each row to each concept's address. A concept a row holds cannot be deleted. |
+| Python value | A related manager of `Record` rows. |
+| Accepts | `Record` rows, through `add()` and `set()`. A concept the field does not admit is refused with a `ValidationError` before anything is written. |
+
+The field adds `get_<field name>_labels()` and `get_<field name>_uris()` to the model. The `keywords` of every record and `Contribution.roles` are this field.
+

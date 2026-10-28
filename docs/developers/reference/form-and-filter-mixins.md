@@ -32,7 +32,7 @@ Module: `fairdm.core.sample.forms`. Bases: `LocationFormMixin` and `ManagerOnlyF
 | Limits the dataset choices to the datasets the request's user holds at least the edit level on | The request has an authenticated user |
 | Offers and accepts no dataset, and logs a warning | No request, or no authenticated user on it |
 | Leaves `dataset` out for someone who cannot manage the sample | The form edits a saved sample |
-| Sets the `status` widget to a `Select` and its initial value to `"unknown"` | `status` is among the form's fields |
+| Draws `status` as a drop-down of the sample status concepts, `ConceptSelectField` with a `Select`, starting at the address of `unknown` | `status` is among the form's fields |
 | Replaces `location` with a `LocationField` and removes `location_elevation` and `location_uncertainty` | `location` is among the form's fields |
 | Sets `helper` to a crispy-forms `FormHelper` with `form_tag = False` | Always |
 
@@ -98,7 +98,7 @@ Module: `fairdm.core.sample.filters`. The filter set for `Sample` itself, built 
 
 | Filter | Type | What it does |
 |---|---|---|
-| `status` | `ChoiceFilter` over the sample status vocabulary | Filters by custody status |
+| `status` | `ModelChoiceFilter` over the sample status concepts, chosen by slug | Filters by custody status |
 | `dataset` | `RecordMultipleFilter` at `public` scope | Keeps the samples of any chosen dataset |
 | `polymorphic_ctype` | `ModelChoiceFilter` | Filters by sample type |
 | `q` | `SearchFilter` over `name`, `local_id` and `uuid` | Searches by any word of the text |

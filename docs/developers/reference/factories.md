@@ -17,27 +17,27 @@ Each factory is a `DjangoModelFactory`. It takes any field of its model as a key
 | Argument | Type | Creates |
 |---|---|---|
 | `descriptions` | `int` | That many descriptions on the record |
-| `descriptions__types` | `list[str]` | The types the descriptions take, in order |
+| `descriptions__types` | `list[str]` | The addresses of the types the descriptions take, in order |
 | `dates` | `int` | That many key dates on the record |
-| `dates__types` | `list[str]` | The types the dates take, in order |
+| `dates__types` | `list[str]` | The addresses of the types the dates take, in order |
 
-- Without `descriptions__types` or `dates__types`, the types are taken in order from the record kind's vocabulary, so `descriptions=2` on a project creates an `Abstract` and an `Introduction`.
+- Without `descriptions__types` or `dates__types`, the types are taken in order from the record kind's collection, so `descriptions=2` on a project creates an abstract and an introduction. The vocabularies must be loaded, as the test suite does once per session with `sync_vocabularies`.
 - A value that is not an `int` raises `TypeError`.
-- A type that is not in the record kind's vocabulary raises `ValueError` listing the valid types.
+- A type that is not in the record kind's collection raises `ValueError` listing the valid types.
 - More descriptions or dates than there are types raises `ValueError`. Pass `descriptions__types` or `dates__types` with at least that many.
 - A record holds one description and one date of each type, which is why the types differ.
 - The factories do not create identifiers, keywords or credits. Use the metadata factories below, or `ContributionFactory`.
 
-The valid types for each record kind are:
+The valid types for each record kind, by identifier, are:
 
 | Record | `descriptions__types` | `dates__types` |
 |---|---|---|
-| Project | `Abstract`, `Introduction`, `Background`, `Objectives`, `ExpectedOutput`, `Conclusions`, `Other` | `Start`, `End` |
-| Dataset | `Abstract`, `Methods`, `SeriesInformation`, `TechnicalInfo`, `Other` | `Available`, `CollectionStart`, `CollectionEnd`, `Submitted`, `Published`, `Withdrawn` |
-| Sample | `SampleCollection`, `SamplePreparation`, `SampleStorage`, `SampleDestruction`, `Other` | `Created`, `Destroyed`, `Collected`, `Returned`, `Prepared`, `Archival`, `Restored` |
-| Measurement | `MeasurementConditions`, `MeasurementSetup`, `MeasurementTearDown`, `Other` | `Setup`, `TearDown` |
+| Project | `abstract`, `introduction`, `background`, `objectives`, `expected-output`, `conclusions`, `other` | `start`, `end` |
+| Dataset | `abstract`, `methods`, `series-information`, `technical-info`, `other` | `available`, `collection-start`, `collection-end`, `submitted`, `published`, `withdrawn` |
+| Sample | `sample-collection`, `sample-preparation`, `sample-storage`, `sample-destruction`, `other` | `created`, `destroyed`, `collected`, `returned`, `prepared`, `archival`, `restored` |
+| Measurement | `measurement-conditions`, `measurement-setup`, `measurement-tear-down`, `other` | `setup`, `tear-down` |
 
-`ProjectDescription.VOCABULARY.values` and the same attribute on the other description and date models give the list in code.
+A type's address is its vocabulary's address, a slash and the identifier, as in `f"{DESCRIPTION_TYPES}/introduction"` with `DESCRIPTION_TYPES` from `fairdm.core.vocabularies`. `ProjectDescription.get_type_concepts()` and the same method on the other description and date models give the concepts in code. Every factory that makes a row with a `type`, and `SampleFactory` for `status`, takes the concept's address as well as the concept.
 
 ## Images
 

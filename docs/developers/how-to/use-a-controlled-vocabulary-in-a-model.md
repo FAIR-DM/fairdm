@@ -1,75 +1,57 @@
 # How to use a controlled vocabulary in a model
 
-A controlled vocabulary limits a field to a fixed list of defined terms. You add one to a sample or measurement type when everyone should describe a property, such as texture, with the same words.
+A controlled vocabulary limits a field to a published list of defined terms. You add one to a sample or measurement type when everyone should describe a property, such as texture, with the same words.
 
 ## Before you start
 
 You need a registered sample or measurement type. This guide adds a field to `SedimentSample` from [How to add a sample type](add-a-sample-type.md).
 
+You need the vocabulary as a SKOS file, in Turtle, RDF/XML or JSON-LD, and the address of its concept scheme. Use a vocabulary someone already publishes where one exists. If you write one yourself, give it an address you control.
+
 ## Steps
 
-1. Declare the vocabulary in a module of the app, such as `vocabularies.py`. Each term is a class attribute holding a dictionary with a label and, where you can, a definition.
+1. Keep a copy of the vocabulary with the portal, so a deploy never depends on another server, and declare it in the portal's settings by the slug the portal gives it.
 
    ```python
-   # sediments/vocabularies.py
-   from django.utils.translation import gettext_lazy as _
-   from research_vocabs.vocabularies import VocabularyBuilder
-
-
-   class SedimentTexture(VocabularyBuilder):
-       sand = {
-           "skos:prefLabel": _("Sand"),
-           "skos:definition": _("Particles between 0.0625 and 2 mm."),
-       }
-       silt = {
-           "skos:prefLabel": _("Silt"),
-           "skos:definition": _("Particles between 0.004 and 0.0625 mm."),
-       }
-       clay = {
-           "skos:prefLabel": _("Clay"),
-           "skos:definition": _("Particles finer than 0.004 mm."),
-       }
-
-       class Meta:
-           name = "sediment-texture"
-           prefix = "SEDIMENTS"
-           namespace = "https://example.org/vocabularies/sediment-texture/"
-           scheme_attrs = {
-               "skos:prefLabel": _("Sediment texture"),
-               "skos:definition": _("Texture classes for sediment."),
-           }
+   # settings.py
+   CONTROLLED_VOCABULARIES = {
+       "sediment-texture": {"source": BASE_DIR / "vocabularies" / "sediment-texture.ttl"},
+   }
    ```
 
-   The attribute name is what the database stores, so use letters, digits, `-`, `_` and `.` only. Set `namespace` to an address you control.
-
-2. Add a `ConceptField` to the model. Pass the vocabulary class itself, not its name.
+2. Add a `ConceptField` to the model. Name the vocabulary by the address of its concept scheme.
 
    ```python
    # sediments/models.py
-   from research_vocabs.fields import ConceptField
+   from controlled_vocabularies.fields import ConceptField
+   from django.utils.translation import gettext_lazy as _
 
-   from .vocabularies import SedimentTexture
+   SEDIMENT_TEXTURE = "https://vocab.example.org/sediment-texture"
 
 
    class SedimentSample(Sample):
        # ... fields ...
        texture = ConceptField(
-           vocabulary=SedimentTexture,
+           vocabulary=SEDIMENT_TEXTURE,
+           null=True,
            blank=True,
-           help_text="The dominant texture class.",
+           related_name="+",
+           verbose_name=_("texture"),
+           help_text=_("The dominant texture class."),
        )
    ```
 
-   Leave out `blank=True` to make the field required. To offer only some of the terms, add `include_only=["sand", "silt"]`. The field is described on [Model fields](../reference/model-fields.md#conceptfield).
+   Leave out `null=True` and `blank=True` to make the field required. To offer only some of the terms, pass the address of one of the vocabulary's collections as `collection`. The field is described on [Model fields](../reference/model-fields.md#conceptfield).
 
-3. Create the migration and apply it.
+3. Create the migration, apply it and load the vocabulary.
 
    ```bash
    python manage.py makemigrations sediments
    python manage.py migrate
+   python manage.py sync_vocabularies
    ```
 
-   The migration records the vocabulary by its import path. Do not move or rename the class afterwards, or the migration can no longer be loaded.
+   The migration records the vocabulary's address and nothing about where it is read from, so moving the file needs no migration.
 
 4. Add the field to the type's configuration.
 
@@ -87,22 +69,19 @@ You need a registered sample or measurement type. This guide adds a field to `Se
        ]
    ```
 
-5. Set and read a value by the term's name.
+5. Set and read a value by the term's address.
 
    ```python
-   sample.texture = "clay"
+   sample.texture_id = f"{SEDIMENT_TEXTURE}/clay"
    sample.save()
 
    sample.refresh_from_db()
-   str(sample.texture)           # "clay"
-   sample.texture.label()        # "Clay"
-   sample.texture.definition()   # "Particles finer than 0.004 mm."
+   sample.get_texture_uri()      # "https://vocab.example.org/sediment-texture/clay"
+   sample.get_texture_label()    # "Clay"
    ```
 
 ## The result
 
-The field is a choice list in the type's form and the administration page, offering the terms sorted by label. `full_clean()` raises a `ValueError` for a name that is not in the vocabulary. Filtering works on the stored name, as in `SedimentSample.objects.filter(texture="clay")`.
+The field is a search box in the type's form and the administration page, offering the vocabulary's terms by name. `full_clean()` refuses a concept from any other vocabulary, and a concept a sample holds cannot be deleted. Filtering works on the stored address, as in `SedimentSample.objects.filter(texture=f"{SEDIMENT_TEXTURE}/clay")`.
 
-Adding a term whose name is longer than every existing one changes the field's `max_length`, so run `makemigrations` again after you add it.
-
-A vocabulary can also come from a file in your code or from a published address, and FairDM's own vocabularies are built the same way. See [Controlled vocabularies](../../explanation/controlled-vocabularies.md).
+A new term reaches the portal when you replace the file with the vocabulary's new release and run `sync_vocabularies` again, with no migration. FairDM's own vocabularies are loaded the same way. See [Controlled vocabularies](../../explanation/controlled-vocabularies.md).

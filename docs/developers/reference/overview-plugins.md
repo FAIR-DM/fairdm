@@ -26,7 +26,7 @@ It holds what every record overview works out the same way. A portal changes one
 | Attribute | Default | What it sets |
 |---|---|---|
 | `people_shown` | `18` | How many faces the People card draws before it counts the rest. |
-| `resolvable_identifier_types` | `("DOI", "IGSN")` | The identifier types that link to doi.org. A value links only when it starts with `10.`. |
+| `resolvable_identifier_types` | `(DOI, IGSN)`, the addresses from `fairdm.core.vocabularies` | The identifier types that link to doi.org. A value links only when it starts with `10.`. |
 
 ### Methods
 
@@ -34,13 +34,13 @@ It holds what every record overview works out the same way. A portal changes one
 |---|---|
 | `get_context_data(**kwargs)` | The context with `people_url` (the record's Contributors tab) and `manage_menu` added. |
 | `get_contributions()` | The record's credits, people first and then organizations, each in the order set on the Contributors tab, each with its real contributor and roles loaded. |
-| `get_role_names(contribution)` | The set of role names held on one credit. |
-| `get_contributors_with_role(entries, role)` | The contributors of every entry in `get_credits()` that holds the role. |
-| `get_credits()` | One dictionary per credit, in the order of `get_contributions()`: `contributor`, `roles` (a dictionary of name to label) and `affiliation` (the organization recorded on the credit, or `None`). |
+| `get_role_uris(contribution)` | The set of the addresses of the roles held on one credit. |
+| `get_contributors_with_role(entries, role)` | The contributors of every entry in `get_credits()` that holds the role, given by its address. |
+| `get_credits()` | One dictionary per credit, in the order of `get_contributions()`: `contributor`, `roles` (a dictionary of role address to label) and `affiliation` (the organization recorded on the credit, or `None`). |
 | `get_people(entries=None)` | What the People card shows: `shown` (up to `people_shown`), `more` and `total`. |
-| `get_identifiers()` | One dictionary per identifier: `type`, `value` and `link`. |
+| `get_identifiers()` | One dictionary per identifier: `type`, the identifier type's concept, `value` and `link`. |
 | `get_citation(*, authors, year, title, link)` | The citation as text: `Creators (Year). Title. Publisher. Identifier.` The publisher is the current site's name. |
-| `get_timeline(steps, dates, descriptions, entries)` | One dictionary per step that has a date, a person or a note, with `label`, `date`, `day`, `people` and `note`. Dated steps come first. `steps` is a list of `(date_type, role, description_type, label)`. |
+| `get_timeline(steps, dates, descriptions, entries)` | One dictionary per step that has a date, a person or a note, with `label`, `date`, `day`, `people` and `note`. Dated steps come first. `steps` is a list of `(date_type, role, description_type, label)`, each type and role given by its address. |
 | `get_license_entry(licence, note=None)` | A row for [`c-card.details`](components.md#c-carddetails), or a warning row when no licence is chosen. |
 | `get_composition_chart(samples, measurements)` | A dictionary of `chart`, `height` and `description`, counting records by registered type, or `None` when there is nothing to count. |
 | `get_growth_chart(samples, measurements)` | A dictionary of `chart` and `description` for the running total by month, or `None` when the records span fewer than two months. |
@@ -73,7 +73,7 @@ It subclasses `RecordOverviewPlugin` for the records portals subclass: samples a
 | Attribute | Default | What it sets |
 |---|---|---|
 | `dataset_preview` | `5` | Datasets listed before the page hands over to the Datasets tab. |
-| `lead_roles` | `["ProjectLeader", "ProjectManager"]` | The roles that name the people a visitor sees first. |
+| `lead_roles` | The addresses of the project leader and project manager roles | The roles that name the people a visitor sees first. |
 
 | Method | Returns |
 |---|---|
@@ -123,7 +123,7 @@ Context entries: `dataset`, `can_manage`, `access`, `descriptions`, `dates`, `te
 
 | Attribute | Default | What it sets |
 |---|---|---|
-| `lifecycle` | a list of steps | The steps of a sample's history, each `(date_type, role, description_type, label)`. Replace it in a subclass. |
+| `lifecycle` | a list of steps | The steps of a sample's history, each `(date_type, role, description_type, label)`, by address. Replace it in a subclass. |
 | `status_variants` | a dictionary | The badge colour of each custody status. |
 | `status_meanings` | a dictionary | What each status means for re-examining the specimen. |
 | `measurements_shown` | `10` | Measurements listed before the rest are counted. |
@@ -143,7 +143,7 @@ Context entries: `sample`, `record`, `can_manage`, `sample_type`, `status`, `lif
 
 | Attribute | Default | What it sets |
 |---|---|---|
-| `procedure_steps` | a list of steps | The steps of how a measurement was made, each `(date_type, role, description_type, label)`. Replace it in a subclass. |
+| `procedure_steps` | a list of steps | The steps of how a measurement was made, each `(date_type, role, description_type, label)`, by address. Replace it in a subclass. |
 | `siblings_shown` | `8` | Rows in the list of other measurements on the same sample. |
 
 | Method | Returns |
