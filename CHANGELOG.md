@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   The command now skips such a model and such a through table, since `migrate` creates it with
   the new schema.
 
+- **The two upgrade guides say the database must first be migrated with FairDM 0.2.1.** The
+  commands read tables and columns that an older database does not have yet. A container portal
+  runs `migrate` in a one-off container of its previous image before it follows either guide.
+
 ## [v0.3.0] - 2026-10-28
 
 ### Added

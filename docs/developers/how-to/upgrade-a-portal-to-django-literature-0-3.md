@@ -4,6 +4,7 @@ FairDM now installs [django-literature](https://pypi.org/project/django-literatu
 
 ## Before you start
 
+- Migrate the database with FairDM 0.2.1, the release before this one, first, with the portal's own migrations applied as they were at that release. This guide works only on a database that release has fully migrated: on an older one the commands read tables and columns that are not there yet. A container portal does this by running `migrate` in a one-off container of its previous image.
 - Back up the database, and read [How to back up a portal](back-up-a-portal.md) if the scheduled backups are not running. The command in step 4 changes the tables of the `literature` app, and a backup is the only way back.
 - Run the whole procedure against a copy of the database first.
 - Read the package's own guide, [Upgrade a database from the LiteratureItem schema](https://fair-dm.github.io/django-literature/how-to/upgrade-a-database-from-the-literatureitem-schema.html). It lists what the command converts, what it refuses to convert, and how it reports a reference it cannot read. This guide does not repeat it.
