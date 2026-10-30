@@ -98,6 +98,9 @@ jobs:
       # Root inside the container lets it write coverage.xml into the runner's checkout. The
       # host network reaches the PostGIS service on the runner's localhost. `uv run` is not
       # used, because it would re-sync to uv.lock and undo the Django version pinned here.
+      # `-n logical` overrides the `-n=auto` default: a runner has four processors on two
+      # physical cores, and auto counts the cores. Locally auto stays, because a worker per
+      # processor is far more memory than a workstation has to spare.
       - name: Run tests
         env:
           DJANGO_VERSION: ${{ matrix.django-version }}
@@ -119,7 +122,7 @@ jobs:
               uv sync --locked
               uv pip install --python /opt/venv/bin/python "django~=${DJANGO_VERSION}.0"
               python -c "import django, os, sys; want = os.environ[\"DJANGO_VERSION\"]; got = \".\".join(map(str, django.VERSION[:2])); print(f\"Django {django.__version__}\"); sys.exit(0 if got == want else f\"expected Django {want}, got {got}\")"
-              pytest --cov=fairdm --cov-report=xml
+              pytest -n logical --cov=fairdm --cov-report=xml
             '
 
       - name: Upload coverage to Codecov

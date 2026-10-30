@@ -3,6 +3,7 @@
 import pytest
 from django.core.management import call_command
 from django.core.management.base import CommandError
+from django.db import transaction
 from django.test import override_settings
 
 from fairdm.contrib.contributors.choices import AccountState
@@ -36,15 +37,30 @@ def _seeded_organizations():
     return list(Organization.objects.filter(config__seed="profiles"))
 
 
+@pytest.fixture(scope="class")
+def profiles_seeded(django_db_setup, django_db_blocker, tmp_path_factory):
+    """Run the command once for a test class: it is the slowest part of these tests.
+
+    Each test rolls back to this point, and the class rolls back to where it started.
+    """
+    media_root = str(tmp_path_factory.mktemp("media"))
+    with (
+        override_settings(MEDIA_ROOT=media_root),
+        django_db_blocker.unblock(),
+        transaction.atomic(),
+    ):
+        _seed()
+        yield
+        transaction.set_rollback(True)
+
+
 @pytest.fixture
-def seeded(db):
-    _seed()
+def seeded(profiles_seeded, db):
     return _seeded_people()
 
 
 @pytest.fixture
-def seeded_organizations(db):
-    _seed()
+def seeded_organizations(profiles_seeded, db):
     return _seeded_organizations()
 
 
@@ -190,6 +206,9 @@ class TestSeedProfilesIsSafeToRunAgain:
 
         assert len(_seeded_people()) == len(seeded)
 
+
+@pytest.mark.django_db
+class TestSeedProfilesLeavesOtherPeopleAlone:
     def test_a_person_it_did_not_create_survives_a_run(self, db):
         bystander = PersonFactory(email="bystander@example.org")
 
@@ -209,9 +228,8 @@ def _owned_organization():
 
 
 @pytest.fixture
-def owned_organization(db):
+def owned_organization(profiles_seeded, db):
     """The organization the regular user owns, once the profiles are seeded."""
-    _seed()
     return _owned_organization()
 
 
