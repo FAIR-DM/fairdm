@@ -1,34 +1,66 @@
 name: Documentation
 
-# Builds the documentation from main and publishes it to GitHub Pages, at
-# https://docs.fairdm.org/. Only the current state of main is published. The
-# custom domain is set in the repository's Pages settings, so the site needs no
-# CNAME file.
+# Builds the documentation and commits it to the gh-pages branch, which GitHub
+# Pages serves at https://docs.fairdm.org/. Each build replaces one folder, so
+# the other versions stay as they are:
+#
+#   latest/      main, on every push
+#   <x.y>/       each published release, with its patch releases on top of it
+#   switcher.json    the versions listed in the site's version switcher
+#
+# To publish a release that is already out, run this workflow by hand and give
+# it the tag.
 
 on:
   push:
     branches:
       - main
+  release:
+    types: [published]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to publish, such as v0.4.0. Leave empty for main.
+        required: false
+        type: string
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-# One deployment at a time. A run already deploying is allowed to finish.
-concurrency:
-  group: pages
-  cancel-in-progress: false
 
 jobs:
   build:
     name: Build documentation
+    # Other releases in this repository, such as image-v1.0.0, have no
+    # documentation of their own.
+    if: >-
+      github.event_name != 'release' ||
+      (startsWith(github.event.release.tag_name, 'v') && !github.event.release.prerelease)
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    outputs:
+      folder: ${{ steps.target.outputs.folder }}
+      ref: ${{ steps.target.outputs.ref }}
     steps:
+      - name: Work out what to publish
+        id: target
+        env:
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        run: |
+          if [[ -z "$TAG" ]]; then
+            echo "folder=latest" >> "$GITHUB_OUTPUT"
+            echo "ref=main" >> "$GITHUB_OUTPUT"
+          elif [[ "$TAG" =~ ^v([0-9]+\.[0-9]+)\.[0-9]+$ ]]; then
+            echo "folder=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+            echo "ref=$TAG" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::$TAG is not a release tag of the form v1.2.3"
+            exit 1
+          fi
+
       - name: Check out
         uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.target.outputs.ref }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v10.3.2
@@ -41,24 +73,84 @@ jobs:
         run: uv sync --locked --group docs
 
       # Warnings are errors, so a page with a broken reference never reaches
-      # the site.
+      # the site. DOCS_VERSION tells the version switcher which entry this is.
       - name: Build HTML
-        run: uv run --no-sync sphinx-build -W --keep-going -b html docs docs/_build/html
+        env:
+          DOCS_VERSION: ${{ steps.target.outputs.folder }}
+        run: uv run --no-sync sphinx-build -W --keep-going -b html -d docs/_build/doctrees docs docs/_build/html
 
       - name: Upload site
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
+          name: site
           path: docs/_build/html
 
-  deploy:
-    name: Deploy to GitHub Pages
+  publish:
+    name: Publish to gh-pages
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: write
+    # One commit at a time, and a run already publishing is allowed to finish.
+    # This sits on the job and not on the workflow because GitHub drops a run
+    # that waits behind two others: a release must not wait out a whole build.
+    concurrency:
+      group: docs-publish
+      cancel-in-progress: false
+    env:
+      FOLDER: ${{ needs.build.outputs.folder }}
+      REF: ${{ needs.build.outputs.ref }}
     steps:
-      - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v5
+      - name: Check out gh-pages
+        uses: actions/checkout@v7
+        with:
+          ref: gh-pages
+
+      - name: Download site
+        uses: actions/download-artifact@v8
+        with:
+          name: site
+          path: ${{ runner.temp }}/site
+
+      - name: Replace the folder
+        run: |
+          rm -rf "$FOLDER"
+          mv "$RUNNER_TEMP/site" "$FOLDER"
+
+      - name: List the version in the switcher
+        if: env.FOLDER != 'latest'
+        shell: python
+        run: |
+          import json
+          import os
+          from pathlib import Path
+
+          folder = os.environ["FOLDER"]
+          switcher = Path("switcher.json")
+          entries = [e for e in json.loads(switcher.read_text()) if e["version"] != folder]
+          entries.append(
+              {"name": folder, "version": folder, "url": f"https://docs.fairdm.org/{folder}/"}
+          )
+
+
+          def newest_first(entry):
+              if entry["version"] == "latest":
+                  return (1,)
+              return (0, *(int(part) for part in entry["version"].split(".")))
+
+
+          entries.sort(key=newest_first, reverse=True)
+          switcher.write_text(json.dumps(entries, indent=2) + "\n")
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add --all "$FOLDER" switcher.json
+          if git diff --cached --quiet; then
+            echo "The site is unchanged."
+            exit 0
+          fi
+          git commit -m "Publish $FOLDER from $REF"
+          git push
