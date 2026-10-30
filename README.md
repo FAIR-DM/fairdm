@@ -3,7 +3,7 @@
 [![Tests](https://github.com/FAIR-DM/fairdm/actions/workflows/tests.yml/badge.svg)](https://github.com/FAIR-DM/fairdm/actions/workflows/tests.yml)
 [![Build](https://github.com/FAIR-DM/fairdm/actions/workflows/build.yml/badge.svg)](https://github.com/FAIR-DM/fairdm/actions/workflows/build.yml)
 [![Publish](https://github.com/FAIR-DM/fairdm/actions/workflows/publish.yml/badge.svg)](https://github.com/FAIR-DM/fairdm/actions/workflows/publish.yml)
-[![Documentation](https://github.com/FAIR-DM/fairdm/actions/workflows/docs.yml/badge.svg)](https://docs.fairdm.org/)
+[![Documentation](https://github.com/FAIR-DM/fairdm/actions/workflows/docs.yml/badge.svg)](https://docs.fairdm.org/latest/)
 [![Coverage](https://codecov.io/gh/FAIR-DM/fairdm/branch/main/graph/badge.svg?token=0Q18CLIKZE)](https://codecov.io/gh/FAIR-DM/fairdm)
 [![PyPI](https://img.shields.io/pypi/v/fairdm)](https://pypi.org/project/fairdm/)
 [![Development status](https://img.shields.io/pypi/status/fairdm)](https://pypi.org/project/fairdm/)
@@ -251,14 +251,14 @@ Extend FairDM with custom functionality:
 
 ## 📚 Documentation
 
-Full documentation is available at: **<https://docs.fairdm.org/>**
+Full documentation is available at: **<https://docs.fairdm.org/latest/>**
 
 ### Documentation Sections
 
-- **[Developers](https://docs.fairdm.org/developers/)** — Build and deploy a research portal on FairDM
-- **[Administrators](https://docs.fairdm.org/administrators/)** — Run a portal: people, roles, content review and configuration checks
-- **[Users](https://docs.fairdm.org/users/)** — Add, edit and publish research data in a portal
-- **[Contributing](https://docs.fairdm.org/contributing/)** — Contribute to FairDM framework development
+- **[Developers](https://docs.fairdm.org/latest/developers/)** — Build and deploy a research portal on FairDM
+- **[Administrators](https://docs.fairdm.org/latest/administrators/)** — Run a portal: people, roles, content review and configuration checks
+- **[Users](https://docs.fairdm.org/latest/users/)** — Add, edit and publish research data in a portal
+- **[Contributing](https://docs.fairdm.org/latest/contributing/)** — Contribute to FairDM framework development
 
 ---
 
@@ -407,7 +407,7 @@ FairDM is under active development. Current focus areas:
 
 ## 📞 Support & Community
 
-- **Documentation**: <https://docs.fairdm.org/>
+- **Documentation**: <https://docs.fairdm.org/latest/>
 - **Issues**: <https://github.com/FAIR-DM/fairdm/issues>
 - **GitHub**: <https://github.com/FAIR-DM/fairdm>
 

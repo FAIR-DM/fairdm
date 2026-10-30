@@ -122,8 +122,8 @@ class TestTeamView:
         assert page["info"]
         assertContains(response, escape(page["info"]))
         assert [(a["href"], a["target"]) for a in page["info_actions"]] == [
-            ("https://docs.fairdm.org/administrators/reference/portal-roles.html", "_blank")
+            ("https://docs.fairdm.org/latest/administrators/reference/portal-roles.html", "_blank")
         ]
         assertContains(
-            response, 'href="https://docs.fairdm.org/administrators/reference/portal-roles.html"'
+            response, 'href="https://docs.fairdm.org/latest/administrators/reference/portal-roles.html"'
         )

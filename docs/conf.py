@@ -29,6 +29,16 @@ html_theme_options.update({
         },
         "header_links_before_dropdown": 0,
         "navbar_align": "left",
+        "navbar_end": ["version-switcher", "theme-switcher", "navbar-icon-links"],
+        # version_match is the folder this build is published to. The publishing
+        # workflow sets DOCS_VERSION, and a build without it is `latest`.
+        "switcher": {
+            "json_url": "https://docs.fairdm.org/switcher.json",
+            "version_match": os.environ.get("DOCS_VERSION", "latest"),
+        },
+        # With this on, the build fetches json_url and fails on the warning when
+        # the site cannot be reached.
+        "check_switcher": False,
         "secondary_sidebar_items": {
             "**": ["page-toc", "edit-this-page",],
             "about/*": [],

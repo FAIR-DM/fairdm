@@ -22,9 +22,27 @@ uv run sphinx-autobuild docs docs/_build/html
 
 ## Publishing
 
-Every push to `main` builds the documentation with the commands above and publishes it to
-<https://docs.fairdm.org/>. The site shows `main` as it stands, with no older versions. A build
-that fails on a warning publishes nothing, so the site stays at the last build that passed.
+The site at <https://docs.fairdm.org/> is served from the `gh-pages` branch, which holds one folder
+per version:
+
+| Folder | Built from | Published |
+| --- | --- | --- |
+| `latest/` | `main` | on every push to `main` |
+| `0.4/` | the newest `v0.4.x` tag | when a release is published |
+
+The address of the site redirects to `latest/`. Each build replaces its own folder and leaves the
+others alone, and a patch release replaces the folder of its minor version. A release also adds its
+version to `switcher.json`, the list behind the version switcher in the site's header.
+
+To publish a release that is already out, run the **Documentation** workflow by hand and give it
+the tag:
+
+```bash
+gh workflow run docs.yml -f tag=v0.4.0
+```
+
+A build that fails on a warning publishes nothing, so that version stays at the last build that
+passed. Link to pages under `latest/`, so a link keeps working as releases come out.
 
 ## In this section
 
