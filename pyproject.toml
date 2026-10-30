@@ -104,8 +104,8 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://www.fairdm.com"
-Documentation = "https://www.fairdm.com"
+Homepage = "https://fairdm.org"
+Documentation = "https://docs.fairdm.org/"
 Repository = "https://github.com/FAIR-DM/fairdm"
 Issues = "https://github.com/FAIR-DM/fairdm/issues"
 Changelog = "https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md"

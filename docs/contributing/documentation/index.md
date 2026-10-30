@@ -7,9 +7,10 @@ within it.
 
 ## Build the documentation
 
-Build the HTML once, treating warnings as errors:
+Install the documentation dependencies, then build the HTML once, treating warnings as errors:
 
 ```bash
+uv sync --group docs
 uv run sphinx-build -W --keep-going -b html docs docs/_build/html
 ```
 
@@ -18,6 +19,12 @@ Serve it and rebuild on every save:
 ```bash
 uv run sphinx-autobuild docs docs/_build/html
 ```
+
+## Publishing
+
+Every push to `main` builds the documentation with the commands above and publishes it to
+<https://docs.fairdm.org/>. The site shows `main` as it stands, with no older versions. A build
+that fails on a warning publishes nothing, so the site stays at the last build that passed.
 
 ## In this section
 

@@ -15,7 +15,7 @@ from fairdm.contrib import CORE_MAPPING
 if TYPE_CHECKING:
     pass
 
-DOCUMENTATION_BASE_URL = "https://www.fairdm.org/en/latest/user-guide/"
+DOCUMENTATION_BASE_URL = "https://docs.fairdm.org/users/"
 
 
 def user_guide(name: str) -> str:
