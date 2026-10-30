@@ -364,7 +364,7 @@ To list only the contributors holding a role, filter first with `by_role` from `
 
 ```django
 {% load contributor_tags %}
-{% with creators=dataset.contributors.all|by_role:"Creator" %}
+{% with creators=dataset.contributors.all|by_role:"https://w3id.org/fairdm/vocabularies/contributor-roles/creator" %}
   <c-contributor.names :contributors="creators" />
 {% endwith %}
 ```

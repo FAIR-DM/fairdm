@@ -30,7 +30,7 @@ class TeamView(FairDMTemplateView):
     page_info_actions = [
         {
             "text": _("About portal roles"),
-            "href": "https://fairdm.org/administrators/reference/portal-roles/",
+            "href": "https://docs.fairdm.org/administrators/reference/portal-roles.html",
             "icon": "external-link",
             "target": "_blank",
         }
