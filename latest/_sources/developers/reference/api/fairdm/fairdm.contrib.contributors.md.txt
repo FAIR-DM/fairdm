@@ -14,10 +14,10 @@
 :maxdepth: 3
 
 fairdm.contrib.contributors.templatetags
-fairdm.contrib.contributors.views
 fairdm.contrib.contributors.forms
 fairdm.contrib.contributors.services
 fairdm.contrib.contributors.plugins
+fairdm.contrib.contributors.views
 fairdm.contrib.contributors.utils
 ```
 
@@ -27,21 +27,21 @@ fairdm.contrib.contributors.utils
 :titlesonly:
 :maxdepth: 1
 
-fairdm.contrib.contributors.profiles
+fairdm.contrib.contributors.validators
 fairdm.contrib.contributors.exceptions
-fairdm.contrib.contributors.adapters
-fairdm.contrib.contributors.signals
+fairdm.contrib.contributors.admin
 fairdm.contrib.contributors.tasks
 fairdm.contrib.contributors.resources
+fairdm.contrib.contributors.adapters
 fairdm.contrib.contributors.managers
-fairdm.contrib.contributors.access
-fairdm.contrib.contributors.urls
-fairdm.contrib.contributors.validators
-fairdm.contrib.contributors.permissions
-fairdm.contrib.contributors.admin
-fairdm.contrib.contributors.apps
-fairdm.contrib.contributors.choices
+fairdm.contrib.contributors.profiles
 fairdm.contrib.contributors.models
+fairdm.contrib.contributors.urls
+fairdm.contrib.contributors.permissions
+fairdm.contrib.contributors.choices
 fairdm.contrib.contributors.filters
+fairdm.contrib.contributors.access
 fairdm.contrib.contributors.receivers
+fairdm.contrib.contributors.signals
+fairdm.contrib.contributors.apps
 ```

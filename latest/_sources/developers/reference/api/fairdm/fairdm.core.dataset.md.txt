@@ -13,12 +13,12 @@
 :titlesonly:
 :maxdepth: 1
 
+fairdm.core.dataset.admin
 fairdm.core.dataset.views
-fairdm.core.dataset.plugins
+fairdm.core.dataset.models
 fairdm.core.dataset.urls
 fairdm.core.dataset.forms
-fairdm.core.dataset.admin
-fairdm.core.dataset.apps
-fairdm.core.dataset.models
 fairdm.core.dataset.filters
+fairdm.core.dataset.plugins
+fairdm.core.dataset.apps
 ```

@@ -13,16 +13,16 @@
 :titlesonly:
 :maxdepth: 1
 
-fairdm.core.project.views
-fairdm.core.project.plugins
-fairdm.core.project.urls
 fairdm.core.project.validators
-fairdm.core.project.forms
 fairdm.core.project.admin
-fairdm.core.project.apps
-fairdm.core.project.transforms
+fairdm.core.project.views
 fairdm.core.project.models
+fairdm.core.project.urls
+fairdm.core.project.forms
 fairdm.core.project.filters
-fairdm.core.project.serializers
+fairdm.core.project.plugins
 fairdm.core.project.receivers
+fairdm.core.project.serializers
+fairdm.core.project.transforms
+fairdm.core.project.apps
 ```

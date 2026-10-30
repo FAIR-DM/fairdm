@@ -14,7 +14,7 @@
 :maxdepth: 1
 
 fairdm.registry.exceptions
-fairdm.registry.registry
-fairdm.registry.factories
 fairdm.registry.config
+fairdm.registry.factories
+fairdm.registry.registry
 ```

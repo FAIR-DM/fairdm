@@ -14,11 +14,11 @@
 :maxdepth: 1
 
 fairdm.contrib.autocomplete.views
-fairdm.contrib.autocomplete.fields
 fairdm.contrib.autocomplete.urls
 fairdm.contrib.autocomplete.throttling
-fairdm.contrib.autocomplete.apps
 fairdm.contrib.autocomplete.filters
+fairdm.contrib.autocomplete.fields
+fairdm.contrib.autocomplete.apps
 ```
 
 ## Package Contents

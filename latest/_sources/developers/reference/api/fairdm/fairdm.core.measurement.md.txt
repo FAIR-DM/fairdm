@@ -13,13 +13,13 @@
 :titlesonly:
 :maxdepth: 1
 
-fairdm.core.measurement.plugins
+fairdm.core.measurement.config
+fairdm.core.measurement.admin
 fairdm.core.measurement.managers
+fairdm.core.measurement.models
 fairdm.core.measurement.urls
 fairdm.core.measurement.forms
-fairdm.core.measurement.admin
-fairdm.core.measurement.apps
-fairdm.core.measurement.models
 fairdm.core.measurement.filters
-fairdm.core.measurement.config
+fairdm.core.measurement.plugins
+fairdm.core.measurement.apps
 ```

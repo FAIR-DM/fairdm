@@ -13,9 +13,9 @@
 :titlesonly:
 :maxdepth: 1
 
-fairdm.contrib.contributors.plugins.shared
-fairdm.contrib.contributors.plugins.overview
-fairdm.contrib.contributors.plugins.person
 fairdm.contrib.contributors.plugins.organisation
+fairdm.contrib.contributors.plugins.overview
 fairdm.contrib.contributors.plugins.update
+fairdm.contrib.contributors.plugins.person
+fairdm.contrib.contributors.plugins.shared
 ```

@@ -22,12 +22,12 @@ fairdm.contrib.plugins.templatetags
 :titlesonly:
 :maxdepth: 1
 
-fairdm.contrib.plugins.mixins
-fairdm.contrib.plugins.access
 fairdm.contrib.plugins.registration
-fairdm.contrib.plugins.checks
-fairdm.contrib.plugins.apps
 fairdm.contrib.plugins.base
-fairdm.contrib.plugins.menus
+fairdm.contrib.plugins.checks
+fairdm.contrib.plugins.mixins
 fairdm.contrib.plugins.utils
+fairdm.contrib.plugins.menus
+fairdm.contrib.plugins.access
+fairdm.contrib.plugins.apps
 ```

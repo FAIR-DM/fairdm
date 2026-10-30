@@ -13,8 +13,8 @@
 :titlesonly:
 :maxdepth: 1
 
+fairdm.contrib.contributors.views.organization
 fairdm.contrib.contributors.views.team
 fairdm.contrib.contributors.views.person
 fairdm.contrib.contributors.views.claiming
-fairdm.contrib.contributors.views.organization
 ```

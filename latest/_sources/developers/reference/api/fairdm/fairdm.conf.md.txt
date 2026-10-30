@@ -22,13 +22,13 @@ fairdm.conf.settings
 :titlesonly:
 :maxdepth: 1
 
-fairdm.conf.environment
-fairdm.conf.urls
-fairdm.conf.setup
 fairdm.conf.checks
-fairdm.conf.celery
 fairdm.conf.development
+fairdm.conf.urls
+fairdm.conf.celery
+fairdm.conf.setup
 fairdm.conf.addons
+fairdm.conf.environment
 ```
 
 ## Package Contents

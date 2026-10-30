@@ -22,11 +22,11 @@ fairdm.utils.location
 :titlesonly:
 :maxdepth: 1
 
-fairdm.utils.context_processors
+fairdm.utils.markdown
+fairdm.utils.inspection
+fairdm.utils.models
+fairdm.utils.utils
 fairdm.utils.permissions
 fairdm.utils.choices
-fairdm.utils.models
-fairdm.utils.inspection
-fairdm.utils.markdown
-fairdm.utils.utils
+fairdm.utils.context_processors
 ```
