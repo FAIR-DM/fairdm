@@ -176,5 +176,5 @@ uv run invoke install-hooks
 ## Questions?
 
 - Check existing issues: https://github.com/FAIR-DM/fairdm/issues
-- Read the docs: https://docs.fairdm.org/
+- Read the docs: https://docs.fairdm.org/latest/
 - Ask in discussions: https://github.com/FAIR-DM/fairdm/discussions

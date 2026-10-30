@@ -12,8 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **The documentation is published at <https://docs.fairdm.org/>.** It was on Read the Docs, where
   the last build that succeeded was in April 2026. The **User Guide** and **Admin Guide** links in
   a portal's **Documentation** menu, the **User guide** link in the landing page footer and the
-  **About portal roles** link on the team page now point to it. The site shows the current state of
-  `main`, with no older versions.
+  **About portal roles** link on the team page now point to it.
+- **The documentation is versioned.** `latest/` follows `main`, each release from now on gets a
+  folder of its own such as `0.4/`, and a switcher in the site's header moves between them. Page
+  addresses gain `latest/`, and the links in a portal, the README and the package metadata point
+  there.
 
 ## [v0.3.1] - 2026-10-28
 

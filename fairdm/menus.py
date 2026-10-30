@@ -122,12 +122,12 @@ AppMenu.extend(
                 ),
                 MenuItem(
                     name=_("User Guide"),
-                    url="https://docs.fairdm.org/users/",
+                    url="https://docs.fairdm.org/latest/users/",
                     extra_context={"icon": "literature"},
                 ),
                 MenuItem(
                     name=_("Admin Guide"),
-                    url="https://docs.fairdm.org/administrators/",
+                    url="https://docs.fairdm.org/latest/administrators/",
                     check=_can_reach_administration,
                     extra_context={"icon": "literature"},
                 ),
