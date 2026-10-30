@@ -1,0 +1,992 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="How to add a sample in the administration interface" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="administrators/how-to/add-a-sample-in-the-admin.html" />
+<meta property="og:site_name" content="fairdm" />
+<meta property="og:description" content="Adding a sample in the administration interface records a specimen in a dataset without using the portal’s pages. Do it to repair a dataset or to enter a sample on behalf of someone who cannot. Bef..." />
+<meta name="description" content="Adding a sample in the administration interface records a specimen in a dataset without using the portal’s pages. Do it to repair a dataset or to enter a sample on behalf of someone who cannot. Bef..." />
+
+    <title>How to add a sample in the administration interface &#8212; fairdm 0.3.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=cb8930eaaf36d9849b67"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
+
+    <script src="../../_static/documentation_options.js?v=4621528c"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script kind="utterances">
+
+    var commentsRunWhenDOMLoaded = cb => {
+    if (document.readyState != 'loading') {
+        cb()
+    } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', cb)
+    } else {
+        document.attachEvent('onreadystatechange', function() {
+        if (document.readyState == 'complete') cb()
+        })
+    }
+}
+
+var addUtterances = () => {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://utteranc.es/client.js";
+    script.async = "async";
+
+    script.setAttribute("repo", "FAIR-DM/fairdm");
+    script.setAttribute("issue-term", "pathname");
+    script.setAttribute("theme", "preferred-color-scheme");
+    script.setAttribute("label", "documentation");
+    script.setAttribute("crossorigin", "anonymous");
+
+    sections = document.querySelectorAll("div.section");
+    if (sections !== null) {
+        section = sections[sections.length-1];
+        section.appendChild(script);
+    }
+}
+commentsRunWhenDOMLoaded(addUtterances);
+</script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'administrators/how-to/add-a-sample-in-the-admin';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.21.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.fairdm.org/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'latest';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="icon" href="../../_static/icon.svg"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="How to approve a pending affiliation" href="approve-a-pending-affiliation.html" />
+    <link rel="prev" title="How to add a person in the administration interface" href="add-a-person-in-the-admin.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.3.1" />
+    <meta name="docbuild:last-update" content="Oct 30, 2026"/>
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.3.1 documentation - Home"/>
+    <img src="../../_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.3.1 documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../developers/index.html">
+    Developers
+  </a>
+</li>
+
+
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="../index.html">
+    Administrators
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../users/index.html">
+    Users
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/what-fairdm-is-for.html">
+    What FairDM is for
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/fair-data-and-research-data-infrastructure.html">
+    FAIR data and research data infrastructure
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/the-technology-stack.html">
+    The technology stack
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/the-core-data-model.html">
+    The core data model
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-sample-and-measurement-types-are-stored.html">
+    How sample and measurement types are stored
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/controlled-vocabularies.html">
+    Controlled vocabularies
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/configuration-over-code.html">
+    Configuration over code
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/why-complete-metadata-matters.html">
+    Why complete metadata matters
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-access-to-a-record-is-decided.html">
+    How access to a record is decided
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/why-fairdm-records-contributors.html">
+    Why FairDM records contributors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-contributor-accounts-and-credits-work.html">
+    How contributor accounts and credits work
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-a-profile-is-claimed.html">
+    How a profile is claimed
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-fairdm-configures-a-portal.html">
+    How FairDM configures a portal
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/who-is-asked-to-agree-to-a-legal-document.html">
+    Who is asked to agree to a legal document
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-locations-are-stored-and-protected.html">
+    How locations are stored and protected
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">
+    Dataset publication, DOIs and DataCite metadata
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../reference/glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../contributing/index.html">
+    Framework Contributors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../adr/index.html">
+    Architecture Decision Records
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../ROADMAP.html">
+    Roadmap — FairDM
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../developers/index.html">
+    Developers
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    Administrators
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../users/index.html">
+    Users
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/what-fairdm-is-for.html">
+    What FairDM is for
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/fair-data-and-research-data-infrastructure.html">
+    FAIR data and research data infrastructure
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/the-technology-stack.html">
+    The technology stack
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/the-core-data-model.html">
+    The core data model
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-sample-and-measurement-types-are-stored.html">
+    How sample and measurement types are stored
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/controlled-vocabularies.html">
+    Controlled vocabularies
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/configuration-over-code.html">
+    Configuration over code
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/why-complete-metadata-matters.html">
+    Why complete metadata matters
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-access-to-a-record-is-decided.html">
+    How access to a record is decided
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/why-fairdm-records-contributors.html">
+    Why FairDM records contributors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-contributor-accounts-and-credits-work.html">
+    How contributor accounts and credits work
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-a-profile-is-claimed.html">
+    How a profile is claimed
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-fairdm-configures-a-portal.html">
+    How FairDM configures a portal
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/who-is-asked-to-agree-to-a-legal-document.html">
+    Who is asked to agree to a legal document
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-locations-are-stored-and-protected.html">
+    How locations are stored and protected
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">
+    Dataset publication, DOIs and DataCite metadata
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../reference/glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing/index.html">
+    Framework Contributors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../adr/index.html">
+    Architecture Decision Records
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ROADMAP.html">
+    Roadmap — FairDM
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">How-to guides</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="add-a-measurement-in-the-admin.html">How to add a measurement in the administration interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="add-a-member-to-an-organization.html">How to add a member to an organization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="add-a-person-in-the-admin.html">How to add a person in the administration interface</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">How to add a sample in the administration interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="approve-a-pending-affiliation.html">How to approve a pending affiliation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="assign-a-portal-role.html">How to assign a portal role</a></li>
+<li class="toctree-l1"><a class="reference internal" href="change-the-status-of-several-projects.html">How to change the status of several projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="close-self-service-signup.html">How to close self-service signup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="correct-an-unclaimed-profile.html">How to correct a profile that nobody has claimed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="create-a-user-account.html">How to create a user account</a></li>
+<li class="toctree-l1"><a class="reference internal" href="end-someones-affiliation.html">How to end someone’s affiliation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="export-projects.html">How to export projects as JSON or DataCite JSON</a></li>
+<li class="toctree-l1"><a class="reference internal" href="find-why-a-user-can-edit-data-they-should-not.html">How to find why a user can edit data they should not</a></li>
+<li class="toctree-l1"><a class="reference internal" href="find-why-a-user-cannot-see-a-dataset.html">How to find why a user cannot see a dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix-a-portal-that-refuses-to-start-in-production.html">How to fix a portal that refuses to start in production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fix-an-orcid-or-ror-sync-that-does-not-update.html">How to fix an ORCID or ROR sync that does not update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="give-a-record-a-manager-again.html">How to give a record a manager when its only manager has left</a></li>
+<li class="toctree-l1"><a class="reference internal" href="make-a-project-public.html">How to make a project public</a></li>
+<li class="toctree-l1"><a class="reference internal" href="merge-two-person-records.html">How to merge two person records</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reactivate-a-deactivated-profile.html">How to reactivate a deactivated profile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="record-a-measurement-against-a-sample-in-another-dataset.html">How to record a measurement against a sample in another dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="record-where-a-sample-came-from.html">How to record that a sample came from another sample</a></li>
+<li class="toctree-l1"><a class="reference internal" href="run-the-configuration-checks.html">How to run the configuration checks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="silence-a-configuration-check.html">How to silence a configuration check</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transfer-ownership-of-an-organization.html">How to transfer ownership of an organization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="write-and-publish-a-legal-document.html">How to write and publish a legal document</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../reference/affiliations.html">Affiliations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/claiming-audit-log.html">Claiming audit logs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/configuration-checks.html">Configuration checks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/measurements.html">Measurements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/organizations.html">Organizations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/people.html">People</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/portal-roles.html">Portal roles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/projects.html">Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reference/samples.html">Samples</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Explanation</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../explanation/how-the-orcid-and-ror-lookup-works.html">How the ORCID and ROR lookup works</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Administrators</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">How to add a sample in the administration interface</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="how-to-add-a-sample-in-the-administration-interface">
+<h1>How to add a sample in the administration interface<a class="headerlink" href="#how-to-add-a-sample-in-the-administration-interface" title="Link to this heading">#</a></h1>
+<p>Adding a sample in the administration interface records a specimen in a dataset without using the portal’s pages. Do it to repair a dataset or to enter a sample on behalf of someone who cannot.</p>
+<section id="before-you-start">
+<h2>Before you start<a class="headerlink" href="#before-you-start" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>The dataset the sample belongs to has to exist. The administration interface offers every dataset, private ones included.</p></li>
+<li><p>You need the permission to add samples of the type you will choose. The type list shows only the types you may add, and you are refused if there are none. The four <a class="reference internal" href="../reference/portal-roles.html"><span class="std std-doc">portal roles</span></a> hold the permissions of the base sample record, not of each registered type, so a superuser, or a member of a group with the type’s permissions, does this.</p></li>
+</ul>
+</section>
+<section id="steps">
+<h2>Steps<a class="headerlink" href="#steps" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Open the administration interface. See <a class="reference internal" href="../reference/portal-roles.html#reaching-the-administration-interface"><span class="std std-ref">Reaching the administration interface</span></a>.</p></li>
+<li><p>Under <strong>Sample</strong>, choose <strong>Samples</strong>, then <strong>Add sample</strong>. A sample cannot be saved as a bare sample, so the next page asks for its type.</p></li>
+<li><p>Under <strong>Type</strong>, choose the kind of sample, such as a rock sample, and select <strong>Save</strong>. If your portal registers only one type, this page is skipped.</p></li>
+<li><p>Enter the <strong>Name</strong>.</p></li>
+<li><p>Search for the <strong>Dataset</strong> the sample belongs to, and choose it.</p></li>
+<li><p>Optionally enter the <strong>Local ID</strong> and set the <strong>Status</strong>. A new sample starts as <strong>Unknown</strong>.</p></li>
+<li><p>Optionally enter the <strong>Location</strong>, with its <strong>Elevation</strong> and <strong>Uncertainty</strong>. Elevation and uncertainty need a location.</p></li>
+<li><p>Fill in the type’s own fields, under the <strong>Contents</strong> heading.</p></li>
+<li><p>Choose <strong>Save</strong>.</p></li>
+</ol>
+<p>Each description, date, identifier, contributor and relationship has a section further down the same page, and you can fill them in before saving. They are described on <a class="reference internal" href="../reference/samples.html"><span class="std std-doc">Samples</span></a>.</p>
+</section>
+<section id="the-result">
+<h2>The result<a class="headerlink" href="#the-result" title="Link to this heading">#</a></h2>
+<p>The sample is listed under <strong>Samples</strong> with its type. It has a portal ID that begins with <code class="docutils literal notranslate"><span class="pre">s</span></code>, shown in the collapsed <strong>Metadata</strong> section.</p>
+<p>The sample takes its access from its dataset. Whoever holds a level on the dataset or on its project holds it on the sample, and the sample opens to everyone only when the dataset is public and published. The administration interface credits nobody for you. To give a person their own level on the sample, add a row to the <strong>Contributors</strong> section and set its <strong>Level</strong>. A row saved with an empty level credits the person with no access. See <a class="reference internal" href="../../explanation/how-access-to-a-record-is-decided.html"><span class="std std-doc">How access to a record is decided</span></a>.</p>
+<p>To record that the sample came from another sample, follow <a class="reference internal" href="record-where-a-sample-came-from.html"><span class="std std-doc">How to record that a sample came from another sample</span></a>.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="add-a-person-in-the-admin.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">How to add a person in the administration interface</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="approve-a-pending-affiliation.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">How to approve a pending affiliation</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#before-you-start">Before you start</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#steps">Steps</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-result">The result</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Samuel Jennings.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.21.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

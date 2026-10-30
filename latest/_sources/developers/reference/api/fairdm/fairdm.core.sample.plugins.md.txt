@@ -1,0 +1,167 @@
+# {py:mod}`fairdm.core.sample.plugins`
+
+```{py:module} fairdm.core.sample.plugins
+```
+
+```{autodoc2-docstring} fairdm.core.sample.plugins
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Overview <fairdm.core.sample.plugins.Overview>`
+  - ```{autodoc2-docstring} fairdm.core.sample.plugins.Overview
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} Overview(**kwargs)
+:canonical: fairdm.core.sample.plugins.Overview
+
+Bases: {py:obj}`fairdm.core.plugins.TypedOverviewPlugin`
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.Overview
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.Overview.__init__
+```
+
+````{py:attribute} fieldsets
+:canonical: fairdm.core.sample.plugins.Overview.fieldsets
+:type: list[tuple[str | None, dict[str, typing.Any]]]
+:value: >
+   []
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.Overview.fieldsets
+```
+
+````
+
+````{py:attribute} base_model
+:canonical: fairdm.core.sample.plugins.Overview.base_model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.Overview.base_model
+```
+
+````
+
+````{py:attribute} fallback_template
+:canonical: fairdm.core.sample.plugins.Overview.fallback_template
+:value: >
+   'sample/sample_overview.html'
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.Overview.fallback_template
+```
+
+````
+
+````{py:attribute} lifecycle
+:canonical: fairdm.core.sample.plugins.Overview.lifecycle
+:value: >
+   [(), (), (), (), (), (), ()]
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.Overview.lifecycle
+```
+
+````
+
+````{py:attribute} status_variants
+:canonical: fairdm.core.sample.plugins.Overview.status_variants
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.Overview.status_variants
+```
+
+````
+
+````{py:attribute} status_meanings
+:canonical: fairdm.core.sample.plugins.Overview.status_meanings
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.Overview.status_meanings
+```
+
+````
+
+````{py:attribute} measurements_shown
+:canonical: fairdm.core.sample.plugins.Overview.measurements_shown
+:value: >
+   10
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.Overview.measurements_shown
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.core.sample.plugins.Overview.get_context_data
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.Overview.get_context_data
+```
+
+````
+
+````{py:method} get_status()
+:canonical: fairdm.core.sample.plugins.Overview.get_status
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.Overview.get_status
+```
+
+````
+
+````{py:method} get_details(project, status)
+:canonical: fairdm.core.sample.plugins.Overview.get_details
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.Overview.get_details
+```
+
+````
+
+````{py:method} get_citation_details(entries, dates, identifiers)
+:canonical: fairdm.core.sample.plugins.Overview.get_citation_details
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.Overview.get_citation_details
+```
+
+````
+
+````{py:method} get_measurements()
+:canonical: fairdm.core.sample.plugins.Overview.get_measurements
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.Overview.get_measurements
+```
+
+````
+
+````{py:method} get_related_samples()
+:canonical: fairdm.core.sample.plugins.Overview.get_related_samples
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.Overview.get_related_samples
+```
+
+````
+
+````{py:method} get_relations_summary(relations)
+:canonical: fairdm.core.sample.plugins.Overview.get_relations_summary
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.Overview.get_relations_summary
+```
+
+````
+
+`````

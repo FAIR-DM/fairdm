@@ -1,0 +1,2209 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="Core models" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="developers/reference/core-models.html" />
+<meta property="og:site_name" content="fairdm" />
+<meta property="og:description" content="This page lists the fields, choices, managers and rules of the two fixed core models, Project and Dataset, and the fields they share with samples and measurements. It does not cover the two models ..." />
+<meta name="description" content="This page lists the fields, choices, managers and rules of the two fixed core models, Project and Dataset, and the fields they share with samples and measurements. It does not cover the two models ..." />
+
+    <title>Core models &#8212; fairdm 0.3.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=cb8930eaaf36d9849b67"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
+
+    <script src="../../_static/documentation_options.js?v=4621528c"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script kind="utterances">
+
+    var commentsRunWhenDOMLoaded = cb => {
+    if (document.readyState != 'loading') {
+        cb()
+    } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', cb)
+    } else {
+        document.attachEvent('onreadystatechange', function() {
+        if (document.readyState == 'complete') cb()
+        })
+    }
+}
+
+var addUtterances = () => {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://utteranc.es/client.js";
+    script.async = "async";
+
+    script.setAttribute("repo", "FAIR-DM/fairdm");
+    script.setAttribute("issue-term", "pathname");
+    script.setAttribute("theme", "preferred-color-scheme");
+    script.setAttribute("label", "documentation");
+    script.setAttribute("crossorigin", "anonymous");
+
+    sections = document.querySelectorAll("div.section");
+    if (sections !== null) {
+        section = sections[sections.length-1];
+        section.appendChild(script);
+    }
+}
+commentsRunWhenDOMLoaded(addUtterances);
+</script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = "pre.mermaid {\n    /* Same as .mermaid-container > pre */\n    display: block;\n    width: 100%;\n}\n\npre.mermaid > svg {\n    /* Same as .mermaid-container > pre > svg */\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}";
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = ".mermaid-container {\n    position: relative;\n    display: flex;\n    flex-direction: row;\n    width: 100%;\n}\n\n.mermaid-container > pre {\n    display: block;\n    width: 100%;\n}\n\n.mermaid-container > pre > svg {\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}\n\n.mermaid-fullscreen-btn {\n    position: absolute;\n    width: 28px;\n    height: 28px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.3);\n    border-radius: 4px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    transition: all 0.2s;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);\n    font-size: 14px;\n    line-height: 1;\n    padding: 0;\n    color: #333;\n}\n\n.mermaid-fullscreen-btn:hover {\n    opacity: 100% !important;\n    background: rgba(255, 255, 255, 1);\n    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-btn.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-btn.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal {\n    display: none;\n    position: fixed !important;\n    top: 0 !important;\n    left: 0 !important;\n    width: 95vw;\n    height: 100vh;\n    background: rgba(255, 255, 255, 0.98);\n    z-index: 9999;\n    padding: 20px;\n    overflow: auto;\n}\n\n.mermaid-fullscreen-modal.dark-theme {\n    background: rgba(0, 0, 0, 0.98);\n}\n\n.mermaid-fullscreen-modal.active {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen {\n    position: relative;\n    width: 95vw;\n    height: 90vh;\n    max-width: 95vw;\n    max-height: 90vh;\n    background: white;\n    border-radius: 8px;\n    padding: 20px;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);\n    overflow: auto;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen.dark-theme {\n    background: #1a1a1a;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);\n}\n\n.mermaid-container-fullscreen pre.mermaid {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen .mermaid svg {\n    height: 100% !important;\n    width: 100% !important;\n    cursor: grab;\n}\n\n.mermaid-fullscreen-close {\n    position: fixed !important;\n    top: 20px !important;\n    right: 20px !important;\n    width: 40px;\n    height: 40px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.2);\n    border-radius: 50%;\n    cursor: pointer;\n    z-index: 10000;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n    transition: all 0.2s;\n    font-size: 24px;\n    line-height: 1;\n    color: #333;\n}\n\n.mermaid-fullscreen-close:hover {\n    background: white;\n    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-close.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.2);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-close.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal .mermaid-fullscreen-btn {\n    display: none !important;\n}";
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+let _lazyObserver = null;
+let _renderQueue = Promise.resolve();
+let closeModal = () => {};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('active')) {
+        closeModal();
+    }
+});
+
+// Apply d3 zoom to each SVG. Idempotent: an SVG already wrapped is skipped,
+// so this is safe to call both for the initial batch and for diagrams that
+// render lazily once they become visible.
+const addZoomToSvgs = (svgs) => {
+    svgs.each(function() {
+        if (this.getAttribute('data-zoom-applied') === 'true') return;
+        var svg = d3.select(this);
+        svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+        var inner = svg.select("g");
+        var zoom = d3.zoom().on("zoom", function(event) {
+            inner.attr("transform", event.transform);
+        });
+        svg.call(zoom);
+        this.setAttribute('data-zoom-applied', 'true');
+    });
+};
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        // Disconnect any previous lazy rendering observer
+        if (_lazyObserver) {
+            _lazyObserver.disconnect();
+            _lazyObserver = null;
+        }
+
+        all_mermaids.forEach((el) => {
+            el.removeAttribute('data-mermaid-deferred');
+            el.removeAttribute('data-mermaid-render-failed');
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+
+        // Separate visible and hidden elements. Mermaid's layout engine measures
+        // text dimensions via the DOM, which fails for elements hidden by a parent
+        // (e.g., Reveal.js non-active slides, sphinx-design unopened tabs),
+        // producing broken SVGs. Render visible elements now, defer hidden ones.
+        const visible = [];
+        const hidden = [];
+        all_mermaids.forEach((el) => {
+            // offsetParent is null for display:none ancestors.
+            // getClientRects().length > 0 catches position:fixed elements
+            // (which also have null offsetParent but are still visible).
+            if (el.offsetParent !== null || el.getClientRects().length > 0) {
+                visible.push(el);
+            } else {
+                hidden.push(el);
+                el.setAttribute('data-mermaid-deferred', 'true');
+            }
+        });
+
+        if (visible.length > 0) {
+            try {
+                await mermaid.run({ nodes: visible });
+            } catch (e) {
+                console.error("Mermaid rendering failed:", e);
+            }
+        }
+
+        // Lazily render hidden elements when they become visible.
+        // Uses a promise chain (_renderQueue) to serialize rendering,
+        // since IntersectionObserver may report multiple entries at once
+        // and mermaid.run() is not safe to call concurrently.
+        if (hidden.length > 0) {
+            if (typeof IntersectionObserver === 'undefined') {
+                console.warn("IntersectionObserver not available; hidden mermaid diagrams will not render.");
+            } else {
+                _renderQueue = Promise.resolve();
+                _lazyObserver = new IntersectionObserver((entries) => {
+                    for (const entry of entries) {
+                        if (entry.isIntersecting && entry.target.getAttribute("data-processed") !== "true") {
+                            _lazyObserver.unobserve(entry.target);
+                            const el = entry.target;
+                            _renderQueue = _renderQueue.then(async () => {
+                                try {
+                                    await mermaid.run({ nodes: [el] });
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    // Apply zoom to the now-rendered diagram, matching
+                                    // the decoration visible diagrams receive.
+                                    if (true) {
+                                        addZoomToSvgs(d3.selectAll(".mermaid").select(function() {
+                                            return this.querySelector("svg");
+                                        }));
+                                    }
+                                } catch (e) {
+                                    console.error("Mermaid deferred rendering failed:", e);
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    el.setAttribute('data-mermaid-render-failed', 'true');
+                                }
+                            });
+                        }
+                    }
+                });
+                hidden.forEach((el) => _lazyObserver.observe(el));
+            }
+        }
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    // Exclude deferred (hidden) and render-failed elements from completion checks
+    const mermaids_active = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])");
+    const mermaids_processed = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])[data-processed='true']");
+
+    if (true) {
+        const mermaids_to_add_zoom = -1 === -1 ? mermaids_active.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll(".mermaid").select(function() {
+                return this.querySelector("svg");
+            });
+            // Wait until every active (visible) diagram has rendered. Deferred
+            // diagrams are excluded, so a fixed d3_node_count that counts a
+            // hidden diagram no longer loops forever waiting for its SVG.
+            if(mermaids_active.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            }
+            addZoomToSvgs(svgs);
+        }
+    } else if(mermaids_active.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if (!true) return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = "\u26f6";
+        fullscreenBtn.style.opacity = "50%";
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scrollX, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+
+                if (true) {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+
+
+const load = async () => {
+    initStyles();
+
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...{"startOnLoad": false},
+                ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...{"startOnLoad": false},
+    ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'developers/reference/core-models';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.21.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.fairdm.org/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'latest';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="icon" href="../../_static/icon.svg"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Crediting" href="crediting.html" />
+    <link rel="prev" title="Contributor models" href="contributor-models.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.3.1" />
+    <meta name="docbuild:last-update" content="Oct 30, 2026"/>
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.3.1 documentation - Home"/>
+    <img src="../../_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.3.1 documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="../index.html">
+    Developers
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../administrators/index.html">
+    Administrators
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../users/index.html">
+    Users
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/what-fairdm-is-for.html">
+    What FairDM is for
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/fair-data-and-research-data-infrastructure.html">
+    FAIR data and research data infrastructure
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/the-technology-stack.html">
+    The technology stack
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/the-core-data-model.html">
+    The core data model
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-sample-and-measurement-types-are-stored.html">
+    How sample and measurement types are stored
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/controlled-vocabularies.html">
+    Controlled vocabularies
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/configuration-over-code.html">
+    Configuration over code
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/why-complete-metadata-matters.html">
+    Why complete metadata matters
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-access-to-a-record-is-decided.html">
+    How access to a record is decided
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/why-fairdm-records-contributors.html">
+    Why FairDM records contributors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-contributor-accounts-and-credits-work.html">
+    How contributor accounts and credits work
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-a-profile-is-claimed.html">
+    How a profile is claimed
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-fairdm-configures-a-portal.html">
+    How FairDM configures a portal
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/who-is-asked-to-agree-to-a-legal-document.html">
+    Who is asked to agree to a legal document
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-locations-are-stored-and-protected.html">
+    How locations are stored and protected
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">
+    Dataset publication, DOIs and DataCite metadata
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../reference/glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../contributing/index.html">
+    Framework Contributors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../adr/index.html">
+    Architecture Decision Records
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../ROADMAP.html">
+    Roadmap — FairDM
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    Developers
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../administrators/index.html">
+    Administrators
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../users/index.html">
+    Users
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/what-fairdm-is-for.html">
+    What FairDM is for
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/fair-data-and-research-data-infrastructure.html">
+    FAIR data and research data infrastructure
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/the-technology-stack.html">
+    The technology stack
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/the-core-data-model.html">
+    The core data model
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-sample-and-measurement-types-are-stored.html">
+    How sample and measurement types are stored
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/controlled-vocabularies.html">
+    Controlled vocabularies
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/configuration-over-code.html">
+    Configuration over code
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/why-complete-metadata-matters.html">
+    Why complete metadata matters
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-access-to-a-record-is-decided.html">
+    How access to a record is decided
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/why-fairdm-records-contributors.html">
+    Why FairDM records contributors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-contributor-accounts-and-credits-work.html">
+    How contributor accounts and credits work
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-a-profile-is-claimed.html">
+    How a profile is claimed
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-fairdm-configures-a-portal.html">
+    How FairDM configures a portal
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/who-is-asked-to-agree-to-a-legal-document.html">
+    Who is asked to agree to a legal document
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-locations-are-stored-and-protected.html">
+    How locations are stored and protected
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">
+    Dataset publication, DOIs and DataCite metadata
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../reference/glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing/index.html">
+    Framework Contributors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../adr/index.html">
+    Architecture Decision Records
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ROADMAP.html">
+    Roadmap — FairDM
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Tutorial</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Build your first sample and measurement types</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">How-to guides</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-factory-for-a-portal-model.html">How to add a factory for a portal model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-filter-to-a-sample-type.html">How to add a filter to a sample type</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-measurement-type.html">How to add a measurement type</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-record-field-to-a-form.html">How to add a record field to a form</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-sample-type.html">How to add a sample type</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-section-to-the-home-page.html">How to add a section to the home page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-start-step-to-a-container.html">How to add a start step to a container</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-transform-for-another-format.html">How to add a transform for another format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-viewset-to-the-api-router.html">How to add a viewset to the API router</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-an-entry-to-the-manage-menu.html">How to add an entry to the Manage menu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-an-environment-override-module.html">How to add an environment override module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-pages-to-a-plugin.html">How to add pages to a plugin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-queryset-methods-to-a-measurement-type.html">How to add queryset methods to a measurement type</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-search-and-sort-to-a-list-view.html">How to add search and sort to a list view</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/allow-only-some-sites-to-call-the-api.html">How to allow only some sites to call the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/back-up-a-portal.html">How to back up a portal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/change-a-types-api-address.html">How to change a type’s API address</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/change-how-the-team-page-looks.html">How to change how the team page looks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/change-the-api-rate-limits.html">How to change the API rate limits</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/change-the-entrance-layout.html">How to change the entrance layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/change-the-entrance-pane.html">How to change the entrance pane</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/change-the-portal-theme.html">How to change the portal theme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/change-what-a-home-page-section-shows.html">How to change what a home page section shows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/change-what-the-edit-details-page-offers.html">How to change what the edit details page offers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/choose-the-fields-the-api-returns.html">How to choose the fields the API returns</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/configure-the-agreement-check.html">How to configure the agreement check</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/count-api-callers-behind-a-proxy.html">How to count API callers behind a proxy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/create-a-ghost-person.html">How to create a ghost person</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/create-a-plugin.html">How to create a plugin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/create-an-addon.html">How to create an addon</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/credit-a-person-on-a-record.html">How to credit a person on a record</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/customise-a-generated-component.html">How to customise a generated component</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/customise-a-sample-form.html">How to customise a sample form</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/customise-the-admin-for-a-measurement-type.html">How to customise the admin for a measurement type</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/customise-the-api-documentation.html">How to customise the API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/customise-the-profile-form.html">How to customise the profile form</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/define-a-portal-role-of-your-own.html">How to define a portal role of your own</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/deploy-a-portal-in-a-container.html">How to deploy a portal in a container</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/develop-a-portal-on-the-development-image.html">How to develop a portal on the development image</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/extend-an-overview-page.html">How to extend an overview page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/extend-the-profile-claiming-flow.html">How to extend the profile-claiming flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/filter-a-list-by-a-record.html">How to filter a list by a record</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/filter-projects-by-vocabulary-keywords.html">How to filter projects by vocabulary keywords</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/find-records-by-where-they-are.html">How to find records by where they are</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/give-a-registered-type-a-location.html">How to give a sample or measurement a location</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/give-a-sample-or-measurement-type-its-own-overview-page.html">How to give a sample or measurement type its own overview page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/grant-object-permissions-on-polymorphic-models.html">How to grant object permissions on a polymorphic model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/import-and-export-locations.html">How to import and export locations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/import-people-from-orcid.html">How to import people from a list of ORCID iDs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/link-to-a-legal-document.html">How to link to a legal document</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/load-development-data-for-the-overview-pages.html">How to load development data for the overview pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/loop-over-the-registered-types.html">How to loop over the registered types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/narrow-a-record-field-by-another-field.html">How to narrow a record field by another field</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/override-a-fairdm-setting.html">How to override a FairDM setting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/place-an-organization-on-a-map.html">How to place an organization on a map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/record-sample-relationships.html">How to record sample relationships</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/register-a-sample-or-measurement-type.html">How to register a sample or measurement type</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/render-markdown-in-a-template.html">How to render markdown in a template</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/restore-a-portal-from-a-backup.html">How to restore a portal from a backup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/restrict-a-plugin-to-some-users.html">How to restrict a plugin to some users</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/restrict-a-record-field-to-one-sample-type.html">How to restrict a record field to one sample type</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/restrict-api-tokens-to-some-people.html">How to restrict API tokens to some people</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/run-a-background-worker-in-a-container.html">How to run a background worker in a container</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/search-a-registered-type-by-more-than-its-name.html">How to search a registered type by more than its name</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/show-part-of-a-page-to-a-records-team.html">How to show part of a page to a record’s team</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/sign-in-as-each-portal-role-while-developing.html">How to sign in as each portal role while developing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/sync-a-profile-from-orcid-or-ror-without-celery.html">How to sync a profile from ORCID or ROR without Celery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/test-a-portal-with-fairdm-factories.html">How to test a portal with FairDM factories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/upgrade-a-portal-to-django-literature-0-3.html">How to upgrade a portal to django-literature 0.3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/upgrade-a-portal-to-vocabulary-addresses.html">How to upgrade a portal to vocabulary addresses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/use-a-controlled-vocabulary-in-a-model.html">How to use a controlled vocabulary in a model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/use-a-sample-form-in-a-view.html">How to use a sample form in a view</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/write-a-custom-form-or-filter-for-a-measurement-type.html">How to write a custom form or filter for a measurement type</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="base-views.html">Base views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="components.html">Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="container-images.html">Container images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contribution-levels-and-record-access.html">Contribution levels and record access</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributor-models.html">Contributor models</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Core models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="crediting.html">Crediting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development-accounts.html">Development accounts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="entrance-pages.html">Entrance pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="form-and-filter-mixins.html">Form and filter mixins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="home-page.html">Home page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legal-documents.html">Legal documents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="location-fields.html">Location fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="management-commands.html">Management commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="measurement-model.html">Measurement model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model-configuration.html">Model configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model-fields.html">Model fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview-page-blocks.html">Overview page blocks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview-plugins.html">Overview plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugins.html">Plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="portal-roles.html">Portal roles in code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="profile-claiming.html">Profile claiming</a></li>
+<li class="toctree-l1"><a class="reference internal" href="record-editing-pages.html">Record editing pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="record-fields.html">Record fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rest-api.html">REST API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample-model.html">Sample model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="settings.html">Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="template-tags.html">Template tags</a></li>
+<li class="toctree-l1"><a class="reference internal" href="factories.html">Test factories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="registry.html">The registry</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="python-api.html">Python API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/fairdm/fairdm.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.templatetags.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.templatetags</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.templatetags.fairdm.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.templatetags.fairdm</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.views.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.views.mixins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views.mixins</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.views.generic.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views.generic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.views.base.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views.base</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.conf.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.conf.settings.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.settings</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.conf.environment.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.environment</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.conf.urls.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.urls</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.conf.setup.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.setup</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.conf.checks.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.checks</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.conf.celery.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.celery</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.conf.development.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.development</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.conf.addons.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.addons</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.factories.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.factories.core.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories.core</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.factories.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories.utils</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.factories.contributors.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories.contributors</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.forms</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.forms.fields.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.forms.fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.forms.base.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.forms.base</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.db.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.db</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.db.fields.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.db.fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.db.managers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.db.managers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.db.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.db.models</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.api.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.settings.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.settings</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.viewsets.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.viewsets</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.schema.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.schema</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.urls.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.urls</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.throttling.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.throttling</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.checks.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.checks</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.router.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.router</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.permissions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.apps</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.filters.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.filters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.serializers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.serializers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.pagination.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.pagination</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.registry.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.registry.exceptions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry.exceptions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.registry.registry.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry.registry</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.registry.factories.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry.factories</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.registry.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry.config</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.backups.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.backups.management.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.management</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.backups.signals.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.signals</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.backups.tasks.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.tasks</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.backups.media.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.media</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.backups.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.apps</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.backups.run.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.run</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.backups.keys.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.keys</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.contrib.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.contributors.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.contributors</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.admin</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.collections.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.collections</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.autocomplete.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.autocomplete</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.identity.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.identity</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.plugins</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.import_export.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.import_export</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.location.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.location</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.management.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.management</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.management.commands.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.management.commands</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.core.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.measurement.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.sample.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.sample</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.dataset.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dataset</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.project.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.abstract.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.abstract</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.editing.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.editing</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.vocabularies.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.vocabularies</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.plugins</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.related_records.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.related_records</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.managers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.managers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.urls.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.urls</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.forms</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.formsets.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.formsets</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.permissions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.admin</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.apps</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.choices.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.choices</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.models</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.filters.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.filters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.overview.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.overview</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.dates.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dates</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.image_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.image_utils</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.descriptions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.descriptions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.utils</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.utils.location.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.location</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.utils.context_processors.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.context_processors</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.utils.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.permissions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.utils.choices.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.choices</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.utils.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.models</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.utils.inspection.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.inspection</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.utils.markdown.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.markdown</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.utils.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.utils</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3"><a class="reference internal" href="api/fairdm/fairdm.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.plugins</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/fairdm/fairdm.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.permissions</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/fairdm/fairdm.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.apps</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/fairdm/fairdm.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.models</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/fairdm/fairdm.portal_roles.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.portal_roles</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/fairdm/fairdm.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/fairdm/fairdm.menus.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.menus</span></code></a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Explanation</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../explanation/how-a-measurement-reports-its-value.html">How a measurement reports its value</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/how-api-callers-are-limited.html">How API callers are limited</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/how-fairdm-views-are-layered.html">How FairDM views are layered</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/how-markdown-is-sanitised.html">How markdown is sanitised</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/how-record-fields-decide-what-to-offer.html">How record fields decide what to offer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/how-the-container-images-are-versioned.html">How the container images are versioned</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/what-registering-a-type-produces.html">What registering a type produces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/why-factories-create-metadata-only-when-asked.html">Why factories create metadata only when asked</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Developers</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Core models</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="core-models">
+<h1>Core models<a class="headerlink" href="#core-models" title="Link to this heading">#</a></h1>
+<p>This page lists the fields, choices, managers and rules of the two fixed core models, <code class="docutils literal notranslate"><span class="pre">Project</span></code> and <code class="docutils literal notranslate"><span class="pre">Dataset</span></code>, and the fields they share with samples and measurements. It does not cover the two models you extend, which are on <a class="reference internal" href="sample-model.html"><span class="std std-doc">Sample model</span></a> and <a class="reference internal" href="measurement-model.html"><span class="std std-doc">Measurement model</span></a>, or why the four levels exist, which is in <a class="reference internal" href="../../explanation/the-core-data-model.html"><span class="std std-doc">The core data model</span></a>. Methods are listed by name only. Their signatures are on the <a class="reference internal" href="python-api.html"><span class="std std-doc">Python API</span></a> page.</p>
+<p>Import the models from their own modules:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fairdm.core.dataset.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fairdm.core.project.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Project</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">fairdm.core.models</span></code> also re-exports <code class="docutils literal notranslate"><span class="pre">Project</span></code>, <code class="docutils literal notranslate"><span class="pre">Dataset</span></code>, <code class="docutils literal notranslate"><span class="pre">Sample</span></code> and <code class="docutils literal notranslate"><span class="pre">Measurement</span></code>.</p>
+<pre  class="mermaid">
+        erDiagram
+    Organization |o--o{ Project : owns
+    Project |o--o{ Dataset : holds
+    Dataset ||--o{ Sample : holds
+    Dataset ||--o{ Measurement : holds
+    Sample ||--o{ Measurement : &quot;is measured by&quot;
+    Sample }o--o{ Sample : &quot;SampleRelation&quot;
+    </pre><section id="fields-every-record-has">
+<h2>Fields every record has<a class="headerlink" href="#fields-every-record-has" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Project</span></code>, <code class="docutils literal notranslate"><span class="pre">Dataset</span></code>, <code class="docutils literal notranslate"><span class="pre">Sample</span></code> and <code class="docutils literal notranslate"><span class="pre">Measurement</span></code> all inherit these fields. <code class="docutils literal notranslate"><span class="pre">BaseModel</span></code> in <code class="docutils literal notranslate"><span class="pre">fairdm.core.abstract</span></code> supplies the first group, and <code class="docutils literal notranslate"><span class="pre">Model</span></code> in <code class="docutils literal notranslate"><span class="pre">fairdm.db.models</span></code> supplies <code class="docutils literal notranslate"><span class="pre">added</span></code> and <code class="docutils literal notranslate"><span class="pre">modified</span></code>.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>What it does</p></th>
+<th class="head"><p>Accepts</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">id</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BigAutoField</span></code></p></td>
+<td><p>Assigned on save</p></td>
+<td><p>The database key.</p></td>
+<td><p>Not editable.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">uuid</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ShortUUIDField</span></code></p></td>
+<td><p>Generated on save</p></td>
+<td><p>The identifier used in addresses and the API. A prefix names the kind of record: <code class="docutils literal notranslate"><span class="pre">p</span></code>, <code class="docutils literal notranslate"><span class="pre">d</span></code>, <code class="docutils literal notranslate"><span class="pre">s</span></code> or <code class="docutils literal notranslate"><span class="pre">m</span></code>, followed by 22 characters.</p></td>
+<td><p>Not editable. Unique.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">name</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CharField</span></code></p></td>
+<td><p>None</p></td>
+<td><p>The record’s title.</p></td>
+<td><p>Up to 300 characters. Required.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">image</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ThumbnailerImageField</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>A picture of the record. The stored source is limited to 2400 by 1600 pixels without cropping.</p></td>
+<td><p>An image file. Optional.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">keywords</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MultiConceptField</span></code></p></td>
+<td><p>Empty</p></td>
+<td><p>Controlled keywords for discoverability.</p></td>
+<td><p>Concepts from any loaded vocabulary. Optional.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">tags</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">TaggableManager</span></code> through <code class="docutils literal notranslate"><span class="pre">fairdm.models.TaggedItem</span></code></p></td>
+<td><p>Empty</p></td>
+<td><p>Free words.</p></td>
+<td><p>Any text. Optional.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">options</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">JSONField</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>A place for settings of your own.</p></td>
+<td><p>Any JSON value. Optional.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">added</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DateTimeField</span></code></p></td>
+<td><p>The time of creation</p></td>
+<td><p>When the record was added.</p></td>
+<td><p>Not editable.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">modified</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DateTimeField</span></code></p></td>
+<td><p>The time of each save</p></td>
+<td><p>When the record was last saved.</p></td>
+<td><p>Not editable.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">tracker</span></code> is a <code class="docutils literal notranslate"><span class="pre">FieldTracker</span></code> from django-model-utils. It adds no column.</p>
+<section id="methods-every-record-has">
+<h3>Methods every record has<a class="headerlink" href="#methods-every-record-has" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Returns</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">title</span></code></p></td>
+<td><p>The record’s <code class="docutils literal notranslate"><span class="pre">name</span></code>. A property.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">icon</span></code></p></td>
+<td><p>The icon name for the model. A property.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_absolute_url()</span></code></p></td>
+<td><p>The address of the record’s overview page.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_api_url()</span></code></p></td>
+<td><p>The address of the record’s API detail endpoint.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">add_contributor(contributor,</span> <span class="pre">with_roles=None)</span></code></p></td>
+<td><p>The contributor’s credit on the record, created or extended with the roles.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">is_contributor(user)</span></code></p></td>
+<td><p>Whether the user has a credit on the record.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_direct_contributors()</span></code></p></td>
+<td><p>The people and organizations credited on the record.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_affiliated_organizations()</span></code></p></td>
+<td><p>The organizations named as affiliations on the record’s credits.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_all_contributors()</span></code></p></td>
+<td><p>The credited contributors together with those affiliated organizations.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_abstract()</span></code></p></td>
+<td><p>The record’s description of type <code class="docutils literal notranslate"><span class="pre">Abstract</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_abstract_summary()</span></code></p></td>
+<td><p>The abstract as plain text of at most 400 characters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_meta_description()</span></code></p></td>
+<td><p>The abstract’s full text, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_descriptions</span></code></p></td>
+<td><p>The record’s descriptions as a list. A cached property.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">verbose_name()</span></code> and <code class="docutils literal notranslate"><span class="pre">verbose_name_plural()</span></code></p></td>
+<td><p>The model’s names.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_non_polymorphic_instance()</span></code></p></td>
+<td><p>The record fetched again as its polymorphic base (<code class="docutils literal notranslate"><span class="pre">Sample</span></code> or <code class="docutils literal notranslate"><span class="pre">Measurement</span></code>), or the record itself when it has none.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="project">
+<h2>Project<a class="headerlink" href="#project" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">fairdm.core.project.models.Project</span></code> is a body of research that groups datasets. A dataset may belong to a project but does not have to.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>What it does</p></th>
+<th class="head"><p>Accepts</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">uuid</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ShortUUIDField</span></code></p></td>
+<td><p>Generated, prefix <code class="docutils literal notranslate"><span class="pre">p</span></code></p></td>
+<td><p>See above.</p></td>
+<td><p>Not editable.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">visibility</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">IntegerField</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Visibility.PRIVATE</span></code></p></td>
+<td><p>Whether the project is public or private.</p></td>
+<td><p>A value of <a class="reference internal" href="#choices"><code class="docutils literal notranslate"><span class="pre">Visibility</span></code></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">status</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">IntegerField</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ProjectStatus.CONCEPT</span></code></p></td>
+<td><p>The project’s stage.</p></td>
+<td><p>A value of <a class="reference internal" href="#choices"><code class="docutils literal notranslate"><span class="pre">ProjectStatus</span></code></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">funding</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">JSONField</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Funding awards in the shape of DataCite’s funding reference.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code>, or a list of objects. See below. Optional.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">owner</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ForeignKey</span></code> to <code class="docutils literal notranslate"><span class="pre">contributors.Organization</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>The organization that owns the project. Related name <code class="docutils literal notranslate"><span class="pre">owned_projects</span></code>. Deleting an organization that owns a project is refused.</p></td>
+<td><p>An organization. Optional.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">created_by</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ForeignKey</span></code> to <code class="docutils literal notranslate"><span class="pre">contributors.Person</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>The person who created the project. Related name <code class="docutils literal notranslate"><span class="pre">created_projects</span></code>. Set to empty if that person’s account is removed.</p></td>
+<td><p>Not editable.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">contributors</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GenericRelation</span></code> to <code class="docutils literal notranslate"><span class="pre">contributors.Contribution</span></code></p></td>
+<td><p></p></td>
+<td><p>The project’s credits.</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Each object in <code class="docutils literal notranslate"><span class="pre">funding</span></code> accepts these keys and no others:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Required</p></th>
+<th class="head"><p>Accepts</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">funderName</span></code></p></td>
+<td><p>Yes</p></td>
+<td><p>Text.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">funderIdentifier</span></code></p></td>
+<td><p>No</p></td>
+<td><p>Text.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">funderIdentifierType</span></code></p></td>
+<td><p>No</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ISNI</span></code>, <code class="docutils literal notranslate"><span class="pre">GRID</span></code>, <code class="docutils literal notranslate"><span class="pre">Crossref</span> <span class="pre">Funder</span> <span class="pre">ID</span></code>, <code class="docutils literal notranslate"><span class="pre">ROR</span></code> or <code class="docutils literal notranslate"><span class="pre">Other</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">awardNumber</span></code></p></td>
+<td><p>No</p></td>
+<td><p>Text.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">awardTitle</span></code></p></td>
+<td><p>No</p></td>
+<td><p>Text.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">awardURI</span></code></p></td>
+<td><p>No</p></td>
+<td><p>Text.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>A value that is not a list of such objects fails validation with one of the codes <code class="docutils literal notranslate"><span class="pre">funding_not_list</span></code>, <code class="docutils literal notranslate"><span class="pre">funding_unknown_key</span></code>, <code class="docutils literal notranslate"><span class="pre">funding_missing_funder_name</span></code>, <code class="docutils literal notranslate"><span class="pre">funding_invalid_type</span></code> or <code class="docutils literal notranslate"><span class="pre">funding_invalid_identifier_type</span></code>.</p>
+<section id="class-attributes">
+<h3>Class attributes<a class="headerlink" href="#class-attributes" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DEFAULT_ROLES</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[PROJECT_MEMBER]</span></code>, the address of the project member role</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CONTRIBUTOR_ROLES</span></code></p></td>
+<td><p>The address of the project collection of the contributor roles.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DATE_TYPES</span></code></p></td>
+<td><p>The address of the project collection of the date types.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DESCRIPTION_TYPES</span></code></p></td>
+<td><p>The address of the project collection of the description types.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">STATUS_CHOICES</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ProjectStatus</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">VISIBILITY</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Visibility</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">STATUS_BADGE_VARIANTS</span></code></p></td>
+<td><p>The theme colour name of each status on a project card.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="properties-and-methods">
+<h3>Properties and methods<a class="headerlink" href="#properties-and-methods" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Returns</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">is_active</span></code></p></td>
+<td><p>Whether the status is <code class="docutils literal notranslate"><span class="pre">IN_PROGRESS</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">status_badge_variant</span></code></p></td>
+<td><p>The colour name for the status badge. <code class="docutils literal notranslate"><span class="pre">neutral</span></code> when the status has none.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">spatial_coverage(user=None)</span></code></p></td>
+<td><p>The box that holds the locations the viewer may see in the project’s datasets, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="deletion">
+<h3>Deletion<a class="headerlink" href="#deletion" title="Link to this heading">#</a></h3>
+<p>Deleting a project deletes its datasets. A project that still has a public dataset cannot be deleted. The attempt raises <code class="docutils literal notranslate"><span class="pre">PublicDatasetsProtect</span></code>, which carries the blocking datasets.</p>
+</section>
+</section>
+<section id="dataset">
+<h2>Dataset<a class="headerlink" href="#dataset" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">fairdm.core.dataset.models.Dataset</span></code> is the unit a portal cites and distributes. Samples and measurements hang beneath it.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>What it does</p></th>
+<th class="head"><p>Accepts</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">uuid</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ShortUUIDField</span></code></p></td>
+<td><p>Generated, prefix <code class="docutils literal notranslate"><span class="pre">d</span></code></p></td>
+<td><p>See above.</p></td>
+<td><p>Not editable.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">visibility</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">IntegerField</span></code>, indexed</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Visibility.PRIVATE</span></code></p></td>
+<td><p>Whether the dataset’s metadata is shown to everyone.</p></td>
+<td><p>A value of <a class="reference internal" href="#choices"><code class="docutils literal notranslate"><span class="pre">Visibility</span></code></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">published</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BooleanField</span></code>, indexed</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Whether the data beneath the dataset may be shown publicly. It is independent of <code class="docutils literal notranslate"><span class="pre">visibility</span></code>, which governs metadata only.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>. Set in the administration interface.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">project</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ForeignKey</span></code> to <code class="docutils literal notranslate"><span class="pre">project.Project</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>The project the dataset belongs to. Related name <code class="docutils literal notranslate"><span class="pre">datasets</span></code>. Deleting the project deletes the dataset.</p></td>
+<td><p>A project. Optional.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">reference</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">OneToOneField</span></code> to <code class="docutils literal notranslate"><span class="pre">literature.Item</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>The data publication for the dataset.</p></td>
+<td><p>A literature item. Optional.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">related_literature</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ManyToManyField</span></code> to <code class="docutils literal notranslate"><span class="pre">literature.Item</span></code> through <code class="docutils literal notranslate"><span class="pre">DatasetLiteratureRelation</span></code></p></td>
+<td><p>Empty</p></td>
+<td><p>Literature related to the dataset.</p></td>
+<td><p>Literature items. Optional.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">license</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LicenseField</span></code></p></td>
+<td><p>The licence named by <code class="docutils literal notranslate"><span class="pre">FAIRDM_DEFAULT_LICENSE</span></code></p></td>
+<td><p>The licence the dataset’s data is published under.</p></td>
+<td><p>A licence. Optional.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">created_by</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ForeignKey</span></code> to <code class="docutils literal notranslate"><span class="pre">contributors.Person</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>The person who created the dataset. Related name <code class="docutils literal notranslate"><span class="pre">created_datasets</span></code>.</p></td>
+<td><p>Not editable.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">contributors</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GenericRelation</span></code> to <code class="docutils literal notranslate"><span class="pre">contributors.Contribution</span></code></p></td>
+<td><p></p></td>
+<td><p>The dataset’s credits.</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">FAIRDM_DEFAULT_LICENSE</span></code> is described on <a class="reference internal" href="settings.html"><span class="std std-doc">Settings</span></a>. The default is read when a dataset is created. If the portal has not loaded its licences yet, the default is empty.</p>
+<section id="id1">
+<h3>Class attributes<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DEFAULT_ROLES</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[PROJECT_MEMBER]</span></code>, the address of the project member role</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CONTRIBUTOR_ROLES</span></code></p></td>
+<td><p>The address of the dataset collection of the contributor roles.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DATE_TYPES</span></code></p></td>
+<td><p>The address of the dataset collection of the date types.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DESCRIPTION_TYPES</span></code></p></td>
+<td><p>The address of the dataset collection of the description types.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">IDENTIFIER_TYPES</span></code></p></td>
+<td><p>The address of the dataset collection of the identifier types.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">VISIBILITY_CHOICES</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Visibility</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="id2">
+<h3>Properties and methods<a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Returns</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">data_is_public</span></code></p></td>
+<td><p>Whether the visibility is public and the dataset is published.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">has_data</span></code></p></td>
+<td><p>Whether any sample or measurement hangs beneath the dataset. A cached property.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">spatial_coverage(user=None)</span></code></p></td>
+<td><p>The box that holds the locations the viewer may see in the dataset’s samples and measurements, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">clean()</span></code> refuses to move a dataset to a project when that would leave nobody able to manage it.</p>
+</section>
+<section id="managers">
+<h3>Managers<a class="headerlink" href="#managers" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Manager</p></th>
+<th class="head"><p>Returns</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Dataset.objects</span></code></p></td>
+<td><p>Every dataset that is not private.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Dataset.all_objects</span></code></p></td>
+<td><p>Every dataset.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Use <code class="docutils literal notranslate"><span class="pre">all_objects</span></code> whenever you need private datasets. Following a relation to a dataset and cascading a deletion are not narrowed by <code class="docutils literal notranslate"><span class="pre">objects</span></code>. The reasoning for the separate publication flag is in <a class="reference internal" href="../../adr/0014-publication-is-a-separate-flag-from-visibility.html"><span class="std std-doc">ADR 0014</span></a>.</p>
+</section>
+<section id="datasetliteraturerelation">
+<h3>DatasetLiteratureRelation<a class="headerlink" href="#datasetliteraturerelation" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">DatasetLiteratureRelation</span></code> links a dataset to a literature item with a DataCite relation type.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>What it does</p></th>
+<th class="head"><p>Accepts</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">dataset</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ForeignKey</span></code> to <code class="docutils literal notranslate"><span class="pre">Dataset</span></code></p></td>
+<td><p>None</p></td>
+<td><p>The dataset. Related name <code class="docutils literal notranslate"><span class="pre">literature_relations</span></code>.</p></td>
+<td><p>A dataset.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">literature_item</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ForeignKey</span></code> to <code class="docutils literal notranslate"><span class="pre">literature.Item</span></code></p></td>
+<td><p>None</p></td>
+<td><p>The literature item. Related name <code class="docutils literal notranslate"><span class="pre">dataset_relations</span></code>.</p></td>
+<td><p>A literature item.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">relationship_type</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CharField</span></code>, 50 characters</p></td>
+<td><p>None</p></td>
+<td><p>How the dataset relates to the item.</p></td>
+<td><p>One of the 34 relation types of DataCite Metadata Schema 4.4, such as <code class="docutils literal notranslate"><span class="pre">IsCitedBy</span></code>, <code class="docutils literal notranslate"><span class="pre">Cites</span></code> or <code class="docutils literal notranslate"><span class="pre">IsDocumentedBy</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The combination of dataset, item and type is unique.</p>
+</section>
+</section>
+<section id="choices">
+<h2>Choices<a class="headerlink" href="#choices" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Members</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ProjectStatus</span></code> in <code class="docutils literal notranslate"><span class="pre">fairdm.core.choices</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CONCEPT</span></code> (0), <code class="docutils literal notranslate"><span class="pre">PLANNING</span></code> (1), <code class="docutils literal notranslate"><span class="pre">IN_PROGRESS</span></code> (2), <code class="docutils literal notranslate"><span class="pre">COMPLETE</span></code> (3), <code class="docutils literal notranslate"><span class="pre">SEARCHING_FOR_COLLABORATORS</span></code> (4)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Visibility</span></code> in <code class="docutils literal notranslate"><span class="pre">fairdm.utils.choices</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PRIVATE</span></code> (0), <code class="docutils literal notranslate"><span class="pre">PUBLIC</span></code> (1)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="querysets">
+<h2>Querysets<a class="headerlink" href="#querysets" title="Link to this heading">#</a></h2>
+<p>Both models have a queryset with these methods.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Method</p></th>
+<th class="head"><p>Project</p></th>
+<th class="head"><p>Dataset</p></th>
+<th class="head"><p>Returns</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_visible()</span></code></p></td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>For a project, the public projects. For a dataset, the public datasets that are not inside a private project.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">published()</span></code></p></td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+<td><p>The datasets whose <code class="docutils literal notranslate"><span class="pre">published</span></code> flag is set. Call it on <code class="docutils literal notranslate"><span class="pre">all_objects</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_contributors()</span></code></p></td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>The records with their credits loaded.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_metadata()</span></code></p></td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>The records with descriptions, dates, identifiers, credits and keywords loaded. A project also loads its owner.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_related()</span></code></p></td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+<td><p>The records with project and credits loaded.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_list_data()</span></code></p></td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>The records with what a list card draws loaded, and a count. A project gets <code class="docutils literal notranslate"><span class="pre">dataset_count</span></code>, which counts public datasets only. A dataset gets <code class="docutils literal notranslate"><span class="pre">sample_count</span></code> and <code class="docutils literal notranslate"><span class="pre">measurement_count</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_level(user,</span> <span class="pre">level)</span></code></p></td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>The records on which the user holds at least a level.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">accessible_to(user,</span> <span class="pre">level)</span></code></p></td>
+<td><p>Yes</p></td>
+<td><p>Yes</p></td>
+<td><p>The records the user may act on at a level, which is every record for a user with the matching portal-wide right.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The two level methods are described on <a class="reference internal" href="contribution-levels-and-record-access.html"><span class="std std-doc">Contribution levels and record access</span></a>.</p>
+</section>
+<section id="descriptions-dates-and-identifiers">
+<h2>Descriptions, dates and identifiers<a class="headerlink" href="#descriptions-dates-and-identifiers" title="Link to this heading">#</a></h2>
+<p>A project and a dataset each carry typed rows. A row model exists for each pair, such as <code class="docutils literal notranslate"><span class="pre">ProjectDescription</span></code> and <code class="docutils literal notranslate"><span class="pre">DatasetDate</span></code>. Every row model links back to its record by <code class="docutils literal notranslate"><span class="pre">related</span></code> and is reached from the record by <code class="docutils literal notranslate"><span class="pre">descriptions</span></code>, <code class="docutils literal notranslate"><span class="pre">dates</span></code> or <code class="docutils literal notranslate"><span class="pre">identifiers</span></code>.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Rows</p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">type</span></code> is drawn from</p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">value</span></code></p></th>
+<th class="head"><p>Rules</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Descriptions</p></td>
+<td><p>The description types</p></td>
+<td><p>Text of at most 20,000 characters.</p></td>
+<td><p>One row of each type for each record.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Dates</p></td>
+<td><p>The date types</p></td>
+<td><p>A partial date: a year, a year and month, or a full date. See <a class="reference internal" href="model-fields.html"><span class="std std-doc">Model fields</span></a>.</p></td>
+<td><p>One row of each type for each record. The end may not be before the start.</p></td>
+</tr>
+<tr class="row-even"><td><p>Identifiers</p></td>
+<td><p>The identifier types</p></td>
+<td><p>Text of at most 255 characters.</p></td>
+<td><p>One row of each type for each record. The value is unique across every kind of record.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">type</span></code> is a <code class="docutils literal notranslate"><span class="pre">ConceptField</span></code> limited to the record’s collection of the vocabulary, and holds the concept’s address: the vocabulary’s address, a slash and the identifier listed below. The start and end types are <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">end</span></code> for a project, <code class="docutils literal notranslate"><span class="pre">ProjectDate.START_TYPE</span></code> and <code class="docutils literal notranslate"><span class="pre">ProjectDate.END_TYPE</span></code>, and <code class="docutils literal notranslate"><span class="pre">collection-start</span></code> and <code class="docutils literal notranslate"><span class="pre">collection-end</span></code> for a dataset. The end is compared with the start at the coarser of their two precisions.</p>
+<p>The types each record accepts, by identifier, in the order its collection lists them:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Record</p></th>
+<th class="head"><p>Descriptions</p></th>
+<th class="head"><p>Dates</p></th>
+<th class="head"><p>Identifiers</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Project</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">abstract</span></code>, <code class="docutils literal notranslate"><span class="pre">introduction</span></code>, <code class="docutils literal notranslate"><span class="pre">background</span></code>, <code class="docutils literal notranslate"><span class="pre">objectives</span></code>, <code class="docutils literal notranslate"><span class="pre">expected-output</span></code>, <code class="docutils literal notranslate"><span class="pre">conclusions</span></code>, <code class="docutils literal notranslate"><span class="pre">other</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">end</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">doi</span></code>, <code class="docutils literal notranslate"><span class="pre">grant-number</span></code>, <code class="docutils literal notranslate"><span class="pre">proposal-id</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Dataset</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">abstract</span></code>, <code class="docutils literal notranslate"><span class="pre">methods</span></code>, <code class="docutils literal notranslate"><span class="pre">series-information</span></code>, <code class="docutils literal notranslate"><span class="pre">technical-info</span></code>, <code class="docutils literal notranslate"><span class="pre">other</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">available</span></code>, <code class="docutils literal notranslate"><span class="pre">collection-start</span></code>, <code class="docutils literal notranslate"><span class="pre">collection-end</span></code>, <code class="docutils literal notranslate"><span class="pre">submitted</span></code>, <code class="docutils literal notranslate"><span class="pre">published</span></code>, <code class="docutils literal notranslate"><span class="pre">withdrawn</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">doi</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The roles a person or organization can hold on a record come from the contributor roles vocabulary, by identifier:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Record</p></th>
+<th class="head"><p>Roles</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Project</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">creator</span></code>, <code class="docutils literal notranslate"><span class="pre">project-leader</span></code>, <code class="docutils literal notranslate"><span class="pre">project-member</span></code>, <code class="docutils literal notranslate"><span class="pre">project-manager</span></code>, <code class="docutils literal notranslate"><span class="pre">contact-person</span></code>, <code class="docutils literal notranslate"><span class="pre">other</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Dataset</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">creator</span></code>, <code class="docutils literal notranslate"><span class="pre">contact-person</span></code>, <code class="docutils literal notranslate"><span class="pre">data-collector</span></code>, <code class="docutils literal notranslate"><span class="pre">data-curator</span></code>, <code class="docutils literal notranslate"><span class="pre">data-manager</span></code>, <code class="docutils literal notranslate"><span class="pre">editor</span></code>, <code class="docutils literal notranslate"><span class="pre">producer</span></code>, <code class="docutils literal notranslate"><span class="pre">related-person</span></code>, <code class="docutils literal notranslate"><span class="pre">researcher</span></code>, <code class="docutils literal notranslate"><span class="pre">project-leader</span></code>, <code class="docutils literal notranslate"><span class="pre">project-manager</span></code>, <code class="docutils literal notranslate"><span class="pre">project-member</span></code>, <code class="docutils literal notranslate"><span class="pre">supervisor</span></code>, <code class="docutils literal notranslate"><span class="pre">work-package-leader</span></code>, <code class="docutils literal notranslate"><span class="pre">rights-holder</span></code>, <code class="docutils literal notranslate"><span class="pre">other</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The vocabularies’ addresses are constants in <code class="docutils literal notranslate"><span class="pre">fairdm.core.vocabularies</span></code>, and <code class="docutils literal notranslate"><span class="pre">get_type_concepts()</span></code> on a row model returns the concepts its collection offers. See <a class="reference internal" href="../../explanation/controlled-vocabularies.html"><span class="std std-doc">Controlled vocabularies</span></a>.</p>
+</section>
+<section id="permissions">
+<h2>Permissions<a class="headerlink" href="#permissions" title="Link to this heading">#</a></h2>
+<p>Both models declare these permissions beside Django’s four. Who holds them on a record is decided by the level a person has on it, as described in <a class="reference internal" href="../../explanation/how-access-to-a-record-is-decided.html"><span class="std std-doc">How access to a record is decided</span></a>.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Model</p></th>
+<th class="head"><p>Permissions</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Project</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">add_contributor</span></code>, <code class="docutils literal notranslate"><span class="pre">modify_contributor</span></code>, <code class="docutils literal notranslate"><span class="pre">modify_metadata</span></code>, <code class="docutils literal notranslate"><span class="pre">change_project_metadata</span></code>, <code class="docutils literal notranslate"><span class="pre">change_project_settings</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Dataset</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">add_contributor</span></code>, <code class="docutils literal notranslate"><span class="pre">modify_contributor</span></code>, <code class="docutils literal notranslate"><span class="pre">modify_metadata</span></code>, <code class="docutils literal notranslate"><span class="pre">import_data</span></code>, <code class="docutils literal notranslate"><span class="pre">can_publish</span></code>, <code class="docutils literal notranslate"><span class="pre">change_dataset_metadata</span></code>, <code class="docutils literal notranslate"><span class="pre">change_dataset_settings</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Both are ordered by <code class="docutils literal notranslate"><span class="pre">-modified</span></code> and indexed on <code class="docutils literal notranslate"><span class="pre">modified</span></code>.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="contributor-models.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Contributor models</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="crediting.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Crediting</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fields-every-record-has">Fields every record has</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#methods-every-record-has">Methods every record has</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#project">Project</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#class-attributes">Class attributes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#properties-and-methods">Properties and methods</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#deletion">Deletion</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#dataset">Dataset</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Class attributes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Properties and methods</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#managers">Managers</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#datasetliteraturerelation">DatasetLiteratureRelation</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#choices">Choices</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#querysets">Querysets</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#descriptions-dates-and-identifiers">Descriptions, dates and identifiers</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#permissions">Permissions</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Samuel Jennings.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.21.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

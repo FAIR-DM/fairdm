@@ -1,0 +1,17 @@
+# {py:mod}`fairdm.management`
+
+```{py:module} fairdm.management
+```
+
+```{autodoc2-docstring} fairdm.management
+:allowtitles:
+```
+
+## Subpackages
+
+```{toctree}
+:titlesonly:
+:maxdepth: 3
+
+fairdm.management.commands
+```

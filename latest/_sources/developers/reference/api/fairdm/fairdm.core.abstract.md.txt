@@ -1,0 +1,780 @@
+# {py:mod}`fairdm.core.abstract`
+
+```{py:module} fairdm.core.abstract
+```
+
+```{autodoc2-docstring} fairdm.core.abstract
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`BaseModel <fairdm.core.abstract.BaseModel>`
+  - ```{autodoc2-docstring} fairdm.core.abstract.BaseModel
+    :summary:
+    ```
+* - {py:obj}`BasePolymorphicModel <fairdm.core.abstract.BasePolymorphicModel>`
+  - ```{autodoc2-docstring} fairdm.core.abstract.BasePolymorphicModel
+    :summary:
+    ```
+* - {py:obj}`GenericModelQuerySet <fairdm.core.abstract.GenericModelQuerySet>`
+  - ```{autodoc2-docstring} fairdm.core.abstract.GenericModelQuerySet
+    :summary:
+    ```
+* - {py:obj}`GenericModelManager <fairdm.core.abstract.GenericModelManager>`
+  - ```{autodoc2-docstring} fairdm.core.abstract.GenericModelManager
+    :summary:
+    ```
+* - {py:obj}`GenericModel <fairdm.core.abstract.GenericModel>`
+  - ```{autodoc2-docstring} fairdm.core.abstract.GenericModel
+    :summary:
+    ```
+* - {py:obj}`AbstractDescription <fairdm.core.abstract.AbstractDescription>`
+  - ```{autodoc2-docstring} fairdm.core.abstract.AbstractDescription
+    :summary:
+    ```
+* - {py:obj}`AbstractDate <fairdm.core.abstract.AbstractDate>`
+  - ```{autodoc2-docstring} fairdm.core.abstract.AbstractDate
+    :summary:
+    ```
+* - {py:obj}`AbstractIdentifier <fairdm.core.abstract.AbstractIdentifier>`
+  - ```{autodoc2-docstring} fairdm.core.abstract.AbstractIdentifier
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`DESCRIPTION_MAX_LENGTH <fairdm.core.abstract.DESCRIPTION_MAX_LENGTH>`
+  - ```{autodoc2-docstring} fairdm.core.abstract.DESCRIPTION_MAX_LENGTH
+    :summary:
+    ```
+````
+
+### API
+
+``````{py:class} BaseModel(*args, **kwargs)
+:canonical: fairdm.core.abstract.BaseModel
+
+Bases: {py:obj}`fairdm.db.models.Model`
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.__init__
+```
+
+````{py:attribute} image
+:canonical: fairdm.core.abstract.BaseModel.image
+:value: >
+   'ThumbnailerImageField(...)'
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.image
+```
+
+````
+
+````{py:attribute} name
+:canonical: fairdm.core.abstract.BaseModel.name
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.name
+```
+
+````
+
+````{py:attribute} keywords
+:canonical: fairdm.core.abstract.BaseModel.keywords
+:value: >
+   'MultiConceptField(...)'
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.keywords
+```
+
+````
+
+````{py:attribute} tags
+:canonical: fairdm.core.abstract.BaseModel.tags
+:value: >
+   'TaggableManager(...)'
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.tags
+```
+
+````
+
+````{py:attribute} options
+:canonical: fairdm.core.abstract.BaseModel.options
+:value: >
+   'JSONField(...)'
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.options
+```
+
+````
+
+````{py:attribute} tracker
+:canonical: fairdm.core.abstract.BaseModel.tracker
+:value: >
+   'FieldTracker(...)'
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.tracker
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.abstract.BaseModel.Meta
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.Meta
+```
+
+````{py:attribute} abstract
+:canonical: fairdm.core.abstract.BaseModel.Meta.abstract
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.Meta.abstract
+```
+
+````
+
+`````
+
+````{py:property} icon
+:canonical: fairdm.core.abstract.BaseModel.icon
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.icon
+```
+
+````
+
+````{py:property} title
+:canonical: fairdm.core.abstract.BaseModel.title
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.title
+```
+
+````
+
+````{py:method} get_non_polymorphic_instance()
+:canonical: fairdm.core.abstract.BaseModel.get_non_polymorphic_instance
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.get_non_polymorphic_instance
+```
+
+````
+
+````{py:method} get_absolute_url()
+:canonical: fairdm.core.abstract.BaseModel.get_absolute_url
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.get_absolute_url
+```
+
+````
+
+````{py:method} get_api_url()
+:canonical: fairdm.core.abstract.BaseModel.get_api_url
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.get_api_url
+```
+
+````
+
+````{py:method} add_contributor(contributor, with_roles=None)
+:canonical: fairdm.core.abstract.BaseModel.add_contributor
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.add_contributor
+```
+
+````
+
+````{py:method} is_contributor(user)
+:canonical: fairdm.core.abstract.BaseModel.is_contributor
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.is_contributor
+```
+
+````
+
+````{py:method} get_direct_contributors()
+:canonical: fairdm.core.abstract.BaseModel.get_direct_contributors
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.get_direct_contributors
+```
+
+````
+
+````{py:method} get_affiliated_organizations()
+:canonical: fairdm.core.abstract.BaseModel.get_affiliated_organizations
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.get_affiliated_organizations
+```
+
+````
+
+````{py:method} get_all_contributors()
+:canonical: fairdm.core.abstract.BaseModel.get_all_contributors
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.get_all_contributors
+```
+
+````
+
+````{py:method} get_abstract()
+:canonical: fairdm.core.abstract.BaseModel.get_abstract
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.get_abstract
+```
+
+````
+
+````{py:method} get_abstract_summary()
+:canonical: fairdm.core.abstract.BaseModel.get_abstract_summary
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.get_abstract_summary
+```
+
+````
+
+````{py:method} get_meta_description()
+:canonical: fairdm.core.abstract.BaseModel.get_meta_description
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.get_meta_description
+```
+
+````
+
+````{py:method} get_descriptions()
+:canonical: fairdm.core.abstract.BaseModel.get_descriptions
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.get_descriptions
+```
+
+````
+
+````{py:method} verbose_name()
+:canonical: fairdm.core.abstract.BaseModel.verbose_name
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.verbose_name
+```
+
+````
+
+````{py:method} verbose_name_plural()
+:canonical: fairdm.core.abstract.BaseModel.verbose_name_plural
+
+```{autodoc2-docstring} fairdm.core.abstract.BaseModel.verbose_name_plural
+```
+
+````
+
+``````
+
+``````{py:class} BasePolymorphicModel(*args, **kwargs)
+:canonical: fairdm.core.abstract.BasePolymorphicModel
+
+Bases: {py:obj}`fairdm.db.models.PolymorphicModel`, {py:obj}`fairdm.core.abstract.BaseModel`
+
+```{autodoc2-docstring} fairdm.core.abstract.BasePolymorphicModel
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.abstract.BasePolymorphicModel.__init__
+```
+
+````{py:method} get_inheritance_chain()
+:canonical: fairdm.core.abstract.BasePolymorphicModel.get_inheritance_chain
+:classmethod:
+
+```{autodoc2-docstring} fairdm.core.abstract.BasePolymorphicModel.get_inheritance_chain
+```
+
+````
+
+````{py:method} get_absolute_url()
+:canonical: fairdm.core.abstract.BasePolymorphicModel.get_absolute_url
+
+```{autodoc2-docstring} fairdm.core.abstract.BasePolymorphicModel.get_absolute_url
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.abstract.BasePolymorphicModel.Meta
+
+```{autodoc2-docstring} fairdm.core.abstract.BasePolymorphicModel.Meta
+```
+
+````{py:attribute} abstract
+:canonical: fairdm.core.abstract.BasePolymorphicModel.Meta.abstract
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.core.abstract.BasePolymorphicModel.Meta.abstract
+```
+
+````
+
+`````
+
+``````
+
+`````{py:class} GenericModelQuerySet(model=None, query=None, using=None, hints=None)
+:canonical: fairdm.core.abstract.GenericModelQuerySet
+
+Bases: {py:obj}`django.db.models.QuerySet`
+
+```{autodoc2-docstring} fairdm.core.abstract.GenericModelQuerySet
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.abstract.GenericModelQuerySet.__init__
+```
+
+````{py:method} in_order()
+:canonical: fairdm.core.abstract.GenericModelQuerySet.in_order
+
+```{autodoc2-docstring} fairdm.core.abstract.GenericModelQuerySet.in_order
+```
+
+````
+
+`````
+
+`````{py:class} GenericModelManager
+:canonical: fairdm.core.abstract.GenericModelManager
+
+Bases: {py:obj}`django.db.models.Manager`
+
+```{autodoc2-docstring} fairdm.core.abstract.GenericModelManager
+```
+
+````{py:method} get_queryset()
+:canonical: fairdm.core.abstract.GenericModelManager.get_queryset
+
+```{autodoc2-docstring} fairdm.core.abstract.GenericModelManager.get_queryset
+```
+
+````
+
+````{py:method} in_order()
+:canonical: fairdm.core.abstract.GenericModelManager.in_order
+
+```{autodoc2-docstring} fairdm.core.abstract.GenericModelManager.in_order
+```
+
+````
+
+`````
+
+``````{py:class} GenericModel(*args, **kwargs)
+:canonical: fairdm.core.abstract.GenericModel
+
+Bases: {py:obj}`django.db.models.Model`
+
+```{autodoc2-docstring} fairdm.core.abstract.GenericModel
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.abstract.GenericModel.__init__
+```
+
+````{py:attribute} modified
+:canonical: fairdm.core.abstract.GenericModel.modified
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.abstract.GenericModel.modified
+```
+
+````
+
+````{py:attribute} added
+:canonical: fairdm.core.abstract.GenericModel.added
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.abstract.GenericModel.added
+```
+
+````
+
+````{py:attribute} objects
+:canonical: fairdm.core.abstract.GenericModel.objects
+:value: >
+   'GenericModelManager(...)'
+
+```{autodoc2-docstring} fairdm.core.abstract.GenericModel.objects
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.abstract.GenericModel.Meta
+
+```{autodoc2-docstring} fairdm.core.abstract.GenericModel.Meta
+```
+
+````{py:attribute} abstract
+:canonical: fairdm.core.abstract.GenericModel.Meta.abstract
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.core.abstract.GenericModel.Meta.abstract
+```
+
+````
+
+`````
+
+````{py:method} get_type_concepts()
+:canonical: fairdm.core.abstract.GenericModel.get_type_concepts
+:classmethod:
+
+```{autodoc2-docstring} fairdm.core.abstract.GenericModel.get_type_concepts
+```
+
+````
+
+````{py:method} get_update_url()
+:canonical: fairdm.core.abstract.GenericModel.get_update_url
+
+```{autodoc2-docstring} fairdm.core.abstract.GenericModel.get_update_url
+```
+
+````
+
+````{py:method} verbose_name()
+:canonical: fairdm.core.abstract.GenericModel.verbose_name
+
+```{autodoc2-docstring} fairdm.core.abstract.GenericModel.verbose_name
+```
+
+````
+
+````{py:method} verbose_name_plural()
+:canonical: fairdm.core.abstract.GenericModel.verbose_name_plural
+
+```{autodoc2-docstring} fairdm.core.abstract.GenericModel.verbose_name_plural
+```
+
+````
+
+``````
+
+````{py:data} DESCRIPTION_MAX_LENGTH
+:canonical: fairdm.core.abstract.DESCRIPTION_MAX_LENGTH
+:value: >
+   20000
+
+```{autodoc2-docstring} fairdm.core.abstract.DESCRIPTION_MAX_LENGTH
+```
+
+````
+
+``````{py:class} AbstractDescription(*args, **kwargs)
+:canonical: fairdm.core.abstract.AbstractDescription
+
+Bases: {py:obj}`fairdm.core.abstract.GenericModel`
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractDescription
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractDescription.__init__
+```
+
+````{py:attribute} value
+:canonical: fairdm.core.abstract.AbstractDescription.value
+:value: >
+   'TextField(...)'
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractDescription.value
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.abstract.AbstractDescription.Meta
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractDescription.Meta
+```
+
+````{py:attribute} abstract
+:canonical: fairdm.core.abstract.AbstractDescription.Meta.abstract
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractDescription.Meta.abstract
+```
+
+````
+
+````{py:attribute} verbose_name
+:canonical: fairdm.core.abstract.AbstractDescription.Meta.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractDescription.Meta.verbose_name
+```
+
+````
+
+````{py:attribute} verbose_name_plural
+:canonical: fairdm.core.abstract.AbstractDescription.Meta.verbose_name_plural
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractDescription.Meta.verbose_name_plural
+```
+
+````
+
+````{py:attribute} default_related_name
+:canonical: fairdm.core.abstract.AbstractDescription.Meta.default_related_name
+:value: >
+   'descriptions'
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractDescription.Meta.default_related_name
+```
+
+````
+
+````{py:attribute} constraints
+:canonical: fairdm.core.abstract.AbstractDescription.Meta.constraints
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractDescription.Meta.constraints
+```
+
+````
+
+`````
+
+``````
+
+``````{py:class} AbstractDate(*args, **kwargs)
+:canonical: fairdm.core.abstract.AbstractDate
+
+Bases: {py:obj}`fairdm.core.abstract.GenericModel`
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractDate
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractDate.__init__
+```
+
+````{py:attribute} value
+:canonical: fairdm.core.abstract.AbstractDate.value
+:value: >
+   'PartialDateField(...)'
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractDate.value
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.abstract.AbstractDate.Meta
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractDate.Meta
+```
+
+````{py:attribute} abstract
+:canonical: fairdm.core.abstract.AbstractDate.Meta.abstract
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractDate.Meta.abstract
+```
+
+````
+
+````{py:attribute} verbose_name
+:canonical: fairdm.core.abstract.AbstractDate.Meta.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractDate.Meta.verbose_name
+```
+
+````
+
+````{py:attribute} verbose_name_plural
+:canonical: fairdm.core.abstract.AbstractDate.Meta.verbose_name_plural
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractDate.Meta.verbose_name_plural
+```
+
+````
+
+````{py:attribute} ordering
+:canonical: fairdm.core.abstract.AbstractDate.Meta.ordering
+:value: >
+   ['value']
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractDate.Meta.ordering
+```
+
+````
+
+````{py:attribute} default_related_name
+:canonical: fairdm.core.abstract.AbstractDate.Meta.default_related_name
+:value: >
+   'dates'
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractDate.Meta.default_related_name
+```
+
+````
+
+````{py:attribute} constraints
+:canonical: fairdm.core.abstract.AbstractDate.Meta.constraints
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractDate.Meta.constraints
+```
+
+````
+
+`````
+
+``````
+
+``````{py:class} AbstractIdentifier(*args, **kwargs)
+:canonical: fairdm.core.abstract.AbstractIdentifier
+
+Bases: {py:obj}`fairdm.core.abstract.GenericModel`
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractIdentifier
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractIdentifier.__init__
+```
+
+````{py:attribute} value
+:canonical: fairdm.core.abstract.AbstractIdentifier.value
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractIdentifier.value
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.abstract.AbstractIdentifier.Meta
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractIdentifier.Meta
+```
+
+````{py:attribute} abstract
+:canonical: fairdm.core.abstract.AbstractIdentifier.Meta.abstract
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractIdentifier.Meta.abstract
+```
+
+````
+
+````{py:attribute} verbose_name
+:canonical: fairdm.core.abstract.AbstractIdentifier.Meta.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractIdentifier.Meta.verbose_name
+```
+
+````
+
+````{py:attribute} verbose_name_plural
+:canonical: fairdm.core.abstract.AbstractIdentifier.Meta.verbose_name_plural
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractIdentifier.Meta.verbose_name_plural
+```
+
+````
+
+````{py:attribute} default_related_name
+:canonical: fairdm.core.abstract.AbstractIdentifier.Meta.default_related_name
+:value: >
+   'identifiers'
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractIdentifier.Meta.default_related_name
+```
+
+````
+
+````{py:attribute} constraints
+:canonical: fairdm.core.abstract.AbstractIdentifier.Meta.constraints
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractIdentifier.Meta.constraints
+```
+
+````
+
+`````
+
+````{py:method} clean()
+:canonical: fairdm.core.abstract.AbstractIdentifier.clean
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractIdentifier.clean
+```
+
+````
+
+````{py:method} get_root_url()
+:canonical: fairdm.core.abstract.AbstractIdentifier.get_root_url
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractIdentifier.get_root_url
+```
+
+````
+
+````{py:method} get_absolute_url()
+:canonical: fairdm.core.abstract.AbstractIdentifier.get_absolute_url
+
+```{autodoc2-docstring} fairdm.core.abstract.AbstractIdentifier.get_absolute_url
+```
+
+````
+
+``````

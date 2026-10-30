@@ -1,0 +1,48 @@
+# {py:mod}`fairdm.core.measurement.urls`
+
+```{py:module} fairdm.core.measurement.urls
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.urls
+:allowtitles:
+```
+
+## Module Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`app_name <fairdm.core.measurement.urls.app_name>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.urls.app_name
+    :summary:
+    ```
+* - {py:obj}`urlpatterns <fairdm.core.measurement.urls.urlpatterns>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.urls.urlpatterns
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} app_name
+:canonical: fairdm.core.measurement.urls.app_name
+:value: >
+   'measurement'
+
+```{autodoc2-docstring} fairdm.core.measurement.urls.app_name
+```
+
+````
+
+````{py:data} urlpatterns
+:canonical: fairdm.core.measurement.urls.urlpatterns
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.urls.urlpatterns
+```
+
+````

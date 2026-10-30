@@ -1,0 +1,2453 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="Contributor models" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="developers/reference/contributor-models.html" />
+<meta property="og:site_name" content="fairdm" />
+<meta property="og:description" content="This page lists the models, fields, managers, methods and helper modules of fairdm.contrib.contributors that describe people and organizations: Contributor, Person, Organization, Affiliation, Contr..." />
+<meta name="description" content="This page lists the models, fields, managers, methods and helper modules of fairdm.contrib.contributors that describe people and organizations: Contributor, Person, Organization, Affiliation, Contr..." />
+
+    <title>Contributor models &#8212; fairdm 0.3.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=cb8930eaaf36d9849b67"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
+
+    <script src="../../_static/documentation_options.js?v=4621528c"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script kind="utterances">
+
+    var commentsRunWhenDOMLoaded = cb => {
+    if (document.readyState != 'loading') {
+        cb()
+    } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', cb)
+    } else {
+        document.attachEvent('onreadystatechange', function() {
+        if (document.readyState == 'complete') cb()
+        })
+    }
+}
+
+var addUtterances = () => {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://utteranc.es/client.js";
+    script.async = "async";
+
+    script.setAttribute("repo", "FAIR-DM/fairdm");
+    script.setAttribute("issue-term", "pathname");
+    script.setAttribute("theme", "preferred-color-scheme");
+    script.setAttribute("label", "documentation");
+    script.setAttribute("crossorigin", "anonymous");
+
+    sections = document.querySelectorAll("div.section");
+    if (sections !== null) {
+        section = sections[sections.length-1];
+        section.appendChild(script);
+    }
+}
+commentsRunWhenDOMLoaded(addUtterances);
+</script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'developers/reference/contributor-models';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.21.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.fairdm.org/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'latest';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="icon" href="../../_static/icon.svg"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Core models" href="core-models.html" />
+    <link rel="prev" title="Contribution levels and record access" href="contribution-levels-and-record-access.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.3.1" />
+    <meta name="docbuild:last-update" content="Oct 30, 2026"/>
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.3.1 documentation - Home"/>
+    <img src="../../_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.3.1 documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="../index.html">
+    Developers
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../administrators/index.html">
+    Administrators
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../users/index.html">
+    Users
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/what-fairdm-is-for.html">
+    What FairDM is for
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/fair-data-and-research-data-infrastructure.html">
+    FAIR data and research data infrastructure
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/the-technology-stack.html">
+    The technology stack
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/the-core-data-model.html">
+    The core data model
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-sample-and-measurement-types-are-stored.html">
+    How sample and measurement types are stored
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/controlled-vocabularies.html">
+    Controlled vocabularies
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/configuration-over-code.html">
+    Configuration over code
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/why-complete-metadata-matters.html">
+    Why complete metadata matters
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-access-to-a-record-is-decided.html">
+    How access to a record is decided
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/why-fairdm-records-contributors.html">
+    Why FairDM records contributors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-contributor-accounts-and-credits-work.html">
+    How contributor accounts and credits work
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-a-profile-is-claimed.html">
+    How a profile is claimed
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-fairdm-configures-a-portal.html">
+    How FairDM configures a portal
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/who-is-asked-to-agree-to-a-legal-document.html">
+    Who is asked to agree to a legal document
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-locations-are-stored-and-protected.html">
+    How locations are stored and protected
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">
+    Dataset publication, DOIs and DataCite metadata
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../reference/glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../contributing/index.html">
+    Framework Contributors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../adr/index.html">
+    Architecture Decision Records
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../ROADMAP.html">
+    Roadmap — FairDM
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    Developers
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../administrators/index.html">
+    Administrators
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../users/index.html">
+    Users
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/what-fairdm-is-for.html">
+    What FairDM is for
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/fair-data-and-research-data-infrastructure.html">
+    FAIR data and research data infrastructure
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/the-technology-stack.html">
+    The technology stack
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/the-core-data-model.html">
+    The core data model
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-sample-and-measurement-types-are-stored.html">
+    How sample and measurement types are stored
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/controlled-vocabularies.html">
+    Controlled vocabularies
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/configuration-over-code.html">
+    Configuration over code
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/why-complete-metadata-matters.html">
+    Why complete metadata matters
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-access-to-a-record-is-decided.html">
+    How access to a record is decided
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/why-fairdm-records-contributors.html">
+    Why FairDM records contributors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-contributor-accounts-and-credits-work.html">
+    How contributor accounts and credits work
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-a-profile-is-claimed.html">
+    How a profile is claimed
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-fairdm-configures-a-portal.html">
+    How FairDM configures a portal
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/who-is-asked-to-agree-to-a-legal-document.html">
+    Who is asked to agree to a legal document
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-locations-are-stored-and-protected.html">
+    How locations are stored and protected
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">
+    Dataset publication, DOIs and DataCite metadata
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../reference/glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing/index.html">
+    Framework Contributors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../adr/index.html">
+    Architecture Decision Records
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ROADMAP.html">
+    Roadmap — FairDM
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Tutorial</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../tutorial.html">Build your first sample and measurement types</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">How-to guides</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-factory-for-a-portal-model.html">How to add a factory for a portal model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-filter-to-a-sample-type.html">How to add a filter to a sample type</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-measurement-type.html">How to add a measurement type</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-record-field-to-a-form.html">How to add a record field to a form</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-sample-type.html">How to add a sample type</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-section-to-the-home-page.html">How to add a section to the home page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-start-step-to-a-container.html">How to add a start step to a container</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-transform-for-another-format.html">How to add a transform for another format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-viewset-to-the-api-router.html">How to add a viewset to the API router</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-an-entry-to-the-manage-menu.html">How to add an entry to the Manage menu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-an-environment-override-module.html">How to add an environment override module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-pages-to-a-plugin.html">How to add pages to a plugin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-queryset-methods-to-a-measurement-type.html">How to add queryset methods to a measurement type</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-search-and-sort-to-a-list-view.html">How to add search and sort to a list view</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/allow-only-some-sites-to-call-the-api.html">How to allow only some sites to call the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/back-up-a-portal.html">How to back up a portal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/change-a-types-api-address.html">How to change a type’s API address</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/change-how-the-team-page-looks.html">How to change how the team page looks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/change-the-api-rate-limits.html">How to change the API rate limits</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/change-the-entrance-layout.html">How to change the entrance layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/change-the-entrance-pane.html">How to change the entrance pane</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/change-the-portal-theme.html">How to change the portal theme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/change-what-a-home-page-section-shows.html">How to change what a home page section shows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/change-what-the-edit-details-page-offers.html">How to change what the edit details page offers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/choose-the-fields-the-api-returns.html">How to choose the fields the API returns</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/configure-the-agreement-check.html">How to configure the agreement check</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/count-api-callers-behind-a-proxy.html">How to count API callers behind a proxy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/create-a-ghost-person.html">How to create a ghost person</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/create-a-plugin.html">How to create a plugin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/create-an-addon.html">How to create an addon</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/credit-a-person-on-a-record.html">How to credit a person on a record</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/customise-a-generated-component.html">How to customise a generated component</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/customise-a-sample-form.html">How to customise a sample form</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/customise-the-admin-for-a-measurement-type.html">How to customise the admin for a measurement type</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/customise-the-api-documentation.html">How to customise the API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/customise-the-profile-form.html">How to customise the profile form</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/define-a-portal-role-of-your-own.html">How to define a portal role of your own</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/deploy-a-portal-in-a-container.html">How to deploy a portal in a container</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/develop-a-portal-on-the-development-image.html">How to develop a portal on the development image</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/extend-an-overview-page.html">How to extend an overview page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/extend-the-profile-claiming-flow.html">How to extend the profile-claiming flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/filter-a-list-by-a-record.html">How to filter a list by a record</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/filter-projects-by-vocabulary-keywords.html">How to filter projects by vocabulary keywords</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/find-records-by-where-they-are.html">How to find records by where they are</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/give-a-registered-type-a-location.html">How to give a sample or measurement a location</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/give-a-sample-or-measurement-type-its-own-overview-page.html">How to give a sample or measurement type its own overview page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/grant-object-permissions-on-polymorphic-models.html">How to grant object permissions on a polymorphic model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/import-and-export-locations.html">How to import and export locations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/import-people-from-orcid.html">How to import people from a list of ORCID iDs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/link-to-a-legal-document.html">How to link to a legal document</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/load-development-data-for-the-overview-pages.html">How to load development data for the overview pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/loop-over-the-registered-types.html">How to loop over the registered types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/narrow-a-record-field-by-another-field.html">How to narrow a record field by another field</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/override-a-fairdm-setting.html">How to override a FairDM setting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/place-an-organization-on-a-map.html">How to place an organization on a map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/record-sample-relationships.html">How to record sample relationships</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/register-a-sample-or-measurement-type.html">How to register a sample or measurement type</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/render-markdown-in-a-template.html">How to render markdown in a template</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/restore-a-portal-from-a-backup.html">How to restore a portal from a backup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/restrict-a-plugin-to-some-users.html">How to restrict a plugin to some users</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/restrict-a-record-field-to-one-sample-type.html">How to restrict a record field to one sample type</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/restrict-api-tokens-to-some-people.html">How to restrict API tokens to some people</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/run-a-background-worker-in-a-container.html">How to run a background worker in a container</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/search-a-registered-type-by-more-than-its-name.html">How to search a registered type by more than its name</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/show-part-of-a-page-to-a-records-team.html">How to show part of a page to a record’s team</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/sign-in-as-each-portal-role-while-developing.html">How to sign in as each portal role while developing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/sync-a-profile-from-orcid-or-ror-without-celery.html">How to sync a profile from ORCID or ROR without Celery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/test-a-portal-with-fairdm-factories.html">How to test a portal with FairDM factories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/upgrade-a-portal-to-django-literature-0-3.html">How to upgrade a portal to django-literature 0.3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/upgrade-a-portal-to-vocabulary-addresses.html">How to upgrade a portal to vocabulary addresses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/use-a-controlled-vocabulary-in-a-model.html">How to use a controlled vocabulary in a model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/use-a-sample-form-in-a-view.html">How to use a sample form in a view</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/write-a-custom-form-or-filter-for-a-measurement-type.html">How to write a custom form or filter for a measurement type</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="base-views.html">Base views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="components.html">Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="container-images.html">Container images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contribution-levels-and-record-access.html">Contribution levels and record access</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Contributor models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core-models.html">Core models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="crediting.html">Crediting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="development-accounts.html">Development accounts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="entrance-pages.html">Entrance pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="form-and-filter-mixins.html">Form and filter mixins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="home-page.html">Home page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legal-documents.html">Legal documents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="location-fields.html">Location fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="management-commands.html">Management commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="measurement-model.html">Measurement model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model-configuration.html">Model configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="model-fields.html">Model fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview-page-blocks.html">Overview page blocks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview-plugins.html">Overview plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plugins.html">Plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="portal-roles.html">Portal roles in code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="profile-claiming.html">Profile claiming</a></li>
+<li class="toctree-l1"><a class="reference internal" href="record-editing-pages.html">Record editing pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="record-fields.html">Record fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rest-api.html">REST API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sample-model.html">Sample model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="settings.html">Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="template-tags.html">Template tags</a></li>
+<li class="toctree-l1"><a class="reference internal" href="factories.html">Test factories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="registry.html">The registry</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="python-api.html">Python API</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/fairdm/fairdm.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.templatetags.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.templatetags</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.templatetags.fairdm.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.templatetags.fairdm</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.views.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.views.mixins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views.mixins</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.views.generic.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views.generic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.views.base.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views.base</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.conf.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.conf.settings.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.settings</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.conf.environment.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.environment</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.conf.urls.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.urls</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.conf.setup.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.setup</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.conf.checks.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.checks</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.conf.celery.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.celery</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.conf.development.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.development</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.conf.addons.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.addons</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.factories.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.factories.core.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories.core</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.factories.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories.utils</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.factories.contributors.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories.contributors</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.forms</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.forms.fields.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.forms.fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.forms.base.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.forms.base</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.db.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.db</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.db.fields.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.db.fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.db.managers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.db.managers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.db.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.db.models</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.api.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.settings.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.settings</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.viewsets.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.viewsets</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.schema.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.schema</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.urls.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.urls</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.throttling.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.throttling</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.checks.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.checks</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.router.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.router</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.permissions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.apps</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.filters.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.filters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.serializers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.serializers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.api.pagination.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.pagination</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.registry.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.registry.exceptions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry.exceptions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.registry.registry.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry.registry</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.registry.factories.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry.factories</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.registry.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry.config</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.backups.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.backups.management.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.management</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.backups.signals.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.signals</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.backups.tasks.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.tasks</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.backups.media.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.media</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.backups.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.apps</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.backups.run.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.run</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.backups.keys.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.keys</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.contrib.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.contributors.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.contributors</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.admin</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.collections.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.collections</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.autocomplete.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.autocomplete</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.identity.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.identity</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.plugins</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.import_export.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.import_export</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.location.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.location</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.management.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.management</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.management.commands.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.management.commands</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.core.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.measurement.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.sample.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.sample</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.dataset.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dataset</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.project.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.abstract.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.abstract</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.editing.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.editing</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.vocabularies.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.vocabularies</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.plugins</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.related_records.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.related_records</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.managers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.managers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.urls.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.urls</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.forms</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.formsets.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.formsets</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.permissions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.admin</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.apps</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.choices.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.choices</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.models</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.filters.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.filters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.overview.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.overview</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.dates.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dates</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.image_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.image_utils</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.descriptions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.descriptions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.utils</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/fairdm/fairdm.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.utils.location.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.location</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.utils.context_processors.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.context_processors</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.utils.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.permissions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.utils.choices.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.choices</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.utils.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.models</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.utils.inspection.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.inspection</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.utils.markdown.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.markdown</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.utils.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.utils</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3"><a class="reference internal" href="api/fairdm/fairdm.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.plugins</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/fairdm/fairdm.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.permissions</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/fairdm/fairdm.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.apps</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/fairdm/fairdm.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.models</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/fairdm/fairdm.portal_roles.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.portal_roles</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/fairdm/fairdm.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="api/fairdm/fairdm.menus.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.menus</span></code></a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Explanation</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../explanation/how-a-measurement-reports-its-value.html">How a measurement reports its value</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/how-api-callers-are-limited.html">How API callers are limited</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/how-fairdm-views-are-layered.html">How FairDM views are layered</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/how-markdown-is-sanitised.html">How markdown is sanitised</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/how-record-fields-decide-what-to-offer.html">How record fields decide what to offer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/how-the-container-images-are-versioned.html">How the container images are versioned</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/what-registering-a-type-produces.html">What registering a type produces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../explanation/why-factories-create-metadata-only-when-asked.html">Why factories create metadata only when asked</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Developers</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Contributor models</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="contributor-models">
+<h1>Contributor models<a class="headerlink" href="#contributor-models" title="Link to this heading">#</a></h1>
+<p>This page lists the models, fields, managers, methods and helper modules of <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors</span></code> that describe people and organizations: <code class="docutils literal notranslate"><span class="pre">Contributor</span></code>, <code class="docutils literal notranslate"><span class="pre">Person</span></code>, <code class="docutils literal notranslate"><span class="pre">Organization</span></code>, <code class="docutils literal notranslate"><span class="pre">Affiliation</span></code>, <code class="docutils literal notranslate"><span class="pre">Contribution</span></code> and <code class="docutils literal notranslate"><span class="pre">ContributorIdentifier</span></code>. It also covers the profile helper functions, the profile editing forms and the transform classes. It does not cover the contribution levels and the permission checks built on them, which are in <a class="reference internal" href="contribution-levels-and-record-access.html"><span class="std std-doc">Contribution levels and record access</span></a>, the methods that change who is credited on a record, which are in <a class="reference internal" href="crediting.html"><span class="std std-doc">Crediting</span></a>, or the claiming functions, which are in <a class="reference internal" href="profile-claiming.html"><span class="std std-doc">Profile claiming</span></a>. The reasons behind the design are in <a class="reference internal" href="../../explanation/how-contributor-accounts-and-credits-work.html"><span class="std std-doc">How contributor accounts and credits work</span></a>.</p>
+<p>Every class below is imported from <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.models</span></code> unless a section says otherwise. The generated <a class="reference internal" href="python-api.html"><span class="std std-doc">Python API</span></a> holds the docstrings.</p>
+<section id="contributor">
+<h2>Contributor<a class="headerlink" href="#contributor" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Contributor</span></code> is the polymorphic base of <code class="docutils literal notranslate"><span class="pre">Person</span></code> and <code class="docutils literal notranslate"><span class="pre">Organization</span></code>. It has a table of its own. A query on <code class="docutils literal notranslate"><span class="pre">Contributor</span></code> returns each row as its concrete class.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>What it holds</p></th>
+<th class="head"><p>What it accepts</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">uuid</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ShortUUIDField</span></code>, prefix <code class="docutils literal notranslate"><span class="pre">c</span></code></p></td>
+<td><p>Generated on first save</p></td>
+<td><p>The public identifier. Unique across both concrete types and never changed. Not editable</p></td>
+<td><p>Not set by hand</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">image</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ThumbnailerImageField</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>The profile image. The stored source is resized to at most 1200 by 1200 pixels as WebP</p></td>
+<td><p>An image file</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">name</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CharField(max_length=512)</span></code></p></td>
+<td><p>None, required</p></td>
+<td><p>The name the contributor is publicly known by</p></td>
+<td><p>Text</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">alternative_names</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">JSONField</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[]</span></code></p></td>
+<td><p>Other names the contributor is known by</p></td>
+<td><p>A list of strings</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">profile</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">TextField</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>A free-text description</p></td>
+<td><p>Text</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">links</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">JSONField</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[]</span></code></p></td>
+<td><p>Online resources about the contributor</p></td>
+<td><p>A list of web addresses. <code class="docutils literal notranslate"><span class="pre">Person.clean()</span></code> and <code class="docutils literal notranslate"><span class="pre">Organization.clean()</span></code> check each with Django’s <code class="docutils literal notranslate"><span class="pre">URLValidator</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">lang</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">JSONField</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">[]</span></code></p></td>
+<td><p>The contributor’s languages</p></td>
+<td><p>A list of ISO 639-1 codes, checked by <code class="docutils literal notranslate"><span class="pre">validate_iso_639_1_language_codes</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">last_synced</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DateField</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>The date <code class="docutils literal notranslate"><span class="pre">synced_data</span></code> last changed. Set on save. Not editable</p></td>
+<td><p>Not set by hand</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">synced_data</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">JSONField</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{}</span></code></p></td>
+<td><p>The raw record from the external provider. Not editable</p></td>
+<td><p>Not set by hand</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">config</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">JSONField</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{}</span></code></p></td>
+<td><p>A general-purpose store. Nothing in FairDM reads it or enforces anything from it</p></td>
+<td><p>Any JSON value</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">added</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DateTimeField</span></code></p></td>
+<td><p>Set once, on creation</p></td>
+<td><p>When the row was created</p></td>
+<td><p>Not set by hand</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">modified</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DateTimeField</span></code></p></td>
+<td><p>Set on every save</p></td>
+<td><p>When the row was last saved. Indexed</p></td>
+<td><p>Not set by hand</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">Contributor.Meta</span></code> orders rows by <code class="docutils literal notranslate"><span class="pre">name</span></code> and sets <code class="docutils literal notranslate"><span class="pre">default_related_name</span></code> to <code class="docutils literal notranslate"><span class="pre">contributors</span></code>.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Attribute</p></th>
+<th class="head"><p>Value</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">is_organization</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code> on <code class="docutils literal notranslate"><span class="pre">Contributor</span></code> and <code class="docutils literal notranslate"><span class="pre">Person</span></code>, <code class="docutils literal notranslate"><span class="pre">True</span></code> on <code class="docutils literal notranslate"><span class="pre">Organization</span></code></p></td>
+<td><p>Lets a template branch on the concrete type</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DEFAULT_IDENTIFIER</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;ORCID&quot;</span></code> on <code class="docutils literal notranslate"><span class="pre">Person</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;ROR&quot;</span></code> on <code class="docutils literal notranslate"><span class="pre">Organization</span></code></p></td>
+<td><p>The identifier type that <code class="docutils literal notranslate"><span class="pre">get_default_identifier()</span></code> returns</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Member</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_absolute_url()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The address of the overview page</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_update_url()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The address of the profile editing page</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">is_editable_by(user)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+<td><p>Whether <code class="docutils literal notranslate"><span class="pre">user</span></code> may edit the profile. <code class="docutils literal notranslate"><span class="pre">False</span></code> on <code class="docutils literal notranslate"><span class="pre">Contributor</span></code>, overridden by <code class="docutils literal notranslate"><span class="pre">Person</span></code> and <code class="docutils literal notranslate"><span class="pre">Organization</span></code>. See <a class="reference internal" href="#who-may-edit-a-profile">Who may edit a profile</a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_default_identifier()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ContributorIdentifier</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>The identifier of type <code class="docutils literal notranslate"><span class="pre">DEFAULT_IDENTIFIER</span></code>. Reads <code class="docutils literal notranslate"><span class="pre">identifiers.all()</span></code>, so a queryset that prefetches <code class="docutils literal notranslate"><span class="pre">identifiers</span></code> costs no query per contributor</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">default_identifier</span></code></p></td>
+<td><p>Property, same as above</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_identifier_icon()</span></code></p></td>
+<td><p>The rendered icon</p></td>
+<td><p>The icon for the default identifier type</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">primary_organization</span></code></p></td>
+<td><p>Property, <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Overridden by <code class="docutils literal notranslate"><span class="pre">Person</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">profile_image()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The image address, or the portal’s brand icon when there is no image</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_initials()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The first letters of the first two words of <code class="docutils literal notranslate"><span class="pre">name</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> without a name</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">type_of</span></code></p></td>
+<td><p>Class property, <code class="docutils literal notranslate"><span class="pre">Contributor</span></code></p></td>
+<td><p>The polymorphic base type</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">projects</span></code>, <code class="docutils literal notranslate"><span class="pre">datasets</span></code></p></td>
+<td><p>Properties, querysets</p></td>
+<td><p>The projects and datasets the contributor is credited on</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">samples</span></code>, <code class="docutils literal notranslate"><span class="pre">measurements</span></code></p></td>
+<td><p>Properties, querysets</p></td>
+<td><p>The samples and measurements the contributor is credited on, whatever their registered type</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">credited_object_ids(base_model)</span></code></p></td>
+<td><p>A values queryset of ids</p></td>
+<td><p>The ids of the contributor’s credits on <code class="docutils literal notranslate"><span class="pre">base_model</span></code> or one of its subclasses</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_public_projects()</span></code></p></td>
+<td><p>Queryset</p></td>
+<td><p>The public projects the contributor is credited on. <code class="docutils literal notranslate"><span class="pre">Organization</span></code> adds the ones it owns</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_public_datasets()</span></code></p></td>
+<td><p>Queryset</p></td>
+<td><p>The public datasets the contributor is credited on, outside private projects. <code class="docutils literal notranslate"><span class="pre">Organization</span></code> adds the ones in its projects</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_credit_counts()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
+<td><p>The number of credits for each credited model, keyed by the model’s plural verbose name</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_visible_contributions(user)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">list</span></code> of <code class="docutils literal notranslate"><span class="pre">Contribution</span></code></p></td>
+<td><p>The credits a profile may name, newest first. A project or dataset counts when it is one of the two public lists above. A sample or measurement counts when <code class="docutils literal notranslate"><span class="pre">visible_to(user)</span></code> lets the user see it and its dataset’s project, if it has one, is public. Each credit carries <code class="docutils literal notranslate"><span class="pre">kind</span></code> (<code class="docutils literal notranslate"><span class="pre">project</span></code>, <code class="docutils literal notranslate"><span class="pre">dataset</span></code>, <code class="docutils literal notranslate"><span class="pre">sample</span></code> or <code class="docutils literal notranslate"><span class="pre">measurement</span></code>). Projects and datasets also carry <code class="docutils literal notranslate"><span class="pre">record</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_role_counts(contributions=None)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Counter</span></code></p></td>
+<td><p>The number of credits each contribution role is held on, keyed by label. Counts every credit when <code class="docutils literal notranslate"><span class="pre">contributions</span></code> is omitted</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_recent_contributions(limit=5)</span></code></p></td>
+<td><p>Queryset slice</p></td>
+<td><p>The newest credits</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_contributions_by_type(model_name)</span></code></p></td>
+<td><p>Queryset</p></td>
+<td><p>The credits on one model, such as <code class="docutils literal notranslate"><span class="pre">&quot;project&quot;</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">has_contribution_to(obj)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+<td><p>Whether the contributor is credited on <code class="docutils literal notranslate"><span class="pre">obj</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_collaborators(limit=None,</span> <span class="pre">contributions=None)</span></code></p></td>
+<td><p>Queryset</p></td>
+<td><p>The other contributors credited on the same records, most frequent first and ties by name. Each carries <code class="docutils literal notranslate"><span class="pre">collaboration_count</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">add_to(obj,</span> <span class="pre">roles=None)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Contribution</span></code></p></td>
+<td><p>Credits the contributor on <code class="docutils literal notranslate"><span class="pre">obj</span></code>, adding <code class="docutils literal notranslate"><span class="pre">roles</span></code> (addresses of contributor roles) to any credit already there. A person credited for the first time starts at the view level. An organization has no level</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_links_display()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">list</span></code> of <code class="docutils literal notranslate"><span class="pre">{&quot;url&quot;,</span> <span class="pre">&quot;host&quot;}</span></code></p></td>
+<td><p>One entry for each <code class="docutils literal notranslate"><span class="pre">http</span></code> or <code class="docutils literal notranslate"><span class="pre">https</span></code> link, in the order recorded. Other links are left out</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_language_names()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">list</span></code> of <code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The names of the recorded languages in the active language. An unknown code is kept as written</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">to_datacite()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
+<td><p>The contributor as a DataCite creator or contributor object</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">to_schema_org()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
+<td><p>The contributor as a Schema.org <code class="docutils literal notranslate"><span class="pre">Person</span></code> or <code class="docutils literal notranslate"><span class="pre">Organization</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">to_public_schema_org()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">to_schema_org()</span></code> without the email address</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="language-codes">
+<h3>Language codes<a class="headerlink" href="#language-codes" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.validators</span></code> holds the checks behind <code class="docutils literal notranslate"><span class="pre">lang</span></code>:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ISO_639_1_CODES</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">frozenset</span></code></p></td>
+<td><p>The accepted codes</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">validate_iso_639_1_language_code(value)</span></code></p></td>
+<td><p>Validator</p></td>
+<td><p>Refuses a value outside <code class="docutils literal notranslate"><span class="pre">ISO_639_1_CODES</span></code>, naming the value</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">validate_iso_639_1_language_codes(value)</span></code></p></td>
+<td><p>Validator</p></td>
+<td><p>Applies the single-code check to each element of a list. An empty value passes</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Attach <code class="docutils literal notranslate"><span class="pre">validate_iso_639_1_language_codes</span></code> to a field of your own that holds a list of language codes.</p>
+</section>
+</section>
+<section id="person">
+<h2>Person<a class="headerlink" href="#person" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Person</span></code> extends Django’s <code class="docutils literal notranslate"><span class="pre">AbstractUser</span></code> and <code class="docutils literal notranslate"><span class="pre">Contributor</span></code>. It is the portal’s user model. <code class="docutils literal notranslate"><span class="pre">fairdm.setup()</span></code> sets <code class="docutils literal notranslate"><span class="pre">AUTH_USER_MODEL</span></code> to <code class="docutils literal notranslate"><span class="pre">contributors.Person</span></code> and people sign in with their email address. The <code class="docutils literal notranslate"><span class="pre">username</span></code> field is removed.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>What it holds</p></th>
+<th class="head"><p>What it accepts</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">email</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">EmailField</span></code>, unique, nullable</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>The sign-in address. Empty for a profile made for attribution alone</p></td>
+<td><p>A valid address. <code class="docutils literal notranslate"><span class="pre">clean()</span></code> stores an empty string as <code class="docutils literal notranslate"><span class="pre">None</span></code> and lowercases the address</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">is_claimed</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BooleanField</span></code>, indexed</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Whether the person has claimed the profile</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">AbstractUser</span></code> fields (<code class="docutils literal notranslate"><span class="pre">first_name</span></code>, <code class="docutils literal notranslate"><span class="pre">last_name</span></code>, <code class="docutils literal notranslate"><span class="pre">is_active</span></code>, <code class="docutils literal notranslate"><span class="pre">is_staff</span></code>, <code class="docutils literal notranslate"><span class="pre">is_superuser</span></code>, <code class="docutils literal notranslate"><span class="pre">password</span></code>, <code class="docutils literal notranslate"><span class="pre">last_login</span></code>, <code class="docutils literal notranslate"><span class="pre">date_joined</span></code>, <code class="docutils literal notranslate"><span class="pre">groups</span></code>, <code class="docutils literal notranslate"><span class="pre">user_permissions</span></code>) are inherited. <code class="docutils literal notranslate"><span class="pre">USERNAME_FIELD</span></code> is <code class="docutils literal notranslate"><span class="pre">email</span></code> and <code class="docutils literal notranslate"><span class="pre">REQUIRED_FIELDS</span></code> is empty. A constraint, <code class="docutils literal notranslate"><span class="pre">unique_person_email_ci</span></code>, makes addresses unique regardless of case.</p>
+<p><code class="docutils literal notranslate"><span class="pre">save()</span></code> fills a blank <code class="docutils literal notranslate"><span class="pre">name</span></code> from <code class="docutils literal notranslate"><span class="pre">first_name</span></code> and <code class="docutils literal notranslate"><span class="pre">last_name</span></code>. <code class="docutils literal notranslate"><span class="pre">clean()</span></code> also refuses a claimed person with no email, a link that is not a web address, and an ORCID identifier that does not match the form <code class="docutils literal notranslate"><span class="pre">0000-0000-0000-0000</span></code>.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Member</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">account_state</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">AccountState</span></code></p></td>
+<td><p>One of <code class="docutils literal notranslate"><span class="pre">GHOST</span></code>, <code class="docutils literal notranslate"><span class="pre">INVITED</span></code>, <code class="docutils literal notranslate"><span class="pre">CLAIMED</span></code> or <code class="docutils literal notranslate"><span class="pre">INACTIVE</span></code>, worked out from <code class="docutils literal notranslate"><span class="pre">is_active</span></code>, <code class="docutils literal notranslate"><span class="pre">is_claimed</span></code> and <code class="docutils literal notranslate"><span class="pre">email</span></code>. Inactive wins, then claimed, then invited when there is an email, else ghost</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">can_sign_in()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+<td><p>Whether the account is active and the person has claimed it or has signed in (<code class="docutils literal notranslate"><span class="pre">last_login</span></code> is set)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">is_editable_by(user)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+<td><p>See <a class="reference internal" href="#who-may-edit-a-profile">Who may edit a profile</a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">orcid()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ContributorIdentifier</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>The person’s ORCID identifier</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">orcid_is_authenticated</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code> property</p></td>
+<td><p>Whether the person has signed in with ORCID. Reads <code class="docutils literal notranslate"><span class="pre">socialaccount_set.all()</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_provider(provider)</span></code></p></td>
+<td><p>Social account or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>The person’s allauth social account for a provider id such as <code class="docutils literal notranslate"><span class="pre">&quot;orcid&quot;</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">primary_affiliation()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Affiliation</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>The primary affiliation, when it is verified (member or above) and has no end date. Reads <code class="docutils literal notranslate"><span class="pre">affiliations.all()</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">primary_organization</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Organization</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>The organization of <code class="docutils literal notranslate"><span class="pre">primary_affiliation()</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">current_affiliations()</span></code></p></td>
+<td><p>Queryset</p></td>
+<td><p>Affiliations with no end date and a type of member or above, with the organization loaded</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_affiliation_history()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">current</span></code> (the primary affiliation first, the rest by organization name) and <code class="docutils literal notranslate"><span class="pre">past</span></code> (most recently ended first). Pending affiliations are left out</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">portal_roles</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">list</span></code> of labels</p></td>
+<td><p>The labels of the portal roles the person holds, in declaration order. Empty for an inactive person. Reads <code class="docutils literal notranslate"><span class="pre">groups.all()</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_initials()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The initials of <code class="docutils literal notranslate"><span class="pre">first_name</span></code> and <code class="docutils literal notranslate"><span class="pre">last_name</span></code>, else of <code class="docutils literal notranslate"><span class="pre">name</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">given</span></code>, <code class="docutils literal notranslate"><span class="pre">family</span></code></p></td>
+<td><p>Properties</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">first_name</span></code> and <code class="docutils literal notranslate"><span class="pre">last_name</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_full_name_display(name_format=&quot;given_family&quot;)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The name as <code class="docutils literal notranslate"><span class="pre">given_family</span></code> (“John Doe”), <code class="docutils literal notranslate"><span class="pre">family_given</span></code> (“Doe, John”), <code class="docutils literal notranslate"><span class="pre">family_initial</span></code> (“Doe, J.”) or <code class="docutils literal notranslate"><span class="pre">initials_family</span></code> (“J. Doe”). Any other value gives <code class="docutils literal notranslate"><span class="pre">given_family</span></code>. Returns <code class="docutils literal notranslate"><span class="pre">name</span></code> when both names are empty</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">member_since</span></code></p></td>
+<td><p>Property</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">date_joined</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a profile nobody has claimed</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_profile_completeness()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
+<td><p>A flag for each of <code class="docutils literal notranslate"><span class="pre">image</span></code>, <code class="docutils literal notranslate"><span class="pre">orcid</span></code>, <code class="docutils literal notranslate"><span class="pre">profile</span></code>, <code class="docutils literal notranslate"><span class="pre">primary_affiliation</span></code> and <code class="docutils literal notranslate"><span class="pre">links</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_location_display()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>The city and country of the primary affiliation’s organization</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">as_geojson()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>A GeoJSON feature placed at the primary affiliation’s organization. <code class="docutils literal notranslate"><span class="pre">None</span></code> when that organization has no location</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">icon()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;orcid&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;orcid_unauthenticated&quot;</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">Person.objects</span></code> is a <code class="docutils literal notranslate"><span class="pre">UserManager</span></code>. <code class="docutils literal notranslate"><span class="pre">Person.objects.all().&lt;method&gt;()</span></code> and <code class="docutils literal notranslate"><span class="pre">Person.objects.&lt;method&gt;()</span></code> give the same result.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Method</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">create_user(email,</span> <span class="pre">password=None,</span> <span class="pre">**extra_fields)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Person</span></code></p></td>
+<td><p>Makes a person who is neither staff nor superuser. Does not set <code class="docutils literal notranslate"><span class="pre">is_claimed</span></code>. A <code class="docutils literal notranslate"><span class="pre">password</span></code> of <code class="docutils literal notranslate"><span class="pre">None</span></code> sets an unusable password. Raises <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> without an email</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">create_superuser(email,</span> <span class="pre">password=None,</span> <span class="pre">**extra_fields)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Person</span></code></p></td>
+<td><p>Makes a staff superuser. Raises <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> when <code class="docutils literal notranslate"><span class="pre">is_staff</span></code> or <code class="docutils literal notranslate"><span class="pre">is_superuser</span></code> is passed as false</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">create_unclaimed(first_name,</span> <span class="pre">last_name,</span> <span class="pre">**extra_fields)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Person</span></code></p></td>
+<td><p>Makes a ghost profile: active, unclaimed, no email, an unusable password. <code class="docutils literal notranslate"><span class="pre">name</span></code> defaults to the two names joined</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The queryset methods of <code class="docutils literal notranslate"><span class="pre">PersonQuerySet</span></code>:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Method</p></th>
+<th class="head"><p>Keeps</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">real()</span></code></p></td>
+<td><p>Everyone except superusers and the anonymous placeholder (email <code class="docutils literal notranslate"><span class="pre">AnonymousUser</span></code>). Ghost and invited profiles stay in</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">active()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">is_active=True</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">inactive()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">is_active=False</span></code>, whatever the claim status</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">claimed()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">is_active=True</span></code> and <code class="docutils literal notranslate"><span class="pre">is_claimed=True</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">unclaimed()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">is_claimed=False</span></code>, which covers ghost, invited and inactive unclaimed profiles</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ghost()</span></code></p></td>
+<td><p>Active, unclaimed, no email</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">invited()</span></code></p></td>
+<td><p>Active, unclaimed, with an email</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">for_cards()</span></code></p></td>
+<td><p>Everyone, with <code class="docutils literal notranslate"><span class="pre">identifiers</span></code>, <code class="docutils literal notranslate"><span class="pre">socialaccount_set</span></code>, <code class="docutils literal notranslate"><span class="pre">affiliations__organization</span></code> and <code class="docutils literal notranslate"><span class="pre">groups</span></code> prefetched, so a card or list row costs no query per person</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">AccountState</span></code> is in <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.choices</span></code> with the values <code class="docutils literal notranslate"><span class="pre">ghost</span></code>, <code class="docutils literal notranslate"><span class="pre">invited</span></code>, <code class="docutils literal notranslate"><span class="pre">claimed</span></code> and <code class="docutils literal notranslate"><span class="pre">inactive</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fairdm.contrib.contributors.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Person</span>
+
+<span class="n">people</span> <span class="o">=</span> <span class="n">Person</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">real</span><span class="p">()</span><span class="o">.</span><span class="n">claimed</span><span class="p">()</span><span class="o">.</span><span class="n">for_cards</span><span class="p">()</span>
+</pre></div>
+</div>
+<section id="who-may-edit-a-profile">
+<h3>Who may edit a profile<a class="headerlink" href="#who-may-edit-a-profile" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">Contributor.is_editable_by(user)</span></code> is the one rule that decides who may open and save the profile editing page. It is not a Django permission, because the answer depends on the record.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Profile</p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">is_editable_by(user)</span></code> is true for</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>A person</p></td>
+<td><p>The person, while their account is active. An active holder of the Community Manager role, when <code class="docutils literal notranslate"><span class="pre">can_sign_in()</span></code> is false for the person</p></td>
+</tr>
+<tr class="row-odd"><td><p>An organization</p></td>
+<td><p>An active user who passes <code class="docutils literal notranslate"><span class="pre">is_managed_by(user)</span></code> (a current administrator or owner), and an active holder of the Community Manager role, whether or not the organization has an owner</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>An anonymous visitor, a superuser and the holder of any other portal role get no right from that alone. The rule asks <code class="docutils literal notranslate"><span class="pre">PortalRoles.is_held_by</span></code>, never a Django permission. See <a class="reference internal" href="portal-roles.html"><span class="std std-doc">Portal roles in code</span></a>.</p>
+</section>
+</section>
+<section id="organization">
+<h2>Organization<a class="headerlink" href="#organization" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Organization</span></code> extends <code class="docutils literal notranslate"><span class="pre">Contributor</span></code>.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>What it holds</p></th>
+<th class="head"><p>What it accepts</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CharField</span></code>, indexed</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>The kind of institution</p></td>
+<td><p>A value of <code class="docutils literal notranslate"><span class="pre">OrganizationType</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">members</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ManyToManyField</span></code> to <code class="docutils literal notranslate"><span class="pre">Person</span></code> through <code class="docutils literal notranslate"><span class="pre">Affiliation</span></code></p></td>
+<td><p></p></td>
+<td><p>The affiliated people. Has no reverse accessor</p></td>
+<td><p>Add members through <code class="docutils literal notranslate"><span class="pre">Affiliation</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">parent</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ForeignKey</span></code> to <code class="docutils literal notranslate"><span class="pre">self</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>The organization this one is part of. Reached from the parent as <code class="docutils literal notranslate"><span class="pre">sub_organizations</span></code>. Deleting the parent sets this to <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>An organization other than itself or one beneath it</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">city</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CharField(max_length=255)</span></code>, indexed</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>The city</p></td>
+<td><p>Text</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">country</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CountryField</span></code>, indexed</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>The country</p></td>
+<td><p>A two-letter country code</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">location</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PointField</span></code>, SRID 4326</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>A point in WGS 84 with no elevation or uncertainty</p></td>
+<td><p>A point</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">OrganizationType</span></code> is in <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.choices</span></code>. Its values are <code class="docutils literal notranslate"><span class="pre">education</span></code>, <code class="docutils literal notranslate"><span class="pre">funder</span></code>, <code class="docutils literal notranslate"><span class="pre">healthcare</span></code>, <code class="docutils literal notranslate"><span class="pre">company</span></code>, <code class="docutils literal notranslate"><span class="pre">archive</span></code>, <code class="docutils literal notranslate"><span class="pre">nonprofit</span></code>, <code class="docutils literal notranslate"><span class="pre">government</span></code>, <code class="docutils literal notranslate"><span class="pre">facility</span></code> and <code class="docutils literal notranslate"><span class="pre">other</span></code>. ROR allows several types for one organization and FairDM keeps one.</p>
+<p><code class="docutils literal notranslate"><span class="pre">clean()</span></code> refuses a <code class="docutils literal notranslate"><span class="pre">parent</span></code> that is the organization itself or any organization beneath it, with an error on <code class="docutils literal notranslate"><span class="pre">parent</span></code> and the code <code class="docutils literal notranslate"><span class="pre">parent_loop</span></code>. It also checks each link and that a ROR identifier has the form <code class="docutils literal notranslate"><span class="pre">0xxxxxx00</span></code>, with or without the <code class="docutils literal notranslate"><span class="pre">https://ror.org/</span></code> prefix. An index, <code class="docutils literal notranslate"><span class="pre">organization_location_geog_idx</span></code>, supports location lookups.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Member</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">lat</span></code>, <code class="docutils literal notranslate"><span class="pre">lon</span></code></p></td>
+<td><p>Properties</p></td>
+<td><p>The latitude and longitude of <code class="docutils literal notranslate"><span class="pre">location</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">from_ror(ror,</span> <span class="pre">commit=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Organization</span></code></p></td>
+<td><p>Creates or updates an organization from a ROR record through <code class="docutils literal notranslate"><span class="pre">RORTransform.update_or_create</span></code>. With <code class="docutils literal notranslate"><span class="pre">commit</span></code>, it also queues a sync after the transaction commits</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_memberships()</span></code></p></td>
+<td><p>Queryset</p></td>
+<td><p>The organization’s affiliations with <code class="docutils literal notranslate"><span class="pre">person</span></code> loaded</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_current_memberships()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">list</span></code> of <code class="docutils literal notranslate"><span class="pre">Affiliation</span></code></p></td>
+<td><p>Verified affiliations with no end date, the owner first, then administrators, then members, each group by name</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">owner()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Person</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>The person with a current owner affiliation</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">has_member(user)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+<td><p>Whether the user has a current affiliation of member or above. A visitor is never a member</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">is_managed_by(user)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+<td><p>Whether the user has a current affiliation of administrator or owner. A portal role does not count</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">is_editable_by(user)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+<td><p>See <a class="reference internal" href="#who-may-edit-a-profile">Who may edit a profile</a></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">transfer_ownership(new_owner)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Demotes every current owner to administrator and makes <code class="docutils literal notranslate"><span class="pre">new_owner</span></code> the owner, in one transaction. See below</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_descendant_ids()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">set</span></code> of ids</p></td>
+<td><p>The primary keys of every organization beneath this one, at any depth. Empty before the first save</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_hierarchy()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">parent</span></code> (or <code class="docutils literal notranslate"><span class="pre">None</span></code>), <code class="docutils literal notranslate"><span class="pre">siblings</span></code> (the parent’s sub-organizations by name, this one included, empty without a parent) and <code class="docutils literal notranslate"><span class="pre">children</span></code> (the direct sub-organizations by name)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_public_projects()</span></code></p></td>
+<td><p>Queryset</p></td>
+<td><p>The public projects the organization owns or is credited on, none twice</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_public_datasets()</span></code></p></td>
+<td><p>Queryset</p></td>
+<td><p>The public datasets the organization is credited on or that sit in its projects, none twice. A dataset in a private project is left out</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_record_completeness()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
+<td><p>A flag for each of <code class="docutils literal notranslate"><span class="pre">ror</span></code>, <code class="docutils literal notranslate"><span class="pre">image</span></code>, <code class="docutils literal notranslate"><span class="pre">type</span></code>, <code class="docutils literal notranslate"><span class="pre">location</span></code> (needs a city and a country), <code class="docutils literal notranslate"><span class="pre">profile</span></code> and <code class="docutils literal notranslate"><span class="pre">links</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_location_display()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>The city and country</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">summary</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code> property</p></td>
+<td><p>The type and place joined by a middle dot, or <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_initials()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The leading acronym when the name starts with one (<code class="docutils literal notranslate"><span class="pre">&quot;GFZ</span> <span class="pre">Helmholtz</span> <span class="pre">Centre&quot;</span></code> gives <code class="docutils literal notranslate"><span class="pre">&quot;GFZ&quot;</span></code>), else up to two capital letters</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">as_geojson()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>A GeoJSON feature for <code class="docutils literal notranslate"><span class="pre">location</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">icon()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;organization&quot;</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">transfer_ownership</span></code> raises <code class="docutils literal notranslate"><span class="pre">ValidationError</span></code> and changes nothing when the new owner:</p>
+<ul class="simple">
+<li><p>holds no affiliation with the organization</p></li>
+<li><p>has an affiliation that has ended</p></li>
+<li><p>has an affiliation that is still pending</p></li>
+<li><p>has not claimed their account</p></li>
+<li><p>has a deactivated account</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">OrganizationQuerySet</span></code> adds the location lookups described in <a class="reference internal" href="location-fields.html"><span class="std std-doc">Location fields</span></a>.</p>
+<section id="management-of-an-organization">
+<h3>Management of an organization<a class="headerlink" href="#management-of-an-organization" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">manage_organization</span></code> is derived, not stored. <code class="docutils literal notranslate"><span class="pre">OrganizationPermissionBackend</span></code> answers <code class="docutils literal notranslate"><span class="pre">user.has_perm(&quot;contributors.manage_organization&quot;,</span> <span class="pre">organization)</span></code> as follows:</p>
+<ul class="simple">
+<li><p>For an inactive user or a visitor, it answers false.</p></li>
+<li><p>For a superuser, it answers true.</p></li>
+<li><p>For anyone else, it answers true only when they hold a current <code class="docutils literal notranslate"><span class="pre">OWNER</span></code> affiliation with the organization.</p></li>
+</ul>
+<p>A stored django-guardian grant of this permission is never consulted. Setting <code class="docutils literal notranslate"><span class="pre">end_date</span></code> on an affiliation, changing its type away from <code class="docutils literal notranslate"><span class="pre">OWNER</span></code>, or deactivating the account removes the right on the next check.</p>
+</section>
+</section>
+<section id="affiliation">
+<h2>Affiliation<a class="headerlink" href="#affiliation" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Affiliation</span></code> links a <code class="docutils literal notranslate"><span class="pre">Person</span></code> to an <code class="docutils literal notranslate"><span class="pre">Organization</span></code>. An affiliation is current when it has no <code class="docutils literal notranslate"><span class="pre">end_date</span></code>. An end date in the future still makes it past.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>What it holds</p></th>
+<th class="head"><p>What it accepts</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">person</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ForeignKey</span></code> to <code class="docutils literal notranslate"><span class="pre">Person</span></code></p></td>
+<td><p>None, required</p></td>
+<td><p>The person. Reached from the person as <code class="docutils literal notranslate"><span class="pre">affiliations</span></code></p></td>
+<td><p>A person</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">organization</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ForeignKey</span></code> to <code class="docutils literal notranslate"><span class="pre">Organization</span></code></p></td>
+<td><p>None, required</p></td>
+<td><p>The organization. Reached from the organization as <code class="docutils literal notranslate"><span class="pre">affiliations</span></code></p></td>
+<td><p>An organization</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">IntegerField</span></code>, indexed</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MembershipType.MEMBER</span></code></p></td>
+<td><p>The verification state and role</p></td>
+<td><p>A value of <code class="docutils literal notranslate"><span class="pre">Affiliation.MembershipType</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">is_primary</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">BooleanField</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Whether this is the person’s primary affiliation</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">start_date</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PartialDateField</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>When the affiliation began</p></td>
+<td><p>A year, a year and month, or a full date, as in <a class="reference internal" href="model-fields.html"><span class="std std-doc">Model fields</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">end_date</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PartialDateField</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>When it ended. Empty means current</p></td>
+<td><p>As <code class="docutils literal notranslate"><span class="pre">start_date</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">Affiliation.MembershipType</span></code> has four values. Each includes the rights of the ones before it, so they compare as integers.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Value</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">PENDING</span></code></p></td>
+<td><p>0</p></td>
+<td><p>Declared and not yet verified</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MEMBER</span></code></p></td>
+<td><p>1</p></td>
+<td><p>A regular member</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ADMIN</span></code></p></td>
+<td><p>2</p></td>
+<td><p>Can manage memberships</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">OWNER</span></code></p></td>
+<td><p>3</p></td>
+<td><p>Full control of the organization</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Two database constraints apply:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">unique_affiliation_person_organization</span></code> allows one affiliation for each person and organization. <code class="docutils literal notranslate"><span class="pre">clean()</span></code> refuses a second with the message <code class="docutils literal notranslate"><span class="pre">&lt;person&gt;</span> <span class="pre">is</span> <span class="pre">already</span> <span class="pre">a</span> <span class="pre">member</span> <span class="pre">of</span> <span class="pre">&lt;organization&gt;.</span></code> on <code class="docutils literal notranslate"><span class="pre">organization</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unique_primary_affiliation_per_person</span></code> allows one primary affiliation for each person. <code class="docutils literal notranslate"><span class="pre">save()</span></code> demotes the person’s other primary affiliation in the same transaction.</p></li>
+</ul>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Member</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">start_display</span></code>, <code class="docutils literal notranslate"><span class="pre">end_display</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code> properties</p></td>
+<td><p>The date as precisely as it was recorded, or <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">Affiliation.objects</span></code> is an <code class="docutils literal notranslate"><span class="pre">AffiliationManager</span></code> with these methods, also available on <code class="docutils literal notranslate"><span class="pre">person.affiliations</span></code>:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Method</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">current()</span></code></p></td>
+<td><p>Queryset</p></td>
+<td><p>Affiliations with no end date</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">past()</span></code></p></td>
+<td><p>Queryset</p></td>
+<td><p>Affiliations with an end date</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">primary()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Affiliation</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>The affiliation marked primary. Cannot be chained further</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">owners()</span></code></p></td>
+<td><p>Queryset</p></td>
+<td><p>Current affiliations of type <code class="docutils literal notranslate"><span class="pre">OWNER</span></code>. The one definition of ownership</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="contribution">
+<h2>Contribution<a class="headerlink" href="#contribution" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Contribution</span></code> is a contributor’s credit on one project, dataset, sample or measurement. It is an <code class="docutils literal notranslate"><span class="pre">OrderedModel</span></code>, so each row has an <code class="docutils literal notranslate"><span class="pre">order</span></code>.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>What it holds</p></th>
+<th class="head"><p>What it accepts</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">content_type</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ForeignKey</span></code> to <code class="docutils literal notranslate"><span class="pre">ContentType</span></code></p></td>
+<td><p>None, required</p></td>
+<td><p>The type of the credited record</p></td>
+<td><p>A content type</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">object_id</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CharField(max_length=23)</span></code></p></td>
+<td><p>None, required</p></td>
+<td><p>The credited record’s primary key as text</p></td>
+<td><p>A key</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">content_object</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GenericForeignKey</span></code></p></td>
+<td><p></p></td>
+<td><p>The credited record</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">contributor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ForeignKey</span></code> to <code class="docutils literal notranslate"><span class="pre">Contributor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code>, nullable</p></td>
+<td><p>The person or organization credited. Deleting the contributor sets this to <code class="docutils literal notranslate"><span class="pre">None</span></code>. Reached from the contributor as <code class="docutils literal notranslate"><span class="pre">contributions</span></code></p></td>
+<td><p>A contributor</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">roles</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MultiConceptField</span></code> on the contributor roles vocabulary</p></td>
+<td><p>Empty</p></td>
+<td><p>The roles on this credit</p></td>
+<td><p>Concepts of the contributor roles vocabulary</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">affiliation</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ForeignKey</span></code> to <code class="docutils literal notranslate"><span class="pre">Organization</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>The organization a person is credited from on this record. Kept on the credit and not read from the profile. Deleting the organization sets this to <code class="docutils literal notranslate"><span class="pre">None</span></code>. No reverse accessor</p></td>
+<td><p>An organization, or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">level</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PositiveSmallIntegerField</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>What a person may do on the record. Empty for an organization</p></td>
+<td><p>A value of <code class="docutils literal notranslate"><span class="pre">ContributionLevel</span></code>. See <a class="reference internal" href="contribution-levels-and-record-access.html"><span class="std std-doc">Contribution levels and record access</span></a></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">Contribution.Meta</span></code> orders rows by <code class="docutils literal notranslate"><span class="pre">object_id</span></code> and <code class="docutils literal notranslate"><span class="pre">order</span></code>.</p>
+<p>Two rules protect the data:</p>
+<ul class="simple">
+<li><p>A named constraint, <code class="docutils literal notranslate"><span class="pre">unique_contribution_per_contributor_object</span></code>, allows one row for each contributor and record. <code class="docutils literal notranslate"><span class="pre">clean()</span></code> refuses a second row with the message <code class="docutils literal notranslate"><span class="pre">This</span> <span class="pre">contributor</span> <span class="pre">is</span> <span class="pre">already</span> <span class="pre">credited</span> <span class="pre">on</span> <span class="pre">this</span> <span class="pre">object.</span></code></p></li>
+<li><p>A role from any other vocabulary is refused before it is written: <code class="docutils literal notranslate"><span class="pre">roles.add()</span></code> and <code class="docutils literal notranslate"><span class="pre">roles.set()</span></code> raise <code class="docutils literal notranslate"><span class="pre">ValidationError</span></code>.</p></li>
+</ul>
+<p>The roles a record’s type offers are the collection named by its <code class="docutils literal notranslate"><span class="pre">CONTRIBUTOR_ROLES</span></code> attribute, the address of one of the contributor roles vocabulary’s collections.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Member</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Contribution.add_to(contributor,</span> <span class="pre">obj,</span> <span class="pre">roles=None,</span> <span class="pre">affiliation=None)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Contribution</span></code></p></td>
+<td><p>Credits <code class="docutils literal notranslate"><span class="pre">contributor</span></code> on <code class="docutils literal notranslate"><span class="pre">obj</span></code>. A credit already there is kept and <code class="docutils literal notranslate"><span class="pre">roles</span></code> (role addresses) are added to it. <code class="docutils literal notranslate"><span class="pre">affiliation</span></code> is set only on a credit created by this call. A person credited for the first time starts at the view level. A sample or measurement held as its base class is credited under its real type</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Contribution.starting_level(contributor)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ContributionLevel</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">VIEW</span></code> for a person, <code class="docutils literal notranslate"><span class="pre">None</span></code> for an organization</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">is_person()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+<td><p>Whether the contributor is a <code class="docutils literal notranslate"><span class="pre">Person</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_absolute_url()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The contributor’s profile address</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">add_to</span></code> on the contribution, <code class="docutils literal notranslate"><span class="pre">Contributor.add_to</span></code> and the <code class="docutils literal notranslate"><span class="pre">add_contributor(contributor,</span> <span class="pre">with_roles=None)</span></code> method that every project, dataset, sample and measurement has all call the same code. Crediting the same contributor again adds roles and does not make a second row.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Contribution.objects</span></code> is a <code class="docutils literal notranslate"><span class="pre">ContributionManager</span></code>. A record’s <code class="docutils literal notranslate"><span class="pre">contributors</span></code> relation uses the same manager, so <code class="docutils literal notranslate"><span class="pre">dataset.contributors.people()</span></code> works. The methods:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Method</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">by_role(role)</span></code></p></td>
+<td><p>Queryset</p></td>
+<td><p>Credits whose roles include the role with this address</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">for_entity(obj)</span></code></p></td>
+<td><p>Queryset</p></td>
+<td><p>Credits on one record</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">by_contributor(contributor)</span></code></p></td>
+<td><p>Queryset</p></td>
+<td><p>Credits by one contributor across all records</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">people()</span></code></p></td>
+<td><p>Queryset</p></td>
+<td><p>Credits of people, ordered by <code class="docutils literal notranslate"><span class="pre">order</span></code> then <code class="docutils literal notranslate"><span class="pre">pk</span></code>. Reads the contributor’s polymorphic type and loads no contributor</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">organizations()</span></code></p></td>
+<td><p>Queryset</p></td>
+<td><p>Credits of organizations, ordered by <code class="docutils literal notranslate"><span class="pre">order</span></code> then <code class="docutils literal notranslate"><span class="pre">pk</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Move a credit through <code class="docutils literal notranslate"><span class="pre">Crediting.move</span></code>. Do not use <code class="docutils literal notranslate"><span class="pre">contribution.up()</span></code> or <code class="docutils literal notranslate"><span class="pre">contribution.down()</span></code> from <code class="docutils literal notranslate"><span class="pre">OrderedModel</span></code>. A contribution has no <code class="docutils literal notranslate"><span class="pre">order_with_respect_to</span></code>, so they swap places with a row on another record. See <a class="reference internal" href="crediting.html"><span class="std std-doc">Crediting</span></a>.</p>
+</section>
+<section id="contributoridentifier">
+<h2>ContributorIdentifier<a class="headerlink" href="#contributoridentifier" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">ContributorIdentifier</span></code> is an external identifier of a contributor.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>What it holds</p></th>
+<th class="head"><p>What it accepts</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">related</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ForeignKey</span></code> to <code class="docutils literal notranslate"><span class="pre">Contributor</span></code></p></td>
+<td><p>None, required</p></td>
+<td><p>The contributor. Reached as <code class="docutils literal notranslate"><span class="pre">identifiers</span></code></p></td>
+<td><p>A contributor</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ConceptField</span></code> on the identifier types vocabulary, limited to its contributor collection</p></td>
+<td><p>None, required</p></td>
+<td><p>The identifier scheme</p></td>
+<td><p>The address of one of the types below</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">value</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CharField(max_length=255)</span></code>, unique, indexed</p></td>
+<td><p>None, required</p></td>
+<td><p>The identifier</p></td>
+<td><p>Text. No two identifiers of any record type share a value</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The contributor collection offers, by identifier, <code class="docutils literal notranslate"><span class="pre">orcid</span></code>, <code class="docutils literal notranslate"><span class="pre">researcher-id</span></code>, <code class="docutils literal notranslate"><span class="pre">ror</span></code>, <code class="docutils literal notranslate"><span class="pre">wikidata</span></code>, <code class="docutils literal notranslate"><span class="pre">isni</span></code> and <code class="docutils literal notranslate"><span class="pre">crossref-funder-id</span></code>. A contributor holds at most one identifier of each type. A second is refused at the database and by <code class="docutils literal notranslate"><span class="pre">clean()</span></code>, with a message naming the type.</p>
+<p><code class="docutils literal notranslate"><span class="pre">resolver_url</span></code> is the address the identifier resolves to, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a type with no resolver. ORCID, ROR, Wikidata, ISNI and Crossref Funder ID identifiers have one. A ResearcherID has none.</p>
+<p>Creating an identifier queues a sync with the external provider once the transaction commits. The sync is a Celery task, <code class="docutils literal notranslate"><span class="pre">sync_contributor_identifier</span></code>. See <a class="reference internal" href="../how-to/sync-a-profile-from-orcid-or-ror-without-celery.html"><span class="std std-doc">How to sync a profile from ORCID or ROR without Celery</span></a>.</p>
+</section>
+<section id="profile-helpers">
+<h2>Profile helpers<a class="headerlink" href="#profile-helpers" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.profiles</span></code> holds the pure functions behind a profile page. None reads the database or a request.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Function</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">link_host(url)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The host without a leading <code class="docutils literal notranslate"><span class="pre">www.</span></code>, or the link as written when it has no host</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">language_names(codes)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">list</span></code> of <code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>One name per ISO 639-1 code in the active language, in the order given. An unknown code is kept as written</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ranked_shares(counts)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">list</span></code> of <code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
+<td><p>Ranks a mapping of counts, largest first, as <code class="docutils literal notranslate"><span class="pre">{&quot;label&quot;,</span> <span class="pre">&quot;count&quot;,</span> <span class="pre">&quot;percent&quot;}</span></code> where the largest is 100</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fill_slots(items,</span> <span class="pre">slots,</span> <span class="pre">reserve=False)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
+<td><p>Fits a list into <code class="docutils literal notranslate"><span class="pre">slots</span></code> places and returns <code class="docutils literal notranslate"><span class="pre">shown</span></code>, <code class="docutils literal notranslate"><span class="pre">more</span></code> and <code class="docutils literal notranslate"><span class="pre">total</span></code>. With <code class="docutils literal notranslate"><span class="pre">reserve</span></code>, the last place is kept for a “+n more” entry when the list overflows</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">checklist(items)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
+<td><p>Sums up items that each carry a <code class="docutils literal notranslate"><span class="pre">done</span></code> flag: <code class="docutils literal notranslate"><span class="pre">items</span></code>, <code class="docutils literal notranslate"><span class="pre">done</span></code>, <code class="docutils literal notranslate"><span class="pre">total</span></code> and <code class="docutils literal notranslate"><span class="pre">ready</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">active_then_recent(items,</span> <span class="pre">modified,</span> <span class="pre">active=None)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">list</span></code></p></td>
+<td><p>Orders items with the active ones first, each group most recently updated first. <code class="docutils literal notranslate"><span class="pre">modified</span></code> and <code class="docutils literal notranslate"><span class="pre">active</span></code> take one item</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fairdm.contrib.contributors.profiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">fill_slots</span><span class="p">,</span> <span class="n">link_host</span><span class="p">,</span> <span class="n">ranked_shares</span>
+
+<span class="n">link_host</span><span class="p">(</span><span class="s2">"https://www.github.com/someone"</span><span class="p">)</span>  <span class="c1"># "github.com"</span>
+<span class="n">ranked_shares</span><span class="p">({</span><span class="s2">"Creator"</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">"Editor"</span><span class="p">:</span> <span class="mi">2</span><span class="p">})</span>
+<span class="c1"># [{"label": "Creator", "count": 4, "percent": 100},</span>
+<span class="c1">#  {"label": "Editor", "count": 2, "percent": 50}]</span>
+<span class="n">fill_slots</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">12</span><span class="p">)),</span> <span class="mi">10</span><span class="p">,</span> <span class="n">reserve</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># {"shown": [0, 1, 2, 3, 4, 5, 6, 7, 8], "more": 3, "total": 12}</span>
+</pre></div>
+</div>
+</section>
+<section id="profile-forms">
+<h2>Profile forms<a class="headerlink" href="#profile-forms" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.forms.profile</span></code> holds the forms behind the profile editing page and the field their lists are typed into. The page is the <code class="docutils literal notranslate"><span class="pre">Update</span></code> plugin in <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.plugins.update</span></code>. It reads <code class="docutils literal notranslate"><span class="pre">FAIRDM_PROFILE_FORMS</span></code> (see <a class="reference internal" href="settings.html"><span class="std std-doc">Settings</span></a>) for the kind of contributor, <code class="docutils literal notranslate"><span class="pre">person</span></code> or <code class="docutils literal notranslate"><span class="pre">organization</span></code>, and falls back to the shipped form when the setting names none. It declares its own <code class="docutils literal notranslate"><span class="pre">check</span></code>, <code class="docutils literal notranslate"><span class="pre">contributor_is_editable</span></code>, so a visitor is sent to sign in and a signed-in user who may not edit gets a 403. The check runs on every request, so a right lost while the page is open refuses the save.</p>
+<section id="profileform">
+<h3>ProfileForm<a class="headerlink" href="#profileform" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">ProfileForm</span></code> is the base of the two shipped forms. A portal’s own form can extend it. It draws no <code class="docutils literal notranslate"><span class="pre">&lt;form&gt;</span></code> tag, because the editing page supplies the tag and the buttons.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Attribute</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sections</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tuple</span></code> of <code class="docutils literal notranslate"><span class="pre">(heading,</span> <span class="pre">rows)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">()</span></code></p></td>
+<td><p>Groups the fields in page order. A row is one field name, or a tuple of names drawn side by side on a wide screen. A heading of <code class="docutils literal notranslate"><span class="pre">None</span></code> draws the rows with no heading</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>A field the form does not carry is left out of its section. A section left with no field is not drawn. A field that no section names is drawn after the last section.</p>
+<p>A stored record can fail the model’s validation on a field the form does not carry, such as an identifier stored in a malformed state. <code class="docutils literal notranslate"><span class="pre">ProfileForm</span></code> reports that failure as an error on the form as a whole, in <code class="docutils literal notranslate"><span class="pre">form.non_field_errors()</span></code>, and saves nothing.</p>
+</section>
+<section id="personprofileform">
+<h3>PersonProfileForm<a class="headerlink" href="#personprofileform" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Accepts</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">image</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ImageField</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">jpg</span></code>, <code class="docutils literal notranslate"><span class="pre">jpeg</span></code>, <code class="docutils literal notranslate"><span class="pre">png</span></code> or <code class="docutils literal notranslate"><span class="pre">webp</span></code>, within the size limit. A clear box removes the photo</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">first_name</span></code>, <code class="docutils literal notranslate"><span class="pre">last_name</span></code></p></td>
+<td><p>Model fields</p></td>
+<td><p>The names that citations and exported metadata use</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">name</span></code></p></td>
+<td><p>Model field</p></td>
+<td><p>The display name. Required</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">alternative_names</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LinesField</span></code></p></td>
+<td><p>Other names, one per line</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">profile</span></code></p></td>
+<td><p>Model field</p></td>
+<td><p>The biography</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">links</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LinesField</span></code></p></td>
+<td><p>Web addresses, one per line. Only <code class="docutils literal notranslate"><span class="pre">http</span></code> and <code class="docutils literal notranslate"><span class="pre">https</span></code> are accepted</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">lang</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MultipleChoiceField</span></code></p></td>
+<td><p>ISO 639-1 codes, named in the active language. Each code is stored once</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The email, password, identifiers, affiliations, portal roles and account state are never on this form. Its <code class="docutils literal notranslate"><span class="pre">sections</span></code> are the unheaded group of <code class="docutils literal notranslate"><span class="pre">first_name</span></code> and <code class="docutils literal notranslate"><span class="pre">last_name</span></code> side by side, <code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">alternative_names</span></code>, and the group “About you” with <code class="docutils literal notranslate"><span class="pre">image</span></code>, <code class="docutils literal notranslate"><span class="pre">profile</span></code>, <code class="docutils literal notranslate"><span class="pre">lang</span></code> and <code class="docutils literal notranslate"><span class="pre">links</span></code>.</p>
+</section>
+<section id="organizationprofileform">
+<h3>OrganizationProfileForm<a class="headerlink" href="#organizationprofileform" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Field</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Accepts</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">image</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ImageField</span></code></p></td>
+<td><p>The logo, as for the person’s photo</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">alternative_names</span></code></p></td>
+<td><p>Model field, <code class="docutils literal notranslate"><span class="pre">LinesField</span></code></p></td>
+<td><p>As on the person form</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">type</span></code>, <code class="docutils literal notranslate"><span class="pre">country</span></code></p></td>
+<td><p>Model fields</p></td>
+<td><p>A value from their lists</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">parent</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">OrganizationChoiceField</span></code></p></td>
+<td><p>An organization other than itself or one beneath it. The picker searches every organization by name, alternative name or ROR identifier</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">city</span></code></p></td>
+<td><p>Model field</p></td>
+<td><p>A city</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">location</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LocationField</span></code></p></td>
+<td><p>A latitude and a longitude as signed decimal degrees in WGS 84. Both empty removes the point. See <a class="reference internal" href="location-fields.html"><span class="std std-doc">Location fields</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">profile</span></code></p></td>
+<td><p>Model field</p></td>
+<td><p>The description</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">website</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CharField</span></code></p></td>
+<td><p>An <code class="docutils literal notranslate"><span class="pre">http</span></code> or <code class="docutils literal notranslate"><span class="pre">https</span></code> address</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">links</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">LinesField</span></code></p></td>
+<td><p>Other <code class="docutils literal notranslate"><span class="pre">http</span></code> or <code class="docutils literal notranslate"><span class="pre">https</span></code> addresses, one per line</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">website</span></code> and <code class="docutils literal notranslate"><span class="pre">links</span></code> are two fields over the one stored list <code class="docutils literal notranslate"><span class="pre">Organization.links</span></code>. The website is stored first and the other links follow it, and an address typed in both places is stored once. When the form opens, <code class="docutils literal notranslate"><span class="pre">website</span></code> shows the first stored link and <code class="docutils literal notranslate"><span class="pre">links</span></code> shows the rest. A form that keeps <code class="docutils literal notranslate"><span class="pre">website</span></code> must keep <code class="docutils literal notranslate"><span class="pre">links</span></code> as well. Without <code class="docutils literal notranslate"><span class="pre">website</span></code>, <code class="docutils literal notranslate"><span class="pre">links</span></code> shows every stored link.</p>
+<p>The ROR identifier, the members and the owner are never on this form. Its <code class="docutils literal notranslate"><span class="pre">sections</span></code> are an unheaded group, “Location”, “About” and “Online”.</p>
+</section>
+<section id="linesfield">
+<h3>LinesField<a class="headerlink" href="#linesfield" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">LinesField(entry_validator=None,</span> <span class="pre">max_entries=50,</span> <span class="pre">**kwargs)</span></code> is a <code class="docutils literal notranslate"><span class="pre">CharField</span></code> on a text area whose cleaned value is a list. It trims each line, drops empty lines and keeps a repeated entry once, where it was first typed. A list given as the initial value is shown one entry per line.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Argument</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">entry_validator</span></code></p></td>
+<td><p>callable or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Called with each entry. The first entry it rejects is reported with the code <code class="docutils literal notranslate"><span class="pre">invalid_entry</span></code>, and the entry is available to the message as <code class="docutils literal notranslate"><span class="pre">%(entry)s</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">max_entries</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">int</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">50</span></code></p></td>
+<td><p>The most entries accepted. More are refused with the code <code class="docutils literal notranslate"><span class="pre">too_many</span></code>, and <code class="docutils literal notranslate"><span class="pre">%(max)d</span></code> is available to the message</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">django.core.validators</span><span class="w"> </span><span class="kn">import</span> <span class="n">URLValidator</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">fairdm.contrib.contributors.forms.profile</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinesField</span>
+
+<span class="n">websites</span> <span class="o">=</span> <span class="n">LinesField</span><span class="p">(</span>
+    <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">entry_validator</span><span class="o">=</span><span class="n">URLValidator</span><span class="p">(</span><span class="n">schemes</span><span class="o">=</span><span class="p">[</span><span class="s2">"http"</span><span class="p">,</span> <span class="s2">"https"</span><span class="p">]),</span>
+    <span class="n">error_messages</span><span class="o">=</span><span class="p">{</span><span class="s2">"invalid_entry"</span><span class="p">:</span> <span class="s2">"</span><span class="si">%(entry)s</span><span class="s2"> is not a web address."</span><span class="p">},</span>
+<span class="p">)</span>
+<span class="n">websites</span><span class="o">.</span><span class="n">clean</span><span class="p">(</span><span class="s2">"https://example.org</span><span class="se">\n\n</span><span class="s2">https://example.org</span><span class="se">\n</span><span class="s2">https://example.net"</span><span class="p">)</span>
+<span class="c1"># ['https://example.org', 'https://example.net']</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">language_choices()</span></code> in the same module returns the <code class="docutils literal notranslate"><span class="pre">(code,</span> <span class="pre">name)</span></code> pairs that <code class="docutils literal notranslate"><span class="pre">lang</span></code> offers, sorted by name.</p>
+</section>
+</section>
+<section id="transforms">
+<h2>Transforms<a class="headerlink" href="#transforms" title="Link to this heading">#</a></h2>
+<p>The classes in <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.utils.transforms</span></code> convert between a <code class="docutils literal notranslate"><span class="pre">Contributor</span></code> and an external format. A transform is an instance, and the contract is <code class="docutils literal notranslate"><span class="pre">export()</span></code> and <code class="docutils literal notranslate"><span class="pre">import_data()</span></code>.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Member of <code class="docutils literal notranslate"><span class="pre">BaseTransform</span></code></p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">export(contributor)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
+<td><p>Converts a contributor to the external format. Raises <code class="docutils literal notranslate"><span class="pre">NotImplementedError</span></code> unless overridden</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">import_data(data,</span> <span class="pre">instance=None,</span> <span class="pre">save=True)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Contributor</span></code></p></td>
+<td><p>Converts external data to a contributor, updating <code class="docutils literal notranslate"><span class="pre">instance</span></code> when given. Raises <code class="docutils literal notranslate"><span class="pre">NotImplementedError</span></code> unless overridden</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">validate(data)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+<td><p>Whether <code class="docutils literal notranslate"><span class="pre">data</span></code> is a <code class="docutils literal notranslate"><span class="pre">dict</span></code>. Override to check more</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">dictget(data,</span> <span class="pre">path,</span> <span class="pre">default=&quot;&quot;)</span></code></p></td>
+<td><p>Any</p></td>
+<td><p>Reads a nested value by a list of keys and indexes. Returns <code class="docutils literal notranslate"><span class="pre">default</span></code> when the path does not exist</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The built-in transforms:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Class</p></th>
+<th class="head"><p>Format</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DataCiteTransform</span></code></p></td>
+<td><p>DataCite Metadata Schema 4.4 creator or contributor</p></td>
+<td><p>Export adds the default identifier, the given and family names, and the primary affiliation</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">SchemaOrgTransform</span></code></p></td>
+<td><p>Schema.org <code class="docutils literal notranslate"><span class="pre">Person</span></code> or <code class="docutils literal notranslate"><span class="pre">Organization</span></code> JSON-LD</p></td>
+<td><p>Export includes the email address of a person. Use <code class="docutils literal notranslate"><span class="pre">to_public_schema_org()</span></code> for a page</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CSLJSONTransform</span></code></p></td>
+<td><p>CSL-JSON author</p></td>
+<td><p>Import looks up an existing contributor by ORCID when no <code class="docutils literal notranslate"><span class="pre">instance</span></code> is given</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ORCIDTransform</span></code></p></td>
+<td><p>ORCID Public API v3.0 record</p></td>
+<td><p>Exports and imports <code class="docutils literal notranslate"><span class="pre">Person</span></code> only. Export raises <code class="docutils literal notranslate"><span class="pre">TypeError</span></code> for an organization</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">RORTransform</span></code></p></td>
+<td><p>ROR schema version 2 record</p></td>
+<td><p>Exports and imports <code class="docutils literal notranslate"><span class="pre">Organization</span></code> only. Export raises <code class="docutils literal notranslate"><span class="pre">TypeError</span></code> for a person</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">ORCIDTransform</span></code> and <code class="docutils literal notranslate"><span class="pre">RORTransform</span></code> also talk to the registry:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Member</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fetch_from_api(identifier)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
+<td><p>Fetches the public record with a 30 second timeout. Raises <code class="docutils literal notranslate"><span class="pre">requests.RequestException</span></code> on failure</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">update_or_create(identifier,</span> <span class="pre">force=False,</span> <span class="pre">**kwargs)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(contributor,</span> <span class="pre">created)</span></code></p></td>
+<td><p>Finds a contributor by <code class="docutils literal notranslate"><span class="pre">kwargs</span></code> or by identifier value. Fetches and updates it when <code class="docutils literal notranslate"><span class="pre">force</span></code> is true or it was last synced more than a day ago. Creates one when none is found</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_or_create(identifier)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(contributor,</span> <span class="pre">created)</span></code></p></td>
+<td><p>Finds a contributor by identifier value, or fetches the record and creates one</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">RORTransform</span></code> adds three more:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Member</p></th>
+<th class="head"><p>Returns</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">clean_ror_id(ror_id_or_link)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The bare ID without the <code class="docutils literal notranslate"><span class="pre">https://ror.org/</span></code> prefix</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">display_name(data)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>The name ROR displays, or <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">import_location(data,</span> <span class="pre">org)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Sets <code class="docutils literal notranslate"><span class="pre">city</span></code>, <code class="docutils literal notranslate"><span class="pre">country</span></code> and <code class="docutils literal notranslate"><span class="pre">location</span></code> on <code class="docutils literal notranslate"><span class="pre">org</span></code> from the record’s first location, without saving. Changes nothing when the record names no place</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The functions <code class="docutils literal notranslate"><span class="pre">contributor_to_datacite</span></code>, <code class="docutils literal notranslate"><span class="pre">contributor_to_schema_org</span></code>, <code class="docutils literal notranslate"><span class="pre">contributor_to_csljson</span></code> and <code class="docutils literal notranslate"><span class="pre">csljson_to_contributor</span></code> wrap the three format transforms. To write your own, see <a class="reference internal" href="../how-to/add-a-transform-for-another-format.html"><span class="std std-doc">How to add a transform for another format</span></a>.</p>
+</section>
+<section id="related-pages">
+<h2>Related pages<a class="headerlink" href="#related-pages" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="settings.html"><span class="std std-doc">Settings</span></a> describes <code class="docutils literal notranslate"><span class="pre">FAIRDM_PROFILE_FORMS</span></code>, which names the profile editing forms.</p></li>
+<li><p><a class="reference internal" href="../how-to/customise-the-profile-form.html"><span class="std std-doc">How to customise the profile form</span></a> changes the fields of the editing page.</p></li>
+<li><p><a class="reference internal" href="../how-to/create-a-ghost-person.html"><span class="std std-doc">How to create a ghost person</span></a> makes a profile for attribution alone.</p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="contribution-levels-and-record-access.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Contribution levels and record access</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="core-models.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Core models</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#contributor">Contributor</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#language-codes">Language codes</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#person">Person</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#who-may-edit-a-profile">Who may edit a profile</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#organization">Organization</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#management-of-an-organization">Management of an organization</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#affiliation">Affiliation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#contribution">Contribution</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#contributoridentifier">ContributorIdentifier</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#profile-helpers">Profile helpers</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#profile-forms">Profile forms</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#profileform">ProfileForm</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#personprofileform">PersonProfileForm</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#organizationprofileform">OrganizationProfileForm</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#linesfield">LinesField</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#transforms">Transforms</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#related-pages">Related pages</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Samuel Jennings.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.21.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,20 @@
+# {py:mod}`fairdm.contrib.identity`
+
+```{py:module} fairdm.contrib.identity
+```
+
+```{autodoc2-docstring} fairdm.contrib.identity
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.contrib.identity.forms
+fairdm.contrib.identity.admin
+fairdm.contrib.identity.apps
+fairdm.contrib.identity.models
+```

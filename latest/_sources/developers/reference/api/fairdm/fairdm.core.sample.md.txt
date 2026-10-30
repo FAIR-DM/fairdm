@@ -1,0 +1,25 @@
+# {py:mod}`fairdm.core.sample`
+
+```{py:module} fairdm.core.sample
+```
+
+```{autodoc2-docstring} fairdm.core.sample
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.core.sample.plugins
+fairdm.core.sample.managers
+fairdm.core.sample.urls
+fairdm.core.sample.forms
+fairdm.core.sample.admin
+fairdm.core.sample.apps
+fairdm.core.sample.models
+fairdm.core.sample.filters
+fairdm.core.sample.config
+```

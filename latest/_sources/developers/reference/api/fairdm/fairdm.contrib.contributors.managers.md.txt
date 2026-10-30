@@ -1,0 +1,312 @@
+# {py:mod}`fairdm.contrib.contributors.managers`
+
+```{py:module} fairdm.contrib.contributors.managers
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`OrganizationQuerySet <fairdm.contrib.contributors.managers.OrganizationQuerySet>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.managers.OrganizationQuerySet
+    :summary:
+    ```
+* - {py:obj}`PersonQuerySet <fairdm.contrib.contributors.managers.PersonQuerySet>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.managers.PersonQuerySet
+    :summary:
+    ```
+* - {py:obj}`UserManager <fairdm.contrib.contributors.managers.UserManager>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.managers.UserManager
+    :summary:
+    ```
+* - {py:obj}`AffiliationQuerySet <fairdm.contrib.contributors.managers.AffiliationQuerySet>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.managers.AffiliationQuerySet
+    :summary:
+    ```
+* - {py:obj}`AffiliationManager <fairdm.contrib.contributors.managers.AffiliationManager>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.managers.AffiliationManager
+    :summary:
+    ```
+* - {py:obj}`ContributionQuerySet <fairdm.contrib.contributors.managers.ContributionQuerySet>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.managers.ContributionQuerySet
+    :summary:
+    ```
+* - {py:obj}`ContributionManager <fairdm.contrib.contributors.managers.ContributionManager>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.managers.ContributionManager
+    :summary:
+    ```
+````
+
+### API
+
+````{py:class} OrganizationQuerySet(model=None, query=None, using=None, hints=None)
+:canonical: fairdm.contrib.contributors.managers.OrganizationQuerySet
+
+Bases: {py:obj}`fairdm.utils.location.managers.LocatedQuerySet`, {py:obj}`fairdm.db.models.PrefetchPolymorphicQuerySet`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.OrganizationQuerySet
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.OrganizationQuerySet.__init__
+```
+
+````
+
+`````{py:class} PersonQuerySet(model=None, query=None, using=None, hints=None)
+:canonical: fairdm.contrib.contributors.managers.PersonQuerySet
+
+Bases: {py:obj}`fairdm.db.models.PrefetchPolymorphicQuerySet`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.PersonQuerySet
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.PersonQuerySet.__init__
+```
+
+````{py:method} real()
+:canonical: fairdm.contrib.contributors.managers.PersonQuerySet.real
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.PersonQuerySet.real
+```
+
+````
+
+````{py:method} active()
+:canonical: fairdm.contrib.contributors.managers.PersonQuerySet.active
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.PersonQuerySet.active
+```
+
+````
+
+````{py:method} inactive()
+:canonical: fairdm.contrib.contributors.managers.PersonQuerySet.inactive
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.PersonQuerySet.inactive
+```
+
+````
+
+````{py:method} claimed()
+:canonical: fairdm.contrib.contributors.managers.PersonQuerySet.claimed
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.PersonQuerySet.claimed
+```
+
+````
+
+````{py:method} unclaimed()
+:canonical: fairdm.contrib.contributors.managers.PersonQuerySet.unclaimed
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.PersonQuerySet.unclaimed
+```
+
+````
+
+````{py:method} ghost()
+:canonical: fairdm.contrib.contributors.managers.PersonQuerySet.ghost
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.PersonQuerySet.ghost
+```
+
+````
+
+````{py:method} invited()
+:canonical: fairdm.contrib.contributors.managers.PersonQuerySet.invited
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.PersonQuerySet.invited
+```
+
+````
+
+````{py:method} for_cards()
+:canonical: fairdm.contrib.contributors.managers.PersonQuerySet.for_cards
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.PersonQuerySet.for_cards
+```
+
+````
+
+`````
+
+`````{py:class} UserManager
+:canonical: fairdm.contrib.contributors.managers.UserManager
+
+Bases: {py:obj}`django.contrib.auth.models.BaseUserManager`, {py:obj}`PrefetchPolymorphicManager.from_queryset`\({py:obj}`PersonQuerySet`\)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.UserManager
+```
+
+````{py:attribute} use_in_migrations
+:canonical: fairdm.contrib.contributors.managers.UserManager.use_in_migrations
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.UserManager.use_in_migrations
+```
+
+````
+
+````{py:method} create_user(email, password=None, **extra_fields)
+:canonical: fairdm.contrib.contributors.managers.UserManager.create_user
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.UserManager.create_user
+```
+
+````
+
+````{py:method} create_superuser(email, password=None, **extra_fields)
+:canonical: fairdm.contrib.contributors.managers.UserManager.create_superuser
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.UserManager.create_superuser
+```
+
+````
+
+````{py:method} create_unclaimed(first_name: str, last_name: str, **extra_fields)
+:canonical: fairdm.contrib.contributors.managers.UserManager.create_unclaimed
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.UserManager.create_unclaimed
+```
+
+````
+
+`````
+
+`````{py:class} AffiliationQuerySet(model=None, query=None, using=None, hints=None)
+:canonical: fairdm.contrib.contributors.managers.AffiliationQuerySet
+
+Bases: {py:obj}`django.db.models.QuerySet`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.AffiliationQuerySet
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.AffiliationQuerySet.__init__
+```
+
+````{py:method} primary()
+:canonical: fairdm.contrib.contributors.managers.AffiliationQuerySet.primary
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.AffiliationQuerySet.primary
+```
+
+````
+
+````{py:method} current()
+:canonical: fairdm.contrib.contributors.managers.AffiliationQuerySet.current
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.AffiliationQuerySet.current
+```
+
+````
+
+````{py:method} past()
+:canonical: fairdm.contrib.contributors.managers.AffiliationQuerySet.past
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.AffiliationQuerySet.past
+```
+
+````
+
+````{py:method} owners()
+:canonical: fairdm.contrib.contributors.managers.AffiliationQuerySet.owners
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.AffiliationQuerySet.owners
+```
+
+````
+
+`````
+
+````{py:class} AffiliationManager
+:canonical: fairdm.contrib.contributors.managers.AffiliationManager
+
+Bases: {py:obj}`models.Manager.from_queryset`\({py:obj}`AffiliationQuerySet`\)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.AffiliationManager
+```
+
+````
+
+`````{py:class} ContributionQuerySet(model=None, query=None, using=None, hints=None)
+:canonical: fairdm.contrib.contributors.managers.ContributionQuerySet
+
+Bases: {py:obj}`ordered_model.models.OrderedModelQuerySet`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.ContributionQuerySet
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.ContributionQuerySet.__init__
+```
+
+````{py:method} by_role(role: str)
+:canonical: fairdm.contrib.contributors.managers.ContributionQuerySet.by_role
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.ContributionQuerySet.by_role
+```
+
+````
+
+````{py:method} for_entity(obj)
+:canonical: fairdm.contrib.contributors.managers.ContributionQuerySet.for_entity
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.ContributionQuerySet.for_entity
+```
+
+````
+
+````{py:method} by_contributor(contributor)
+:canonical: fairdm.contrib.contributors.managers.ContributionQuerySet.by_contributor
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.ContributionQuerySet.by_contributor
+```
+
+````
+
+````{py:method} people()
+:canonical: fairdm.contrib.contributors.managers.ContributionQuerySet.people
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.ContributionQuerySet.people
+```
+
+````
+
+````{py:method} organizations()
+:canonical: fairdm.contrib.contributors.managers.ContributionQuerySet.organizations
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.ContributionQuerySet.organizations
+```
+
+````
+
+`````
+
+````{py:class} ContributionManager
+:canonical: fairdm.contrib.contributors.managers.ContributionManager
+
+Bases: {py:obj}`OrderedModelManager.from_queryset`\({py:obj}`ContributionQuerySet`\)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.managers.ContributionManager
+```
+
+````

@@ -1,0 +1,162 @@
+# {py:mod}`fairdm.contrib.admin.sites`
+
+```{py:module} fairdm.contrib.admin.sites
+```
+
+```{autodoc2-docstring} fairdm.contrib.admin.sites
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FixtureUploadForm <fairdm.contrib.admin.sites.FixtureUploadForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.admin.sites.FixtureUploadForm
+    :summary:
+    ```
+* - {py:obj}`PortalAdminAuthenticationForm <fairdm.contrib.admin.sites.PortalAdminAuthenticationForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.admin.sites.PortalAdminAuthenticationForm
+    :summary:
+    ```
+* - {py:obj}`CustomAdminSite <fairdm.contrib.admin.sites.CustomAdminSite>`
+  - ```{autodoc2-docstring} fairdm.contrib.admin.sites.CustomAdminSite
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} FixtureUploadForm(data=None, files=None, auto_id='id_%s', prefix=None, initial=None, error_class=ErrorList, label_suffix=None, empty_permitted=False, field_order=None, use_required_attribute=None, renderer=None, bound_field_class=None)
+:canonical: fairdm.contrib.admin.sites.FixtureUploadForm
+
+Bases: {py:obj}`django.forms.Form`
+
+```{autodoc2-docstring} fairdm.contrib.admin.sites.FixtureUploadForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.admin.sites.FixtureUploadForm.__init__
+```
+
+````{py:attribute} fixture_file
+:canonical: fairdm.contrib.admin.sites.FixtureUploadForm.fixture_file
+:value: >
+   'FileField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.admin.sites.FixtureUploadForm.fixture_file
+```
+
+````
+
+`````
+
+`````{py:class} PortalAdminAuthenticationForm(request=None, *args, **kwargs)
+:canonical: fairdm.contrib.admin.sites.PortalAdminAuthenticationForm
+
+Bases: {py:obj}`django.contrib.admin.forms.AdminAuthenticationForm`
+
+```{autodoc2-docstring} fairdm.contrib.admin.sites.PortalAdminAuthenticationForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.admin.sites.PortalAdminAuthenticationForm.__init__
+```
+
+````{py:method} confirm_login_allowed(user)
+:canonical: fairdm.contrib.admin.sites.PortalAdminAuthenticationForm.confirm_login_allowed
+
+```{autodoc2-docstring} fairdm.contrib.admin.sites.PortalAdminAuthenticationForm.confirm_login_allowed
+```
+
+````
+
+`````
+
+`````{py:class} CustomAdminSite(name='admin')
+:canonical: fairdm.contrib.admin.sites.CustomAdminSite
+
+Bases: {py:obj}`django.contrib.admin.AdminSite`
+
+```{autodoc2-docstring} fairdm.contrib.admin.sites.CustomAdminSite
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.admin.sites.CustomAdminSite.__init__
+```
+
+````{py:attribute} site_header
+:canonical: fairdm.contrib.admin.sites.CustomAdminSite.site_header
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.admin.sites.CustomAdminSite.site_header
+```
+
+````
+
+````{py:attribute} site_title
+:canonical: fairdm.contrib.admin.sites.CustomAdminSite.site_title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.admin.sites.CustomAdminSite.site_title
+```
+
+````
+
+````{py:attribute} index_title
+:canonical: fairdm.contrib.admin.sites.CustomAdminSite.index_title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.admin.sites.CustomAdminSite.index_title
+```
+
+````
+
+````{py:attribute} login_form
+:canonical: fairdm.contrib.admin.sites.CustomAdminSite.login_form
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.admin.sites.CustomAdminSite.login_form
+```
+
+````
+
+````{py:method} has_permission(request)
+:canonical: fairdm.contrib.admin.sites.CustomAdminSite.has_permission
+
+```{autodoc2-docstring} fairdm.contrib.admin.sites.CustomAdminSite.has_permission
+```
+
+````
+
+````{py:method} get_urls()
+:canonical: fairdm.contrib.admin.sites.CustomAdminSite.get_urls
+
+```{autodoc2-docstring} fairdm.contrib.admin.sites.CustomAdminSite.get_urls
+```
+
+````
+
+````{py:method} upload_fixture_view(request)
+:canonical: fairdm.contrib.admin.sites.CustomAdminSite.upload_fixture_view
+
+```{autodoc2-docstring} fairdm.contrib.admin.sites.CustomAdminSite.upload_fixture_view
+```
+
+````
+
+`````

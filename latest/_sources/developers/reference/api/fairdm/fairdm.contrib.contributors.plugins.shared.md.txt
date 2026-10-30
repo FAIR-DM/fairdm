@@ -1,0 +1,978 @@
+# {py:mod}`fairdm.contrib.contributors.plugins.shared`
+
+```{py:module} fairdm.contrib.contributors.plugins.shared
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`AffiliationChoice <fairdm.contrib.contributors.plugins.shared.AffiliationChoice>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.AffiliationChoice
+    :summary:
+    ```
+* - {py:obj}`NewPersonForm <fairdm.contrib.contributors.plugins.shared.NewPersonForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.NewPersonForm
+    :summary:
+    ```
+* - {py:obj}`NewOrganizationForm <fairdm.contrib.contributors.plugins.shared.NewOrganizationForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.NewOrganizationForm
+    :summary:
+    ```
+* - {py:obj}`ContributionPage <fairdm.contrib.contributors.plugins.shared.ContributionPage>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage
+    :summary:
+    ```
+* - {py:obj}`ContributionAdd <fairdm.contrib.contributors.plugins.shared.ContributionAdd>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAdd
+    :summary:
+    ```
+* - {py:obj}`ContributionAddPerson <fairdm.contrib.contributors.plugins.shared.ContributionAddPerson>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAddPerson
+    :summary:
+    ```
+* - {py:obj}`ContributionAddOrganization <fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization
+    :summary:
+    ```
+* - {py:obj}`ContributionEdit <fairdm.contrib.contributors.plugins.shared.ContributionEdit>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionEdit
+    :summary:
+    ```
+* - {py:obj}`ContributionRemove <fairdm.contrib.contributors.plugins.shared.ContributionRemove>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionRemove
+    :summary:
+    ```
+* - {py:obj}`ContributionMove <fairdm.contrib.contributors.plugins.shared.ContributionMove>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionMove
+    :summary:
+    ```
+* - {py:obj}`ContributionList <fairdm.contrib.contributors.plugins.shared.ContributionList>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionList
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`level_choices <fairdm.contrib.contributors.plugins.shared.level_choices>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.level_choices
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} level_choices(record, floor=None)
+:canonical: fairdm.contrib.contributors.plugins.shared.level_choices
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.level_choices
+```
+````
+
+`````{py:class} AffiliationChoice(*args, person=None, credit=None, suggested='', **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.AffiliationChoice
+
+Bases: {py:obj}`django.forms.Form`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.AffiliationChoice
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.AffiliationChoice.__init__
+```
+
+````{py:attribute} affiliation
+:canonical: fairdm.contrib.contributors.plugins.shared.AffiliationChoice.affiliation
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.AffiliationChoice.affiliation
+```
+
+````
+
+````{py:attribute} affiliation_name
+:canonical: fairdm.contrib.contributors.plugins.shared.AffiliationChoice.affiliation_name
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.AffiliationChoice.affiliation_name
+```
+
+````
+
+````{py:method} held_by(person)
+:canonical: fairdm.contrib.contributors.plugins.shared.AffiliationChoice.held_by
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.AffiliationChoice.held_by
+```
+
+````
+
+````{py:method} clean_affiliation()
+:canonical: fairdm.contrib.contributors.plugins.shared.AffiliationChoice.clean_affiliation
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.AffiliationChoice.clean_affiliation
+```
+
+````
+
+````{py:method} clean()
+:canonical: fairdm.contrib.contributors.plugins.shared.AffiliationChoice.clean
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.AffiliationChoice.clean
+```
+
+````
+
+````{py:property} problem
+:canonical: fairdm.contrib.contributors.plugins.shared.AffiliationChoice.problem
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.AffiliationChoice.problem
+```
+
+````
+
+````{py:method} organization()
+:canonical: fairdm.contrib.contributors.plugins.shared.AffiliationChoice.organization
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.AffiliationChoice.organization
+```
+
+````
+
+````{py:method} choice()
+:canonical: fairdm.contrib.contributors.plugins.shared.AffiliationChoice.choice
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.AffiliationChoice.choice
+```
+
+````
+
+`````
+
+`````{py:class} NewPersonForm(*args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.NewPersonForm
+
+Bases: {py:obj}`django.forms.Form`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.NewPersonForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.NewPersonForm.__init__
+```
+
+````{py:attribute} given
+:canonical: fairdm.contrib.contributors.plugins.shared.NewPersonForm.given
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.NewPersonForm.given
+```
+
+````
+
+````{py:attribute} family
+:canonical: fairdm.contrib.contributors.plugins.shared.NewPersonForm.family
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.NewPersonForm.family
+```
+
+````
+
+````{py:attribute} confirmed
+:canonical: fairdm.contrib.contributors.plugins.shared.NewPersonForm.confirmed
+:value: >
+   'BooleanField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.NewPersonForm.confirmed
+```
+
+````
+
+````{py:method} clean()
+:canonical: fairdm.contrib.contributors.plugins.shared.NewPersonForm.clean
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.NewPersonForm.clean
+```
+
+````
+
+````{py:method} name()
+:canonical: fairdm.contrib.contributors.plugins.shared.NewPersonForm.name
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.NewPersonForm.name
+```
+
+````
+
+````{py:method} save()
+:canonical: fairdm.contrib.contributors.plugins.shared.NewPersonForm.save
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.NewPersonForm.save
+```
+
+````
+
+`````
+
+`````{py:class} NewOrganizationForm(*args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.NewOrganizationForm
+
+Bases: {py:obj}`django.forms.Form`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.NewOrganizationForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.NewOrganizationForm.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.contrib.contributors.plugins.shared.NewOrganizationForm.name
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.NewOrganizationForm.name
+```
+
+````
+
+````{py:attribute} city
+:canonical: fairdm.contrib.contributors.plugins.shared.NewOrganizationForm.city
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.NewOrganizationForm.city
+```
+
+````
+
+````{py:attribute} country
+:canonical: fairdm.contrib.contributors.plugins.shared.NewOrganizationForm.country
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.NewOrganizationForm.country
+```
+
+````
+
+````{py:attribute} website
+:canonical: fairdm.contrib.contributors.plugins.shared.NewOrganizationForm.website
+:value: >
+   'URLField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.NewOrganizationForm.website
+```
+
+````
+
+````{py:method} clean_country()
+:canonical: fairdm.contrib.contributors.plugins.shared.NewOrganizationForm.clean_country
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.NewOrganizationForm.clean_country
+```
+
+````
+
+````{py:method} clean()
+:canonical: fairdm.contrib.contributors.plugins.shared.NewOrganizationForm.clean
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.NewOrganizationForm.clean
+```
+
+````
+
+````{py:method} save()
+:canonical: fairdm.contrib.contributors.plugins.shared.NewOrganizationForm.save
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.NewOrganizationForm.save
+```
+
+````
+
+`````
+
+`````{py:class} ContributionPage(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionPage
+
+Bases: {py:obj}`fairdm.contrib.plugins.Plugin`, {py:obj}`fairdm.views.FairDMTemplateView`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage.__init__
+```
+
+````{py:attribute} manager_only
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionPage.manager_only
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage.manager_only
+```
+
+````
+
+````{py:method} access()
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionPage.access
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage.access
+```
+
+````
+
+````{py:property} overview
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionPage.overview
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage.overview
+```
+
+````
+
+````{py:method} dispatch(request, *args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionPage.dispatch
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage.dispatch
+```
+
+````
+
+````{py:property} list_url
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionPage.list_url
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage.list_url
+```
+
+````
+
+````{py:method} get_contribution()
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionPage.get_contribution
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage.get_contribution
+```
+
+````
+
+````{py:method} describe(contribution, held=None)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionPage.describe
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage.describe
+```
+
+````
+
+````{py:method} can_see_levels()
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionPage.can_see_levels
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage.can_see_levels
+```
+
+````
+
+````{py:method} credited_from()
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionPage.credited_from
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage.credited_from
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionPage.get_context_data
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionPage.get_context_data
+```
+
+````
+
+`````
+
+`````{py:class} ContributionAdd(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAdd
+
+Bases: {py:obj}`fairdm.contrib.contributors.plugins.shared.ContributionPage`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAdd
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAdd.__init__
+```
+
+````{py:attribute} manager_only
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAdd.manager_only
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAdd.manager_only
+```
+
+````
+
+````{py:attribute} is_person
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAdd.is_person
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAdd.is_person
+```
+
+````
+
+````{py:attribute} registry_class
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAdd.registry_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAdd.registry_class
+```
+
+````
+
+````{py:attribute} form_class
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAdd.form_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAdd.form_class
+```
+
+````
+
+````{py:attribute} results_shown
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAdd.results_shown
+:value: >
+   20
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAdd.results_shown
+```
+
+````
+
+````{py:property} via
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAdd.via
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAdd.via
+```
+
+````
+
+````{py:method} registry()
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAdd.registry
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAdd.registry
+```
+
+````
+
+````{py:method} search_portal(term)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAdd.search_portal
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAdd.search_portal
+```
+
+````
+
+````{py:method} choice_for(way, choice, **fresh)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAdd.choice_for
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAdd.choice_for
+```
+
+````
+
+````{py:method} chosen_record(record, choice)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAdd.chosen_record
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAdd.chosen_record
+```
+
+````
+
+````{py:method} search_registry(adding, record, choice)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAdd.search_registry
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAdd.search_registry
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAdd.get_context_data
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAdd.get_context_data
+```
+
+````
+
+````{py:method} add(make, choice=None)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAdd.add
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAdd.add
+```
+
+````
+
+````{py:method} refuse(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAdd.refuse
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAdd.refuse
+```
+
+````
+
+````{py:method} add_from_portal()
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAdd.add_from_portal
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAdd.add_from_portal
+```
+
+````
+
+````{py:method} add_from_registry()
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAdd.add_from_registry
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAdd.add_from_registry
+```
+
+````
+
+````{py:method} add_by_hand()
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAdd.add_by_hand
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAdd.add_by_hand
+```
+
+````
+
+````{py:method} post(request, *args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAdd.post
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAdd.post
+```
+
+````
+
+`````
+
+`````{py:class} ContributionAddPerson(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAddPerson
+
+Bases: {py:obj}`fairdm.contrib.contributors.plugins.shared.ContributionAdd`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAddPerson
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAddPerson.__init__
+```
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAddPerson.url_path
+:value: >
+   'add-person'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAddPerson.url_path
+```
+
+````
+
+````{py:attribute} template_name
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAddPerson.template_name
+:value: >
+   'contributors/plugins/contribution_add_person.html'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAddPerson.template_name
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAddPerson.page_title
+:value: >
+   'gettext_lazy(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAddPerson.page_title
+```
+
+````
+
+`````
+
+`````{py:class} ContributionAddOrganization(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization
+
+Bases: {py:obj}`fairdm.contrib.contributors.plugins.shared.ContributionAdd`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization.__init__
+```
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization.url_path
+:value: >
+   'add-organization'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization.url_path
+```
+
+````
+
+````{py:attribute} template_name
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization.template_name
+:value: >
+   'contributors/plugins/contribution_add_organization.html'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization.template_name
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization.page_title
+:value: >
+   'gettext_lazy(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization.page_title
+```
+
+````
+
+````{py:attribute} is_person
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization.is_person
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization.is_person
+```
+
+````
+
+````{py:attribute} registry_class
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization.registry_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization.registry_class
+```
+
+````
+
+````{py:attribute} form_class
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization.form_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionAddOrganization.form_class
+```
+
+````
+
+`````
+
+`````{py:class} ContributionEdit(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionEdit
+
+Bases: {py:obj}`fairdm.contrib.contributors.plugins.shared.ContributionPage`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionEdit
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionEdit.__init__
+```
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionEdit.url_path
+:value: >
+   '<int:pk>/edit'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionEdit.url_path
+```
+
+````
+
+````{py:attribute} manager_only
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionEdit.manager_only
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionEdit.manager_only
+```
+
+````
+
+````{py:attribute} template_name
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionEdit.template_name
+:value: >
+   'contributors/plugins/contribution_edit.html'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionEdit.template_name
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionEdit.page_title
+:value: >
+   'gettext_lazy(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionEdit.page_title
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionEdit.get_context_data
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionEdit.get_context_data
+```
+
+````
+
+````{py:method} post(request, *args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionEdit.post
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionEdit.post
+```
+
+````
+
+`````
+
+`````{py:class} ContributionRemove(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionRemove
+
+Bases: {py:obj}`fairdm.contrib.contributors.plugins.shared.ContributionPage`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionRemove
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionRemove.__init__
+```
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionRemove.url_path
+:value: >
+   '<int:pk>/remove'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionRemove.url_path
+```
+
+````
+
+````{py:attribute} manager_only
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionRemove.manager_only
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionRemove.manager_only
+```
+
+````
+
+````{py:attribute} template_name
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionRemove.template_name
+:value: >
+   'contributors/plugins/contribution_remove.html'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionRemove.template_name
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionRemove.page_title
+:value: >
+   'gettext_lazy(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionRemove.page_title
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionRemove.get_context_data
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionRemove.get_context_data
+```
+
+````
+
+````{py:method} post(request, *args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionRemove.post
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionRemove.post
+```
+
+````
+
+`````
+
+`````{py:class} ContributionMove(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionMove
+
+Bases: {py:obj}`fairdm.contrib.contributors.plugins.shared.ContributionPage`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionMove
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionMove.__init__
+```
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionMove.url_path
+:value: >
+   '<int:pk>/move'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionMove.url_path
+```
+
+````
+
+````{py:attribute} manager_only
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionMove.manager_only
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionMove.manager_only
+```
+
+````
+
+````{py:attribute} http_method_names
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionMove.http_method_names
+:value: >
+   ['post']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionMove.http_method_names
+```
+
+````
+
+````{py:method} post(request, *args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionMove.post
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionMove.post
+```
+
+````
+
+`````
+
+`````{py:class} ContributionList(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionList
+
+Bases: {py:obj}`fairdm.contrib.contributors.plugins.shared.ContributionPage`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionList
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionList.__init__
+```
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionList.url_path
+:value: >
+   'contributors'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionList.url_path
+```
+
+````
+
+````{py:attribute} template_name
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionList.template_name
+:value: >
+   'contributors/plugins/contribution_list.html'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionList.template_name
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionList.page_title
+:value: >
+   'gettext_lazy(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionList.page_title
+```
+
+````
+
+````{py:attribute} extra_views
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionList.extra_views
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionList.extra_views
+```
+
+````
+
+````{py:method} get_page_subtitle()
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionList.get_page_subtitle
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionList.get_page_subtitle
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionList.get_context_data
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionList.get_context_data
+```
+
+````
+
+`````

@@ -1,0 +1,157 @@
+# {py:mod}`fairdm.contrib.contributors.utils`
+
+```{py:module} fairdm.contrib.contributors.utils
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.contrib.contributors.utils.audit
+fairdm.contrib.contributors.utils.transforms
+fairdm.contrib.contributors.utils.tokens
+fairdm.contrib.contributors.utils.helpers
+```
+
+## Package Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`clean_ror <fairdm.contrib.contributors.utils.clean_ror>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.clean_ror
+    :summary:
+    ```
+* - {py:obj}`contributor_from_orcid_data <fairdm.contrib.contributors.utils.contributor_from_orcid_data>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.contributor_from_orcid_data
+    :summary:
+    ```
+* - {py:obj}`contributor_from_ror_data <fairdm.contrib.contributors.utils.contributor_from_ror_data>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.contributor_from_ror_data
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`fetch_orcid_data_from_api <fairdm.contrib.contributors.utils.fetch_orcid_data_from_api>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.fetch_orcid_data_from_api
+    :summary:
+    ```
+* - {py:obj}`fetch_ror_data_from_api <fairdm.contrib.contributors.utils.fetch_ror_data_from_api>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.fetch_ror_data_from_api
+    :summary:
+    ```
+* - {py:obj}`get_or_create_from_orcid <fairdm.contrib.contributors.utils.get_or_create_from_orcid>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.get_or_create_from_orcid
+    :summary:
+    ```
+* - {py:obj}`get_or_create_from_ror <fairdm.contrib.contributors.utils.get_or_create_from_ror>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.get_or_create_from_ror
+    :summary:
+    ```
+* - {py:obj}`update_or_create_from_orcid <fairdm.contrib.contributors.utils.update_or_create_from_orcid>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.update_or_create_from_orcid
+    :summary:
+    ```
+* - {py:obj}`update_or_create_from_ror <fairdm.contrib.contributors.utils.update_or_create_from_ror>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.update_or_create_from_ror
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} fetch_orcid_data_from_api
+:canonical: fairdm.contrib.contributors.utils.fetch_orcid_data_from_api
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.fetch_orcid_data_from_api
+```
+
+````
+
+````{py:data} fetch_ror_data_from_api
+:canonical: fairdm.contrib.contributors.utils.fetch_ror_data_from_api
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.fetch_ror_data_from_api
+```
+
+````
+
+````{py:data} get_or_create_from_orcid
+:canonical: fairdm.contrib.contributors.utils.get_or_create_from_orcid
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.get_or_create_from_orcid
+```
+
+````
+
+````{py:data} get_or_create_from_ror
+:canonical: fairdm.contrib.contributors.utils.get_or_create_from_ror
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.get_or_create_from_ror
+```
+
+````
+
+````{py:data} update_or_create_from_orcid
+:canonical: fairdm.contrib.contributors.utils.update_or_create_from_orcid
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.update_or_create_from_orcid
+```
+
+````
+
+````{py:data} update_or_create_from_ror
+:canonical: fairdm.contrib.contributors.utils.update_or_create_from_ror
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.update_or_create_from_ror
+```
+
+````
+
+````{py:function} clean_ror(ror_id_or_link: str) -> str
+:canonical: fairdm.contrib.contributors.utils.clean_ror
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.clean_ror
+```
+````
+
+````{py:function} contributor_from_orcid_data(data: dict, person=None, save: bool = True)
+:canonical: fairdm.contrib.contributors.utils.contributor_from_orcid_data
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.contributor_from_orcid_data
+```
+````
+
+````{py:function} contributor_from_ror_data(data: dict, org=None, save: bool = True)
+:canonical: fairdm.contrib.contributors.utils.contributor_from_ror_data
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.contributor_from_ror_data
+```
+````

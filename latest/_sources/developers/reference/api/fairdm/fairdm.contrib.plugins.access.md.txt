@@ -1,0 +1,133 @@
+# {py:mod}`fairdm.contrib.plugins.access`
+
+```{py:module} fairdm.contrib.plugins.access
+```
+
+```{autodoc2-docstring} fairdm.contrib.plugins.access
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`is_instance_of <fairdm.contrib.plugins.access.is_instance_of>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.access.is_instance_of
+    :summary:
+    ```
+* - {py:obj}`has_perm <fairdm.contrib.plugins.access.has_perm>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.access.has_perm
+    :summary:
+    ```
+* - {py:obj}`holds_level <fairdm.contrib.plugins.access.holds_level>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.access.holds_level
+    :summary:
+    ```
+* - {py:obj}`resolve_check <fairdm.contrib.plugins.access.resolve_check>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.access.resolve_check
+    :summary:
+    ```
+* - {py:obj}`check_is_valid <fairdm.contrib.plugins.access.check_is_valid>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.access.check_is_valid
+    :summary:
+    ```
+* - {py:obj}`can_open <fairdm.contrib.plugins.access.can_open>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.access.can_open
+    :summary:
+    ```
+* - {py:obj}`menu_check <fairdm.contrib.plugins.access.menu_check>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.access.menu_check
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`logger <fairdm.contrib.plugins.access.logger>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.access.logger
+    :summary:
+    ```
+* - {py:obj}`LEVEL_ACTIONS <fairdm.contrib.plugins.access.LEVEL_ACTIONS>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.access.LEVEL_ACTIONS
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} logger
+:canonical: fairdm.contrib.plugins.access.logger
+:value: >
+   'getLogger(...)'
+
+```{autodoc2-docstring} fairdm.contrib.plugins.access.logger
+```
+
+````
+
+````{py:function} is_instance_of(*model_classes: type[django.db.models.Model]) -> collections.abc.Callable[..., bool]
+:canonical: fairdm.contrib.plugins.access.is_instance_of
+
+```{autodoc2-docstring} fairdm.contrib.plugins.access.is_instance_of
+```
+````
+
+````{py:function} has_perm(request: django.http.HttpRequest, permission: str, obj: django.db.models.Model | None = None) -> bool
+:canonical: fairdm.contrib.plugins.access.has_perm
+
+```{autodoc2-docstring} fairdm.contrib.plugins.access.has_perm
+```
+````
+
+````{py:data} LEVEL_ACTIONS
+:canonical: fairdm.contrib.plugins.access.LEVEL_ACTIONS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.plugins.access.LEVEL_ACTIONS
+```
+
+````
+
+````{py:function} holds_level(request: django.http.HttpRequest, level: str, obj: django.db.models.Model | None) -> bool
+:canonical: fairdm.contrib.plugins.access.holds_level
+
+```{autodoc2-docstring} fairdm.contrib.plugins.access.holds_level
+```
+````
+
+````{py:function} resolve_check(view_class: type) -> collections.abc.Callable[..., bool] | bool
+:canonical: fairdm.contrib.plugins.access.resolve_check
+
+```{autodoc2-docstring} fairdm.contrib.plugins.access.resolve_check
+```
+````
+
+````{py:function} check_is_valid(check: typing.Any) -> bool
+:canonical: fairdm.contrib.plugins.access.check_is_valid
+
+```{autodoc2-docstring} fairdm.contrib.plugins.access.check_is_valid
+```
+````
+
+````{py:function} can_open(view_class: type, request: django.http.HttpRequest, obj: django.db.models.Model | None = None) -> bool
+:canonical: fairdm.contrib.plugins.access.can_open
+
+```{autodoc2-docstring} fairdm.contrib.plugins.access.can_open
+```
+````
+
+````{py:function} menu_check(view_class: type) -> collections.abc.Callable[..., bool]
+:canonical: fairdm.contrib.plugins.access.menu_check
+
+```{autodoc2-docstring} fairdm.contrib.plugins.access.menu_check
+```
+````

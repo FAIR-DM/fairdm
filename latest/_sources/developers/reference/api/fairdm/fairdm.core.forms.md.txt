@@ -1,0 +1,176 @@
+# {py:mod}`fairdm.core.forms`
+
+```{py:module} fairdm.core.forms
+```
+
+```{autodoc2-docstring} fairdm.core.forms
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ManagerOnlyFieldsMixin <fairdm.core.forms.ManagerOnlyFieldsMixin>`
+  - ```{autodoc2-docstring} fairdm.core.forms.ManagerOnlyFieldsMixin
+    :summary:
+    ```
+* - {py:obj}`BaseForm <fairdm.core.forms.BaseForm>`
+  - ```{autodoc2-docstring} fairdm.core.forms.BaseForm
+    :summary:
+    ```
+* - {py:obj}`KeywordForm <fairdm.core.forms.KeywordForm>`
+  - ```{autodoc2-docstring} fairdm.core.forms.KeywordForm
+    :summary:
+    ```
+* - {py:obj}`CollectionOrderIterator <fairdm.core.forms.CollectionOrderIterator>`
+  - ```{autodoc2-docstring} fairdm.core.forms.CollectionOrderIterator
+    :summary:
+    ```
+* - {py:obj}`ConceptSelectField <fairdm.core.forms.ConceptSelectField>`
+  - ```{autodoc2-docstring} fairdm.core.forms.ConceptSelectField
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} ManagerOnlyFieldsMixin
+:canonical: fairdm.core.forms.ManagerOnlyFieldsMixin
+
+```{autodoc2-docstring} fairdm.core.forms.ManagerOnlyFieldsMixin
+```
+
+````{py:attribute} manager_only_fields
+:canonical: fairdm.core.forms.ManagerOnlyFieldsMixin.manager_only_fields
+:type: tuple[str, ...]
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.core.forms.ManagerOnlyFieldsMixin.manager_only_fields
+```
+
+````
+
+````{py:method} withhold_manager_only_fields(request)
+:canonical: fairdm.core.forms.ManagerOnlyFieldsMixin.withhold_manager_only_fields
+
+```{autodoc2-docstring} fairdm.core.forms.ManagerOnlyFieldsMixin.withhold_manager_only_fields
+```
+
+````
+
+`````
+
+````{py:class} BaseForm(*args, **kwargs)
+:canonical: fairdm.core.forms.BaseForm
+
+Bases: {py:obj}`django.forms.ModelForm`
+
+```{autodoc2-docstring} fairdm.core.forms.BaseForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.forms.BaseForm.__init__
+```
+
+````
+
+``````{py:class} KeywordForm(*args, **kwargs)
+:canonical: fairdm.core.forms.KeywordForm
+
+Bases: {py:obj}`django.forms.ModelForm`
+
+```{autodoc2-docstring} fairdm.core.forms.KeywordForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.forms.KeywordForm.__init__
+```
+
+`````{py:class} Meta
+:canonical: fairdm.core.forms.KeywordForm.Meta
+
+```{autodoc2-docstring} fairdm.core.forms.KeywordForm.Meta
+```
+
+````{py:attribute} fields
+:canonical: fairdm.core.forms.KeywordForm.Meta.fields
+:type: typing.ClassVar[list[str]]
+:value: >
+   []
+
+```{autodoc2-docstring} fairdm.core.forms.KeywordForm.Meta.fields
+```
+
+````
+
+`````
+
+````{py:method} save(commit=True)
+:canonical: fairdm.core.forms.KeywordForm.save
+
+```{autodoc2-docstring} fairdm.core.forms.KeywordForm.save
+```
+
+````
+
+``````
+
+````{py:class} CollectionOrderIterator(field)
+:canonical: fairdm.core.forms.CollectionOrderIterator
+
+Bases: {py:obj}`django.forms.models.ModelChoiceIterator`
+
+```{autodoc2-docstring} fairdm.core.forms.CollectionOrderIterator
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.forms.CollectionOrderIterator.__init__
+```
+
+````
+
+`````{py:class} ConceptSelectField(*args, model_field=None, **kwargs)
+:canonical: fairdm.core.forms.ConceptSelectField
+
+Bases: {py:obj}`controlled_vocabularies.forms.DeclinesAdminRelatedWrapperMixin`, {py:obj}`django.forms.ModelChoiceField`
+
+```{autodoc2-docstring} fairdm.core.forms.ConceptSelectField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.forms.ConceptSelectField.__init__
+```
+
+````{py:attribute} iterator
+:canonical: fairdm.core.forms.ConceptSelectField.iterator
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.forms.ConceptSelectField.iterator
+```
+
+````
+
+````{py:method} label_from_instance(obj)
+:canonical: fairdm.core.forms.ConceptSelectField.label_from_instance
+
+```{autodoc2-docstring} fairdm.core.forms.ConceptSelectField.label_from_instance
+```
+
+````
+
+`````

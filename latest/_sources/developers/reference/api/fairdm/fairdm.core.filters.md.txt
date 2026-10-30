@@ -1,0 +1,50 @@
+# {py:mod}`fairdm.core.filters`
+
+```{py:module} fairdm.core.filters
+```
+
+```{autodoc2-docstring} fairdm.core.filters
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`BaseListFilter <fairdm.core.filters.BaseListFilter>`
+  - ```{autodoc2-docstring} fairdm.core.filters.BaseListFilter
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} BaseListFilter(data=None, queryset=None, *, request=None, prefix=None)
+:canonical: fairdm.core.filters.BaseListFilter
+
+Bases: {py:obj}`django_filters.rest_framework.FilterSet`
+
+```{autodoc2-docstring} fairdm.core.filters.BaseListFilter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.filters.BaseListFilter.__init__
+```
+
+````{py:attribute} image
+:canonical: fairdm.core.filters.BaseListFilter.image
+:value: >
+   'BooleanFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.filters.BaseListFilter.image
+```
+
+````
+
+`````

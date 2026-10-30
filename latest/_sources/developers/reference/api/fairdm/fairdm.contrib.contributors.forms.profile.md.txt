@@ -1,0 +1,420 @@
+# {py:mod}`fairdm.contrib.contributors.forms.profile`
+
+```{py:module} fairdm.contrib.contributors.forms.profile
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`LinesField <fairdm.contrib.contributors.forms.profile.LinesField>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.LinesField
+    :summary:
+    ```
+* - {py:obj}`ProfileForm <fairdm.contrib.contributors.forms.profile.ProfileForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.ProfileForm
+    :summary:
+    ```
+* - {py:obj}`PersonProfileForm <fairdm.contrib.contributors.forms.profile.PersonProfileForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.PersonProfileForm
+    :summary:
+    ```
+* - {py:obj}`OrganizationProfileForm <fairdm.contrib.contributors.forms.profile.OrganizationProfileForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.OrganizationProfileForm
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`language_choices <fairdm.contrib.contributors.forms.profile.language_choices>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.language_choices
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} LinesField(*, entry_validator=None, max_entries=50, **kwargs)
+:canonical: fairdm.contrib.contributors.forms.profile.LinesField
+
+Bases: {py:obj}`django.forms.CharField`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.LinesField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.LinesField.__init__
+```
+
+````{py:attribute} default_error_messages
+:canonical: fairdm.contrib.contributors.forms.profile.LinesField.default_error_messages
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.LinesField.default_error_messages
+```
+
+````
+
+````{py:method} prepare_value(value)
+:canonical: fairdm.contrib.contributors.forms.profile.LinesField.prepare_value
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.LinesField.prepare_value
+```
+
+````
+
+````{py:method} to_python(value)
+:canonical: fairdm.contrib.contributors.forms.profile.LinesField.to_python
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.LinesField.to_python
+```
+
+````
+
+````{py:method} validate(value)
+:canonical: fairdm.contrib.contributors.forms.profile.LinesField.validate
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.LinesField.validate
+```
+
+````
+
+`````
+
+````{py:function} language_choices()
+:canonical: fairdm.contrib.contributors.forms.profile.language_choices
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.language_choices
+```
+````
+
+`````{py:class} ProfileForm(*args, **kwargs)
+:canonical: fairdm.contrib.contributors.forms.profile.ProfileForm
+
+Bases: {py:obj}`fairdm.forms.ModelForm`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.ProfileForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.ProfileForm.__init__
+```
+
+````{py:attribute} sections
+:canonical: fairdm.contrib.contributors.forms.profile.ProfileForm.sections
+:type: tuple
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.ProfileForm.sections
+```
+
+````
+
+````{py:method} get_layout()
+:canonical: fairdm.contrib.contributors.forms.profile.ProfileForm.get_layout
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.ProfileForm.get_layout
+```
+
+````
+
+````{py:method} get_section(heading, rows, placed)
+:canonical: fairdm.contrib.contributors.forms.profile.ProfileForm.get_section
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.ProfileForm.get_section
+```
+
+````
+
+`````
+
+``````{py:class} PersonProfileForm(*args, **kwargs)
+:canonical: fairdm.contrib.contributors.forms.profile.PersonProfileForm
+
+Bases: {py:obj}`fairdm.contrib.contributors.forms.profile.ProfileForm`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.PersonProfileForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.PersonProfileForm.__init__
+```
+
+````{py:attribute} image
+:canonical: fairdm.contrib.contributors.forms.profile.PersonProfileForm.image
+:value: >
+   'ImageField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.PersonProfileForm.image
+```
+
+````
+
+````{py:attribute} alternative_names
+:canonical: fairdm.contrib.contributors.forms.profile.PersonProfileForm.alternative_names
+:value: >
+   'LinesField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.PersonProfileForm.alternative_names
+```
+
+````
+
+````{py:attribute} links
+:canonical: fairdm.contrib.contributors.forms.profile.PersonProfileForm.links
+:value: >
+   'LinesField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.PersonProfileForm.links
+```
+
+````
+
+````{py:attribute} lang
+:canonical: fairdm.contrib.contributors.forms.profile.PersonProfileForm.lang
+:value: >
+   'MultipleChoiceField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.PersonProfileForm.lang
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.contrib.contributors.forms.profile.PersonProfileForm.Meta
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.PersonProfileForm.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.contributors.forms.profile.PersonProfileForm.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.PersonProfileForm.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.contrib.contributors.forms.profile.PersonProfileForm.Meta.fields
+:value: >
+   ['image', 'first_name', 'last_name', 'name', 'alternative_names', 'profile', 'links', 'lang']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.PersonProfileForm.Meta.fields
+```
+
+````
+
+````{py:attribute} labels
+:canonical: fairdm.contrib.contributors.forms.profile.PersonProfileForm.Meta.labels
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.PersonProfileForm.Meta.labels
+```
+
+````
+
+````{py:attribute} help_texts
+:canonical: fairdm.contrib.contributors.forms.profile.PersonProfileForm.Meta.help_texts
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.PersonProfileForm.Meta.help_texts
+```
+
+````
+
+`````
+
+````{py:attribute} sections
+:canonical: fairdm.contrib.contributors.forms.profile.PersonProfileForm.sections
+:value: >
+   ((None, [('first_name', 'last_name'), 'name', 'alternative_names']), ())
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.PersonProfileForm.sections
+```
+
+````
+
+````{py:method} clean_lang()
+:canonical: fairdm.contrib.contributors.forms.profile.PersonProfileForm.clean_lang
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.PersonProfileForm.clean_lang
+```
+
+````
+
+``````
+
+``````{py:class} OrganizationProfileForm(*args, **kwargs)
+:canonical: fairdm.contrib.contributors.forms.profile.OrganizationProfileForm
+
+Bases: {py:obj}`fairdm.contrib.contributors.forms.profile.ProfileForm`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.OrganizationProfileForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.__init__
+```
+
+````{py:attribute} image
+:canonical: fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.image
+:value: >
+   'ImageField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.image
+```
+
+````
+
+````{py:attribute} alternative_names
+:canonical: fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.alternative_names
+:value: >
+   'LinesField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.alternative_names
+```
+
+````
+
+````{py:attribute} parent
+:canonical: fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.parent
+:value: >
+   'OrganizationChoiceField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.parent
+```
+
+````
+
+````{py:attribute} location
+:canonical: fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.location
+:value: >
+   'LocationField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.location
+```
+
+````
+
+````{py:attribute} website
+:canonical: fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.website
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.website
+```
+
+````
+
+````{py:attribute} links
+:canonical: fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.links
+:value: >
+   'LinesField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.links
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.Meta
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.Meta.fields
+:value: >
+   ['image', 'name', 'alternative_names', 'type', 'parent', 'city', 'country', 'location', 'profile', '...
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.Meta.fields
+```
+
+````
+
+````{py:attribute} labels
+:canonical: fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.Meta.labels
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.Meta.labels
+```
+
+````
+
+````{py:attribute} help_texts
+:canonical: fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.Meta.help_texts
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.Meta.help_texts
+```
+
+````
+
+`````
+
+````{py:attribute} sections
+:canonical: fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.sections
+:value: >
+   ((None, ['image', 'name', 'alternative_names', ('type', 'parent')]), (), (), ())
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.sections
+```
+
+````
+
+````{py:method} clean_location()
+:canonical: fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.clean_location
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.clean_location
+```
+
+````
+
+````{py:method} clean()
+:canonical: fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.clean
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.profile.OrganizationProfileForm.clean
+```
+
+````
+
+``````

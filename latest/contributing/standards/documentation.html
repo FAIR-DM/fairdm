@@ -1,0 +1,1233 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="Documentation standards" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="contributing/standards/documentation.html" />
+<meta property="og:site_name" content="fairdm" />
+<meta property="og:description" content="These rules cover the documentation a person reads to use what this repository makes: the pages under docs/ and the quickstart in the README. CONSTITUTION.md makes them binding. Docstrings, compone..." />
+<meta name="description" content="These rules cover the documentation a person reads to use what this repository makes: the pages under docs/ and the quickstart in the README. CONSTITUTION.md makes them binding. Docstrings, compone..." />
+
+    <title>Documentation standards &#8212; fairdm 0.3.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=cb8930eaaf36d9849b67"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
+
+    <script src="../../_static/documentation_options.js?v=4621528c"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script kind="utterances">
+
+    var commentsRunWhenDOMLoaded = cb => {
+    if (document.readyState != 'loading') {
+        cb()
+    } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', cb)
+    } else {
+        document.attachEvent('onreadystatechange', function() {
+        if (document.readyState == 'complete') cb()
+        })
+    }
+}
+
+var addUtterances = () => {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://utteranc.es/client.js";
+    script.async = "async";
+
+    script.setAttribute("repo", "FAIR-DM/fairdm");
+    script.setAttribute("issue-term", "pathname");
+    script.setAttribute("theme", "preferred-color-scheme");
+    script.setAttribute("label", "documentation");
+    script.setAttribute("crossorigin", "anonymous");
+
+    sections = document.querySelectorAll("div.section");
+    if (sections !== null) {
+        section = sections[sections.length-1];
+        section.appendChild(script);
+    }
+}
+commentsRunWhenDOMLoaded(addUtterances);
+</script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'contributing/standards/documentation';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.21.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.fairdm.org/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'latest';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="icon" href="../../_static/icon.svg"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Working on the documentation" href="../documentation/index.html" />
+    <link rel="prev" title="Django standards" href="django.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.3.1" />
+    <meta name="docbuild:last-update" content="Oct 30, 2026"/>
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.3.1 documentation - Home"/>
+    <img src="../../_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.3.1 documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../developers/index.html">
+    Developers
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../administrators/index.html">
+    Administrators
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../users/index.html">
+    Users
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/what-fairdm-is-for.html">
+    What FairDM is for
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/fair-data-and-research-data-infrastructure.html">
+    FAIR data and research data infrastructure
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/the-technology-stack.html">
+    The technology stack
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/the-core-data-model.html">
+    The core data model
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-sample-and-measurement-types-are-stored.html">
+    How sample and measurement types are stored
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/controlled-vocabularies.html">
+    Controlled vocabularies
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/configuration-over-code.html">
+    Configuration over code
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/why-complete-metadata-matters.html">
+    Why complete metadata matters
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-access-to-a-record-is-decided.html">
+    How access to a record is decided
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/why-fairdm-records-contributors.html">
+    Why FairDM records contributors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-contributor-accounts-and-credits-work.html">
+    How contributor accounts and credits work
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-a-profile-is-claimed.html">
+    How a profile is claimed
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-fairdm-configures-a-portal.html">
+    How FairDM configures a portal
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/who-is-asked-to-agree-to-a-legal-document.html">
+    Who is asked to agree to a legal document
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-locations-are-stored-and-protected.html">
+    How locations are stored and protected
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">
+    Dataset publication, DOIs and DataCite metadata
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../reference/glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="../index.html">
+    Framework Contributors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../adr/index.html">
+    Architecture Decision Records
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../ROADMAP.html">
+    Roadmap — FairDM
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../developers/index.html">
+    Developers
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../administrators/index.html">
+    Administrators
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../users/index.html">
+    Users
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/what-fairdm-is-for.html">
+    What FairDM is for
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/fair-data-and-research-data-infrastructure.html">
+    FAIR data and research data infrastructure
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/the-technology-stack.html">
+    The technology stack
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/the-core-data-model.html">
+    The core data model
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-sample-and-measurement-types-are-stored.html">
+    How sample and measurement types are stored
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/controlled-vocabularies.html">
+    Controlled vocabularies
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/configuration-over-code.html">
+    Configuration over code
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/why-complete-metadata-matters.html">
+    Why complete metadata matters
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-access-to-a-record-is-decided.html">
+    How access to a record is decided
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/why-fairdm-records-contributors.html">
+    Why FairDM records contributors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-contributor-accounts-and-credits-work.html">
+    How contributor accounts and credits work
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-a-profile-is-claimed.html">
+    How a profile is claimed
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-fairdm-configures-a-portal.html">
+    How FairDM configures a portal
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/who-is-asked-to-agree-to-a-legal-document.html">
+    Who is asked to agree to a legal document
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-locations-are-stored-and-protected.html">
+    How locations are stored and protected
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">
+    Dataset publication, DOIs and DataCite metadata
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../reference/glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    Framework Contributors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../adr/index.html">
+    Architecture Decision Records
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ROADMAP.html">
+    Roadmap — FairDM
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../before_you_start.html">Before You Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../registry-system.html">Registry System Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../base-views.html">Changing the base views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Contributing to FairDM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../django_dev.html">Python Code Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing standards</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code-documentation.html">Code documentation standards</a></li>
+<li class="toctree-l1"><a class="reference internal" href="django.html">Django standards</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Documentation standards</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../documentation/index.html">Working on the documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../documentation/cross-references.html">Cross-references</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../documentation/validation-rules.html">Validation rules</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature-documentation.html">Documenting features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing/index.html">Running the tests</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Framework Contributors</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Documentation standards</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="documentation-standards">
+<h1>Documentation standards<a class="headerlink" href="#documentation-standards" title="Link to this heading">#</a></h1>
+<p>These rules cover the documentation a person reads to use what this repository makes: the pages
+under <code class="docutils literal notranslate"><span class="pre">docs/</span></code> and the quickstart in the README. <code class="docutils literal notranslate"><span class="pre">CONSTITUTION.md</span></code> makes them binding. Docstrings,
+component annotations and comments are covered by
+<a class="reference internal" href="code-documentation.html"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">code-documentation.md</span></code></span></a>. The sections above <strong>Project additions</strong> are
+shared unchanged with our other repositories, so edit this repository’s rules in that last
+section only.</p>
+<p>The rules follow <a class="reference external" href="https://diataxis.fr/">Diátaxis</a>, which sorts documentation by what the reader
+needs at the moment they open it.</p>
+<section id="what-these-rules-cover">
+<h2>1. What these rules cover<a class="headerlink" href="#what-these-rules-cover" title="Link to this heading">#</a></h2>
+<p>They cover documentation written for the people who use the repository’s work:</p>
+<ul class="simple">
+<li><p>for a package, the developer who installs it in their own project,</p></li>
+<li><p>for an application, the person who uses the site.</p></li>
+</ul>
+<p>Material written for the people who maintain the repository has a form of its own and is not
+covered here:</p>
+<ul class="simple">
+<li><p>the changelog,</p></li>
+<li><p>decision records in <code class="docutils literal notranslate"><span class="pre">docs/adr/</span></code>,</p></li>
+<li><p>the roadmap,</p></li>
+<li><p>specifications in <code class="docutils literal notranslate"><span class="pre">specs/</span></code>,</p></li>
+<li><p>contributor guides and standards pages in <code class="docutils literal notranslate"><span class="pre">docs/contributing/</span></code>,</p></li>
+<li><p>files that configure tools.</p></li>
+</ul>
+<p>A user page may link to any of these. An explanation, for example, can point to the decision
+record behind a design.</p>
+</section>
+<section id="the-four-types">
+<h2>2. The four types<a class="headerlink" href="#the-four-types" title="Link to this heading">#</a></h2>
+<p>Every page is one of four types, and only one.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Type</p></th>
+<th class="head"><p>The reader</p></th>
+<th class="head"><p>Answers</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Tutorial</p></td>
+<td><p>Is new, and learning by doing</p></td>
+<td><p>Show me how to get started</p></td>
+</tr>
+<tr class="row-odd"><td><p>How-to guide</p></td>
+<td><p>Already uses it, and has a job to do</p></td>
+<td><p>How do I do this one thing?</p></td>
+</tr>
+<tr class="row-even"><td><p>Reference</p></td>
+<td><p>Is working, and needs a fact</p></td>
+<td><p>What exactly is this setting, component or command?</p></td>
+</tr>
+<tr class="row-odd"><td><p>Explanation</p></td>
+<td><p>Is stepping back to understand</p></td>
+<td><p>Why does it work this way?</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Two questions tell the types apart:</p>
+<ul class="simple">
+<li><p><strong>Does the page guide an action, or inform understanding?</strong> Tutorials and how-to guides guide
+action. Reference and explanation inform.</p></li>
+<li><p><strong>Is the reader learning, or working?</strong> Tutorials and explanation serve learning. How-to
+guides and reference serve work.</p></li>
+</ul>
+<p>Material of a second type goes on a second page, and the two link to each other. A how-to guide
+that stops to explain a design, or a reference page that walks through a task, has two pages in
+it.</p>
+</section>
+<section id="where-pages-live">
+<h2>3. Where pages live<a class="headerlink" href="#where-pages-live" title="Link to this heading">#</a></h2>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>docs/
+├── index.md
+├── tutorial.md
+├── how-to/
+├── reference/
+└── explanation/
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">index.md</span></code></strong> says in one paragraph what the package is for, then lists the pages under one
+heading for each type, in the order Tutorial, How-to guides, Reference, Explanation. The
+maintainers’ material from section 1 follows under headings of its own.</p></li>
+<li><p><strong>A directory is created when its first page arrives.</strong> None of them is set up in advance, and
+none is left empty.</p></li>
+<li><p><strong>A tutorial longer than one page</strong> becomes a <code class="docutils literal notranslate"><span class="pre">tutorial/</span></code> directory, its pages numbered in
+the order they are read.</p></li>
+<li><p><strong>A file is named after its title</strong>, in lowercase words joined by hyphens, with “How to” left
+off: <code class="docutils literal notranslate"><span class="pre">how-to/add-a-menu-item.md</span></code>, <code class="docutils literal notranslate"><span class="pre">reference/settings.md</span></code>,
+<code class="docutils literal notranslate"><span class="pre">explanation/how-a-theme-is-applied.md</span></code>.</p></li>
+</ul>
+<p><strong>A small package needs no <code class="docutils literal notranslate"><span class="pre">docs/</span></code> directory.</strong> When setting the package up takes no more than
+two short examples, the quickstart in the README is its tutorial and the README is its
+documentation. A package that needs more than that has a <code class="docutils literal notranslate"><span class="pre">docs/</span></code> directory laid out as above,
+and the README’s quickstart links to the tutorial there.</p>
+<p><strong>An application’s user guide is organised by the application’s own sections</strong>, not by type,
+because a person looks for help under the name of the screen they are on. Each page is still one
+type, and its title follows the rule for that type. Where the guide lives and how its contents are
+ordered is set out in <strong>Project additions</strong>.</p>
+<section id="documentation-for-more-than-one-reader">
+<h3>Documentation for more than one reader<a class="headerlink" href="#documentation-for-more-than-one-reader" title="Link to this heading">#</a></h3>
+<p>A repository whose readers do different jobs, such as the developers who build on it, the staff
+who run a site built with it and the people who use that site, splits <code class="docutils literal notranslate"><span class="pre">docs/</span></code> by reader first.
+It declares its readers in <strong>Project additions</strong> with a table headed <strong>Readers</strong>:</p>
+<div class="highlight-markdown notranslate"><div class="highlight"><pre><span></span><span class="gu">### Readers</span>
+
+| Reader | Lives in | Does | Organised by |
+|---|---|---|---|
+| Portal developer | <span class="sb">`developers/`</span> | Builds and deploys a portal | type |
+| Portal administrator | <span class="sb">`administrators/`</span> | Runs a portal: people, roles, review | type |
+| Portal user | <span class="sb">`users/`</span> | Adds and edits research data | the site's sections |
+</pre></div>
+</div>
+<p>A repository with no such table has one reader, and the layout above applies as it stands.</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>docs/
+├── index.md
+├── explanation/
+├── developers/
+│   ├── tutorial.md
+│   ├── how-to/
+│   ├── reference/
+│   └── explanation/
+├── administrators/
+└── users/
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><strong>Readers are told apart by what they do, not by what they are allowed to do.</strong> A role gets a
+section of its own only when its tasks differ. A role that only sees one more button gets a
+line on the how-to guide for that task, such as “Only data managers see <strong>Merge</strong>”.</p></li>
+<li><p><strong>A reader’s section organised by type</strong> has the layout of a single-reader <code class="docutils literal notranslate"><span class="pre">docs/</span></code>, and leaves
+out a type it has no pages for.</p></li>
+<li><p><strong>A reader’s section organised by the site’s sections</strong> follows the rule for an application’s
+user guide above.</p></li>
+<li><p><strong>Explanation that every reader needs is written once</strong>, in <code class="docutils literal notranslate"><span class="pre">docs/explanation/</span></code>. A reader’s
+own <code class="docutils literal notranslate"><span class="pre">explanation/</span></code> holds only what that reader needs.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">index.md</span></code></strong> says in one paragraph what the repository is for, then gives one entry for each
+reader, in the order of the table, saying who it is for and linking to that reader’s section.
+The shared explanation and the maintainers’ material follow.</p></li>
+</ul>
+</section>
+</section>
+<section id="tutorials">
+<h2>4. Tutorials<a class="headerlink" href="#tutorials" title="Link to this heading">#</a></h2>
+<p>A tutorial takes someone new from nothing to a working result.</p>
+<ul class="simple">
+<li><p><strong>Title</strong>: what the reader will have built, such as “Build your first page”.</p></li>
+<li><p><strong>Before you start</strong>: what the reader needs, with a link for each.</p></li>
+<li><p><strong>One path.</strong> No options, no alternatives and no “you could also”. Choices belong in how-to
+guides.</p></li>
+<li><p><strong>Every step ends with something the reader can see</strong>: a page that loads, a command’s output,
+a test that passes.</p></li>
+<li><p><strong>The code is complete.</strong> Each block can be copied as it stands, with its imports. A name the
+reader must change, such as <code class="docutils literal notranslate"><span class="pre">yourproject</span></code>, is called out the first time it appears.</p></li>
+<li><p><strong>It explains almost nothing.</strong> One sentence at most, then a link to the explanation.</p></li>
+<li><p><strong>It ends with the finished result</strong>, and links to the how-to guides a reader is likely to
+want next.</p></li>
+</ul>
+<p>A tutorial is followed from start to finish, in a new project, before a release that changes
+anything it relies on.</p>
+</section>
+<section id="how-to-guides">
+<h2>5. How-to guides<a class="headerlink" href="#how-to-guides" title="Link to this heading">#</a></h2>
+<p>A how-to guide takes someone who already uses the package through one task.</p>
+<ul class="simple">
+<li><p><strong>Title</strong>: “How to”, then a verb, then what it acts on: “How to add a menu item”, “How to
+restrict a field to part of a vocabulary”.</p></li>
+<li><p><strong>Opening paragraph</strong>, with no heading: what the task achieves and when someone would do it,
+in two sentences at most.</p></li>
+<li><p><strong>Before you start</strong>: only when the task has a real precondition. Left out otherwise.</p></li>
+<li><p><strong>Steps</strong>: one numbered list, one action to a step. Code in a step shows only what that step
+changes, with enough around it to show where it goes.</p></li>
+<li><p><strong>The result</strong>: what the reader sees once the task is done, and anything that changed
+elsewhere.</p></li>
+</ul>
+<p>A how-to guide covers one task. A second task gets a guide of its own. It does not teach the
+basics, which the tutorial covers, or explain the design, which the explanation covers. Every
+setting, component or command it uses links to its reference entry.</p>
+<p><strong>Troubleshooting is a set of how-to guides.</strong> Each entry is headed by the symptom the reader
+sees, gives the cause in one sentence, then the fix.</p>
+</section>
+<section id="reference">
+<h2>6. Reference<a class="headerlink" href="#reference" title="Link to this heading">#</a></h2>
+<p>A reference page describes the machinery: settings, components, template tags, management
+commands, views, models and the Python API.</p>
+<ul class="simple">
+<li><p><strong>It describes, and does nothing else.</strong> No steps and no argument. A short example is fine
+where it shows the usage faster than the prose can.</p></li>
+<li><p><strong>It is built like the thing it describes.</strong> One page for the settings, one for the
+components, one for the template tags, each in the order the code defines them or in
+alphabetical order.</p></li>
+<li><p><strong>Every entry gives the same facts in the same order</strong>: the name, its type or signature, its
+default, what it does, and what it accepts.</p></li>
+<li><p><strong>It is complete.</strong> Every public setting, component, tag and command has an entry. One that is
+missing is a defect.</p></li>
+</ul>
+<p><strong>The Python API is generated from docstrings</strong> wherever the repository builds its
+documentation, and <a class="reference internal" href="code-documentation.html"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">code-documentation.md</span></code></span></a> makes those docstrings
+complete. A docstring is never restated by hand on a reference page. A repository without a docs
+build writes reference pages only for what a user sets or calls from outside Python: settings,
+components, template tags and management commands.</p>
+<p><strong>An application’s reference is a screen guide</strong>: one page for each screen, titled with the
+screen’s own heading. It says what the screen is for and how to reach it, then has one section
+for each part of the screen, saying what the part shows and what it shows when empty. It closes
+with what the reader can do from the screen, each action a link to its how-to guide.</p>
+</section>
+<section id="explanation">
+<h2>7. Explanation<a class="headerlink" href="#explanation" title="Link to this heading">#</a></h2>
+<p>An explanation helps a reader understand a subject.</p>
+<ul class="simple">
+<li><p><strong>Title</strong>: the subject, not a question: “How a theme is applied”, “Concepts, schemes and
+collections”.</p></li>
+<li><p><strong>Opening paragraph</strong>, with no heading: what the page covers and what it does not.</p></li>
+<li><p><strong>Body</strong>: one idea to a section. Why the design is the way it is, what it was weighed against,
+and where its limits are.</p></li>
+<li><p><strong>Decisions link to their record.</strong> Where a decision has an entry in <code class="docutils literal notranslate"><span class="pre">docs/adr/</span></code>, the
+explanation gives the reasoning in a form a user can follow and links to the record.</p></li>
+</ul>
+<p>An explanation never takes the reader through a task and never lists settings. A sequence that
+describes how something works is fine. A list of things to do is a how-to guide.</p>
+</section>
+<section id="every-page">
+<h2>8. Every page<a class="headerlink" href="#every-page" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>It reads on its own.</strong> A reader arrives from search or from a link, so the opening says what
+the page covers.</p></li>
+<li><p><strong>It speaks to the reader as “you”.</strong></p></li>
+<li><p><strong>It links rather than repeats.</strong> A setting is described once, on its reference page, and
+linked from everywhere else.</p></li>
+<li><p><strong>It describes the current release.</strong> What changed, and when, is in the changelog. A page has
+no “new in” notes and no record of how it used to work.</p></li>
+</ul>
+</section>
+<section id="enforcement">
+<h2>9. Enforcement<a class="headerlink" href="#enforcement" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Where the repository builds its documentation, the build treats warnings as errors, so a page
+left out of the contents or a broken cross-reference fails it.</p></li>
+<li><p>Everything else, including that each page is one type, is checked in review.</p></li>
+</ul>
+</section>
+<section id="project-additions">
+<h2>Project additions<a class="headerlink" href="#project-additions" title="Link to this heading">#</a></h2>
+<section id="readers">
+<h3>Readers<a class="headerlink" href="#readers" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Reader</p></th>
+<th class="head"><p>Lives in</p></th>
+<th class="head"><p>Does</p></th>
+<th class="head"><p>Organised by</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Portal developer</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">developers/</span></code></p></td>
+<td><p>Builds a research data portal on FairDM and deploys it</p></td>
+<td><p>type</p></td>
+</tr>
+<tr class="row-odd"><td><p>Portal administrator</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">administrators/</span></code></p></td>
+<td><p>Runs a portal: people, roles, content review and configuration checks</p></td>
+<td><p>type</p></td>
+</tr>
+<tr class="row-even"><td><p>Portal user</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">users/</span></code></p></td>
+<td><p>Adds, edits and publishes research data in a portal</p></td>
+<td><p>the site’s sections</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The portal user’s guide follows the sections a portal shows in its navigation: projects,
+datasets, samples, measurements and the account pages. Explanation that every reader needs, such
+as why FairDM favours configuration over code, lives in <code class="docutils literal notranslate"><span class="pre">docs/explanation/</span></code>.</p>
+</section>
+<section id="shared-reference">
+<h3>Shared reference<a class="headerlink" href="#shared-reference" title="Link to this heading">#</a></h3>
+<p>Reference that every reader needs, such as the glossary, lives in <code class="docutils literal notranslate"><span class="pre">docs/reference/</span></code>.</p>
+<hr class="docutils" />
+<p><strong>Version</strong>: 1.2.0</p>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="django.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Django standards</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="../documentation/index.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Working on the documentation</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-these-rules-cover">1. What these rules cover</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-four-types">2. The four types</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#where-pages-live">3. Where pages live</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#documentation-for-more-than-one-reader">Documentation for more than one reader</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tutorials">4. Tutorials</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#how-to-guides">5. How-to guides</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reference">6. Reference</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#explanation">7. Explanation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#every-page">8. Every page</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#enforcement">9. Enforcement</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#project-additions">Project additions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#readers">Readers</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#shared-reference">Shared reference</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Samuel Jennings.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.21.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

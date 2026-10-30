@@ -1,0 +1,251 @@
+# {py:mod}`fairdm.core.dataset.plugins`
+
+```{py:module} fairdm.core.dataset.plugins
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Overview <fairdm.core.dataset.plugins.Overview>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`dataset_is_visible <fairdm.core.dataset.plugins.dataset_is_visible>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.plugins.dataset_is_visible
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`DATASET_SETTINGS <fairdm.core.dataset.plugins.DATASET_SETTINGS>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.plugins.DATASET_SETTINGS
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} DATASET_SETTINGS
+:canonical: fairdm.core.dataset.plugins.DATASET_SETTINGS
+:value: >
+   'getattr(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.DATASET_SETTINGS
+```
+
+````
+
+````{py:function} dataset_is_visible(request, obj)
+:canonical: fairdm.core.dataset.plugins.dataset_is_visible
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.dataset_is_visible
+```
+````
+
+`````{py:class} Overview(**kwargs)
+:canonical: fairdm.core.dataset.plugins.Overview
+
+Bases: {py:obj}`fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin`, {py:obj}`fairdm.core.plugins.RecordOverviewPlugin`
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview.__init__
+```
+
+````{py:attribute} url_path
+:canonical: fairdm.core.dataset.plugins.Overview.url_path
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview.url_path
+```
+
+````
+
+````{py:attribute} model
+:canonical: fairdm.core.dataset.plugins.Overview.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview.model
+```
+
+````
+
+````{py:attribute} check
+:canonical: fairdm.core.dataset.plugins.Overview.check
+:value: >
+   'staticmethod(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview.check
+```
+
+````
+
+````{py:attribute} template_name
+:canonical: fairdm.core.dataset.plugins.Overview.template_name
+:value: >
+   'dataset/dataset_detail.html'
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview.template_name
+```
+
+````
+
+````{py:attribute} bookkeeping_fields
+:canonical: fairdm.core.dataset.plugins.Overview.bookkeeping_fields
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview.bookkeeping_fields
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.core.dataset.plugins.Overview.get_context_data
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview.get_context_data
+```
+
+````
+
+````{py:method} get_shared_context(page)
+:canonical: fairdm.core.dataset.plugins.Overview.get_shared_context
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview.get_shared_context
+```
+
+````
+
+````{py:method} get_details(project_info)
+:canonical: fairdm.core.dataset.plugins.Overview.get_details
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview.get_details
+```
+
+````
+
+````{py:method} get_lifecycle(dates)
+:canonical: fairdm.core.dataset.plugins.Overview.get_lifecycle
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview.get_lifecycle
+```
+
+````
+
+````{py:method} get_access()
+:canonical: fairdm.core.dataset.plugins.Overview.get_access
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview.get_access
+```
+
+````
+
+````{py:method} get_descriptions()
+:canonical: fairdm.core.dataset.plugins.Overview.get_descriptions
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview.get_descriptions
+```
+
+````
+
+````{py:method} get_dates()
+:canonical: fairdm.core.dataset.plugins.Overview.get_dates
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview.get_dates
+```
+
+````
+
+````{py:method} get_team()
+:canonical: fairdm.core.dataset.plugins.Overview.get_team
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview.get_team
+```
+
+````
+
+````{py:method} get_literature()
+:canonical: fairdm.core.dataset.plugins.Overview.get_literature
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview.get_literature
+```
+
+````
+
+````{py:method} get_record_types(samples, measurements)
+:canonical: fairdm.core.dataset.plugins.Overview.get_record_types
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview.get_record_types
+```
+
+````
+
+````{py:method} get_counts(samples, measurements, data_types)
+:canonical: fairdm.core.dataset.plugins.Overview.get_counts
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview.get_counts
+```
+
+````
+
+````{py:method} get_project_info()
+:canonical: fairdm.core.dataset.plugins.Overview.get_project_info
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview.get_project_info
+```
+
+````
+
+````{py:method} get_citation_details(page)
+:canonical: fairdm.core.dataset.plugins.Overview.get_citation_details
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview.get_citation_details
+```
+
+````
+
+````{py:method} get_schema_org(page)
+:canonical: fairdm.core.dataset.plugins.Overview.get_schema_org
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview.get_schema_org
+```
+
+````
+
+````{py:method} get_readiness(page)
+:canonical: fairdm.core.dataset.plugins.Overview.get_readiness
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview.get_readiness
+```
+
+````
+
+`````

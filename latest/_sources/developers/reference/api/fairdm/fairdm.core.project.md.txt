@@ -1,0 +1,28 @@
+# {py:mod}`fairdm.core.project`
+
+```{py:module} fairdm.core.project
+```
+
+```{autodoc2-docstring} fairdm.core.project
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.core.project.views
+fairdm.core.project.plugins
+fairdm.core.project.urls
+fairdm.core.project.validators
+fairdm.core.project.forms
+fairdm.core.project.admin
+fairdm.core.project.apps
+fairdm.core.project.transforms
+fairdm.core.project.models
+fairdm.core.project.filters
+fairdm.core.project.serializers
+fairdm.core.project.receivers
+```

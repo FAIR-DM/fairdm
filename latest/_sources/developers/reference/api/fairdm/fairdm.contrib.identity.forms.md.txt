@@ -1,0 +1,8 @@
+# {py:mod}`fairdm.contrib.identity.forms`
+
+```{py:module} fairdm.contrib.identity.forms
+```
+
+```{autodoc2-docstring} fairdm.contrib.identity.forms
+:allowtitles:
+```

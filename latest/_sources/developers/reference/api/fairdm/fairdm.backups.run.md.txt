@@ -1,0 +1,31 @@
+# {py:mod}`fairdm.backups.run`
+
+```{py:module} fairdm.backups.run
+```
+
+```{autodoc2-docstring} fairdm.backups.run
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`run_backup <fairdm.backups.run.run_backup>`
+  - ```{autodoc2-docstring} fairdm.backups.run.run_backup
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} run_backup(kind: typing.Literal[database, media]) -> None
+:canonical: fairdm.backups.run.run_backup
+
+```{autodoc2-docstring} fairdm.backups.run.run_backup
+```
+````

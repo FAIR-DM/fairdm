@@ -1,0 +1,262 @@
+# {py:mod}`fairdm.contrib.contributors.choices`
+
+```{py:module} fairdm.contrib.contributors.choices
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`OrganizationType <fairdm.contrib.contributors.choices.OrganizationType>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.choices.OrganizationType
+    :summary:
+    ```
+* - {py:obj}`ContributionLevel <fairdm.contrib.contributors.choices.ContributionLevel>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.choices.ContributionLevel
+    :summary:
+    ```
+* - {py:obj}`AccountState <fairdm.contrib.contributors.choices.AccountState>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.choices.AccountState
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`IdentifierLookup <fairdm.contrib.contributors.choices.IdentifierLookup>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.choices.IdentifierLookup
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} OrganizationType(*args, **kwds)
+:canonical: fairdm.contrib.contributors.choices.OrganizationType
+
+Bases: {py:obj}`django.db.models.TextChoices`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.OrganizationType
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.OrganizationType.__init__
+```
+
+````{py:attribute} EDUCATION
+:canonical: fairdm.contrib.contributors.choices.OrganizationType.EDUCATION
+:value: >
+   ('education',)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.OrganizationType.EDUCATION
+```
+
+````
+
+````{py:attribute} FUNDER
+:canonical: fairdm.contrib.contributors.choices.OrganizationType.FUNDER
+:value: >
+   ('funder',)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.OrganizationType.FUNDER
+```
+
+````
+
+````{py:attribute} HEALTHCARE
+:canonical: fairdm.contrib.contributors.choices.OrganizationType.HEALTHCARE
+:value: >
+   ('healthcare',)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.OrganizationType.HEALTHCARE
+```
+
+````
+
+````{py:attribute} COMPANY
+:canonical: fairdm.contrib.contributors.choices.OrganizationType.COMPANY
+:value: >
+   ('company',)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.OrganizationType.COMPANY
+```
+
+````
+
+````{py:attribute} ARCHIVE
+:canonical: fairdm.contrib.contributors.choices.OrganizationType.ARCHIVE
+:value: >
+   ('archive',)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.OrganizationType.ARCHIVE
+```
+
+````
+
+````{py:attribute} NONPROFIT
+:canonical: fairdm.contrib.contributors.choices.OrganizationType.NONPROFIT
+:value: >
+   ('nonprofit',)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.OrganizationType.NONPROFIT
+```
+
+````
+
+````{py:attribute} GOVERNMENT
+:canonical: fairdm.contrib.contributors.choices.OrganizationType.GOVERNMENT
+:value: >
+   ('government',)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.OrganizationType.GOVERNMENT
+```
+
+````
+
+````{py:attribute} FACILITY
+:canonical: fairdm.contrib.contributors.choices.OrganizationType.FACILITY
+:value: >
+   ('facility',)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.OrganizationType.FACILITY
+```
+
+````
+
+````{py:attribute} OTHER
+:canonical: fairdm.contrib.contributors.choices.OrganizationType.OTHER
+:value: >
+   ('other',)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.OrganizationType.OTHER
+```
+
+````
+
+`````
+
+`````{py:class} ContributionLevel(*args, **kwds)
+:canonical: fairdm.contrib.contributors.choices.ContributionLevel
+
+Bases: {py:obj}`django.db.models.IntegerChoices`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.ContributionLevel
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.ContributionLevel.__init__
+```
+
+````{py:attribute} VIEW
+:canonical: fairdm.contrib.contributors.choices.ContributionLevel.VIEW
+:value: >
+   (1,)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.ContributionLevel.VIEW
+```
+
+````
+
+````{py:attribute} EDIT
+:canonical: fairdm.contrib.contributors.choices.ContributionLevel.EDIT
+:value: >
+   (2,)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.ContributionLevel.EDIT
+```
+
+````
+
+````{py:attribute} MANAGE
+:canonical: fairdm.contrib.contributors.choices.ContributionLevel.MANAGE
+:value: >
+   (3,)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.ContributionLevel.MANAGE
+```
+
+````
+
+`````
+
+`````{py:class} AccountState(*args, **kwds)
+:canonical: fairdm.contrib.contributors.choices.AccountState
+
+Bases: {py:obj}`django.db.models.TextChoices`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.AccountState
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.AccountState.__init__
+```
+
+````{py:attribute} GHOST
+:canonical: fairdm.contrib.contributors.choices.AccountState.GHOST
+:value: >
+   ('ghost',)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.AccountState.GHOST
+```
+
+````
+
+````{py:attribute} INVITED
+:canonical: fairdm.contrib.contributors.choices.AccountState.INVITED
+:value: >
+   ('invited',)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.AccountState.INVITED
+```
+
+````
+
+````{py:attribute} CLAIMED
+:canonical: fairdm.contrib.contributors.choices.AccountState.CLAIMED
+:value: >
+   ('claimed',)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.AccountState.CLAIMED
+```
+
+````
+
+````{py:attribute} INACTIVE
+:canonical: fairdm.contrib.contributors.choices.AccountState.INACTIVE
+:value: >
+   ('inactive',)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.AccountState.INACTIVE
+```
+
+````
+
+`````
+
+````{py:data} IdentifierLookup
+:canonical: fairdm.contrib.contributors.choices.IdentifierLookup
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.IdentifierLookup
+```
+
+````

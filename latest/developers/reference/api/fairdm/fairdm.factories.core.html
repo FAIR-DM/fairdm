@@ -1,0 +1,2320 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="fairdm.factories.core" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="developers/reference/api/fairdm/fairdm.factories.core.html" />
+<meta property="og:site_name" content="fairdm" />
+<meta property="og:description" content="Key Features: Minimal by Default: Factories create only required fields unless explicitly requested., Opt-In Relationships: Use keyword arguments to create descriptions/dates: … code-block:: python..." />
+<meta name="description" content="Key Features: Minimal by Default: Factories create only required fields unless explicitly requested., Opt-In Relationships: Use keyword arguments to create descriptions/dates: … code-block:: python..." />
+
+    <title>fairdm.factories.core &#8212; fairdm 0.3.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../../_static/styles/theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../../_static/scripts/fontawesome.js?digest=cb8930eaaf36d9849b67"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
+<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
+
+    <script src="../../../../_static/documentation_options.js?v=4621528c"></script>
+    <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../../_static/copybutton.js?v=f281be69"></script>
+    <script kind="utterances">
+
+    var commentsRunWhenDOMLoaded = cb => {
+    if (document.readyState != 'loading') {
+        cb()
+    } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', cb)
+    } else {
+        document.attachEvent('onreadystatechange', function() {
+        if (document.readyState == 'complete') cb()
+        })
+    }
+}
+
+var addUtterances = () => {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://utteranc.es/client.js";
+    script.async = "async";
+
+    script.setAttribute("repo", "FAIR-DM/fairdm");
+    script.setAttribute("issue-term", "pathname");
+    script.setAttribute("theme", "preferred-color-scheme");
+    script.setAttribute("label", "documentation");
+    script.setAttribute("crossorigin", "anonymous");
+
+    sections = document.querySelectorAll("div.section");
+    if (sections !== null) {
+        section = sections[sections.length-1];
+        section.appendChild(script);
+    }
+}
+commentsRunWhenDOMLoaded(addUtterances);
+</script>
+    <script src="../../../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'developers/reference/api/fairdm/fairdm.factories.core';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.21.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.fairdm.org/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'latest';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="icon" href="../../../../_static/icon.svg"/>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="fairdm.factories.utils" href="fairdm.factories.utils.html" />
+    <link rel="prev" title="fairdm.factories" href="fairdm.factories.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.3.1" />
+    <meta name="docbuild:last-update" content="Oct 30, 2026"/>
+  
+    
+    <script src="../../../../_static/searchtools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <script src="../../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../../_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.3.1 documentation - Home"/>
+    <img src="../../../../_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.3.1 documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="../../../index.html">
+    Developers
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../administrators/index.html">
+    Administrators
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../users/index.html">
+    Users
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/what-fairdm-is-for.html">
+    What FairDM is for
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/fair-data-and-research-data-infrastructure.html">
+    FAIR data and research data infrastructure
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/the-technology-stack.html">
+    The technology stack
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/the-core-data-model.html">
+    The core data model
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/how-sample-and-measurement-types-are-stored.html">
+    How sample and measurement types are stored
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/controlled-vocabularies.html">
+    Controlled vocabularies
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/configuration-over-code.html">
+    Configuration over code
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/why-complete-metadata-matters.html">
+    Why complete metadata matters
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/how-access-to-a-record-is-decided.html">
+    How access to a record is decided
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/why-fairdm-records-contributors.html">
+    Why FairDM records contributors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/how-contributor-accounts-and-credits-work.html">
+    How contributor accounts and credits work
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/how-a-profile-is-claimed.html">
+    How a profile is claimed
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/how-fairdm-configures-a-portal.html">
+    How FairDM configures a portal
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/who-is-asked-to-agree-to-a-legal-document.html">
+    Who is asked to agree to a legal document
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/how-locations-are-stored-and-protected.html">
+    How locations are stored and protected
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/dataset-publication-dois-and-datacite-metadata.html">
+    Dataset publication, DOIs and DataCite metadata
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../reference/glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../contributing/index.html">
+    Framework Contributors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../adr/index.html">
+    Architecture Decision Records
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../ROADMAP.html">
+    Roadmap — FairDM
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../../index.html">
+    Developers
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../administrators/index.html">
+    Administrators
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../users/index.html">
+    Users
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../explanation/what-fairdm-is-for.html">
+    What FairDM is for
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../explanation/fair-data-and-research-data-infrastructure.html">
+    FAIR data and research data infrastructure
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../explanation/the-technology-stack.html">
+    The technology stack
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../explanation/the-core-data-model.html">
+    The core data model
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../explanation/how-sample-and-measurement-types-are-stored.html">
+    How sample and measurement types are stored
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../explanation/controlled-vocabularies.html">
+    Controlled vocabularies
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../explanation/configuration-over-code.html">
+    Configuration over code
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../explanation/why-complete-metadata-matters.html">
+    Why complete metadata matters
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../explanation/how-access-to-a-record-is-decided.html">
+    How access to a record is decided
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../explanation/why-fairdm-records-contributors.html">
+    Why FairDM records contributors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../explanation/how-contributor-accounts-and-credits-work.html">
+    How contributor accounts and credits work
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../explanation/how-a-profile-is-claimed.html">
+    How a profile is claimed
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../explanation/how-fairdm-configures-a-portal.html">
+    How FairDM configures a portal
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../explanation/who-is-asked-to-agree-to-a-legal-document.html">
+    Who is asked to agree to a legal document
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../explanation/how-locations-are-stored-and-protected.html">
+    How locations are stored and protected
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../explanation/dataset-publication-dois-and-datacite-metadata.html">
+    Dataset publication, DOIs and DataCite metadata
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../reference/glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../contributing/index.html">
+    Framework Contributors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../adr/index.html">
+    Architecture Decision Records
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../ROADMAP.html">
+    Roadmap — FairDM
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Tutorial</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial.html">Build your first sample and measurement types</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">How-to guides</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-factory-for-a-portal-model.html">How to add a factory for a portal model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-filter-to-a-sample-type.html">How to add a filter to a sample type</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-measurement-type.html">How to add a measurement type</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-record-field-to-a-form.html">How to add a record field to a form</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-sample-type.html">How to add a sample type</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-section-to-the-home-page.html">How to add a section to the home page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-start-step-to-a-container.html">How to add a start step to a container</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-transform-for-another-format.html">How to add a transform for another format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-viewset-to-the-api-router.html">How to add a viewset to the API router</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-an-entry-to-the-manage-menu.html">How to add an entry to the Manage menu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-an-environment-override-module.html">How to add an environment override module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-pages-to-a-plugin.html">How to add pages to a plugin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-queryset-methods-to-a-measurement-type.html">How to add queryset methods to a measurement type</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-search-and-sort-to-a-list-view.html">How to add search and sort to a list view</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/allow-only-some-sites-to-call-the-api.html">How to allow only some sites to call the API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/back-up-a-portal.html">How to back up a portal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/change-a-types-api-address.html">How to change a type’s API address</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/change-how-the-team-page-looks.html">How to change how the team page looks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/change-the-api-rate-limits.html">How to change the API rate limits</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/change-the-entrance-layout.html">How to change the entrance layout</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/change-the-entrance-pane.html">How to change the entrance pane</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/change-the-portal-theme.html">How to change the portal theme</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/change-what-a-home-page-section-shows.html">How to change what a home page section shows</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/change-what-the-edit-details-page-offers.html">How to change what the edit details page offers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/choose-the-fields-the-api-returns.html">How to choose the fields the API returns</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/configure-the-agreement-check.html">How to configure the agreement check</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/count-api-callers-behind-a-proxy.html">How to count API callers behind a proxy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/create-a-ghost-person.html">How to create a ghost person</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/create-a-plugin.html">How to create a plugin</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/create-an-addon.html">How to create an addon</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/credit-a-person-on-a-record.html">How to credit a person on a record</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/customise-a-generated-component.html">How to customise a generated component</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/customise-a-sample-form.html">How to customise a sample form</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/customise-the-admin-for-a-measurement-type.html">How to customise the admin for a measurement type</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/customise-the-api-documentation.html">How to customise the API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/customise-the-profile-form.html">How to customise the profile form</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/define-a-portal-role-of-your-own.html">How to define a portal role of your own</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/deploy-a-portal-in-a-container.html">How to deploy a portal in a container</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/develop-a-portal-on-the-development-image.html">How to develop a portal on the development image</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/extend-an-overview-page.html">How to extend an overview page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/extend-the-profile-claiming-flow.html">How to extend the profile-claiming flow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/filter-a-list-by-a-record.html">How to filter a list by a record</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/filter-projects-by-vocabulary-keywords.html">How to filter projects by vocabulary keywords</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/find-records-by-where-they-are.html">How to find records by where they are</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/give-a-registered-type-a-location.html">How to give a sample or measurement a location</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/give-a-sample-or-measurement-type-its-own-overview-page.html">How to give a sample or measurement type its own overview page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/grant-object-permissions-on-polymorphic-models.html">How to grant object permissions on a polymorphic model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/import-and-export-locations.html">How to import and export locations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/import-people-from-orcid.html">How to import people from a list of ORCID iDs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/link-to-a-legal-document.html">How to link to a legal document</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/load-development-data-for-the-overview-pages.html">How to load development data for the overview pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/loop-over-the-registered-types.html">How to loop over the registered types</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/narrow-a-record-field-by-another-field.html">How to narrow a record field by another field</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/override-a-fairdm-setting.html">How to override a FairDM setting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/place-an-organization-on-a-map.html">How to place an organization on a map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/record-sample-relationships.html">How to record sample relationships</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/register-a-sample-or-measurement-type.html">How to register a sample or measurement type</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/render-markdown-in-a-template.html">How to render markdown in a template</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/restore-a-portal-from-a-backup.html">How to restore a portal from a backup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/restrict-a-plugin-to-some-users.html">How to restrict a plugin to some users</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/restrict-a-record-field-to-one-sample-type.html">How to restrict a record field to one sample type</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/restrict-api-tokens-to-some-people.html">How to restrict API tokens to some people</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/run-a-background-worker-in-a-container.html">How to run a background worker in a container</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/search-a-registered-type-by-more-than-its-name.html">How to search a registered type by more than its name</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/show-part-of-a-page-to-a-records-team.html">How to show part of a page to a record’s team</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/sign-in-as-each-portal-role-while-developing.html">How to sign in as each portal role while developing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/sync-a-profile-from-orcid-or-ror-without-celery.html">How to sync a profile from ORCID or ROR without Celery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/test-a-portal-with-fairdm-factories.html">How to test a portal with FairDM factories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/upgrade-a-portal-to-django-literature-0-3.html">How to upgrade a portal to django-literature 0.3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/upgrade-a-portal-to-vocabulary-addresses.html">How to upgrade a portal to vocabulary addresses</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/use-a-controlled-vocabulary-in-a-model.html">How to use a controlled vocabulary in a model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/use-a-sample-form-in-a-view.html">How to use a sample form in a view</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/write-a-custom-form-or-filter-for-a-measurement-type.html">How to write a custom form or filter for a measurement type</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../base-views.html">Base views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../components.html">Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../container-images.html">Container images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contribution-levels-and-record-access.html">Contribution levels and record access</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributor-models.html">Contributor models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../core-models.html">Core models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../crediting.html">Crediting</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../development-accounts.html">Development accounts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../entrance-pages.html">Entrance pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../form-and-filter-mixins.html">Form and filter mixins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../home-page.html">Home page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../legal-documents.html">Legal documents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../location-fields.html">Location fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../management-commands.html">Management commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../measurement-model.html">Measurement model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../model-configuration.html">Model configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../model-fields.html">Model fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../overview-page-blocks.html">Overview page blocks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../overview-plugins.html">Overview plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plugins.html">Plugins</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../portal-roles.html">Portal roles in code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../profile-claiming.html">Profile claiming</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../record-editing-pages.html">Record editing pages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../record-fields.html">Record fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../rest-api.html">REST API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sample-model.html">Sample model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../settings.html">Settings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../template-tags.html">Template tags</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../factories.html">Test factories</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../registry.html">The registry</a></li>
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../../python-api.html">Python API</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active has-children"><a class="reference internal" href="fairdm.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm</span></code></a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.templatetags.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.templatetags</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.templatetags.fairdm.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.templatetags.fairdm</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.views.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.views.mixins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views.mixins</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.views.generic.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views.generic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.views.base.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views.base</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.conf.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.conf.settings.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.settings</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.conf.environment.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.environment</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.conf.urls.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.urls</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.conf.setup.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.setup</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.conf.checks.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.checks</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.conf.celery.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.celery</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.conf.development.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.development</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.conf.addons.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.addons</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 current active has-children"><a class="reference internal" href="fairdm.factories.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories</span></code></a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l4 current active"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories.core</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.factories.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories.utils</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.factories.contributors.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories.contributors</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.forms</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.forms.fields.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.forms.fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.forms.base.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.forms.base</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.db.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.db</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.db.fields.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.db.fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.db.managers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.db.managers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.db.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.db.models</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.api.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.api.settings.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.settings</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.api.viewsets.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.viewsets</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.api.schema.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.schema</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.api.urls.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.urls</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.api.throttling.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.throttling</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.api.checks.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.checks</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.api.router.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.router</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.api.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.permissions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.api.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.apps</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.api.filters.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.filters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.api.serializers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.serializers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.api.pagination.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.pagination</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.registry.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.registry.exceptions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry.exceptions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.registry.registry.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry.registry</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.registry.factories.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry.factories</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.registry.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry.config</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.backups.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.backups.management.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.management</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.backups.signals.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.signals</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.backups.tasks.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.tasks</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.backups.media.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.media</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.backups.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.apps</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.backups.run.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.run</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.backups.keys.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.keys</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.contrib.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.contributors.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.contributors</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.admin</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.collections.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.collections</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.autocomplete.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.autocomplete</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.identity.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.identity</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.plugins</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.import_export.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.import_export</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.location.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.location</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.management.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.management</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.management.commands.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.management.commands</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.core.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.measurement.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.sample.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.sample</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.dataset.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dataset</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.project.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.abstract.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.abstract</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.editing.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.editing</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.vocabularies.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.vocabularies</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.plugins</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.related_records.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.related_records</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.managers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.managers</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.urls.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.urls</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.forms</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.formsets.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.formsets</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.permissions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.admin</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.apps</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.choices.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.choices</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.models</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.filters.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.filters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.overview.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.overview</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.dates.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dates</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.image_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.image_utils</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.descriptions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.descriptions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.utils</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.utils.location.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.location</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.utils.context_processors.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.context_processors</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.utils.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.permissions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.utils.choices.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.choices</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.utils.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.models</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.utils.inspection.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.inspection</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.utils.markdown.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.markdown</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.utils.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.utils</span></code></a></li>
+</ul>
+</details></li>
+<li class="toctree-l3"><a class="reference internal" href="fairdm.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.plugins</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="fairdm.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.permissions</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="fairdm.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.apps</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="fairdm.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.models</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="fairdm.portal_roles.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.portal_roles</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="fairdm.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="fairdm.menus.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.menus</span></code></a></li>
+</ul>
+</details></li>
+</ul>
+</details></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Explanation</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../../../explanation/how-a-measurement-reports-its-value.html">How a measurement reports its value</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../explanation/how-api-callers-are-limited.html">How API callers are limited</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../explanation/how-fairdm-views-are-layered.html">How FairDM views are layered</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../explanation/how-markdown-is-sanitised.html">How markdown is sanitised</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../explanation/how-record-fields-decide-what-to-offer.html">How record fields decide what to offer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../explanation/how-the-container-images-are-versioned.html">How the container images are versioned</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../explanation/what-registering-a-type-produces.html">What registering a type produces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../explanation/why-factories-create-metadata-only-when-asked.html">Why factories create metadata only when asked</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">Developers</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../../python-api.html" class="nav-link">Python API</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="fairdm.html" class="nav-link"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm</span></code></a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="fairdm.factories.html" class="nav-link"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories</span></code></a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories.core</span></code></span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-fairdm.factories.core">
+<span id="fairdm-factories-core"></span><h1><a class="reference internal" href="#module-fairdm.factories.core" title="fairdm.factories.core"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories.core</span></code></a><a class="headerlink" href="#module-fairdm.factories.core" title="Link to this heading">#</a></h1>
+<section id="key-features">
+<h2>Key Features<a class="headerlink" href="#key-features" title="Link to this heading">#</a></h2>
+<ol class="arabic">
+<li><p><strong>Minimal by Default</strong>: Factories create only required fields unless explicitly requested.</p></li>
+<li><p><strong>Opt-In Relationships</strong>: Use keyword arguments to create descriptions/dates:</p>
+<p>… code-block:: python</p>
+<p class="rubric" id="no-descriptions-or-dates-created">No descriptions or dates created</p>
+<p>project = ProjectFactory()</p>
+<p class="rubric" id="create-2-descriptions">Create 2 descriptions</p>
+<p>project = ProjectFactory(descriptions=2)</p>
+<p class="rubric" id="create-specific-description-types-named-by-address">Create specific description types, named by address</p>
+<p>project = ProjectFactory(
+descriptions=2,
+descriptions__types=[ABSTRACT, f”{DESCRIPTION_TYPES}/introduction”],
+)</p>
+</li>
+<li><p><strong>Vocabulary Validation</strong>: All description/date types are validated against the collection
+the model’s <code class="docutils literal notranslate"><span class="pre">type</span></code> field offers. Invalid types raise ValueError.</p></li>
+<li><p><strong>Controlled Vocabularies</strong>: Default types come from that collection (e.g.,
+<code class="docutils literal notranslate"><span class="pre">ProjectDescription.get_type_concepts()</span></code>), ensuring factories create valid test data. The
+vocabularies must be loaded, as the test suite does once per session.</p></li>
+</ol>
+</section>
+<section id="factories-available">
+<h2>Factories Available<a class="headerlink" href="#factories-available" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ProjectFactory</span></code> - Create Project instances with optional descriptions/dates</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DatasetFactory</span></code> - Create Dataset instances with optional descriptions/dates</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SampleFactory</span></code> - <strong>Abstract.</strong> The base every specimen factory builds on; it cannot be
+instantiated directly because the <code class="docutils literal notranslate"><span class="pre">Sample</span></code> model it declares cannot be created directly
+either. A reference implementation lives in <code class="docutils literal notranslate"><span class="pre">demo.factories</span></code> (e.g.
+<code class="docutils literal notranslate"><span class="pre">RockSampleFactory</span></code>); a portal defines its own alongside its own specimen types.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MeasurementFactory</span></code> - <strong>Abstract.</strong> The base every measurement factory builds on; it cannot
+be instantiated directly because the <code class="docutils literal notranslate"><span class="pre">Measurement</span></code> model it declares cannot be created
+directly either. A reference implementation lives in <code class="docutils literal notranslate"><span class="pre">demo.factories</span></code> (e.g.
+<code class="docutils literal notranslate"><span class="pre">ExampleMeasurementFactory</span></code>); a portal defines its own alongside its own measurement types.</p></li>
+</ul>
+</section>
+<section id="metadata-factories">
+<h2>Metadata Factories<a class="headerlink" href="#metadata-factories" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">ProjectDescriptionFactory</span></code>, <code class="docutils literal notranslate"><span class="pre">DatasetDescriptionFactory</span></code>, etc.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SampleDescriptionFactory</span></code>, <code class="docutils literal notranslate"><span class="pre">SampleDateFactory</span></code>, <code class="docutils literal notranslate"><span class="pre">SampleIdentifierFactory</span></code>,
+<code class="docutils literal notranslate"><span class="pre">SampleRelationFactory</span></code></p></li>
+</ul>
+</section>
+<section id="usage-examples">
+<h2>Usage Examples<a class="headerlink" href="#usage-examples" title="Link to this heading">#</a></h2>
+<p>Basic creation::</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>project = ProjectFactory()
+dataset = DatasetFactory(project=project)
+from demo.factories import RockSampleFactory
+
+sample = RockSampleFactory(dataset=dataset)
+</pre></div>
+</div>
+<p>With metadata (opt-in)::</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>project = ProjectFactory(
+    descriptions=2,  # Create 2 descriptions
+    dates=1,  # Create 1 date
+)
+</pre></div>
+</div>
+<p>Custom types::</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>project = ProjectFactory(
+    descriptions=2,
+    descriptions__types=[ABSTRACT, f"{DESCRIPTION_TYPES}/objectives"],
+)
+</pre></div>
+</div>
+<p>Batch creation::</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>projects = ProjectFactory.create_batch(5, descriptions=2, dates=1)
+</pre></div>
+</div>
+<p>Type validation::</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># Raises ValueError - the address is not in the project description types
+project = ProjectFactory(
+    descriptions=1, descriptions__types=[f"{DESCRIPTION_TYPES}/invalid"]
+)
+</pre></div>
+</div>
+<p>For more details, see:</p>
+<ul class="simple">
+<li><p>Portal developers: docs/developers/how-to/test-a-portal-with-fairdm-factories.md</p></li>
+<li><p>Framework contributors: docs/contributing/testing/</p></li>
+</ul>
+</section>
+<p>Factories for FairDM’s core models.</p>
+<p>These factory_boy factories create test instances of FairDM’s
+core models: Project, Dataset, Sample, and Measurement. These factories follow an
+<strong>opt-in pattern</strong> for creating related metadata objects (descriptions and dates).</p>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table table-left">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.factories.core.ProjectDescriptionFactory" title="fairdm.factories.core.ProjectDescriptionFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProjectDescriptionFactory</span></code></a></p></td>
+<td><p>Factory for creating ProjectDescription instances.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.factories.core.ProjectDateFactory" title="fairdm.factories.core.ProjectDateFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProjectDateFactory</span></code></a></p></td>
+<td><p>Factory for creating ProjectDate instances.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.factories.core.ProjectIdentifierFactory" title="fairdm.factories.core.ProjectIdentifierFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProjectIdentifierFactory</span></code></a></p></td>
+<td><p>Factory for creating ProjectIdentifier instances.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.factories.core.ProjectFactory" title="fairdm.factories.core.ProjectFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ProjectFactory</span></code></a></p></td>
+<td><p>Factory for creating Project instances.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.factories.core.DatasetDescriptionFactory" title="fairdm.factories.core.DatasetDescriptionFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DatasetDescriptionFactory</span></code></a></p></td>
+<td><p>Factory for creating DatasetDescription instances.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.factories.core.DatasetDateFactory" title="fairdm.factories.core.DatasetDateFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DatasetDateFactory</span></code></a></p></td>
+<td><p>Factory for creating DatasetDate instances.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.factories.core.DatasetIdentifierFactory" title="fairdm.factories.core.DatasetIdentifierFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DatasetIdentifierFactory</span></code></a></p></td>
+<td><p>Factory for creating DatasetIdentifier instances.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.factories.core.LiteratureItemFactory" title="fairdm.factories.core.LiteratureItemFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LiteratureItemFactory</span></code></a></p></td>
+<td><p>Factory for creating literature.Item instances.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.factories.core.DatasetLiteratureRelationFactory" title="fairdm.factories.core.DatasetLiteratureRelationFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DatasetLiteratureRelationFactory</span></code></a></p></td>
+<td><p>Factory for creating DatasetLiteratureRelation instances.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.factories.core.DatasetFactory" title="fairdm.factories.core.DatasetFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DatasetFactory</span></code></a></p></td>
+<td><p>Factory for creating Dataset instances.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.factories.core.SampleDescriptionFactory" title="fairdm.factories.core.SampleDescriptionFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SampleDescriptionFactory</span></code></a></p></td>
+<td><p>Factory for creating SampleDescription instances.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.factories.core.SampleDateFactory" title="fairdm.factories.core.SampleDateFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SampleDateFactory</span></code></a></p></td>
+<td><p>Factory for creating SampleDate instances.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.factories.core.SampleIdentifierFactory" title="fairdm.factories.core.SampleIdentifierFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SampleIdentifierFactory</span></code></a></p></td>
+<td><p>Factory for creating SampleIdentifier instances.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.factories.core.SampleFactory" title="fairdm.factories.core.SampleFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SampleFactory</span></code></a></p></td>
+<td><p>Abstract factory for creating Sample instances.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.factories.core.MeasurementDescriptionFactory" title="fairdm.factories.core.MeasurementDescriptionFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeasurementDescriptionFactory</span></code></a></p></td>
+<td><p>Factory for creating MeasurementDescription instances.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.factories.core.MeasurementDateFactory" title="fairdm.factories.core.MeasurementDateFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeasurementDateFactory</span></code></a></p></td>
+<td><p>Factory for creating MeasurementDate instances.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.factories.core.MeasurementIdentifierFactory" title="fairdm.factories.core.MeasurementIdentifierFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeasurementIdentifierFactory</span></code></a></p></td>
+<td><p>Factory for creating MeasurementIdentifier instances.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.factories.core.MeasurementFactory" title="fairdm.factories.core.MeasurementFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeasurementFactory</span></code></a></p></td>
+<td><p>Abstract factory for creating Measurement instances.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.factories.core.SampleRelationFactory" title="fairdm.factories.core.SampleRelationFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SampleRelationFactory</span></code></a></p></td>
+<td><p>Factory for creating SampleRelation instances.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="api">
+<h3>API<a class="headerlink" href="#api" title="Link to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectDescriptionFactory">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ProjectDescriptionFactory</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectDescriptionFactory" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="fairdm.factories.utils.html#fairdm.factories.utils.ConceptFieldFactory" title="fairdm.factories.utils.ConceptFieldFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.factories.utils.ConceptFieldFactory</span></code></a></p>
+<p>Factory for creating ProjectDescription instances.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectDescriptionFactory.Meta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Meta</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectDescriptionFactory.Meta" title="Link to this definition">#</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectDescriptionFactory.Meta.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectDescriptionFactory.Meta.model" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectDescriptionFactory.type">
+<span class="sig-name descname"><span class="pre">type</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectDescriptionFactory.type" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectDescriptionFactory.value">
+<span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectDescriptionFactory.value" title="Link to this definition">#</a></dt>
+<dd><p>‘Faker(…)’</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectDateFactory">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ProjectDateFactory</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectDateFactory" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="fairdm.factories.utils.html#fairdm.factories.utils.ConceptFieldFactory" title="fairdm.factories.utils.ConceptFieldFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.factories.utils.ConceptFieldFactory</span></code></a></p>
+<p>Factory for creating ProjectDate instances.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectDateFactory.Meta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Meta</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectDateFactory.Meta" title="Link to this definition">#</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectDateFactory.Meta.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectDateFactory.Meta.model" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectDateFactory.type">
+<span class="sig-name descname"><span class="pre">type</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectDateFactory.type" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectDateFactory.value">
+<span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectDateFactory.value" title="Link to this definition">#</a></dt>
+<dd><p>‘Faker(…)’</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectIdentifierFactory">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ProjectIdentifierFactory</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectIdentifierFactory" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="fairdm.factories.utils.html#fairdm.factories.utils.ConceptFieldFactory" title="fairdm.factories.utils.ConceptFieldFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.factories.utils.ConceptFieldFactory</span></code></a></p>
+<p>Factory for creating ProjectIdentifier instances.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectIdentifierFactory.Meta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Meta</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectIdentifierFactory.Meta" title="Link to this definition">#</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectIdentifierFactory.Meta.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectIdentifierFactory.Meta.model" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectIdentifierFactory.type">
+<span class="sig-name descname"><span class="pre">type</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectIdentifierFactory.type" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectIdentifierFactory.value">
+<span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectIdentifierFactory.value" title="Link to this definition">#</a></dt>
+<dd><p>‘Faker(…)’</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectFactory">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ProjectFactory</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectFactory" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">factory.django.DjangoModelFactory</span></code></p>
+<p>Factory for creating Project instances.</p>
+<p>By default, creates a minimal Project with only required fields.</p>
+<p>To create descriptions/dates:
+ProjectFactory(descriptions=2)  # Creates 2 descriptions with default types
+ProjectFactory(descriptions=2, descriptions__types=[ABSTRACT, f”{DESCRIPTION_TYPES}/objectives”])
+ProjectFactory(dates=1)  # Creates 1 date with default type
+ProjectFactory(dates=2, dates__types=[PROJECT_START, PROJECT_END])</p>
+<p>Image (opt-in, issue #323):
+ProjectFactory()  # No image, no file written
+ProjectFactory(with_image=True)  # A generated placeholder JPEG
+ProjectFactory(image=some_file)  # That file used directly</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectFactory.Meta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Meta</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectFactory.Meta" title="Link to this definition">#</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectFactory.Meta.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectFactory.Meta.model" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectFactory.Params">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Params</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectFactory.Params" title="Link to this definition">#</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectFactory.Params.with_image">
+<span class="sig-name descname"><span class="pre">with_image</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectFactory.Params.with_image" title="Link to this definition">#</a></dt>
+<dd><p>‘Trait(…)’</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectFactory.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectFactory.name" title="Link to this definition">#</a></dt>
+<dd><p>‘Faker(…)’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectFactory.status">
+<span class="sig-name descname"><span class="pre">status</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectFactory.status" title="Link to this definition">#</a></dt>
+<dd><p>‘FuzzyChoice(…)’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectFactory.funding">
+<span class="sig-name descname"><span class="pre">funding</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectFactory.funding" title="Link to this definition">#</a></dt>
+<dd><p>‘LazyAttribute(…)’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectFactory.owner">
+<span class="sig-name descname"><span class="pre">owner</span></span><a class="headerlink" href="#fairdm.factories.core.ProjectFactory.owner" title="Link to this definition">#</a></dt>
+<dd><p>‘SubFactory(…)’</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectFactory.descriptions">
+<span class="sig-name descname"><span class="pre">descriptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">create</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extracted</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.factories.core.ProjectFactory.descriptions" title="Link to this definition">#</a></dt>
+<dd><p>Create descriptions. Pass count as int and optionally types via descriptions__types.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.factories.core.ProjectFactory.dates">
+<span class="sig-name descname"><span class="pre">dates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">create</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extracted</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.factories.core.ProjectFactory.dates" title="Link to this definition">#</a></dt>
+<dd><p>Create dates. Pass count as int and optionally types via dates__types.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetDescriptionFactory">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">DatasetDescriptionFactory</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetDescriptionFactory" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="fairdm.factories.utils.html#fairdm.factories.utils.ConceptFieldFactory" title="fairdm.factories.utils.ConceptFieldFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.factories.utils.ConceptFieldFactory</span></code></a></p>
+<p>Factory for creating DatasetDescription instances.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetDescriptionFactory.Meta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Meta</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetDescriptionFactory.Meta" title="Link to this definition">#</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetDescriptionFactory.Meta.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetDescriptionFactory.Meta.model" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetDescriptionFactory.type">
+<span class="sig-name descname"><span class="pre">type</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetDescriptionFactory.type" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetDescriptionFactory.value">
+<span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetDescriptionFactory.value" title="Link to this definition">#</a></dt>
+<dd><p>‘Faker(…)’</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetDateFactory">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">DatasetDateFactory</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetDateFactory" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="fairdm.factories.utils.html#fairdm.factories.utils.ConceptFieldFactory" title="fairdm.factories.utils.ConceptFieldFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.factories.utils.ConceptFieldFactory</span></code></a></p>
+<p>Factory for creating DatasetDate instances.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetDateFactory.Meta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Meta</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetDateFactory.Meta" title="Link to this definition">#</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetDateFactory.Meta.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetDateFactory.Meta.model" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetDateFactory.type">
+<span class="sig-name descname"><span class="pre">type</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetDateFactory.type" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetDateFactory.value">
+<span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetDateFactory.value" title="Link to this definition">#</a></dt>
+<dd><p>‘Faker(…)’</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetIdentifierFactory">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">DatasetIdentifierFactory</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetIdentifierFactory" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="fairdm.factories.utils.html#fairdm.factories.utils.ConceptFieldFactory" title="fairdm.factories.utils.ConceptFieldFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.factories.utils.ConceptFieldFactory</span></code></a></p>
+<p>Factory for creating DatasetIdentifier instances.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetIdentifierFactory.Meta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Meta</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetIdentifierFactory.Meta" title="Link to this definition">#</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetIdentifierFactory.Meta.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetIdentifierFactory.Meta.model" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetIdentifierFactory.type">
+<span class="sig-name descname"><span class="pre">type</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetIdentifierFactory.type" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetIdentifierFactory.value">
+<span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetIdentifierFactory.value" title="Link to this definition">#</a></dt>
+<dd><p>‘Sequence(…)’</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.LiteratureItemFactory">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">LiteratureItemFactory</span></span><a class="headerlink" href="#fairdm.factories.core.LiteratureItemFactory" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">factory.django.DjangoModelFactory</span></code></p>
+<p>Factory for creating literature.Item instances.</p>
+<p>The item is built from a CSL JSON dictionary with <code class="docutils literal notranslate"><span class="pre">literature.converters.from_csl_json</span></code>,
+so the DOI, the issued year and the authors are stored as the package stores them.</p>
+<p>Args:
+citation_key: The reference’s key. A unique sequence by default.
+title: The title. Derived from the citation key by default.
+type: The CSL item type. <code class="docutils literal notranslate"><span class="pre">article-journal</span></code> by default.
+doi: A DOI to store as an identifier.
+year: The year of the issued date.
+authors: <code class="docutils literal notranslate"><span class="pre">(family,</span> <span class="pre">given)</span></code> pairs, in order.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.LiteratureItemFactory.Meta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Meta</span></span><a class="headerlink" href="#fairdm.factories.core.LiteratureItemFactory.Meta" title="Link to this definition">#</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.LiteratureItemFactory.Meta.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#fairdm.factories.core.LiteratureItemFactory.Meta.model" title="Link to this definition">#</a></dt>
+<dd><p>‘literature.Item’</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.LiteratureItemFactory.citation_key">
+<span class="sig-name descname"><span class="pre">citation_key</span></span><a class="headerlink" href="#fairdm.factories.core.LiteratureItemFactory.citation_key" title="Link to this definition">#</a></dt>
+<dd><p>‘Sequence(…)’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.LiteratureItemFactory.type">
+<span class="sig-name descname"><span class="pre">type</span></span><a class="headerlink" href="#fairdm.factories.core.LiteratureItemFactory.type" title="Link to this definition">#</a></dt>
+<dd><p>‘article-journal’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.LiteratureItemFactory.title">
+<span class="sig-name descname"><span class="pre">title</span></span><a class="headerlink" href="#fairdm.factories.core.LiteratureItemFactory.title" title="Link to this definition">#</a></dt>
+<dd><p>‘LazyAttribute(…)’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.LiteratureItemFactory.doi">
+<span class="sig-name descname"><span class="pre">doi</span></span><a class="headerlink" href="#fairdm.factories.core.LiteratureItemFactory.doi" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.LiteratureItemFactory.year">
+<span class="sig-name descname"><span class="pre">year</span></span><a class="headerlink" href="#fairdm.factories.core.LiteratureItemFactory.year" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.LiteratureItemFactory.authors">
+<span class="sig-name descname"><span class="pre">authors</span></span><a class="headerlink" href="#fairdm.factories.core.LiteratureItemFactory.authors" title="Link to this definition">#</a></dt>
+<dd><p>()</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetLiteratureRelationFactory">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">DatasetLiteratureRelationFactory</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetLiteratureRelationFactory" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">factory.django.DjangoModelFactory</span></code></p>
+<p>Factory for creating DatasetLiteratureRelation instances.</p>
+<p>Relates a dataset to a literature item under a DataCite relationship type.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetLiteratureRelationFactory.Meta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Meta</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetLiteratureRelationFactory.Meta" title="Link to this definition">#</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetLiteratureRelationFactory.Meta.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetLiteratureRelationFactory.Meta.model" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetLiteratureRelationFactory.dataset">
+<span class="sig-name descname"><span class="pre">dataset</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetLiteratureRelationFactory.dataset" title="Link to this definition">#</a></dt>
+<dd><p>‘SubFactory(…)’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetLiteratureRelationFactory.literature_item">
+<span class="sig-name descname"><span class="pre">literature_item</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetLiteratureRelationFactory.literature_item" title="Link to this definition">#</a></dt>
+<dd><p>‘SubFactory(…)’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetLiteratureRelationFactory.relationship_type">
+<span class="sig-name descname"><span class="pre">relationship_type</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetLiteratureRelationFactory.relationship_type" title="Link to this definition">#</a></dt>
+<dd><p>‘IsCitedBy’</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetFactory">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">DatasetFactory</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetFactory" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">factory.django.DjangoModelFactory</span></code></p>
+<p>Factory for creating Dataset instances.</p>
+<p>By default, creates a minimal Dataset with only required fields.
+Project is auto-created unless provided.</p>
+<p>To create descriptions/dates:
+DatasetFactory(descriptions=2)  # Creates 2 descriptions
+DatasetFactory(descriptions=2, descriptions__types=[ABSTRACT, f”{DESCRIPTION_TYPES}/methods”])
+DatasetFactory(dates=1)  # Creates 1 date</p>
+<p>Image (opt-in, issue #323): same as ProjectFactory above.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetFactory.Meta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Meta</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetFactory.Meta" title="Link to this definition">#</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetFactory.Meta.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetFactory.Meta.model" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetFactory.Params">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Params</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetFactory.Params" title="Link to this definition">#</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetFactory.Params.with_image">
+<span class="sig-name descname"><span class="pre">with_image</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetFactory.Params.with_image" title="Link to this definition">#</a></dt>
+<dd><p>‘Trait(…)’</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetFactory.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetFactory.name" title="Link to this definition">#</a></dt>
+<dd><p>‘Faker(…)’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetFactory.project">
+<span class="sig-name descname"><span class="pre">project</span></span><a class="headerlink" href="#fairdm.factories.core.DatasetFactory.project" title="Link to this definition">#</a></dt>
+<dd><p>‘SubFactory(…)’</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetFactory.license">
+<span class="sig-name descname"><span class="pre">license</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.factories.core.DatasetFactory.license" title="Link to this definition">#</a></dt>
+<dd><p>Use the portal’s default licence, creating it when it does not exist yet.</p>
+<p>Never the first licence by name: where “CC0 1.0” sorts against “CC BY 4.0” depends on
+the database’s collation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetFactory.descriptions">
+<span class="sig-name descname"><span class="pre">descriptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">create</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extracted</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.factories.core.DatasetFactory.descriptions" title="Link to this definition">#</a></dt>
+<dd><p>Create descriptions. Pass count as int and optionally types via descriptions__types.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.factories.core.DatasetFactory.dates">
+<span class="sig-name descname"><span class="pre">dates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">create</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extracted</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.factories.core.DatasetFactory.dates" title="Link to this definition">#</a></dt>
+<dd><p>Create dates. Pass count as int and optionally types via dates__types.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleDescriptionFactory">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">SampleDescriptionFactory</span></span><a class="headerlink" href="#fairdm.factories.core.SampleDescriptionFactory" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="fairdm.factories.utils.html#fairdm.factories.utils.ConceptFieldFactory" title="fairdm.factories.utils.ConceptFieldFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.factories.utils.ConceptFieldFactory</span></code></a></p>
+<p>Factory for creating SampleDescription instances.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleDescriptionFactory.Meta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Meta</span></span><a class="headerlink" href="#fairdm.factories.core.SampleDescriptionFactory.Meta" title="Link to this definition">#</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleDescriptionFactory.Meta.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#fairdm.factories.core.SampleDescriptionFactory.Meta.model" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleDescriptionFactory.type">
+<span class="sig-name descname"><span class="pre">type</span></span><a class="headerlink" href="#fairdm.factories.core.SampleDescriptionFactory.type" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleDescriptionFactory.value">
+<span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#fairdm.factories.core.SampleDescriptionFactory.value" title="Link to this definition">#</a></dt>
+<dd><p>‘Faker(…)’</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleDateFactory">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">SampleDateFactory</span></span><a class="headerlink" href="#fairdm.factories.core.SampleDateFactory" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="fairdm.factories.utils.html#fairdm.factories.utils.ConceptFieldFactory" title="fairdm.factories.utils.ConceptFieldFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.factories.utils.ConceptFieldFactory</span></code></a></p>
+<p>Factory for creating SampleDate instances.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleDateFactory.Meta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Meta</span></span><a class="headerlink" href="#fairdm.factories.core.SampleDateFactory.Meta" title="Link to this definition">#</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleDateFactory.Meta.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#fairdm.factories.core.SampleDateFactory.Meta.model" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleDateFactory.type">
+<span class="sig-name descname"><span class="pre">type</span></span><a class="headerlink" href="#fairdm.factories.core.SampleDateFactory.type" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleDateFactory.value">
+<span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#fairdm.factories.core.SampleDateFactory.value" title="Link to this definition">#</a></dt>
+<dd><p>‘Faker(…)’</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleIdentifierFactory">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">SampleIdentifierFactory</span></span><a class="headerlink" href="#fairdm.factories.core.SampleIdentifierFactory" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="fairdm.factories.utils.html#fairdm.factories.utils.ConceptFieldFactory" title="fairdm.factories.utils.ConceptFieldFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.factories.utils.ConceptFieldFactory</span></code></a></p>
+<p>Factory for creating SampleIdentifier instances.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleIdentifierFactory.Meta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Meta</span></span><a class="headerlink" href="#fairdm.factories.core.SampleIdentifierFactory.Meta" title="Link to this definition">#</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleIdentifierFactory.Meta.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#fairdm.factories.core.SampleIdentifierFactory.Meta.model" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleIdentifierFactory.type">
+<span class="sig-name descname"><span class="pre">type</span></span><a class="headerlink" href="#fairdm.factories.core.SampleIdentifierFactory.type" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleIdentifierFactory.value">
+<span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#fairdm.factories.core.SampleIdentifierFactory.value" title="Link to this definition">#</a></dt>
+<dd><p>‘Sequence(…)’</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleFactory">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">SampleFactory</span></span><a class="headerlink" href="#fairdm.factories.core.SampleFactory" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="fairdm.factories.utils.html#fairdm.factories.utils.ConceptFieldFactory" title="fairdm.factories.utils.ConceptFieldFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.factories.utils.ConceptFieldFactory</span></code></a></p>
+<p>Abstract factory for creating Sample instances.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Sample</span></code> is a polymorphic base that cannot be created directly (only a registered
+specimen type can be) - see <code class="docutils literal notranslate"><span class="pre">fairdm.core.sample.models.Sample</span></code>’s <code class="docutils literal notranslate"><span class="pre">pre_save</span></code> guard. This
+factory declares the fields every specimen shares and is meant to be subclassed, never
+instantiated on its own. The framework’s reference implementation supplies concrete
+subclasses in <code class="docutils literal notranslate"><span class="pre">demo.factories</span></code> (<code class="docutils literal notranslate"><span class="pre">RockSampleFactory</span></code>, <code class="docutils literal notranslate"><span class="pre">WaterSampleFactory</span></code>,
+<code class="docutils literal notranslate"><span class="pre">SoilSampleFactory</span></code>, …); a portal defines its own alongside its own specimen types.</p>
+<p>To create descriptions/dates on a concrete subclass:
+RockSampleFactory(descriptions=2)
+RockSampleFactory(dates=1)</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleFactory.Meta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Meta</span></span><a class="headerlink" href="#fairdm.factories.core.SampleFactory.Meta" title="Link to this definition">#</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleFactory.Meta.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#fairdm.factories.core.SampleFactory.Meta.model" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleFactory.Meta.abstract">
+<span class="sig-name descname"><span class="pre">abstract</span></span><a class="headerlink" href="#fairdm.factories.core.SampleFactory.Meta.abstract" title="Link to this definition">#</a></dt>
+<dd><p>True</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleFactory.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#fairdm.factories.core.SampleFactory.name" title="Link to this definition">#</a></dt>
+<dd><p>‘Faker(…)’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleFactory.local_id">
+<span class="sig-name descname"><span class="pre">local_id</span></span><a class="headerlink" href="#fairdm.factories.core.SampleFactory.local_id" title="Link to this definition">#</a></dt>
+<dd><p>‘Faker(…)’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleFactory.dataset">
+<span class="sig-name descname"><span class="pre">dataset</span></span><a class="headerlink" href="#fairdm.factories.core.SampleFactory.dataset" title="Link to this definition">#</a></dt>
+<dd><p>‘SubFactory(…)’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleFactory.location">
+<span class="sig-name descname"><span class="pre">location</span></span><a class="headerlink" href="#fairdm.factories.core.SampleFactory.location" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleFactory.descriptions">
+<span class="sig-name descname"><span class="pre">descriptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">create</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extracted</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.factories.core.SampleFactory.descriptions" title="Link to this definition">#</a></dt>
+<dd><p>Create descriptions. Pass count as int and optionally types via descriptions__types.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleFactory.dates">
+<span class="sig-name descname"><span class="pre">dates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">create</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extracted</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.factories.core.SampleFactory.dates" title="Link to this definition">#</a></dt>
+<dd><p>Create dates. Pass count as int and optionally types via dates__types.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.MeasurementDescriptionFactory">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">MeasurementDescriptionFactory</span></span><a class="headerlink" href="#fairdm.factories.core.MeasurementDescriptionFactory" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="fairdm.factories.utils.html#fairdm.factories.utils.ConceptFieldFactory" title="fairdm.factories.utils.ConceptFieldFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.factories.utils.ConceptFieldFactory</span></code></a></p>
+<p>Factory for creating MeasurementDescription instances.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.MeasurementDescriptionFactory.Meta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Meta</span></span><a class="headerlink" href="#fairdm.factories.core.MeasurementDescriptionFactory.Meta" title="Link to this definition">#</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.MeasurementDescriptionFactory.Meta.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#fairdm.factories.core.MeasurementDescriptionFactory.Meta.model" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.MeasurementDescriptionFactory.type">
+<span class="sig-name descname"><span class="pre">type</span></span><a class="headerlink" href="#fairdm.factories.core.MeasurementDescriptionFactory.type" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.MeasurementDescriptionFactory.value">
+<span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#fairdm.factories.core.MeasurementDescriptionFactory.value" title="Link to this definition">#</a></dt>
+<dd><p>‘Faker(…)’</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.MeasurementDateFactory">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">MeasurementDateFactory</span></span><a class="headerlink" href="#fairdm.factories.core.MeasurementDateFactory" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="fairdm.factories.utils.html#fairdm.factories.utils.ConceptFieldFactory" title="fairdm.factories.utils.ConceptFieldFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.factories.utils.ConceptFieldFactory</span></code></a></p>
+<p>Factory for creating MeasurementDate instances.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.MeasurementDateFactory.Meta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Meta</span></span><a class="headerlink" href="#fairdm.factories.core.MeasurementDateFactory.Meta" title="Link to this definition">#</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.MeasurementDateFactory.Meta.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#fairdm.factories.core.MeasurementDateFactory.Meta.model" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.MeasurementDateFactory.type">
+<span class="sig-name descname"><span class="pre">type</span></span><a class="headerlink" href="#fairdm.factories.core.MeasurementDateFactory.type" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.MeasurementDateFactory.value">
+<span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#fairdm.factories.core.MeasurementDateFactory.value" title="Link to this definition">#</a></dt>
+<dd><p>‘Faker(…)’</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.MeasurementIdentifierFactory">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">MeasurementIdentifierFactory</span></span><a class="headerlink" href="#fairdm.factories.core.MeasurementIdentifierFactory" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="fairdm.factories.utils.html#fairdm.factories.utils.ConceptFieldFactory" title="fairdm.factories.utils.ConceptFieldFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.factories.utils.ConceptFieldFactory</span></code></a></p>
+<p>Factory for creating MeasurementIdentifier instances.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.MeasurementIdentifierFactory.Meta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Meta</span></span><a class="headerlink" href="#fairdm.factories.core.MeasurementIdentifierFactory.Meta" title="Link to this definition">#</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.MeasurementIdentifierFactory.Meta.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#fairdm.factories.core.MeasurementIdentifierFactory.Meta.model" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.MeasurementIdentifierFactory.type">
+<span class="sig-name descname"><span class="pre">type</span></span><a class="headerlink" href="#fairdm.factories.core.MeasurementIdentifierFactory.type" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.MeasurementIdentifierFactory.value">
+<span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#fairdm.factories.core.MeasurementIdentifierFactory.value" title="Link to this definition">#</a></dt>
+<dd><p>‘Sequence(…)’</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.MeasurementFactory">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">MeasurementFactory</span></span><a class="headerlink" href="#fairdm.factories.core.MeasurementFactory" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">factory.django.DjangoModelFactory</span></code></p>
+<p>Abstract factory for creating Measurement instances.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Measurement</span></code> is a polymorphic base that cannot be created directly (only a registered
+measurement type can be) - see <code class="docutils literal notranslate"><span class="pre">fairdm.core.measurement.models.Measurement</span></code>’s <code class="docutils literal notranslate"><span class="pre">clean</span></code>
+guard. This factory declares the fields every measurement shares and is meant to be
+subclassed, never instantiated on its own. The framework’s reference implementation
+supplies concrete subclasses in <code class="docutils literal notranslate"><span class="pre">demo.factories</span></code> (<code class="docutils literal notranslate"><span class="pre">ExampleMeasurementFactory</span></code>,
+<code class="docutils literal notranslate"><span class="pre">XRFMeasurementFactory</span></code>, <code class="docutils literal notranslate"><span class="pre">ICP_MS_MeasurementFactory</span></code>, …); a portal defines its own
+alongside its own measurement types.</p>
+<p>By default, creates a minimal Measurement with only required fields. Dataset is
+auto-created if not provided, but <code class="docutils literal notranslate"><span class="pre">sample</span></code> has no default and must always be passed
+explicitly: <code class="docutils literal notranslate"><span class="pre">Sample</span></code> is a polymorphic base that cannot be created directly, and this
+factory has no concrete specimen type of its own to fall back on (see <code class="docutils literal notranslate"><span class="pre">SampleFactory</span></code>).
+Pass a concrete specimen instance, e.g.
+<code class="docutils literal notranslate"><span class="pre">XRFMeasurementFactory(sample=RockSampleFactory())</span></code>.</p>
+<p>To create descriptions/dates on a concrete subclass:
+ExampleMeasurementFactory(sample=some_sample, descriptions=2)
+ExampleMeasurementFactory(sample=some_sample, dates=1)</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.MeasurementFactory.Meta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Meta</span></span><a class="headerlink" href="#fairdm.factories.core.MeasurementFactory.Meta" title="Link to this definition">#</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.MeasurementFactory.Meta.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#fairdm.factories.core.MeasurementFactory.Meta.model" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.MeasurementFactory.Meta.abstract">
+<span class="sig-name descname"><span class="pre">abstract</span></span><a class="headerlink" href="#fairdm.factories.core.MeasurementFactory.Meta.abstract" title="Link to this definition">#</a></dt>
+<dd><p>True</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.MeasurementFactory.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#fairdm.factories.core.MeasurementFactory.name" title="Link to this definition">#</a></dt>
+<dd><p>‘Faker(…)’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.MeasurementFactory.dataset">
+<span class="sig-name descname"><span class="pre">dataset</span></span><a class="headerlink" href="#fairdm.factories.core.MeasurementFactory.dataset" title="Link to this definition">#</a></dt>
+<dd><p>‘SubFactory(…)’</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.factories.core.MeasurementFactory.descriptions">
+<span class="sig-name descname"><span class="pre">descriptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">create</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extracted</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.factories.core.MeasurementFactory.descriptions" title="Link to this definition">#</a></dt>
+<dd><p>Create descriptions. Pass count as int and optionally types via descriptions__types.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.factories.core.MeasurementFactory.dates">
+<span class="sig-name descname"><span class="pre">dates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">create</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extracted</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.factories.core.MeasurementFactory.dates" title="Link to this definition">#</a></dt>
+<dd><p>Create dates. Pass count as int and optionally types via dates__types.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleRelationFactory">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">SampleRelationFactory</span></span><a class="headerlink" href="#fairdm.factories.core.SampleRelationFactory" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">factory.django.DjangoModelFactory</span></code></p>
+<p>Factory for creating SampleRelation instances.</p>
+<p>Creates a typed relationship between two samples. <code class="docutils literal notranslate"><span class="pre">source</span></code> and <code class="docutils literal notranslate"><span class="pre">target</span></code> have no
+default and must always be provided - both are concrete specimens, and <code class="docutils literal notranslate"><span class="pre">Sample</span></code> (the
+class <code class="docutils literal notranslate"><span class="pre">SampleFactory</span></code> declares) cannot be created directly. Pass concrete specimen
+instances, e.g. <code class="docutils literal notranslate"><span class="pre">SampleRelationFactory(source=RockSampleFactory(),</span> <span class="pre">target=parent)</span></code>.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleRelationFactory.Meta">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Meta</span></span><a class="headerlink" href="#fairdm.factories.core.SampleRelationFactory.Meta" title="Link to this definition">#</a></dt>
+<dd><dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleRelationFactory.Meta.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#fairdm.factories.core.SampleRelationFactory.Meta.model" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.factories.core.SampleRelationFactory.type">
+<span class="sig-name descname"><span class="pre">type</span></span><a class="headerlink" href="#fairdm.factories.core.SampleRelationFactory.type" title="Link to this definition">#</a></dt>
+<dd><p>‘child_of’</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="fairdm.factories.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories</span></code></p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="fairdm.factories.utils.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories.utils</span></code></p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#key-features">Key Features</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#factories-available">Factories Available</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#metadata-factories">Metadata Factories</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#usage-examples">Usage Examples</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#api">API</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectDescriptionFactory"><code class="docutils literal notranslate"><span class="pre">ProjectDescriptionFactory</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectDescriptionFactory.Meta"><code class="docutils literal notranslate"><span class="pre">ProjectDescriptionFactory.Meta</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectDescriptionFactory.Meta.model"><code class="docutils literal notranslate"><span class="pre">ProjectDescriptionFactory.Meta.model</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectDescriptionFactory.type"><code class="docutils literal notranslate"><span class="pre">ProjectDescriptionFactory.type</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectDescriptionFactory.value"><code class="docutils literal notranslate"><span class="pre">ProjectDescriptionFactory.value</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectDateFactory"><code class="docutils literal notranslate"><span class="pre">ProjectDateFactory</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectDateFactory.Meta"><code class="docutils literal notranslate"><span class="pre">ProjectDateFactory.Meta</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectDateFactory.Meta.model"><code class="docutils literal notranslate"><span class="pre">ProjectDateFactory.Meta.model</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectDateFactory.type"><code class="docutils literal notranslate"><span class="pre">ProjectDateFactory.type</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectDateFactory.value"><code class="docutils literal notranslate"><span class="pre">ProjectDateFactory.value</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectIdentifierFactory"><code class="docutils literal notranslate"><span class="pre">ProjectIdentifierFactory</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectIdentifierFactory.Meta"><code class="docutils literal notranslate"><span class="pre">ProjectIdentifierFactory.Meta</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectIdentifierFactory.Meta.model"><code class="docutils literal notranslate"><span class="pre">ProjectIdentifierFactory.Meta.model</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectIdentifierFactory.type"><code class="docutils literal notranslate"><span class="pre">ProjectIdentifierFactory.type</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectIdentifierFactory.value"><code class="docutils literal notranslate"><span class="pre">ProjectIdentifierFactory.value</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectFactory"><code class="docutils literal notranslate"><span class="pre">ProjectFactory</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectFactory.Meta"><code class="docutils literal notranslate"><span class="pre">ProjectFactory.Meta</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectFactory.Meta.model"><code class="docutils literal notranslate"><span class="pre">ProjectFactory.Meta.model</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectFactory.Params"><code class="docutils literal notranslate"><span class="pre">ProjectFactory.Params</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectFactory.Params.with_image"><code class="docutils literal notranslate"><span class="pre">ProjectFactory.Params.with_image</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectFactory.name"><code class="docutils literal notranslate"><span class="pre">ProjectFactory.name</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectFactory.status"><code class="docutils literal notranslate"><span class="pre">ProjectFactory.status</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectFactory.funding"><code class="docutils literal notranslate"><span class="pre">ProjectFactory.funding</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectFactory.owner"><code class="docutils literal notranslate"><span class="pre">ProjectFactory.owner</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectFactory.descriptions"><code class="docutils literal notranslate"><span class="pre">ProjectFactory.descriptions()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.ProjectFactory.dates"><code class="docutils literal notranslate"><span class="pre">ProjectFactory.dates()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetDescriptionFactory"><code class="docutils literal notranslate"><span class="pre">DatasetDescriptionFactory</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetDescriptionFactory.Meta"><code class="docutils literal notranslate"><span class="pre">DatasetDescriptionFactory.Meta</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetDescriptionFactory.Meta.model"><code class="docutils literal notranslate"><span class="pre">DatasetDescriptionFactory.Meta.model</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetDescriptionFactory.type"><code class="docutils literal notranslate"><span class="pre">DatasetDescriptionFactory.type</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetDescriptionFactory.value"><code class="docutils literal notranslate"><span class="pre">DatasetDescriptionFactory.value</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetDateFactory"><code class="docutils literal notranslate"><span class="pre">DatasetDateFactory</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetDateFactory.Meta"><code class="docutils literal notranslate"><span class="pre">DatasetDateFactory.Meta</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetDateFactory.Meta.model"><code class="docutils literal notranslate"><span class="pre">DatasetDateFactory.Meta.model</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetDateFactory.type"><code class="docutils literal notranslate"><span class="pre">DatasetDateFactory.type</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetDateFactory.value"><code class="docutils literal notranslate"><span class="pre">DatasetDateFactory.value</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetIdentifierFactory"><code class="docutils literal notranslate"><span class="pre">DatasetIdentifierFactory</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetIdentifierFactory.Meta"><code class="docutils literal notranslate"><span class="pre">DatasetIdentifierFactory.Meta</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetIdentifierFactory.Meta.model"><code class="docutils literal notranslate"><span class="pre">DatasetIdentifierFactory.Meta.model</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetIdentifierFactory.type"><code class="docutils literal notranslate"><span class="pre">DatasetIdentifierFactory.type</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetIdentifierFactory.value"><code class="docutils literal notranslate"><span class="pre">DatasetIdentifierFactory.value</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.LiteratureItemFactory"><code class="docutils literal notranslate"><span class="pre">LiteratureItemFactory</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.LiteratureItemFactory.Meta"><code class="docutils literal notranslate"><span class="pre">LiteratureItemFactory.Meta</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.LiteratureItemFactory.Meta.model"><code class="docutils literal notranslate"><span class="pre">LiteratureItemFactory.Meta.model</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.LiteratureItemFactory.citation_key"><code class="docutils literal notranslate"><span class="pre">LiteratureItemFactory.citation_key</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.LiteratureItemFactory.type"><code class="docutils literal notranslate"><span class="pre">LiteratureItemFactory.type</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.LiteratureItemFactory.title"><code class="docutils literal notranslate"><span class="pre">LiteratureItemFactory.title</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.LiteratureItemFactory.doi"><code class="docutils literal notranslate"><span class="pre">LiteratureItemFactory.doi</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.LiteratureItemFactory.year"><code class="docutils literal notranslate"><span class="pre">LiteratureItemFactory.year</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.LiteratureItemFactory.authors"><code class="docutils literal notranslate"><span class="pre">LiteratureItemFactory.authors</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetLiteratureRelationFactory"><code class="docutils literal notranslate"><span class="pre">DatasetLiteratureRelationFactory</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetLiteratureRelationFactory.Meta"><code class="docutils literal notranslate"><span class="pre">DatasetLiteratureRelationFactory.Meta</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetLiteratureRelationFactory.Meta.model"><code class="docutils literal notranslate"><span class="pre">DatasetLiteratureRelationFactory.Meta.model</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetLiteratureRelationFactory.dataset"><code class="docutils literal notranslate"><span class="pre">DatasetLiteratureRelationFactory.dataset</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetLiteratureRelationFactory.literature_item"><code class="docutils literal notranslate"><span class="pre">DatasetLiteratureRelationFactory.literature_item</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetLiteratureRelationFactory.relationship_type"><code class="docutils literal notranslate"><span class="pre">DatasetLiteratureRelationFactory.relationship_type</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetFactory"><code class="docutils literal notranslate"><span class="pre">DatasetFactory</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetFactory.Meta"><code class="docutils literal notranslate"><span class="pre">DatasetFactory.Meta</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetFactory.Meta.model"><code class="docutils literal notranslate"><span class="pre">DatasetFactory.Meta.model</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetFactory.Params"><code class="docutils literal notranslate"><span class="pre">DatasetFactory.Params</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetFactory.Params.with_image"><code class="docutils literal notranslate"><span class="pre">DatasetFactory.Params.with_image</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetFactory.name"><code class="docutils literal notranslate"><span class="pre">DatasetFactory.name</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetFactory.project"><code class="docutils literal notranslate"><span class="pre">DatasetFactory.project</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetFactory.license"><code class="docutils literal notranslate"><span class="pre">DatasetFactory.license()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetFactory.descriptions"><code class="docutils literal notranslate"><span class="pre">DatasetFactory.descriptions()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.DatasetFactory.dates"><code class="docutils literal notranslate"><span class="pre">DatasetFactory.dates()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleDescriptionFactory"><code class="docutils literal notranslate"><span class="pre">SampleDescriptionFactory</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleDescriptionFactory.Meta"><code class="docutils literal notranslate"><span class="pre">SampleDescriptionFactory.Meta</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleDescriptionFactory.Meta.model"><code class="docutils literal notranslate"><span class="pre">SampleDescriptionFactory.Meta.model</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleDescriptionFactory.type"><code class="docutils literal notranslate"><span class="pre">SampleDescriptionFactory.type</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleDescriptionFactory.value"><code class="docutils literal notranslate"><span class="pre">SampleDescriptionFactory.value</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleDateFactory"><code class="docutils literal notranslate"><span class="pre">SampleDateFactory</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleDateFactory.Meta"><code class="docutils literal notranslate"><span class="pre">SampleDateFactory.Meta</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleDateFactory.Meta.model"><code class="docutils literal notranslate"><span class="pre">SampleDateFactory.Meta.model</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleDateFactory.type"><code class="docutils literal notranslate"><span class="pre">SampleDateFactory.type</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleDateFactory.value"><code class="docutils literal notranslate"><span class="pre">SampleDateFactory.value</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleIdentifierFactory"><code class="docutils literal notranslate"><span class="pre">SampleIdentifierFactory</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleIdentifierFactory.Meta"><code class="docutils literal notranslate"><span class="pre">SampleIdentifierFactory.Meta</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleIdentifierFactory.Meta.model"><code class="docutils literal notranslate"><span class="pre">SampleIdentifierFactory.Meta.model</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleIdentifierFactory.type"><code class="docutils literal notranslate"><span class="pre">SampleIdentifierFactory.type</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleIdentifierFactory.value"><code class="docutils literal notranslate"><span class="pre">SampleIdentifierFactory.value</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleFactory"><code class="docutils literal notranslate"><span class="pre">SampleFactory</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleFactory.Meta"><code class="docutils literal notranslate"><span class="pre">SampleFactory.Meta</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleFactory.Meta.model"><code class="docutils literal notranslate"><span class="pre">SampleFactory.Meta.model</span></code></a></li>
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleFactory.Meta.abstract"><code class="docutils literal notranslate"><span class="pre">SampleFactory.Meta.abstract</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleFactory.name"><code class="docutils literal notranslate"><span class="pre">SampleFactory.name</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleFactory.local_id"><code class="docutils literal notranslate"><span class="pre">SampleFactory.local_id</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleFactory.dataset"><code class="docutils literal notranslate"><span class="pre">SampleFactory.dataset</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleFactory.location"><code class="docutils literal notranslate"><span class="pre">SampleFactory.location</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleFactory.descriptions"><code class="docutils literal notranslate"><span class="pre">SampleFactory.descriptions()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleFactory.dates"><code class="docutils literal notranslate"><span class="pre">SampleFactory.dates()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.MeasurementDescriptionFactory"><code class="docutils literal notranslate"><span class="pre">MeasurementDescriptionFactory</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.MeasurementDescriptionFactory.Meta"><code class="docutils literal notranslate"><span class="pre">MeasurementDescriptionFactory.Meta</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.MeasurementDescriptionFactory.Meta.model"><code class="docutils literal notranslate"><span class="pre">MeasurementDescriptionFactory.Meta.model</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.MeasurementDescriptionFactory.type"><code class="docutils literal notranslate"><span class="pre">MeasurementDescriptionFactory.type</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.MeasurementDescriptionFactory.value"><code class="docutils literal notranslate"><span class="pre">MeasurementDescriptionFactory.value</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.MeasurementDateFactory"><code class="docutils literal notranslate"><span class="pre">MeasurementDateFactory</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.MeasurementDateFactory.Meta"><code class="docutils literal notranslate"><span class="pre">MeasurementDateFactory.Meta</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.MeasurementDateFactory.Meta.model"><code class="docutils literal notranslate"><span class="pre">MeasurementDateFactory.Meta.model</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.MeasurementDateFactory.type"><code class="docutils literal notranslate"><span class="pre">MeasurementDateFactory.type</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.MeasurementDateFactory.value"><code class="docutils literal notranslate"><span class="pre">MeasurementDateFactory.value</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.MeasurementIdentifierFactory"><code class="docutils literal notranslate"><span class="pre">MeasurementIdentifierFactory</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.MeasurementIdentifierFactory.Meta"><code class="docutils literal notranslate"><span class="pre">MeasurementIdentifierFactory.Meta</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.MeasurementIdentifierFactory.Meta.model"><code class="docutils literal notranslate"><span class="pre">MeasurementIdentifierFactory.Meta.model</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.MeasurementIdentifierFactory.type"><code class="docutils literal notranslate"><span class="pre">MeasurementIdentifierFactory.type</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.MeasurementIdentifierFactory.value"><code class="docutils literal notranslate"><span class="pre">MeasurementIdentifierFactory.value</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.MeasurementFactory"><code class="docutils literal notranslate"><span class="pre">MeasurementFactory</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.MeasurementFactory.Meta"><code class="docutils literal notranslate"><span class="pre">MeasurementFactory.Meta</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.MeasurementFactory.Meta.model"><code class="docutils literal notranslate"><span class="pre">MeasurementFactory.Meta.model</span></code></a></li>
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.MeasurementFactory.Meta.abstract"><code class="docutils literal notranslate"><span class="pre">MeasurementFactory.Meta.abstract</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.MeasurementFactory.name"><code class="docutils literal notranslate"><span class="pre">MeasurementFactory.name</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.MeasurementFactory.dataset"><code class="docutils literal notranslate"><span class="pre">MeasurementFactory.dataset</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.MeasurementFactory.descriptions"><code class="docutils literal notranslate"><span class="pre">MeasurementFactory.descriptions()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.MeasurementFactory.dates"><code class="docutils literal notranslate"><span class="pre">MeasurementFactory.dates()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleRelationFactory"><code class="docutils literal notranslate"><span class="pre">SampleRelationFactory</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleRelationFactory.Meta"><code class="docutils literal notranslate"><span class="pre">SampleRelationFactory.Meta</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleRelationFactory.Meta.model"><code class="docutils literal notranslate"><span class="pre">SampleRelationFactory.Meta.model</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.factories.core.SampleRelationFactory.type"><code class="docutils literal notranslate"><span class="pre">SampleRelationFactory.type</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67"></script>
+<script defer src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Samuel Jennings.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.21.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

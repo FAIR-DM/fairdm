@@ -1,0 +1,112 @@
+# {py:mod}`fairdm.contrib.contributors.plugins.person`
+
+```{py:module} fairdm.contrib.contributors.plugins.person
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.person
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ContributorProjects <fairdm.contrib.contributors.plugins.person.ContributorProjects>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.person.ContributorProjects
+    :summary:
+    ```
+* - {py:obj}`ContributorDatasets <fairdm.contrib.contributors.plugins.person.ContributorDatasets>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.person.ContributorDatasets
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} ContributorProjects(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.person.ContributorProjects
+
+Bases: {py:obj}`fairdm.contrib.plugins.Plugin`, {py:obj}`fairdm.core.project.views.ProjectListView`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.person.ContributorProjects
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.person.ContributorProjects.__init__
+```
+
+````{py:attribute} page_title
+:canonical: fairdm.contrib.contributors.plugins.person.ContributorProjects.page_title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.person.ContributorProjects.page_title
+```
+
+````
+
+````{py:method} get_queryset(*args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.person.ContributorProjects.get_queryset
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.person.ContributorProjects.get_queryset
+```
+
+````
+
+````{py:method} get_page_title()
+:canonical: fairdm.contrib.contributors.plugins.person.ContributorProjects.get_page_title
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.person.ContributorProjects.get_page_title
+```
+
+````
+
+`````
+
+`````{py:class} ContributorDatasets(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.person.ContributorDatasets
+
+Bases: {py:obj}`fairdm.contrib.plugins.Plugin`, {py:obj}`fairdm.core.dataset.views.DatasetListView`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.person.ContributorDatasets
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.person.ContributorDatasets.__init__
+```
+
+````{py:attribute} page_title
+:canonical: fairdm.contrib.contributors.plugins.person.ContributorDatasets.page_title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.person.ContributorDatasets.page_title
+```
+
+````
+
+````{py:method} get_queryset(*args, **kwargs)
+:canonical: fairdm.contrib.contributors.plugins.person.ContributorDatasets.get_queryset
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.person.ContributorDatasets.get_queryset
+```
+
+````
+
+````{py:method} get_page_title()
+:canonical: fairdm.contrib.contributors.plugins.person.ContributorDatasets.get_page_title
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.person.ContributorDatasets.get_page_title
+```
+
+````
+
+`````

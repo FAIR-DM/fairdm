@@ -1,0 +1,368 @@
+# {py:mod}`fairdm.core.related_records`
+
+```{py:module} fairdm.core.related_records
+```
+
+```{autodoc2-docstring} fairdm.core.related_records
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`RelatedRecordInline <fairdm.core.related_records.RelatedRecordInline>`
+  - ```{autodoc2-docstring} fairdm.core.related_records.RelatedRecordInline
+    :summary:
+    ```
+* - {py:obj}`ProjectDateInline <fairdm.core.related_records.ProjectDateInline>`
+  - ```{autodoc2-docstring} fairdm.core.related_records.ProjectDateInline
+    :summary:
+    ```
+* - {py:obj}`ProjectIdentifierInline <fairdm.core.related_records.ProjectIdentifierInline>`
+  - ```{autodoc2-docstring} fairdm.core.related_records.ProjectIdentifierInline
+    :summary:
+    ```
+* - {py:obj}`DatasetDateInline <fairdm.core.related_records.DatasetDateInline>`
+  - ```{autodoc2-docstring} fairdm.core.related_records.DatasetDateInline
+    :summary:
+    ```
+* - {py:obj}`DatasetIdentifierInline <fairdm.core.related_records.DatasetIdentifierInline>`
+  - ```{autodoc2-docstring} fairdm.core.related_records.DatasetIdentifierInline
+    :summary:
+    ```
+* - {py:obj}`SampleDateInline <fairdm.core.related_records.SampleDateInline>`
+  - ```{autodoc2-docstring} fairdm.core.related_records.SampleDateInline
+    :summary:
+    ```
+* - {py:obj}`SampleIdentifierInline <fairdm.core.related_records.SampleIdentifierInline>`
+  - ```{autodoc2-docstring} fairdm.core.related_records.SampleIdentifierInline
+    :summary:
+    ```
+* - {py:obj}`MeasurementDateInline <fairdm.core.related_records.MeasurementDateInline>`
+  - ```{autodoc2-docstring} fairdm.core.related_records.MeasurementDateInline
+    :summary:
+    ```
+* - {py:obj}`MeasurementIdentifierInline <fairdm.core.related_records.MeasurementIdentifierInline>`
+  - ```{autodoc2-docstring} fairdm.core.related_records.MeasurementIdentifierInline
+    :summary:
+    ```
+* - {py:obj}`ProjectDatesInline <fairdm.core.related_records.ProjectDatesInline>`
+  - ```{autodoc2-docstring} fairdm.core.related_records.ProjectDatesInline
+    :summary:
+    ```
+* - {py:obj}`DatasetDatesInline <fairdm.core.related_records.DatasetDatesInline>`
+  - ```{autodoc2-docstring} fairdm.core.related_records.DatasetDatesInline
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} RelatedRecordInline(parent_model, request, instance, view)
+:canonical: fairdm.core.related_records.RelatedRecordInline
+
+Bases: {py:obj}`mvp.views.inline.InlineFormSet`
+
+```{autodoc2-docstring} fairdm.core.related_records.RelatedRecordInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.related_records.RelatedRecordInline.__init__
+```
+
+````{py:attribute} fields
+:canonical: fairdm.core.related_records.RelatedRecordInline.fields
+:value: >
+   ('type', 'value')
+
+```{autodoc2-docstring} fairdm.core.related_records.RelatedRecordInline.fields
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.core.related_records.RelatedRecordInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.core.related_records.RelatedRecordInline.extra
+```
+
+````
+
+````{py:method} get_factory_kwargs()
+:canonical: fairdm.core.related_records.RelatedRecordInline.get_factory_kwargs
+
+```{autodoc2-docstring} fairdm.core.related_records.RelatedRecordInline.get_factory_kwargs
+```
+
+````
+
+`````
+
+`````{py:class} ProjectDateInline(parent_model, request, instance, view)
+:canonical: fairdm.core.related_records.ProjectDateInline
+
+Bases: {py:obj}`fairdm.core.related_records.RelatedRecordInline`
+
+```{autodoc2-docstring} fairdm.core.related_records.ProjectDateInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.related_records.ProjectDateInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.related_records.ProjectDateInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.related_records.ProjectDateInline.model
+```
+
+````
+
+`````
+
+`````{py:class} ProjectIdentifierInline(parent_model, request, instance, view)
+:canonical: fairdm.core.related_records.ProjectIdentifierInline
+
+Bases: {py:obj}`fairdm.core.related_records.RelatedRecordInline`
+
+```{autodoc2-docstring} fairdm.core.related_records.ProjectIdentifierInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.related_records.ProjectIdentifierInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.related_records.ProjectIdentifierInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.related_records.ProjectIdentifierInline.model
+```
+
+````
+
+`````
+
+`````{py:class} DatasetDateInline(parent_model, request, instance, view)
+:canonical: fairdm.core.related_records.DatasetDateInline
+
+Bases: {py:obj}`fairdm.core.related_records.RelatedRecordInline`
+
+```{autodoc2-docstring} fairdm.core.related_records.DatasetDateInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.related_records.DatasetDateInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.related_records.DatasetDateInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.related_records.DatasetDateInline.model
+```
+
+````
+
+`````
+
+`````{py:class} DatasetIdentifierInline(parent_model, request, instance, view)
+:canonical: fairdm.core.related_records.DatasetIdentifierInline
+
+Bases: {py:obj}`fairdm.core.related_records.RelatedRecordInline`
+
+```{autodoc2-docstring} fairdm.core.related_records.DatasetIdentifierInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.related_records.DatasetIdentifierInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.related_records.DatasetIdentifierInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.related_records.DatasetIdentifierInline.model
+```
+
+````
+
+`````
+
+`````{py:class} SampleDateInline(parent_model, request, instance, view)
+:canonical: fairdm.core.related_records.SampleDateInline
+
+Bases: {py:obj}`fairdm.core.related_records.RelatedRecordInline`
+
+```{autodoc2-docstring} fairdm.core.related_records.SampleDateInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.related_records.SampleDateInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.related_records.SampleDateInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.related_records.SampleDateInline.model
+```
+
+````
+
+`````
+
+`````{py:class} SampleIdentifierInline(parent_model, request, instance, view)
+:canonical: fairdm.core.related_records.SampleIdentifierInline
+
+Bases: {py:obj}`fairdm.core.related_records.RelatedRecordInline`
+
+```{autodoc2-docstring} fairdm.core.related_records.SampleIdentifierInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.related_records.SampleIdentifierInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.related_records.SampleIdentifierInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.related_records.SampleIdentifierInline.model
+```
+
+````
+
+`````
+
+`````{py:class} MeasurementDateInline(parent_model, request, instance, view)
+:canonical: fairdm.core.related_records.MeasurementDateInline
+
+Bases: {py:obj}`fairdm.core.related_records.RelatedRecordInline`
+
+```{autodoc2-docstring} fairdm.core.related_records.MeasurementDateInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.related_records.MeasurementDateInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.related_records.MeasurementDateInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.related_records.MeasurementDateInline.model
+```
+
+````
+
+`````
+
+`````{py:class} MeasurementIdentifierInline(parent_model, request, instance, view)
+:canonical: fairdm.core.related_records.MeasurementIdentifierInline
+
+Bases: {py:obj}`fairdm.core.related_records.RelatedRecordInline`
+
+```{autodoc2-docstring} fairdm.core.related_records.MeasurementIdentifierInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.related_records.MeasurementIdentifierInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.related_records.MeasurementIdentifierInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.related_records.MeasurementIdentifierInline.model
+```
+
+````
+
+`````
+
+`````{py:class} ProjectDatesInline(parent_model, request, instance, view)
+:canonical: fairdm.core.related_records.ProjectDatesInline
+
+Bases: {py:obj}`fairdm.core.related_records.ProjectDateInline`
+
+```{autodoc2-docstring} fairdm.core.related_records.ProjectDatesInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.related_records.ProjectDatesInline.__init__
+```
+
+````{py:attribute} formset
+:canonical: fairdm.core.related_records.ProjectDatesInline.formset
+:value: >
+   'date_ordering_formset(...)'
+
+```{autodoc2-docstring} fairdm.core.related_records.ProjectDatesInline.formset
+```
+
+````
+
+`````
+
+`````{py:class} DatasetDatesInline(parent_model, request, instance, view)
+:canonical: fairdm.core.related_records.DatasetDatesInline
+
+Bases: {py:obj}`fairdm.core.related_records.DatasetDateInline`
+
+```{autodoc2-docstring} fairdm.core.related_records.DatasetDatesInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.related_records.DatasetDatesInline.__init__
+```
+
+````{py:attribute} formset
+:canonical: fairdm.core.related_records.DatasetDatesInline.formset
+:value: >
+   'date_ordering_formset(...)'
+
+```{autodoc2-docstring} fairdm.core.related_records.DatasetDatesInline.formset
+```
+
+````
+
+`````

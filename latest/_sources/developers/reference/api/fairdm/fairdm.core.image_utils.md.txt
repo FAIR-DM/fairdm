@@ -1,0 +1,67 @@
+# {py:mod}`fairdm.core.image_utils`
+
+```{py:module} fairdm.core.image_utils
+```
+
+```{autodoc2-docstring} fairdm.core.image_utils
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`validate_image_file_size <fairdm.core.image_utils.validate_image_file_size>`
+  - ```{autodoc2-docstring} fairdm.core.image_utils.validate_image_file_size
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`MAX_IMAGE_UPLOAD_BYTES <fairdm.core.image_utils.MAX_IMAGE_UPLOAD_BYTES>`
+  - ```{autodoc2-docstring} fairdm.core.image_utils.MAX_IMAGE_UPLOAD_BYTES
+    :summary:
+    ```
+* - {py:obj}`IMAGE_HELP_TEXT <fairdm.core.image_utils.IMAGE_HELP_TEXT>`
+  - ```{autodoc2-docstring} fairdm.core.image_utils.IMAGE_HELP_TEXT
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} MAX_IMAGE_UPLOAD_BYTES
+:canonical: fairdm.core.image_utils.MAX_IMAGE_UPLOAD_BYTES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.image_utils.MAX_IMAGE_UPLOAD_BYTES
+```
+
+````
+
+````{py:data} IMAGE_HELP_TEXT
+:canonical: fairdm.core.image_utils.IMAGE_HELP_TEXT
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.image_utils.IMAGE_HELP_TEXT
+```
+
+````
+
+````{py:function} validate_image_file_size(file)
+:canonical: fairdm.core.image_utils.validate_image_file_size
+
+```{autodoc2-docstring} fairdm.core.image_utils.validate_image_file_size
+```
+````

@@ -1,0 +1,478 @@
+# {py:mod}`fairdm.api.filters`
+
+```{py:module} fairdm.api.filters
+```
+
+```{autodoc2-docstring} fairdm.api.filters
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FairDMVisibilityFilter <fairdm.api.filters.FairDMVisibilityFilter>`
+  - ```{autodoc2-docstring} fairdm.api.filters.FairDMVisibilityFilter
+    :summary:
+    ```
+* - {py:obj}`DatasetFilterSet <fairdm.api.filters.DatasetFilterSet>`
+  - ```{autodoc2-docstring} fairdm.api.filters.DatasetFilterSet
+    :summary:
+    ```
+* - {py:obj}`SampleFilterSet <fairdm.api.filters.SampleFilterSet>`
+  - ```{autodoc2-docstring} fairdm.api.filters.SampleFilterSet
+    :summary:
+    ```
+* - {py:obj}`ChangedSinceFilterSet <fairdm.api.filters.ChangedSinceFilterSet>`
+  - ```{autodoc2-docstring} fairdm.api.filters.ChangedSinceFilterSet
+    :summary:
+    ```
+* - {py:obj}`IdentifierFilter <fairdm.api.filters.IdentifierFilter>`
+  - ```{autodoc2-docstring} fairdm.api.filters.IdentifierFilter
+    :summary:
+    ```
+* - {py:obj}`PersonFilterSet <fairdm.api.filters.PersonFilterSet>`
+  - ```{autodoc2-docstring} fairdm.api.filters.PersonFilterSet
+    :summary:
+    ```
+* - {py:obj}`OrganizationFilterSet <fairdm.api.filters.OrganizationFilterSet>`
+  - ```{autodoc2-docstring} fairdm.api.filters.OrganizationFilterSet
+    :summary:
+    ```
+* - {py:obj}`ContributorRecordsFilterSet <fairdm.api.filters.ContributorRecordsFilterSet>`
+  - ```{autodoc2-docstring} fairdm.api.filters.ContributorRecordsFilterSet
+    :summary:
+    ```
+* - {py:obj}`FairDMFilterBackend <fairdm.api.filters.FairDMFilterBackend>`
+  - ```{autodoc2-docstring} fairdm.api.filters.FairDMFilterBackend
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} FairDMVisibilityFilter
+:canonical: fairdm.api.filters.FairDMVisibilityFilter
+
+Bases: {py:obj}`rest_framework.filters.BaseFilterBackend`
+
+```{autodoc2-docstring} fairdm.api.filters.FairDMVisibilityFilter
+```
+
+````{py:method} hidden_contributors()
+:canonical: fairdm.api.filters.FairDMVisibilityFilter.hidden_contributors
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.api.filters.FairDMVisibilityFilter.hidden_contributors
+```
+
+````
+
+````{py:method} filter_queryset(request: rest_framework.request.Request, queryset, view: rest_framework.views.APIView)
+:canonical: fairdm.api.filters.FairDMVisibilityFilter.filter_queryset
+
+```{autodoc2-docstring} fairdm.api.filters.FairDMVisibilityFilter.filter_queryset
+```
+
+````
+
+`````
+
+`````{py:class} DatasetFilterSet(*args, **kwargs)
+:canonical: fairdm.api.filters.DatasetFilterSet
+
+Bases: {py:obj}`django_filters.FilterSet`
+
+```{autodoc2-docstring} fairdm.api.filters.DatasetFilterSet
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.filters.DatasetFilterSet.__init__
+```
+
+````{py:attribute} dataset
+:canonical: fairdm.api.filters.DatasetFilterSet.dataset
+:value: >
+   'ModelChoiceFilter(...)'
+
+```{autodoc2-docstring} fairdm.api.filters.DatasetFilterSet.dataset
+```
+
+````
+
+````{py:method} drops(filter_) -> bool
+:canonical: fairdm.api.filters.DatasetFilterSet.drops
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.api.filters.DatasetFilterSet.drops
+```
+
+````
+
+````{py:method} visible(queryset)
+:canonical: fairdm.api.filters.DatasetFilterSet.visible
+
+```{autodoc2-docstring} fairdm.api.filters.DatasetFilterSet.visible
+```
+
+````
+
+````{py:method} match_relations_on_uuid() -> None
+:canonical: fairdm.api.filters.DatasetFilterSet.match_relations_on_uuid
+:classmethod:
+
+```{autodoc2-docstring} fairdm.api.filters.DatasetFilterSet.match_relations_on_uuid
+```
+
+````
+
+````{py:method} related_model(filter_) -> type[django.db.models.Model] | None
+:canonical: fairdm.api.filters.DatasetFilterSet.related_model
+:classmethod:
+
+```{autodoc2-docstring} fairdm.api.filters.DatasetFilterSet.related_model
+```
+
+````
+
+`````
+
+`````{py:class} SampleFilterSet(*args, **kwargs)
+:canonical: fairdm.api.filters.SampleFilterSet
+
+Bases: {py:obj}`fairdm.api.filters.DatasetFilterSet`
+
+```{autodoc2-docstring} fairdm.api.filters.SampleFilterSet
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.filters.SampleFilterSet.__init__
+```
+
+````{py:attribute} sample
+:canonical: fairdm.api.filters.SampleFilterSet.sample
+:value: >
+   'ModelChoiceFilter(...)'
+
+```{autodoc2-docstring} fairdm.api.filters.SampleFilterSet.sample
+```
+
+````
+
+`````
+
+`````{py:class} ChangedSinceFilterSet(data=None, queryset=None, *, request=None, prefix=None)
+:canonical: fairdm.api.filters.ChangedSinceFilterSet
+
+Bases: {py:obj}`django_filters.FilterSet`
+
+```{autodoc2-docstring} fairdm.api.filters.ChangedSinceFilterSet
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.filters.ChangedSinceFilterSet.__init__
+```
+
+````{py:attribute} modified_after
+:canonical: fairdm.api.filters.ChangedSinceFilterSet.modified_after
+:value: >
+   'IsoDateTimeFilter(...)'
+
+```{autodoc2-docstring} fairdm.api.filters.ChangedSinceFilterSet.modified_after
+```
+
+````
+
+````{py:attribute} modified_before
+:canonical: fairdm.api.filters.ChangedSinceFilterSet.modified_before
+:value: >
+   'IsoDateTimeFilter(...)'
+
+```{autodoc2-docstring} fairdm.api.filters.ChangedSinceFilterSet.modified_before
+```
+
+````
+
+`````
+
+`````{py:class} IdentifierFilter(*args, **kwargs)
+:canonical: fairdm.api.filters.IdentifierFilter
+
+Bases: {py:obj}`django_filters.CharFilter`
+
+```{autodoc2-docstring} fairdm.api.filters.IdentifierFilter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.filters.IdentifierFilter.__init__
+```
+
+````{py:method} bare(value: str) -> str
+:canonical: fairdm.api.filters.IdentifierFilter.bare
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.api.filters.IdentifierFilter.bare
+```
+
+````
+
+````{py:method} filter(qs, value)
+:canonical: fairdm.api.filters.IdentifierFilter.filter
+
+```{autodoc2-docstring} fairdm.api.filters.IdentifierFilter.filter
+```
+
+````
+
+`````
+
+``````{py:class} PersonFilterSet(data=None, queryset=None, *, request=None, prefix=None)
+:canonical: fairdm.api.filters.PersonFilterSet
+
+Bases: {py:obj}`django_filters.FilterSet`
+
+```{autodoc2-docstring} fairdm.api.filters.PersonFilterSet
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.filters.PersonFilterSet.__init__
+```
+
+````{py:attribute} organization
+:canonical: fairdm.api.filters.PersonFilterSet.organization
+:value: >
+   'ModelChoiceFilter(...)'
+
+```{autodoc2-docstring} fairdm.api.filters.PersonFilterSet.organization
+```
+
+````
+
+````{py:attribute} identifier
+:canonical: fairdm.api.filters.PersonFilterSet.identifier
+:value: >
+   'IdentifierFilter(...)'
+
+```{autodoc2-docstring} fairdm.api.filters.PersonFilterSet.identifier
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.api.filters.PersonFilterSet.Meta
+
+```{autodoc2-docstring} fairdm.api.filters.PersonFilterSet.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.api.filters.PersonFilterSet.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.filters.PersonFilterSet.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.api.filters.PersonFilterSet.Meta.fields
+:type: list[str]
+:value: >
+   []
+
+```{autodoc2-docstring} fairdm.api.filters.PersonFilterSet.Meta.fields
+```
+
+````
+
+`````
+
+````{py:method} narrow_to_members(queryset, name, organization)
+:canonical: fairdm.api.filters.PersonFilterSet.narrow_to_members
+
+```{autodoc2-docstring} fairdm.api.filters.PersonFilterSet.narrow_to_members
+```
+
+````
+
+``````
+
+``````{py:class} OrganizationFilterSet(data=None, queryset=None, *, request=None, prefix=None)
+:canonical: fairdm.api.filters.OrganizationFilterSet
+
+Bases: {py:obj}`django_filters.FilterSet`
+
+```{autodoc2-docstring} fairdm.api.filters.OrganizationFilterSet
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.filters.OrganizationFilterSet.__init__
+```
+
+````{py:attribute} type
+:canonical: fairdm.api.filters.OrganizationFilterSet.type
+:value: >
+   'ChoiceFilter(...)'
+
+```{autodoc2-docstring} fairdm.api.filters.OrganizationFilterSet.type
+```
+
+````
+
+````{py:attribute} country
+:canonical: fairdm.api.filters.OrganizationFilterSet.country
+:value: >
+   'CharFilter(...)'
+
+```{autodoc2-docstring} fairdm.api.filters.OrganizationFilterSet.country
+```
+
+````
+
+````{py:attribute} parent_organization
+:canonical: fairdm.api.filters.OrganizationFilterSet.parent_organization
+:value: >
+   'ModelChoiceFilter(...)'
+
+```{autodoc2-docstring} fairdm.api.filters.OrganizationFilterSet.parent_organization
+```
+
+````
+
+````{py:attribute} top_level
+:canonical: fairdm.api.filters.OrganizationFilterSet.top_level
+:value: >
+   'BooleanFilter(...)'
+
+```{autodoc2-docstring} fairdm.api.filters.OrganizationFilterSet.top_level
+```
+
+````
+
+````{py:attribute} identifier
+:canonical: fairdm.api.filters.OrganizationFilterSet.identifier
+:value: >
+   'IdentifierFilter(...)'
+
+```{autodoc2-docstring} fairdm.api.filters.OrganizationFilterSet.identifier
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.api.filters.OrganizationFilterSet.Meta
+
+```{autodoc2-docstring} fairdm.api.filters.OrganizationFilterSet.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.api.filters.OrganizationFilterSet.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.filters.OrganizationFilterSet.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.api.filters.OrganizationFilterSet.Meta.fields
+:type: list[str]
+:value: >
+   []
+
+```{autodoc2-docstring} fairdm.api.filters.OrganizationFilterSet.Meta.fields
+```
+
+````
+
+`````
+
+````{py:method} narrow_to_top_level(queryset, name, value)
+:canonical: fairdm.api.filters.OrganizationFilterSet.narrow_to_top_level
+
+```{autodoc2-docstring} fairdm.api.filters.OrganizationFilterSet.narrow_to_top_level
+```
+
+````
+
+``````
+
+`````{py:class} ContributorRecordsFilterSet(data=None, queryset=None, *, request=None, prefix=None)
+:canonical: fairdm.api.filters.ContributorRecordsFilterSet
+
+Bases: {py:obj}`django_filters.FilterSet`
+
+```{autodoc2-docstring} fairdm.api.filters.ContributorRecordsFilterSet
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.filters.ContributorRecordsFilterSet.__init__
+```
+
+````{py:attribute} contributor
+:canonical: fairdm.api.filters.ContributorRecordsFilterSet.contributor
+:value: >
+   'CharFilter(...)'
+
+```{autodoc2-docstring} fairdm.api.filters.ContributorRecordsFilterSet.contributor
+```
+
+````
+
+````{py:method} narrow_to_credited(queryset, name, value)
+:canonical: fairdm.api.filters.ContributorRecordsFilterSet.narrow_to_credited
+
+```{autodoc2-docstring} fairdm.api.filters.ContributorRecordsFilterSet.narrow_to_credited
+```
+
+````
+
+`````
+
+`````{py:class} FairDMFilterBackend
+:canonical: fairdm.api.filters.FairDMFilterBackend
+
+Bases: {py:obj}`django_filters.rest_framework.DjangoFilterBackend`
+
+```{autodoc2-docstring} fairdm.api.filters.FairDMFilterBackend
+```
+
+````{py:attribute} generated_filtersets
+:canonical: fairdm.api.filters.FairDMFilterBackend.generated_filtersets
+:type: dict[tuple, type]
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.filters.FairDMFilterBackend.generated_filtersets
+```
+
+````
+
+````{py:method} get_filterset_class(view, queryset=None)
+:canonical: fairdm.api.filters.FairDMFilterBackend.get_filterset_class
+
+```{autodoc2-docstring} fairdm.api.filters.FairDMFilterBackend.get_filterset_class
+```
+
+````
+
+`````

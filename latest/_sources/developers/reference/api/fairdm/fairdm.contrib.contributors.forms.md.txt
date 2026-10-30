@@ -1,0 +1,23 @@
+# {py:mod}`fairdm.contrib.contributors.forms`
+
+```{py:module} fairdm.contrib.contributors.forms
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.contrib.contributors.forms.account
+fairdm.contrib.contributors.forms.forms
+fairdm.contrib.contributors.forms.profile
+fairdm.contrib.contributors.forms.widgets
+fairdm.contrib.contributors.forms.person
+fairdm.contrib.contributors.forms.organization
+fairdm.contrib.contributors.forms.contribution
+```

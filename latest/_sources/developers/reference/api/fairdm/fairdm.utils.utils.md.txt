@@ -1,0 +1,163 @@
+# {py:mod}`fairdm.utils.utils`
+
+```{py:module} fairdm.utils.utils
+```
+
+```{autodoc2-docstring} fairdm.utils.utils
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`user_guide <fairdm.utils.utils.user_guide>`
+  - ```{autodoc2-docstring} fairdm.utils.utils.user_guide
+    :summary:
+    ```
+* - {py:obj}`get_setting <fairdm.utils.utils.get_setting>`
+  - ```{autodoc2-docstring} fairdm.utils.utils.get_setting
+    :summary:
+    ```
+* - {py:obj}`get_subclasses <fairdm.utils.utils.get_subclasses>`
+  - ```{autodoc2-docstring} fairdm.utils.utils.get_subclasses
+    :summary:
+    ```
+* - {py:obj}`get_inheritance_chain <fairdm.utils.utils.get_inheritance_chain>`
+  - ```{autodoc2-docstring} fairdm.utils.utils.get_inheritance_chain
+    :summary:
+    ```
+* - {py:obj}`get_model_class <fairdm.utils.utils.get_model_class>`
+  - ```{autodoc2-docstring} fairdm.utils.utils.get_model_class
+    :summary:
+    ```
+* - {py:obj}`get_core_object_or_none <fairdm.utils.utils.get_core_object_or_none>`
+  - ```{autodoc2-docstring} fairdm.utils.utils.get_core_object_or_none
+    :summary:
+    ```
+* - {py:obj}`get_core_object_or_404 <fairdm.utils.utils.get_core_object_or_404>`
+  - ```{autodoc2-docstring} fairdm.utils.utils.get_core_object_or_404
+    :summary:
+    ```
+* - {py:obj}`default_image_path <fairdm.utils.utils.default_image_path>`
+  - ```{autodoc2-docstring} fairdm.utils.utils.default_image_path
+    :summary:
+    ```
+* - {py:obj}`fieldsets_to_crispy_layout <fairdm.utils.utils.fieldsets_to_crispy_layout>`
+  - ```{autodoc2-docstring} fairdm.utils.utils.fieldsets_to_crispy_layout
+    :summary:
+    ```
+* - {py:obj}`fields_to_crispy_layout <fairdm.utils.utils.fields_to_crispy_layout>`
+  - ```{autodoc2-docstring} fairdm.utils.utils.fields_to_crispy_layout
+    :summary:
+    ```
+* - {py:obj}`fairdm_fieldsets_to_django <fairdm.utils.utils.fairdm_fieldsets_to_django>`
+  - ```{autodoc2-docstring} fairdm.utils.utils.fairdm_fieldsets_to_django
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`DOCUMENTATION_BASE_URL <fairdm.utils.utils.DOCUMENTATION_BASE_URL>`
+  - ```{autodoc2-docstring} fairdm.utils.utils.DOCUMENTATION_BASE_URL
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} DOCUMENTATION_BASE_URL
+:canonical: fairdm.utils.utils.DOCUMENTATION_BASE_URL
+:value: >
+   'https://docs.fairdm.org/latest/users/'
+
+```{autodoc2-docstring} fairdm.utils.utils.DOCUMENTATION_BASE_URL
+```
+
+````
+
+````{py:function} user_guide(name: str) -> str
+:canonical: fairdm.utils.utils.user_guide
+
+```{autodoc2-docstring} fairdm.utils.utils.user_guide
+```
+````
+
+````{py:function} get_setting(name: str, key: str)
+:canonical: fairdm.utils.utils.get_setting
+
+```{autodoc2-docstring} fairdm.utils.utils.get_setting
+```
+````
+
+````{py:function} get_subclasses(model)
+:canonical: fairdm.utils.utils.get_subclasses
+
+```{autodoc2-docstring} fairdm.utils.utils.get_subclasses
+```
+````
+
+````{py:function} get_inheritance_chain(model, base_model)
+:canonical: fairdm.utils.utils.get_inheritance_chain
+
+```{autodoc2-docstring} fairdm.utils.utils.get_inheritance_chain
+```
+````
+
+````{py:function} get_model_class(uuid: str)
+:canonical: fairdm.utils.utils.get_model_class
+
+```{autodoc2-docstring} fairdm.utils.utils.get_model_class
+```
+````
+
+````{py:function} get_core_object_or_none(uuid: str) -> tuple
+:canonical: fairdm.utils.utils.get_core_object_or_none
+
+```{autodoc2-docstring} fairdm.utils.utils.get_core_object_or_none
+```
+````
+
+````{py:function} get_core_object_or_404(uuid: str)
+:canonical: fairdm.utils.utils.get_core_object_or_404
+
+```{autodoc2-docstring} fairdm.utils.utils.get_core_object_or_404
+```
+````
+
+````{py:function} default_image_path(instance, filename: str) -> str
+:canonical: fairdm.utils.utils.default_image_path
+
+```{autodoc2-docstring} fairdm.utils.utils.default_image_path
+```
+````
+
+````{py:function} fieldsets_to_crispy_layout(fieldsets)
+:canonical: fairdm.utils.utils.fieldsets_to_crispy_layout
+
+```{autodoc2-docstring} fairdm.utils.utils.fieldsets_to_crispy_layout
+```
+````
+
+````{py:function} fields_to_crispy_layout(fields)
+:canonical: fairdm.utils.utils.fields_to_crispy_layout
+
+```{autodoc2-docstring} fairdm.utils.utils.fields_to_crispy_layout
+```
+````
+
+````{py:function} fairdm_fieldsets_to_django(fieldsets)
+:canonical: fairdm.utils.utils.fairdm_fieldsets_to_django
+
+```{autodoc2-docstring} fairdm.utils.utils.fairdm_fieldsets_to_django
+```
+````

@@ -1,0 +1,86 @@
+# {py:mod}`fairdm.contrib.contributors.profiles`
+
+```{py:module} fairdm.contrib.contributors.profiles
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.profiles
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`link_host <fairdm.contrib.contributors.profiles.link_host>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.profiles.link_host
+    :summary:
+    ```
+* - {py:obj}`language_names <fairdm.contrib.contributors.profiles.language_names>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.profiles.language_names
+    :summary:
+    ```
+* - {py:obj}`ranked_shares <fairdm.contrib.contributors.profiles.ranked_shares>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.profiles.ranked_shares
+    :summary:
+    ```
+* - {py:obj}`fill_slots <fairdm.contrib.contributors.profiles.fill_slots>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.profiles.fill_slots
+    :summary:
+    ```
+* - {py:obj}`active_then_recent <fairdm.contrib.contributors.profiles.active_then_recent>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.profiles.active_then_recent
+    :summary:
+    ```
+* - {py:obj}`checklist <fairdm.contrib.contributors.profiles.checklist>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.profiles.checklist
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} link_host(url: str) -> str
+:canonical: fairdm.contrib.contributors.profiles.link_host
+
+```{autodoc2-docstring} fairdm.contrib.contributors.profiles.link_host
+```
+````
+
+````{py:function} language_names(codes: collections.abc.Iterable[str] | None) -> list[str]
+:canonical: fairdm.contrib.contributors.profiles.language_names
+
+```{autodoc2-docstring} fairdm.contrib.contributors.profiles.language_names
+```
+````
+
+````{py:function} ranked_shares(counts: collections.abc.Mapping[str, int]) -> list[dict[str, typing.Any]]
+:canonical: fairdm.contrib.contributors.profiles.ranked_shares
+
+```{autodoc2-docstring} fairdm.contrib.contributors.profiles.ranked_shares
+```
+````
+
+````{py:function} fill_slots(items: collections.abc.Sequence[typing.Any], slots: int, reserve: bool = False) -> dict[str, typing.Any]
+:canonical: fairdm.contrib.contributors.profiles.fill_slots
+
+```{autodoc2-docstring} fairdm.contrib.contributors.profiles.fill_slots
+```
+````
+
+````{py:function} active_then_recent(items: collections.abc.Iterable[typing.Any], modified: collections.abc.Callable[[typing.Any], typing.Any], active: collections.abc.Callable[[typing.Any], bool] | None = None) -> list[typing.Any]
+:canonical: fairdm.contrib.contributors.profiles.active_then_recent
+
+```{autodoc2-docstring} fairdm.contrib.contributors.profiles.active_then_recent
+```
+````
+
+````{py:function} checklist(items: collections.abc.Sequence[collections.abc.Mapping[str, typing.Any]]) -> dict[str, typing.Any]
+:canonical: fairdm.contrib.contributors.profiles.checklist
+
+```{autodoc2-docstring} fairdm.contrib.contributors.profiles.checklist
+```
+````

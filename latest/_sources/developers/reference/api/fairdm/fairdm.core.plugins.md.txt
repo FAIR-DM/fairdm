@@ -1,0 +1,289 @@
+# {py:mod}`fairdm.core.plugins`
+
+```{py:module} fairdm.core.plugins
+```
+
+```{autodoc2-docstring} fairdm.core.plugins
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`OverviewPlugin <fairdm.core.plugins.OverviewPlugin>`
+  - ```{autodoc2-docstring} fairdm.core.plugins.OverviewPlugin
+    :summary:
+    ```
+* - {py:obj}`RecordOverviewPlugin <fairdm.core.plugins.RecordOverviewPlugin>`
+  - ```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin
+    :summary:
+    ```
+* - {py:obj}`TypedOverviewPlugin <fairdm.core.plugins.TypedOverviewPlugin>`
+  - ```{autodoc2-docstring} fairdm.core.plugins.TypedOverviewPlugin
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} OverviewPlugin(**kwargs)
+:canonical: fairdm.core.plugins.OverviewPlugin
+
+Bases: {py:obj}`fairdm.contrib.plugins.Plugin`, {py:obj}`fairdm.views.FairDMTemplateView`
+
+```{autodoc2-docstring} fairdm.core.plugins.OverviewPlugin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.plugins.OverviewPlugin.__init__
+```
+
+````{py:attribute} page_subtitle
+:canonical: fairdm.core.plugins.OverviewPlugin.page_subtitle
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.plugins.OverviewPlugin.page_subtitle
+```
+
+````
+
+````{py:attribute} page_icon
+:canonical: fairdm.core.plugins.OverviewPlugin.page_icon
+:value: >
+   'overview'
+
+```{autodoc2-docstring} fairdm.core.plugins.OverviewPlugin.page_icon
+```
+
+````
+
+````{py:attribute} menu
+:canonical: fairdm.core.plugins.OverviewPlugin.menu
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.plugins.OverviewPlugin.menu
+```
+
+````
+
+````{py:method} get_page_title()
+:canonical: fairdm.core.plugins.OverviewPlugin.get_page_title
+
+```{autodoc2-docstring} fairdm.core.plugins.OverviewPlugin.get_page_title
+```
+
+````
+
+`````
+
+`````{py:class} RecordOverviewPlugin(**kwargs)
+:canonical: fairdm.core.plugins.RecordOverviewPlugin
+
+Bases: {py:obj}`fairdm.core.plugins.OverviewPlugin`
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.__init__
+```
+
+````{py:attribute} people_shown
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.people_shown
+:value: >
+   18
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.people_shown
+```
+
+````
+
+````{py:attribute} resolvable_identifier_types
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.resolvable_identifier_types
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.resolvable_identifier_types
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_context_data
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_context_data
+```
+
+````
+
+````{py:method} get_contributions() -> list[fairdm.contrib.contributors.models.Contribution]
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_contributions
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_contributions
+```
+
+````
+
+````{py:method} get_role_uris(contribution) -> set[str]
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_role_uris
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_role_uris
+```
+
+````
+
+````{py:method} get_contributors_with_role(entries, role) -> list[fairdm.contrib.contributors.models.Contributor]
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_contributors_with_role
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_contributors_with_role
+```
+
+````
+
+````{py:method} get_credits() -> list[dict[str, typing.Any]]
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_credits
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_credits
+```
+
+````
+
+````{py:method} get_people(entries=None) -> dict[str, typing.Any]
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_people
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_people
+```
+
+````
+
+````{py:method} get_identifiers() -> list[dict[str, typing.Any]]
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_identifiers
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_identifiers
+```
+
+````
+
+````{py:method} get_citation(*, authors, year, title, link) -> str
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_citation
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_citation
+```
+
+````
+
+````{py:method} get_timeline(steps, dates, descriptions, entries) -> list[dict[str, typing.Any]]
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_timeline
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_timeline
+```
+
+````
+
+````{py:method} get_license_entry(licence, note=None) -> dict[str, typing.Any]
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_license_entry
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_license_entry
+```
+
+````
+
+````{py:method} get_composition_chart(samples, measurements) -> dict[str, typing.Any] | None
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_composition_chart
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_composition_chart
+```
+
+````
+
+````{py:method} get_growth_chart(samples, measurements) -> dict[str, typing.Any] | None
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_growth_chart
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_growth_chart
+```
+
+````
+
+`````
+
+`````{py:class} TypedOverviewPlugin(**kwargs)
+:canonical: fairdm.core.plugins.TypedOverviewPlugin
+
+Bases: {py:obj}`fairdm.core.plugins.RecordOverviewPlugin`
+
+```{autodoc2-docstring} fairdm.core.plugins.TypedOverviewPlugin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.plugins.TypedOverviewPlugin.__init__
+```
+
+````{py:attribute} base_model
+:canonical: fairdm.core.plugins.TypedOverviewPlugin.base_model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.plugins.TypedOverviewPlugin.base_model
+```
+
+````
+
+````{py:attribute} fallback_template
+:canonical: fairdm.core.plugins.TypedOverviewPlugin.fallback_template
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.plugins.TypedOverviewPlugin.fallback_template
+```
+
+````
+
+````{py:method} check(request, obj)
+:canonical: fairdm.core.plugins.TypedOverviewPlugin.check
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.core.plugins.TypedOverviewPlugin.check
+```
+
+````
+
+````{py:method} handle_no_permission()
+:canonical: fairdm.core.plugins.TypedOverviewPlugin.handle_no_permission
+
+```{autodoc2-docstring} fairdm.core.plugins.TypedOverviewPlugin.handle_no_permission
+```
+
+````
+
+````{py:method} get_template_names()
+:canonical: fairdm.core.plugins.TypedOverviewPlugin.get_template_names
+
+```{autodoc2-docstring} fairdm.core.plugins.TypedOverviewPlugin.get_template_names
+```
+
+````
+
+````{py:method} get_type_info() -> dict[str, typing.Any] | None
+:canonical: fairdm.core.plugins.TypedOverviewPlugin.get_type_info
+
+```{autodoc2-docstring} fairdm.core.plugins.TypedOverviewPlugin.get_type_info
+```
+
+````
+
+`````

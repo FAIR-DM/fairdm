@@ -1,0 +1,130 @@
+# {py:mod}`fairdm.contrib.identity.admin`
+
+```{py:module} fairdm.contrib.identity.admin
+```
+
+```{autodoc2-docstring} fairdm.contrib.identity.admin
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`IdentityAdmin <fairdm.contrib.identity.admin.IdentityAdmin>`
+  - ```{autodoc2-docstring} fairdm.contrib.identity.admin.IdentityAdmin
+    :summary:
+    ```
+* - {py:obj}`AuthorityAdmin <fairdm.contrib.identity.admin.AuthorityAdmin>`
+  - ```{autodoc2-docstring} fairdm.contrib.identity.admin.AuthorityAdmin
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} IdentityAdmin()
+:canonical: fairdm.contrib.identity.admin.IdentityAdmin
+
+Bases: {py:obj}`parler.admin.TranslatableAdmin`, {py:obj}`solo.admin.SingletonModelAdmin`
+
+```{autodoc2-docstring} fairdm.contrib.identity.admin.IdentityAdmin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.identity.admin.IdentityAdmin.__init__
+```
+
+````{py:attribute} fieldsets
+:canonical: fairdm.contrib.identity.admin.IdentityAdmin.fieldsets
+:value: >
+   (('Portal Branding',), ('Portal Identity',), ('Governing Authority',))
+
+```{autodoc2-docstring} fairdm.contrib.identity.admin.IdentityAdmin.fieldsets
+```
+
+````
+
+````{py:attribute} readonly_fields
+:canonical: fairdm.contrib.identity.admin.IdentityAdmin.readonly_fields
+:value: >
+   ('authority_link',)
+
+```{autodoc2-docstring} fairdm.contrib.identity.admin.IdentityAdmin.readonly_fields
+```
+
+````
+
+````{py:method} authority_link(obj)
+:canonical: fairdm.contrib.identity.admin.IdentityAdmin.authority_link
+
+```{autodoc2-docstring} fairdm.contrib.identity.admin.IdentityAdmin.authority_link
+```
+
+````
+
+````{py:method} has_add_permission(request)
+:canonical: fairdm.contrib.identity.admin.IdentityAdmin.has_add_permission
+
+```{autodoc2-docstring} fairdm.contrib.identity.admin.IdentityAdmin.has_add_permission
+```
+
+````
+
+````{py:method} has_delete_permission(request, obj=None)
+:canonical: fairdm.contrib.identity.admin.IdentityAdmin.has_delete_permission
+
+```{autodoc2-docstring} fairdm.contrib.identity.admin.IdentityAdmin.has_delete_permission
+```
+
+````
+
+`````
+
+`````{py:class} AuthorityAdmin()
+:canonical: fairdm.contrib.identity.admin.AuthorityAdmin
+
+Bases: {py:obj}`parler.admin.TranslatableAdmin`, {py:obj}`solo.admin.SingletonModelAdmin`
+
+```{autodoc2-docstring} fairdm.contrib.identity.admin.AuthorityAdmin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.identity.admin.AuthorityAdmin.__init__
+```
+
+````{py:attribute} fieldsets
+:canonical: fairdm.contrib.identity.admin.AuthorityAdmin.fieldsets
+:value: >
+   (('Authority Branding',), ('Authority Information',))
+
+```{autodoc2-docstring} fairdm.contrib.identity.admin.AuthorityAdmin.fieldsets
+```
+
+````
+
+````{py:method} has_add_permission(request)
+:canonical: fairdm.contrib.identity.admin.AuthorityAdmin.has_add_permission
+
+```{autodoc2-docstring} fairdm.contrib.identity.admin.AuthorityAdmin.has_add_permission
+```
+
+````
+
+````{py:method} has_delete_permission(request, obj=None)
+:canonical: fairdm.contrib.identity.admin.AuthorityAdmin.has_delete_permission
+
+```{autodoc2-docstring} fairdm.contrib.identity.admin.AuthorityAdmin.has_delete_permission
+```
+
+````
+
+`````

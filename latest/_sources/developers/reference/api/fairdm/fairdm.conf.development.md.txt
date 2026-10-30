@@ -1,0 +1,286 @@
+# {py:mod}`fairdm.conf.development`
+
+```{py:module} fairdm.conf.development
+```
+
+```{autodoc2-docstring} fairdm.conf.development
+:allowtitles:
+```
+
+## Module Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`env <fairdm.conf.development.env>`
+  - ```{autodoc2-docstring} fairdm.conf.development.env
+    :summary:
+    ```
+* - {py:obj}`INSTALLED_APPS <fairdm.conf.development.INSTALLED_APPS>`
+  - ```{autodoc2-docstring} fairdm.conf.development.INSTALLED_APPS
+    :summary:
+    ```
+* - {py:obj}`MIDDLEWARE <fairdm.conf.development.MIDDLEWARE>`
+  - ```{autodoc2-docstring} fairdm.conf.development.MIDDLEWARE
+    :summary:
+    ```
+* - {py:obj}`DEBUG <fairdm.conf.development.DEBUG>`
+  - ```{autodoc2-docstring} fairdm.conf.development.DEBUG
+    :summary:
+    ```
+* - {py:obj}`THUMBNAIL_DEBUG <fairdm.conf.development.THUMBNAIL_DEBUG>`
+  - ```{autodoc2-docstring} fairdm.conf.development.THUMBNAIL_DEBUG
+    :summary:
+    ```
+* - {py:obj}`SECRET_KEY <fairdm.conf.development.SECRET_KEY>`
+  - ```{autodoc2-docstring} fairdm.conf.development.SECRET_KEY
+    :summary:
+    ```
+* - {py:obj}`ALLOWED_HOSTS <fairdm.conf.development.ALLOWED_HOSTS>`
+  - ```{autodoc2-docstring} fairdm.conf.development.ALLOWED_HOSTS
+    :summary:
+    ```
+* - {py:obj}`EMAIL_BACKEND <fairdm.conf.development.EMAIL_BACKEND>`
+  - ```{autodoc2-docstring} fairdm.conf.development.EMAIL_BACKEND
+    :summary:
+    ```
+* - {py:obj}`ACCOUNT_EMAIL_VERIFICATION <fairdm.conf.development.ACCOUNT_EMAIL_VERIFICATION>`
+  - ```{autodoc2-docstring} fairdm.conf.development.ACCOUNT_EMAIL_VERIFICATION
+    :summary:
+    ```
+* - {py:obj}`CSRF_COOKIE_SECURE <fairdm.conf.development.CSRF_COOKIE_SECURE>`
+  - ```{autodoc2-docstring} fairdm.conf.development.CSRF_COOKIE_SECURE
+    :summary:
+    ```
+* - {py:obj}`SESSION_COOKIE_SECURE <fairdm.conf.development.SESSION_COOKIE_SECURE>`
+  - ```{autodoc2-docstring} fairdm.conf.development.SESSION_COOKIE_SECURE
+    :summary:
+    ```
+* - {py:obj}`CSRF_COOKIE_NAME <fairdm.conf.development.CSRF_COOKIE_NAME>`
+  - ```{autodoc2-docstring} fairdm.conf.development.CSRF_COOKIE_NAME
+    :summary:
+    ```
+* - {py:obj}`SESSION_COOKIE_NAME <fairdm.conf.development.SESSION_COOKIE_NAME>`
+  - ```{autodoc2-docstring} fairdm.conf.development.SESSION_COOKIE_NAME
+    :summary:
+    ```
+* - {py:obj}`SECURE_SSL_REDIRECT <fairdm.conf.development.SECURE_SSL_REDIRECT>`
+  - ```{autodoc2-docstring} fairdm.conf.development.SECURE_SSL_REDIRECT
+    :summary:
+    ```
+* - {py:obj}`SECURE_HSTS_SECONDS <fairdm.conf.development.SECURE_HSTS_SECONDS>`
+  - ```{autodoc2-docstring} fairdm.conf.development.SECURE_HSTS_SECONDS
+    :summary:
+    ```
+* - {py:obj}`SECURE_HSTS_INCLUDE_SUBDOMAINS <fairdm.conf.development.SECURE_HSTS_INCLUDE_SUBDOMAINS>`
+  - ```{autodoc2-docstring} fairdm.conf.development.SECURE_HSTS_INCLUDE_SUBDOMAINS
+    :summary:
+    ```
+* - {py:obj}`SECURE_HSTS_PRELOAD <fairdm.conf.development.SECURE_HSTS_PRELOAD>`
+  - ```{autodoc2-docstring} fairdm.conf.development.SECURE_HSTS_PRELOAD
+    :summary:
+    ```
+* - {py:obj}`STORAGES <fairdm.conf.development.STORAGES>`
+  - ```{autodoc2-docstring} fairdm.conf.development.STORAGES
+    :summary:
+    ```
+* - {py:obj}`LOGGING <fairdm.conf.development.LOGGING>`
+  - ```{autodoc2-docstring} fairdm.conf.development.LOGGING
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} env
+:canonical: fairdm.conf.development.env
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.development.env
+```
+
+````
+
+````{py:data} INSTALLED_APPS
+:canonical: fairdm.conf.development.INSTALLED_APPS
+:value: >
+   'get(...)'
+
+```{autodoc2-docstring} fairdm.conf.development.INSTALLED_APPS
+```
+
+````
+
+````{py:data} MIDDLEWARE
+:canonical: fairdm.conf.development.MIDDLEWARE
+:value: >
+   'get(...)'
+
+```{autodoc2-docstring} fairdm.conf.development.MIDDLEWARE
+```
+
+````
+
+````{py:data} DEBUG
+:canonical: fairdm.conf.development.DEBUG
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.development.DEBUG
+```
+
+````
+
+````{py:data} THUMBNAIL_DEBUG
+:canonical: fairdm.conf.development.THUMBNAIL_DEBUG
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.development.THUMBNAIL_DEBUG
+```
+
+````
+
+````{py:data} SECRET_KEY
+:canonical: fairdm.conf.development.SECRET_KEY
+:value: >
+   'env(...)'
+
+```{autodoc2-docstring} fairdm.conf.development.SECRET_KEY
+```
+
+````
+
+````{py:data} ALLOWED_HOSTS
+:canonical: fairdm.conf.development.ALLOWED_HOSTS
+:value: >
+   ['*']
+
+```{autodoc2-docstring} fairdm.conf.development.ALLOWED_HOSTS
+```
+
+````
+
+````{py:data} EMAIL_BACKEND
+:canonical: fairdm.conf.development.EMAIL_BACKEND
+:value: >
+   'django.core.mail.backends.console.EmailBackend'
+
+```{autodoc2-docstring} fairdm.conf.development.EMAIL_BACKEND
+```
+
+````
+
+````{py:data} ACCOUNT_EMAIL_VERIFICATION
+:canonical: fairdm.conf.development.ACCOUNT_EMAIL_VERIFICATION
+:value: >
+   'none'
+
+```{autodoc2-docstring} fairdm.conf.development.ACCOUNT_EMAIL_VERIFICATION
+```
+
+````
+
+````{py:data} CSRF_COOKIE_SECURE
+:canonical: fairdm.conf.development.CSRF_COOKIE_SECURE
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.conf.development.CSRF_COOKIE_SECURE
+```
+
+````
+
+````{py:data} SESSION_COOKIE_SECURE
+:canonical: fairdm.conf.development.SESSION_COOKIE_SECURE
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.conf.development.SESSION_COOKIE_SECURE
+```
+
+````
+
+````{py:data} CSRF_COOKIE_NAME
+:canonical: fairdm.conf.development.CSRF_COOKIE_NAME
+:value: >
+   'csrftoken'
+
+```{autodoc2-docstring} fairdm.conf.development.CSRF_COOKIE_NAME
+```
+
+````
+
+````{py:data} SESSION_COOKIE_NAME
+:canonical: fairdm.conf.development.SESSION_COOKIE_NAME
+:value: >
+   'sessionid'
+
+```{autodoc2-docstring} fairdm.conf.development.SESSION_COOKIE_NAME
+```
+
+````
+
+````{py:data} SECURE_SSL_REDIRECT
+:canonical: fairdm.conf.development.SECURE_SSL_REDIRECT
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.conf.development.SECURE_SSL_REDIRECT
+```
+
+````
+
+````{py:data} SECURE_HSTS_SECONDS
+:canonical: fairdm.conf.development.SECURE_HSTS_SECONDS
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.conf.development.SECURE_HSTS_SECONDS
+```
+
+````
+
+````{py:data} SECURE_HSTS_INCLUDE_SUBDOMAINS
+:canonical: fairdm.conf.development.SECURE_HSTS_INCLUDE_SUBDOMAINS
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.conf.development.SECURE_HSTS_INCLUDE_SUBDOMAINS
+```
+
+````
+
+````{py:data} SECURE_HSTS_PRELOAD
+:canonical: fairdm.conf.development.SECURE_HSTS_PRELOAD
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.conf.development.SECURE_HSTS_PRELOAD
+```
+
+````
+
+````{py:data} STORAGES
+:canonical: fairdm.conf.development.STORAGES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.development.STORAGES
+```
+
+````
+
+````{py:data} LOGGING
+:canonical: fairdm.conf.development.LOGGING
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.development.LOGGING
+```
+
+````

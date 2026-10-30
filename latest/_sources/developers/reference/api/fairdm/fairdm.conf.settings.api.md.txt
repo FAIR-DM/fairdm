@@ -1,0 +1,8 @@
+# {py:mod}`fairdm.conf.settings.api`
+
+```{py:module} fairdm.conf.settings.api
+```
+
+```{autodoc2-docstring} fairdm.conf.settings.api
+:allowtitles:
+```

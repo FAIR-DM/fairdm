@@ -1,0 +1,216 @@
+# {py:mod}`fairdm.views.base`
+
+```{py:module} fairdm.views.base
+```
+
+```{autodoc2-docstring} fairdm.views.base
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FairDMTemplateView <fairdm.views.base.FairDMTemplateView>`
+  - ```{autodoc2-docstring} fairdm.views.base.FairDMTemplateView
+    :summary:
+    ```
+* - {py:obj}`FairDMListView <fairdm.views.base.FairDMListView>`
+  - ```{autodoc2-docstring} fairdm.views.base.FairDMListView
+    :summary:
+    ```
+* - {py:obj}`FairDMDetailView <fairdm.views.base.FairDMDetailView>`
+  - ```{autodoc2-docstring} fairdm.views.base.FairDMDetailView
+    :summary:
+    ```
+* - {py:obj}`FairDMCreateView <fairdm.views.base.FairDMCreateView>`
+  - ```{autodoc2-docstring} fairdm.views.base.FairDMCreateView
+    :summary:
+    ```
+* - {py:obj}`FairDMUpdateView <fairdm.views.base.FairDMUpdateView>`
+  - ```{autodoc2-docstring} fairdm.views.base.FairDMUpdateView
+    :summary:
+    ```
+* - {py:obj}`FairDMDeleteView <fairdm.views.base.FairDMDeleteView>`
+  - ```{autodoc2-docstring} fairdm.views.base.FairDMDeleteView
+    :summary:
+    ```
+* - {py:obj}`FairDMTableView <fairdm.views.base.FairDMTableView>`
+  - ```{autodoc2-docstring} fairdm.views.base.FairDMTableView
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} FairDMTemplateView(**kwargs)
+:canonical: fairdm.views.base.FairDMTemplateView
+
+Bases: {py:obj}`meta.views.MetadataMixin`, {py:obj}`mvp.views.MVPTemplateView`
+
+```{autodoc2-docstring} fairdm.views.base.FairDMTemplateView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.views.base.FairDMTemplateView.__init__
+```
+
+````{py:attribute} template_name
+:canonical: fairdm.views.base.FairDMTemplateView.template_name
+:value: >
+   'page_view.html'
+
+```{autodoc2-docstring} fairdm.views.base.FairDMTemplateView.template_name
+```
+
+````
+
+`````
+
+`````{py:class} FairDMListView(**kwargs)
+:canonical: fairdm.views.base.FairDMListView
+
+Bases: {py:obj}`meta.views.MetadataMixin`, {py:obj}`mvp.views.MVPListView`
+
+```{autodoc2-docstring} fairdm.views.base.FairDMListView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.views.base.FairDMListView.__init__
+```
+
+````{py:attribute} paginate_by
+:canonical: fairdm.views.base.FairDMListView.paginate_by
+:value: >
+   25
+
+```{autodoc2-docstring} fairdm.views.base.FairDMListView.paginate_by
+```
+
+````
+
+````{py:attribute} grid
+:canonical: fairdm.views.base.FairDMListView.grid
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.views.base.FairDMListView.grid
+```
+
+````
+
+`````
+
+````{py:class} FairDMDetailView(**kwargs)
+:canonical: fairdm.views.base.FairDMDetailView
+
+Bases: {py:obj}`meta.views.MetadataMixin`, {py:obj}`mvp.views.MVPDetailView`
+
+```{autodoc2-docstring} fairdm.views.base.FairDMDetailView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.views.base.FairDMDetailView.__init__
+```
+
+````
+
+````{py:class} FairDMCreateView(**kwargs)
+:canonical: fairdm.views.base.FairDMCreateView
+
+Bases: {py:obj}`meta.views.MetadataMixin`, {py:obj}`mvp.views.MVPCreateView`
+
+```{autodoc2-docstring} fairdm.views.base.FairDMCreateView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.views.base.FairDMCreateView.__init__
+```
+
+````
+
+````{py:class} FairDMUpdateView(**kwargs)
+:canonical: fairdm.views.base.FairDMUpdateView
+
+Bases: {py:obj}`meta.views.MetadataMixin`, {py:obj}`mvp.views.MVPUpdateView`
+
+```{autodoc2-docstring} fairdm.views.base.FairDMUpdateView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.views.base.FairDMUpdateView.__init__
+```
+
+````
+
+`````{py:class} FairDMDeleteView(**kwargs)
+:canonical: fairdm.views.base.FairDMDeleteView
+
+Bases: {py:obj}`meta.views.MetadataMixin`, {py:obj}`mvp.views.MVPDeleteView`
+
+```{autodoc2-docstring} fairdm.views.base.FairDMDeleteView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.views.base.FairDMDeleteView.__init__
+```
+
+````{py:method} get_back_url() -> str
+:canonical: fairdm.views.base.FairDMDeleteView.get_back_url
+
+```{autodoc2-docstring} fairdm.views.base.FairDMDeleteView.get_back_url
+```
+
+````
+
+````{py:method} get_back_url_fallback() -> str
+:canonical: fairdm.views.base.FairDMDeleteView.get_back_url_fallback
+
+```{autodoc2-docstring} fairdm.views.base.FairDMDeleteView.get_back_url_fallback
+```
+
+````
+
+`````
+
+`````{py:class} FairDMTableView(**kwargs)
+:canonical: fairdm.views.base.FairDMTableView
+
+Bases: {py:obj}`meta.views.MetadataMixin`, {py:obj}`mvp.integrations.django_tables.views.MVPTableView`
+
+```{autodoc2-docstring} fairdm.views.base.FairDMTableView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.views.base.FairDMTableView.__init__
+```
+
+````{py:attribute} paginate_by
+:canonical: fairdm.views.base.FairDMTableView.paginate_by
+:value: >
+   100
+
+```{autodoc2-docstring} fairdm.views.base.FairDMTableView.paginate_by
+```
+
+````
+
+`````

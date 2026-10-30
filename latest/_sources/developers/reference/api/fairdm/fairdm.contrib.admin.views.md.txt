@@ -1,0 +1,126 @@
+# {py:mod}`fairdm.contrib.admin.views`
+
+```{py:module} fairdm.contrib.admin.views
+```
+
+```{autodoc2-docstring} fairdm.contrib.admin.views
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FixtureUploadForm <fairdm.contrib.admin.views.FixtureUploadForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.admin.views.FixtureUploadForm
+    :summary:
+    ```
+* - {py:obj}`FixtureUploadView <fairdm.contrib.admin.views.FixtureUploadView>`
+  - ```{autodoc2-docstring} fairdm.contrib.admin.views.FixtureUploadView
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`superuser_required <fairdm.contrib.admin.views.superuser_required>`
+  - ```{autodoc2-docstring} fairdm.contrib.admin.views.superuser_required
+    :summary:
+    ```
+* - {py:obj}`get_full_extension <fairdm.contrib.admin.views.get_full_extension>`
+  - ```{autodoc2-docstring} fairdm.contrib.admin.views.get_full_extension
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} superuser_required(view_func)
+:canonical: fairdm.contrib.admin.views.superuser_required
+
+```{autodoc2-docstring} fairdm.contrib.admin.views.superuser_required
+```
+````
+
+`````{py:class} FixtureUploadForm(data=None, files=None, auto_id='id_%s', prefix=None, initial=None, error_class=ErrorList, label_suffix=None, empty_permitted=False, field_order=None, use_required_attribute=None, renderer=None, bound_field_class=None)
+:canonical: fairdm.contrib.admin.views.FixtureUploadForm
+
+Bases: {py:obj}`django.forms.Form`
+
+```{autodoc2-docstring} fairdm.contrib.admin.views.FixtureUploadForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.admin.views.FixtureUploadForm.__init__
+```
+
+````{py:attribute} fixture_file
+:canonical: fairdm.contrib.admin.views.FixtureUploadForm.fixture_file
+:value: >
+   'FileField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.admin.views.FixtureUploadForm.fixture_file
+```
+
+````
+
+`````
+
+````{py:function} get_full_extension(filename)
+:canonical: fairdm.contrib.admin.views.get_full_extension
+
+```{autodoc2-docstring} fairdm.contrib.admin.views.get_full_extension
+```
+````
+
+`````{py:class} FixtureUploadView(**kwargs)
+:canonical: fairdm.contrib.admin.views.FixtureUploadView
+
+Bases: {py:obj}`django.views.View`
+
+```{autodoc2-docstring} fairdm.contrib.admin.views.FixtureUploadView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.admin.views.FixtureUploadView.__init__
+```
+
+````{py:attribute} template_name
+:canonical: fairdm.contrib.admin.views.FixtureUploadView.template_name
+:value: >
+   'admin/fixture_upload_form.html'
+
+```{autodoc2-docstring} fairdm.contrib.admin.views.FixtureUploadView.template_name
+```
+
+````
+
+````{py:method} get(request)
+:canonical: fairdm.contrib.admin.views.FixtureUploadView.get
+
+```{autodoc2-docstring} fairdm.contrib.admin.views.FixtureUploadView.get
+```
+
+````
+
+````{py:method} post(request)
+:canonical: fairdm.contrib.admin.views.FixtureUploadView.post
+
+```{autodoc2-docstring} fairdm.contrib.admin.views.FixtureUploadView.post
+```
+
+````
+
+`````

@@ -1,0 +1,70 @@
+# {py:mod}`fairdm.api.permissions`
+
+```{py:module} fairdm.api.permissions
+```
+
+```{autodoc2-docstring} fairdm.api.permissions
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FairDMObjectPermissions <fairdm.api.permissions.FairDMObjectPermissions>`
+  - ```{autodoc2-docstring} fairdm.api.permissions.FairDMObjectPermissions
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} FairDMObjectPermissions
+:canonical: fairdm.api.permissions.FairDMObjectPermissions
+
+Bases: {py:obj}`rest_framework.permissions.DjangoObjectPermissions`
+
+```{autodoc2-docstring} fairdm.api.permissions.FairDMObjectPermissions
+```
+
+````{py:attribute} perms_map
+:canonical: fairdm.api.permissions.FairDMObjectPermissions.perms_map
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.permissions.FairDMObjectPermissions.perms_map
+```
+
+````
+
+````{py:attribute} authenticated_users_only
+:canonical: fairdm.api.permissions.FairDMObjectPermissions.authenticated_users_only
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.api.permissions.FairDMObjectPermissions.authenticated_users_only
+```
+
+````
+
+````{py:method} has_permission(request: rest_framework.request.Request, view: rest_framework.views.APIView) -> bool
+:canonical: fairdm.api.permissions.FairDMObjectPermissions.has_permission
+
+```{autodoc2-docstring} fairdm.api.permissions.FairDMObjectPermissions.has_permission
+```
+
+````
+
+````{py:method} has_object_permission(request: rest_framework.request.Request, view: rest_framework.views.APIView, obj) -> bool
+:canonical: fairdm.api.permissions.FairDMObjectPermissions.has_object_permission
+
+```{autodoc2-docstring} fairdm.api.permissions.FairDMObjectPermissions.has_object_permission
+```
+
+````
+
+`````

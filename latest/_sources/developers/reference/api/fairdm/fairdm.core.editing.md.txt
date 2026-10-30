@@ -1,0 +1,949 @@
+# {py:mod}`fairdm.core.editing`
+
+```{py:module} fairdm.core.editing
+```
+
+```{autodoc2-docstring} fairdm.core.editing
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`RecordEditingPage <fairdm.core.editing.RecordEditingPage>`
+  - ```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage
+    :summary:
+    ```
+* - {py:obj}`EditDetails <fairdm.core.editing.EditDetails>`
+  - ```{autodoc2-docstring} fairdm.core.editing.EditDetails
+    :summary:
+    ```
+* - {py:obj}`EditDescriptions <fairdm.core.editing.EditDescriptions>`
+  - ```{autodoc2-docstring} fairdm.core.editing.EditDescriptions
+    :summary:
+    ```
+* - {py:obj}`EditKeywords <fairdm.core.editing.EditKeywords>`
+  - ```{autodoc2-docstring} fairdm.core.editing.EditKeywords
+    :summary:
+    ```
+* - {py:obj}`EditKeyDates <fairdm.core.editing.EditKeyDates>`
+  - ```{autodoc2-docstring} fairdm.core.editing.EditKeyDates
+    :summary:
+    ```
+* - {py:obj}`EditIdentifiers <fairdm.core.editing.EditIdentifiers>`
+  - ```{autodoc2-docstring} fairdm.core.editing.EditIdentifiers
+    :summary:
+    ```
+* - {py:obj}`DeleteRecord <fairdm.core.editing.DeleteRecord>`
+  - ```{autodoc2-docstring} fairdm.core.editing.DeleteRecord
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`manage_menu <fairdm.core.editing.manage_menu>`
+  - ```{autodoc2-docstring} fairdm.core.editing.manage_menu
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`MENU_PAGES <fairdm.core.editing.MENU_PAGES>`
+  - ```{autodoc2-docstring} fairdm.core.editing.MENU_PAGES
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} RecordEditingPage(**kwargs)
+:canonical: fairdm.core.editing.RecordEditingPage
+
+Bases: {py:obj}`fairdm.contrib.plugins.Plugin`
+
+```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage.__init__
+```
+
+````{py:attribute} OPEN
+:canonical: fairdm.core.editing.RecordEditingPage.OPEN
+:type: typing.ClassVar[str]
+:value: >
+   'open'
+
+```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage.OPEN
+```
+
+````
+
+````{py:attribute} MISSING
+:canonical: fairdm.core.editing.RecordEditingPage.MISSING
+:type: typing.ClassVar[str]
+:value: >
+   'missing'
+
+```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage.MISSING
+```
+
+````
+
+````{py:attribute} REFUSED
+:canonical: fairdm.core.editing.RecordEditingPage.REFUSED
+:type: typing.ClassVar[str]
+:value: >
+   'refused'
+
+```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage.REFUSED
+```
+
+````
+
+````{py:attribute} PERMISSIONS
+:canonical: fairdm.core.editing.RecordEditingPage.PERMISSIONS
+:type: typing.ClassVar[dict[str, dict[type, str]]]
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage.PERMISSIONS
+```
+
+````
+
+````{py:attribute} access
+:canonical: fairdm.core.editing.RecordEditingPage.access
+:type: typing.ClassVar[str]
+:value: >
+   'change'
+
+```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage.access
+```
+
+````
+
+````{py:attribute} menu_label
+:canonical: fairdm.core.editing.RecordEditingPage.menu_label
+:type: typing.ClassVar[str | django.utils.functional.Promise]
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage.menu_label
+```
+
+````
+
+````{py:attribute} menu_icon
+:canonical: fairdm.core.editing.RecordEditingPage.menu_icon
+:type: typing.ClassVar[str]
+:value: >
+   'edit'
+
+```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage.menu_icon
+```
+
+````
+
+````{py:method} permission_for(record)
+:canonical: fairdm.core.editing.RecordEditingPage.permission_for
+:classmethod:
+
+```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage.permission_for
+```
+
+````
+
+````{py:method} overview_for(record)
+:canonical: fairdm.core.editing.RecordEditingPage.overview_for
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage.overview_for
+```
+
+````
+
+````{py:method} verdict(request, record, may_see=None)
+:canonical: fairdm.core.editing.RecordEditingPage.verdict
+:classmethod:
+
+```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage.verdict
+```
+
+````
+
+````{py:method} may_be_used_by(request, record, may_see=None)
+:canonical: fairdm.core.editing.RecordEditingPage.may_be_used_by
+:classmethod:
+
+```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage.may_be_used_by
+```
+
+````
+
+````{py:method} dispatch(request, *args, **kwargs)
+:canonical: fairdm.core.editing.RecordEditingPage.dispatch
+
+```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage.dispatch
+```
+
+````
+
+````{py:method} has_permission()
+:canonical: fairdm.core.editing.RecordEditingPage.has_permission
+
+```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage.has_permission
+```
+
+````
+
+````{py:method} get_object(queryset=None)
+:canonical: fairdm.core.editing.RecordEditingPage.get_object
+
+```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage.get_object
+```
+
+````
+
+````{py:method} name_of(record)
+:canonical: fairdm.core.editing.RecordEditingPage.name_of
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage.name_of
+```
+
+````
+
+````{py:property} record_name
+:canonical: fairdm.core.editing.RecordEditingPage.record_name
+
+```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage.record_name
+```
+
+````
+
+````{py:method} without_form_tag(form)
+:canonical: fairdm.core.editing.RecordEditingPage.without_form_tag
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage.without_form_tag
+```
+
+````
+
+````{py:method} get_success_message(cleaned_data)
+:canonical: fairdm.core.editing.RecordEditingPage.get_success_message
+
+```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage.get_success_message
+```
+
+````
+
+````{py:method} get_success_url()
+:canonical: fairdm.core.editing.RecordEditingPage.get_success_url
+
+```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage.get_success_url
+```
+
+````
+
+`````
+
+`````{py:class} EditDetails(**kwargs)
+:canonical: fairdm.core.editing.EditDetails
+
+Bases: {py:obj}`fairdm.core.editing.RecordEditingPage`, {py:obj}`fairdm.views.FairDMUpdateView`
+
+```{autodoc2-docstring} fairdm.core.editing.EditDetails
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.editing.EditDetails.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.core.editing.EditDetails.name
+:value: >
+   'edit'
+
+```{autodoc2-docstring} fairdm.core.editing.EditDetails.name
+```
+
+````
+
+````{py:attribute} access
+:canonical: fairdm.core.editing.EditDetails.access
+:value: >
+   'change'
+
+```{autodoc2-docstring} fairdm.core.editing.EditDetails.access
+```
+
+````
+
+````{py:attribute} menu_label
+:canonical: fairdm.core.editing.EditDetails.menu_label
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.editing.EditDetails.menu_label
+```
+
+````
+
+````{py:attribute} menu_icon
+:canonical: fairdm.core.editing.EditDetails.menu_icon
+:value: >
+   'edit'
+
+```{autodoc2-docstring} fairdm.core.editing.EditDetails.menu_icon
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.core.editing.EditDetails.page_title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.editing.EditDetails.page_title
+```
+
+````
+
+````{py:method} get_form_class()
+:canonical: fairdm.core.editing.EditDetails.get_form_class
+
+```{autodoc2-docstring} fairdm.core.editing.EditDetails.get_form_class
+```
+
+````
+
+````{py:method} get_form_kwargs()
+:canonical: fairdm.core.editing.EditDetails.get_form_kwargs
+
+```{autodoc2-docstring} fairdm.core.editing.EditDetails.get_form_kwargs
+```
+
+````
+
+````{py:method} get_form(form_class=None)
+:canonical: fairdm.core.editing.EditDetails.get_form
+
+```{autodoc2-docstring} fairdm.core.editing.EditDetails.get_form
+```
+
+````
+
+`````
+
+`````{py:class} EditDescriptions(**kwargs)
+:canonical: fairdm.core.editing.EditDescriptions
+
+Bases: {py:obj}`fairdm.core.editing.RecordEditingPage`, {py:obj}`meta.views.MetadataMixin`, {py:obj}`mvp.views.MVPFormView`
+
+```{autodoc2-docstring} fairdm.core.editing.EditDescriptions
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.editing.EditDescriptions.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.core.editing.EditDescriptions.name
+:value: >
+   'descriptions'
+
+```{autodoc2-docstring} fairdm.core.editing.EditDescriptions.name
+```
+
+````
+
+````{py:attribute} access
+:canonical: fairdm.core.editing.EditDescriptions.access
+:value: >
+   'change'
+
+```{autodoc2-docstring} fairdm.core.editing.EditDescriptions.access
+```
+
+````
+
+````{py:attribute} menu_label
+:canonical: fairdm.core.editing.EditDescriptions.menu_label
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.editing.EditDescriptions.menu_label
+```
+
+````
+
+````{py:attribute} menu_icon
+:canonical: fairdm.core.editing.EditDescriptions.menu_icon
+:value: >
+   'description'
+
+```{autodoc2-docstring} fairdm.core.editing.EditDescriptions.menu_icon
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.core.editing.EditDescriptions.page_title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.editing.EditDescriptions.page_title
+```
+
+````
+
+````{py:attribute} form_class
+:canonical: fairdm.core.editing.EditDescriptions.form_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.editing.EditDescriptions.form_class
+```
+
+````
+
+````{py:attribute} template_name
+:canonical: fairdm.core.editing.EditDescriptions.template_name
+:value: >
+   'form_view.html'
+
+```{autodoc2-docstring} fairdm.core.editing.EditDescriptions.template_name
+```
+
+````
+
+````{py:attribute} DESCRIPTIONS
+:canonical: fairdm.core.editing.EditDescriptions.DESCRIPTIONS
+:type: typing.ClassVar[dict[type, type]]
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.editing.EditDescriptions.DESCRIPTIONS
+```
+
+````
+
+````{py:method} get_form_kwargs()
+:canonical: fairdm.core.editing.EditDescriptions.get_form_kwargs
+
+```{autodoc2-docstring} fairdm.core.editing.EditDescriptions.get_form_kwargs
+```
+
+````
+
+````{py:method} form_valid(form)
+:canonical: fairdm.core.editing.EditDescriptions.form_valid
+
+```{autodoc2-docstring} fairdm.core.editing.EditDescriptions.form_valid
+```
+
+````
+
+`````
+
+`````{py:class} EditKeywords(**kwargs)
+:canonical: fairdm.core.editing.EditKeywords
+
+Bases: {py:obj}`fairdm.core.editing.RecordEditingPage`, {py:obj}`fairdm.views.FairDMUpdateView`
+
+```{autodoc2-docstring} fairdm.core.editing.EditKeywords
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.editing.EditKeywords.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.core.editing.EditKeywords.name
+:value: >
+   'keywords'
+
+```{autodoc2-docstring} fairdm.core.editing.EditKeywords.name
+```
+
+````
+
+````{py:attribute} access
+:canonical: fairdm.core.editing.EditKeywords.access
+:value: >
+   'change'
+
+```{autodoc2-docstring} fairdm.core.editing.EditKeywords.access
+```
+
+````
+
+````{py:attribute} menu_label
+:canonical: fairdm.core.editing.EditKeywords.menu_label
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.editing.EditKeywords.menu_label
+```
+
+````
+
+````{py:attribute} menu_icon
+:canonical: fairdm.core.editing.EditKeywords.menu_icon
+:value: >
+   'keywords'
+
+```{autodoc2-docstring} fairdm.core.editing.EditKeywords.menu_icon
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.core.editing.EditKeywords.page_title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.editing.EditKeywords.page_title
+```
+
+````
+
+````{py:attribute} form_class
+:canonical: fairdm.core.editing.EditKeywords.form_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.editing.EditKeywords.form_class
+```
+
+````
+
+````{py:method} get_form(form_class=None)
+:canonical: fairdm.core.editing.EditKeywords.get_form
+
+```{autodoc2-docstring} fairdm.core.editing.EditKeywords.get_form
+```
+
+````
+
+`````
+
+`````{py:class} EditKeyDates(**kwargs)
+:canonical: fairdm.core.editing.EditKeyDates
+
+Bases: {py:obj}`fairdm.core.editing.RecordEditingPage`, {py:obj}`fairdm.views.FairDMUpdateView`
+
+```{autodoc2-docstring} fairdm.core.editing.EditKeyDates
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.editing.EditKeyDates.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.core.editing.EditKeyDates.name
+:value: >
+   'key-dates'
+
+```{autodoc2-docstring} fairdm.core.editing.EditKeyDates.name
+```
+
+````
+
+````{py:attribute} access
+:canonical: fairdm.core.editing.EditKeyDates.access
+:value: >
+   'change'
+
+```{autodoc2-docstring} fairdm.core.editing.EditKeyDates.access
+```
+
+````
+
+````{py:attribute} menu_label
+:canonical: fairdm.core.editing.EditKeyDates.menu_label
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.editing.EditKeyDates.menu_label
+```
+
+````
+
+````{py:attribute} menu_icon
+:canonical: fairdm.core.editing.EditKeyDates.menu_icon
+:value: >
+   'date'
+
+```{autodoc2-docstring} fairdm.core.editing.EditKeyDates.menu_icon
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.core.editing.EditKeyDates.page_title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.editing.EditKeyDates.page_title
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.core.editing.EditKeyDates.fields
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.core.editing.EditKeyDates.fields
+```
+
+````
+
+````{py:attribute} template_name
+:canonical: fairdm.core.editing.EditKeyDates.template_name
+:value: >
+   'editing/rows.html'
+
+```{autodoc2-docstring} fairdm.core.editing.EditKeyDates.template_name
+```
+
+````
+
+````{py:attribute} INLINES
+:canonical: fairdm.core.editing.EditKeyDates.INLINES
+:type: typing.ClassVar[dict[type, list]]
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.editing.EditKeyDates.INLINES
+```
+
+````
+
+````{py:method} get_inlines()
+:canonical: fairdm.core.editing.EditKeyDates.get_inlines
+
+```{autodoc2-docstring} fairdm.core.editing.EditKeyDates.get_inlines
+```
+
+````
+
+`````
+
+`````{py:class} EditIdentifiers(**kwargs)
+:canonical: fairdm.core.editing.EditIdentifiers
+
+Bases: {py:obj}`fairdm.core.editing.RecordEditingPage`, {py:obj}`fairdm.views.FairDMUpdateView`
+
+```{autodoc2-docstring} fairdm.core.editing.EditIdentifiers
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.editing.EditIdentifiers.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.core.editing.EditIdentifiers.name
+:value: >
+   'identifiers'
+
+```{autodoc2-docstring} fairdm.core.editing.EditIdentifiers.name
+```
+
+````
+
+````{py:attribute} access
+:canonical: fairdm.core.editing.EditIdentifiers.access
+:value: >
+   'change'
+
+```{autodoc2-docstring} fairdm.core.editing.EditIdentifiers.access
+```
+
+````
+
+````{py:attribute} menu_label
+:canonical: fairdm.core.editing.EditIdentifiers.menu_label
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.editing.EditIdentifiers.menu_label
+```
+
+````
+
+````{py:attribute} menu_icon
+:canonical: fairdm.core.editing.EditIdentifiers.menu_icon
+:value: >
+   'identifier'
+
+```{autodoc2-docstring} fairdm.core.editing.EditIdentifiers.menu_icon
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.core.editing.EditIdentifiers.page_title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.editing.EditIdentifiers.page_title
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.core.editing.EditIdentifiers.fields
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.core.editing.EditIdentifiers.fields
+```
+
+````
+
+````{py:attribute} template_name
+:canonical: fairdm.core.editing.EditIdentifiers.template_name
+:value: >
+   'editing/rows.html'
+
+```{autodoc2-docstring} fairdm.core.editing.EditIdentifiers.template_name
+```
+
+````
+
+````{py:attribute} INLINES
+:canonical: fairdm.core.editing.EditIdentifiers.INLINES
+:type: typing.ClassVar[dict[type, list]]
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.editing.EditIdentifiers.INLINES
+```
+
+````
+
+````{py:method} get_inlines()
+:canonical: fairdm.core.editing.EditIdentifiers.get_inlines
+
+```{autodoc2-docstring} fairdm.core.editing.EditIdentifiers.get_inlines
+```
+
+````
+
+`````
+
+`````{py:class} DeleteRecord(**kwargs)
+:canonical: fairdm.core.editing.DeleteRecord
+
+Bases: {py:obj}`fairdm.core.editing.RecordEditingPage`, {py:obj}`fairdm.contrib.plugins.mixins.RecordOwnPageBackFallbackMixin`, {py:obj}`fairdm.views.FairDMDeleteView`
+
+```{autodoc2-docstring} fairdm.core.editing.DeleteRecord
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.editing.DeleteRecord.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.core.editing.DeleteRecord.name
+:value: >
+   'delete'
+
+```{autodoc2-docstring} fairdm.core.editing.DeleteRecord.name
+```
+
+````
+
+````{py:attribute} access
+:canonical: fairdm.core.editing.DeleteRecord.access
+:value: >
+   'delete'
+
+```{autodoc2-docstring} fairdm.core.editing.DeleteRecord.access
+```
+
+````
+
+````{py:attribute} menu_label
+:canonical: fairdm.core.editing.DeleteRecord.menu_label
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.editing.DeleteRecord.menu_label
+```
+
+````
+
+````{py:attribute} menu_icon
+:canonical: fairdm.core.editing.DeleteRecord.menu_icon
+:value: >
+   'delete'
+
+```{autodoc2-docstring} fairdm.core.editing.DeleteRecord.menu_icon
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.core.editing.DeleteRecord.page_title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.editing.DeleteRecord.page_title
+```
+
+````
+
+````{py:attribute} template_name
+:canonical: fairdm.core.editing.DeleteRecord.template_name
+:value: >
+   'editing/delete_record.html'
+
+```{autodoc2-docstring} fairdm.core.editing.DeleteRecord.template_name
+```
+
+````
+
+````{py:attribute} require_confirmation
+:canonical: fairdm.core.editing.DeleteRecord.require_confirmation
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.core.editing.DeleteRecord.require_confirmation
+```
+
+````
+
+````{py:attribute} show_related_objects
+:canonical: fairdm.core.editing.DeleteRecord.show_related_objects
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.core.editing.DeleteRecord.show_related_objects
+```
+
+````
+
+````{py:method} get_confirmation_value()
+:canonical: fairdm.core.editing.DeleteRecord.get_confirmation_value
+
+```{autodoc2-docstring} fairdm.core.editing.DeleteRecord.get_confirmation_value
+```
+
+````
+
+````{py:method} drop_unlisted(related)
+:canonical: fairdm.core.editing.DeleteRecord.drop_unlisted
+
+```{autodoc2-docstring} fairdm.core.editing.DeleteRecord.drop_unlisted
+```
+
+````
+
+````{py:method} get_success_message(cleaned_data)
+:canonical: fairdm.core.editing.DeleteRecord.get_success_message
+
+```{autodoc2-docstring} fairdm.core.editing.DeleteRecord.get_success_message
+```
+
+````
+
+````{py:method} get_success_url()
+:canonical: fairdm.core.editing.DeleteRecord.get_success_url
+
+```{autodoc2-docstring} fairdm.core.editing.DeleteRecord.get_success_url
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.core.editing.DeleteRecord.get_context_data
+
+```{autodoc2-docstring} fairdm.core.editing.DeleteRecord.get_context_data
+```
+
+````
+
+````{py:method} protected_kind(protected)
+:canonical: fairdm.core.editing.DeleteRecord.protected_kind
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.core.editing.DeleteRecord.protected_kind
+```
+
+````
+
+````{py:method} split_protected(protected)
+:canonical: fairdm.core.editing.DeleteRecord.split_protected
+
+```{autodoc2-docstring} fairdm.core.editing.DeleteRecord.split_protected
+```
+
+````
+
+````{py:method} related_objects_summary()
+:canonical: fairdm.core.editing.DeleteRecord.related_objects_summary
+
+```{autodoc2-docstring} fairdm.core.editing.DeleteRecord.related_objects_summary
+```
+
+````
+
+````{py:method} form_valid(form)
+:canonical: fairdm.core.editing.DeleteRecord.form_valid
+
+```{autodoc2-docstring} fairdm.core.editing.DeleteRecord.form_valid
+```
+
+````
+
+`````
+
+````{py:data} MENU_PAGES
+:canonical: fairdm.core.editing.MENU_PAGES
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.core.editing.MENU_PAGES
+```
+
+````
+
+````{py:function} manage_menu(request, record)
+:canonical: fairdm.core.editing.manage_menu
+
+```{autodoc2-docstring} fairdm.core.editing.manage_menu
+```
+````

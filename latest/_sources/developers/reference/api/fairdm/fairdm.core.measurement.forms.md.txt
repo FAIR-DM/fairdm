@@ -1,0 +1,136 @@
+# {py:mod}`fairdm.core.measurement.forms`
+
+```{py:module} fairdm.core.measurement.forms
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.forms
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`MeasurementFormMixin <fairdm.core.measurement.forms.MeasurementFormMixin>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.forms.MeasurementFormMixin
+    :summary:
+    ```
+* - {py:obj}`MeasurementForm <fairdm.core.measurement.forms.MeasurementForm>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.forms.MeasurementForm
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} MeasurementFormMixin(*args, **kwargs)
+:canonical: fairdm.core.measurement.forms.MeasurementFormMixin
+
+Bases: {py:obj}`fairdm.utils.location.forms.LocationFormMixin`, {py:obj}`fairdm.core.forms.ManagerOnlyFieldsMixin`
+
+```{autodoc2-docstring} fairdm.core.measurement.forms.MeasurementFormMixin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.forms.MeasurementFormMixin.__init__
+```
+
+````{py:attribute} manager_only_fields
+:canonical: fairdm.core.measurement.forms.MeasurementFormMixin.manager_only_fields
+:value: >
+   ('dataset',)
+
+```{autodoc2-docstring} fairdm.core.measurement.forms.MeasurementFormMixin.manager_only_fields
+```
+
+````
+
+`````
+
+``````{py:class} MeasurementForm(*args, **kwargs)
+:canonical: fairdm.core.measurement.forms.MeasurementForm
+
+Bases: {py:obj}`fairdm.core.measurement.forms.MeasurementFormMixin`, {py:obj}`django.forms.ModelForm`
+
+```{autodoc2-docstring} fairdm.core.measurement.forms.MeasurementForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.forms.MeasurementForm.__init__
+```
+
+````{py:attribute} image
+:canonical: fairdm.core.measurement.forms.MeasurementForm.image
+:value: >
+   'ImageField(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.forms.MeasurementForm.image
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.measurement.forms.MeasurementForm.Meta
+
+```{autodoc2-docstring} fairdm.core.measurement.forms.MeasurementForm.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.measurement.forms.MeasurementForm.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.forms.MeasurementForm.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.core.measurement.forms.MeasurementForm.Meta.fields
+:value: >
+   ['name', 'dataset', 'sample', 'image', 'tags']
+
+```{autodoc2-docstring} fairdm.core.measurement.forms.MeasurementForm.Meta.fields
+```
+
+````
+
+````{py:attribute} widgets
+:canonical: fairdm.core.measurement.forms.MeasurementForm.Meta.widgets
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.forms.MeasurementForm.Meta.widgets
+```
+
+````
+
+````{py:attribute} help_texts
+:canonical: fairdm.core.measurement.forms.MeasurementForm.Meta.help_texts
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.forms.MeasurementForm.Meta.help_texts
+```
+
+````
+
+`````
+
+````{py:method} clean()
+:canonical: fairdm.core.measurement.forms.MeasurementForm.clean
+
+```{autodoc2-docstring} fairdm.core.measurement.forms.MeasurementForm.clean
+```
+
+````
+
+``````

@@ -1,0 +1,31 @@
+# {py:mod}`fairdm.contrib.contributors.services.matching`
+
+```{py:module} fairdm.contrib.contributors.services.matching
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.matching
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`find_duplicate_candidates <fairdm.contrib.contributors.services.matching.find_duplicate_candidates>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.services.matching.find_duplicate_candidates
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} find_duplicate_candidates(person: fairdm.contrib.contributors.models.Person, threshold: float = 0.85) -> list[dict]
+:canonical: fairdm.contrib.contributors.services.matching.find_duplicate_candidates
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.matching.find_duplicate_candidates
+```
+````

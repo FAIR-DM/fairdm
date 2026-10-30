@@ -1,0 +1,116 @@
+# {py:mod}`fairdm.core.apps`
+
+```{py:module} fairdm.core.apps
+```
+
+```{autodoc2-docstring} fairdm.core.apps
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FairDMCoreConfig <fairdm.core.apps.FairDMCoreConfig>`
+  - ```{autodoc2-docstring} fairdm.core.apps.FairDMCoreConfig
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} FairDMCoreConfig(app_name, app_module)
+:canonical: fairdm.core.apps.FairDMCoreConfig
+
+Bases: {py:obj}`django.apps.AppConfig`
+
+```{autodoc2-docstring} fairdm.core.apps.FairDMCoreConfig
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.apps.FairDMCoreConfig.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.core.apps.FairDMCoreConfig.name
+:value: >
+   'fairdm.core'
+
+```{autodoc2-docstring} fairdm.core.apps.FairDMCoreConfig.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.core.apps.FairDMCoreConfig.label
+:value: >
+   'fairdm_core'
+
+```{autodoc2-docstring} fairdm.core.apps.FairDMCoreConfig.label
+```
+
+````
+
+````{py:attribute} verbose_name
+:canonical: fairdm.core.apps.FairDMCoreConfig.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.apps.FairDMCoreConfig.verbose_name
+```
+
+````
+
+````{py:attribute} authority
+:canonical: fairdm.core.apps.FairDMCoreConfig.authority
+:value: >
+   'Authority(...)'
+
+```{autodoc2-docstring} fairdm.core.apps.FairDMCoreConfig.authority
+```
+
+````
+
+````{py:attribute} citation
+:canonical: fairdm.core.apps.FairDMCoreConfig.citation
+:value: >
+   'Citation(...)'
+
+```{autodoc2-docstring} fairdm.core.apps.FairDMCoreConfig.citation
+```
+
+````
+
+````{py:attribute} repository_url
+:canonical: fairdm.core.apps.FairDMCoreConfig.repository_url
+:value: >
+   'https://github.com/FAIR-DM/fairdm'
+
+```{autodoc2-docstring} fairdm.core.apps.FairDMCoreConfig.repository_url
+```
+
+````
+
+````{py:method} register_core_models()
+:canonical: fairdm.core.apps.FairDMCoreConfig.register_core_models
+
+```{autodoc2-docstring} fairdm.core.apps.FairDMCoreConfig.register_core_models
+```
+
+````
+
+````{py:method} register_sample_children()
+:canonical: fairdm.core.apps.FairDMCoreConfig.register_sample_children
+
+```{autodoc2-docstring} fairdm.core.apps.FairDMCoreConfig.register_sample_children
+```
+
+````
+
+`````

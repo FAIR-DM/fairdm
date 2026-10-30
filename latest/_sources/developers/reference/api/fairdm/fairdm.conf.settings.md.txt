@@ -1,0 +1,27 @@
+# {py:mod}`fairdm.conf.settings`
+
+```{py:module} fairdm.conf.settings
+```
+
+```{autodoc2-docstring} fairdm.conf.settings
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.conf.settings.static_media
+fairdm.conf.settings.email
+fairdm.conf.settings.database
+fairdm.conf.settings.cache
+fairdm.conf.settings.apps
+fairdm.conf.settings.logging
+fairdm.conf.settings.auth
+fairdm.conf.settings.celery
+fairdm.conf.settings.api
+fairdm.conf.settings.security
+fairdm.conf.settings.addons
+```

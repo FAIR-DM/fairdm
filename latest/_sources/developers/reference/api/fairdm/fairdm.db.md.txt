@@ -1,0 +1,19 @@
+# {py:mod}`fairdm.db`
+
+```{py:module} fairdm.db
+```
+
+```{autodoc2-docstring} fairdm.db
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.db.fields
+fairdm.db.managers
+fairdm.db.models
+```

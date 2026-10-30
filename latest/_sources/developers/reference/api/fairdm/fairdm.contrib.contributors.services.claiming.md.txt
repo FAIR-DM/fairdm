@@ -1,0 +1,53 @@
+# {py:mod}`fairdm.contrib.contributors.services.claiming`
+
+```{py:module} fairdm.contrib.contributors.services.claiming
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.claiming
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`claim_via_orcid <fairdm.contrib.contributors.services.claiming.claim_via_orcid>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.services.claiming.claim_via_orcid
+    :summary:
+    ```
+* - {py:obj}`claim_via_email <fairdm.contrib.contributors.services.claiming.claim_via_email>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.services.claiming.claim_via_email
+    :summary:
+    ```
+* - {py:obj}`claim_via_token <fairdm.contrib.contributors.services.claiming.claim_via_token>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.services.claiming.claim_via_token
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} claim_via_orcid(person: fairdm.contrib.contributors.models.Person, sociallogin: allauth.socialaccount.models.SocialLogin) -> fairdm.contrib.contributors.models.Person
+:canonical: fairdm.contrib.contributors.services.claiming.claim_via_orcid
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.claiming.claim_via_orcid
+```
+````
+
+````{py:function} claim_via_email(person: fairdm.contrib.contributors.models.Person) -> fairdm.contrib.contributors.models.Person | None
+:canonical: fairdm.contrib.contributors.services.claiming.claim_via_email
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.claiming.claim_via_email
+```
+````
+
+````{py:function} claim_via_token(token_string: str, user: fairdm.contrib.contributors.models.Person) -> fairdm.contrib.contributors.models.Person
+:canonical: fairdm.contrib.contributors.services.claiming.claim_via_token
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.claiming.claim_via_token
+```
+````

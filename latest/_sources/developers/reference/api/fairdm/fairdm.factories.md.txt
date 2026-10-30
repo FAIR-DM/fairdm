@@ -1,0 +1,19 @@
+# {py:mod}`fairdm.factories`
+
+```{py:module} fairdm.factories
+```
+
+```{autodoc2-docstring} fairdm.factories
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.factories.core
+fairdm.factories.utils
+fairdm.factories.contributors
+```

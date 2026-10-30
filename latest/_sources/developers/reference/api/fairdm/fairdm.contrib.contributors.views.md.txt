@@ -1,0 +1,20 @@
+# {py:mod}`fairdm.contrib.contributors.views`
+
+```{py:module} fairdm.contrib.contributors.views
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.contrib.contributors.views.team
+fairdm.contrib.contributors.views.person
+fairdm.contrib.contributors.views.claiming
+fairdm.contrib.contributors.views.organization
+```

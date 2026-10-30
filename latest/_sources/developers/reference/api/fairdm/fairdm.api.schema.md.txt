@@ -1,0 +1,378 @@
+# {py:mod}`fairdm.api.schema`
+
+```{py:module} fairdm.api.schema
+```
+
+```{autodoc2-docstring} fairdm.api.schema
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ApiDescription <fairdm.api.schema.ApiDescription>`
+  - ```{autodoc2-docstring} fairdm.api.schema.ApiDescription
+    :summary:
+    ```
+* - {py:obj}`TypeDescription <fairdm.api.schema.TypeDescription>`
+  - ```{autodoc2-docstring} fairdm.api.schema.TypeDescription
+    :summary:
+    ```
+* - {py:obj}`TypeDocumentation <fairdm.api.schema.TypeDocumentation>`
+  - ```{autodoc2-docstring} fairdm.api.schema.TypeDocumentation
+    :summary:
+    ```
+* - {py:obj}`FairDMFilterExtension <fairdm.api.schema.FairDMFilterExtension>`
+  - ```{autodoc2-docstring} fairdm.api.schema.FairDMFilterExtension
+    :summary:
+    ```
+* - {py:obj}`TokenSchemeExtension <fairdm.api.schema.TokenSchemeExtension>`
+  - ```{autodoc2-docstring} fairdm.api.schema.TokenSchemeExtension
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`describe_api <fairdm.api.schema.describe_api>`
+  - ```{autodoc2-docstring} fairdm.api.schema.describe_api
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`CORE_HEADINGS <fairdm.api.schema.CORE_HEADINGS>`
+  - ```{autodoc2-docstring} fairdm.api.schema.CORE_HEADINGS
+    :summary:
+    ```
+* - {py:obj}`SAMPLES_HEADING <fairdm.api.schema.SAMPLES_HEADING>`
+  - ```{autodoc2-docstring} fairdm.api.schema.SAMPLES_HEADING
+    :summary:
+    ```
+* - {py:obj}`MEASUREMENTS_HEADING <fairdm.api.schema.MEASUREMENTS_HEADING>`
+  - ```{autodoc2-docstring} fairdm.api.schema.MEASUREMENTS_HEADING
+    :summary:
+    ```
+* - {py:obj}`KIND_DESCRIPTIONS <fairdm.api.schema.KIND_DESCRIPTIONS>`
+  - ```{autodoc2-docstring} fairdm.api.schema.KIND_DESCRIPTIONS
+    :summary:
+    ```
+* - {py:obj}`ACTION_TITLES <fairdm.api.schema.ACTION_TITLES>`
+  - ```{autodoc2-docstring} fairdm.api.schema.ACTION_TITLES
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} CORE_HEADINGS
+:canonical: fairdm.api.schema.CORE_HEADINGS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.schema.CORE_HEADINGS
+```
+
+````
+
+````{py:data} SAMPLES_HEADING
+:canonical: fairdm.api.schema.SAMPLES_HEADING
+:value: >
+   'Samples'
+
+```{autodoc2-docstring} fairdm.api.schema.SAMPLES_HEADING
+```
+
+````
+
+````{py:data} MEASUREMENTS_HEADING
+:canonical: fairdm.api.schema.MEASUREMENTS_HEADING
+:value: >
+   'Measurements'
+
+```{autodoc2-docstring} fairdm.api.schema.MEASUREMENTS_HEADING
+```
+
+````
+
+````{py:data} KIND_DESCRIPTIONS
+:canonical: fairdm.api.schema.KIND_DESCRIPTIONS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.schema.KIND_DESCRIPTIONS
+```
+
+````
+
+````{py:data} ACTION_TITLES
+:canonical: fairdm.api.schema.ACTION_TITLES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.schema.ACTION_TITLES
+```
+
+````
+
+`````{py:class} ApiDescription
+:canonical: fairdm.api.schema.ApiDescription
+
+```{autodoc2-docstring} fairdm.api.schema.ApiDescription
+```
+
+````{py:method} render() -> str
+:canonical: fairdm.api.schema.ApiDescription.render
+
+```{autodoc2-docstring} fairdm.api.schema.ApiDescription.render
+```
+
+````
+
+````{py:method} authentication() -> str
+:canonical: fairdm.api.schema.ApiDescription.authentication
+
+```{autodoc2-docstring} fairdm.api.schema.ApiDescription.authentication
+```
+
+````
+
+````{py:method} limits() -> str
+:canonical: fairdm.api.schema.ApiDescription.limits
+
+```{autodoc2-docstring} fairdm.api.schema.ApiDescription.limits
+```
+
+````
+
+````{py:method} paging() -> str
+:canonical: fairdm.api.schema.ApiDescription.paging
+
+```{autodoc2-docstring} fairdm.api.schema.ApiDescription.paging
+```
+
+````
+
+`````
+
+`````{py:class} TypeDescription(config: typing.Any)
+:canonical: fairdm.api.schema.TypeDescription
+
+```{autodoc2-docstring} fairdm.api.schema.TypeDescription
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.schema.TypeDescription.__init__
+```
+
+````{py:property} name
+:canonical: fairdm.api.schema.TypeDescription.name
+:type: str
+
+```{autodoc2-docstring} fairdm.api.schema.TypeDescription.name
+```
+
+````
+
+````{py:property} title
+:canonical: fairdm.api.schema.TypeDescription.title
+:type: str
+
+```{autodoc2-docstring} fairdm.api.schema.TypeDescription.title
+```
+
+````
+
+````{py:property} heading
+:canonical: fairdm.api.schema.TypeDescription.heading
+:type: str
+
+```{autodoc2-docstring} fairdm.api.schema.TypeDescription.heading
+```
+
+````
+
+````{py:method} action_title(action: str) -> django.utils.functional.Promise
+:canonical: fairdm.api.schema.TypeDescription.action_title
+
+```{autodoc2-docstring} fairdm.api.schema.TypeDescription.action_title
+```
+
+````
+
+````{py:method} list_description() -> str
+:canonical: fairdm.api.schema.TypeDescription.list_description
+
+```{autodoc2-docstring} fairdm.api.schema.TypeDescription.list_description
+```
+
+````
+
+````{py:method} repository() -> dict[str, str] | None
+:canonical: fairdm.api.schema.TypeDescription.repository
+
+```{autodoc2-docstring} fairdm.api.schema.TypeDescription.repository
+```
+
+````
+
+````{py:method} summary() -> str
+:canonical: fairdm.api.schema.TypeDescription.summary
+
+```{autodoc2-docstring} fairdm.api.schema.TypeDescription.summary
+```
+
+````
+
+````{py:method} details() -> str
+:canonical: fairdm.api.schema.TypeDescription.details
+
+```{autodoc2-docstring} fairdm.api.schema.TypeDescription.details
+```
+
+````
+
+````{py:method} component_names() -> tuple[str, str]
+:canonical: fairdm.api.schema.TypeDescription.component_names
+
+```{autodoc2-docstring} fairdm.api.schema.TypeDescription.component_names
+```
+
+````
+
+`````
+
+`````{py:class} TypeDocumentation
+:canonical: fairdm.api.schema.TypeDocumentation
+
+```{autodoc2-docstring} fairdm.api.schema.TypeDocumentation
+```
+
+````{py:method} tags() -> list[dict[str, typing.Any]]
+:canonical: fairdm.api.schema.TypeDocumentation.tags
+
+```{autodoc2-docstring} fairdm.api.schema.TypeDocumentation.tags
+```
+
+````
+
+````{py:method} describe_records(components: dict[str, typing.Any]) -> None
+:canonical: fairdm.api.schema.TypeDocumentation.describe_records
+
+```{autodoc2-docstring} fairdm.api.schema.TypeDocumentation.describe_records
+```
+
+````
+
+`````
+
+````{py:function} describe_api(result: dict[str, typing.Any], **kwargs: typing.Any) -> dict[str, typing.Any]
+:canonical: fairdm.api.schema.describe_api
+
+```{autodoc2-docstring} fairdm.api.schema.describe_api
+```
+````
+
+`````{py:class} FairDMFilterExtension(target)
+:canonical: fairdm.api.schema.FairDMFilterExtension
+
+Bases: {py:obj}`drf_spectacular.contrib.django_filters.DjangoFilterExtension`
+
+```{autodoc2-docstring} fairdm.api.schema.FairDMFilterExtension
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.schema.FairDMFilterExtension.__init__
+```
+
+````{py:attribute} target_class
+:canonical: fairdm.api.schema.FairDMFilterExtension.target_class
+:value: >
+   'fairdm.api.filters.FairDMFilterBackend'
+
+```{autodoc2-docstring} fairdm.api.schema.FairDMFilterExtension.target_class
+```
+
+````
+
+````{py:attribute} priority
+:canonical: fairdm.api.schema.FairDMFilterExtension.priority
+:value: >
+   1
+
+```{autodoc2-docstring} fairdm.api.schema.FairDMFilterExtension.priority
+```
+
+````
+
+````{py:method} resolve_filter_field(auto_schema, model, filterset_class, field_name, filter_field)
+:canonical: fairdm.api.schema.FairDMFilterExtension.resolve_filter_field
+
+```{autodoc2-docstring} fairdm.api.schema.FairDMFilterExtension.resolve_filter_field
+```
+
+````
+
+`````
+
+`````{py:class} TokenSchemeExtension(target)
+:canonical: fairdm.api.schema.TokenSchemeExtension
+
+Bases: {py:obj}`drf_spectacular.contrib.knox_auth_token.KnoxTokenScheme`
+
+```{autodoc2-docstring} fairdm.api.schema.TokenSchemeExtension
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.schema.TokenSchemeExtension.__init__
+```
+
+````{py:attribute} priority
+:canonical: fairdm.api.schema.TokenSchemeExtension.priority
+:value: >
+   1
+
+```{autodoc2-docstring} fairdm.api.schema.TokenSchemeExtension.priority
+```
+
+````
+
+````{py:attribute} name
+:canonical: fairdm.api.schema.TokenSchemeExtension.name
+:value: >
+   'tokenAuth'
+
+```{autodoc2-docstring} fairdm.api.schema.TokenSchemeExtension.name
+```
+
+````
+
+````{py:method} get_security_definition(auto_schema)
+:canonical: fairdm.api.schema.TokenSchemeExtension.get_security_definition
+
+```{autodoc2-docstring} fairdm.api.schema.TokenSchemeExtension.get_security_definition
+```
+
+````
+
+`````

@@ -1,0 +1,96 @@
+# {py:mod}`fairdm.contrib.collections.apps`
+
+```{py:module} fairdm.contrib.collections.apps
+```
+
+```{autodoc2-docstring} fairdm.contrib.collections.apps
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`CollectionsConfig <fairdm.contrib.collections.apps.CollectionsConfig>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.apps.CollectionsConfig
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} CollectionsConfig(app_name, app_module)
+:canonical: fairdm.contrib.collections.apps.CollectionsConfig
+
+Bases: {py:obj}`django.apps.AppConfig`
+
+```{autodoc2-docstring} fairdm.contrib.collections.apps.CollectionsConfig
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.collections.apps.CollectionsConfig.__init__
+```
+
+````{py:attribute} default_auto_field
+:canonical: fairdm.contrib.collections.apps.CollectionsConfig.default_auto_field
+:value: >
+   'django.db.models.BigAutoField'
+
+```{autodoc2-docstring} fairdm.contrib.collections.apps.CollectionsConfig.default_auto_field
+```
+
+````
+
+````{py:attribute} name
+:canonical: fairdm.contrib.collections.apps.CollectionsConfig.name
+:value: >
+   'fairdm.contrib.collections'
+
+```{autodoc2-docstring} fairdm.contrib.collections.apps.CollectionsConfig.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.contrib.collections.apps.CollectionsConfig.label
+:value: >
+   'collections'
+
+```{autodoc2-docstring} fairdm.contrib.collections.apps.CollectionsConfig.label
+```
+
+````
+
+````{py:attribute} verbose_name
+:canonical: fairdm.contrib.collections.apps.CollectionsConfig.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.collections.apps.CollectionsConfig.verbose_name
+```
+
+````
+
+````{py:method} ready() -> None
+:canonical: fairdm.contrib.collections.apps.CollectionsConfig.ready
+
+```{autodoc2-docstring} fairdm.contrib.collections.apps.CollectionsConfig.ready
+```
+
+````
+
+````{py:method} populate_data_collection_menu()
+:canonical: fairdm.contrib.collections.apps.CollectionsConfig.populate_data_collection_menu
+
+```{autodoc2-docstring} fairdm.contrib.collections.apps.CollectionsConfig.populate_data_collection_menu
+```
+
+````
+
+`````

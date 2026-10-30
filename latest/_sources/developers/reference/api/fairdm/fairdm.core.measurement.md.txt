@@ -1,0 +1,25 @@
+# {py:mod}`fairdm.core.measurement`
+
+```{py:module} fairdm.core.measurement
+```
+
+```{autodoc2-docstring} fairdm.core.measurement
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.core.measurement.plugins
+fairdm.core.measurement.managers
+fairdm.core.measurement.urls
+fairdm.core.measurement.forms
+fairdm.core.measurement.admin
+fairdm.core.measurement.apps
+fairdm.core.measurement.models
+fairdm.core.measurement.filters
+fairdm.core.measurement.config
+```

@@ -1,0 +1,58 @@
+# {py:mod}`fairdm.management.commands.cleanup_permissions`
+
+```{py:module} fairdm.management.commands.cleanup_permissions
+```
+
+```{autodoc2-docstring} fairdm.management.commands.cleanup_permissions
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Command <fairdm.management.commands.cleanup_permissions.Command>`
+  - ```{autodoc2-docstring} fairdm.management.commands.cleanup_permissions.Command
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} Command(stdout=None, stderr=None, no_color=False, force_color=False)
+:canonical: fairdm.management.commands.cleanup_permissions.Command
+
+Bases: {py:obj}`django.core.management.base.BaseCommand`
+
+```{autodoc2-docstring} fairdm.management.commands.cleanup_permissions.Command
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.management.commands.cleanup_permissions.Command.__init__
+```
+
+````{py:attribute} help
+:canonical: fairdm.management.commands.cleanup_permissions.Command.help
+:value: >
+   "Remove any permissions not defined in models' default_permissions or Meta.permissions."
+
+```{autodoc2-docstring} fairdm.management.commands.cleanup_permissions.Command.help
+```
+
+````
+
+````{py:method} handle(*args, **options)
+:canonical: fairdm.management.commands.cleanup_permissions.Command.handle
+
+```{autodoc2-docstring} fairdm.management.commands.cleanup_permissions.Command.handle
+```
+
+````
+
+`````

@@ -1,0 +1,2462 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Python Module Index &#8212; fairdm 0.3.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="_static/scripts/fontawesome.js?digest=cb8930eaaf36d9849b67"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
+
+    <script src="_static/documentation_options.js?v=4621528c"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script kind="utterances">
+
+    var commentsRunWhenDOMLoaded = cb => {
+    if (document.readyState != 'loading') {
+        cb()
+    } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', cb)
+    } else {
+        document.attachEvent('onreadystatechange', function() {
+        if (document.readyState == 'complete') cb()
+        })
+    }
+}
+
+var addUtterances = () => {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://utteranc.es/client.js";
+    script.async = "async";
+
+    script.setAttribute("repo", "FAIR-DM/fairdm");
+    script.setAttribute("issue-term", "pathname");
+    script.setAttribute("theme", "preferred-color-scheme");
+    script.setAttribute("label", "documentation");
+    script.setAttribute("crossorigin", "anonymous");
+
+    sections = document.querySelectorAll("div.section");
+    if (sections !== null) {
+        section = sections[sections.length-1];
+        section.appendChild(script);
+    }
+}
+commentsRunWhenDOMLoaded(addUtterances);
+</script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+    <script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.12.1/dist/mermaid.esm.min.mjs";
+
+
+
+
+
+const initStyles = () => {
+    const defaultStyle = document.createElement('style');
+    defaultStyle.textContent = "pre.mermaid {\n    /* Same as .mermaid-container > pre */\n    display: block;\n    width: 100%;\n}\n\npre.mermaid > svg {\n    /* Same as .mermaid-container > pre > svg */\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}";
+    document.head.appendChild(defaultStyle);
+
+    const fullscreenStyle = document.createElement('style');
+    fullscreenStyle.textContent = ".mermaid-container {\n    position: relative;\n    display: flex;\n    flex-direction: row;\n    width: 100%;\n}\n\n.mermaid-container > pre {\n    display: block;\n    width: 100%;\n}\n\n.mermaid-container > pre > svg {\n    height: 500px;\n    width: 100%;\n    max-width: 100% !important;\n}\n\n.mermaid-fullscreen-btn {\n    position: absolute;\n    width: 28px;\n    height: 28px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.3);\n    border-radius: 4px;\n    cursor: pointer;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    transition: all 0.2s;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);\n    font-size: 14px;\n    line-height: 1;\n    padding: 0;\n    color: #333;\n}\n\n.mermaid-fullscreen-btn:hover {\n    opacity: 100% !important;\n    background: rgba(255, 255, 255, 1);\n    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-btn.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.3);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-btn.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 3px 10px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal {\n    display: none;\n    position: fixed !important;\n    top: 0 !important;\n    left: 0 !important;\n    width: 95vw;\n    height: 100vh;\n    background: rgba(255, 255, 255, 0.98);\n    z-index: 9999;\n    padding: 20px;\n    overflow: auto;\n}\n\n.mermaid-fullscreen-modal.dark-theme {\n    background: rgba(0, 0, 0, 0.98);\n}\n\n.mermaid-fullscreen-modal.active {\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen {\n    position: relative;\n    width: 95vw;\n    height: 90vh;\n    max-width: 95vw;\n    max-height: 90vh;\n    background: white;\n    border-radius: 8px;\n    padding: 20px;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);\n    overflow: auto;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen.dark-theme {\n    background: #1a1a1a;\n    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);\n}\n\n.mermaid-container-fullscreen pre.mermaid {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}\n\n.mermaid-container-fullscreen .mermaid svg {\n    height: 100% !important;\n    width: 100% !important;\n    cursor: grab;\n}\n\n.mermaid-fullscreen-close {\n    position: fixed !important;\n    top: 20px !important;\n    right: 20px !important;\n    width: 40px;\n    height: 40px;\n    background: rgba(255, 255, 255, 0.95);\n    border: 1px solid rgba(0, 0, 0, 0.2);\n    border-radius: 50%;\n    cursor: pointer;\n    z-index: 10000;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);\n    transition: all 0.2s;\n    font-size: 24px;\n    line-height: 1;\n    color: #333;\n}\n\n.mermaid-fullscreen-close:hover {\n    background: white;\n    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);\n    transform: scale(1.1);\n}\n\n.mermaid-fullscreen-close.dark-theme {\n    background: rgba(50, 50, 50, 0.95);\n    border: 1px solid rgba(255, 255, 255, 0.2);\n    color: #e0e0e0;\n}\n\n.mermaid-fullscreen-close.dark-theme:hover {\n    background: rgba(60, 60, 60, 1);\n    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);\n}\n\n.mermaid-fullscreen-modal .mermaid-fullscreen-btn {\n    display: none !important;\n}";
+    document.head.appendChild(fullscreenStyle);
+}
+
+// Detect if page has dark background
+const isDarkTheme = () => {
+    // We use a set of heuristics:
+    // 1. Check for common dark mode classes or attributes
+    // 2. Check computed background color brightness
+    if (document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        document.body.classList.contains('dark') ||
+        document.body.getAttribute('data-theme') === 'dark') {
+        // console.log("Dark theme detected via class/attribute");
+        return true;
+    }
+    if (document.documentElement.classList.contains('light') ||
+        document.documentElement.getAttribute('data-theme') === 'light' ||
+        document.body.classList.contains('light') ||
+        document.body.getAttribute('data-theme') === 'light') {
+        // console.log("Light theme detected via class/attribute");
+        return false;
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        // console.log("Dark theme detected via prefers-color-scheme");
+        return true;
+    }
+    const bgColor = window.getComputedStyle(document.body).backgroundColor;
+    const match = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)/);
+    if (match) {
+        const r = parseInt(match[1]);
+        const g = parseInt(match[2]);
+        const b = parseInt(match[3]);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        // console.log("Background color brightness:", brightness);
+        return brightness < 128;
+    }
+    // console.log("No dark or light theme detected, defaulting to light theme");
+    return false;
+};
+
+let darkTheme = isDarkTheme();
+let modal = null;
+let modalContent = null;
+let previousScrollOffset = [window.scrollX, window.scrollY];
+let _lazyObserver = null;
+let _renderQueue = Promise.resolve();
+let closeModal = () => {};
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal?.classList.contains('active')) {
+        closeModal();
+    }
+});
+
+// Apply d3 zoom to each SVG. Idempotent: an SVG already wrapped is skipped,
+// so this is safe to call both for the initial batch and for diagrams that
+// render lazily once they become visible.
+const addZoomToSvgs = (svgs) => {
+    svgs.each(function() {
+        if (this.getAttribute('data-zoom-applied') === 'true') return;
+        var svg = d3.select(this);
+        svg.html("<g class='wrapper'>" + svg.html() + "</g>");
+        var inner = svg.select("g");
+        var zoom = d3.zoom().on("zoom", function(event) {
+            inner.attr("transform", event.transform);
+        });
+        svg.call(zoom);
+        this.setAttribute('data-zoom-applied', 'true');
+    });
+};
+
+const runMermaid = async (rerun) => {
+    console.log("Running mermaid diagrams, rerun =", rerun);
+    // clear all existing mermaid charts
+    let all_mermaids = document.querySelectorAll(".mermaid");
+
+    if (rerun) {
+        // Disconnect any previous lazy rendering observer
+        if (_lazyObserver) {
+            _lazyObserver.disconnect();
+            _lazyObserver = null;
+        }
+
+        all_mermaids.forEach((el) => {
+            el.removeAttribute('data-mermaid-deferred');
+            el.removeAttribute('data-mermaid-render-failed');
+            if(!el.hasAttribute("data-original-code")) {
+                // store original code
+                // console.log(`Storing original code for first run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+            if(el.getAttribute("data-processed") === "true") {
+                // remove and restore original
+                el.removeAttribute("data-processed");
+                // console.log(`Restoring original code for re-run: `, el.getAttribute('data-original-code'));
+                el.innerHTML = el.getAttribute('data-original-code');
+            } else {
+                // store original code
+                // console.log(`Storing original code for re-run: `, el.innerHTML);
+                el.setAttribute('data-original-code', el.innerHTML);
+            }
+        });
+
+        // Separate visible and hidden elements. Mermaid's layout engine measures
+        // text dimensions via the DOM, which fails for elements hidden by a parent
+        // (e.g., Reveal.js non-active slides, sphinx-design unopened tabs),
+        // producing broken SVGs. Render visible elements now, defer hidden ones.
+        const visible = [];
+        const hidden = [];
+        all_mermaids.forEach((el) => {
+            // offsetParent is null for display:none ancestors.
+            // getClientRects().length > 0 catches position:fixed elements
+            // (which also have null offsetParent but are still visible).
+            if (el.offsetParent !== null || el.getClientRects().length > 0) {
+                visible.push(el);
+            } else {
+                hidden.push(el);
+                el.setAttribute('data-mermaid-deferred', 'true');
+            }
+        });
+
+        if (visible.length > 0) {
+            try {
+                await mermaid.run({ nodes: visible });
+            } catch (e) {
+                console.error("Mermaid rendering failed:", e);
+            }
+        }
+
+        // Lazily render hidden elements when they become visible.
+        // Uses a promise chain (_renderQueue) to serialize rendering,
+        // since IntersectionObserver may report multiple entries at once
+        // and mermaid.run() is not safe to call concurrently.
+        if (hidden.length > 0) {
+            if (typeof IntersectionObserver === 'undefined') {
+                console.warn("IntersectionObserver not available; hidden mermaid diagrams will not render.");
+            } else {
+                _renderQueue = Promise.resolve();
+                _lazyObserver = new IntersectionObserver((entries) => {
+                    for (const entry of entries) {
+                        if (entry.isIntersecting && entry.target.getAttribute("data-processed") !== "true") {
+                            _lazyObserver.unobserve(entry.target);
+                            const el = entry.target;
+                            _renderQueue = _renderQueue.then(async () => {
+                                try {
+                                    await mermaid.run({ nodes: [el] });
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    // Apply zoom to the now-rendered diagram, matching
+                                    // the decoration visible diagrams receive.
+                                    if (true) {
+                                        addZoomToSvgs(d3.selectAll(".mermaid").select(function() {
+                                            return this.querySelector("svg");
+                                        }));
+                                    }
+                                } catch (e) {
+                                    console.error("Mermaid deferred rendering failed:", e);
+                                    el.removeAttribute('data-mermaid-deferred');
+                                    el.setAttribute('data-mermaid-render-failed', 'true');
+                                }
+                            });
+                        }
+                    }
+                });
+                hidden.forEach((el) => _lazyObserver.observe(el));
+            }
+        }
+    }
+
+    all_mermaids = document.querySelectorAll(".mermaid");
+    // Exclude deferred (hidden) and render-failed elements from completion checks
+    const mermaids_active = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])");
+    const mermaids_processed = document.querySelectorAll(".mermaid:not([data-mermaid-deferred]):not([data-mermaid-render-failed])[data-processed='true']");
+
+    if (true) {
+        const mermaids_to_add_zoom = -1 === -1 ? mermaids_active.length : -1;
+        if(mermaids_to_add_zoom > 0) {
+            var svgs = d3.selectAll(".mermaid").select(function() {
+                return this.querySelector("svg");
+            });
+            // Wait until every active (visible) diagram has rendered. Deferred
+            // diagrams are excluded, so a fixed d3_node_count that counts a
+            // hidden diagram no longer loops forever waiting for its SVG.
+            if(mermaids_active.length !== mermaids_processed.length) {
+                setTimeout(() => runMermaid(false), 200);
+                return;
+            }
+            addZoomToSvgs(svgs);
+        }
+    } else if(mermaids_active.length !== mermaids_processed.length) {
+        // Wait for mermaid to process all diagrams
+        setTimeout(() => runMermaid(false), 200);
+        return;
+    }
+
+    // Stop here if not adding fullscreen capability
+    if (!true) return;
+
+    if (modal !== null ) {
+        // Destroy existing modal
+        modal.remove();
+        modal = null;
+        modalContent = null;
+    }
+
+    modal = document.createElement('div');
+    modal.className = 'mermaid-fullscreen-modal' + (darkTheme ? ' dark-theme' : '');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-label', 'Fullscreen diagram viewer');
+    modal.innerHTML = `
+        <button class="mermaid-fullscreen-close${darkTheme ? ' dark-theme' : ''}" aria-label="Close fullscreen">✕</button>
+        <div class="mermaid-container-fullscreen${darkTheme ? ' dark-theme' : ''}"></div>
+    `;
+    document.body.appendChild(modal);
+
+    modalContent = modal.querySelector('.mermaid-container-fullscreen');
+    const closeBtn = modal.querySelector('.mermaid-fullscreen-close');
+
+    closeModal = () => {
+        modal.classList.remove('active');
+        modalContent.innerHTML = '';
+        document.body.style.overflow = ''
+        window.scrollTo({left: previousScrollOffset[0], top: previousScrollOffset[1], behavior: 'instant'});
+    };
+
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+    document.querySelectorAll('.mermaid').forEach((mermaidDiv) => {
+        if (mermaidDiv.parentNode.classList.contains('mermaid-container') ||
+            mermaidDiv.closest('.mermaid-fullscreen-modal')) {
+            // Already processed, adjust button class if needed
+            const existingBtn = mermaidDiv.parentNode.querySelector('.mermaid-fullscreen-btn');
+            if (existingBtn) {
+                existingBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+            }
+            return;
+        }
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+        mermaidDiv.parentNode.insertBefore(container, mermaidDiv);
+        container.appendChild(mermaidDiv);
+
+        const fullscreenBtn = document.createElement('button');
+        fullscreenBtn.className = 'mermaid-fullscreen-btn' + (darkTheme ? ' dark-theme' : '');
+        fullscreenBtn.setAttribute('aria-label', 'View diagram in fullscreen');
+        fullscreenBtn.textContent = "\u26f6";
+        fullscreenBtn.style.opacity = "50%";
+
+        // Calculate dynamic position based on diagram's margin and padding
+        const diagramStyle = window.getComputedStyle(mermaidDiv);
+        const marginTop = parseFloat(diagramStyle.marginTop) || 0;
+        const marginRight = parseFloat(diagramStyle.marginRight) || 0;
+        const paddingTop = parseFloat(diagramStyle.paddingTop) || 0;
+        const paddingRight = parseFloat(diagramStyle.paddingRight) || 0;
+        fullscreenBtn.style.top = `${marginTop + paddingTop + 4}px`;
+        fullscreenBtn.style.right = `${marginRight + paddingRight + 4}px`;
+
+        fullscreenBtn.addEventListener('click', () => {
+            previousScrollOffset = [window.scrollX, window.scrollY];
+            const clone = mermaidDiv.cloneNode(true);
+            modalContent.innerHTML = '';
+            modalContent.appendChild(clone);
+
+            const svg = clone.querySelector('svg');
+            if (svg) {
+                svg.removeAttribute('width');
+                svg.removeAttribute('height');
+                svg.style.width = '100%';
+                svg.style.height = 'auto';
+                svg.style.maxWidth = '100%';
+                svg.style.display = 'block';
+
+                if (true) {
+                    setTimeout(() => {
+                        const g = svg.querySelector('g');
+                        if (g) {
+                            var svgD3 = d3.select(svg);
+                            svgD3.html("<g class='wrapper'>" + svgD3.html() + "</g>");
+                            var inner = svgD3.select("g");
+                            var zoom = d3.zoom().on("zoom", function(event) {
+                                inner.attr("transform", event.transform);
+                            });
+                            svgD3.call(zoom);
+                        }
+                    }, 100);
+                }
+            }
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+        container.appendChild(fullscreenBtn);
+    });
+};
+
+
+
+const load = async () => {
+    initStyles();
+
+
+    await runMermaid(true);
+
+    const reRunIfThemeChanges = async () => {
+        const newDarkTheme = isDarkTheme();
+        if (newDarkTheme !== darkTheme) {
+            darkTheme = newDarkTheme;
+            console.log("Theme change detected, re-running mermaid with", darkTheme ? "dark" : "default", "theme");
+            await mermaid.initialize(
+                {...{"startOnLoad": false},
+                ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+                }
+            );
+            await runMermaid(true);
+        }
+    };
+
+    // Update theme classes when theme changes
+    const themeObserver = new MutationObserver(reRunIfThemeChanges);
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+    themeObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['class', 'style', 'data-theme']
+    });
+};
+
+
+
+
+
+console.log("Initializing mermaid with", darkTheme ? "dark" : "default", "theme");
+mermaid.initialize(
+    {...{"startOnLoad": false},
+    ...{ darkMode: darkTheme, theme: darkTheme ? "dark" : "default" },
+    }
+);
+
+window.addEventListener("load", load);
+window.runMermaid = runMermaid;</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'py-modindex';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.21.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.fairdm.org/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'latest';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="icon" href="_static/icon.svg"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.3.1" />
+    <meta name="docbuild:last-update" content="Oct 30, 2026"/>
+  
+    
+    <script src="_static/searchtools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="searchindex.js"></script>
+  
+
+
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.3.1 documentation - Home"/>
+    <img src="_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.3.1 documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="developers/index.html">
+    Developers
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="administrators/index.html">
+    Administrators
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="users/index.html">
+    Users
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/what-fairdm-is-for.html">
+    What FairDM is for
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/fair-data-and-research-data-infrastructure.html">
+    FAIR data and research data infrastructure
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/the-technology-stack.html">
+    The technology stack
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/the-core-data-model.html">
+    The core data model
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/how-sample-and-measurement-types-are-stored.html">
+    How sample and measurement types are stored
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/controlled-vocabularies.html">
+    Controlled vocabularies
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/configuration-over-code.html">
+    Configuration over code
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/why-complete-metadata-matters.html">
+    Why complete metadata matters
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/how-access-to-a-record-is-decided.html">
+    How access to a record is decided
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/why-fairdm-records-contributors.html">
+    Why FairDM records contributors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/how-contributor-accounts-and-credits-work.html">
+    How contributor accounts and credits work
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/how-a-profile-is-claimed.html">
+    How a profile is claimed
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/how-fairdm-configures-a-portal.html">
+    How FairDM configures a portal
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/who-is-asked-to-agree-to-a-legal-document.html">
+    Who is asked to agree to a legal document
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/how-locations-are-stored-and-protected.html">
+    How locations are stored and protected
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/dataset-publication-dois-and-datacite-metadata.html">
+    Dataset publication, DOIs and DataCite metadata
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="reference/glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="contributing/index.html">
+    Framework Contributors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="adr/index.html">
+    Architecture Decision Records
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="ROADMAP.html">
+    Roadmap — FairDM
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="developers/index.html">
+    Developers
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="administrators/index.html">
+    Administrators
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="users/index.html">
+    Users
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/what-fairdm-is-for.html">
+    What FairDM is for
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/fair-data-and-research-data-infrastructure.html">
+    FAIR data and research data infrastructure
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/the-technology-stack.html">
+    The technology stack
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/the-core-data-model.html">
+    The core data model
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/how-sample-and-measurement-types-are-stored.html">
+    How sample and measurement types are stored
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/controlled-vocabularies.html">
+    Controlled vocabularies
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/configuration-over-code.html">
+    Configuration over code
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/why-complete-metadata-matters.html">
+    Why complete metadata matters
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/how-access-to-a-record-is-decided.html">
+    How access to a record is decided
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/why-fairdm-records-contributors.html">
+    Why FairDM records contributors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/how-contributor-accounts-and-credits-work.html">
+    How contributor accounts and credits work
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/how-a-profile-is-claimed.html">
+    How a profile is claimed
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/how-fairdm-configures-a-portal.html">
+    How FairDM configures a portal
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/who-is-asked-to-agree-to-a-legal-document.html">
+    Who is asked to agree to a legal document
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/how-locations-are-stored-and-protected.html">
+    How locations are stored and protected
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/dataset-publication-dois-and-datacite-metadata.html">
+    Dataset publication, DOIs and DataCite metadata
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="reference/glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contributing/index.html">
+    Framework Contributors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="adr/index.html">
+    Architecture Decision Records
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="ROADMAP.html">
+    Roadmap — FairDM
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none"></div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+
+   <h1>Python Module Index</h1>
+
+   <div class="modindex-jumpbox">
+   <a href="#cap-f"><strong>f</strong></a>
+   </div>
+
+   <table class="indextable modindextable">
+     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
+     <tr class="cap" id="cap-f"><td></td><td>
+       <strong>f</strong></td><td></td></tr>
+     <tr>
+       <td><img src="_static/minus.png" class="toggler"
+              id="toggle-1" style="display: none" alt="-" /></td>
+       <td>
+       <a href="developers/reference/api/fairdm/fairdm.html#module-fairdm"><code class="xref">fairdm</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.api.html#module-fairdm.api"><code class="xref">fairdm.api</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.api.apps.html#module-fairdm.api.apps"><code class="xref">fairdm.api.apps</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.api.checks.html#module-fairdm.api.checks"><code class="xref">fairdm.api.checks</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.api.filters.html#module-fairdm.api.filters"><code class="xref">fairdm.api.filters</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.api.pagination.html#module-fairdm.api.pagination"><code class="xref">fairdm.api.pagination</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.api.permissions.html#module-fairdm.api.permissions"><code class="xref">fairdm.api.permissions</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.api.router.html#module-fairdm.api.router"><code class="xref">fairdm.api.router</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.api.schema.html#module-fairdm.api.schema"><code class="xref">fairdm.api.schema</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.api.serializers.html#module-fairdm.api.serializers"><code class="xref">fairdm.api.serializers</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.api.settings.html#module-fairdm.api.settings"><code class="xref">fairdm.api.settings</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.api.throttling.html#module-fairdm.api.throttling"><code class="xref">fairdm.api.throttling</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.api.urls.html#module-fairdm.api.urls"><code class="xref">fairdm.api.urls</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.api.viewsets.html#module-fairdm.api.viewsets"><code class="xref">fairdm.api.viewsets</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.apps.html#module-fairdm.apps"><code class="xref">fairdm.apps</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.backups.html#module-fairdm.backups"><code class="xref">fairdm.backups</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.backups.apps.html#module-fairdm.backups.apps"><code class="xref">fairdm.backups.apps</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.backups.keys.html#module-fairdm.backups.keys"><code class="xref">fairdm.backups.keys</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.backups.management.html#module-fairdm.backups.management"><code class="xref">fairdm.backups.management</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.backups.management.commands.html#module-fairdm.backups.management.commands"><code class="xref">fairdm.backups.management.commands</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.backups.management.commands.backup.html#module-fairdm.backups.management.commands.backup"><code class="xref">fairdm.backups.management.commands.backup</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.backups.media.html#module-fairdm.backups.media"><code class="xref">fairdm.backups.media</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.backups.run.html#module-fairdm.backups.run"><code class="xref">fairdm.backups.run</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.backups.signals.html#module-fairdm.backups.signals"><code class="xref">fairdm.backups.signals</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.backups.tasks.html#module-fairdm.backups.tasks"><code class="xref">fairdm.backups.tasks</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.conf.html#module-fairdm.conf"><code class="xref">fairdm.conf</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.conf.addons.html#module-fairdm.conf.addons"><code class="xref">fairdm.conf.addons</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.conf.celery.html#module-fairdm.conf.celery"><code class="xref">fairdm.conf.celery</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.conf.checks.html#module-fairdm.conf.checks"><code class="xref">fairdm.conf.checks</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.conf.development.html#module-fairdm.conf.development"><code class="xref">fairdm.conf.development</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.conf.environment.html#module-fairdm.conf.environment"><code class="xref">fairdm.conf.environment</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.conf.settings.html#module-fairdm.conf.settings"><code class="xref">fairdm.conf.settings</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.conf.settings.addons.html#module-fairdm.conf.settings.addons"><code class="xref">fairdm.conf.settings.addons</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.conf.settings.api.html#module-fairdm.conf.settings.api"><code class="xref">fairdm.conf.settings.api</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.conf.settings.apps.html#module-fairdm.conf.settings.apps"><code class="xref">fairdm.conf.settings.apps</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.conf.settings.auth.html#module-fairdm.conf.settings.auth"><code class="xref">fairdm.conf.settings.auth</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.conf.settings.cache.html#module-fairdm.conf.settings.cache"><code class="xref">fairdm.conf.settings.cache</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.conf.settings.celery.html#module-fairdm.conf.settings.celery"><code class="xref">fairdm.conf.settings.celery</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.conf.settings.database.html#module-fairdm.conf.settings.database"><code class="xref">fairdm.conf.settings.database</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.conf.settings.email.html#module-fairdm.conf.settings.email"><code class="xref">fairdm.conf.settings.email</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.conf.settings.logging.html#module-fairdm.conf.settings.logging"><code class="xref">fairdm.conf.settings.logging</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.conf.settings.security.html#module-fairdm.conf.settings.security"><code class="xref">fairdm.conf.settings.security</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.conf.settings.static_media.html#module-fairdm.conf.settings.static_media"><code class="xref">fairdm.conf.settings.static_media</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.conf.setup.html#module-fairdm.conf.setup"><code class="xref">fairdm.conf.setup</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.conf.urls.html#module-fairdm.conf.urls"><code class="xref">fairdm.conf.urls</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.config.html#module-fairdm.config"><code class="xref">fairdm.config</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.html#module-fairdm.contrib"><code class="xref">fairdm.contrib</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.admin.html#module-fairdm.contrib.admin"><code class="xref">fairdm.contrib.admin</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.admin.admin.html#module-fairdm.contrib.admin.admin"><code class="xref">fairdm.contrib.admin.admin</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.admin.apps.html#module-fairdm.contrib.admin.apps"><code class="xref">fairdm.contrib.admin.apps</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.admin.sites.html#module-fairdm.contrib.admin.sites"><code class="xref">fairdm.contrib.admin.sites</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.admin.urls.html#module-fairdm.contrib.admin.urls"><code class="xref">fairdm.contrib.admin.urls</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.admin.views.html#module-fairdm.contrib.admin.views"><code class="xref">fairdm.contrib.admin.views</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.html#module-fairdm.contrib.autocomplete"><code class="xref">fairdm.contrib.autocomplete</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.apps.html#module-fairdm.contrib.autocomplete.apps"><code class="xref">fairdm.contrib.autocomplete.apps</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.fields.html#module-fairdm.contrib.autocomplete.fields"><code class="xref">fairdm.contrib.autocomplete.fields</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.filters.html#module-fairdm.contrib.autocomplete.filters"><code class="xref">fairdm.contrib.autocomplete.filters</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.throttling.html#module-fairdm.contrib.autocomplete.throttling"><code class="xref">fairdm.contrib.autocomplete.throttling</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.urls.html#module-fairdm.contrib.autocomplete.urls"><code class="xref">fairdm.contrib.autocomplete.urls</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.autocomplete.views.html#module-fairdm.contrib.autocomplete.views"><code class="xref">fairdm.contrib.autocomplete.views</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.collections.html#module-fairdm.contrib.collections"><code class="xref">fairdm.contrib.collections</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.collections.apps.html#module-fairdm.contrib.collections.apps"><code class="xref">fairdm.contrib.collections.apps</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.collections.tables.html#module-fairdm.contrib.collections.tables"><code class="xref">fairdm.contrib.collections.tables</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.collections.urls.html#module-fairdm.contrib.collections.urls"><code class="xref">fairdm.contrib.collections.urls</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.collections.views.html#module-fairdm.contrib.collections.views"><code class="xref">fairdm.contrib.collections.views</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.html#module-fairdm.contrib.contributors"><code class="xref">fairdm.contrib.contributors</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.access.html#module-fairdm.contrib.contributors.access"><code class="xref">fairdm.contrib.contributors.access</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.adapters.html#module-fairdm.contrib.contributors.adapters"><code class="xref">fairdm.contrib.contributors.adapters</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.admin.html#module-fairdm.contrib.contributors.admin"><code class="xref">fairdm.contrib.contributors.admin</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.apps.html#module-fairdm.contrib.contributors.apps"><code class="xref">fairdm.contrib.contributors.apps</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.choices.html#module-fairdm.contrib.contributors.choices"><code class="xref">fairdm.contrib.contributors.choices</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.exceptions.html#module-fairdm.contrib.contributors.exceptions"><code class="xref">fairdm.contrib.contributors.exceptions</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.filters.html#module-fairdm.contrib.contributors.filters"><code class="xref">fairdm.contrib.contributors.filters</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.forms.html#module-fairdm.contrib.contributors.forms"><code class="xref">fairdm.contrib.contributors.forms</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.forms.account.html#module-fairdm.contrib.contributors.forms.account"><code class="xref">fairdm.contrib.contributors.forms.account</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.forms.contribution.html#module-fairdm.contrib.contributors.forms.contribution"><code class="xref">fairdm.contrib.contributors.forms.contribution</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.forms.forms.html#module-fairdm.contrib.contributors.forms.forms"><code class="xref">fairdm.contrib.contributors.forms.forms</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.forms.organization.html#module-fairdm.contrib.contributors.forms.organization"><code class="xref">fairdm.contrib.contributors.forms.organization</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.forms.person.html#module-fairdm.contrib.contributors.forms.person"><code class="xref">fairdm.contrib.contributors.forms.person</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.forms.profile.html#module-fairdm.contrib.contributors.forms.profile"><code class="xref">fairdm.contrib.contributors.forms.profile</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.forms.widgets.html#module-fairdm.contrib.contributors.forms.widgets"><code class="xref">fairdm.contrib.contributors.forms.widgets</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.managers.html#module-fairdm.contrib.contributors.managers"><code class="xref">fairdm.contrib.contributors.managers</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#module-fairdm.contrib.contributors.models"><code class="xref">fairdm.contrib.contributors.models</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.permissions.html#module-fairdm.contrib.contributors.permissions"><code class="xref">fairdm.contrib.contributors.permissions</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.html#module-fairdm.contrib.contributors.plugins"><code class="xref">fairdm.contrib.contributors.plugins</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.organisation.html#module-fairdm.contrib.contributors.plugins.organisation"><code class="xref">fairdm.contrib.contributors.plugins.organisation</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.overview.html#module-fairdm.contrib.contributors.plugins.overview"><code class="xref">fairdm.contrib.contributors.plugins.overview</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.person.html#module-fairdm.contrib.contributors.plugins.person"><code class="xref">fairdm.contrib.contributors.plugins.person</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#module-fairdm.contrib.contributors.plugins.shared"><code class="xref">fairdm.contrib.contributors.plugins.shared</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.update.html#module-fairdm.contrib.contributors.plugins.update"><code class="xref">fairdm.contrib.contributors.plugins.update</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.profiles.html#module-fairdm.contrib.contributors.profiles"><code class="xref">fairdm.contrib.contributors.profiles</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.receivers.html#module-fairdm.contrib.contributors.receivers"><code class="xref">fairdm.contrib.contributors.receivers</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.resources.html#module-fairdm.contrib.contributors.resources"><code class="xref">fairdm.contrib.contributors.resources</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.html#module-fairdm.contrib.contributors.services"><code class="xref">fairdm.contrib.contributors.services</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.claiming.html#module-fairdm.contrib.contributors.services.claiming"><code class="xref">fairdm.contrib.contributors.services.claiming</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.crediting.html#module-fairdm.contrib.contributors.services.crediting"><code class="xref">fairdm.contrib.contributors.services.crediting</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.matching.html#module-fairdm.contrib.contributors.services.matching"><code class="xref">fairdm.contrib.contributors.services.matching</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.merge.html#module-fairdm.contrib.contributors.services.merge"><code class="xref">fairdm.contrib.contributors.services.merge</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.services.registries.html#module-fairdm.contrib.contributors.services.registries"><code class="xref">fairdm.contrib.contributors.services.registries</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.signals.html#module-fairdm.contrib.contributors.signals"><code class="xref">fairdm.contrib.contributors.signals</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.tasks.html#module-fairdm.contrib.contributors.tasks"><code class="xref">fairdm.contrib.contributors.tasks</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.templatetags.html#module-fairdm.contrib.contributors.templatetags"><code class="xref">fairdm.contrib.contributors.templatetags</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.templatetags.contributor_tags.html#module-fairdm.contrib.contributors.templatetags.contributor_tags"><code class="xref">fairdm.contrib.contributors.templatetags.contributor_tags</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.urls.html#module-fairdm.contrib.contributors.urls"><code class="xref">fairdm.contrib.contributors.urls</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.utils.html#module-fairdm.contrib.contributors.utils"><code class="xref">fairdm.contrib.contributors.utils</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.utils.audit.html#module-fairdm.contrib.contributors.utils.audit"><code class="xref">fairdm.contrib.contributors.utils.audit</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.utils.helpers.html#module-fairdm.contrib.contributors.utils.helpers"><code class="xref">fairdm.contrib.contributors.utils.helpers</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.utils.tokens.html#module-fairdm.contrib.contributors.utils.tokens"><code class="xref">fairdm.contrib.contributors.utils.tokens</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.utils.transforms.html#module-fairdm.contrib.contributors.utils.transforms"><code class="xref">fairdm.contrib.contributors.utils.transforms</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.validators.html#module-fairdm.contrib.contributors.validators"><code class="xref">fairdm.contrib.contributors.validators</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.views.html#module-fairdm.contrib.contributors.views"><code class="xref">fairdm.contrib.contributors.views</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.views.claiming.html#module-fairdm.contrib.contributors.views.claiming"><code class="xref">fairdm.contrib.contributors.views.claiming</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.views.organization.html#module-fairdm.contrib.contributors.views.organization"><code class="xref">fairdm.contrib.contributors.views.organization</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.views.person.html#module-fairdm.contrib.contributors.views.person"><code class="xref">fairdm.contrib.contributors.views.person</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.contributors.views.team.html#module-fairdm.contrib.contributors.views.team"><code class="xref">fairdm.contrib.contributors.views.team</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.identity.html#module-fairdm.contrib.identity"><code class="xref">fairdm.contrib.identity</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.identity.admin.html#module-fairdm.contrib.identity.admin"><code class="xref">fairdm.contrib.identity.admin</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.identity.apps.html#module-fairdm.contrib.identity.apps"><code class="xref">fairdm.contrib.identity.apps</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.identity.forms.html#module-fairdm.contrib.identity.forms"><code class="xref">fairdm.contrib.identity.forms</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.identity.models.html#module-fairdm.contrib.identity.models"><code class="xref">fairdm.contrib.identity.models</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.import_export.html#module-fairdm.contrib.import_export"><code class="xref">fairdm.contrib.import_export</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.import_export.apps.html#module-fairdm.contrib.import_export.apps"><code class="xref">fairdm.contrib.import_export.apps</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.import_export.formats.html#module-fairdm.contrib.import_export.formats"><code class="xref">fairdm.contrib.import_export.formats</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.import_export.forms.html#module-fairdm.contrib.import_export.forms"><code class="xref">fairdm.contrib.import_export.forms</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.import_export.resources.html#module-fairdm.contrib.import_export.resources"><code class="xref">fairdm.contrib.import_export.resources</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.import_export.urls.html#module-fairdm.contrib.import_export.urls"><code class="xref">fairdm.contrib.import_export.urls</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.import_export.utils.html#module-fairdm.contrib.import_export.utils"><code class="xref">fairdm.contrib.import_export.utils</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.import_export.views.html#module-fairdm.contrib.import_export.views"><code class="xref">fairdm.contrib.import_export.views</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.location.html#module-fairdm.contrib.location"><code class="xref">fairdm.contrib.location</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.location.apps.html#module-fairdm.contrib.location.apps"><code class="xref">fairdm.contrib.location.apps</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.plugins.html#module-fairdm.contrib.plugins"><code class="xref">fairdm.contrib.plugins</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.plugins.access.html#module-fairdm.contrib.plugins.access"><code class="xref">fairdm.contrib.plugins.access</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.plugins.apps.html#module-fairdm.contrib.plugins.apps"><code class="xref">fairdm.contrib.plugins.apps</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.plugins.base.html#module-fairdm.contrib.plugins.base"><code class="xref">fairdm.contrib.plugins.base</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.plugins.checks.html#module-fairdm.contrib.plugins.checks"><code class="xref">fairdm.contrib.plugins.checks</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.plugins.menus.html#module-fairdm.contrib.plugins.menus"><code class="xref">fairdm.contrib.plugins.menus</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.plugins.mixins.html#module-fairdm.contrib.plugins.mixins"><code class="xref">fairdm.contrib.plugins.mixins</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.plugins.registration.html#module-fairdm.contrib.plugins.registration"><code class="xref">fairdm.contrib.plugins.registration</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.plugins.templatetags.html#module-fairdm.contrib.plugins.templatetags"><code class="xref">fairdm.contrib.plugins.templatetags</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.plugins.templatetags.plugin_tags.html#module-fairdm.contrib.plugins.templatetags.plugin_tags"><code class="xref">fairdm.contrib.plugins.templatetags.plugin_tags</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.contrib.plugins.utils.html#module-fairdm.contrib.plugins.utils"><code class="xref">fairdm.contrib.plugins.utils</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.html#module-fairdm.core"><code class="xref">fairdm.core</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.abstract.html#module-fairdm.core.abstract"><code class="xref">fairdm.core.abstract</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.admin.html#module-fairdm.core.admin"><code class="xref">fairdm.core.admin</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.apps.html#module-fairdm.core.apps"><code class="xref">fairdm.core.apps</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.choices.html#module-fairdm.core.choices"><code class="xref">fairdm.core.choices</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.dataset.html#module-fairdm.core.dataset"><code class="xref">fairdm.core.dataset</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.dataset.admin.html#module-fairdm.core.dataset.admin"><code class="xref">fairdm.core.dataset.admin</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.dataset.apps.html#module-fairdm.core.dataset.apps"><code class="xref">fairdm.core.dataset.apps</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.dataset.filters.html#module-fairdm.core.dataset.filters"><code class="xref">fairdm.core.dataset.filters</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.dataset.forms.html#module-fairdm.core.dataset.forms"><code class="xref">fairdm.core.dataset.forms</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.dataset.models.html#module-fairdm.core.dataset.models"><code class="xref">fairdm.core.dataset.models</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.dataset.plugins.html#module-fairdm.core.dataset.plugins"><code class="xref">fairdm.core.dataset.plugins</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.dataset.urls.html#module-fairdm.core.dataset.urls"><code class="xref">fairdm.core.dataset.urls</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.dataset.views.html#module-fairdm.core.dataset.views"><code class="xref">fairdm.core.dataset.views</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.dates.html#module-fairdm.core.dates"><code class="xref">fairdm.core.dates</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.descriptions.html#module-fairdm.core.descriptions"><code class="xref">fairdm.core.descriptions</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.editing.html#module-fairdm.core.editing"><code class="xref">fairdm.core.editing</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.filters.html#module-fairdm.core.filters"><code class="xref">fairdm.core.filters</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.forms.html#module-fairdm.core.forms"><code class="xref">fairdm.core.forms</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.formsets.html#module-fairdm.core.formsets"><code class="xref">fairdm.core.formsets</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.image_utils.html#module-fairdm.core.image_utils"><code class="xref">fairdm.core.image_utils</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.managers.html#module-fairdm.core.managers"><code class="xref">fairdm.core.managers</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.measurement.html#module-fairdm.core.measurement"><code class="xref">fairdm.core.measurement</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.measurement.admin.html#module-fairdm.core.measurement.admin"><code class="xref">fairdm.core.measurement.admin</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.measurement.apps.html#module-fairdm.core.measurement.apps"><code class="xref">fairdm.core.measurement.apps</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.measurement.config.html#module-fairdm.core.measurement.config"><code class="xref">fairdm.core.measurement.config</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.measurement.filters.html#module-fairdm.core.measurement.filters"><code class="xref">fairdm.core.measurement.filters</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.measurement.forms.html#module-fairdm.core.measurement.forms"><code class="xref">fairdm.core.measurement.forms</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.measurement.managers.html#module-fairdm.core.measurement.managers"><code class="xref">fairdm.core.measurement.managers</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.measurement.models.html#module-fairdm.core.measurement.models"><code class="xref">fairdm.core.measurement.models</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.measurement.plugins.html#module-fairdm.core.measurement.plugins"><code class="xref">fairdm.core.measurement.plugins</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.measurement.urls.html#module-fairdm.core.measurement.urls"><code class="xref">fairdm.core.measurement.urls</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.models.html#module-fairdm.core.models"><code class="xref">fairdm.core.models</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.overview.html#module-fairdm.core.overview"><code class="xref">fairdm.core.overview</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.permissions.html#module-fairdm.core.permissions"><code class="xref">fairdm.core.permissions</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.plugins.html#module-fairdm.core.plugins"><code class="xref">fairdm.core.plugins</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.project.html#module-fairdm.core.project"><code class="xref">fairdm.core.project</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.project.admin.html#module-fairdm.core.project.admin"><code class="xref">fairdm.core.project.admin</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.project.apps.html#module-fairdm.core.project.apps"><code class="xref">fairdm.core.project.apps</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.project.filters.html#module-fairdm.core.project.filters"><code class="xref">fairdm.core.project.filters</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.project.forms.html#module-fairdm.core.project.forms"><code class="xref">fairdm.core.project.forms</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.project.models.html#module-fairdm.core.project.models"><code class="xref">fairdm.core.project.models</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.project.plugins.html#module-fairdm.core.project.plugins"><code class="xref">fairdm.core.project.plugins</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.project.receivers.html#module-fairdm.core.project.receivers"><code class="xref">fairdm.core.project.receivers</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.project.serializers.html#module-fairdm.core.project.serializers"><code class="xref">fairdm.core.project.serializers</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.project.transforms.html#module-fairdm.core.project.transforms"><code class="xref">fairdm.core.project.transforms</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.project.urls.html#module-fairdm.core.project.urls"><code class="xref">fairdm.core.project.urls</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.project.validators.html#module-fairdm.core.project.validators"><code class="xref">fairdm.core.project.validators</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.project.views.html#module-fairdm.core.project.views"><code class="xref">fairdm.core.project.views</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.related_records.html#module-fairdm.core.related_records"><code class="xref">fairdm.core.related_records</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.sample.html#module-fairdm.core.sample"><code class="xref">fairdm.core.sample</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.sample.admin.html#module-fairdm.core.sample.admin"><code class="xref">fairdm.core.sample.admin</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.sample.apps.html#module-fairdm.core.sample.apps"><code class="xref">fairdm.core.sample.apps</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.sample.config.html#module-fairdm.core.sample.config"><code class="xref">fairdm.core.sample.config</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.sample.filters.html#module-fairdm.core.sample.filters"><code class="xref">fairdm.core.sample.filters</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.sample.forms.html#module-fairdm.core.sample.forms"><code class="xref">fairdm.core.sample.forms</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.sample.managers.html#module-fairdm.core.sample.managers"><code class="xref">fairdm.core.sample.managers</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.sample.models.html#module-fairdm.core.sample.models"><code class="xref">fairdm.core.sample.models</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.sample.plugins.html#module-fairdm.core.sample.plugins"><code class="xref">fairdm.core.sample.plugins</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.sample.urls.html#module-fairdm.core.sample.urls"><code class="xref">fairdm.core.sample.urls</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.urls.html#module-fairdm.core.urls"><code class="xref">fairdm.core.urls</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.utils.html#module-fairdm.core.utils"><code class="xref">fairdm.core.utils</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.core.vocabularies.html#module-fairdm.core.vocabularies"><code class="xref">fairdm.core.vocabularies</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.db.html#module-fairdm.db"><code class="xref">fairdm.db</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.db.fields.html#module-fairdm.db.fields"><code class="xref">fairdm.db.fields</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.db.managers.html#module-fairdm.db.managers"><code class="xref">fairdm.db.managers</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.db.models.html#module-fairdm.db.models"><code class="xref">fairdm.db.models</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.factories.html#module-fairdm.factories"><code class="xref">fairdm.factories</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.factories.contributors.html#module-fairdm.factories.contributors"><code class="xref">fairdm.factories.contributors</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.factories.core.html#module-fairdm.factories.core"><code class="xref">fairdm.factories.core</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.factories.utils.html#module-fairdm.factories.utils"><code class="xref">fairdm.factories.utils</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.forms.html#module-fairdm.forms"><code class="xref">fairdm.forms</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.forms.base.html#module-fairdm.forms.base"><code class="xref">fairdm.forms.base</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.forms.fields.html#module-fairdm.forms.fields"><code class="xref">fairdm.forms.fields</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.management.html#module-fairdm.management"><code class="xref">fairdm.management</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.management.commands.html#module-fairdm.management.commands"><code class="xref">fairdm.management.commands</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.management.commands.cleanup_permissions.html#module-fairdm.management.commands.cleanup_permissions"><code class="xref">fairdm.management.commands.cleanup_permissions</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.management.commands.create_dev_accounts.html#module-fairdm.management.commands.create_dev_accounts"><code class="xref">fairdm.management.commands.create_dev_accounts</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.management.commands.generate_fake_data.html#module-fairdm.management.commands.generate_fake_data"><code class="xref">fairdm.management.commands.generate_fake_data</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.management.commands.seed_licenses.html#module-fairdm.management.commands.seed_licenses"><code class="xref">fairdm.management.commands.seed_licenses</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.management.commands.show_config.html#module-fairdm.management.commands.show_config"><code class="xref">fairdm.management.commands.show_config</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.management.commands.upgrade_vocabularies.html#module-fairdm.management.commands.upgrade_vocabularies"><code class="xref">fairdm.management.commands.upgrade_vocabularies</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.menus.html#module-fairdm.menus"><code class="xref">fairdm.menus</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.models.html#module-fairdm.models"><code class="xref">fairdm.models</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.permissions.html#module-fairdm.permissions"><code class="xref">fairdm.permissions</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.plugins.html#module-fairdm.plugins"><code class="xref">fairdm.plugins</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.portal_roles.html#module-fairdm.portal_roles"><code class="xref">fairdm.portal_roles</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.registry.html#module-fairdm.registry"><code class="xref">fairdm.registry</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.registry.config.html#module-fairdm.registry.config"><code class="xref">fairdm.registry.config</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.registry.exceptions.html#module-fairdm.registry.exceptions"><code class="xref">fairdm.registry.exceptions</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.registry.factories.html#module-fairdm.registry.factories"><code class="xref">fairdm.registry.factories</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.registry.registry.html#module-fairdm.registry.registry"><code class="xref">fairdm.registry.registry</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.templatetags.html#module-fairdm.templatetags"><code class="xref">fairdm.templatetags</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.templatetags.fairdm.html#module-fairdm.templatetags.fairdm"><code class="xref">fairdm.templatetags.fairdm</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.utils.html#module-fairdm.utils"><code class="xref">fairdm.utils</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.utils.choices.html#module-fairdm.utils.choices"><code class="xref">fairdm.utils.choices</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.utils.context_processors.html#module-fairdm.utils.context_processors"><code class="xref">fairdm.utils.context_processors</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.utils.inspection.html#module-fairdm.utils.inspection"><code class="xref">fairdm.utils.inspection</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.utils.location.html#module-fairdm.utils.location"><code class="xref">fairdm.utils.location</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.utils.location.coverage.html#module-fairdm.utils.location.coverage"><code class="xref">fairdm.utils.location.coverage</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.utils.location.db.html#module-fairdm.utils.location.db"><code class="xref">fairdm.utils.location.db</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.utils.location.forms.html#module-fairdm.utils.location.forms"><code class="xref">fairdm.utils.location.forms</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.utils.location.managers.html#module-fairdm.utils.location.managers"><code class="xref">fairdm.utils.location.managers</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.utils.location.resources.html#module-fairdm.utils.location.resources"><code class="xref">fairdm.utils.location.resources</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.utils.markdown.html#module-fairdm.utils.markdown"><code class="xref">fairdm.utils.markdown</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.utils.models.html#module-fairdm.utils.models"><code class="xref">fairdm.utils.models</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.utils.permissions.html#module-fairdm.utils.permissions"><code class="xref">fairdm.utils.permissions</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.utils.utils.html#module-fairdm.utils.utils"><code class="xref">fairdm.utils.utils</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.views.html#module-fairdm.views"><code class="xref">fairdm.views</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.views.base.html#module-fairdm.views.base"><code class="xref">fairdm.views.base</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.views.generic.html#module-fairdm.views.generic"><code class="xref">fairdm.views.generic</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="developers/reference/api/fairdm/fairdm.views.mixins.html#module-fairdm.views.mixins"><code class="xref">fairdm.views.mixins</code></a></td><td>
+       <em></em></td></tr>
+   </table>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Samuel Jennings.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.21.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

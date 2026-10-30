@@ -1,0 +1,1223 @@
+# {py:mod}`fairdm.contrib.contributors.admin`
+
+```{py:module} fairdm.contrib.contributors.admin
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`AffiliationForm <fairdm.contrib.contributors.admin.AffiliationForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationForm
+    :summary:
+    ```
+* - {py:obj}`ClaimedStatusFilter <fairdm.contrib.contributors.admin.ClaimedStatusFilter>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.admin.ClaimedStatusFilter
+    :summary:
+    ```
+* - {py:obj}`AccountEmailInline <fairdm.contrib.contributors.admin.AccountEmailInline>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.admin.AccountEmailInline
+    :summary:
+    ```
+* - {py:obj}`ContributionInline <fairdm.contrib.contributors.admin.ContributionInline>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.admin.ContributionInline
+    :summary:
+    ```
+* - {py:obj}`ContributorInline <fairdm.contrib.contributors.admin.ContributorInline>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.admin.ContributorInline
+    :summary:
+    ```
+* - {py:obj}`AffiliationInline <fairdm.contrib.contributors.admin.AffiliationInline>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationInline
+    :summary:
+    ```
+* - {py:obj}`MemberInline <fairdm.contrib.contributors.admin.MemberInline>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.admin.MemberInline
+    :summary:
+    ```
+* - {py:obj}`IdentifierInline <fairdm.contrib.contributors.admin.IdentifierInline>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.admin.IdentifierInline
+    :summary:
+    ```
+* - {py:obj}`SubOrganizationInline <fairdm.contrib.contributors.admin.SubOrganizationInline>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.admin.SubOrganizationInline
+    :summary:
+    ```
+* - {py:obj}`UserAdmin <fairdm.contrib.contributors.admin.UserAdmin>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin
+    :summary:
+    ```
+* - {py:obj}`OrganizationActionForm <fairdm.contrib.contributors.admin.OrganizationActionForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.admin.OrganizationActionForm
+    :summary:
+    ```
+* - {py:obj}`OrganizationAdmin <fairdm.contrib.contributors.admin.OrganizationAdmin>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.admin.OrganizationAdmin
+    :summary:
+    ```
+* - {py:obj}`AffiliationAdmin <fairdm.contrib.contributors.admin.AffiliationAdmin>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationAdmin
+    :summary:
+    ```
+* - {py:obj}`ClaimingAuditLogAdmin <fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`bind_affiliation_form_user <fairdm.contrib.contributors.admin.bind_affiliation_form_user>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.admin.bind_affiliation_form_user
+    :summary:
+    ```
+````
+
+### API
+
+``````{py:class} AffiliationForm(*args, user=None, **kwargs)
+:canonical: fairdm.contrib.contributors.admin.AffiliationForm
+
+Bases: {py:obj}`django.forms.ModelForm`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationForm.__init__
+```
+
+`````{py:class} Meta
+:canonical: fairdm.contrib.contributors.admin.AffiliationForm.Meta
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationForm.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.contributors.admin.AffiliationForm.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationForm.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.contrib.contributors.admin.AffiliationForm.Meta.fields
+:value: >
+   '__all__'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationForm.Meta.fields
+```
+
+````
+
+`````
+
+````{py:method} clean()
+:canonical: fairdm.contrib.contributors.admin.AffiliationForm.clean
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationForm.clean
+```
+
+````
+
+``````
+
+````{py:function} bind_affiliation_form_user(form_class, user)
+:canonical: fairdm.contrib.contributors.admin.bind_affiliation_form_user
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.bind_affiliation_form_user
+```
+````
+
+`````{py:class} ClaimedStatusFilter(request, params, model, model_admin)
+:canonical: fairdm.contrib.contributors.admin.ClaimedStatusFilter
+
+Bases: {py:obj}`django.contrib.admin.SimpleListFilter`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ClaimedStatusFilter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ClaimedStatusFilter.__init__
+```
+
+````{py:attribute} title
+:canonical: fairdm.contrib.contributors.admin.ClaimedStatusFilter.title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ClaimedStatusFilter.title
+```
+
+````
+
+````{py:attribute} parameter_name
+:canonical: fairdm.contrib.contributors.admin.ClaimedStatusFilter.parameter_name
+:value: >
+   'is_claimed'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ClaimedStatusFilter.parameter_name
+```
+
+````
+
+````{py:method} lookups(request, model_admin)
+:canonical: fairdm.contrib.contributors.admin.ClaimedStatusFilter.lookups
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ClaimedStatusFilter.lookups
+```
+
+````
+
+````{py:method} queryset(request, queryset)
+:canonical: fairdm.contrib.contributors.admin.ClaimedStatusFilter.queryset
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ClaimedStatusFilter.queryset
+```
+
+````
+
+`````
+
+`````{py:class} AccountEmailInline(parent_model, admin_site)
+:canonical: fairdm.contrib.contributors.admin.AccountEmailInline
+
+Bases: {py:obj}`django.contrib.admin.TabularInline`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AccountEmailInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AccountEmailInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.contributors.admin.AccountEmailInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AccountEmailInline.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.contrib.contributors.admin.AccountEmailInline.fields
+:value: >
+   ['email', 'primary', 'verified']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AccountEmailInline.fields
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.contrib.contributors.admin.AccountEmailInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AccountEmailInline.extra
+```
+
+````
+
+`````
+
+`````{py:class} ContributionInline(parent_model, admin_site)
+:canonical: fairdm.contrib.contributors.admin.ContributionInline
+
+Bases: {py:obj}`django.contrib.admin.StackedInline`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ContributionInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ContributionInline.__init__
+```
+
+````{py:attribute} extra
+:canonical: fairdm.contrib.contributors.admin.ContributionInline.extra
+:value: >
+   1
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ContributionInline.extra
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.contrib.contributors.admin.ContributionInline.fields
+:value: >
+   ('profile', 'roles')
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ContributionInline.fields
+```
+
+````
+
+`````
+
+`````{py:class} ContributorInline(parent_model, admin_site)
+:canonical: fairdm.contrib.contributors.admin.ContributorInline
+
+Bases: {py:obj}`django.contrib.admin.StackedInline`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ContributorInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ContributorInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.contributors.admin.ContributorInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ContributorInline.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.contrib.contributors.admin.ContributorInline.fields
+:value: >
+   ['profile']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ContributorInline.fields
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.contrib.contributors.admin.ContributorInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ContributorInline.extra
+```
+
+````
+
+`````
+
+`````{py:class} AffiliationInline(parent_model, admin_site)
+:canonical: fairdm.contrib.contributors.admin.AffiliationInline
+
+Bases: {py:obj}`django.contrib.admin.StackedInline`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.contributors.admin.AffiliationInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationInline.model
+```
+
+````
+
+````{py:attribute} form
+:canonical: fairdm.contrib.contributors.admin.AffiliationInline.form
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationInline.form
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.contrib.contributors.admin.AffiliationInline.fields
+:value: >
+   [('organization', 'type', 'is_primary')]
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationInline.fields
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.contrib.contributors.admin.AffiliationInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationInline.extra
+```
+
+````
+
+````{py:method} get_formset(request, obj=None, **kwargs)
+:canonical: fairdm.contrib.contributors.admin.AffiliationInline.get_formset
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationInline.get_formset
+```
+
+````
+
+`````
+
+`````{py:class} MemberInline(parent_model, admin_site)
+:canonical: fairdm.contrib.contributors.admin.MemberInline
+
+Bases: {py:obj}`django.contrib.admin.StackedInline`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.MemberInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.MemberInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.contributors.admin.MemberInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.MemberInline.model
+```
+
+````
+
+````{py:attribute} form
+:canonical: fairdm.contrib.contributors.admin.MemberInline.form
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.MemberInline.form
+```
+
+````
+
+````{py:attribute} fk_name
+:canonical: fairdm.contrib.contributors.admin.MemberInline.fk_name
+:value: >
+   'organization'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.MemberInline.fk_name
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.contrib.contributors.admin.MemberInline.fields
+:value: >
+   [('person', 'type', 'is_primary')]
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.MemberInline.fields
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.contrib.contributors.admin.MemberInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.MemberInline.extra
+```
+
+````
+
+````{py:attribute} verbose_name
+:canonical: fairdm.contrib.contributors.admin.MemberInline.verbose_name
+:value: >
+   'Member'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.MemberInline.verbose_name
+```
+
+````
+
+````{py:attribute} verbose_name_plural
+:canonical: fairdm.contrib.contributors.admin.MemberInline.verbose_name_plural
+:value: >
+   'Members'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.MemberInline.verbose_name_plural
+```
+
+````
+
+````{py:method} get_formset(request, obj=None, **kwargs)
+:canonical: fairdm.contrib.contributors.admin.MemberInline.get_formset
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.MemberInline.get_formset
+```
+
+````
+
+`````
+
+`````{py:class} IdentifierInline(parent_model, admin_site)
+:canonical: fairdm.contrib.contributors.admin.IdentifierInline
+
+Bases: {py:obj}`django.contrib.admin.StackedInline`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.IdentifierInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.IdentifierInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.contributors.admin.IdentifierInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.IdentifierInline.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.contrib.contributors.admin.IdentifierInline.fields
+:value: >
+   ['type', 'value']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.IdentifierInline.fields
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.contrib.contributors.admin.IdentifierInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.IdentifierInline.extra
+```
+
+````
+
+`````
+
+`````{py:class} SubOrganizationInline(parent_model, admin_site)
+:canonical: fairdm.contrib.contributors.admin.SubOrganizationInline
+
+Bases: {py:obj}`django.contrib.admin.TabularInline`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.SubOrganizationInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.SubOrganizationInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.contributors.admin.SubOrganizationInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.SubOrganizationInline.model
+```
+
+````
+
+````{py:attribute} fk_name
+:canonical: fairdm.contrib.contributors.admin.SubOrganizationInline.fk_name
+:value: >
+   'parent'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.SubOrganizationInline.fk_name
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.contrib.contributors.admin.SubOrganizationInline.fields
+:value: >
+   ['name']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.SubOrganizationInline.fields
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.contrib.contributors.admin.SubOrganizationInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.SubOrganizationInline.extra
+```
+
+````
+
+````{py:attribute} verbose_name
+:canonical: fairdm.contrib.contributors.admin.SubOrganizationInline.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.SubOrganizationInline.verbose_name
+```
+
+````
+
+````{py:attribute} verbose_name_plural
+:canonical: fairdm.contrib.contributors.admin.SubOrganizationInline.verbose_name_plural
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.SubOrganizationInline.verbose_name_plural
+```
+
+````
+
+`````
+
+`````{py:class} UserAdmin(model, admin_site)
+:canonical: fairdm.contrib.contributors.admin.UserAdmin
+
+Bases: {py:obj}`django.contrib.auth.admin.UserAdmin`, {py:obj}`hijack.contrib.admin.HijackUserAdminMixin`, {py:obj}`import_export.admin.ImportExportModelAdmin`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.__init__
+```
+
+````{py:attribute} base_model
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.base_model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.base_model
+```
+
+````
+
+````{py:attribute} show_in_index
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.show_in_index
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.show_in_index
+```
+
+````
+
+````{py:attribute} change_form_template
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.change_form_template
+:value: >
+   'contributors/admin/change_form.html'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.change_form_template
+```
+
+````
+
+````{py:attribute} resource_classes
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.resource_classes
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.resource_classes
+```
+
+````
+
+````{py:attribute} skip_import_confirm
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.skip_import_confirm
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.skip_import_confirm
+```
+
+````
+
+````{py:attribute} inlines
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.inlines
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.inlines
+```
+
+````
+
+````{py:attribute} list_display
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.list_display
+:value: >
+   ['first_name', 'last_name', 'email', 'is_staff', 'account_state']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.list_display
+```
+
+````
+
+````{py:attribute} list_filter
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.list_filter
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.list_filter
+```
+
+````
+
+````{py:attribute} exclude
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.exclude
+:value: >
+   ('username',)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.exclude
+```
+
+````
+
+````{py:attribute} autocomplete_fields
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.autocomplete_fields
+:value: >
+   ['groups']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.autocomplete_fields
+```
+
+````
+
+````{py:attribute} readonly_fields
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.readonly_fields
+:value: >
+   ['synced_data', 'last_synced', 'uuid', 'added', 'modified']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.readonly_fields
+```
+
+````
+
+````{py:attribute} fieldsets
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.fieldsets
+:value: >
+   (('Basic info',), (), ('Permissions',))
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.fieldsets
+```
+
+````
+
+````{py:attribute} add_fieldsets
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.add_fieldsets
+:value: >
+   ((None,),)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.add_fieldsets
+```
+
+````
+
+````{py:attribute} search_fields
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.search_fields
+:value: >
+   ('email', 'name', 'uuid')
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.search_fields
+```
+
+````
+
+````{py:attribute} ordering
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.ordering
+:value: >
+   ('last_name',)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.ordering
+```
+
+````
+
+````{py:attribute} actions
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.actions
+:value: >
+   ['generate_claim_link_action', 'merge_person_action']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.actions
+```
+
+````
+
+````{py:method} get_fieldsets(request, obj=None)
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.get_fieldsets
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.get_fieldsets
+```
+
+````
+
+````{py:method} get_form(request, obj=None, **kwargs)
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.get_form
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.get_form
+```
+
+````
+
+````{py:method} get_actions(request)
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.get_actions
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.get_actions
+```
+
+````
+
+````{py:method} account_state(obj)
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.account_state
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.account_state
+```
+
+````
+
+````{py:method} merge_person_action(request, queryset)
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.merge_person_action
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.merge_person_action
+```
+
+````
+
+````{py:method} generate_claim_link_action(request, queryset)
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.generate_claim_link_action
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.generate_claim_link_action
+```
+
+````
+
+````{py:method} change_view(request, object_id, form_url='', extra_context=None)
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.change_view
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.change_view
+```
+
+````
+
+````{py:method} dismiss_candidate_view(request, pk, candidate_pk)
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.dismiss_candidate_view
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.dismiss_candidate_view
+```
+
+````
+
+````{py:method} get_urls()
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.get_urls
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.get_urls
+```
+
+````
+
+````{py:method} claim_link_view(request, pk)
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.claim_link_view
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.claim_link_view
+```
+
+````
+
+````{py:method} merge_view(request, pk)
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.merge_view
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.merge_view
+```
+
+````
+
+`````
+
+`````{py:class} OrganizationActionForm(data=None, files=None, auto_id='id_%s', prefix=None, initial=None, error_class=ErrorList, label_suffix=None, empty_permitted=False, field_order=None, use_required_attribute=None, renderer=None, bound_field_class=None)
+:canonical: fairdm.contrib.contributors.admin.OrganizationActionForm
+
+Bases: {py:obj}`django.contrib.admin.helpers.ActionForm`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.OrganizationActionForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.OrganizationActionForm.__init__
+```
+
+````{py:attribute} new_owner
+:canonical: fairdm.contrib.contributors.admin.OrganizationActionForm.new_owner
+:value: >
+   'PersonChoiceField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.OrganizationActionForm.new_owner
+```
+
+````
+
+`````
+
+`````{py:class} OrganizationAdmin(model, admin_site)
+:canonical: fairdm.contrib.contributors.admin.OrganizationAdmin
+
+Bases: {py:obj}`django.contrib.admin.ModelAdmin`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.OrganizationAdmin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.OrganizationAdmin.__init__
+```
+
+````{py:attribute} base_model
+:canonical: fairdm.contrib.contributors.admin.OrganizationAdmin.base_model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.OrganizationAdmin.base_model
+```
+
+````
+
+````{py:attribute} show_in_index
+:canonical: fairdm.contrib.contributors.admin.OrganizationAdmin.show_in_index
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.OrganizationAdmin.show_in_index
+```
+
+````
+
+````{py:attribute} inlines
+:canonical: fairdm.contrib.contributors.admin.OrganizationAdmin.inlines
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.OrganizationAdmin.inlines
+```
+
+````
+
+````{py:attribute} action_form
+:canonical: fairdm.contrib.contributors.admin.OrganizationAdmin.action_form
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.OrganizationAdmin.action_form
+```
+
+````
+
+````{py:attribute} list_display
+:canonical: fairdm.contrib.contributors.admin.OrganizationAdmin.list_display
+:value: >
+   ['name', 'city', 'country', 'lat', 'lon']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.OrganizationAdmin.list_display
+```
+
+````
+
+````{py:attribute} list_filter
+:canonical: fairdm.contrib.contributors.admin.OrganizationAdmin.list_filter
+:value: >
+   ['country']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.OrganizationAdmin.list_filter
+```
+
+````
+
+````{py:attribute} search_fields
+:canonical: fairdm.contrib.contributors.admin.OrganizationAdmin.search_fields
+:value: >
+   ['name']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.OrganizationAdmin.search_fields
+```
+
+````
+
+````{py:attribute} readonly_fields
+:canonical: fairdm.contrib.contributors.admin.OrganizationAdmin.readonly_fields
+:value: >
+   ['synced_data', 'last_synced', 'uuid', 'added', 'modified']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.OrganizationAdmin.readonly_fields
+```
+
+````
+
+````{py:attribute} fieldsets
+:canonical: fairdm.contrib.contributors.admin.OrganizationAdmin.fieldsets
+:value: >
+   ((None,), (), ())
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.OrganizationAdmin.fieldsets
+```
+
+````
+
+````{py:attribute} actions
+:canonical: fairdm.contrib.contributors.admin.OrganizationAdmin.actions
+:value: >
+   ['sync_from_ror', 'transfer_ownership_action']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.OrganizationAdmin.actions
+```
+
+````
+
+````{py:method} get_readonly_fields(request, obj: fairdm.contrib.contributors.models.Organization | None = None)
+:canonical: fairdm.contrib.contributors.admin.OrganizationAdmin.get_readonly_fields
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.OrganizationAdmin.get_readonly_fields
+```
+
+````
+
+````{py:method} sync_from_ror(request, queryset)
+:canonical: fairdm.contrib.contributors.admin.OrganizationAdmin.sync_from_ror
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.OrganizationAdmin.sync_from_ror
+```
+
+````
+
+````{py:method} transfer_ownership_action(request, queryset)
+:canonical: fairdm.contrib.contributors.admin.OrganizationAdmin.transfer_ownership_action
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.OrganizationAdmin.transfer_ownership_action
+```
+
+````
+
+`````
+
+`````{py:class} AffiliationAdmin(model, admin_site)
+:canonical: fairdm.contrib.contributors.admin.AffiliationAdmin
+
+Bases: {py:obj}`django.contrib.admin.ModelAdmin`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationAdmin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationAdmin.__init__
+```
+
+````{py:attribute} form
+:canonical: fairdm.contrib.contributors.admin.AffiliationAdmin.form
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationAdmin.form
+```
+
+````
+
+````{py:attribute} list_display
+:canonical: fairdm.contrib.contributors.admin.AffiliationAdmin.list_display
+:value: >
+   ['person', 'organization', 'type', 'is_primary']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationAdmin.list_display
+```
+
+````
+
+````{py:attribute} list_filter
+:canonical: fairdm.contrib.contributors.admin.AffiliationAdmin.list_filter
+:value: >
+   ['type', 'is_primary']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationAdmin.list_filter
+```
+
+````
+
+````{py:attribute} autocomplete_fields
+:canonical: fairdm.contrib.contributors.admin.AffiliationAdmin.autocomplete_fields
+:value: >
+   ['person', 'organization']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationAdmin.autocomplete_fields
+```
+
+````
+
+````{py:method} get_form(request, obj=None, **kwargs)
+:canonical: fairdm.contrib.contributors.admin.AffiliationAdmin.get_form
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationAdmin.get_form
+```
+
+````
+
+````{py:method} get_queryset(request)
+:canonical: fairdm.contrib.contributors.admin.AffiliationAdmin.get_queryset
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationAdmin.get_queryset
+```
+
+````
+
+````{py:method} has_change_permission(request, obj=None)
+:canonical: fairdm.contrib.contributors.admin.AffiliationAdmin.has_change_permission
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationAdmin.has_change_permission
+```
+
+````
+
+````{py:method} has_delete_permission(request, obj=None)
+:canonical: fairdm.contrib.contributors.admin.AffiliationAdmin.has_delete_permission
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.AffiliationAdmin.has_delete_permission
+```
+
+````
+
+`````
+
+`````{py:class} ClaimingAuditLogAdmin(model, admin_site)
+:canonical: fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin
+
+Bases: {py:obj}`django.contrib.admin.ModelAdmin`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.__init__
+```
+
+````{py:attribute} list_display
+:canonical: fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.list_display
+:value: >
+   ['timestamp', 'method', 'source_person', 'target_person', 'initiated_by', 'success']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.list_display
+```
+
+````
+
+````{py:attribute} list_filter
+:canonical: fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.list_filter
+:value: >
+   ['method', 'success']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.list_filter
+```
+
+````
+
+````{py:attribute} search_fields
+:canonical: fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.search_fields
+:value: >
+   ['source_person__name', 'target_person__name', 'initiated_by__name']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.search_fields
+```
+
+````
+
+````{py:attribute} date_hierarchy
+:canonical: fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.date_hierarchy
+:value: >
+   'timestamp'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.date_hierarchy
+```
+
+````
+
+````{py:attribute} ordering
+:canonical: fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.ordering
+:value: >
+   ['-timestamp']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.ordering
+```
+
+````
+
+````{py:method} has_add_permission(request)
+:canonical: fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_add_permission
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_add_permission
+```
+
+````
+
+````{py:method} has_view_permission(request, obj=None)
+:canonical: fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_view_permission
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_view_permission
+```
+
+````
+
+````{py:method} has_change_permission(request, obj=None)
+:canonical: fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_change_permission
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_change_permission
+```
+
+````
+
+````{py:method} has_delete_permission(request, obj=None)
+:canonical: fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_delete_permission
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.ClaimingAuditLogAdmin.has_delete_permission
+```
+
+````
+
+`````

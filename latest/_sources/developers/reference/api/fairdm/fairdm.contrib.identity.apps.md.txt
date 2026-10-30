@@ -1,0 +1,70 @@
+# {py:mod}`fairdm.contrib.identity.apps`
+
+```{py:module} fairdm.contrib.identity.apps
+```
+
+```{autodoc2-docstring} fairdm.contrib.identity.apps
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FairDMIdentityConfig <fairdm.contrib.identity.apps.FairDMIdentityConfig>`
+  - ```{autodoc2-docstring} fairdm.contrib.identity.apps.FairDMIdentityConfig
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} FairDMIdentityConfig(app_name, app_module)
+:canonical: fairdm.contrib.identity.apps.FairDMIdentityConfig
+
+Bases: {py:obj}`django.apps.AppConfig`
+
+```{autodoc2-docstring} fairdm.contrib.identity.apps.FairDMIdentityConfig
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.identity.apps.FairDMIdentityConfig.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.contrib.identity.apps.FairDMIdentityConfig.name
+:value: >
+   'fairdm.contrib.identity'
+
+```{autodoc2-docstring} fairdm.contrib.identity.apps.FairDMIdentityConfig.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.contrib.identity.apps.FairDMIdentityConfig.label
+:value: >
+   'identity'
+
+```{autodoc2-docstring} fairdm.contrib.identity.apps.FairDMIdentityConfig.label
+```
+
+````
+
+````{py:attribute} verbose_name
+:canonical: fairdm.contrib.identity.apps.FairDMIdentityConfig.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.identity.apps.FairDMIdentityConfig.verbose_name
+```
+
+````
+
+`````

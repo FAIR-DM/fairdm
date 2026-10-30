@@ -1,0 +1,122 @@
+# {py:mod}`fairdm.contrib.admin.admin`
+
+```{py:module} fairdm.contrib.admin.admin
+```
+
+```{autodoc2-docstring} fairdm.contrib.admin.admin
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ShippedRoleGroupForm <fairdm.contrib.admin.admin.ShippedRoleGroupForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.admin.admin.ShippedRoleGroupForm
+    :summary:
+    ```
+* - {py:obj}`ShippedRoleGroupAdmin <fairdm.contrib.admin.admin.ShippedRoleGroupAdmin>`
+  - ```{autodoc2-docstring} fairdm.contrib.admin.admin.ShippedRoleGroupAdmin
+    :summary:
+    ```
+````
+
+### API
+
+``````{py:class} ShippedRoleGroupForm(data=None, files=None, auto_id='id_%s', prefix=None, initial=None, error_class=ErrorList, label_suffix=None, empty_permitted=False, instance=None, use_required_attribute=None, renderer=None)
+:canonical: fairdm.contrib.admin.admin.ShippedRoleGroupForm
+
+Bases: {py:obj}`django.forms.ModelForm`
+
+```{autodoc2-docstring} fairdm.contrib.admin.admin.ShippedRoleGroupForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.admin.admin.ShippedRoleGroupForm.__init__
+```
+
+`````{py:class} Meta
+:canonical: fairdm.contrib.admin.admin.ShippedRoleGroupForm.Meta
+
+```{autodoc2-docstring} fairdm.contrib.admin.admin.ShippedRoleGroupForm.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.admin.admin.ShippedRoleGroupForm.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.admin.admin.ShippedRoleGroupForm.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.contrib.admin.admin.ShippedRoleGroupForm.Meta.fields
+:value: >
+   '__all__'
+
+```{autodoc2-docstring} fairdm.contrib.admin.admin.ShippedRoleGroupForm.Meta.fields
+```
+
+````
+
+`````
+
+````{py:method} clean_name()
+:canonical: fairdm.contrib.admin.admin.ShippedRoleGroupForm.clean_name
+
+```{autodoc2-docstring} fairdm.contrib.admin.admin.ShippedRoleGroupForm.clean_name
+```
+
+````
+
+``````
+
+`````{py:class} ShippedRoleGroupAdmin(model, admin_site)
+:canonical: fairdm.contrib.admin.admin.ShippedRoleGroupAdmin
+
+Bases: {py:obj}`django.contrib.auth.admin.GroupAdmin`
+
+```{autodoc2-docstring} fairdm.contrib.admin.admin.ShippedRoleGroupAdmin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.admin.admin.ShippedRoleGroupAdmin.__init__
+```
+
+````{py:attribute} form
+:canonical: fairdm.contrib.admin.admin.ShippedRoleGroupAdmin.form
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.admin.admin.ShippedRoleGroupAdmin.form
+```
+
+````
+
+````{py:method} has_delete_permission(request, obj=None)
+:canonical: fairdm.contrib.admin.admin.ShippedRoleGroupAdmin.has_delete_permission
+
+```{autodoc2-docstring} fairdm.contrib.admin.admin.ShippedRoleGroupAdmin.has_delete_permission
+```
+
+````
+
+````{py:method} delete_view(request, object_id, extra_context=None)
+:canonical: fairdm.contrib.admin.admin.ShippedRoleGroupAdmin.delete_view
+
+```{autodoc2-docstring} fairdm.contrib.admin.admin.ShippedRoleGroupAdmin.delete_view
+```
+
+````
+
+`````

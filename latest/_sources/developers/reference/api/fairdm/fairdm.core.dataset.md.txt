@@ -1,0 +1,24 @@
+# {py:mod}`fairdm.core.dataset`
+
+```{py:module} fairdm.core.dataset
+```
+
+```{autodoc2-docstring} fairdm.core.dataset
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.core.dataset.views
+fairdm.core.dataset.plugins
+fairdm.core.dataset.urls
+fairdm.core.dataset.forms
+fairdm.core.dataset.admin
+fairdm.core.dataset.apps
+fairdm.core.dataset.models
+fairdm.core.dataset.filters
+```

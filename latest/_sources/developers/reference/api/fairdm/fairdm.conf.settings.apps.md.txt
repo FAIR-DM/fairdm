@@ -1,0 +1,356 @@
+# {py:mod}`fairdm.conf.settings.apps`
+
+```{py:module} fairdm.conf.settings.apps
+```
+
+```{autodoc2-docstring} fairdm.conf.settings.apps
+:allowtitles:
+```
+
+## Module Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`BASE_DIR <fairdm.conf.settings.apps.BASE_DIR>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.BASE_DIR
+    :summary:
+    ```
+* - {py:obj}`INSTALLED_APPS <fairdm.conf.settings.apps.INSTALLED_APPS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.INSTALLED_APPS
+    :summary:
+    ```
+* - {py:obj}`MIDDLEWARE <fairdm.conf.settings.apps.MIDDLEWARE>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.MIDDLEWARE
+    :summary:
+    ```
+* - {py:obj}`TEMPLATES <fairdm.conf.settings.apps.TEMPLATES>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.TEMPLATES
+    :summary:
+    ```
+* - {py:obj}`ROOT_URLCONF <fairdm.conf.settings.apps.ROOT_URLCONF>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.ROOT_URLCONF
+    :summary:
+    ```
+* - {py:obj}`WSGI_APPLICATION <fairdm.conf.settings.apps.WSGI_APPLICATION>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.WSGI_APPLICATION
+    :summary:
+    ```
+* - {py:obj}`SITE_ID <fairdm.conf.settings.apps.SITE_ID>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.SITE_ID
+    :summary:
+    ```
+* - {py:obj}`SITE_DOMAIN <fairdm.conf.settings.apps.SITE_DOMAIN>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.SITE_DOMAIN
+    :summary:
+    ```
+* - {py:obj}`ADMIN_URL <fairdm.conf.settings.apps.ADMIN_URL>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.ADMIN_URL
+    :summary:
+    ```
+* - {py:obj}`ADMINS <fairdm.conf.settings.apps.ADMINS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.ADMINS
+    :summary:
+    ```
+* - {py:obj}`MANAGERS <fairdm.conf.settings.apps.MANAGERS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.MANAGERS
+    :summary:
+    ```
+* - {py:obj}`TIME_ZONE <fairdm.conf.settings.apps.TIME_ZONE>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.TIME_ZONE
+    :summary:
+    ```
+* - {py:obj}`USE_TZ <fairdm.conf.settings.apps.USE_TZ>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.USE_TZ
+    :summary:
+    ```
+* - {py:obj}`LANGUAGE_CODE <fairdm.conf.settings.apps.LANGUAGE_CODE>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.LANGUAGE_CODE
+    :summary:
+    ```
+* - {py:obj}`USE_I18N <fairdm.conf.settings.apps.USE_I18N>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.USE_I18N
+    :summary:
+    ```
+* - {py:obj}`USE_L10N <fairdm.conf.settings.apps.USE_L10N>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.USE_L10N
+    :summary:
+    ```
+* - {py:obj}`PARLER_DEFAULT_LANGUAGE_CODE <fairdm.conf.settings.apps.PARLER_DEFAULT_LANGUAGE_CODE>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.PARLER_DEFAULT_LANGUAGE_CODE
+    :summary:
+    ```
+* - {py:obj}`PARLER_LANGUAGES <fairdm.conf.settings.apps.PARLER_LANGUAGES>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.PARLER_LANGUAGES
+    :summary:
+    ```
+* - {py:obj}`FIXTURE_DIRS <fairdm.conf.settings.apps.FIXTURE_DIRS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.FIXTURE_DIRS
+    :summary:
+    ```
+* - {py:obj}`LOCALE_PATHS <fairdm.conf.settings.apps.LOCALE_PATHS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.LOCALE_PATHS
+    :summary:
+    ```
+* - {py:obj}`INTERNAL_IPS <fairdm.conf.settings.apps.INTERNAL_IPS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.INTERNAL_IPS
+    :summary:
+    ```
+* - {py:obj}`CRISPY_ALLOWED_TEMPLATE_PACKS <fairdm.conf.settings.apps.CRISPY_ALLOWED_TEMPLATE_PACKS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.CRISPY_ALLOWED_TEMPLATE_PACKS
+    :summary:
+    ```
+* - {py:obj}`CRISPY_TEMPLATE_PACK <fairdm.conf.settings.apps.CRISPY_TEMPLATE_PACK>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.CRISPY_TEMPLATE_PACK
+    :summary:
+    ```
+* - {py:obj}`DJANGO_TABLES2_TEMPLATE <fairdm.conf.settings.apps.DJANGO_TABLES2_TEMPLATE>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.apps.DJANGO_TABLES2_TEMPLATE
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} BASE_DIR
+:canonical: fairdm.conf.settings.apps.BASE_DIR
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.BASE_DIR
+```
+
+````
+
+````{py:data} INSTALLED_APPS
+:canonical: fairdm.conf.settings.apps.INSTALLED_APPS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.INSTALLED_APPS
+```
+
+````
+
+````{py:data} MIDDLEWARE
+:canonical: fairdm.conf.settings.apps.MIDDLEWARE
+:value: >
+   ['django.middleware.security.SecurityMiddleware', 'whitenoise.middleware.WhiteNoiseMiddleware', 'cor...
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.MIDDLEWARE
+```
+
+````
+
+````{py:data} TEMPLATES
+:canonical: fairdm.conf.settings.apps.TEMPLATES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.TEMPLATES
+```
+
+````
+
+````{py:data} ROOT_URLCONF
+:canonical: fairdm.conf.settings.apps.ROOT_URLCONF
+:value: >
+   'env(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.ROOT_URLCONF
+```
+
+````
+
+````{py:data} WSGI_APPLICATION
+:canonical: fairdm.conf.settings.apps.WSGI_APPLICATION
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.WSGI_APPLICATION
+```
+
+````
+
+````{py:data} SITE_ID
+:canonical: fairdm.conf.settings.apps.SITE_ID
+:value: >
+   'env(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.SITE_ID
+```
+
+````
+
+````{py:data} SITE_DOMAIN
+:canonical: fairdm.conf.settings.apps.SITE_DOMAIN
+:value: >
+   'env(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.SITE_DOMAIN
+```
+
+````
+
+````{py:data} ADMIN_URL
+:canonical: fairdm.conf.settings.apps.ADMIN_URL
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.ADMIN_URL
+```
+
+````
+
+````{py:data} ADMINS
+:canonical: fairdm.conf.settings.apps.ADMINS
+:value: >
+   [('Super User',)]
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.ADMINS
+```
+
+````
+
+````{py:data} MANAGERS
+:canonical: fairdm.conf.settings.apps.MANAGERS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.MANAGERS
+```
+
+````
+
+````{py:data} TIME_ZONE
+:canonical: fairdm.conf.settings.apps.TIME_ZONE
+:value: >
+   'env(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.TIME_ZONE
+```
+
+````
+
+````{py:data} USE_TZ
+:canonical: fairdm.conf.settings.apps.USE_TZ
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.USE_TZ
+```
+
+````
+
+````{py:data} LANGUAGE_CODE
+:canonical: fairdm.conf.settings.apps.LANGUAGE_CODE
+:value: >
+   'en'
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.LANGUAGE_CODE
+```
+
+````
+
+````{py:data} USE_I18N
+:canonical: fairdm.conf.settings.apps.USE_I18N
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.USE_I18N
+```
+
+````
+
+````{py:data} USE_L10N
+:canonical: fairdm.conf.settings.apps.USE_L10N
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.USE_L10N
+```
+
+````
+
+````{py:data} PARLER_DEFAULT_LANGUAGE_CODE
+:canonical: fairdm.conf.settings.apps.PARLER_DEFAULT_LANGUAGE_CODE
+:value: >
+   'en'
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.PARLER_DEFAULT_LANGUAGE_CODE
+```
+
+````
+
+````{py:data} PARLER_LANGUAGES
+:canonical: fairdm.conf.settings.apps.PARLER_LANGUAGES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.PARLER_LANGUAGES
+```
+
+````
+
+````{py:data} FIXTURE_DIRS
+:canonical: fairdm.conf.settings.apps.FIXTURE_DIRS
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.FIXTURE_DIRS
+```
+
+````
+
+````{py:data} LOCALE_PATHS
+:canonical: fairdm.conf.settings.apps.LOCALE_PATHS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.LOCALE_PATHS
+```
+
+````
+
+````{py:data} INTERNAL_IPS
+:canonical: fairdm.conf.settings.apps.INTERNAL_IPS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.INTERNAL_IPS
+```
+
+````
+
+````{py:data} CRISPY_ALLOWED_TEMPLATE_PACKS
+:canonical: fairdm.conf.settings.apps.CRISPY_ALLOWED_TEMPLATE_PACKS
+:value: >
+   ['daisyui']
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.CRISPY_ALLOWED_TEMPLATE_PACKS
+```
+
+````
+
+````{py:data} CRISPY_TEMPLATE_PACK
+:canonical: fairdm.conf.settings.apps.CRISPY_TEMPLATE_PACK
+:value: >
+   'daisyui'
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.CRISPY_TEMPLATE_PACK
+```
+
+````
+
+````{py:data} DJANGO_TABLES2_TEMPLATE
+:canonical: fairdm.conf.settings.apps.DJANGO_TABLES2_TEMPLATE
+:value: >
+   'django_tables2/bootstrap5-mvp.html'
+
+```{autodoc2-docstring} fairdm.conf.settings.apps.DJANGO_TABLES2_TEMPLATE
+```
+
+````

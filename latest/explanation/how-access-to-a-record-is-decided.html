@@ -1,0 +1,1110 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="How access to a record is decided" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="explanation/how-access-to-a-record-is-decided.html" />
+<meta property="og:site_name" content="fairdm" />
+<meta property="og:description" content="This page explains how a FairDM portal decides who may see and change a project, dataset, sample or measurement, and what the three refusals (a 404, a request to sign in, a 403) tell you. It covers..." />
+<meta name="description" content="This page explains how a FairDM portal decides who may see and change a project, dataset, sample or measurement, and what the three refusals (a 404, a request to sign in, a 403) tell you. It covers..." />
+
+    <title>How access to a record is decided &#8212; fairdm 0.3.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=cb8930eaaf36d9849b67"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
+
+    <script src="../_static/documentation_options.js?v=4621528c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script kind="utterances">
+
+    var commentsRunWhenDOMLoaded = cb => {
+    if (document.readyState != 'loading') {
+        cb()
+    } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', cb)
+    } else {
+        document.attachEvent('onreadystatechange', function() {
+        if (document.readyState == 'complete') cb()
+        })
+    }
+}
+
+var addUtterances = () => {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://utteranc.es/client.js";
+    script.async = "async";
+
+    script.setAttribute("repo", "FAIR-DM/fairdm");
+    script.setAttribute("issue-term", "pathname");
+    script.setAttribute("theme", "preferred-color-scheme");
+    script.setAttribute("label", "documentation");
+    script.setAttribute("crossorigin", "anonymous");
+
+    sections = document.querySelectorAll("div.section");
+    if (sections !== null) {
+        section = sections[sections.length-1];
+        section.appendChild(script);
+    }
+}
+commentsRunWhenDOMLoaded(addUtterances);
+</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'explanation/how-access-to-a-record-is-decided';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.21.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.fairdm.org/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'latest';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="icon" href="../_static/icon.svg"/>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Why FairDM records contributors" href="why-fairdm-records-contributors.html" />
+    <link rel="prev" title="Why complete metadata matters" href="why-complete-metadata-matters.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.3.1" />
+    <meta name="docbuild:last-update" content="Oct 30, 2026"/>
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.3.1 documentation - Home"/>
+    <img src="../_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.3.1 documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../developers/index.html">
+    Developers
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../administrators/index.html">
+    Administrators
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../users/index.html">
+    Users
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="what-fairdm-is-for.html">
+    What FairDM is for
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="fair-data-and-research-data-infrastructure.html">
+    FAIR data and research data infrastructure
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="the-technology-stack.html">
+    The technology stack
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="the-core-data-model.html">
+    The core data model
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="how-sample-and-measurement-types-are-stored.html">
+    How sample and measurement types are stored
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="controlled-vocabularies.html">
+    Controlled vocabularies
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="configuration-over-code.html">
+    Configuration over code
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="why-complete-metadata-matters.html">
+    Why complete metadata matters
+  </a>
+</li>
+
+
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="#">
+    How access to a record is decided
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="why-fairdm-records-contributors.html">
+    Why FairDM records contributors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="how-contributor-accounts-and-credits-work.html">
+    How contributor accounts and credits work
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="how-a-profile-is-claimed.html">
+    How a profile is claimed
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="how-fairdm-configures-a-portal.html">
+    How FairDM configures a portal
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="who-is-asked-to-agree-to-a-legal-document.html">
+    Who is asked to agree to a legal document
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="how-locations-are-stored-and-protected.html">
+    How locations are stored and protected
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="dataset-publication-dois-and-datacite-metadata.html">
+    Dataset publication, DOIs and DataCite metadata
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../reference/glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../contributing/index.html">
+    Framework Contributors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../adr/index.html">
+    Architecture Decision Records
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../ROADMAP.html">
+    Roadmap — FairDM
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../developers/index.html">
+    Developers
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../administrators/index.html">
+    Administrators
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../users/index.html">
+    Users
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="what-fairdm-is-for.html">
+    What FairDM is for
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="fair-data-and-research-data-infrastructure.html">
+    FAIR data and research data infrastructure
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="the-technology-stack.html">
+    The technology stack
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="the-core-data-model.html">
+    The core data model
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="how-sample-and-measurement-types-are-stored.html">
+    How sample and measurement types are stored
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="controlled-vocabularies.html">
+    Controlled vocabularies
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="configuration-over-code.html">
+    Configuration over code
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="why-complete-metadata-matters.html">
+    Why complete metadata matters
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    How access to a record is decided
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="why-fairdm-records-contributors.html">
+    Why FairDM records contributors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="how-contributor-accounts-and-credits-work.html">
+    How contributor accounts and credits work
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="how-a-profile-is-claimed.html">
+    How a profile is claimed
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="how-fairdm-configures-a-portal.html">
+    How FairDM configures a portal
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="who-is-asked-to-agree-to-a-legal-document.html">
+    Who is asked to agree to a legal document
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="how-locations-are-stored-and-protected.html">
+    How locations are stored and protected
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="dataset-publication-dois-and-datacite-metadata.html">
+    Dataset publication, DOIs and DataCite metadata
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../reference/glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing/index.html">
+    Framework Contributors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../adr/index.html">
+    Architecture Decision Records
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../ROADMAP.html">
+    Roadmap — FairDM
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"></div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">How access to a record is decided</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="how-access-to-a-record-is-decided">
+<h1>How access to a record is decided<a class="headerlink" href="#how-access-to-a-record-is-decided" title="Link to this heading">#</a></h1>
+<p>This page explains how a FairDM portal decides who may see and change a project, dataset, sample or measurement, and what the three refusals (a 404, a request to sign in, a 403) tell you. It covers the reasoning and the order in which the questions are asked. It does not tell you how to give someone access, which is a task covered in <a class="reference internal" href="../users/contributors/let-a-colleague-into-a-private-record.html"><span class="std std-doc">How to let a colleague into a private record</span></a>, and it does not list the code that answers each question, which is in <a class="reference internal" href="../developers/reference/contribution-levels-and-record-access.html"><span class="std std-doc">Contribution levels and record access</span></a>.</p>
+<section id="four-separate-questions">
+<h2>Four separate questions<a class="headerlink" href="#four-separate-questions" title="Link to this heading">#</a></h2>
+<p>Access is not one switch. A portal asks four different questions, and each has its own answer.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Question</p></th>
+<th class="head"><p>Decided by</p></th>
+<th class="head"><p>Applies to</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>May this person read that the record exists?</p></td>
+<td><p>The record’s visibility, or a level the person holds on it</p></td>
+<td><p>A project or dataset page</p></td>
+</tr>
+<tr class="row-odd"><td><p>May this person see the data beneath it?</p></td>
+<td><p>Whether the dataset is published</p></td>
+<td><p>Samples and measurements</p></td>
+</tr>
+<tr class="row-even"><td><p>May this person change it?</p></td>
+<td><p>A level on the record, or a portal role</p></td>
+<td><p>Every record</p></td>
+</tr>
+<tr class="row-odd"><td><p>May this person do something to the portal itself?</p></td>
+<td><p>A portal role</p></td>
+<td><p>People, organizations, profile claims, the administration interface</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Keeping them apart is deliberate. A researcher can describe their work publicly without releasing the data, and the person who looks after accounts does not need to read anyone’s samples.</p>
+</section>
+<section id="visibility-and-publication-are-different-flags">
+<h2>Visibility and publication are different flags<a class="headerlink" href="#visibility-and-publication-are-different-flags" title="Link to this heading">#</a></h2>
+<p>A project and a dataset each have a visibility, either private or public. A new record is private. Visibility decides whether the record’s own page, and the metadata on it, may be read by anyone who is not on its team.</p>
+<p>A dataset also has a separate <code class="docutils literal notranslate"><span class="pre">published</span></code> flag. Publication decides whether the samples and measurements held in the dataset may be shown. It is set in the administration interface and nowhere a researcher can reach, so releasing data is never one click on the dataset page. Every dataset starts unpublished.</p>
+<p>Neither flag implies the other. These are all ordinary states:</p>
+<ul class="simple">
+<li><p>A public dataset that is not published. Its description, counts and charts are open to everyone, and its records are not.</p></li>
+<li><p>A published dataset that is private. Its records belong in portal-wide listings, but its own page is closed to people outside the team.</p></li>
+<li><p>A dataset that is both public and published. This is the state in which everyone may see its samples and measurements.</p></li>
+</ul>
+<p>A sample or measurement has no visibility of its own. It follows its own dataset: anyone may open it when that dataset is public and published, and otherwise only people who hold a level on it, or on its dataset or project, may. A record’s presence is decided by the dataset that owns it, never by a dataset it merely refers to. A measurement can be made on a sample in a different dataset, and the two datasets are judged separately. The reasoning is in <a class="reference internal" href="../adr/0014-publication-is-a-separate-flag-from-visibility.html"><span class="std std-doc">ADR 0014</span></a> and <a class="reference internal" href="../adr/0015-a-records-own-dataset-decides-and-a-row-never-links-past-it.html"><span class="std std-doc">ADR 0015</span></a>.</p>
+</section>
+<section id="contribution-levels">
+<h2>Contribution levels<a class="headerlink" href="#contribution-levels" title="Link to this heading">#</a></h2>
+<p>Who may do what on a particular record is a single level, stored on the person’s credit for that record. There are three, and each includes the one before:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Level</p></th>
+<th class="head"><p>What it allows</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Can view</p></td>
+<td><p>Open the record and every page of it, even while it is private</p></td>
+</tr>
+<tr class="row-odd"><td><p>Can edit</p></td>
+<td><p>Also change the record and the data in it</p></td>
+</tr>
+<tr class="row-even"><td><p>Can manage</p></td>
+<td><p>Also change who is credited and at what level, change the record’s visibility, publish it, and delete it</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>No level lets a person delete a record without being able to change it.</p>
+<p>A level travels downward. A level on a project applies to its datasets, and a level on a dataset applies to its samples and measurements. A measurement follows its own dataset, not the dataset of its sample. A level never travels upward: someone listed only on a dataset cannot open its project, even when the project is private. Where a person holds a level on a record and another from a record above, the higher one applies.</p>
+<p>Organizations hold no level. Being a member or owner of an organization that is credited on a record gives no access to it.</p>
+<p>A contribution role, such as the one that says someone collected the data, describes how a person took part. It never gives or removes a level.</p>
+<section id="why-one-level-not-a-set-of-permissions">
+<h3>Why one level, not a set of permissions<a class="headerlink" href="#why-one-level-not-a-set-of-permissions" title="Link to this heading">#</a></h3>
+<p>The Contributors tab has to show what each person may do, and has to let a manager choose it. A level can be read and chosen. A set of independent permissions allows combinations that nobody can reason about, such as being able to delete a dataset but not open it. Leaving permissions stored per person and per record in force beside the levels would also have kept a second way into a private record that the tab does not show, so those stored permissions grant nothing on these four kinds of record. The full argument is in <a class="reference internal" href="../adr/0025-a-level-on-the-contribution-decides-rights-over-a-core-record.html"><span class="std std-doc">ADR 0025</span></a>.</p>
+<p>A consequence is that rights over a core record cannot be given to a group. If you need that, the group would have to appear on the Contributors tab, which is a feature of its own.</p>
+</section>
+<section id="a-record-always-keeps-a-manager">
+<h3>A record always keeps a manager<a class="headerlink" href="#a-record-always-keeps-a-manager" title="Link to this heading">#</a></h3>
+<p>The portal refuses to remove the last person who can manage a record, or to lower them below manage, and it refuses to move a record to a parent where nobody could manage it. Only a person who can sign in and holds the manage level on the record, or on one above it, counts. Someone who can act only through a portal role does not count, so a record never depends on portal staff to stay manageable. The refusal applies to everyone, a superuser included.</p>
+</section>
+</section>
+<section id="portal-roles">
+<h2>Portal roles<a class="headerlink" href="#portal-roles" title="Link to this heading">#</a></h2>
+<p>A portal role answers a different question: what may this person do across the whole portal, whoever is credited on a record? FairDM ships four. Their stored names are Portal Administrator, Data Curator, Community Manager and Developer.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Role</p></th>
+<th class="head"><p>Looks after</p></th>
+<th class="head"><p>Rights over records</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Portal Administrator</p></td>
+<td><p>The portal’s identity and who holds which role</p></td>
+<td><p>None</p></td>
+</tr>
+<tr class="row-odd"><td><p>Data Curator</p></td>
+<td><p>Every project, dataset, sample and measurement</p></td>
+<td><p>View, add, change and delete any of them, import data, and publish</p></td>
+</tr>
+<tr class="row-even"><td><p>Community Manager</p></td>
+<td><p>People, organizations, affiliations, profile claims and merges</p></td>
+<td><p>None</p></td>
+</tr>
+<tr class="row-odd"><td><p>Developer</p></td>
+<td><p>Nothing. It names the people who build the portal on its team page</p></td>
+<td><p>None</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The roles are separate because looking after people is not the same job as looking after records. The person a research group trusts with its sample data is not automatically the person they want reading account records. A small portal can put one volunteer in both roles at no cost. See <a class="reference internal" href="../adr/0019-a-portal-role-is-the-unit-of-portal-wide-rights.html"><span class="std std-doc">ADR 0019</span></a>.</p>
+<p>A role and a level combine by addition. A person who holds both has everything either gives them. A role never changes what a level allows, and a level never gives a right over other records. A Data Curator therefore opens, edits and manages the contributors of any record without being listed on it, and doing so does not add them to the record.</p>
+<p>Portal-wide rights apply to individual records only through these four roles. A permission granted straight to a person, or through a group a portal made up for itself, is not turned into a right over a particular record. A person holding only such a model-wide permission is refused on a private record’s editing pages, because a page that inherited its visibility rule from the model would not be guarded.</p>
+<p>A superuser holds every permission, and is a flag for whoever deploys the portal rather than a role. A superuser cannot be credited on a record.</p>
+<section id="roles-are-protected">
+<h3>Roles are protected<a class="headerlink" href="#roles-are-protected" title="Link to this heading">#</a></h3>
+<p>The four roles cannot be deleted or renamed through the portal. If one goes missing anyway, bringing the database up to date installs it again with its rights. A portal in production refuses to start while a role is missing and names which one. The reasoning, including why a single hard refusal could not work, is in <a class="reference internal" href="../adr/0020-a-missing-role-is-answered-four-ways.html"><span class="std std-doc">ADR 0020</span></a>.</p>
+</section>
+<section id="profiles-and-claims">
+<h3>Profiles and claims<a class="headerlink" href="#profiles-and-claims" title="Link to this heading">#</a></h3>
+<p>Editing a person’s or an organization’s profile is not decided by a model permission either. The record is asked. A person with an active account edits their own profile. A Community Manager edits an organization’s profile and the profile of any person nobody can sign in as. An organization’s owner and current administrators also edit its profile. A superuser, and the holders of the other three roles, get no right to edit profiles from the portal’s pages, although the administration interface is unchanged. See <a class="reference internal" href="../adr/0024-the-right-to-edit-a-profile-is-asked-of-the-record.html"><span class="std std-doc">ADR 0024</span></a>.</p>
+<p>Merging one person into another is not an ordinary staff operation, because a merge destroys an identity. It needs the right to change people, which the Community Manager and Portal Administrator roles hold, and which no other role and no staff flag gives. See <a class="reference internal" href="../adr/0021-claims-and-merges-belong-to-a-named-role.html"><span class="std std-doc">ADR 0021</span></a>.</p>
+</section>
+</section>
+<section id="what-a-refusal-means">
+<h2>What a refusal means<a class="headerlink" href="#what-a-refusal-means" title="Link to this heading">#</a></h2>
+<p>When you ask for a page you may not use, the portal answers in one of three ways. Which one you get depends on whether you could see the record at all.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Answer</p></th>
+<th class="head"><p>What it means</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>404, “No dataset matches the given query”</p></td>
+<td><p>You may not see the record. The portal answers exactly as it would for a record that does not exist</p></td>
+</tr>
+<tr class="row-odd"><td><p>Sent to the sign-in page</p></td>
+<td><p>You are not signed in, you may see the record, and the page needs a right you do not hold</p></td>
+</tr>
+<tr class="row-even"><td><p>403</p></td>
+<td><p>You are signed in, you may see the record, and you do not hold the right the page needs</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The first answer is the important one. A 403, or a redirect to sign in, would confirm that something private exists at that address. So a private project, dataset, sample or measurement answers a stranger with a 404, whether or not they are signed in, and so does every page that belongs to it, including its Contributors tab and its editing pages.</p>
+<p>The editing pages ask the questions in a fixed order on every request, so a save is refused as a page view is:</p>
+<ol class="arabic simple">
+<li><p>Someone who may neither see the record nor holds the right on it gets a 404.</p></li>
+<li><p>A visitor who may see the record, and may not use the page, is sent to sign in.</p></li>
+<li><p>A signed-in person who may see the record, and may not use the page, gets a 403.</p></li>
+</ol>
+<p>On a public record, the same order produces a sign-in request or a 403 for a page you cannot use, because the record’s existence is no secret.</p>
+<p>The REST API follows the same reasoning. A request for a private record you cannot see is answered 404, and a request to change a public record you may see but not change is answered 403. Reading is open to anyone for public data, and every write needs a signed-in caller. Where one record refers to another you may not see, the reference is <code class="docutils literal notranslate"><span class="pre">null</span></code> rather than naming it. The status codes are listed in the <a class="reference internal" href="../developers/reference/rest-api.html"><span class="std std-doc">REST API reference</span></a>.</p>
+</section>
+<section id="listings-never-depend-on-who-is-looking">
+<h2>Listings never depend on who is looking<a class="headerlink" href="#listings-never-depend-on-who-is-looking" title="Link to this heading">#</a></h2>
+<p>A portal-wide listing of a sample or measurement type shows the records held in published datasets, and shows the same rows to every viewer. Signing in changes nothing about it. A researcher does not see their own unpublished records mixed into a portal-wide listing. They find them on their dataset’s page.</p>
+<p>The alternative, showing each viewer what they are entitled to, costs more than it returns. Every listing becomes viewer-dependent, nothing can be shared between viewers, every filter’s choice list has to be worked out per viewer or it leaks the existence of records the table excluded, and every column added later inherits the same obligation. A single rule can be checked with one assertion that holds for every viewer. See <a class="reference internal" href="../adr/0013-a-listing-shows-published-records-only-for-everyone.html"><span class="std std-doc">ADR 0013</span></a>.</p>
+<p>Two further rules follow from it:</p>
+<ul class="simple">
+<li><p>A row never links past what the visitor may read. Where a row would name or link a record you cannot read, the cell keeps its place and shows a placeholder. The sample column reads “Unpublished”, and the dataset column keeps its icon without the link. A filter’s choice list obeys the same test, so a name withheld from a cell is not offered from a dropdown beside it.</p></li>
+<li><p>A listing of projects shows public projects, and a listing of datasets shows public datasets. Neither depends on the viewer.</p></li>
+</ul>
+<p>A placeholder is a meaningful state. Read it as “there is a record here that you may not read”.</p>
+</section>
+<section id="why-every-page-states-its-own-rule">
+<h2>Why every page states its own rule<a class="headerlink" href="#why-every-page-states-its-own-rule" title="Link to this heading">#</a></h2>
+<p>A page that asks “may this person open me?” answers from its own declaration, not from the page it belongs to. The reason is that an inherited rule once failed silently. A page resolved its visibility rule from its class while the link to the owning page was attached only to the instance, so the lookup found nothing and fell back to an open default. A project’s own page refused a user with 403 while its update page returned 200 for the same user.</p>
+<p>A rule that silently does not apply is worse than no rule, because the page carrying it reads as guarded. So each page names both the permission it needs and the visibility rule it applies, even where the owning page says the same thing. Repetition here is intended. See <a class="reference internal" href="../adr/0012-every-page-states-its-own-access-rules.html"><span class="std std-doc">ADR 0012</span></a>.</p>
+</section>
+<section id="where-to-go-next">
+<h2>Where to go next<a class="headerlink" href="#where-to-go-next" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="../administrators/reference/portal-roles.html"><span class="std std-doc">Portal roles</span></a> lists what each role holds.</p></li>
+<li><p><a class="reference internal" href="../administrators/how-to/find-why-a-user-cannot-see-a-dataset.html"><span class="std std-doc">How to find why a user cannot see a dataset</span></a> works through a missing-access report step by step.</p></li>
+<li><p><a class="reference internal" href="../users/contributors/contributors-tab.html"><span class="std std-doc">Contributors</span></a> describes the tab where levels are set.</p></li>
+<li><p><a class="reference internal" href="how-contributor-accounts-and-credits-work.html"><span class="std std-doc">How contributor accounts and credits work</span></a> explains the credit that carries a level.</p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="why-complete-metadata-matters.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Why complete metadata matters</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="why-fairdm-records-contributors.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Why FairDM records contributors</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#four-separate-questions">Four separate questions</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#visibility-and-publication-are-different-flags">Visibility and publication are different flags</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#contribution-levels">Contribution levels</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#why-one-level-not-a-set-of-permissions">Why one level, not a set of permissions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-record-always-keeps-a-manager">A record always keeps a manager</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#portal-roles">Portal roles</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#roles-are-protected">Roles are protected</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#profiles-and-claims">Profiles and claims</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-a-refusal-means">What a refusal means</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#listings-never-depend-on-who-is-looking">Listings never depend on who is looking</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-every-page-states-its-own-rule">Why every page states its own rule</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#where-to-go-next">Where to go next</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Samuel Jennings.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.21.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,455 @@
+# {py:mod}`fairdm.conf.checks`
+
+```{py:module} fairdm.conf.checks
+```
+
+```{autodoc2-docstring} fairdm.conf.checks
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`DeployTags <fairdm.conf.checks.DeployTags>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.DeployTags
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`check_database_configured <fairdm.conf.checks.check_database_configured>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.check_database_configured
+    :summary:
+    ```
+* - {py:obj}`check_database_production_ready <fairdm.conf.checks.check_database_production_ready>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.check_database_production_ready
+    :summary:
+    ```
+* - {py:obj}`check_database_usable <fairdm.conf.checks.check_database_usable>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.check_database_usable
+    :summary:
+    ```
+* - {py:obj}`check_cache_backend <fairdm.conf.checks.check_cache_backend>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.check_cache_backend
+    :summary:
+    ```
+* - {py:obj}`check_secret_key_exists <fairdm.conf.checks.check_secret_key_exists>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.check_secret_key_exists
+    :summary:
+    ```
+* - {py:obj}`check_allowed_hosts_configured <fairdm.conf.checks.check_allowed_hosts_configured>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.check_allowed_hosts_configured
+    :summary:
+    ```
+* - {py:obj}`check_allowed_hosts_secure <fairdm.conf.checks.check_allowed_hosts_secure>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.check_allowed_hosts_secure
+    :summary:
+    ```
+* - {py:obj}`check_debug_false <fairdm.conf.checks.check_debug_false>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.check_debug_false
+    :summary:
+    ```
+* - {py:obj}`check_backup_key_present <fairdm.conf.checks.check_backup_key_present>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.check_backup_key_present
+    :summary:
+    ```
+* - {py:obj}`check_backup_key_usable <fairdm.conf.checks.check_backup_key_usable>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.check_backup_key_usable
+    :summary:
+    ```
+* - {py:obj}`check_backup_storage_is_remote <fairdm.conf.checks.check_backup_storage_is_remote>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.check_backup_storage_is_remote
+    :summary:
+    ```
+* - {py:obj}`check_secure_cookie_prefixes_match_secure_flag <fairdm.conf.checks.check_secure_cookie_prefixes_match_secure_flag>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.check_secure_cookie_prefixes_match_secure_flag
+    :summary:
+    ```
+* - {py:obj}`check_api_proxy_count <fairdm.conf.checks.check_api_proxy_count>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.check_api_proxy_count
+    :summary:
+    ```
+* - {py:obj}`check_celery_broker <fairdm.conf.checks.check_celery_broker>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.check_celery_broker
+    :summary:
+    ```
+* - {py:obj}`check_celery_async <fairdm.conf.checks.check_celery_async>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.check_celery_async
+    :summary:
+    ```
+* - {py:obj}`check_portal_roles_present <fairdm.conf.checks.check_portal_roles_present>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.check_portal_roles_present
+    :summary:
+    ```
+* - {py:obj}`check_dev_accounts_absent <fairdm.conf.checks.check_dev_accounts_absent>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.check_dev_accounts_absent
+    :summary:
+    ```
+* - {py:obj}`parler_languages_errors <fairdm.conf.checks.parler_languages_errors>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.parler_languages_errors
+    :summary:
+    ```
+* - {py:obj}`raise_on_parler_languages_mismatch <fairdm.conf.checks.raise_on_parler_languages_mismatch>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.raise_on_parler_languages_mismatch
+    :summary:
+    ```
+* - {py:obj}`check_parler_languages_subset_of_languages <fairdm.conf.checks.check_parler_languages_subset_of_languages>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.check_parler_languages_subset_of_languages
+    :summary:
+    ```
+* - {py:obj}`validate_addon_module <fairdm.conf.checks.validate_addon_module>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.validate_addon_module
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`logger <fairdm.conf.checks.logger>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.logger
+    :summary:
+    ```
+* - {py:obj}`POSTGIS_ENGINE <fairdm.conf.checks.POSTGIS_ENGINE>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.POSTGIS_ENGINE
+    :summary:
+    ```
+* - {py:obj}`SHARED_CACHE_BACKENDS <fairdm.conf.checks.SHARED_CACHE_BACKENDS>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.SHARED_CACHE_BACKENDS
+    :summary:
+    ```
+* - {py:obj}`UNCONFIGURED_REDIS_LOCATION <fairdm.conf.checks.UNCONFIGURED_REDIS_LOCATION>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.UNCONFIGURED_REDIS_LOCATION
+    :summary:
+    ```
+* - {py:obj}`INSECURE_SECRET_KEY_PREFIX <fairdm.conf.checks.INSECURE_SECRET_KEY_PREFIX>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.INSECURE_SECRET_KEY_PREFIX
+    :summary:
+    ```
+* - {py:obj}`MINIMUM_SECRET_KEY_LENGTH <fairdm.conf.checks.MINIMUM_SECRET_KEY_LENGTH>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.MINIMUM_SECRET_KEY_LENGTH
+    :summary:
+    ```
+* - {py:obj}`BROWSER_ENFORCED_SECURE_COOKIE_PREFIXES <fairdm.conf.checks.BROWSER_ENFORCED_SECURE_COOKIE_PREFIXES>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.BROWSER_ENFORCED_SECURE_COOKIE_PREFIXES
+    :summary:
+    ```
+* - {py:obj}`PREFIX_CHECKED_COOKIE_SETTINGS <fairdm.conf.checks.PREFIX_CHECKED_COOKIE_SETTINGS>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.PREFIX_CHECKED_COOKIE_SETTINGS
+    :summary:
+    ```
+* - {py:obj}`MIGRATE_COMMAND_NAME <fairdm.conf.checks.MIGRATE_COMMAND_NAME>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.MIGRATE_COMMAND_NAME
+    :summary:
+    ```
+* - {py:obj}`PRE_MIGRATE_COMMAND_NAMES <fairdm.conf.checks.PRE_MIGRATE_COMMAND_NAMES>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.PRE_MIGRATE_COMMAND_NAMES
+    :summary:
+    ```
+* - {py:obj}`UNREADABLE_DATABASE <fairdm.conf.checks.UNREADABLE_DATABASE>`
+  - ```{autodoc2-docstring} fairdm.conf.checks.UNREADABLE_DATABASE
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} logger
+:canonical: fairdm.conf.checks.logger
+:value: >
+   'getLogger(...)'
+
+```{autodoc2-docstring} fairdm.conf.checks.logger
+```
+
+````
+
+`````{py:class} DeployTags
+:canonical: fairdm.conf.checks.DeployTags
+
+Bases: {py:obj}`django.core.checks.Tags`
+
+```{autodoc2-docstring} fairdm.conf.checks.DeployTags
+```
+
+````{py:attribute} deploy
+:canonical: fairdm.conf.checks.DeployTags.deploy
+:value: >
+   'deploy'
+
+```{autodoc2-docstring} fairdm.conf.checks.DeployTags.deploy
+```
+
+````
+
+````{py:attribute} production_critical
+:canonical: fairdm.conf.checks.DeployTags.production_critical
+:value: >
+   'production_critical'
+
+```{autodoc2-docstring} fairdm.conf.checks.DeployTags.production_critical
+```
+
+````
+
+`````
+
+````{py:data} POSTGIS_ENGINE
+:canonical: fairdm.conf.checks.POSTGIS_ENGINE
+:value: >
+   'django.contrib.gis.db.backends.postgis'
+
+```{autodoc2-docstring} fairdm.conf.checks.POSTGIS_ENGINE
+```
+
+````
+
+````{py:function} check_database_configured(app_configs, **kwargs)
+:canonical: fairdm.conf.checks.check_database_configured
+
+```{autodoc2-docstring} fairdm.conf.checks.check_database_configured
+```
+````
+
+````{py:function} check_database_production_ready(app_configs, **kwargs)
+:canonical: fairdm.conf.checks.check_database_production_ready
+
+```{autodoc2-docstring} fairdm.conf.checks.check_database_production_ready
+```
+````
+
+````{py:function} check_database_usable(app_configs, **kwargs)
+:canonical: fairdm.conf.checks.check_database_usable
+
+```{autodoc2-docstring} fairdm.conf.checks.check_database_usable
+```
+````
+
+````{py:data} SHARED_CACHE_BACKENDS
+:canonical: fairdm.conf.checks.SHARED_CACHE_BACKENDS
+:value: >
+   'frozenset(...)'
+
+```{autodoc2-docstring} fairdm.conf.checks.SHARED_CACHE_BACKENDS
+```
+
+````
+
+````{py:data} UNCONFIGURED_REDIS_LOCATION
+:canonical: fairdm.conf.checks.UNCONFIGURED_REDIS_LOCATION
+:value: >
+   'redis://unconfigured.invalid:6379/0'
+
+```{autodoc2-docstring} fairdm.conf.checks.UNCONFIGURED_REDIS_LOCATION
+```
+
+````
+
+````{py:function} check_cache_backend(app_configs, **kwargs)
+:canonical: fairdm.conf.checks.check_cache_backend
+
+```{autodoc2-docstring} fairdm.conf.checks.check_cache_backend
+```
+````
+
+````{py:data} INSECURE_SECRET_KEY_PREFIX
+:canonical: fairdm.conf.checks.INSECURE_SECRET_KEY_PREFIX
+:value: >
+   'django-insecure-'
+
+```{autodoc2-docstring} fairdm.conf.checks.INSECURE_SECRET_KEY_PREFIX
+```
+
+````
+
+````{py:data} MINIMUM_SECRET_KEY_LENGTH
+:canonical: fairdm.conf.checks.MINIMUM_SECRET_KEY_LENGTH
+:value: >
+   50
+
+```{autodoc2-docstring} fairdm.conf.checks.MINIMUM_SECRET_KEY_LENGTH
+```
+
+````
+
+````{py:function} check_secret_key_exists(app_configs, **kwargs)
+:canonical: fairdm.conf.checks.check_secret_key_exists
+
+```{autodoc2-docstring} fairdm.conf.checks.check_secret_key_exists
+```
+````
+
+````{py:function} check_allowed_hosts_configured(app_configs, **kwargs)
+:canonical: fairdm.conf.checks.check_allowed_hosts_configured
+
+```{autodoc2-docstring} fairdm.conf.checks.check_allowed_hosts_configured
+```
+````
+
+````{py:function} check_allowed_hosts_secure(app_configs, **kwargs)
+:canonical: fairdm.conf.checks.check_allowed_hosts_secure
+
+```{autodoc2-docstring} fairdm.conf.checks.check_allowed_hosts_secure
+```
+````
+
+````{py:function} check_debug_false(app_configs, **kwargs)
+:canonical: fairdm.conf.checks.check_debug_false
+
+```{autodoc2-docstring} fairdm.conf.checks.check_debug_false
+```
+````
+
+````{py:function} check_backup_key_present(app_configs, **kwargs)
+:canonical: fairdm.conf.checks.check_backup_key_present
+
+```{autodoc2-docstring} fairdm.conf.checks.check_backup_key_present
+```
+````
+
+````{py:function} check_backup_key_usable(app_configs, **kwargs)
+:canonical: fairdm.conf.checks.check_backup_key_usable
+
+```{autodoc2-docstring} fairdm.conf.checks.check_backup_key_usable
+```
+````
+
+````{py:function} check_backup_storage_is_remote(app_configs, **kwargs)
+:canonical: fairdm.conf.checks.check_backup_storage_is_remote
+
+```{autodoc2-docstring} fairdm.conf.checks.check_backup_storage_is_remote
+```
+````
+
+````{py:data} BROWSER_ENFORCED_SECURE_COOKIE_PREFIXES
+:canonical: fairdm.conf.checks.BROWSER_ENFORCED_SECURE_COOKIE_PREFIXES
+:value: >
+   ('__Secure-', '__Host-')
+
+```{autodoc2-docstring} fairdm.conf.checks.BROWSER_ENFORCED_SECURE_COOKIE_PREFIXES
+```
+
+````
+
+````{py:data} PREFIX_CHECKED_COOKIE_SETTINGS
+:canonical: fairdm.conf.checks.PREFIX_CHECKED_COOKIE_SETTINGS
+:value: >
+   (('CSRF_COOKIE_NAME', 'CSRF_COOKIE_SECURE'), ('SESSION_COOKIE_NAME', 'SESSION_COOKIE_SECURE'), ('LAN...
+
+```{autodoc2-docstring} fairdm.conf.checks.PREFIX_CHECKED_COOKIE_SETTINGS
+```
+
+````
+
+````{py:function} check_secure_cookie_prefixes_match_secure_flag(app_configs, **kwargs)
+:canonical: fairdm.conf.checks.check_secure_cookie_prefixes_match_secure_flag
+
+```{autodoc2-docstring} fairdm.conf.checks.check_secure_cookie_prefixes_match_secure_flag
+```
+````
+
+````{py:function} check_api_proxy_count(app_configs, **kwargs)
+:canonical: fairdm.conf.checks.check_api_proxy_count
+
+```{autodoc2-docstring} fairdm.conf.checks.check_api_proxy_count
+```
+````
+
+````{py:function} check_celery_broker(app_configs, **kwargs)
+:canonical: fairdm.conf.checks.check_celery_broker
+
+```{autodoc2-docstring} fairdm.conf.checks.check_celery_broker
+```
+````
+
+````{py:function} check_celery_async(app_configs, **kwargs)
+:canonical: fairdm.conf.checks.check_celery_async
+
+```{autodoc2-docstring} fairdm.conf.checks.check_celery_async
+```
+````
+
+````{py:data} MIGRATE_COMMAND_NAME
+:canonical: fairdm.conf.checks.MIGRATE_COMMAND_NAME
+:value: >
+   'migrate'
+
+```{autodoc2-docstring} fairdm.conf.checks.MIGRATE_COMMAND_NAME
+```
+
+````
+
+````{py:data} PRE_MIGRATE_COMMAND_NAMES
+:canonical: fairdm.conf.checks.PRE_MIGRATE_COMMAND_NAMES
+:value: >
+   'frozenset(...)'
+
+```{autodoc2-docstring} fairdm.conf.checks.PRE_MIGRATE_COMMAND_NAMES
+```
+
+````
+
+````{py:data} UNREADABLE_DATABASE
+:canonical: fairdm.conf.checks.UNREADABLE_DATABASE
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.conf.checks.UNREADABLE_DATABASE
+```
+
+````
+
+````{py:function} check_portal_roles_present(app_configs, **kwargs)
+:canonical: fairdm.conf.checks.check_portal_roles_present
+
+```{autodoc2-docstring} fairdm.conf.checks.check_portal_roles_present
+```
+````
+
+````{py:function} check_dev_accounts_absent(app_configs, **kwargs)
+:canonical: fairdm.conf.checks.check_dev_accounts_absent
+
+```{autodoc2-docstring} fairdm.conf.checks.check_dev_accounts_absent
+```
+````
+
+````{py:function} parler_languages_errors(languages, parler_languages, parler_default_language_code=None) -> list[django.core.checks.Error]
+:canonical: fairdm.conf.checks.parler_languages_errors
+
+```{autodoc2-docstring} fairdm.conf.checks.parler_languages_errors
+```
+````
+
+````{py:function} raise_on_parler_languages_mismatch(languages, parler_languages, parler_default_language_code=None) -> None
+:canonical: fairdm.conf.checks.raise_on_parler_languages_mismatch
+
+```{autodoc2-docstring} fairdm.conf.checks.raise_on_parler_languages_mismatch
+```
+````
+
+````{py:function} check_parler_languages_subset_of_languages(app_configs, **kwargs)
+:canonical: fairdm.conf.checks.check_parler_languages_subset_of_languages
+
+```{autodoc2-docstring} fairdm.conf.checks.check_parler_languages_subset_of_languages
+```
+````
+
+````{py:function} validate_addon_module(addon_name: str, module_path: str, env_profile: str) -> bool
+:canonical: fairdm.conf.checks.validate_addon_module
+
+```{autodoc2-docstring} fairdm.conf.checks.validate_addon_module
+```
+````

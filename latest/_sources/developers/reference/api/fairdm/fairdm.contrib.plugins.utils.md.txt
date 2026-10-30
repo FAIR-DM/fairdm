@@ -1,0 +1,75 @@
+# {py:mod}`fairdm.contrib.plugins.utils`
+
+```{py:module} fairdm.contrib.plugins.utils
+```
+
+```{autodoc2-docstring} fairdm.contrib.plugins.utils
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`slugify <fairdm.contrib.plugins.utils.slugify>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.utils.slugify
+    :summary:
+    ```
+* - {py:obj}`class_to_slug <fairdm.contrib.plugins.utils.class_to_slug>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.utils.class_to_slug
+    :summary:
+    ```
+* - {py:obj}`check_has_edit_permission <fairdm.contrib.plugins.utils.check_has_edit_permission>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.utils.check_has_edit_permission
+    :summary:
+    ```
+* - {py:obj}`sample_check_has_edit_permission <fairdm.contrib.plugins.utils.sample_check_has_edit_permission>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.utils.sample_check_has_edit_permission
+    :summary:
+    ```
+* - {py:obj}`reverse <fairdm.contrib.plugins.utils.reverse>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.utils.reverse
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} slugify(text: str) -> str
+:canonical: fairdm.contrib.plugins.utils.slugify
+
+```{autodoc2-docstring} fairdm.contrib.plugins.utils.slugify
+```
+````
+
+````{py:function} class_to_slug(name: str | object | type) -> str
+:canonical: fairdm.contrib.plugins.utils.class_to_slug
+
+```{autodoc2-docstring} fairdm.contrib.plugins.utils.class_to_slug
+```
+````
+
+````{py:function} check_has_edit_permission(request, instance, **kwargs)
+:canonical: fairdm.contrib.plugins.utils.check_has_edit_permission
+
+```{autodoc2-docstring} fairdm.contrib.plugins.utils.check_has_edit_permission
+```
+````
+
+````{py:function} sample_check_has_edit_permission(request, instance, **kwargs)
+:canonical: fairdm.contrib.plugins.utils.sample_check_has_edit_permission
+
+```{autodoc2-docstring} fairdm.contrib.plugins.utils.sample_check_has_edit_permission
+```
+````
+
+````{py:function} reverse(instance, view_name, *args, **kwargs)
+:canonical: fairdm.contrib.plugins.utils.reverse
+
+```{autodoc2-docstring} fairdm.contrib.plugins.utils.reverse
+```
+````

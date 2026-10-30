@@ -1,0 +1,48 @@
+# {py:mod}`fairdm.contrib.autocomplete`
+
+```{py:module} fairdm.contrib.autocomplete
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.contrib.autocomplete.views
+fairdm.contrib.autocomplete.fields
+fairdm.contrib.autocomplete.urls
+fairdm.contrib.autocomplete.throttling
+fairdm.contrib.autocomplete.apps
+fairdm.contrib.autocomplete.filters
+```
+
+## Package Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`default_app_config <fairdm.contrib.autocomplete.default_app_config>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.default_app_config
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} default_app_config
+:canonical: fairdm.contrib.autocomplete.default_app_config
+:value: >
+   'fairdm.contrib.autocomplete.apps.AutocompleteConfig'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.default_app_config
+```
+
+````

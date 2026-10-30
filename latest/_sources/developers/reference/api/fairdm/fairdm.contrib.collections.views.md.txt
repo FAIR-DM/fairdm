@@ -1,0 +1,152 @@
+# {py:mod}`fairdm.contrib.collections.views`
+
+```{py:module} fairdm.contrib.collections.views
+```
+
+```{autodoc2-docstring} fairdm.contrib.collections.views
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`DataTableView <fairdm.contrib.collections.views.DataTableView>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.views.DataTableView
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} DataTableView(**kwargs)
+:canonical: fairdm.contrib.collections.views.DataTableView
+
+Bases: {py:obj}`fairdm.views.FairDMTableView`
+
+```{autodoc2-docstring} fairdm.contrib.collections.views.DataTableView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.collections.views.DataTableView.__init__
+```
+
+````{py:attribute} template_name_suffix
+:canonical: fairdm.contrib.collections.views.DataTableView.template_name_suffix
+:value: >
+   '_table'
+
+```{autodoc2-docstring} fairdm.contrib.collections.views.DataTableView.template_name_suffix
+```
+
+````
+
+````{py:attribute} template_name
+:canonical: fairdm.contrib.collections.views.DataTableView.template_name
+:value: >
+   'collections/listing.html'
+
+```{autodoc2-docstring} fairdm.contrib.collections.views.DataTableView.template_name
+```
+
+````
+
+````{py:attribute} model_config
+:canonical: fairdm.contrib.collections.views.DataTableView.model_config
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.collections.views.DataTableView.model_config
+```
+
+````
+
+````{py:property} toolbar_filters
+:canonical: fairdm.contrib.collections.views.DataTableView.toolbar_filters
+:type: list[str]
+
+```{autodoc2-docstring} fairdm.contrib.collections.views.DataTableView.toolbar_filters
+```
+
+````
+
+````{py:method} get_filterset_class() -> type[django_filters.filterset.FilterSet] | None
+:canonical: fairdm.contrib.collections.views.DataTableView.get_filterset_class
+
+```{autodoc2-docstring} fairdm.contrib.collections.views.DataTableView.get_filterset_class
+```
+
+````
+
+````{py:method} get_queryset()
+:canonical: fairdm.contrib.collections.views.DataTableView.get_queryset
+
+```{autodoc2-docstring} fairdm.contrib.collections.views.DataTableView.get_queryset
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.contrib.collections.views.DataTableView.get_context_data
+
+```{autodoc2-docstring} fairdm.contrib.collections.views.DataTableView.get_context_data
+```
+
+````
+
+````{py:method} get_listing_entries(models)
+:canonical: fairdm.contrib.collections.views.DataTableView.get_listing_entries
+
+```{autodoc2-docstring} fairdm.contrib.collections.views.DataTableView.get_listing_entries
+```
+
+````
+
+````{py:method} get_table_class()
+:canonical: fairdm.contrib.collections.views.DataTableView.get_table_class
+
+```{autodoc2-docstring} fairdm.contrib.collections.views.DataTableView.get_table_class
+```
+
+````
+
+````{py:method} get_table_kwargs()
+:canonical: fairdm.contrib.collections.views.DataTableView.get_table_kwargs
+
+```{autodoc2-docstring} fairdm.contrib.collections.views.DataTableView.get_table_kwargs
+```
+
+````
+
+````{py:method} get_empty_state_heading()
+:canonical: fairdm.contrib.collections.views.DataTableView.get_empty_state_heading
+
+```{autodoc2-docstring} fairdm.contrib.collections.views.DataTableView.get_empty_state_heading
+```
+
+````
+
+````{py:method} get_empty_state_message()
+:canonical: fairdm.contrib.collections.views.DataTableView.get_empty_state_message
+
+```{autodoc2-docstring} fairdm.contrib.collections.views.DataTableView.get_empty_state_message
+```
+
+````
+
+````{py:method} get_urls(**kwargs)
+:canonical: fairdm.contrib.collections.views.DataTableView.get_urls
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.collections.views.DataTableView.get_urls
+```
+
+````
+
+`````

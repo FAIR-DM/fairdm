@@ -1,0 +1,220 @@
+# {py:mod}`fairdm.forms.base`
+
+```{py:module} fairdm.forms.base
+```
+
+```{autodoc2-docstring} fairdm.forms.base
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`BaseMetaClass <fairdm.forms.base.BaseMetaClass>`
+  - ```{autodoc2-docstring} fairdm.forms.base.BaseMetaClass
+    :summary:
+    ```
+* - {py:obj}`FairDMModelFormMetaclass <fairdm.forms.base.FairDMModelFormMetaclass>`
+  - ```{autodoc2-docstring} fairdm.forms.base.FairDMModelFormMetaclass
+    :summary:
+    ```
+* - {py:obj}`FairDMFormMetaclass <fairdm.forms.base.FairDMFormMetaclass>`
+  - ```{autodoc2-docstring} fairdm.forms.base.FairDMFormMetaclass
+    :summary:
+    ```
+* - {py:obj}`FairDMFormMixin <fairdm.forms.base.FairDMFormMixin>`
+  - ```{autodoc2-docstring} fairdm.forms.base.FairDMFormMixin
+    :summary:
+    ```
+* - {py:obj}`Form <fairdm.forms.base.Form>`
+  - ```{autodoc2-docstring} fairdm.forms.base.Form
+    :summary:
+    ```
+* - {py:obj}`ModelForm <fairdm.forms.base.ModelForm>`
+  - ```{autodoc2-docstring} fairdm.forms.base.ModelForm
+    :summary:
+    ```
+````
+
+### API
+
+````{py:class} BaseMetaClass
+:canonical: fairdm.forms.base.BaseMetaClass
+
+```{autodoc2-docstring} fairdm.forms.base.BaseMetaClass
+```
+
+````
+
+````{py:class} FairDMModelFormMetaclass
+:canonical: fairdm.forms.base.FairDMModelFormMetaclass
+
+Bases: {py:obj}`fairdm.forms.base.BaseMetaClass`, {py:obj}`django.forms.models.ModelFormMetaclass`
+
+```{autodoc2-docstring} fairdm.forms.base.FairDMModelFormMetaclass
+```
+
+````
+
+````{py:class} FairDMFormMetaclass
+:canonical: fairdm.forms.base.FairDMFormMetaclass
+
+Bases: {py:obj}`fairdm.forms.base.BaseMetaClass`, {py:obj}`django.forms.forms.DeclarativeFieldsMetaclass`
+
+```{autodoc2-docstring} fairdm.forms.base.FairDMFormMetaclass
+```
+
+````
+
+`````{py:class} FairDMFormMixin(*args, **kwargs)
+:canonical: fairdm.forms.base.FairDMFormMixin
+
+```{autodoc2-docstring} fairdm.forms.base.FairDMFormMixin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.forms.base.FairDMFormMixin.__init__
+```
+
+````{py:method} get_layout()
+:canonical: fairdm.forms.base.FairDMFormMixin.get_layout
+
+```{autodoc2-docstring} fairdm.forms.base.FairDMFormMixin.get_layout
+```
+
+````
+
+````{py:method} get_help_text()
+:canonical: fairdm.forms.base.FairDMFormMixin.get_help_text
+
+```{autodoc2-docstring} fairdm.forms.base.FairDMFormMixin.get_help_text
+```
+
+````
+
+````{py:method} get_form_id()
+:canonical: fairdm.forms.base.FairDMFormMixin.get_form_id
+
+```{autodoc2-docstring} fairdm.forms.base.FairDMFormMixin.get_form_id
+```
+
+````
+
+`````
+
+``````{py:class} Form(*args, **kwargs)
+:canonical: fairdm.forms.base.Form
+
+Bases: {py:obj}`fairdm.forms.base.FairDMFormMixin`, {py:obj}`django.forms.Form`
+
+```{autodoc2-docstring} fairdm.forms.base.Form
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.forms.base.Form.__init__
+```
+
+`````{py:class} Meta
+:canonical: fairdm.forms.base.Form.Meta
+
+```{autodoc2-docstring} fairdm.forms.base.Form.Meta
+```
+
+````{py:attribute} formfield_overrides
+:canonical: fairdm.forms.base.Form.Meta.formfield_overrides
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.forms.base.Form.Meta.formfield_overrides
+```
+
+````
+
+````{py:attribute} explicit_fields
+:canonical: fairdm.forms.base.Form.Meta.explicit_fields
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.forms.base.Form.Meta.explicit_fields
+```
+
+````
+
+````{py:attribute} form_attrs
+:canonical: fairdm.forms.base.Form.Meta.form_attrs
+:type: dict[str, typing.Any]
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.forms.base.Form.Meta.form_attrs
+```
+
+````
+
+`````
+
+``````
+
+``````{py:class} ModelForm(*args, **kwargs)
+:canonical: fairdm.forms.base.ModelForm
+
+Bases: {py:obj}`fairdm.forms.base.FairDMFormMixin`, {py:obj}`django.forms.ModelForm`
+
+```{autodoc2-docstring} fairdm.forms.base.ModelForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.forms.base.ModelForm.__init__
+```
+
+`````{py:class} Meta
+:canonical: fairdm.forms.base.ModelForm.Meta
+
+```{autodoc2-docstring} fairdm.forms.base.ModelForm.Meta
+```
+
+````{py:attribute} formfield_overrides
+:canonical: fairdm.forms.base.ModelForm.Meta.formfield_overrides
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.forms.base.ModelForm.Meta.formfield_overrides
+```
+
+````
+
+````{py:attribute} explicit_fields
+:canonical: fairdm.forms.base.ModelForm.Meta.explicit_fields
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.forms.base.ModelForm.Meta.explicit_fields
+```
+
+````
+
+````{py:attribute} form_attrs
+:canonical: fairdm.forms.base.ModelForm.Meta.form_attrs
+:type: dict[str, typing.Any]
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.forms.base.ModelForm.Meta.form_attrs
+```
+
+````
+
+`````
+
+``````

@@ -1,0 +1,94 @@
+# {py:mod}`fairdm.contrib.autocomplete.filters`
+
+```{py:module} fairdm.contrib.autocomplete.filters
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.filters
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`RecordMultipleFilter <fairdm.contrib.autocomplete.filters.RecordMultipleFilter>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.filters.RecordMultipleFilter
+    :summary:
+    ```
+* - {py:obj}`TagFilter <fairdm.contrib.autocomplete.filters.TagFilter>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.filters.TagFilter
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} RecordMultipleFilter(field_class, *, scope='public', **kwargs)
+:canonical: fairdm.contrib.autocomplete.filters.RecordMultipleFilter
+
+Bases: {py:obj}`django_filters.ModelMultipleChoiceFilter`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.filters.RecordMultipleFilter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.filters.RecordMultipleFilter.__init__
+```
+
+````{py:property} field
+:canonical: fairdm.contrib.autocomplete.filters.RecordMultipleFilter.field
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.filters.RecordMultipleFilter.field
+```
+
+````
+
+````{py:method} for_api()
+:canonical: fairdm.contrib.autocomplete.filters.RecordMultipleFilter.for_api
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.filters.RecordMultipleFilter.for_api
+```
+
+````
+
+`````
+
+`````{py:class} TagFilter(*, scope='public', **kwargs)
+:canonical: fairdm.contrib.autocomplete.filters.TagFilter
+
+Bases: {py:obj}`django_filters.Filter`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.filters.TagFilter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.filters.TagFilter.__init__
+```
+
+````{py:attribute} field_class
+:canonical: fairdm.contrib.autocomplete.filters.TagFilter.field_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.filters.TagFilter.field_class
+```
+
+````
+
+````{py:property} field
+:canonical: fairdm.contrib.autocomplete.filters.TagFilter.field
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.filters.TagFilter.field
+```
+
+````
+
+`````

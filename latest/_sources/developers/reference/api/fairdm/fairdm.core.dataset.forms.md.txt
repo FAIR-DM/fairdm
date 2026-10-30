@@ -1,0 +1,188 @@
+# {py:mod}`fairdm.core.dataset.forms`
+
+```{py:module} fairdm.core.dataset.forms
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.forms
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`DatasetForm <fairdm.core.dataset.forms.DatasetForm>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.forms.DatasetForm
+    :summary:
+    ```
+* - {py:obj}`DatasetCreateForm <fairdm.core.dataset.forms.DatasetCreateForm>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.forms.DatasetCreateForm
+    :summary:
+    ```
+````
+
+### API
+
+``````{py:class} DatasetForm(request=None, *args, **kwargs)
+:canonical: fairdm.core.dataset.forms.DatasetForm
+
+Bases: {py:obj}`fairdm.core.forms.ManagerOnlyFieldsMixin`, {py:obj}`fairdm.forms.ModelForm`
+
+```{autodoc2-docstring} fairdm.core.dataset.forms.DatasetForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.forms.DatasetForm.__init__
+```
+
+````{py:attribute} image
+:canonical: fairdm.core.dataset.forms.DatasetForm.image
+:value: >
+   'ImageField(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.forms.DatasetForm.image
+```
+
+````
+
+````{py:attribute} name
+:canonical: fairdm.core.dataset.forms.DatasetForm.name
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.forms.DatasetForm.name
+```
+
+````
+
+````{py:attribute} project
+:canonical: fairdm.core.dataset.forms.DatasetForm.project
+:value: >
+   'ModelChoiceField(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.forms.DatasetForm.project
+```
+
+````
+
+````{py:attribute} license
+:canonical: fairdm.core.dataset.forms.DatasetForm.license
+:value: >
+   'ModelChoiceField(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.forms.DatasetForm.license
+```
+
+````
+
+````{py:attribute} reference
+:canonical: fairdm.core.dataset.forms.DatasetForm.reference
+:value: >
+   'PublicationChoiceField(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.forms.DatasetForm.reference
+```
+
+````
+
+````{py:attribute} visibility
+:canonical: fairdm.core.dataset.forms.DatasetForm.visibility
+:value: >
+   'TypedChoiceField(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.forms.DatasetForm.visibility
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.dataset.forms.DatasetForm.Meta
+
+```{autodoc2-docstring} fairdm.core.dataset.forms.DatasetForm.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.dataset.forms.DatasetForm.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.forms.DatasetForm.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.core.dataset.forms.DatasetForm.Meta.fields
+:value: >
+   ['image', 'name', 'project', 'license', 'reference', 'visibility']
+
+```{autodoc2-docstring} fairdm.core.dataset.forms.DatasetForm.Meta.fields
+```
+
+````
+
+````{py:attribute} helper_attrs
+:canonical: fairdm.core.dataset.forms.DatasetForm.Meta.helper_attrs
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.forms.DatasetForm.Meta.helper_attrs
+```
+
+````
+
+`````
+
+````{py:attribute} manager_only_fields
+:canonical: fairdm.core.dataset.forms.DatasetForm.manager_only_fields
+:value: >
+   ('visibility', 'project')
+
+```{autodoc2-docstring} fairdm.core.dataset.forms.DatasetForm.manager_only_fields
+```
+
+````
+
+``````
+
+``````{py:class} DatasetCreateForm(request=None, *args, **kwargs)
+:canonical: fairdm.core.dataset.forms.DatasetCreateForm
+
+Bases: {py:obj}`fairdm.core.dataset.forms.DatasetForm`
+
+```{autodoc2-docstring} fairdm.core.dataset.forms.DatasetCreateForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.forms.DatasetCreateForm.__init__
+```
+
+`````{py:class} Meta
+:canonical: fairdm.core.dataset.forms.DatasetCreateForm.Meta
+
+Bases: {py:obj}`fairdm.core.dataset.forms.DatasetForm`
+
+```{autodoc2-docstring} fairdm.core.dataset.forms.DatasetCreateForm.Meta
+```
+
+````{py:attribute} fields
+:canonical: fairdm.core.dataset.forms.DatasetCreateForm.Meta.fields
+:value: >
+   ['name', 'project', 'license', 'visibility']
+
+```{autodoc2-docstring} fairdm.core.dataset.forms.DatasetCreateForm.Meta.fields
+```
+
+````
+
+`````
+
+``````

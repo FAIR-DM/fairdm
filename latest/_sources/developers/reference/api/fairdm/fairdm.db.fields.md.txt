@@ -1,0 +1,248 @@
+# {py:mod}`fairdm.db.fields`
+
+```{py:module} fairdm.db.fields
+```
+
+```{autodoc2-docstring} fairdm.db.fields
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`BigIntegerQuantityField <fairdm.db.fields.BigIntegerQuantityField>`
+  - ```{autodoc2-docstring} fairdm.db.fields.BigIntegerQuantityField
+    :summary:
+    ```
+* - {py:obj}`DecimalQuantityField <fairdm.db.fields.DecimalQuantityField>`
+  - ```{autodoc2-docstring} fairdm.db.fields.DecimalQuantityField
+    :summary:
+    ```
+* - {py:obj}`IntegerQuantityField <fairdm.db.fields.IntegerQuantityField>`
+  - ```{autodoc2-docstring} fairdm.db.fields.IntegerQuantityField
+    :summary:
+    ```
+* - {py:obj}`PositiveIntegerQuantityField <fairdm.db.fields.PositiveIntegerQuantityField>`
+  - ```{autodoc2-docstring} fairdm.db.fields.PositiveIntegerQuantityField
+    :summary:
+    ```
+* - {py:obj}`QuantityField <fairdm.db.fields.QuantityField>`
+  - ```{autodoc2-docstring} fairdm.db.fields.QuantityField
+    :summary:
+    ```
+* - {py:obj}`PartialDateField <fairdm.db.fields.PartialDateField>`
+  - ```{autodoc2-docstring} fairdm.db.fields.PartialDateField
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} BigIntegerQuantityField(base_units: str, *args, unit_choices: typing.Iterable[str] | None = None, **kwargs)
+:canonical: fairdm.db.fields.BigIntegerQuantityField
+
+Bases: {py:obj}`quantityfield.fields.BigIntegerQuantityField`
+
+```{autodoc2-docstring} fairdm.db.fields.BigIntegerQuantityField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.db.fields.BigIntegerQuantityField.__init__
+```
+
+````{py:attribute} form_field_class
+:canonical: fairdm.db.fields.BigIntegerQuantityField.form_field_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.db.fields.BigIntegerQuantityField.form_field_class
+```
+
+````
+
+````{py:attribute} to_number_type
+:canonical: fairdm.db.fields.BigIntegerQuantityField.to_number_type
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.db.fields.BigIntegerQuantityField.to_number_type
+```
+
+````
+
+`````
+
+`````{py:class} DecimalQuantityField(base_units: str, *args, unit_choices: list[str] | None = None, verbose_name: str = None, name: str = None, max_digits: int = None, decimal_places: int = None, **kwargs)
+:canonical: fairdm.db.fields.DecimalQuantityField
+
+Bases: {py:obj}`quantityfield.fields.DecimalQuantityField`
+
+```{autodoc2-docstring} fairdm.db.fields.DecimalQuantityField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.db.fields.DecimalQuantityField.__init__
+```
+
+````{py:attribute} form_field_class
+:canonical: fairdm.db.fields.DecimalQuantityField.form_field_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.db.fields.DecimalQuantityField.form_field_class
+```
+
+````
+
+````{py:attribute} to_number_type
+:canonical: fairdm.db.fields.DecimalQuantityField.to_number_type
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.db.fields.DecimalQuantityField.to_number_type
+```
+
+````
+
+`````
+
+`````{py:class} IntegerQuantityField(base_units: str, *args, unit_choices: typing.Iterable[str] | None = None, **kwargs)
+:canonical: fairdm.db.fields.IntegerQuantityField
+
+Bases: {py:obj}`quantityfield.fields.IntegerQuantityField`
+
+```{autodoc2-docstring} fairdm.db.fields.IntegerQuantityField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.db.fields.IntegerQuantityField.__init__
+```
+
+````{py:attribute} form_field_class
+:canonical: fairdm.db.fields.IntegerQuantityField.form_field_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.db.fields.IntegerQuantityField.form_field_class
+```
+
+````
+
+````{py:attribute} to_number_type
+:canonical: fairdm.db.fields.IntegerQuantityField.to_number_type
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.db.fields.IntegerQuantityField.to_number_type
+```
+
+````
+
+`````
+
+`````{py:class} PositiveIntegerQuantityField(base_units: str, *args, unit_choices: typing.Iterable[str] | None = None, **kwargs)
+:canonical: fairdm.db.fields.PositiveIntegerQuantityField
+
+Bases: {py:obj}`quantityfield.fields.PositiveIntegerQuantityField`
+
+```{autodoc2-docstring} fairdm.db.fields.PositiveIntegerQuantityField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.db.fields.PositiveIntegerQuantityField.__init__
+```
+
+````{py:attribute} form_field_class
+:canonical: fairdm.db.fields.PositiveIntegerQuantityField.form_field_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.db.fields.PositiveIntegerQuantityField.form_field_class
+```
+
+````
+
+````{py:attribute} to_number_type
+:canonical: fairdm.db.fields.PositiveIntegerQuantityField.to_number_type
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.db.fields.PositiveIntegerQuantityField.to_number_type
+```
+
+````
+
+`````
+
+`````{py:class} QuantityField(base_units: str, *args, unit_choices: typing.Iterable[str] | None = None, **kwargs)
+:canonical: fairdm.db.fields.QuantityField
+
+Bases: {py:obj}`quantityfield.fields.QuantityField`
+
+```{autodoc2-docstring} fairdm.db.fields.QuantityField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.db.fields.QuantityField.__init__
+```
+
+````{py:attribute} form_field_class
+:canonical: fairdm.db.fields.QuantityField.form_field_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.db.fields.QuantityField.form_field_class
+```
+
+````
+
+````{py:attribute} to_number_type
+:canonical: fairdm.db.fields.QuantityField.to_number_type
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.db.fields.QuantityField.to_number_type
+```
+
+````
+
+`````
+
+`````{py:class} PartialDateField(verbose_name=None, name=None, primary_key=False, max_length=None, unique=False, blank=False, null=False, db_index=False, rel=None, default=NOT_PROVIDED, editable=True, serialize=True, unique_for_date=None, unique_for_month=None, unique_for_year=None, choices=None, help_text='', db_column=None, db_tablespace=None, auto_created=False, validators=(), error_messages=None, db_comment=None, db_default=NOT_PROVIDED)
+:canonical: fairdm.db.fields.PartialDateField
+
+Bases: {py:obj}`partial_date.PartialDateField`
+
+```{autodoc2-docstring} fairdm.db.fields.PartialDateField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.db.fields.PartialDateField.__init__
+```
+
+````{py:method} formfield(**kwargs)
+:canonical: fairdm.db.fields.PartialDateField.formfield
+
+```{autodoc2-docstring} fairdm.db.fields.PartialDateField.formfield
+```
+
+````
+
+`````

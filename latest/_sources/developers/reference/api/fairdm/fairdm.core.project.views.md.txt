@@ -1,0 +1,192 @@
+# {py:mod}`fairdm.core.project.views`
+
+```{py:module} fairdm.core.project.views
+```
+
+```{autodoc2-docstring} fairdm.core.project.views
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ProjectListView <fairdm.core.project.views.ProjectListView>`
+  - ```{autodoc2-docstring} fairdm.core.project.views.ProjectListView
+    :summary:
+    ```
+* - {py:obj}`ProjectCreateView <fairdm.core.project.views.ProjectCreateView>`
+  - ```{autodoc2-docstring} fairdm.core.project.views.ProjectCreateView
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} ProjectListView(**kwargs)
+:canonical: fairdm.core.project.views.ProjectListView
+
+Bases: {py:obj}`fairdm.views.FairDMListView`
+
+```{autodoc2-docstring} fairdm.core.project.views.ProjectListView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.project.views.ProjectListView.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.project.views.ProjectListView.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.project.views.ProjectListView.model
+```
+
+````
+
+````{py:attribute} filterset_class
+:canonical: fairdm.core.project.views.ProjectListView.filterset_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.project.views.ProjectListView.filterset_class
+```
+
+````
+
+````{py:attribute} list_item_template
+:canonical: fairdm.core.project.views.ProjectListView.list_item_template
+:value: >
+   'project/project_card.html'
+
+```{autodoc2-docstring} fairdm.core.project.views.ProjectListView.list_item_template
+```
+
+````
+
+````{py:attribute} grid
+:canonical: fairdm.core.project.views.ProjectListView.grid
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.project.views.ProjectListView.grid
+```
+
+````
+
+````{py:attribute} toolbar_filters
+:canonical: fairdm.core.project.views.ProjectListView.toolbar_filters
+:value: >
+   ['q', 'status']
+
+```{autodoc2-docstring} fairdm.core.project.views.ProjectListView.toolbar_filters
+```
+
+````
+
+````{py:attribute} image
+:canonical: fairdm.core.project.views.ProjectListView.image
+:value: >
+   'static(...)'
+
+```{autodoc2-docstring} fairdm.core.project.views.ProjectListView.image
+```
+
+````
+
+````{py:attribute} show_list_action
+:canonical: fairdm.core.project.views.ProjectListView.show_list_action
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.core.project.views.ProjectListView.show_list_action
+```
+
+````
+
+````{py:method} show_create_action(user)
+:canonical: fairdm.core.project.views.ProjectListView.show_create_action
+
+```{autodoc2-docstring} fairdm.core.project.views.ProjectListView.show_create_action
+```
+
+````
+
+````{py:method} get_queryset() -> django.db.models.QuerySet[fairdm.core.models.Project]
+:canonical: fairdm.core.project.views.ProjectListView.get_queryset
+
+```{autodoc2-docstring} fairdm.core.project.views.ProjectListView.get_queryset
+```
+
+````
+
+`````
+
+`````{py:class} ProjectCreateView(**kwargs)
+:canonical: fairdm.core.project.views.ProjectCreateView
+
+Bases: {py:obj}`django.contrib.auth.mixins.LoginRequiredMixin`, {py:obj}`fairdm.views.FairDMCreateView`
+
+```{autodoc2-docstring} fairdm.core.project.views.ProjectCreateView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.project.views.ProjectCreateView.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.project.views.ProjectCreateView.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.project.views.ProjectCreateView.model
+```
+
+````
+
+````{py:attribute} form_class
+:canonical: fairdm.core.project.views.ProjectCreateView.form_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.project.views.ProjectCreateView.form_class
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.core.project.views.ProjectCreateView.page_title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.project.views.ProjectCreateView.page_title
+```
+
+````
+
+````{py:method} form_valid(form: fairdm.core.project.forms.ProjectCreateForm) -> django.http.HttpResponse
+:canonical: fairdm.core.project.views.ProjectCreateView.form_valid
+
+```{autodoc2-docstring} fairdm.core.project.views.ProjectCreateView.form_valid
+```
+
+````
+
+````{py:method} get_success_url() -> str
+:canonical: fairdm.core.project.views.ProjectCreateView.get_success_url
+
+```{autodoc2-docstring} fairdm.core.project.views.ProjectCreateView.get_success_url
+```
+
+````
+
+`````

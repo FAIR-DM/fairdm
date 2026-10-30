@@ -1,0 +1,252 @@
+# {py:mod}`fairdm.contrib.plugins.base`
+
+```{py:module} fairdm.contrib.plugins.base
+```
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Plugin <fairdm.contrib.plugins.base.Plugin>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} Plugin(**kwargs)
+:canonical: fairdm.contrib.plugins.base.Plugin
+
+Bases: {py:obj}`django.contrib.auth.mixins.PermissionRequiredMixin`, {py:obj}`django.views.generic.base.View`
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.__init__
+```
+
+````{py:attribute} registered_model
+:canonical: fairdm.contrib.plugins.base.Plugin.registered_model
+:type: typing.ClassVar[type[django.db.models.Model] | None]
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.registered_model
+```
+
+````
+
+````{py:attribute} plugin_class
+:canonical: fairdm.contrib.plugins.base.Plugin.plugin_class
+:type: typing.ClassVar[type[fairdm.contrib.plugins.base.Plugin] | None]
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.plugin_class
+```
+
+````
+
+````{py:attribute} name
+:canonical: fairdm.contrib.plugins.base.Plugin.name
+:type: typing.ClassVar[str | None]
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.name
+```
+
+````
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.plugins.base.Plugin.url_path
+:type: typing.ClassVar[str | None]
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.url_path
+```
+
+````
+
+````{py:attribute} permission
+:canonical: fairdm.contrib.plugins.base.Plugin.permission
+:type: typing.ClassVar[str | None]
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.permission
+```
+
+````
+
+````{py:attribute} check
+:canonical: fairdm.contrib.plugins.base.Plugin.check
+:type: typing.ClassVar[collections.abc.Callable[[django.http.HttpRequest, django.db.models.Model | None], bool] | None]
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.check
+```
+
+````
+
+````{py:attribute} model
+:canonical: fairdm.contrib.plugins.base.Plugin.model
+:type: typing.ClassVar[type[django.db.models.Model] | None]
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.model
+```
+
+````
+
+````{py:attribute} menu
+:canonical: fairdm.contrib.plugins.base.Plugin.menu
+:type: typing.ClassVar[dict[str, typing.Any] | None]
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.menu
+```
+
+````
+
+````{py:attribute} extra_views
+:canonical: fairdm.contrib.plugins.base.Plugin.extra_views
+:type: typing.ClassVar[list[type[fairdm.contrib.plugins.base.Plugin]]]
+:value: >
+   []
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.extra_views
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.contrib.plugins.base.Plugin.page_title
+:type: typing.ClassVar[str]
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.page_title
+```
+
+````
+
+````{py:attribute} slug_field
+:canonical: fairdm.contrib.plugins.base.Plugin.slug_field
+:value: >
+   'uuid'
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.slug_field
+```
+
+````
+
+````{py:attribute} slug_url_kwarg
+:canonical: fairdm.contrib.plugins.base.Plugin.slug_url_kwarg
+:value: >
+   'uuid'
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.slug_url_kwarg
+```
+
+````
+
+````{py:method} get_name() -> str
+:canonical: fairdm.contrib.plugins.base.Plugin.get_name
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.get_name
+```
+
+````
+
+````{py:method} get_url_path() -> str | None
+:canonical: fairdm.contrib.plugins.base.Plugin.get_url_path
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.get_url_path
+```
+
+````
+
+````{py:method} get_extra_views() -> list[type[fairdm.contrib.plugins.base.Plugin]]
+:canonical: fairdm.contrib.plugins.base.Plugin.get_extra_views
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.get_extra_views
+```
+
+````
+
+````{py:method} get_urls(menu_class=None, model=None) -> list[django.urls.URLPattern]
+:canonical: fairdm.contrib.plugins.base.Plugin.get_urls
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.get_urls
+```
+
+````
+
+````{py:method} base_object() -> django.db.models.Model | None
+:canonical: fairdm.contrib.plugins.base.Plugin.base_object
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.base_object
+```
+
+````
+
+````{py:method} get_base_object() -> django.db.models.Model
+:canonical: fairdm.contrib.plugins.base.Plugin.get_base_object
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.get_base_object
+```
+
+````
+
+````{py:method} get_queryset()
+:canonical: fairdm.contrib.plugins.base.Plugin.get_queryset
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.get_queryset
+```
+
+````
+
+````{py:method} has_permission() -> bool
+:canonical: fairdm.contrib.plugins.base.Plugin.has_permission
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.has_permission
+```
+
+````
+
+````{py:method} get_context_data(**kwargs: typing.Any) -> dict[str, typing.Any]
+:canonical: fairdm.contrib.plugins.base.Plugin.get_context_data
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.get_context_data
+```
+
+````
+
+````{py:method} get_breadcrumbs() -> list[dict[str, typing.Any]]
+:canonical: fairdm.contrib.plugins.base.Plugin.get_breadcrumbs
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.get_breadcrumbs
+```
+
+````
+
+`````

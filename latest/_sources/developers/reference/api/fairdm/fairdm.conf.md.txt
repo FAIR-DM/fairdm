@@ -1,0 +1,180 @@
+# {py:mod}`fairdm.conf`
+
+```{py:module} fairdm.conf
+```
+
+```{autodoc2-docstring} fairdm.conf
+:allowtitles:
+```
+
+## Subpackages
+
+```{toctree}
+:titlesonly:
+:maxdepth: 3
+
+fairdm.conf.settings
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.conf.environment
+fairdm.conf.urls
+fairdm.conf.setup
+fairdm.conf.checks
+fairdm.conf.celery
+fairdm.conf.development
+fairdm.conf.addons
+```
+
+## Package Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Layer <fairdm.conf.Layer>`
+  - ```{autodoc2-docstring} fairdm.conf.Layer
+    :summary:
+    ```
+* - {py:obj}`Provenance <fairdm.conf.Provenance>`
+  - ```{autodoc2-docstring} fairdm.conf.Provenance
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`record <fairdm.conf.record>`
+  - ```{autodoc2-docstring} fairdm.conf.record
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} Layer
+:canonical: fairdm.conf.Layer
+
+```{autodoc2-docstring} fairdm.conf.Layer
+```
+
+````{py:attribute} name
+:canonical: fairdm.conf.Layer.name
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.Layer.name
+```
+
+````
+
+````{py:attribute} path
+:canonical: fairdm.conf.Layer.path
+:type: str | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.Layer.path
+```
+
+````
+
+````{py:attribute} found
+:canonical: fairdm.conf.Layer.found
+:type: bool
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.Layer.found
+```
+
+````
+
+````{py:attribute} settings
+:canonical: fairdm.conf.Layer.settings
+:type: tuple[str, ...]
+:value: >
+   'field(...)'
+
+```{autodoc2-docstring} fairdm.conf.Layer.settings
+```
+
+````
+
+`````
+
+`````{py:class} Provenance()
+:canonical: fairdm.conf.Provenance
+
+```{autodoc2-docstring} fairdm.conf.Provenance
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.conf.Provenance.__init__
+```
+
+````{py:method} reset() -> None
+:canonical: fairdm.conf.Provenance.reset
+
+```{autodoc2-docstring} fairdm.conf.Provenance.reset
+```
+
+````
+
+````{py:method} add_layer(name: str, path: str | None, found: bool, settings) -> None
+:canonical: fairdm.conf.Provenance.add_layer
+
+```{autodoc2-docstring} fairdm.conf.Provenance.add_layer
+```
+
+````
+
+````{py:method} layers() -> list[fairdm.conf.Layer]
+:canonical: fairdm.conf.Provenance.layers
+
+```{autodoc2-docstring} fairdm.conf.Provenance.layers
+```
+
+````
+
+````{py:method} producer(setting: str) -> fairdm.conf.Layer | None
+:canonical: fairdm.conf.Provenance.producer
+
+```{autodoc2-docstring} fairdm.conf.Provenance.producer
+```
+
+````
+
+````{py:method} replace(layers) -> None
+:canonical: fairdm.conf.Provenance.replace
+
+```{autodoc2-docstring} fairdm.conf.Provenance.replace
+```
+
+````
+
+`````
+
+````{py:data} record
+:canonical: fairdm.conf.record
+:value: >
+   'Provenance(...)'
+
+```{autodoc2-docstring} fairdm.conf.record
+```
+
+````

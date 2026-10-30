@@ -1,0 +1,317 @@
+# {py:mod}`fairdm.contrib.collections.tables`
+
+```{py:module} fairdm.contrib.collections.tables
+```
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`BaseTable <fairdm.contrib.collections.tables.BaseTable>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.tables.BaseTable
+    :summary:
+    ```
+* - {py:obj}`SampleTable <fairdm.contrib.collections.tables.SampleTable>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.tables.SampleTable
+    :summary:
+    ```
+* - {py:obj}`MeasurementTable <fairdm.contrib.collections.tables.MeasurementTable>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.tables.MeasurementTable
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`render_concept_many_to_many <fairdm.contrib.collections.tables.render_concept_many_to_many>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.tables.render_concept_many_to_many
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`field_map <fairdm.contrib.collections.tables.field_map>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.tables.field_map
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} render_concept_many_to_many(value)
+:canonical: fairdm.contrib.collections.tables.render_concept_many_to_many
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.render_concept_many_to_many
+```
+````
+
+````{py:data} field_map
+:canonical: fairdm.contrib.collections.tables.field_map
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.field_map
+```
+
+````
+
+`````{py:class} BaseTable(*args, **kwargs)
+:canonical: fairdm.contrib.collections.tables.BaseTable
+
+Bases: {py:obj}`django_tables2.Table`
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.BaseTable
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.BaseTable.__init__
+```
+
+````{py:attribute} id
+:canonical: fairdm.contrib.collections.tables.BaseTable.id
+:value: >
+   'Column(...)'
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.BaseTable.id
+```
+
+````
+
+````{py:attribute} dataset
+:canonical: fairdm.contrib.collections.tables.BaseTable.dataset
+:value: >
+   'Column(...)'
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.BaseTable.dataset
+```
+
+````
+
+````{py:method} render_dataset(value)
+:canonical: fairdm.contrib.collections.tables.BaseTable.render_dataset
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.BaseTable.render_dataset
+```
+
+````
+
+````{py:method} value_dataset(value)
+:canonical: fairdm.contrib.collections.tables.BaseTable.value_dataset
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.BaseTable.value_dataset
+```
+
+````
+
+````{py:method} configure_column_attrs()
+:canonical: fairdm.contrib.collections.tables.BaseTable.configure_column_attrs
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.BaseTable.configure_column_attrs
+```
+
+````
+
+````{py:method} update_concept_field_render_methods()
+:canonical: fairdm.contrib.collections.tables.BaseTable.update_concept_field_render_methods
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.BaseTable.update_concept_field_render_methods
+```
+
+````
+
+`````
+
+``````{py:class} SampleTable(*args, **kwargs)
+:canonical: fairdm.contrib.collections.tables.SampleTable
+
+Bases: {py:obj}`fairdm.contrib.collections.tables.BaseTable`
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.SampleTable
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.SampleTable.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.contrib.collections.tables.SampleTable.name
+:value: >
+   'Column(...)'
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.SampleTable.name
+```
+
+````
+
+````{py:attribute} latitude
+:canonical: fairdm.contrib.collections.tables.SampleTable.latitude
+:value: >
+   'Column(...)'
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.SampleTable.latitude
+```
+
+````
+
+````{py:attribute} longitude
+:canonical: fairdm.contrib.collections.tables.SampleTable.longitude
+:value: >
+   'Column(...)'
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.SampleTable.longitude
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.contrib.collections.tables.SampleTable.Meta
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.SampleTable.Meta
+```
+
+````{py:attribute} attrs
+:canonical: fairdm.contrib.collections.tables.SampleTable.Meta.attrs
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.SampleTable.Meta.attrs
+```
+
+````
+
+````{py:attribute} sequence
+:canonical: fairdm.contrib.collections.tables.SampleTable.Meta.sequence
+:value: >
+   ('dataset', '...')
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.SampleTable.Meta.sequence
+```
+
+````
+
+````{py:attribute} order_by
+:canonical: fairdm.contrib.collections.tables.SampleTable.Meta.order_by
+:value: >
+   ('added', 'id')
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.SampleTable.Meta.order_by
+```
+
+````
+
+`````
+
+``````
+
+``````{py:class} MeasurementTable(*args, **kwargs)
+:canonical: fairdm.contrib.collections.tables.MeasurementTable
+
+Bases: {py:obj}`fairdm.contrib.collections.tables.BaseTable`
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.MeasurementTable
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.MeasurementTable.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.contrib.collections.tables.MeasurementTable.name
+:value: >
+   'Column(...)'
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.MeasurementTable.name
+```
+
+````
+
+````{py:attribute} sample
+:canonical: fairdm.contrib.collections.tables.MeasurementTable.sample
+:value: >
+   'Column(...)'
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.MeasurementTable.sample
+```
+
+````
+
+````{py:attribute} latitude
+:canonical: fairdm.contrib.collections.tables.MeasurementTable.latitude
+:value: >
+   'Column(...)'
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.MeasurementTable.latitude
+```
+
+````
+
+````{py:attribute} longitude
+:canonical: fairdm.contrib.collections.tables.MeasurementTable.longitude
+:value: >
+   'Column(...)'
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.MeasurementTable.longitude
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.contrib.collections.tables.MeasurementTable.Meta
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.MeasurementTable.Meta
+```
+
+````{py:attribute} attrs
+:canonical: fairdm.contrib.collections.tables.MeasurementTable.Meta.attrs
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.MeasurementTable.Meta.attrs
+```
+
+````
+
+````{py:attribute} order_by
+:canonical: fairdm.contrib.collections.tables.MeasurementTable.Meta.order_by
+:value: >
+   ('-modified', 'id')
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.MeasurementTable.Meta.order_by
+```
+
+````
+
+`````
+
+````{py:method} render_sample(value)
+:canonical: fairdm.contrib.collections.tables.MeasurementTable.render_sample
+
+```{autodoc2-docstring} fairdm.contrib.collections.tables.MeasurementTable.render_sample
+```
+
+````
+
+``````

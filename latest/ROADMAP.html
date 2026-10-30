@@ -1,0 +1,1309 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="Roadmap — FairDM" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="ROADMAP.html" />
+<meta property="og:site_name" content="fairdm" />
+<meta property="og:description" content="Date: 2026-08-12 This document was designed against GOALS.md. See also CONTEXT.md for domain terminology and CONSTITUTION.md for project standards. The first thirteen items are already built. They ..." />
+<meta name="description" content="Date: 2026-08-12 This document was designed against GOALS.md. See also CONTEXT.md for domain terminology and CONSTITUTION.md for project standards. The first thirteen items are already built. They ..." />
+
+    <title>Roadmap — FairDM &#8212; fairdm 0.3.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="_static/scripts/fontawesome.js?digest=cb8930eaaf36d9849b67"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
+
+    <script src="_static/documentation_options.js?v=4621528c"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script kind="utterances">
+
+    var commentsRunWhenDOMLoaded = cb => {
+    if (document.readyState != 'loading') {
+        cb()
+    } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', cb)
+    } else {
+        document.attachEvent('onreadystatechange', function() {
+        if (document.readyState == 'complete') cb()
+        })
+    }
+}
+
+var addUtterances = () => {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://utteranc.es/client.js";
+    script.async = "async";
+
+    script.setAttribute("repo", "FAIR-DM/fairdm");
+    script.setAttribute("issue-term", "pathname");
+    script.setAttribute("theme", "preferred-color-scheme");
+    script.setAttribute("label", "documentation");
+    script.setAttribute("crossorigin", "anonymous");
+
+    sections = document.querySelectorAll("div.section");
+    if (sections !== null) {
+        section = sections[sections.length-1];
+        section.appendChild(script);
+    }
+}
+commentsRunWhenDOMLoaded(addUtterances);
+</script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'ROADMAP';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.21.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.fairdm.org/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'latest';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="icon" href="_static/icon.svg"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Changelog" href="changelog.html" />
+    <link rel="prev" title="ADR 0041 — Backups are encrypted to a public key" href="adr/0041-backups-are-encrypted-to-a-public-key.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.3.1" />
+    <meta name="docbuild:last-update" content="Oct 30, 2026"/>
+  
+    
+    <script src="_static/searchtools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.3.1 documentation - Home"/>
+    <img src="_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.3.1 documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="developers/index.html">
+    Developers
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="administrators/index.html">
+    Administrators
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="users/index.html">
+    Users
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/what-fairdm-is-for.html">
+    What FairDM is for
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/fair-data-and-research-data-infrastructure.html">
+    FAIR data and research data infrastructure
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/the-technology-stack.html">
+    The technology stack
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/the-core-data-model.html">
+    The core data model
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/how-sample-and-measurement-types-are-stored.html">
+    How sample and measurement types are stored
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/controlled-vocabularies.html">
+    Controlled vocabularies
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/configuration-over-code.html">
+    Configuration over code
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/why-complete-metadata-matters.html">
+    Why complete metadata matters
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/how-access-to-a-record-is-decided.html">
+    How access to a record is decided
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/why-fairdm-records-contributors.html">
+    Why FairDM records contributors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/how-contributor-accounts-and-credits-work.html">
+    How contributor accounts and credits work
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/how-a-profile-is-claimed.html">
+    How a profile is claimed
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/how-fairdm-configures-a-portal.html">
+    How FairDM configures a portal
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/who-is-asked-to-agree-to-a-legal-document.html">
+    Who is asked to agree to a legal document
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/how-locations-are-stored-and-protected.html">
+    How locations are stored and protected
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="explanation/dataset-publication-dois-and-datacite-metadata.html">
+    Dataset publication, DOIs and DataCite metadata
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="reference/glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="contributing/index.html">
+    Framework Contributors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="adr/index.html">
+    Architecture Decision Records
+  </a>
+</li>
+
+
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="#">
+    Roadmap — FairDM
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="developers/index.html">
+    Developers
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="administrators/index.html">
+    Administrators
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="users/index.html">
+    Users
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/what-fairdm-is-for.html">
+    What FairDM is for
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/fair-data-and-research-data-infrastructure.html">
+    FAIR data and research data infrastructure
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/the-technology-stack.html">
+    The technology stack
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/the-core-data-model.html">
+    The core data model
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/how-sample-and-measurement-types-are-stored.html">
+    How sample and measurement types are stored
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/controlled-vocabularies.html">
+    Controlled vocabularies
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/configuration-over-code.html">
+    Configuration over code
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/why-complete-metadata-matters.html">
+    Why complete metadata matters
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/how-access-to-a-record-is-decided.html">
+    How access to a record is decided
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/why-fairdm-records-contributors.html">
+    Why FairDM records contributors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/how-contributor-accounts-and-credits-work.html">
+    How contributor accounts and credits work
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/how-a-profile-is-claimed.html">
+    How a profile is claimed
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/how-fairdm-configures-a-portal.html">
+    How FairDM configures a portal
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/who-is-asked-to-agree-to-a-legal-document.html">
+    Who is asked to agree to a legal document
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/how-locations-are-stored-and-protected.html">
+    How locations are stored and protected
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="explanation/dataset-publication-dois-and-datacite-metadata.html">
+    Dataset publication, DOIs and DataCite metadata
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="reference/glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contributing/index.html">
+    Framework Contributors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="adr/index.html">
+    Architecture Decision Records
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    Roadmap — FairDM
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"></div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Roadmap — FairDM</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="roadmap-fairdm">
+<h1>Roadmap — FairDM<a class="headerlink" href="#roadmap-fairdm" title="Link to this heading">#</a></h1>
+<p><strong>Date:</strong> 2026-08-12</p>
+<p>This document was designed against <span class="xref myst">GOALS.md</span>. See also <span class="xref myst">CONTEXT.md</span> for domain terminology and <span class="xref myst">CONSTITUTION.md</span> for project standards.</p>
+<p>The first thirteen items are already built. They are carried here so the sequence reads whole, from an empty repository to where the framework stands today.</p>
+<section id="versioning">
+<h2>Versioning<a class="headerlink" href="#versioning" title="Link to this heading">#</a></h2>
+<p>Releases are gated on how important a goal is, not on how many features have landed.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Version</p></th>
+<th class="head"><p>What it means</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">0.0.x</span></code></p></td>
+<td><p>Building toward the Essential goals. Pre-viable, expect churn, install from a git pin rather than an index.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">0.1.0</span></code></p></td>
+<td><p>Every Essential goal delivered. The minimum usable release and the first publish.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">0.1.x</span></code> → <code class="docutils literal notranslate"><span class="pre">0.x</span></code></p></td>
+<td><p>The Expected goals, at whatever granularity the work takes. Patch releases are fixes.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">1.0.0</span></code></p></td>
+<td><p>Every Expected goal delivered. The complete, dependable release.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">1.x</span></code></p></td>
+<td><p>Stable line. Fixes and additive features only.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">2.0</span></code></p></td>
+<td><p>The next major, where breaking changes go.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Two rules follow from that table. A goal is not one minor release: some take several, and one release can move two goals at once. Once <code class="docutils literal notranslate"><span class="pre">1.0</span></code> ships, a breaking change never goes out on the <code class="docutils literal notranslate"><span class="pre">1.x</span></code> line and waits for the next major instead.</p>
+<p>Aspirational goals may be developed against v2 or v1 as required.</p>
+</section>
+<section id="already-delivered">
+<h2>Already delivered<a class="headerlink" href="#already-delivered" title="Link to this heading">#</a></h2>
+<p>The framework these items describe is working code. Each one is carried at the version it was built at, and each carries a verification tag until a later pass confirms the code meets the goal it claims.</p>
+<section id="r1-portal-configuration-in-a-single-call">
+<h3>R1 — Portal configuration in a single call<a class="headerlink" href="#r1-portal-configuration-in-a-single-call" title="Link to this heading">#</a></h3>
+<p><em>Delivered · advances G7</em></p>
+<p>A portal declares its apps and addons in one call and receives a complete settings baseline. The baseline is production-grade in every environment, and each environment is an override layered over it in a declared order, selected by name and found by whether it exists. FairDM ships an override for development only, and a portal supplies its own for anything else. In production, configuration that would leave the portal unsafe stops it starting rather than surfacing as a runtime failure.</p>
+<p>Serves G7.</p>
+</section>
+<section id="r2-model-registry-and-generated-components">
+<h3>R2 — Model registry and generated components<a class="headerlink" href="#r2-model-registry-and-generated-components" title="Link to this heading">#</a></h3>
+<p><em>Delivered · advances G2</em></p>
+<p>Registering a model with a configuration class produces its form, table, filter set, serializer, import and export resource, and admin entry without any of those being written by hand. A portal author describes fields and grouping, and the components follow.</p>
+<p>Serves G2.</p>
+</section>
+<section id="r3-projects">
+<h3>R3 — Projects<a class="headerlink" href="#r3-projects" title="Link to this heading">#</a></h3>
+<p><em>Delivered · advances G1</em></p>
+<p>The outermost container of the core model, with descriptions, dates, identifiers, funding, status and keywords, and a fixed schema that portals consume rather than extend.</p>
+<p>Serves G1.</p>
+</section>
+<section id="r4-datasets">
+<h3>R4 — Datasets<a class="headerlink" href="#r4-datasets" title="Link to this heading">#</a></h3>
+<p><em>Delivered · advances G1</em></p>
+<p>The unit of citation and distribution, carrying its own descriptions, dates, identifiers, licence, keywords and related literature, with visibility held independently of its project.</p>
+<p>Serves G1.</p>
+</section>
+<section id="r5-samples">
+<h3>R5 — Samples<a class="headerlink" href="#r5-samples" title="Link to this heading">#</a></h3>
+<p><em>Delivered · advances G1</em></p>
+<p>The polymorphic base every sample type inherits from, so a portal defines its own specimen types and the framework treats them uniformly.</p>
+<p>Serves G1.</p>
+</section>
+<section id="r6-measurements">
+<h3>R6 — Measurements<a class="headerlink" href="#r6-measurements" title="Link to this heading">#</a></h3>
+<p><em>Delivered · advances G1</em></p>
+<p>The polymorphic base for results and observations recorded against a sample, including the case where a measurement belongs to a different dataset than the sample it describes.</p>
+<p>Serves G1.</p>
+</section>
+<section id="r7-the-default-portal-interface">
+<h3>R7 — The default portal interface<a class="headerlink" href="#r7-the-default-portal-interface" title="Link to this heading">#</a></h3>
+<p><em>Delivered · needs verification · advances G5</em></p>
+<p>Every page a portal serves inherits a shared application shell with navigation, menus, icons and component templates already in place, so a new portal has a working interface before anyone writes a template.</p>
+<p>Serves G5.</p>
+</section>
+<section id="r8-the-plugin-system">
+<h3>R8 — The plugin system<a class="headerlink" href="#r8-the-plugin-system" title="Link to this heading">#</a></h3>
+<p><em>Delivered · advances G3</em></p>
+<p>Views attach to core records as tabs and panels through a registry, so an addon adds pages to an existing record type without the framework being edited. Addon packages announce their own settings and URLs and are picked up at startup.</p>
+<p>Serves G3.</p>
+</section>
+<section id="r9-contributors-and-contributions">
+<h3>R9 — Contributors and contributions<a class="headerlink" href="#r9-contributors-and-contributions" title="Link to this heading">#</a></h3>
+<p><em>Delivered · needs verification · advances G4</em></p>
+<p>People and organisations are one polymorphic family, credited against records through contribution entries that carry roles drawn from a controlled vocabulary. A person is also the portal account, so credit and identity are the same record.</p>
+<p>Serves G4.</p>
+</section>
+<section id="r10-profile-claiming">
+<h3>R10 — Profile claiming<a class="headerlink" href="#r10-profile-claiming" title="Link to this heading">#</a></h3>
+<p><em>Delivered · needs verification · advances G4, G15</em></p>
+<p>A person credited on a record before they ever visited the portal can take ownership of that profile by signing in with an external identity, instead of a duplicate account being created alongside the credit.</p>
+<p>Serves G4 and G15.</p>
+</section>
+<section id="r11-the-machine-readable-api">
+<h3>R11 — The machine-readable API<a class="headerlink" href="#r11-the-machine-readable-api" title="Link to this heading">#</a></h3>
+<p><em>Delivered · advances G10</em></p>
+<p>Projects, datasets, contributors and every registered sample and measurement type are reachable over a versioned HTTP API with authentication, pagination, filtering, ordering and generated interactive documentation.</p>
+<p>Serves G10.</p>
+</section>
+<section id="r12-editing-projects-and-datasets-in-the-portal">
+<h3>R12 — Editing projects and datasets in the portal<a class="headerlink" href="#r12-editing-projects-and-datasets-in-the-portal" title="Link to this heading">#</a></h3>
+<p><em>Delivered · needs verification · advances G6</em></p>
+<p>Projects and datasets can be created, read, updated and deleted through the portal itself, without the Django admin and without a portal author writing those views.</p>
+<p>The project half is verified: a project can be listed, created, edited — its own fields, its dates and its identifiers together, its descriptions on their own page — and deleted, each page reachable from the project itself and refused to anyone who may not open it. The dataset half is not yet verified, so the tag stands.</p>
+<p>Serves G6.</p>
+</section>
+<section id="r13-identifier-synchronisation">
+<h3>R13 — Identifier synchronisation<a class="headerlink" href="#r13-identifier-synchronisation" title="Link to this heading">#</a></h3>
+<p><em>Delivered · needs verification · advances G15</em></p>
+<p>An ORCID or ROR identifier recorded against a person or organisation is resolved against the issuing registry in the background, so the local record is populated from the authoritative source rather than retyped.</p>
+<p>Serves G15.</p>
+</section>
+</section>
+<section id="essential-goals-v0-1-0">
+<h2>Essential goals: v0.1.0<a class="headerlink" href="#essential-goals-v0-1-0" title="Link to this heading">#</a></h2>
+<p>Everything needed to reach a minimum usable release.</p>
+<section id="r14-access-rules-hold-on-every-surface">
+<h3>R14 — Access rules hold on every surface<a class="headerlink" href="#r14-access-rules-hold-on-every-surface" title="Link to this heading">#</a></h3>
+<p><em>feature · advances G8, G12</em></p>
+<p>Visibility is decided per record and is enforced in some places and not others. A private dataset is readable by anyone who has its address, and the collection tables that list samples and measurements across the portal show rows belonging to private datasets. Until one rule governs every surface, no portal can hold embargoed data, and every capability built on top of visibility inherits the same hole. This comes first because it is the only item on the roadmap whose absence loses a research group its data.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>One access rule per record type, applied by every page, table, feed and API endpoint that can return that record.</p></li>
+<li><p>Sample and measurement access derived from the dataset they belong to, consistently across the portal and the API.</p></li>
+<li><p>Non-disclosure on refusal, so an address does not confirm that a private record exists.</p></li>
+<li><p>A regression test per surface that a private record is not returned to a viewer without rights to it.</p></li>
+<li><p>The documentation for portal administrators states what private means and where it applies.</p></li>
+</ul>
+<p>Serves G8 and G12. Out of scope: roles and their default permissions, which are R15.</p>
+</section>
+<section id="r15-portal-roles-ship-with-the-framework">
+<h3>R15 — Portal roles ship with the framework<a class="headerlink" href="#r15-portal-roles-ship-with-the-framework" title="Link to this heading">#</a></h3>
+<p><em>delivered in <a class="reference external" href="https://github.com/FAIR-DM/fairdm/issues/338">#338</a>, <a class="reference external" href="https://github.com/FAIR-DM/fairdm/issues/345">#345</a> · advances G8</em></p>
+<p>The framework arrives with the roles a research portal needs and grants rights at the moments that matter, so running a portal is no longer a bespoke setup. The portal’s team holds a defined set of roles that administrators assign and revoke through the portal (<a class="reference external" href="https://github.com/FAIR-DM/fairdm/issues/338">#338</a>). Someone who creates a record can manage it afterwards, and rights over a project or dataset carry to the records beneath it (<a class="reference external" href="https://github.com/FAIR-DM/fairdm/issues/345">#345</a>).</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>A defined set of portal roles with the permissions each one holds, installed with the framework rather than assembled per portal.</p></li>
+<li><p>Creating a record grants its creator the rights to manage it.</p></li>
+<li><p>Project and dataset membership grants rights over the records beneath it.</p></li>
+<li><p>Administrators can assign and revoke roles through the portal.</p></li>
+<li><p>Documentation for administrators listing each role and what it can do.</p></li>
+</ul>
+<p>Serves G8. Out of scope: enforcement of visibility, which is R14.</p>
+</section>
+<section id="r16-every-core-record-type-can-be-created-and-edited-in-the-portal">
+<h3>R16 — Every core record type can be created and edited in the portal<a class="headerlink" href="#r16-every-core-record-type-can-be-created-and-edited-in-the-portal" title="Link to this heading">#</a></h3>
+<p><em>delivered in <a class="reference external" href="https://github.com/FAIR-DM/fairdm/issues/315">#315</a> · advances G6, G2</em></p>
+<p>Registering a sample or measurement type produces its components but not its pages. Samples have no create, list or delete pages at all, and a measurement has only a placeholder. A portal author who registers a domain model still cannot let a researcher enter data through the portal, which leaves the Django admin as the only route and defeats the point of registration.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>Every registered sample and measurement type gets list, detail, create, edit and delete pages from its registration alone.</p></li>
+<li><p>Those pages are reachable from the record they belong to, so a dataset leads to its samples and a sample to its measurements.</p></li>
+<li><p>Creating a measurement carries its sample and dataset context rather than asking the user to restate it.</p></li>
+<li><p>Access rules from R14 and R15 apply to the generated pages.</p></li>
+<li><p>The developer documentation shows what registration produces and how a portal overrides one page without taking over the rest.</p></li>
+</ul>
+<p>Serves G6 and G2. Out of scope: bulk entry through file import, which is R21.</p>
+</section>
+<section id="r17-records-can-be-found-sorted-and-filtered">
+<h3>R17 — Records can be found, sorted and filtered<a class="headerlink" href="#r17-records-can-be-found-sorted-and-filtered" title="Link to this heading">#</a></h3>
+<p><em>feature · advances G9</em></p>
+<p>Filtering is generated from a registered model and works. Search is not: it matches a typed phrase against a handful of fields as plain substrings, with no ranking and no index behind it, so it degrades as soon as a portal holds real data. Sorting is inconsistent between one list and the next. A portal whose records cannot be found is a portal nobody uses, and this becomes visible the moment R16 gives every registered type a list of its own.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>Search across the core record types that tolerates partial words and returns the closest matches first.</p></li>
+<li><p>Sorting on every list, on the columns a reader would expect to sort by.</p></li>
+<li><p>Filters generated from a registered model’s own fields, on its own list pages.</p></li>
+<li><p>Indexes that keep search and filtering usable as a portal grows, with a stated expectation of what “usable” means.</p></li>
+<li><p>The same search, sort and filter available through the API.</p></li>
+<li><p>Only records the viewer may see are returned, under the rule from R14.</p></li>
+</ul>
+<p>Serves G9. Out of scope: searching across portals, which is R29.</p>
+</section>
+<section id="r18-plugins-attach-to-any-registered-model">
+<h3>R18 — Plugins attach to any registered model<a class="headerlink" href="#r18-plugins-attach-to-any-registered-model" title="Link to this heading">#</a></h3>
+<p><em>feature · advances G3</em></p>
+<p>Extension points are fixed in advance rather than derived from what is registered, so a model a portal or an addon defines has nowhere to attach. A record type gains plugin pages only when someone edits a URL configuration by hand, which an addon cannot do.</p>
+<p>Measurements were previously named here as the live example. That was wrong: a measurement is a component of the sample page rather than a record with a page of its own, so it has no attachment point by design. The five plugins registered against it have been removed, and registering a plugin incorrectly now fails at registration rather than doing nothing.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>Attachment points follow from a model being registered, including models defined by a portal or an addon.</p></li>
+<li><p>A startup report lists every registered plugin and where it attached, so an addon author can see the result. A registration against a record with no mounted attachment point is reported as such — this cannot be caught at registration, because no URL configuration exists when the decorator runs.</p></li>
+</ul>
+<p>Serves G3. Out of scope: removing the code that this defect left stranded, which is R20.</p>
+</section>
+<section id="r19-contributions-can-be-managed-on-every-core-record">
+<h3>R19 — Contributions can be managed on every core record<a class="headerlink" href="#r19-contributions-can-be-managed-on-every-core-record" title="Link to this heading">#</a></h3>
+<p><em>delivered in <a class="reference external" href="https://github.com/FAIR-DM/fairdm/issues/402">#402</a> · advances G4</em></p>
+<p>Contributions are added, edited and removed on projects, datasets, samples and measurements alike. Before this the pages existed only on projects, which left the dataset, the unit that gets cited, creditable in principle and not in practice.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>Contribution management on projects, datasets, samples and measurements alike.</p></li>
+<li><p>Roles offered per record type, drawn from the vocabulary appropriate to that type.</p></li>
+<li><p>Ordering of contributors on a record is under the research team’s control, because it determines how the record is cited.</p></li>
+<li><p>Editing and removing an existing contribution, not only adding one.</p></li>
+<li><p>Access rules from R14 and R15 govern who may change credit on a record.</p></li>
+</ul>
+<p>Serves G4. Out of scope: sending credit to an external publisher, which belongs to a publication addon.</p>
+</section>
+<section id="r20-retire-the-code-that-never-runs">
+<h3>R20 — Retire the code that never runs<a class="headerlink" href="#r20-retire-the-code-that-never-runs" title="Link to this heading">#</a></h3>
+<p><em>feature · advances G3, G18</em></p>
+<p>Several modules are shipped but unreachable: the import and export views, the geographic location helpers that import modules which do not exist, a second component-generation system that nothing calls, a second declarative configuration system with one remaining consumer, and a data manager whose surrounding documentation still describes it as active. Their presence is worse than their absence, because each one reads as a working feature to anyone extending the framework, and one of them has already misled its own tests. The core cannot stay small while it carries a second version of itself.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>Each unreachable module is either wired up and covered by tests or deleted.</p></li>
+<li><p>One component-generation path and one configuration path remain, with the alternatives gone.</p></li>
+<li><p>Documentation and docstrings that describe removed or inert behaviour are corrected in the same change.</p></li>
+<li><p>Nothing in the package imports a module that does not exist.</p></li>
+<li><p>Anything deferred rather than removed is recorded as an issue with a reason.</p></li>
+</ul>
+<p>Serves G3 and G18. Out of scope: the import and export feature itself, which is R21 and decides whether those views are worth wiring or replacing.</p>
+</section>
+</section>
+<section id="expected-goals-v1-0-0">
+<h2>Expected goals: v1.0.0<a class="headerlink" href="#expected-goals-v1-0-0" title="Link to this heading">#</a></h2>
+<p>The capabilities a complete, dependable version of the framework is expected to have.</p>
+<section id="r21-tabular-data-goes-in-and-comes-back-out">
+<h3>R21 — Tabular data goes in and comes back out<a class="headerlink" href="#r21-tabular-data-goes-in-and-comes-back-out" title="Link to this heading">#</a></h3>
+<p><em>multi-feature · advances G11</em></p>
+<p>Import and export is written but nobody can reach it. The pages are not routed, one of the templates does not exist, and the work runs in the request rather than in the background. A research group’s existing data arrives as spreadsheets, so this is the capability that decides whether a portal can be populated at all.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>Import and export are reachable from the dataset they belong to.</p></li>
+<li><p>An exported file re-imports into the same dataset and produces the same records.</p></li>
+<li><p>Large imports run in the background and report progress and failures per row.</p></li>
+<li><p>A dataset exports as one archive covering its samples, measurements and metadata.</p></li>
+<li><p>Import validates before it writes, and reports what it would reject.</p></li>
+</ul>
+<p>Serves G11. Out of scope: import across several related tables in one pass, which follows once single-table import is dependable.</p>
+</section>
+<section id="r22-a-dataset-moves-from-working-to-visible-through-a-checked-process">
+<h3>R22 — A dataset moves from working to visible through a checked process<a class="headerlink" href="#r22-a-dataset-moves-from-working-to-visible-through-a-checked-process" title="Link to this heading">#</a></h3>
+<p><em>feature · advances G13</em></p>
+<p>Visibility is a switch anyone with rights can flip. There is no point at which a dataset is checked for completeness before the rest of the portal sees it, which is what a portal administrator is being asked to guarantee.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>Defined states for a dataset from working through review to visible, with the transitions between them.</p></li>
+<li><p>Completeness requirements checked at the transition, reported as what is missing.</p></li>
+<li><p>A review step that a nominated role performs, with the outcome recorded against the dataset.</p></li>
+<li><p>The dataset’s history of state changes is visible to the people responsible for it.</p></li>
+</ul>
+<p>Serves G13. Out of scope: submitting to an external publisher, which belongs to an addon.</p>
+</section>
+<section id="r23-datasets-carry-versions">
+<h3>R23 — Datasets carry versions<a class="headerlink" href="#r23-datasets-carry-versions" title="Link to this heading">#</a></h3>
+<p><em>multi-feature · advances G19</em></p>
+<p>A dataset that has been cited keeps changing, and nothing records what it looked like when the citation was made. Comparable repositories treat a version as the thing that gets cited, so a reader can retrieve the exact state a paper referred to. Without it, a citation to a dataset stops referring to anything specific.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>A published dataset that changes produces a new version rather than overwriting the old one.</p></li>
+<li><p>Earlier versions stay retrievable and are marked as superseded.</p></li>
+<li><p>A dataset’s version history is visible on the record, with what changed between versions.</p></li>
+<li><p>Citation of a dataset resolves to a specific version.</p></li>
+<li><p>Versions are reachable through the API alongside the current state.</p></li>
+</ul>
+<p>Serves G19. Out of scope: minting a separate identifier per version with an external agency, which belongs to a publication addon.</p>
+</section>
+<section id="r24-dataset-metadata-is-complete-enough-to-hand-to-a-publisher">
+<h3>R24 — Dataset metadata is complete enough to hand to a publisher<a class="headerlink" href="#r24-dataset-metadata-is-complete-enough-to-hand-to-a-publisher" title="Link to this heading">#</a></h3>
+<p><em>feature · advances G14</em></p>
+<p>The record model carries most of what a publisher needs, but the publication-shaped output of a dataset refers to fields the dataset does not have and omits the identifier entirely, so it renders mostly empty. An addon that submits a dataset for formal publication cannot work until the metadata a dataset exposes is both complete and correct.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>A published dataset exposes its metadata in the shape a publisher expects, with every required element populated from real fields.</p></li>
+<li><p>Missing required metadata is reported against the dataset before it reaches an addon.</p></li>
+<li><p>The mapping is covered by tests that fail when a field is renamed or removed.</p></li>
+<li><p>The developer documentation states what an addon can rely on.</p></li>
+</ul>
+<p>Serves G14. Out of scope: minting identifiers or talking to a registration agency.</p>
+</section>
+<section id="r25-records-are-machine-readable-where-machines-look">
+<h3>R25 — Records are machine-readable where machines look<a class="headerlink" href="#r25-records-are-machine-readable-where-machines-look" title="Link to this heading">#</a></h3>
+<p><em>feature · advances G10</em></p>
+<p>The API is the deliberate machine route, but discovery services do not use it. Comparable repositories publish structured metadata in the page itself and offer a listing that a crawler can walk. Without those, a portal’s records stay invisible to dataset search engines however good its API is, and findable is the first thing FAIR asks for.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>Structured metadata embedded in project, dataset, sample and measurement pages in the format dataset search engines consume.</p></li>
+<li><p>A crawlable listing of the portal’s public records.</p></li>
+<li><p>Only public records appear in either, under the rule from R14.</p></li>
+<li><p>The documentation for administrators explains what is exposed and how to verify it.</p></li>
+</ul>
+<p>Serves G10. Out of scope: harvesting protocols for portal-to-portal exchange, which is R29.</p>
+</section>
+<section id="r26-a-research-group-can-deploy-the-shipped-stack">
+<h3>R26 — A research group can deploy the shipped stack<a class="headerlink" href="#r26-a-research-group-can-deploy-the-shipped-stack" title="Link to this heading">#</a></h3>
+<p><em>feature · advances G16</em></p>
+<p>The deployment story does not run. The container stack builds from a directory that is not in the repository, points at an environment file that is not there, and the production configuration described in the documentation does not exist. A group with no operations staff has nothing to follow.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>A container stack in the repository that builds and runs as documented.</p></li>
+<li><p>A production configuration covering the web, database, cache, background worker and storage services.</p></li>
+<li><p>Backups, upgrades and log access documented as routine operations.</p></li>
+<li><p>A first-run path from empty to a portal with an administrator account.</p></li>
+<li><p>The deployment documentation matches what the repository ships, verified by following it.</p></li>
+</ul>
+<p>Serves G16. Out of scope: hosting choices and managed services, which are the deploying group’s decision.</p>
+</section>
+<section id="r27-installing-a-schema-package-is-all-a-portal-needs">
+<h3>R27 — Installing a schema package is all a portal needs<a class="headerlink" href="#r27-installing-a-schema-package-is-all-a-portal-needs" title="Link to this heading">#</a></h3>
+<p><em>feature · advances G17, G18</em></p>
+<p>A community can package a domain schema today, but the receiving portal has to name it in configuration for anything to happen, and the contract an addon is written against is described in prose rather than checked. Adoption across communities depends on installation being uneventful.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>An installed schema package is discovered without the portal listing it by hand.</p></li>
+<li><p>A stated contract for what an addon may rely on, with a startup check that reports violations.</p></li>
+<li><p>A reference schema package, kept working by the framework’s own tests.</p></li>
+<li><p>Documentation covering authoring, publishing and installing a schema package.</p></li>
+</ul>
+<p>Serves G17 and G18. Out of scope: a registry or index of published schemas.</p>
+</section>
+<section id="r28-identifiers-stay-meaningful">
+<h3>R28 — Identifiers stay meaningful<a class="headerlink" href="#r28-identifiers-stay-meaningful" title="Link to this heading">#</a></h3>
+<p><em>resolve · advances G15</em></p>
+<p>Identifiers are recorded against people and organisations and resolved for two schemes. Samples and datasets accept identifiers with no validation, so a mistyped one is stored as readily as a real one, and nothing distinguishes them later.</p>
+<p><strong>Deliverables:</strong></p>
+<ul class="simple">
+<li><p>Identifiers are validated against their scheme when entered, in the portal and the API.</p></li>
+<li><p>Sample and dataset identifiers resolve to their registry from the record page.</p></li>
+<li><p>An invalid or unresolvable identifier is reported to the person who entered it.</p></li>
+</ul>
+<p>Serves G15. Out of scope: minting new identifiers, which requires an agreement with an issuing agency.</p>
+</section>
+</section>
+<section id="aspirational-goals-v2-0">
+<h2>Aspirational goals: v2.0<a class="headerlink" href="#aspirational-goals-v2-0" title="Link to this heading">#</a></h2>
+<p>Genuine wants whose absence never makes the framework incomplete.</p>
+<section id="r29-portals-exchange-data-with-one-another">
+<h3>R29 — Portals exchange data with one another<a class="headerlink" href="#r29-portals-exchange-data-with-one-another" title="Link to this heading">#</a></h3>
+<p><em>multi-feature · advances G20</em></p>
+<p>One portal can find and reuse records held by another, through the harvesting protocols the research data community already runs, rather than by manual export and re-import.</p>
+<p>Serves G20.</p>
+</section>
+<section id="r30-a-portal-supports-its-research-community">
+<h3>R30 — A portal supports its research community<a class="headerlink" href="#r30-a-portal-supports-its-research-community" title="Link to this heading">#</a></h3>
+<p><em>multi-feature · advances G21</em></p>
+<p>Discussion, news and collaboration around the data, so a portal is somewhere a research community works rather than only a place its data is stored.</p>
+<p>Serves G21.</p>
+</section>
+<section id="r31-contributors-work-in-their-own-language">
+<h3>R31 — Contributors work in their own language<a class="headerlink" href="#r31-contributors-work-in-their-own-language" title="Link to this heading">#</a></h3>
+<p><em>feature · advances G22</em></p>
+<p>Translation is prepared for throughout the framework and no translation exists: there are no message catalogues, the configured translation path points at a directory that is not there, and there is no way for a visitor to change language. Regional conventions for dates and numbers follow the same gap.</p>
+<p>Serves G22.</p>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="adr/0041-backups-are-encrypted-to-a-public-key.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">ADR 0041 — Backups are encrypted to a public key</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="changelog.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Changelog</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#versioning">Versioning</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#already-delivered">Already delivered</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r1-portal-configuration-in-a-single-call">R1 — Portal configuration in a single call</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r2-model-registry-and-generated-components">R2 — Model registry and generated components</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r3-projects">R3 — Projects</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r4-datasets">R4 — Datasets</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r5-samples">R5 — Samples</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r6-measurements">R6 — Measurements</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r7-the-default-portal-interface">R7 — The default portal interface</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r8-the-plugin-system">R8 — The plugin system</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r9-contributors-and-contributions">R9 — Contributors and contributions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r10-profile-claiming">R10 — Profile claiming</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r11-the-machine-readable-api">R11 — The machine-readable API</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r12-editing-projects-and-datasets-in-the-portal">R12 — Editing projects and datasets in the portal</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r13-identifier-synchronisation">R13 — Identifier synchronisation</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#essential-goals-v0-1-0">Essential goals: v0.1.0</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r14-access-rules-hold-on-every-surface">R14 — Access rules hold on every surface</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r15-portal-roles-ship-with-the-framework">R15 — Portal roles ship with the framework</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r16-every-core-record-type-can-be-created-and-edited-in-the-portal">R16 — Every core record type can be created and edited in the portal</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r17-records-can-be-found-sorted-and-filtered">R17 — Records can be found, sorted and filtered</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r18-plugins-attach-to-any-registered-model">R18 — Plugins attach to any registered model</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r19-contributions-can-be-managed-on-every-core-record">R19 — Contributions can be managed on every core record</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r20-retire-the-code-that-never-runs">R20 — Retire the code that never runs</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#expected-goals-v1-0-0">Expected goals: v1.0.0</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r21-tabular-data-goes-in-and-comes-back-out">R21 — Tabular data goes in and comes back out</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r22-a-dataset-moves-from-working-to-visible-through-a-checked-process">R22 — A dataset moves from working to visible through a checked process</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r23-datasets-carry-versions">R23 — Datasets carry versions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r24-dataset-metadata-is-complete-enough-to-hand-to-a-publisher">R24 — Dataset metadata is complete enough to hand to a publisher</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r25-records-are-machine-readable-where-machines-look">R25 — Records are machine-readable where machines look</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r26-a-research-group-can-deploy-the-shipped-stack">R26 — A research group can deploy the shipped stack</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r27-installing-a-schema-package-is-all-a-portal-needs">R27 — Installing a schema package is all a portal needs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r28-identifiers-stay-meaningful">R28 — Identifiers stay meaningful</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#aspirational-goals-v2-0">Aspirational goals: v2.0</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r29-portals-exchange-data-with-one-another">R29 — Portals exchange data with one another</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r30-a-portal-supports-its-research-community">R30 — A portal supports its research community</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#r31-contributors-work-in-their-own-language">R31 — Contributors work in their own language</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Samuel Jennings.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.21.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

@@ -1,0 +1,66 @@
+# {py:mod}`fairdm.management.commands.show_config`
+
+```{py:module} fairdm.management.commands.show_config
+```
+
+```{autodoc2-docstring} fairdm.management.commands.show_config
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Command <fairdm.management.commands.show_config.Command>`
+  - ```{autodoc2-docstring} fairdm.management.commands.show_config.Command
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} Command(stdout=None, stderr=None, no_color=False, force_color=False)
+:canonical: fairdm.management.commands.show_config.Command
+
+Bases: {py:obj}`django.core.management.base.BaseCommand`
+
+```{autodoc2-docstring} fairdm.management.commands.show_config.Command
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.management.commands.show_config.Command.__init__
+```
+
+````{py:attribute} help
+:canonical: fairdm.management.commands.show_config.Command.help
+:value: >
+   "Report the configuration layers fairdm.setup() composed, or a named setting's resolved value and the..."
+
+```{autodoc2-docstring} fairdm.management.commands.show_config.Command.help
+```
+
+````
+
+````{py:method} add_arguments(parser: django.core.management.base.CommandParser) -> None
+:canonical: fairdm.management.commands.show_config.Command.add_arguments
+
+```{autodoc2-docstring} fairdm.management.commands.show_config.Command.add_arguments
+```
+
+````
+
+````{py:method} handle(*args, **options) -> None
+:canonical: fairdm.management.commands.show_config.Command.handle
+
+```{autodoc2-docstring} fairdm.management.commands.show_config.Command.handle
+```
+
+````
+
+`````

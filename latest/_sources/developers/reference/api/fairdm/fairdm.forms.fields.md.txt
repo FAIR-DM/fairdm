@@ -1,0 +1,290 @@
+# {py:mod}`fairdm.forms.fields`
+
+```{py:module} fairdm.forms.fields
+```
+
+```{autodoc2-docstring} fairdm.forms.fields
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`PartialDateWidget <fairdm.forms.fields.PartialDateWidget>`
+  - ```{autodoc2-docstring} fairdm.forms.fields.PartialDateWidget
+    :summary:
+    ```
+* - {py:obj}`PartialDateFormField <fairdm.forms.fields.PartialDateFormField>`
+  - ```{autodoc2-docstring} fairdm.forms.fields.PartialDateFormField
+    :summary:
+    ```
+* - {py:obj}`PartialDateField <fairdm.forms.fields.PartialDateField>`
+  - ```{autodoc2-docstring} fairdm.forms.fields.PartialDateField
+    :summary:
+    ```
+* - {py:obj}`QuantityFormFieldMixin <fairdm.forms.fields.QuantityFormFieldMixin>`
+  - ```{autodoc2-docstring} fairdm.forms.fields.QuantityFormFieldMixin
+    :summary:
+    ```
+* - {py:obj}`QuantityFormField <fairdm.forms.fields.QuantityFormField>`
+  - ```{autodoc2-docstring} fairdm.forms.fields.QuantityFormField
+    :summary:
+    ```
+* - {py:obj}`IntegerQuantityFormField <fairdm.forms.fields.IntegerQuantityFormField>`
+  - ```{autodoc2-docstring} fairdm.forms.fields.IntegerQuantityFormField
+    :summary:
+    ```
+* - {py:obj}`DecimalQuantityFormField <fairdm.forms.fields.DecimalQuantityFormField>`
+  - ```{autodoc2-docstring} fairdm.forms.fields.DecimalQuantityFormField
+    :summary:
+    ```
+* - {py:obj}`DecimalField <fairdm.forms.fields.DecimalField>`
+  - ```{autodoc2-docstring} fairdm.forms.fields.DecimalField
+    :summary:
+    ```
+* - {py:obj}`LatitudeField <fairdm.forms.fields.LatitudeField>`
+  - ```{autodoc2-docstring} fairdm.forms.fields.LatitudeField
+    :summary:
+    ```
+* - {py:obj}`LongitudeField <fairdm.forms.fields.LongitudeField>`
+  - ```{autodoc2-docstring} fairdm.forms.fields.LongitudeField
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} PartialDateWidget(attrs=None, years=None, months=None, empty_label=None)
+:canonical: fairdm.forms.fields.PartialDateWidget
+
+Bases: {py:obj}`django.forms.SelectDateWidget`
+
+```{autodoc2-docstring} fairdm.forms.fields.PartialDateWidget
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.forms.fields.PartialDateWidget.__init__
+```
+
+````{py:method} get_context(name, value, attrs)
+:canonical: fairdm.forms.fields.PartialDateWidget.get_context
+
+```{autodoc2-docstring} fairdm.forms.fields.PartialDateWidget.get_context
+```
+
+````
+
+````{py:method} format_value(value)
+:canonical: fairdm.forms.fields.PartialDateWidget.format_value
+
+```{autodoc2-docstring} fairdm.forms.fields.PartialDateWidget.format_value
+```
+
+````
+
+````{py:method} value_from_datadict(data, files, name)
+:canonical: fairdm.forms.fields.PartialDateWidget.value_from_datadict
+
+```{autodoc2-docstring} fairdm.forms.fields.PartialDateWidget.value_from_datadict
+```
+
+````
+
+`````
+
+`````{py:class} PartialDateFormField(*, max_length=None, min_length=None, strip=True, empty_value='', **kwargs)
+:canonical: fairdm.forms.fields.PartialDateFormField
+
+Bases: {py:obj}`django.forms.CharField`
+
+```{autodoc2-docstring} fairdm.forms.fields.PartialDateFormField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.forms.fields.PartialDateFormField.__init__
+```
+
+````{py:attribute} widget
+:canonical: fairdm.forms.fields.PartialDateFormField.widget
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.forms.fields.PartialDateFormField.widget
+```
+
+````
+
+`````
+
+`````{py:class} PartialDateField(*, max_length=None, min_length=None, strip=True, empty_value='', **kwargs)
+:canonical: fairdm.forms.fields.PartialDateField
+
+Bases: {py:obj}`django.forms.CharField`
+
+```{autodoc2-docstring} fairdm.forms.fields.PartialDateField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.forms.fields.PartialDateField.__init__
+```
+
+````{py:attribute} widget
+:canonical: fairdm.forms.fields.PartialDateField.widget
+:value: >
+   'TextInput(...)'
+
+```{autodoc2-docstring} fairdm.forms.fields.PartialDateField.widget
+```
+
+````
+
+````{py:method} clean(value)
+:canonical: fairdm.forms.fields.PartialDateField.clean
+
+```{autodoc2-docstring} fairdm.forms.fields.PartialDateField.clean
+```
+
+````
+
+`````
+
+`````{py:class} QuantityFormFieldMixin
+:canonical: fairdm.forms.fields.QuantityFormFieldMixin
+
+```{autodoc2-docstring} fairdm.forms.fields.QuantityFormFieldMixin
+```
+
+````{py:method} prepare_value(value)
+:canonical: fairdm.forms.fields.QuantityFormFieldMixin.prepare_value
+
+```{autodoc2-docstring} fairdm.forms.fields.QuantityFormFieldMixin.prepare_value
+```
+
+````
+
+`````
+
+````{py:class} QuantityFormField(*args, **kwargs)
+:canonical: fairdm.forms.fields.QuantityFormField
+
+Bases: {py:obj}`fairdm.forms.fields.QuantityFormFieldMixin`, {py:obj}`quantityfield.fields.QuantityFormField`
+
+```{autodoc2-docstring} fairdm.forms.fields.QuantityFormField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.forms.fields.QuantityFormField.__init__
+```
+
+````
+
+````{py:class} IntegerQuantityFormField(*args, **kwargs)
+:canonical: fairdm.forms.fields.IntegerQuantityFormField
+
+Bases: {py:obj}`fairdm.forms.fields.QuantityFormFieldMixin`, {py:obj}`quantityfield.fields.IntegerQuantityFormField`
+
+```{autodoc2-docstring} fairdm.forms.fields.IntegerQuantityFormField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.forms.fields.IntegerQuantityFormField.__init__
+```
+
+````
+
+````{py:class} DecimalQuantityFormField(*args, **kwargs)
+:canonical: fairdm.forms.fields.DecimalQuantityFormField
+
+Bases: {py:obj}`fairdm.forms.fields.QuantityFormFieldMixin`, {py:obj}`quantityfield.fields.DecimalQuantityFormField`
+
+```{autodoc2-docstring} fairdm.forms.fields.DecimalQuantityFormField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.forms.fields.DecimalQuantityFormField.__init__
+```
+
+````
+
+`````{py:class} DecimalField(*, max_value=None, min_value=None, max_digits=None, decimal_places=None, **kwargs)
+:canonical: fairdm.forms.fields.DecimalField
+
+Bases: {py:obj}`django.forms.DecimalField`
+
+```{autodoc2-docstring} fairdm.forms.fields.DecimalField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.forms.fields.DecimalField.__init__
+```
+
+````{py:attribute} widget
+:canonical: fairdm.forms.fields.DecimalField.widget
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.forms.fields.DecimalField.widget
+```
+
+````
+
+````{py:method} widget_attrs(widget)
+:canonical: fairdm.forms.fields.DecimalField.widget_attrs
+
+```{autodoc2-docstring} fairdm.forms.fields.DecimalField.widget_attrs
+```
+
+````
+
+`````
+
+````{py:class} LatitudeField(*args, max_digits=7, decimal_places=5, **kwargs)
+:canonical: fairdm.forms.fields.LatitudeField
+
+Bases: {py:obj}`fairdm.forms.fields.DecimalField`
+
+```{autodoc2-docstring} fairdm.forms.fields.LatitudeField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.forms.fields.LatitudeField.__init__
+```
+
+````
+
+````{py:class} LongitudeField(*args, max_digits=8, decimal_places=5, **kwargs)
+:canonical: fairdm.forms.fields.LongitudeField
+
+Bases: {py:obj}`fairdm.forms.fields.DecimalField`
+
+```{autodoc2-docstring} fairdm.forms.fields.LongitudeField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.forms.fields.LongitudeField.__init__
+```
+
+````

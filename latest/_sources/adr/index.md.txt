@@ -1,0 +1,51 @@
+# Architecture Decision Records
+
+A record of an architectural decision, its context and why it was settled that way — kept once a
+decision is made rather than left to the commit that made it. Each one stands alone; later records
+do not restate earlier ones, only build past them.
+
+```{toctree}
+:maxdepth: 1
+
+0001-environment-overrides-are-found-by-existence
+0002-configuration-checks-run-in-production-only
+0003-no-working-default-for-a-security-critical-value
+0004-portal-apps-precede-framework-apps
+0005-a-measurement-type-nominates-its-value
+0006-generated-components-carry-the-framework-mixins
+0007-every-record-has-a-page-of-its-own
+0008-one-editing-page-per-record-with-its-rows-inline
+0009-a-form-default-and-a-model-default-may-differ
+0010-record-addresses-name-the-record-type-in-the-plural
+0011-one-navigation-entry-per-collection
+0012-every-page-states-its-own-access-rules
+0013-a-listing-shows-published-records-only-for-everyone
+0014-publication-is-a-separate-flag-from-visibility
+0015-a-records-own-dataset-decides-and-a-row-never-links-past-it
+0016-the-framework-indexes-the-fields-it-searches-by-default
+0017-listings-are-addressed-and-named-apart-from-records
+0018-publication-is-a-queryset-method-not-a-default-manager
+0019-a-portal-role-is-the-unit-of-portal-wide-rights
+0020-a-missing-role-is-answered-four-ways
+0021-claims-and-merges-belong-to-a-named-role
+0022-development-accounts-are-a-command-that-refuses
+0023-an-overview-page-is-extended-through-blocks-plugin-methods-and-type-templates
+0024-the-right-to-edit-a-profile-is-asked-of-the-record
+0025-a-level-on-the-contribution-decides-rights-over-a-core-record
+0026-a-records-editing-pages-are-six-shared-pages
+0027-records-refer-to-each-other-by-short-identifier
+0028-api-tokens-are-created-on-the-account-pages
+0029-people-and-organizations-have-their-own-api-endpoints
+0030-a-credit-carries-what-datacite-asks-of-a-creator
+0031-portals-run-on-postgis
+0032-a-location-is-a-value-on-each-record
+0033-a-measurement-borrows-its-samples-location-only-for-a-viewer-who-may-open-the-sample
+0034-portals-build-on-the-published-base-images
+0035-fairdm-does-not-compress-static-files
+0036-fairdm-declares-the-image-and-database-a-portal-runs-on
+0037-autocomplete-fields-are-built-on-django-tomselect
+0038-each-autocomplete-scope-is-its-own-view
+0039-autocomplete-addresses-are-limited-per-caller
+0040-backup-schedules-are-periodic-tasks
+0041-backups-are-encrypted-to-a-public-key
+```

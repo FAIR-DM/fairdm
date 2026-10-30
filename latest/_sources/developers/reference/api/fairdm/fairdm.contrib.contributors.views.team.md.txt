@@ -1,0 +1,126 @@
+# {py:mod}`fairdm.contrib.contributors.views.team`
+
+```{py:module} fairdm.contrib.contributors.views.team
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.team
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`TeamView <fairdm.contrib.contributors.views.team.TeamView>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.views.team.TeamView
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} TeamView(**kwargs)
+:canonical: fairdm.contrib.contributors.views.team.TeamView
+
+Bases: {py:obj}`fairdm.views.FairDMTemplateView`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.team.TeamView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.team.TeamView.__init__
+```
+
+````{py:attribute} template_name
+:canonical: fairdm.contrib.contributors.views.team.TeamView.template_name
+:value: >
+   'contributors/team.html'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.team.TeamView.template_name
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.contrib.contributors.views.team.TeamView.page_title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.team.TeamView.page_title
+```
+
+````
+
+````{py:attribute} page_subtitle
+:canonical: fairdm.contrib.contributors.views.team.TeamView.page_subtitle
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.team.TeamView.page_subtitle
+```
+
+````
+
+````{py:attribute} page_info
+:canonical: fairdm.contrib.contributors.views.team.TeamView.page_info
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.team.TeamView.page_info
+```
+
+````
+
+````{py:attribute} page_info_actions
+:canonical: fairdm.contrib.contributors.views.team.TeamView.page_info_actions
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.team.TeamView.page_info_actions
+```
+
+````
+
+````{py:attribute} list_item_template
+:canonical: fairdm.contrib.contributors.views.team.TeamView.list_item_template
+:value: >
+   'contributors/contributor_card.html'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.team.TeamView.list_item_template
+```
+
+````
+
+````{py:attribute} grid_config
+:canonical: fairdm.contrib.contributors.views.team.TeamView.grid_config
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.team.TeamView.grid_config
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.contrib.contributors.views.team.TeamView.get_context_data
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.team.TeamView.get_context_data
+```
+
+````
+
+````{py:method} get_roles()
+:canonical: fairdm.contrib.contributors.views.team.TeamView.get_roles
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.team.TeamView.get_roles
+```
+
+````
+
+`````

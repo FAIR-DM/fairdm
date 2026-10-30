@@ -1,0 +1,118 @@
+# {py:mod}`fairdm.core.dataset.filters`
+
+```{py:module} fairdm.core.dataset.filters
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.filters
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`DatasetFilter <fairdm.core.dataset.filters.DatasetFilter>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.filters.DatasetFilter
+    :summary:
+    ```
+````
+
+### API
+
+``````{py:class} DatasetFilter(data=None, queryset=None, *, request=None, prefix=None)
+:canonical: fairdm.core.dataset.filters.DatasetFilter
+
+Bases: {py:obj}`fairdm.core.filters.BaseListFilter`
+
+```{autodoc2-docstring} fairdm.core.dataset.filters.DatasetFilter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.filters.DatasetFilter.__init__
+```
+
+````{py:attribute} q
+:canonical: fairdm.core.dataset.filters.DatasetFilter.q
+:value: >
+   'SearchFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.filters.DatasetFilter.q
+```
+
+````
+
+````{py:attribute} o
+:canonical: fairdm.core.dataset.filters.DatasetFilter.o
+:value: >
+   'SortFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.filters.DatasetFilter.o
+```
+
+````
+
+````{py:attribute} project
+:canonical: fairdm.core.dataset.filters.DatasetFilter.project
+:value: >
+   'RecordMultipleFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.filters.DatasetFilter.project
+```
+
+````
+
+````{py:attribute} description_type
+:canonical: fairdm.core.dataset.filters.DatasetFilter.description_type
+:value: >
+   'CharFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.filters.DatasetFilter.description_type
+```
+
+````
+
+````{py:attribute} date_type
+:canonical: fairdm.core.dataset.filters.DatasetFilter.date_type
+:value: >
+   'CharFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.filters.DatasetFilter.date_type
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.dataset.filters.DatasetFilter.Meta
+
+```{autodoc2-docstring} fairdm.core.dataset.filters.DatasetFilter.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.dataset.filters.DatasetFilter.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.filters.DatasetFilter.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.core.dataset.filters.DatasetFilter.Meta.fields
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.filters.DatasetFilter.Meta.fields
+```
+
+````
+
+`````
+
+``````

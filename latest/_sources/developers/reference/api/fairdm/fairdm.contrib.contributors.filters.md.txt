@@ -1,0 +1,282 @@
+# {py:mod}`fairdm.contrib.contributors.filters`
+
+```{py:module} fairdm.contrib.contributors.filters
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`PersonFilter <fairdm.contrib.contributors.filters.PersonFilter>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.filters.PersonFilter
+    :summary:
+    ```
+* - {py:obj}`OrganizationFilter <fairdm.contrib.contributors.filters.OrganizationFilter>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.filters.OrganizationFilter
+    :summary:
+    ```
+* - {py:obj}`ContributorFilter <fairdm.contrib.contributors.filters.ContributorFilter>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.filters.ContributorFilter
+    :summary:
+    ```
+````
+
+### API
+
+``````{py:class} PersonFilter(data=None, queryset=None, *, request=None, prefix=None)
+:canonical: fairdm.contrib.contributors.filters.PersonFilter
+
+Bases: {py:obj}`django_filters.FilterSet`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.PersonFilter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.PersonFilter.__init__
+```
+
+````{py:attribute} is_active
+:canonical: fairdm.contrib.contributors.filters.PersonFilter.is_active
+:value: >
+   'BooleanFilter(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.PersonFilter.is_active
+```
+
+````
+
+````{py:attribute} is_staff
+:canonical: fairdm.contrib.contributors.filters.PersonFilter.is_staff
+:value: >
+   'BooleanFilter(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.PersonFilter.is_staff
+```
+
+````
+
+````{py:attribute} q
+:canonical: fairdm.contrib.contributors.filters.PersonFilter.q
+:value: >
+   'SearchFilter(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.PersonFilter.q
+```
+
+````
+
+````{py:attribute} city
+:canonical: fairdm.contrib.contributors.filters.PersonFilter.city
+:value: >
+   'CharFilter(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.PersonFilter.city
+```
+
+````
+
+````{py:attribute} country
+:canonical: fairdm.contrib.contributors.filters.PersonFilter.country
+:value: >
+   'CharFilter(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.PersonFilter.country
+```
+
+````
+
+````{py:attribute} affiliation
+:canonical: fairdm.contrib.contributors.filters.PersonFilter.affiliation
+:value: >
+   'CharFilter(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.PersonFilter.affiliation
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.contrib.contributors.filters.PersonFilter.Meta
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.PersonFilter.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.contributors.filters.PersonFilter.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.PersonFilter.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.contrib.contributors.filters.PersonFilter.Meta.fields
+:value: >
+   ['is_active', 'is_staff', 'city', 'country']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.PersonFilter.Meta.fields
+```
+
+````
+
+`````
+
+``````
+
+``````{py:class} OrganizationFilter(data=None, queryset=None, *, request=None, prefix=None)
+:canonical: fairdm.contrib.contributors.filters.OrganizationFilter
+
+Bases: {py:obj}`django_filters.FilterSet`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.OrganizationFilter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.OrganizationFilter.__init__
+```
+
+````{py:attribute} q
+:canonical: fairdm.contrib.contributors.filters.OrganizationFilter.q
+:value: >
+   'SearchFilter(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.OrganizationFilter.q
+```
+
+````
+
+````{py:attribute} city
+:canonical: fairdm.contrib.contributors.filters.OrganizationFilter.city
+:value: >
+   'CharFilter(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.OrganizationFilter.city
+```
+
+````
+
+````{py:attribute} country
+:canonical: fairdm.contrib.contributors.filters.OrganizationFilter.country
+:value: >
+   'CharFilter(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.OrganizationFilter.country
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.contrib.contributors.filters.OrganizationFilter.Meta
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.OrganizationFilter.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.contributors.filters.OrganizationFilter.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.OrganizationFilter.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.contrib.contributors.filters.OrganizationFilter.Meta.fields
+:value: >
+   ['city', 'country']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.OrganizationFilter.Meta.fields
+```
+
+````
+
+`````
+
+``````
+
+``````{py:class} ContributorFilter(data=None, queryset=None, *, request=None, prefix=None)
+:canonical: fairdm.contrib.contributors.filters.ContributorFilter
+
+Bases: {py:obj}`django_filters.FilterSet`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.ContributorFilter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.ContributorFilter.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.contrib.contributors.filters.ContributorFilter.name
+:value: >
+   'CharFilter(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.ContributorFilter.name
+```
+
+````
+
+````{py:attribute} type
+:canonical: fairdm.contrib.contributors.filters.ContributorFilter.type
+:value: >
+   'ChoiceFilter(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.ContributorFilter.type
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.contrib.contributors.filters.ContributorFilter.Meta
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.ContributorFilter.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.contributors.filters.ContributorFilter.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.ContributorFilter.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.contrib.contributors.filters.ContributorFilter.Meta.fields
+:value: >
+   ['name', 'type']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.ContributorFilter.Meta.fields
+```
+
+````
+
+`````
+
+````{py:method} filter_type(queryset, name, value)
+:canonical: fairdm.contrib.contributors.filters.ContributorFilter.filter_type
+
+```{autodoc2-docstring} fairdm.contrib.contributors.filters.ContributorFilter.filter_type
+```
+
+````
+
+``````

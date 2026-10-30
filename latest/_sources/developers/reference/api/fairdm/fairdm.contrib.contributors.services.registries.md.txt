@@ -1,0 +1,311 @@
+# {py:mod}`fairdm.contrib.contributors.services.registries`
+
+```{py:module} fairdm.contrib.contributors.services.registries
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Orcid <fairdm.contrib.contributors.services.registries.Orcid>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Orcid
+    :summary:
+    ```
+* - {py:obj}`Ror <fairdm.contrib.contributors.services.registries.Ror>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Ror
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ask <fairdm.contrib.contributors.services.registries.ask>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.ask
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`RESULTS_SHOWN <fairdm.contrib.contributors.services.registries.RESULTS_SHOWN>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.RESULTS_SHOWN
+    :summary:
+    ```
+* - {py:obj}`TIMEOUT <fairdm.contrib.contributors.services.registries.TIMEOUT>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.TIMEOUT
+    :summary:
+    ```
+* - {py:obj}`KEPT <fairdm.contrib.contributors.services.registries.KEPT>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.KEPT
+    :summary:
+    ```
+* - {py:obj}`JSON <fairdm.contrib.contributors.services.registries.JSON>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.JSON
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} RESULTS_SHOWN
+:canonical: fairdm.contrib.contributors.services.registries.RESULTS_SHOWN
+:value: >
+   10
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.RESULTS_SHOWN
+```
+
+````
+
+````{py:data} TIMEOUT
+:canonical: fairdm.contrib.contributors.services.registries.TIMEOUT
+:value: >
+   5
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.TIMEOUT
+```
+
+````
+
+````{py:data} KEPT
+:canonical: fairdm.contrib.contributors.services.registries.KEPT
+:value: >
+   300
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.KEPT
+```
+
+````
+
+````{py:data} JSON
+:canonical: fairdm.contrib.contributors.services.registries.JSON
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.JSON
+```
+
+````
+
+````{py:exception} RegistryUnavailable()
+:canonical: fairdm.contrib.contributors.services.registries.RegistryUnavailable
+
+Bases: {py:obj}`Exception`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.RegistryUnavailable
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.RegistryUnavailable.__init__
+```
+
+````
+
+````{py:function} ask(address, parse, *, params=None, headers=None, missing_ok=False)
+:canonical: fairdm.contrib.contributors.services.registries.ask
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.ask
+```
+````
+
+`````{py:class} Orcid
+:canonical: fairdm.contrib.contributors.services.registries.Orcid
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Orcid
+```
+
+````{py:attribute} SEARCH
+:canonical: fairdm.contrib.contributors.services.registries.Orcid.SEARCH
+:value: >
+   'https://pub.orcid.org/v3.0/expanded-search/'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Orcid.SEARCH
+```
+
+````
+
+````{py:attribute} RECORD
+:canonical: fairdm.contrib.contributors.services.registries.Orcid.RECORD
+:value: >
+   'https://pub.orcid.org/v3.0/{}/record'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Orcid.RECORD
+```
+
+````
+
+````{py:method} identifier_in(text)
+:canonical: fairdm.contrib.contributors.services.registries.Orcid.identifier_in
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Orcid.identifier_in
+```
+
+````
+
+````{py:method} search(term)
+:canonical: fairdm.contrib.contributors.services.registries.Orcid.search
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Orcid.search
+```
+
+````
+
+````{py:method} results_from(body)
+:canonical: fairdm.contrib.contributors.services.registries.Orcid.results_from
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Orcid.results_from
+```
+
+````
+
+````{py:method} found_in(entry)
+:canonical: fairdm.contrib.contributors.services.registries.Orcid.found_in
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Orcid.found_in
+```
+
+````
+
+````{py:method} record_of(orcid_id, given, family, employer, place='')
+:canonical: fairdm.contrib.contributors.services.registries.Orcid.record_of
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Orcid.record_of
+```
+
+````
+
+````{py:method} fetch(identifier)
+:canonical: fairdm.contrib.contributors.services.registries.Orcid.fetch
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Orcid.fetch
+```
+
+````
+
+````{py:method} read_record(orcid_id, body)
+:canonical: fairdm.contrib.contributors.services.registries.Orcid.read_record
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Orcid.read_record
+```
+
+````
+
+````{py:method} known(record)
+:canonical: fairdm.contrib.contributors.services.registries.Orcid.known
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Orcid.known
+```
+
+````
+
+````{py:method} profile(record)
+:canonical: fairdm.contrib.contributors.services.registries.Orcid.profile
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Orcid.profile
+```
+
+````
+
+`````
+
+`````{py:class} Ror
+:canonical: fairdm.contrib.contributors.services.registries.Ror
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Ror
+```
+
+````{py:attribute} SEARCH
+:canonical: fairdm.contrib.contributors.services.registries.Ror.SEARCH
+:value: >
+   'https://api.ror.org/v2/organizations'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Ror.SEARCH
+```
+
+````
+
+````{py:attribute} RECORD
+:canonical: fairdm.contrib.contributors.services.registries.Ror.RECORD
+:value: >
+   'https://api.ror.org/v2/organizations/{}'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Ror.RECORD
+```
+
+````
+
+````{py:method} identifier_in(text)
+:canonical: fairdm.contrib.contributors.services.registries.Ror.identifier_in
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Ror.identifier_in
+```
+
+````
+
+````{py:method} search(term)
+:canonical: fairdm.contrib.contributors.services.registries.Ror.search
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Ror.search
+```
+
+````
+
+````{py:method} results_from(body)
+:canonical: fairdm.contrib.contributors.services.registries.Ror.results_from
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Ror.results_from
+```
+
+````
+
+````{py:method} record_of(item)
+:canonical: fairdm.contrib.contributors.services.registries.Ror.record_of
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Ror.record_of
+```
+
+````
+
+````{py:method} fetch(identifier)
+:canonical: fairdm.contrib.contributors.services.registries.Ror.fetch
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Ror.fetch
+```
+
+````
+
+````{py:method} known(record)
+:canonical: fairdm.contrib.contributors.services.registries.Ror.known
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Ror.known
+```
+
+````
+
+````{py:method} profile(record)
+:canonical: fairdm.contrib.contributors.services.registries.Ror.profile
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.Ror.profile
+```
+
+````
+
+`````

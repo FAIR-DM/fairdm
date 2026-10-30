@@ -1,0 +1,68 @@
+# {py:mod}`fairdm.api.apps`
+
+```{py:module} fairdm.api.apps
+```
+
+```{autodoc2-docstring} fairdm.api.apps
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FairDMApiConfig <fairdm.api.apps.FairDMApiConfig>`
+  - ```{autodoc2-docstring} fairdm.api.apps.FairDMApiConfig
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} FairDMApiConfig(app_name, app_module)
+:canonical: fairdm.api.apps.FairDMApiConfig
+
+Bases: {py:obj}`django.apps.AppConfig`
+
+```{autodoc2-docstring} fairdm.api.apps.FairDMApiConfig
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.apps.FairDMApiConfig.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.api.apps.FairDMApiConfig.name
+:value: >
+   'fairdm.api'
+
+```{autodoc2-docstring} fairdm.api.apps.FairDMApiConfig.name
+```
+
+````
+
+````{py:attribute} verbose_name
+:canonical: fairdm.api.apps.FairDMApiConfig.verbose_name
+:value: >
+   'FairDM API'
+
+```{autodoc2-docstring} fairdm.api.apps.FairDMApiConfig.verbose_name
+```
+
+````
+
+````{py:method} ready() -> None
+:canonical: fairdm.api.apps.FairDMApiConfig.ready
+
+```{autodoc2-docstring} fairdm.api.apps.FairDMApiConfig.ready
+```
+
+````
+
+`````

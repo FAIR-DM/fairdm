@@ -1,0 +1,19 @@
+# {py:mod}`fairdm.views`
+
+```{py:module} fairdm.views
+```
+
+```{autodoc2-docstring} fairdm.views
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.views.mixins
+fairdm.views.generic
+fairdm.views.base
+```

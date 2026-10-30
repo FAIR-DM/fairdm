@@ -1,0 +1,126 @@
+# {py:mod}`fairdm.utils.location.managers`
+
+```{py:module} fairdm.utils.location.managers
+```
+
+```{autodoc2-docstring} fairdm.utils.location.managers
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Spatial <fairdm.utils.location.managers.Spatial>`
+  - ```{autodoc2-docstring} fairdm.utils.location.managers.Spatial
+    :summary:
+    ```
+* - {py:obj}`LocatedQuerySet <fairdm.utils.location.managers.LocatedQuerySet>`
+  - ```{autodoc2-docstring} fairdm.utils.location.managers.LocatedQuerySet
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`WGS84 <fairdm.utils.location.managers.WGS84>`
+  - ```{autodoc2-docstring} fairdm.utils.location.managers.WGS84
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} WGS84
+:canonical: fairdm.utils.location.managers.WGS84
+:value: >
+   4326
+
+```{autodoc2-docstring} fairdm.utils.location.managers.WGS84
+```
+
+````
+
+`````{py:class} Spatial
+:canonical: fairdm.utils.location.managers.Spatial
+
+```{autodoc2-docstring} fairdm.utils.location.managers.Spatial
+```
+
+````{py:method} polygon(area)
+:canonical: fairdm.utils.location.managers.Spatial.polygon
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.utils.location.managers.Spatial.polygon
+```
+
+````
+
+````{py:method} point(point)
+:canonical: fairdm.utils.location.managers.Spatial.point
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.utils.location.managers.Spatial.point
+```
+
+````
+
+````{py:method} distance(distance)
+:canonical: fairdm.utils.location.managers.Spatial.distance
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.utils.location.managers.Spatial.distance
+```
+
+````
+
+````{py:method} geography(field='location')
+:canonical: fairdm.utils.location.managers.Spatial.geography
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.utils.location.managers.Spatial.geography
+```
+
+````
+
+`````
+
+`````{py:class} LocatedQuerySet
+:canonical: fairdm.utils.location.managers.LocatedQuerySet
+
+```{autodoc2-docstring} fairdm.utils.location.managers.LocatedQuerySet
+```
+
+````{py:method} inside(area)
+:canonical: fairdm.utils.location.managers.LocatedQuerySet.inside
+
+```{autodoc2-docstring} fairdm.utils.location.managers.LocatedQuerySet.inside
+```
+
+````
+
+````{py:method} within_distance(point, distance)
+:canonical: fairdm.utils.location.managers.LocatedQuerySet.within_distance
+
+```{autodoc2-docstring} fairdm.utils.location.managers.LocatedQuerySet.within_distance
+```
+
+````
+
+````{py:method} nearest(point)
+:canonical: fairdm.utils.location.managers.LocatedQuerySet.nearest
+
+```{autodoc2-docstring} fairdm.utils.location.managers.LocatedQuerySet.nearest
+```
+
+````
+
+`````

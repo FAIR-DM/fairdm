@@ -1,0 +1,176 @@
+# {py:mod}`fairdm.portal_roles`
+
+```{py:module} fairdm.portal_roles
+```
+
+```{autodoc2-docstring} fairdm.portal_roles
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`PortalRole <fairdm.portal_roles.PortalRole>`
+  - ```{autodoc2-docstring} fairdm.portal_roles.PortalRole
+    :summary:
+    ```
+* - {py:obj}`PortalRoles <fairdm.portal_roles.PortalRoles>`
+  - ```{autodoc2-docstring} fairdm.portal_roles.PortalRoles
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} PortalRole
+:canonical: fairdm.portal_roles.PortalRole
+
+Bases: {py:obj}`typing.NamedTuple`
+
+```{autodoc2-docstring} fairdm.portal_roles.PortalRole
+```
+
+````{py:attribute} name
+:canonical: fairdm.portal_roles.PortalRole.name
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.portal_roles.PortalRole.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.portal_roles.PortalRole.label
+:type: str | django.utils.functional.Promise
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.portal_roles.PortalRole.label
+```
+
+````
+
+````{py:attribute} permissions
+:canonical: fairdm.portal_roles.PortalRole.permissions
+:type: tuple[str, ...]
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.portal_roles.PortalRole.permissions
+```
+
+````
+
+`````
+
+`````{py:class} PortalRoles
+:canonical: fairdm.portal_roles.PortalRoles
+
+```{autodoc2-docstring} fairdm.portal_roles.PortalRoles
+```
+
+````{py:attribute} PORTAL_ADMINISTRATOR
+:canonical: fairdm.portal_roles.PortalRoles.PORTAL_ADMINISTRATOR
+:value: >
+   'PortalRole(...)'
+
+```{autodoc2-docstring} fairdm.portal_roles.PortalRoles.PORTAL_ADMINISTRATOR
+```
+
+````
+
+````{py:attribute} DATA_CURATOR
+:canonical: fairdm.portal_roles.PortalRoles.DATA_CURATOR
+:value: >
+   'PortalRole(...)'
+
+```{autodoc2-docstring} fairdm.portal_roles.PortalRoles.DATA_CURATOR
+```
+
+````
+
+````{py:attribute} COMMUNITY_MANAGER
+:canonical: fairdm.portal_roles.PortalRoles.COMMUNITY_MANAGER
+:value: >
+   'PortalRole(...)'
+
+```{autodoc2-docstring} fairdm.portal_roles.PortalRoles.COMMUNITY_MANAGER
+```
+
+````
+
+````{py:attribute} DEVELOPER
+:canonical: fairdm.portal_roles.PortalRoles.DEVELOPER
+:value: >
+   'PortalRole(...)'
+
+```{autodoc2-docstring} fairdm.portal_roles.PortalRoles.DEVELOPER
+```
+
+````
+
+````{py:attribute} ROLES
+:canonical: fairdm.portal_roles.PortalRoles.ROLES
+:type: tuple[fairdm.portal_roles.PortalRole, ...]
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.portal_roles.PortalRoles.ROLES
+```
+
+````
+
+````{py:attribute} LEGACY_NAMES
+:canonical: fairdm.portal_roles.PortalRoles.LEGACY_NAMES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.portal_roles.PortalRoles.LEGACY_NAMES
+```
+
+````
+
+````{py:method} shipped_names() -> list[str]
+:canonical: fairdm.portal_roles.PortalRoles.shipped_names
+:classmethod:
+
+```{autodoc2-docstring} fairdm.portal_roles.PortalRoles.shipped_names
+```
+
+````
+
+````{py:method} is_held_by(user, role: fairdm.portal_roles.PortalRole) -> bool
+:canonical: fairdm.portal_roles.PortalRoles.is_held_by
+:classmethod:
+
+```{autodoc2-docstring} fairdm.portal_roles.PortalRoles.is_held_by
+```
+
+````
+
+````{py:method} rights_carrying() -> list[str]
+:canonical: fairdm.portal_roles.PortalRoles.rights_carrying
+:classmethod:
+
+```{autodoc2-docstring} fairdm.portal_roles.PortalRoles.rights_carrying
+```
+
+````
+
+````{py:method} reconcile() -> None
+:canonical: fairdm.portal_roles.PortalRoles.reconcile
+:classmethod:
+
+```{autodoc2-docstring} fairdm.portal_roles.PortalRoles.reconcile
+```
+
+````
+
+`````

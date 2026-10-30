@@ -1,0 +1,202 @@
+# {py:mod}`fairdm.core.dataset.views`
+
+```{py:module} fairdm.core.dataset.views
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.views
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`DatasetCreateView <fairdm.core.dataset.views.DatasetCreateView>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.views.DatasetCreateView
+    :summary:
+    ```
+* - {py:obj}`DatasetListView <fairdm.core.dataset.views.DatasetListView>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.views.DatasetListView
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} DatasetCreateView(**kwargs)
+:canonical: fairdm.core.dataset.views.DatasetCreateView
+
+Bases: {py:obj}`django.contrib.auth.mixins.LoginRequiredMixin`, {py:obj}`fairdm.views.FairDMCreateView`
+
+```{autodoc2-docstring} fairdm.core.dataset.views.DatasetCreateView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.views.DatasetCreateView.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.dataset.views.DatasetCreateView.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.views.DatasetCreateView.model
+```
+
+````
+
+````{py:attribute} form_class
+:canonical: fairdm.core.dataset.views.DatasetCreateView.form_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.views.DatasetCreateView.form_class
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.core.dataset.views.DatasetCreateView.page_title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.views.DatasetCreateView.page_title
+```
+
+````
+
+````{py:attribute} default_roles
+:canonical: fairdm.core.dataset.views.DatasetCreateView.default_roles
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.views.DatasetCreateView.default_roles
+```
+
+````
+
+````{py:method} get_form_kwargs()
+:canonical: fairdm.core.dataset.views.DatasetCreateView.get_form_kwargs
+
+```{autodoc2-docstring} fairdm.core.dataset.views.DatasetCreateView.get_form_kwargs
+```
+
+````
+
+````{py:method} get_success_url() -> str
+:canonical: fairdm.core.dataset.views.DatasetCreateView.get_success_url
+
+```{autodoc2-docstring} fairdm.core.dataset.views.DatasetCreateView.get_success_url
+```
+
+````
+
+````{py:method} form_valid(form) -> django.http.HttpResponse
+:canonical: fairdm.core.dataset.views.DatasetCreateView.form_valid
+
+```{autodoc2-docstring} fairdm.core.dataset.views.DatasetCreateView.form_valid
+```
+
+````
+
+`````
+
+`````{py:class} DatasetListView(**kwargs)
+:canonical: fairdm.core.dataset.views.DatasetListView
+
+Bases: {py:obj}`fairdm.views.FairDMListView`
+
+```{autodoc2-docstring} fairdm.core.dataset.views.DatasetListView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.views.DatasetListView.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.dataset.views.DatasetListView.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.views.DatasetListView.model
+```
+
+````
+
+````{py:attribute} filterset_class
+:canonical: fairdm.core.dataset.views.DatasetListView.filterset_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.views.DatasetListView.filterset_class
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.core.dataset.views.DatasetListView.page_title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.views.DatasetListView.page_title
+```
+
+````
+
+````{py:attribute} page_icon
+:canonical: fairdm.core.dataset.views.DatasetListView.page_icon
+:value: >
+   'dataset'
+
+```{autodoc2-docstring} fairdm.core.dataset.views.DatasetListView.page_icon
+```
+
+````
+
+````{py:attribute} list_item_template
+:canonical: fairdm.core.dataset.views.DatasetListView.list_item_template
+:value: >
+   'dataset/dataset_card.html'
+
+```{autodoc2-docstring} fairdm.core.dataset.views.DatasetListView.list_item_template
+```
+
+````
+
+````{py:attribute} grid
+:canonical: fairdm.core.dataset.views.DatasetListView.grid
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.views.DatasetListView.grid
+```
+
+````
+
+````{py:attribute} toolbar_filters
+:canonical: fairdm.core.dataset.views.DatasetListView.toolbar_filters
+:value: >
+   ['q', 'license']
+
+```{autodoc2-docstring} fairdm.core.dataset.views.DatasetListView.toolbar_filters
+```
+
+````
+
+````{py:method} get_queryset() -> django.db.models.QuerySet[fairdm.core.dataset.models.Dataset]
+:canonical: fairdm.core.dataset.views.DatasetListView.get_queryset
+
+```{autodoc2-docstring} fairdm.core.dataset.views.DatasetListView.get_queryset
+```
+
+````
+
+`````

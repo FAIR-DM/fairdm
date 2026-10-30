@@ -1,0 +1,22 @@
+# {py:mod}`fairdm.management.commands`
+
+```{py:module} fairdm.management.commands
+```
+
+```{autodoc2-docstring} fairdm.management.commands
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.management.commands.create_dev_accounts
+fairdm.management.commands.show_config
+fairdm.management.commands.generate_fake_data
+fairdm.management.commands.cleanup_permissions
+fairdm.management.commands.upgrade_vocabularies
+fairdm.management.commands.seed_licenses
+```

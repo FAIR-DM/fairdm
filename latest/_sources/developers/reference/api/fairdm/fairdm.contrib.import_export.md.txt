@@ -1,0 +1,23 @@
+# {py:mod}`fairdm.contrib.import_export`
+
+```{py:module} fairdm.contrib.import_export
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.contrib.import_export.views
+fairdm.contrib.import_export.resources
+fairdm.contrib.import_export.urls
+fairdm.contrib.import_export.forms
+fairdm.contrib.import_export.apps
+fairdm.contrib.import_export.utils
+fairdm.contrib.import_export.formats
+```

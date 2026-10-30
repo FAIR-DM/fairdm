@@ -1,0 +1,28 @@
+# {py:mod}`fairdm.contrib.contributors.exceptions`
+
+```{py:module} fairdm.contrib.contributors.exceptions
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.exceptions
+:allowtitles:
+```
+
+## Module Contents
+
+### API
+
+````{py:exception} ClaimingError()
+:canonical: fairdm.contrib.contributors.exceptions.ClaimingError
+
+Bases: {py:obj}`Exception`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.exceptions.ClaimingError
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.exceptions.ClaimingError.__init__
+```
+
+````

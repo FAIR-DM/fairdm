@@ -1,0 +1,46 @@
+# {py:mod}`fairdm.contrib.collections`
+
+```{py:module} fairdm.contrib.collections
+```
+
+```{autodoc2-docstring} fairdm.contrib.collections
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.contrib.collections.tables
+fairdm.contrib.collections.views
+fairdm.contrib.collections.urls
+fairdm.contrib.collections.apps
+```
+
+## Package Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`default_app_config <fairdm.contrib.collections.default_app_config>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.default_app_config
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} default_app_config
+:canonical: fairdm.contrib.collections.default_app_config
+:value: >
+   'fairdm.contrib.collections.apps.CollectionsConfig'
+
+```{autodoc2-docstring} fairdm.contrib.collections.default_app_config
+```
+
+````

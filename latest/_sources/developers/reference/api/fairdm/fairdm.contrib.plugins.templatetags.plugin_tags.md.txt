@@ -1,0 +1,64 @@
+# {py:mod}`fairdm.contrib.plugins.templatetags.plugin_tags`
+
+```{py:module} fairdm.contrib.plugins.templatetags.plugin_tags
+```
+
+```{autodoc2-docstring} fairdm.contrib.plugins.templatetags.plugin_tags
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`plugin_url <fairdm.contrib.plugins.templatetags.plugin_tags.plugin_url>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.templatetags.plugin_tags.plugin_url
+    :summary:
+    ```
+* - {py:obj}`holds_level <fairdm.contrib.plugins.templatetags.plugin_tags.holds_level>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.templatetags.plugin_tags.holds_level
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`register <fairdm.contrib.plugins.templatetags.plugin_tags.register>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.templatetags.plugin_tags.register
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} register
+:canonical: fairdm.contrib.plugins.templatetags.plugin_tags.register
+:value: >
+   'Library(...)'
+
+```{autodoc2-docstring} fairdm.contrib.plugins.templatetags.plugin_tags.register
+```
+
+````
+
+````{py:function} plugin_url(context, view_name, *args, **kwargs)
+:canonical: fairdm.contrib.plugins.templatetags.plugin_tags.plugin_url
+
+```{autodoc2-docstring} fairdm.contrib.plugins.templatetags.plugin_tags.plugin_url
+```
+````
+
+````{py:function} holds_level(context, level, record)
+:canonical: fairdm.contrib.plugins.templatetags.plugin_tags.holds_level
+
+```{autodoc2-docstring} fairdm.contrib.plugins.templatetags.plugin_tags.holds_level
+```
+````

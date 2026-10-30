@@ -1,0 +1,21 @@
+# {py:mod}`fairdm.contrib.contributors.services`
+
+```{py:module} fairdm.contrib.contributors.services
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.contrib.contributors.services.merge
+fairdm.contrib.contributors.services.registries
+fairdm.contrib.contributors.services.crediting
+fairdm.contrib.contributors.services.matching
+fairdm.contrib.contributors.services.claiming
+```

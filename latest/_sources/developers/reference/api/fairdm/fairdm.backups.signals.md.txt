@@ -1,0 +1,53 @@
+# {py:mod}`fairdm.backups.signals`
+
+```{py:module} fairdm.backups.signals
+```
+
+```{autodoc2-docstring} fairdm.backups.signals
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`seed_default_tasks <fairdm.backups.signals.seed_default_tasks>`
+  - ```{autodoc2-docstring} fairdm.backups.signals.seed_default_tasks
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`DEFAULT_TASKS <fairdm.backups.signals.DEFAULT_TASKS>`
+  - ```{autodoc2-docstring} fairdm.backups.signals.DEFAULT_TASKS
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} DEFAULT_TASKS
+:canonical: fairdm.backups.signals.DEFAULT_TASKS
+:value: >
+   [('Back up the database', 'fairdm.backups.tasks.backup_database'), ('Back up the media', 'fairdm.bac...
+
+```{autodoc2-docstring} fairdm.backups.signals.DEFAULT_TASKS
+```
+
+````
+
+````{py:function} seed_default_tasks(**kwargs)
+:canonical: fairdm.backups.signals.seed_default_tasks
+
+```{autodoc2-docstring} fairdm.backups.signals.seed_default_tasks
+```
+````

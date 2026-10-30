@@ -1,0 +1,80 @@
+# {py:mod}`fairdm.core.dataset.apps`
+
+```{py:module} fairdm.core.dataset.apps
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.apps
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FairDMDatasetConfig <fairdm.core.dataset.apps.FairDMDatasetConfig>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.apps.FairDMDatasetConfig
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} FairDMDatasetConfig(app_name, app_module)
+:canonical: fairdm.core.dataset.apps.FairDMDatasetConfig
+
+Bases: {py:obj}`django.apps.AppConfig`
+
+```{autodoc2-docstring} fairdm.core.dataset.apps.FairDMDatasetConfig
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.apps.FairDMDatasetConfig.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.core.dataset.apps.FairDMDatasetConfig.name
+:value: >
+   'fairdm.core.dataset'
+
+```{autodoc2-docstring} fairdm.core.dataset.apps.FairDMDatasetConfig.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.core.dataset.apps.FairDMDatasetConfig.label
+:value: >
+   'dataset'
+
+```{autodoc2-docstring} fairdm.core.dataset.apps.FairDMDatasetConfig.label
+```
+
+````
+
+````{py:attribute} verbose_name
+:canonical: fairdm.core.dataset.apps.FairDMDatasetConfig.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.apps.FairDMDatasetConfig.verbose_name
+```
+
+````
+
+````{py:attribute} verbose_name_plural
+:canonical: fairdm.core.dataset.apps.FairDMDatasetConfig.verbose_name_plural
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.apps.FairDMDatasetConfig.verbose_name_plural
+```
+
+````
+
+`````

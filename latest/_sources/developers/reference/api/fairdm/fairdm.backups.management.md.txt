@@ -1,0 +1,17 @@
+# {py:mod}`fairdm.backups.management`
+
+```{py:module} fairdm.backups.management
+```
+
+```{autodoc2-docstring} fairdm.backups.management
+:allowtitles:
+```
+
+## Subpackages
+
+```{toctree}
+:titlesonly:
+:maxdepth: 3
+
+fairdm.backups.management.commands
+```

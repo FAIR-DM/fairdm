@@ -1,0 +1,1215 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="Django standards" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="contributing/standards/django.html" />
+<meta property="og:site_name" content="fairdm" />
+<meta property="og:description" content="These guidelines cover where code lives in a Django codebase and when a new abstraction is worth adding. CONSTITUTION.md points here, and its articles on simplicity, abstraction and cohesion set th..." />
+<meta name="description" content="These guidelines cover where code lives in a Django codebase and when a new abstraction is worth adding. CONSTITUTION.md points here, and its articles on simplicity, abstraction and cohesion set th..." />
+
+    <title>Django standards &#8212; fairdm 0.3.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=cb8930eaaf36d9849b67"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
+
+    <script src="../../_static/documentation_options.js?v=4621528c"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script kind="utterances">
+
+    var commentsRunWhenDOMLoaded = cb => {
+    if (document.readyState != 'loading') {
+        cb()
+    } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', cb)
+    } else {
+        document.attachEvent('onreadystatechange', function() {
+        if (document.readyState == 'complete') cb()
+        })
+    }
+}
+
+var addUtterances = () => {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://utteranc.es/client.js";
+    script.async = "async";
+
+    script.setAttribute("repo", "FAIR-DM/fairdm");
+    script.setAttribute("issue-term", "pathname");
+    script.setAttribute("theme", "preferred-color-scheme");
+    script.setAttribute("label", "documentation");
+    script.setAttribute("crossorigin", "anonymous");
+
+    sections = document.querySelectorAll("div.section");
+    if (sections !== null) {
+        section = sections[sections.length-1];
+        section.appendChild(script);
+    }
+}
+commentsRunWhenDOMLoaded(addUtterances);
+</script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'contributing/standards/django';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.21.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.fairdm.org/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'latest';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="icon" href="../../_static/icon.svg"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Documentation standards" href="documentation.html" />
+    <link rel="prev" title="Code documentation standards" href="code-documentation.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.3.1" />
+    <meta name="docbuild:last-update" content="Oct 30, 2026"/>
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.3.1 documentation - Home"/>
+    <img src="../../_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.3.1 documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../developers/index.html">
+    Developers
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../administrators/index.html">
+    Administrators
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../users/index.html">
+    Users
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/what-fairdm-is-for.html">
+    What FairDM is for
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/fair-data-and-research-data-infrastructure.html">
+    FAIR data and research data infrastructure
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/the-technology-stack.html">
+    The technology stack
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/the-core-data-model.html">
+    The core data model
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-sample-and-measurement-types-are-stored.html">
+    How sample and measurement types are stored
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/controlled-vocabularies.html">
+    Controlled vocabularies
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/configuration-over-code.html">
+    Configuration over code
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/why-complete-metadata-matters.html">
+    Why complete metadata matters
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-access-to-a-record-is-decided.html">
+    How access to a record is decided
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/why-fairdm-records-contributors.html">
+    Why FairDM records contributors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-contributor-accounts-and-credits-work.html">
+    How contributor accounts and credits work
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-a-profile-is-claimed.html">
+    How a profile is claimed
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-fairdm-configures-a-portal.html">
+    How FairDM configures a portal
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/who-is-asked-to-agree-to-a-legal-document.html">
+    Who is asked to agree to a legal document
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-locations-are-stored-and-protected.html">
+    How locations are stored and protected
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">
+    Dataset publication, DOIs and DataCite metadata
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../reference/glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="../index.html">
+    Framework Contributors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../adr/index.html">
+    Architecture Decision Records
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../ROADMAP.html">
+    Roadmap — FairDM
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../developers/index.html">
+    Developers
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../administrators/index.html">
+    Administrators
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../users/index.html">
+    Users
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/what-fairdm-is-for.html">
+    What FairDM is for
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/fair-data-and-research-data-infrastructure.html">
+    FAIR data and research data infrastructure
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/the-technology-stack.html">
+    The technology stack
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/the-core-data-model.html">
+    The core data model
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-sample-and-measurement-types-are-stored.html">
+    How sample and measurement types are stored
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/controlled-vocabularies.html">
+    Controlled vocabularies
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/configuration-over-code.html">
+    Configuration over code
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/why-complete-metadata-matters.html">
+    Why complete metadata matters
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-access-to-a-record-is-decided.html">
+    How access to a record is decided
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/why-fairdm-records-contributors.html">
+    Why FairDM records contributors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-contributor-accounts-and-credits-work.html">
+    How contributor accounts and credits work
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-a-profile-is-claimed.html">
+    How a profile is claimed
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-fairdm-configures-a-portal.html">
+    How FairDM configures a portal
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/who-is-asked-to-agree-to-a-legal-document.html">
+    Who is asked to agree to a legal document
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-locations-are-stored-and-protected.html">
+    How locations are stored and protected
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">
+    Dataset publication, DOIs and DataCite metadata
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../reference/glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    Framework Contributors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../adr/index.html">
+    Architecture Decision Records
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ROADMAP.html">
+    Roadmap — FairDM
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../before_you_start.html">Before You Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../registry-system.html">Registry System Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../base-views.html">Changing the base views</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Contributing to FairDM</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../django_dev.html">Python Code Development</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing standards</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code-documentation.html">Code documentation standards</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Django standards</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">Documentation standards</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../documentation/index.html">Working on the documentation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../documentation/cross-references.html">Cross-references</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../documentation/validation-rules.html">Validation rules</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1"><a class="reference internal" href="../feature-documentation.html">Documenting features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing/index.html">Running the tests</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Framework Contributors</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Django standards</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="django-standards">
+<h1>Django standards<a class="headerlink" href="#django-standards" title="Link to this heading">#</a></h1>
+<p>These guidelines cover where code lives in a Django codebase and when a new abstraction is
+worth adding. <code class="docutils literal notranslate"><span class="pre">CONSTITUTION.md</span></code> points here, and its articles on simplicity, abstraction and
+cohesion set the general rules that this document applies to Django. Section 10 says how
+exceptions are made. The sections above <strong>Project additions</strong> are shared unchanged with our
+other repositories, so edit this repository’s rules in that last section only.</p>
+<p>They guide code as it is written. They are never a reason to rewrite, flatten or remove
+something the repository already has.</p>
+<p>Before writing anything, ask where an experienced Django developer would expect to find it. Ask
+what abstraction to create only when that question has no answer. A change is right when a
+Django developer who has never seen this repository can find it by following the framework’s
+conventions and the ones this repository has already set.</p>
+<section id="where-code-lives">
+<h2>1. Where code lives<a class="headerlink" href="#where-code-lives" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>The code is</p></th>
+<th class="head"><p>It lives in</p></th>
+<th class="head"><p>Never in</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>A rule about one record, or something a record does</p></td>
+<td><p>A method or property on the model</p></td>
+<td><p>A view, a form’s <code class="docutils literal notranslate"><span class="pre">save()</span></code>, a free function taking the instance</p></td>
+</tr>
+<tr class="row-odd"><td><p>A rule that must hold for every row, and that the database can express</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Meta.constraints</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">clean()</span></code> alone</p></td>
+</tr>
+<tr class="row-even"><td><p>A query used in more than one place</p></td>
+<td><p>A method on the model’s <code class="docutils literal notranslate"><span class="pre">QuerySet</span></code></p></td>
+<td><p>A view, a template tag</p></td>
+</tr>
+<tr class="row-odd"><td><p>Checking and converting what a user submitted</p></td>
+<td><p>A <code class="docutils literal notranslate"><span class="pre">Form</span></code> or <code class="docutils literal notranslate"><span class="pre">ModelForm</span></code></p></td>
+<td><p>The view body</p></td>
+</tr>
+<tr class="row-even"><td><p>Reading the request, checking access, choosing the response</p></td>
+<td><p>The view</p></td>
+<td><p>A model or a form</p></td>
+</tr>
+<tr class="row-odd"><td><p>How a value is shown</p></td>
+<td><p>The template, or a template tag or filter when reused</p></td>
+<td><p>A model method that returns HTML</p></td>
+</tr>
+<tr class="row-even"><td><p>An operation across several models</p></td>
+<td><p>A method on the model the operation is named after (section 2)</p></td>
+<td><p>A view, a signal</p></td>
+</tr>
+<tr class="row-odd"><td><p>Something run from the command line or a scheduler</p></td>
+<td><p>A management command that calls the model or queryset</p></td>
+<td><p>Logic written in the command itself</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Dependencies point one way: models, then forms, then views, then templates. A model never imports
+a form or a view. A form never imports a view.</p>
+<section id="modules">
+<h3>Modules<a class="headerlink" href="#modules" title="Link to this heading">#</a></h3>
+<p>Code lives in the modules a Django developer already knows: <code class="docutils literal notranslate"><span class="pre">models.py</span></code>, <code class="docutils literal notranslate"><span class="pre">managers.py</span></code>,
+<code class="docutils literal notranslate"><span class="pre">forms.py</span></code>, <code class="docutils literal notranslate"><span class="pre">views.py</span></code>, <code class="docutils literal notranslate"><span class="pre">urls.py</span></code>, <code class="docutils literal notranslate"><span class="pre">admin.py</span></code>, <code class="docutils literal notranslate"><span class="pre">apps.py</span></code>, <code class="docutils literal notranslate"><span class="pre">signals.py</span></code>, <code class="docutils literal notranslate"><span class="pre">templatetags/</span></code>,
+<code class="docutils literal notranslate"><span class="pre">management/commands/</span></code>. Look there first.</p>
+<p><strong>Code that fits none of them goes in <code class="docutils literal notranslate"><span class="pre">utils.py</span></code>.</strong> That is where a Django developer looks for
+standalone helper functions, so it is the default. It is not a way around the table above: code
+that belongs on a model, a queryset or a form still goes there.</p>
+<p><strong>When <code class="docutils literal notranslate"><span class="pre">utils.py</span></code> grows too large, it becomes a <code class="docutils literal notranslate"><span class="pre">utils/</span></code> package</strong>, with one submodule per group
+of related functions: <code class="docutils literal notranslate"><span class="pre">utils/dates.py</span></code>, <code class="docutils literal notranslate"><span class="pre">utils/text.py</span></code>.</p>
+<p><strong>A module of its own is for code with a defined character</strong>: it has one clear subject, and it
+is likely to be added to or extended. <code class="docutils literal notranslate"><span class="pre">menus.py</span></code> holds the app’s menus. <code class="docutils literal notranslate"><span class="pre">importing.py</span></code> holds its
+importer. The name states the scope plainly enough that a reader knows what is inside without
+opening it.</p>
+</section>
+</section>
+<section id="models">
+<h2>2. Models<a class="headerlink" href="#models" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Behaviour goes on the model it concerns.</strong> <code class="docutils literal notranslate"><span class="pre">invoice.mark_paid()</span></code>, never
+<code class="docutils literal notranslate"><span class="pre">mark_invoice_paid(invoice)</span></code> in another module.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">save()</span></code> does not validate.</strong> <code class="docutils literal notranslate"><span class="pre">clean()</span></code>, field validators and <code class="docutils literal notranslate"><span class="pre">choices</span></code> run only through
+<code class="docutils literal notranslate"><span class="pre">full_clean()</span></code>, which a <code class="docutils literal notranslate"><span class="pre">ModelForm</span></code> calls and <code class="docutils literal notranslate"><span class="pre">save()</span></code>, <code class="docutils literal notranslate"><span class="pre">create()</span></code>, <code class="docutils literal notranslate"><span class="pre">update()</span></code> and
+<code class="docutils literal notranslate"><span class="pre">bulk_create()</span></code> do not. A rule that must hold however the row is written is a database
+constraint where the database can express it. Where it cannot, as with a rule that spans
+tables, the rule lives in the one model method every write goes through. A rule that only
+shapes what a person may enter is validation.</p></li>
+<li><p><strong>An operation across several models belongs to the model it is named after.</strong> Publishing a
+vocabulary freezes its concepts, so it is <code class="docutils literal notranslate"><span class="pre">Vocabulary.publish()</span></code>. A bulk operation is a
+<code class="docutils literal notranslate"><span class="pre">QuerySet</span></code> method.</p></li>
+<li><p><strong>When no model owns the operation</strong>, it goes in <code class="docutils literal notranslate"><span class="pre">utils.py</span></code>, or in a module of its own when it
+has a clear subject and is likely to be extended (section 1, Modules).</p></li>
+<li><p><strong>Override <code class="docutils literal notranslate"><span class="pre">save()</span></code> and <code class="docutils literal notranslate"><span class="pre">delete()</span></code> only for what must happen on every write of that model.</strong>
+Neither runs for <code class="docutils literal notranslate"><span class="pre">QuerySet.update()</span></code>, <code class="docutils literal notranslate"><span class="pre">bulk_create()</span></code> or a cascade delete, so nothing that must
+always hold may depend on them.</p></li>
+</ul>
+</section>
+<section id="queries">
+<h2>3. Queries<a class="headerlink" href="#queries" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>A reusable query is a <code class="docutils literal notranslate"><span class="pre">QuerySet</span></code> method</strong>, exposed with <code class="docutils literal notranslate"><span class="pre">Manager.from_queryset()</span></code> or
+<code class="docutils literal notranslate"><span class="pre">QuerySet.as_manager()</span></code>. Write the method on the queryset, never on the manager alone, so that
+it chains.</p></li>
+<li><p><strong>Methods are small and compose.</strong> <code class="docutils literal notranslate"><span class="pre">Concept.objects.published().in_scheme(scheme)</span></code>, never one
+<code class="docutils literal notranslate"><span class="pre">get_published_concepts_for_scheme()</span></code>.</p></li>
+<li><p><strong>The second use moves a query.</strong> A filter written once stays in the view that needs it. The
+same <code class="docutils literal notranslate"><span class="pre">filter</span></code>, <code class="docutils literal notranslate"><span class="pre">exclude</span></code> or <code class="docutils literal notranslate"><span class="pre">annotate</span></code> chain appearing a second time becomes a method.</p></li>
+<li><p><strong>Database work is visible at the call site.</strong> A property or template tag that runs a query on
+every access hides an N+1 problem. Load related rows with <code class="docutils literal notranslate"><span class="pre">select_related</span></code>, <code class="docutils literal notranslate"><span class="pre">prefetch_related</span></code>
+or an annotation in the queryset the view builds.</p></li>
+<li><p><strong>Compute in the database when the result is used to filter, order or count.</strong> Use an
+annotation or aggregate. A Python loop over a queryset is for work the database cannot do.</p></li>
+</ul>
+</section>
+<section id="forms">
+<h2>4. Forms<a class="headerlink" href="#forms" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Input that has to be checked or converted goes through a form.</strong> A view never validates
+<code class="docutils literal notranslate"><span class="pre">request.POST</span></code> or <code class="docutils literal notranslate"><span class="pre">request.GET</span></code> by hand. A search term or page number read straight from the
+query string, and a button that posts no fields, need no form.</p></li>
+<li><p><strong>A form checks what was entered: format, required fields, how fields relate.</strong> A rule that
+holds without a form is a model rule (section 2). Do not repeat a model’s validators on its
+form, because a <code class="docutils literal notranslate"><span class="pre">ModelForm</span></code> already runs them.</p></li>
+<li><p><strong>A form’s <code class="docutils literal notranslate"><span class="pre">save()</span></code> saves.</strong> Anything more is a model method that <code class="docutils literal notranslate"><span class="pre">save()</span></code> or the view calls.</p></li>
+</ul>
+</section>
+<section id="views">
+<h2>5. Views<a class="headerlink" href="#views" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Class-based views are strongly preferred</strong>, built on Django’s generic views or the
+repository’s own base views. This is a house preference, not a claim about Django: our
+packages publish their views for projects to subclass, and a function cannot be subclassed. A
+function view is fine for a small endpoint nobody will extend, such as a webhook or a health
+check.</p></li>
+<li><p><strong>A view deals with the request and the response:</strong> who is asking, what they sent, which model
+or queryset method to call, what to send back, and what the template needs.</p></li>
+<li><p><strong>Use the hooks the generic view already has:</strong> <code class="docutils literal notranslate"><span class="pre">get_queryset</span></code>, <code class="docutils literal notranslate"><span class="pre">get_form_kwargs</span></code>,
+<code class="docutils literal notranslate"><span class="pre">form_valid</span></code>, <code class="docutils literal notranslate"><span class="pre">get_context_data</span></code>, <code class="docutils literal notranslate"><span class="pre">get_success_url</span></code>. Do not override <code class="docutils literal notranslate"><span class="pre">get</span></code>, <code class="docutils literal notranslate"><span class="pre">post</span></code> or
+<code class="docutils literal notranslate"><span class="pre">dispatch</span></code> to do what a hook does.</p></li>
+<li><p><strong>A view method that makes a decision about the data is in the wrong place.</strong> Move the decision
+to the model and call it.</p></li>
+<li><p><strong>Access control uses Django’s mechanisms:</strong> <code class="docutils literal notranslate"><span class="pre">LoginRequiredMixin</span></code>, <code class="docutils literal notranslate"><span class="pre">PermissionRequiredMixin</span></code>,
+<code class="docutils literal notranslate"><span class="pre">UserPassesTestMixin</span></code>, and for access to one record, a queryset already limited to what the
+user may see.</p></li>
+</ul>
+</section>
+<section id="templates">
+<h2>6. Templates<a class="headerlink" href="#templates" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>A template shows what it is given.</strong> It may branch and loop on that data. It does not
+compute, filter querysets, or decide who may do what beyond calling <code class="docutils literal notranslate"><span class="pre">perms</span></code> or a flag the view
+set.</p></li>
+<li><p><strong>Reused presentation logic is a template tag or filter.</strong> A value that needs several steps to
+work out is worked out in the view or on the model.</p></li>
+<li><p><strong>Content is added to a page by template inheritance:</strong> extend the template and fill a block,
+with <code class="docutils literal notranslate"><span class="pre">{{</span> <span class="pre">block.super</span> <span class="pre">}}</span></code> to keep what was there. Where the repository already has its own way
+to add content, such as a menu class or a plugin, use that.</p></li>
+<li><p><strong>In a repository that uses django-cotton, a reused piece of template is a component</strong>, never
+an <code class="docutils literal notranslate"><span class="pre">{%</span> <span class="pre">include</span> <span class="pre">%}</span></code> partial.</p></li>
+</ul>
+</section>
+<section id="transactions-side-effects-and-signals">
+<h2>7. Transactions, side effects and signals<a class="headerlink" href="#transactions-side-effects-and-signals" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>A change that writes more than one row is atomic.</strong> Wrap the whole operation in
+<code class="docutils literal notranslate"><span class="pre">transaction.atomic()</span></code> at the method that owns it (section 2), not around each step inside it.</p></li>
+<li><p><strong>Anything that leaves the database waits for the commit.</strong> Emails, task queues and calls to
+other systems go in <code class="docutils literal notranslate"><span class="pre">transaction.on_commit()</span></code>.</p></li>
+<li><p><strong>If the operation is wrong without a step, the step is called by name.</strong> Never from a signal.</p></li>
+<li><p><strong>A signal is for code that must not know about the sender:</strong> reacting to another app’s model,
+or letting other apps react to yours. Inside one app, call the method. Receivers live in
+<code class="docutils literal notranslate"><span class="pre">signals.py</span></code> and are connected in <code class="docutils literal notranslate"><span class="pre">AppConfig.ready()</span></code>.</p></li>
+</ul>
+</section>
+<section id="abstractions">
+<h2>8. Abstractions<a class="headerlink" href="#abstractions" title="Link to this heading">#</a></h2>
+<p>Many of our packages exist to give developers a higher-level interface to Django: menu classes,
+a registry that models are registered with, a plugin system, base views. Those abstractions are
+the product. This section separates them from the plumbing a change adds for its own
+convenience.</p>
+<section id="what-the-repository-already-provides">
+<h3>What the repository already provides<a class="headerlink" href="#what-the-repository-already-provides" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Work with it, in its own style.</strong> A new menu is a subclass of the menu class. A new model is
+registered the way the others are. A new plugin follows the existing plugins. Section 1 does
+not override this: where the repository has its own way to do something, that way is the
+convention.</p></li>
+<li><p><strong>Extend it when the work calls for it.</strong> Adding an option, a hook or a subclass to an existing
+abstraction is ordinary work and needs no special justification.</p></li>
+<li><p><strong>Do not rewrite or remove it because of this document.</strong> If an existing abstraction looks
+wrong, raise an issue. Replacing it is a design decision for the maintainers, never a side
+effect of another change.</p></li>
+</ul>
+</section>
+<section id="a-new-interface-for-developers">
+<h3>A new interface for developers<a class="headerlink" href="#a-new-interface-for-developers" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>It is asked for, not discovered.</strong> A new public abstraction comes from the specification or
+issue the work is done under. If the work seems to need one that nobody asked for, stop and
+ask.</p></li>
+<li><p><strong>It looks like Django.</strong> Model it on an interface Django developers already use: a class with
+declarative attributes like <code class="docutils literal notranslate"><span class="pre">ModelAdmin</span></code>, registration like <code class="docutils literal notranslate"><span class="pre">admin.site.register</span></code>, discovery
+like <code class="docutils literal notranslate"><span class="pre">autodiscover</span></code>, options in an inner <code class="docutils literal notranslate"><span class="pre">Meta</span></code>. A developer should be able to guess how it
+works from knowing Django.</p></li>
+<li><p><strong>It can be followed.</strong> Someone reading a subclass can find the base class, see which
+attributes and methods it reads, and work out what happens. Prefer plain classes and explicit
+registration to machinery that generates code or settings.</p></li>
+</ul>
+</section>
+<section id="plumbing-inside-a-change">
+<h3>Plumbing inside a change<a class="headerlink" href="#plumbing-inside-a-change" title="Link to this heading">#</a></h3>
+<p>These apply to code no downstream developer will touch.</p>
+<ul class="simple">
+<li><p><strong>Django’s own mechanisms come first:</strong> <code class="docutils literal notranslate"><span class="pre">Model</span></code>, <code class="docutils literal notranslate"><span class="pre">QuerySet</span></code>, <code class="docutils literal notranslate"><span class="pre">Form</span></code>, class-based views, template
+tags, middleware, management commands, <code class="docutils literal notranslate"><span class="pre">AppConfig</span></code>. Reach for something else when one of these
+was considered and could not do the job.</p></li>
+<li><p><strong>Patterns from other frameworks need a reason Django cannot answer:</strong> service layers,
+repositories, data transfer objects, use cases, command or event buses. A feature that fits in
+<code class="docutils literal notranslate"><span class="pre">models.py</span></code>, <code class="docutils literal notranslate"><span class="pre">forms.py</span></code>, <code class="docutils literal notranslate"><span class="pre">views.py</span></code>, <code class="docutils literal notranslate"><span class="pre">urls.py</span></code> and <code class="docutils literal notranslate"><span class="pre">templates/</span></code> needs nothing beside them.</p></li>
+<li><p><strong>Twenty plain lines beat a generic helper that saves five.</strong> Share code when two places hold
+the same rule and must change together. Leave it alone when two places only look alike.</p></li>
+<li><p><strong>A mixin is one behaviour with a name</strong>, such as <code class="docutils literal notranslate"><span class="pre">OwnerRequiredMixin</span></code>, not a place to collect
+helpers. A base class, mixin or helper waits for its second use.</p></li>
+<li><p><strong>A setting exists only when the code cannot know the value itself.</strong> A sensible default with
+no setting is better than a setting nobody changes.</p></li>
+</ul>
+</section>
+</section>
+<section id="apps">
+<h2>9. Apps<a class="headerlink" href="#apps" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>An app is one area of the domain</strong> and holds everything that area needs: its models, forms,
+views, templates and tests. Apps are never split by technical layer.</p></li>
+<li><p><strong>Another app is used through what it publishes:</strong> its models and their methods, its querysets,
+its forms, its URL names, its template blocks. Never through its view internals or helper
+modules.</p></li>
+<li><p><strong>Imports between apps run one way where they can.</strong> Two apps that import each other’s models
+are usually one app.</p></li>
+<li><p><strong>Refer to a swappable model through its setting</strong> (<code class="docutils literal notranslate"><span class="pre">settings.AUTH_USER_MODEL</span></code>), and to another
+app’s model by string (<code class="docutils literal notranslate"><span class="pre">&quot;vocabularies.Concept&quot;</span></code>) when importing it would be circular.</p></li>
+</ul>
+</section>
+<section id="guidelines-not-fixed-rules">
+<h2>10. Guidelines, not fixed rules<a class="headerlink" href="#guidelines-not-fixed-rules" title="Link to this heading">#</a></h2>
+<p>Everything above is a guideline. Every situation is different, and an exception can be made
+wherever it can be justified.</p>
+<ul class="simple">
+<li><p><strong>The default holds until there is a reason.</strong> “Never” in this document means “not without
+one”.</p></li>
+<li><p><strong>The reason is written down</strong> where a reviewer will see it: in the pull request, or in a short
+comment when the code would otherwise look like a mistake.</p></li>
+<li><p><strong>A reason is about this code:</strong> what the usual place could not do, or why the reader is better
+served here. Habit from another framework is not a reason.</p></li>
+<li><p><strong>Review checks the reasoning, not the letter.</strong> A finding names the guideline and says why the
+exception does not hold.</p></li>
+</ul>
+<p>Query counts and migration completeness are the two parts that are tested, as described in
+<a class="reference internal" href="testing.html"><span class="std std-doc"><code class="docutils literal notranslate"><span class="pre">testing.md</span></code></span></a>, section 5.</p>
+</section>
+<section id="project-additions">
+<h2>Project additions<a class="headerlink" href="#project-additions" title="Link to this heading">#</a></h2>
+<!-- Rules that apply to this repository only. Leave empty when there are none. -->
+<hr class="docutils" />
+<p><strong>Version</strong>: 1.0.0</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="code-documentation.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Code documentation standards</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="documentation.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Documentation standards</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#where-code-lives">1. Where code lives</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#modules">Modules</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#models">2. Models</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#queries">3. Queries</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#forms">4. Forms</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#views">5. Views</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#templates">6. Templates</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#transactions-side-effects-and-signals">7. Transactions, side effects and signals</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#abstractions">8. Abstractions</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#what-the-repository-already-provides">What the repository already provides</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-new-interface-for-developers">A new interface for developers</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#plumbing-inside-a-change">Plumbing inside a change</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#apps">9. Apps</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#guidelines-not-fixed-rules">10. Guidelines, not fixed rules</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#project-additions">Project additions</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Samuel Jennings.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.21.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

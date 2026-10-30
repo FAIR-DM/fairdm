@@ -1,0 +1,80 @@
+# {py:mod}`fairdm.core.project.apps`
+
+```{py:module} fairdm.core.project.apps
+```
+
+```{autodoc2-docstring} fairdm.core.project.apps
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FairDMProjectConfig <fairdm.core.project.apps.FairDMProjectConfig>`
+  - ```{autodoc2-docstring} fairdm.core.project.apps.FairDMProjectConfig
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} FairDMProjectConfig(app_name, app_module)
+:canonical: fairdm.core.project.apps.FairDMProjectConfig
+
+Bases: {py:obj}`django.apps.AppConfig`
+
+```{autodoc2-docstring} fairdm.core.project.apps.FairDMProjectConfig
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.project.apps.FairDMProjectConfig.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.core.project.apps.FairDMProjectConfig.name
+:value: >
+   'fairdm.core.project'
+
+```{autodoc2-docstring} fairdm.core.project.apps.FairDMProjectConfig.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.core.project.apps.FairDMProjectConfig.label
+:value: >
+   'project'
+
+```{autodoc2-docstring} fairdm.core.project.apps.FairDMProjectConfig.label
+```
+
+````
+
+````{py:attribute} verbose_name
+:canonical: fairdm.core.project.apps.FairDMProjectConfig.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.project.apps.FairDMProjectConfig.verbose_name
+```
+
+````
+
+````{py:attribute} verbose_name_plural
+:canonical: fairdm.core.project.apps.FairDMProjectConfig.verbose_name_plural
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.project.apps.FairDMProjectConfig.verbose_name_plural
+```
+
+````
+
+`````

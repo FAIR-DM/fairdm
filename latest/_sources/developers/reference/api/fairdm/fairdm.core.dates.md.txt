@@ -1,0 +1,31 @@
+# {py:mod}`fairdm.core.dates`
+
+```{py:module} fairdm.core.dates
+```
+
+```{autodoc2-docstring} fairdm.core.dates
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`precedes <fairdm.core.dates.precedes>`
+  - ```{autodoc2-docstring} fairdm.core.dates.precedes
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} precedes(a: partial_date.PartialDate, b: partial_date.PartialDate) -> bool
+:canonical: fairdm.core.dates.precedes
+
+```{autodoc2-docstring} fairdm.core.dates.precedes
+```
+````

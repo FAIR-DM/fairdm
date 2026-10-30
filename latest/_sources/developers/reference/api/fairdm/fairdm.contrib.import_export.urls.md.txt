@@ -1,0 +1,35 @@
+# {py:mod}`fairdm.contrib.import_export.urls`
+
+```{py:module} fairdm.contrib.import_export.urls
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.urls
+:allowtitles:
+```
+
+## Module Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`urlpatterns <fairdm.contrib.import_export.urls.urlpatterns>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.urls.urlpatterns
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} urlpatterns
+:canonical: fairdm.contrib.import_export.urls.urlpatterns
+:type: list[django.urls.URLPattern]
+:value: >
+   []
+
+```{autodoc2-docstring} fairdm.contrib.import_export.urls.urlpatterns
+```
+
+````

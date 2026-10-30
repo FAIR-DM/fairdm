@@ -1,0 +1,42 @@
+# {py:mod}`fairdm.api.checks`
+
+```{py:module} fairdm.api.checks
+```
+
+```{autodoc2-docstring} fairdm.api.checks
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`required_fields_left_out <fairdm.api.checks.required_fields_left_out>`
+  - ```{autodoc2-docstring} fairdm.api.checks.required_fields_left_out
+    :summary:
+    ```
+* - {py:obj}`check_registered_types <fairdm.api.checks.check_registered_types>`
+  - ```{autodoc2-docstring} fairdm.api.checks.check_registered_types
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} required_fields_left_out(config) -> list[str]
+:canonical: fairdm.api.checks.required_fields_left_out
+
+```{autodoc2-docstring} fairdm.api.checks.required_fields_left_out
+```
+````
+
+````{py:function} check_registered_types(app_configs, **kwargs) -> list[django.core.checks.CheckMessage]
+:canonical: fairdm.api.checks.check_registered_types
+
+```{autodoc2-docstring} fairdm.api.checks.check_registered_types
+```
+````

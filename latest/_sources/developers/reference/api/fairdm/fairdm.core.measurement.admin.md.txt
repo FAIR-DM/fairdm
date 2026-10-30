@@ -1,0 +1,426 @@
+# {py:mod}`fairdm.core.measurement.admin`
+
+```{py:module} fairdm.core.measurement.admin
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.admin
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`MeasurementDatasetListFilter <fairdm.core.measurement.admin.MeasurementDatasetListFilter>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDatasetListFilter
+    :summary:
+    ```
+* - {py:obj}`MeasurementDescriptionInline <fairdm.core.measurement.admin.MeasurementDescriptionInline>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDescriptionInline
+    :summary:
+    ```
+* - {py:obj}`MeasurementDateInline <fairdm.core.measurement.admin.MeasurementDateInline>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDateInline
+    :summary:
+    ```
+* - {py:obj}`MeasurementIdentifierInline <fairdm.core.measurement.admin.MeasurementIdentifierInline>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementIdentifierInline
+    :summary:
+    ```
+* - {py:obj}`MeasurementContributionInline <fairdm.core.measurement.admin.MeasurementContributionInline>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementContributionInline
+    :summary:
+    ```
+* - {py:obj}`MeasurementChildAdmin <fairdm.core.measurement.admin.MeasurementChildAdmin>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementChildAdmin
+    :summary:
+    ```
+* - {py:obj}`MeasurementParentAdmin <fairdm.core.measurement.admin.MeasurementParentAdmin>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementParentAdmin
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} MeasurementDatasetListFilter(field, request, params, model, model_admin, field_path)
+:canonical: fairdm.core.measurement.admin.MeasurementDatasetListFilter
+
+Bases: {py:obj}`django.contrib.admin.RelatedFieldListFilter`
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDatasetListFilter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDatasetListFilter.__init__
+```
+
+````{py:method} field_choices(field, request, model_admin)
+:canonical: fairdm.core.measurement.admin.MeasurementDatasetListFilter.field_choices
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDatasetListFilter.field_choices
+```
+
+````
+
+`````
+
+`````{py:class} MeasurementDescriptionInline(parent_model, admin_site)
+:canonical: fairdm.core.measurement.admin.MeasurementDescriptionInline
+
+Bases: {py:obj}`django.contrib.admin.StackedInline`
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDescriptionInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDescriptionInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.measurement.admin.MeasurementDescriptionInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDescriptionInline.model
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.core.measurement.admin.MeasurementDescriptionInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDescriptionInline.extra
+```
+
+````
+
+````{py:method} get_max_num(request, obj=None, **kwargs)
+:canonical: fairdm.core.measurement.admin.MeasurementDescriptionInline.get_max_num
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDescriptionInline.get_max_num
+```
+
+````
+
+`````
+
+`````{py:class} MeasurementDateInline(parent_model, admin_site)
+:canonical: fairdm.core.measurement.admin.MeasurementDateInline
+
+Bases: {py:obj}`django.contrib.admin.StackedInline`
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDateInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDateInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.measurement.admin.MeasurementDateInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDateInline.model
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.core.measurement.admin.MeasurementDateInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDateInline.extra
+```
+
+````
+
+````{py:method} get_max_num(request, obj=None, **kwargs)
+:canonical: fairdm.core.measurement.admin.MeasurementDateInline.get_max_num
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementDateInline.get_max_num
+```
+
+````
+
+`````
+
+`````{py:class} MeasurementIdentifierInline(parent_model, admin_site)
+:canonical: fairdm.core.measurement.admin.MeasurementIdentifierInline
+
+Bases: {py:obj}`django.contrib.admin.StackedInline`
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementIdentifierInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementIdentifierInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.measurement.admin.MeasurementIdentifierInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementIdentifierInline.model
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.core.measurement.admin.MeasurementIdentifierInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementIdentifierInline.extra
+```
+
+````
+
+````{py:method} get_max_num(request, obj=None, **kwargs)
+:canonical: fairdm.core.measurement.admin.MeasurementIdentifierInline.get_max_num
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementIdentifierInline.get_max_num
+```
+
+````
+
+`````
+
+`````{py:class} MeasurementContributionInline(parent_model, admin_site)
+:canonical: fairdm.core.measurement.admin.MeasurementContributionInline
+
+Bases: {py:obj}`django.contrib.contenttypes.admin.GenericTabularInline`
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementContributionInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementContributionInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.measurement.admin.MeasurementContributionInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementContributionInline.model
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.core.measurement.admin.MeasurementContributionInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementContributionInline.extra
+```
+
+````
+
+````{py:attribute} ct_field
+:canonical: fairdm.core.measurement.admin.MeasurementContributionInline.ct_field
+:value: >
+   'content_type'
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementContributionInline.ct_field
+```
+
+````
+
+````{py:attribute} ct_fk_field
+:canonical: fairdm.core.measurement.admin.MeasurementContributionInline.ct_fk_field
+:value: >
+   'object_id'
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementContributionInline.ct_fk_field
+```
+
+````
+
+`````
+
+`````{py:class} MeasurementChildAdmin(model: type[polymorphic.admin.childadmin._ModelT], admin_site: typing.Any, *args: typing.Any, **kwargs: typing.Any)
+:canonical: fairdm.core.measurement.admin.MeasurementChildAdmin
+
+Bases: {py:obj}`polymorphic.admin.PolymorphicChildModelAdmin`
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementChildAdmin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementChildAdmin.__init__
+```
+
+````{py:attribute} list_display
+:canonical: fairdm.core.measurement.admin.MeasurementChildAdmin.list_display
+:value: >
+   ['name', 'sample', 'dataset', 'measurement_type', 'added', 'modified']
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementChildAdmin.list_display
+```
+
+````
+
+````{py:attribute} list_filter
+:canonical: fairdm.core.measurement.admin.MeasurementChildAdmin.list_filter
+:value: >
+   [('dataset',), 'sample', 'added']
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementChildAdmin.list_filter
+```
+
+````
+
+````{py:attribute} search_fields
+:canonical: fairdm.core.measurement.admin.MeasurementChildAdmin.search_fields
+:value: >
+   ['name', 'uuid']
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementChildAdmin.search_fields
+```
+
+````
+
+````{py:attribute} readonly_fields
+:canonical: fairdm.core.measurement.admin.MeasurementChildAdmin.readonly_fields
+:value: >
+   ['uuid', 'added', 'modified']
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementChildAdmin.readonly_fields
+```
+
+````
+
+````{py:attribute} autocomplete_fields
+:canonical: fairdm.core.measurement.admin.MeasurementChildAdmin.autocomplete_fields
+:value: >
+   ['dataset', 'sample']
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementChildAdmin.autocomplete_fields
+```
+
+````
+
+````{py:attribute} inlines
+:canonical: fairdm.core.measurement.admin.MeasurementChildAdmin.inlines
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementChildAdmin.inlines
+```
+
+````
+
+````{py:attribute} base_fieldsets
+:canonical: fairdm.core.measurement.admin.MeasurementChildAdmin.base_fieldsets
+:value: >
+   ((None,), ('Metadata',))
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementChildAdmin.base_fieldsets
+```
+
+````
+
+````{py:method} measurement_type(obj)
+:canonical: fairdm.core.measurement.admin.MeasurementChildAdmin.measurement_type
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementChildAdmin.measurement_type
+```
+
+````
+
+`````
+
+`````{py:class} MeasurementParentAdmin(model: type[polymorphic.admin.parentadmin._ModelT], admin_site: typing.Any, *args: typing.Any, **kwargs: typing.Any)
+:canonical: fairdm.core.measurement.admin.MeasurementParentAdmin
+
+Bases: {py:obj}`polymorphic.admin.PolymorphicParentModelAdmin`
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementParentAdmin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementParentAdmin.__init__
+```
+
+````{py:attribute} base_model
+:canonical: fairdm.core.measurement.admin.MeasurementParentAdmin.base_model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementParentAdmin.base_model
+```
+
+````
+
+````{py:attribute} list_display
+:canonical: fairdm.core.measurement.admin.MeasurementParentAdmin.list_display
+:value: >
+   ['name', 'sample', 'dataset', 'measurement_type', 'added', 'modified']
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementParentAdmin.list_display
+```
+
+````
+
+````{py:attribute} list_filter
+:canonical: fairdm.core.measurement.admin.MeasurementParentAdmin.list_filter
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementParentAdmin.list_filter
+```
+
+````
+
+````{py:attribute} search_fields
+:canonical: fairdm.core.measurement.admin.MeasurementParentAdmin.search_fields
+:value: >
+   ['name', 'uuid']
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementParentAdmin.search_fields
+```
+
+````
+
+````{py:method} measurement_type(obj)
+:canonical: fairdm.core.measurement.admin.MeasurementParentAdmin.measurement_type
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementParentAdmin.measurement_type
+```
+
+````
+
+````{py:method} get_child_models()
+:canonical: fairdm.core.measurement.admin.MeasurementParentAdmin.get_child_models
+
+```{autodoc2-docstring} fairdm.core.measurement.admin.MeasurementParentAdmin.get_child_models
+```
+
+````
+
+`````

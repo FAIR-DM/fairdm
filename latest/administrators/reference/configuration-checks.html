@@ -1,0 +1,1354 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta property="og:title" content="Configuration checks" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="administrators/reference/configuration-checks.html" />
+<meta property="og:site_name" content="fairdm" />
+<meta property="og:description" content="This page lists every configuration check FairDM adds to Django’s check framework. Each entry gives the check’s id, its severity, its tags, what it reports and how to fix it. It does not explain wh..." />
+<meta name="description" content="This page lists every configuration check FairDM adds to Django’s check framework. Each entry gives the check’s id, its severity, its tags, what it reports and how to fix it. It does not explain wh..." />
+
+    <title>Configuration checks &#8212; fairdm 0.3.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=cb8930eaaf36d9849b67"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
+
+    <script src="../../_static/documentation_options.js?v=4621528c"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script kind="utterances">
+
+    var commentsRunWhenDOMLoaded = cb => {
+    if (document.readyState != 'loading') {
+        cb()
+    } else if (document.addEventListener) {
+        document.addEventListener('DOMContentLoaded', cb)
+    } else {
+        document.attachEvent('onreadystatechange', function() {
+        if (document.readyState == 'complete') cb()
+        })
+    }
+}
+
+var addUtterances = () => {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = "https://utteranc.es/client.js";
+    script.async = "async";
+
+    script.setAttribute("repo", "FAIR-DM/fairdm");
+    script.setAttribute("issue-term", "pathname");
+    script.setAttribute("theme", "preferred-color-scheme");
+    script.setAttribute("label", "documentation");
+    script.setAttribute("crossorigin", "anonymous");
+
+    sections = document.querySelectorAll("div.section");
+    if (sections !== null) {
+        section = sections[sections.length-1];
+        section.appendChild(script);
+    }
+}
+commentsRunWhenDOMLoaded(addUtterances);
+</script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'administrators/reference/configuration-checks';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.21.0';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.fairdm.org/switcher.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'latest';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="icon" href="../../_static/icon.svg"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Measurements" href="measurements.html" />
+    <link rel="prev" title="Claiming audit logs" href="claiming-audit-log.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.3.1" />
+    <meta name="docbuild:last-update" content="Oct 30, 2026"/>
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class=" navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.3.1 documentation - Home"/>
+    <img src="../../_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.3.1 documentation - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class=" navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../developers/index.html">
+    Developers
+  </a>
+</li>
+
+
+<li class=" current active">
+  <a class="nav-link dropdown-item nav-internal" href="../index.html">
+    Administrators
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../users/index.html">
+    Users
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/what-fairdm-is-for.html">
+    What FairDM is for
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/fair-data-and-research-data-infrastructure.html">
+    FAIR data and research data infrastructure
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/the-technology-stack.html">
+    The technology stack
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/the-core-data-model.html">
+    The core data model
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-sample-and-measurement-types-are-stored.html">
+    How sample and measurement types are stored
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/controlled-vocabularies.html">
+    Controlled vocabularies
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/configuration-over-code.html">
+    Configuration over code
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/why-complete-metadata-matters.html">
+    Why complete metadata matters
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-access-to-a-record-is-decided.html">
+    How access to a record is decided
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/why-fairdm-records-contributors.html">
+    Why FairDM records contributors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-contributor-accounts-and-credits-work.html">
+    How contributor accounts and credits work
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-a-profile-is-claimed.html">
+    How a profile is claimed
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-fairdm-configures-a-portal.html">
+    How FairDM configures a portal
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/who-is-asked-to-agree-to-a-legal-document.html">
+    Who is asked to agree to a legal document
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/how-locations-are-stored-and-protected.html">
+    How locations are stored and protected
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">
+    Dataset publication, DOIs and DataCite metadata
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../reference/glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../contributing/index.html">
+    Framework Contributors
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../adr/index.html">
+    Architecture Decision Records
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../ROADMAP.html">
+    Roadmap — FairDM
+  </a>
+</li>
+
+
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../developers/index.html">
+    Developers
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../index.html">
+    Administrators
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../users/index.html">
+    Users
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/what-fairdm-is-for.html">
+    What FairDM is for
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/fair-data-and-research-data-infrastructure.html">
+    FAIR data and research data infrastructure
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/the-technology-stack.html">
+    The technology stack
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/the-core-data-model.html">
+    The core data model
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-sample-and-measurement-types-are-stored.html">
+    How sample and measurement types are stored
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/controlled-vocabularies.html">
+    Controlled vocabularies
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/configuration-over-code.html">
+    Configuration over code
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/why-complete-metadata-matters.html">
+    Why complete metadata matters
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-access-to-a-record-is-decided.html">
+    How access to a record is decided
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/why-fairdm-records-contributors.html">
+    Why FairDM records contributors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-contributor-accounts-and-credits-work.html">
+    How contributor accounts and credits work
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-a-profile-is-claimed.html">
+    How a profile is claimed
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-fairdm-configures-a-portal.html">
+    How FairDM configures a portal
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/who-is-asked-to-agree-to-a-legal-document.html">
+    Who is asked to agree to a legal document
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/how-locations-are-stored-and-protected.html">
+    How locations are stored and protected
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../explanation/dataset-publication-dois-and-datacite-metadata.html">
+    Dataset publication, DOIs and DataCite metadata
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../reference/glossary.html">
+    Glossary
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing/index.html">
+    Framework Contributors
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../adr/index.html">
+    Architecture Decision Records
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../ROADMAP.html">
+    Roadmap — FairDM
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/FAIR-DM/fairdm/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">How-to guides</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-measurement-in-the-admin.html">How to add a measurement in the administration interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-member-to-an-organization.html">How to add a member to an organization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-person-in-the-admin.html">How to add a person in the administration interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-sample-in-the-admin.html">How to add a sample in the administration interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/approve-a-pending-affiliation.html">How to approve a pending affiliation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/assign-a-portal-role.html">How to assign a portal role</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/change-the-status-of-several-projects.html">How to change the status of several projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/close-self-service-signup.html">How to close self-service signup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/correct-an-unclaimed-profile.html">How to correct a profile that nobody has claimed</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/create-a-user-account.html">How to create a user account</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/end-someones-affiliation.html">How to end someone’s affiliation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/export-projects.html">How to export projects as JSON or DataCite JSON</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/find-why-a-user-can-edit-data-they-should-not.html">How to find why a user can edit data they should not</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/find-why-a-user-cannot-see-a-dataset.html">How to find why a user cannot see a dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/fix-a-portal-that-refuses-to-start-in-production.html">How to fix a portal that refuses to start in production</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/fix-an-orcid-or-ror-sync-that-does-not-update.html">How to fix an ORCID or ROR sync that does not update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/give-a-record-a-manager-again.html">How to give a record a manager when its only manager has left</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/make-a-project-public.html">How to make a project public</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/merge-two-person-records.html">How to merge two person records</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/reactivate-a-deactivated-profile.html">How to reactivate a deactivated profile</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/record-a-measurement-against-a-sample-in-another-dataset.html">How to record a measurement against a sample in another dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/record-where-a-sample-came-from.html">How to record that a sample came from another sample</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/run-the-configuration-checks.html">How to run the configuration checks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/silence-a-configuration-check.html">How to silence a configuration check</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/transfer-ownership-of-an-organization.html">How to transfer ownership of an organization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/write-and-publish-a-legal-document.html">How to write and publish a legal document</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="affiliations.html">Affiliations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="claiming-audit-log.html">Claiming audit logs</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">Configuration checks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="measurements.html">Measurements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="organizations.html">Organizations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="people.html">People</a></li>
+<li class="toctree-l1"><a class="reference internal" href="portal-roles.html">Portal roles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="projects.html">Projects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samples.html">Samples</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">Explanation</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../explanation/how-the-orcid-and-ror-lookup-works.html">How the ORCID and ROR lookup works</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Administrators</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Configuration checks</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="configuration-checks">
+<h1>Configuration checks<a class="headerlink" href="#configuration-checks" title="Link to this heading">#</a></h1>
+<p>This page lists every configuration check FairDM adds to Django’s check framework. Each entry gives the check’s id, its severity, its tags, what it reports and how to fix it. It does not explain why the portal refuses to start in production, which is in <a class="reference internal" href="../../explanation/how-fairdm-configures-a-portal.html"><span class="std std-doc">How FairDM configures a portal</span></a>, and it does not list the checks Django itself provides.</p>
+<section id="tags">
+<h2>Tags<a class="headerlink" href="#tags" title="Link to this heading">#</a></h2>
+<p>Every check carries the tags shown in its entry. You pass a tag to <code class="docutils literal notranslate"><span class="pre">manage.py</span> <span class="pre">check</span> <span class="pre">--tag</span></code> to run only the checks that carry it.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Tag</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">database</span></code></p></td>
+<td><p>The database settings.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">caches</span></code></p></td>
+<td><p>The cache settings.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">security</span></code></p></td>
+<td><p>Secrets, hosts, debug mode and cookies.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">translation</span></code></p></td>
+<td><p>The language settings.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">models</span></code></p></td>
+<td><p>The portal’s registered sample and measurement types.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">deploy</span></code></p></td>
+<td><p>A FairDM check that runs only with <code class="docutils literal notranslate"><span class="pre">--deploy</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">production_critical</span></code></p></td>
+<td><p>A check that also runs at start-up when the settings in force are the production baseline. A failing one stops the portal from starting.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>A check registered as a deployment check runs only when you pass <code class="docutils literal notranslate"><span class="pre">--deploy</span></code>. A check without that registration runs on plain <code class="docutils literal notranslate"><span class="pre">manage.py</span> <span class="pre">check</span></code>, at <code class="docutils literal notranslate"><span class="pre">runserver</span></code> and at <code class="docutils literal notranslate"><span class="pre">migrate</span></code>.</p>
+</section>
+<section id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Id</p></th>
+<th class="head"><p>Severity</p></th>
+<th class="head"><p>Stops a production start</p></th>
+<th class="head"><p>Runs without <code class="docutils literal notranslate"><span class="pre">--deploy</span></code></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fairdm.E001</span></code></p></td>
+<td><p>Error</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fairdm.E003</span></code></p></td>
+<td><p>Error</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fairdm.E004</span></code></p></td>
+<td><p>Error</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fairdm.E005</span></code></p></td>
+<td><p>Error</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fairdm.E006</span></code></p></td>
+<td><p>Error</p></td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fairdm.E100</span></code></p></td>
+<td><p>Error</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fairdm.E101</span></code></p></td>
+<td><p>Error</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fairdm.E102</span></code></p></td>
+<td><p>Error</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fairdm.E200</span></code></p></td>
+<td><p>Error</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fairdm.E300</span></code></p></td>
+<td><p>Error</p></td>
+<td><p>No</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fairdm.E301</span></code></p></td>
+<td><p>Error</p></td>
+<td><p>No</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fairdm.E400</span></code></p></td>
+<td><p>Error</p></td>
+<td><p>Yes, in every environment</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fairdm.E500</span></code></p></td>
+<td><p>Error</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fairdm.E501</span></code></p></td>
+<td><p>Error</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fairdm.E700</span></code></p></td>
+<td><p>Error</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fairdm.E701</span></code></p></td>
+<td><p>Error</p></td>
+<td><p>Yes</p></td>
+<td><p>No</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fairdm.W700</span></code></p></td>
+<td><p>Warning</p></td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fairdm.E600</span></code></p></td>
+<td><p>Error</p></td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fairdm.W601</span></code></p></td>
+<td><p>Warning</p></td>
+<td><p>No</p></td>
+<td><p>No</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="fairdm-e001-the-secret-key-is-empty-insecure-or-too-short">
+<h2>fairdm.E001: the secret key is empty, insecure or too short<a class="headerlink" href="#fairdm-e001-the-secret-key-is-empty-insecure-or-too-short" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Severity</strong>: Error.</p></li>
+<li><p><strong>Tags</strong>: <code class="docutils literal notranslate"><span class="pre">security</span></code>, <code class="docutils literal notranslate"><span class="pre">deploy</span></code>, <code class="docutils literal notranslate"><span class="pre">production_critical</span></code>.</p></li>
+<li><p><strong>Reports</strong>: One of three conditions.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">SECRET_KEY</span></code> is empty.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SECRET_KEY</span></code> starts with <code class="docutils literal notranslate"><span class="pre">django-insecure-</span></code>, the prefix of a published development key. FairDM’s own development fallback carries it.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SECRET_KEY</span></code> is shorter than 50 characters.</p></li>
+</ul>
+</li>
+<li><p><strong>Fix</strong>: Set <code class="docutils literal notranslate"><span class="pre">DJANGO_SECRET_KEY</span></code> to a private, randomly generated value of 50 characters or more.</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-c<span class="w"> </span><span class="s1">'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'</span>
+</pre></div>
+</div>
+</section>
+<section id="fairdm-e003-the-allowed-hosts-list-is-empty">
+<h2>fairdm.E003: the allowed hosts list is empty<a class="headerlink" href="#fairdm-e003-the-allowed-hosts-list-is-empty" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Severity</strong>: Error.</p></li>
+<li><p><strong>Tags</strong>: <code class="docutils literal notranslate"><span class="pre">security</span></code>, <code class="docutils literal notranslate"><span class="pre">deploy</span></code>, <code class="docutils literal notranslate"><span class="pre">production_critical</span></code>.</p></li>
+<li><p><strong>Reports</strong>: <code class="docutils literal notranslate"><span class="pre">ALLOWED_HOSTS</span></code> is empty. FairDM builds it from <code class="docutils literal notranslate"><span class="pre">DJANGO_SITE_DOMAIN</span></code> and <code class="docutils literal notranslate"><span class="pre">DJANGO_ALLOWED_HOSTS</span></code>, so the check fires when both are unset.</p></li>
+<li><p><strong>Fix</strong>: Set <code class="docutils literal notranslate"><span class="pre">DJANGO_SITE_DOMAIN</span></code>, or set <code class="docutils literal notranslate"><span class="pre">DJANGO_ALLOWED_HOSTS</span></code> to a comma-separated list of host names.</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">DJANGO_ALLOWED_HOSTS</span><span class="o">=</span>example.com,www.example.com
+</pre></div>
+</div>
+</section>
+<section id="fairdm-e004-the-allowed-hosts-list-contains-a-wildcard">
+<h2>fairdm.E004: the allowed hosts list contains a wildcard<a class="headerlink" href="#fairdm-e004-the-allowed-hosts-list-contains-a-wildcard" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Severity</strong>: Error.</p></li>
+<li><p><strong>Tags</strong>: <code class="docutils literal notranslate"><span class="pre">security</span></code>, <code class="docutils literal notranslate"><span class="pre">deploy</span></code>, <code class="docutils literal notranslate"><span class="pre">production_critical</span></code>.</p></li>
+<li><p><strong>Reports</strong>: <code class="docutils literal notranslate"><span class="pre">ALLOWED_HOSTS</span></code> contains <code class="docutils literal notranslate"><span class="pre">*</span></code>.</p></li>
+<li><p><strong>Fix</strong>: Name each host. Remove <code class="docutils literal notranslate"><span class="pre">*</span></code> from <code class="docutils literal notranslate"><span class="pre">DJANGO_ALLOWED_HOSTS</span></code> and from any assignment in your settings.</p></li>
+</ul>
+</section>
+<section id="fairdm-e005-debug-mode-is-on">
+<h2>fairdm.E005: debug mode is on<a class="headerlink" href="#fairdm-e005-debug-mode-is-on" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Severity</strong>: Error.</p></li>
+<li><p><strong>Tags</strong>: <code class="docutils literal notranslate"><span class="pre">security</span></code>, <code class="docutils literal notranslate"><span class="pre">deploy</span></code>, <code class="docutils literal notranslate"><span class="pre">production_critical</span></code>.</p></li>
+<li><p><strong>Reports</strong>: <code class="docutils literal notranslate"><span class="pre">DEBUG</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p></li>
+<li><p><strong>Fix</strong>: Set <code class="docutils literal notranslate"><span class="pre">DJANGO_DEBUG=False</span></code>, or remove the variable. The default is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+</ul>
+</section>
+<section id="fairdm-e006-a-cookie-name-has-a-prefix-the-browser-will-not-accept">
+<h2>fairdm.E006: a cookie name has a prefix the browser will not accept<a class="headerlink" href="#fairdm-e006-a-cookie-name-has-a-prefix-the-browser-will-not-accept" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Severity</strong>: Error.</p></li>
+<li><p><strong>Tags</strong>: <code class="docutils literal notranslate"><span class="pre">security</span></code>. This is not a deployment check.</p></li>
+<li><p><strong>Reports</strong>: <code class="docutils literal notranslate"><span class="pre">CSRF_COOKIE_NAME</span></code>, <code class="docutils literal notranslate"><span class="pre">SESSION_COOKIE_NAME</span></code> or <code class="docutils literal notranslate"><span class="pre">LANGUAGE_COOKIE_NAME</span></code> starts with <code class="docutils literal notranslate"><span class="pre">__Secure-</span></code> or <code class="docutils literal notranslate"><span class="pre">__Host-</span></code> while its own <code class="docutils literal notranslate"><span class="pre">*_COOKIE_SECURE</span></code> setting is <code class="docutils literal notranslate"><span class="pre">False</span></code>. A browser discards such a cookie, so every sign-in post fails with “CSRF verification failed. Request aborted.” The check reports one error for each cookie.</p></li>
+<li><p><strong>Fix</strong>: Set the matching <code class="docutils literal notranslate"><span class="pre">*_COOKIE_SECURE</span></code> setting to <code class="docutils literal notranslate"><span class="pre">True</span></code>, or remove the prefix from the cookie name for an environment served over plain HTTP.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">CSRF_COOKIE_NAME</span> <span class="o">=</span> <span class="s2">"csrftoken"</span>
+<span class="n">SESSION_COOKIE_NAME</span> <span class="o">=</span> <span class="s2">"sessionid"</span>
+</pre></div>
+</div>
+</section>
+<section id="fairdm-e100-no-default-database-is-configured">
+<h2>fairdm.E100: no default database is configured<a class="headerlink" href="#fairdm-e100-no-default-database-is-configured" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Severity</strong>: Error.</p></li>
+<li><p><strong>Tags</strong>: <code class="docutils literal notranslate"><span class="pre">database</span></code>, <code class="docutils literal notranslate"><span class="pre">deploy</span></code>, <code class="docutils literal notranslate"><span class="pre">production_critical</span></code>.</p></li>
+<li><p><strong>Reports</strong>: <code class="docutils literal notranslate"><span class="pre">DATABASES[&quot;default&quot;]</span></code> is missing or empty. FairDM’s baseline always fills it, so this appears only when your own settings remove or empty it.</p></li>
+<li><p><strong>Fix</strong>: Leave <code class="docutils literal notranslate"><span class="pre">DATABASES</span></code> to FairDM and set <code class="docutils literal notranslate"><span class="pre">DATABASE_URL</span></code>.</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">DATABASE_URL</span><span class="o">=</span>postgresql://user:password@localhost:5432/dbname
+</pre></div>
+</div>
+</section>
+<section id="fairdm-e101-the-database-is-not-postgresql-with-postgis">
+<h2>fairdm.E101: the database is not PostgreSQL with PostGIS<a class="headerlink" href="#fairdm-e101-the-database-is-not-postgresql-with-postgis" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Severity</strong>: Error.</p></li>
+<li><p><strong>Tags</strong>: <code class="docutils literal notranslate"><span class="pre">database</span></code>, <code class="docutils literal notranslate"><span class="pre">deploy</span></code>, <code class="docutils literal notranslate"><span class="pre">production_critical</span></code>.</p></li>
+<li><p><strong>Reports</strong>: The <code class="docutils literal notranslate"><span class="pre">ENGINE</span></code> of <code class="docutils literal notranslate"><span class="pre">DATABASES[&quot;default&quot;]</span></code> is not <code class="docutils literal notranslate"><span class="pre">django.contrib.gis.db.backends.postgis</span></code>.</p></li>
+<li><p><strong>Fix</strong>: Leave <code class="docutils literal notranslate"><span class="pre">DATABASES</span></code> to FairDM and set <code class="docutils literal notranslate"><span class="pre">DATABASE_URL</span></code>. FairDM opens it with the PostGIS backend whatever scheme it names. A portal that sets <code class="docutils literal notranslate"><span class="pre">DATABASES</span></code> itself sets <code class="docutils literal notranslate"><span class="pre">ENGINE</span></code> to the PostGIS backend. The database needs the PostGIS extension, and the server needs the GDAL, GEOS and PROJ libraries.</p></li>
+</ul>
+</section>
+<section id="fairdm-e102-the-database-has-no-name">
+<h2>fairdm.E102: the database has no name<a class="headerlink" href="#fairdm-e102-the-database-has-no-name" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Severity</strong>: Error.</p></li>
+<li><p><strong>Tags</strong>: <code class="docutils literal notranslate"><span class="pre">database</span></code>, <code class="docutils literal notranslate"><span class="pre">deploy</span></code>, <code class="docutils literal notranslate"><span class="pre">production_critical</span></code>.</p></li>
+<li><p><strong>Reports</strong>: <code class="docutils literal notranslate"><span class="pre">DATABASES[&quot;default&quot;]</span></code> has no <code class="docutils literal notranslate"><span class="pre">NAME</span></code>. This is what an unset or malformed <code class="docutils literal notranslate"><span class="pre">DATABASE_URL</span></code> leaves, for example <code class="docutils literal notranslate"><span class="pre">postgresql://</span></code> with nothing after the scheme.</p></li>
+<li><p><strong>Fix</strong>: Set <code class="docutils literal notranslate"><span class="pre">DATABASE_URL</span></code> to a complete PostgreSQL connection string, or set <code class="docutils literal notranslate"><span class="pre">POSTGRES_DB</span></code> with <code class="docutils literal notranslate"><span class="pre">POSTGRES_USER</span></code>, <code class="docutils literal notranslate"><span class="pre">POSTGRES_PASSWORD</span></code>, <code class="docutils literal notranslate"><span class="pre">POSTGRES_HOST</span></code> and <code class="docutils literal notranslate"><span class="pre">POSTGRES_PORT</span></code>.</p></li>
+</ul>
+</section>
+<section id="fairdm-e200-the-cache-is-not-shared">
+<h2>fairdm.E200: the cache is not shared<a class="headerlink" href="#fairdm-e200-the-cache-is-not-shared" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Severity</strong>: Error.</p></li>
+<li><p><strong>Tags</strong>: <code class="docutils literal notranslate"><span class="pre">caches</span></code>, <code class="docutils literal notranslate"><span class="pre">deploy</span></code>, <code class="docutils literal notranslate"><span class="pre">production_critical</span></code>.</p></li>
+<li><p><strong>Reports</strong>: The <code class="docutils literal notranslate"><span class="pre">default</span></code> cache is not one of these backends, or it is the placeholder FairDM uses when <code class="docutils literal notranslate"><span class="pre">REDIS_URL</span></code> is unset.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">django_redis.cache.RedisCache</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">django.core.cache.backends.memcached.PyMemcacheCache</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">django.core.cache.backends.memcached.PyLibMCCache</span></code></p></li>
+</ul>
+</li>
+<li><p><strong>Fix</strong>: Set <code class="docutils literal notranslate"><span class="pre">REDIS_URL</span></code> to a Redis instance. The cache settings read no other variable.</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">REDIS_URL</span><span class="o">=</span>redis://localhost:6379/1
+</pre></div>
+</div>
+</section>
+<section id="fairdm-e300-no-celery-broker-is-configured">
+<h2>fairdm.E300: no Celery broker is configured<a class="headerlink" href="#fairdm-e300-no-celery-broker-is-configured" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Severity</strong>: Error.</p></li>
+<li><p><strong>Tags</strong>: <code class="docutils literal notranslate"><span class="pre">deploy</span></code>. Not part of the start-up guard.</p></li>
+<li><p><strong>Reports</strong>: <code class="docutils literal notranslate"><span class="pre">CELERY_BROKER_URL</span></code> is empty. FairDM fills it from <code class="docutils literal notranslate"><span class="pre">REDIS_URL</span></code>.</p></li>
+<li><p><strong>Fix</strong>: Set <code class="docutils literal notranslate"><span class="pre">REDIS_URL</span></code>.</p></li>
+</ul>
+</section>
+<section id="fairdm-e301-celery-tasks-run-in-the-web-process">
+<h2>fairdm.E301: Celery tasks run in the web process<a class="headerlink" href="#fairdm-e301-celery-tasks-run-in-the-web-process" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Severity</strong>: Error.</p></li>
+<li><p><strong>Tags</strong>: <code class="docutils literal notranslate"><span class="pre">deploy</span></code>. Not part of the start-up guard.</p></li>
+<li><p><strong>Reports</strong>: <code class="docutils literal notranslate"><span class="pre">CELERY_TASK_ALWAYS_EAGER</span></code> is <code class="docutils literal notranslate"><span class="pre">True</span></code>, so background tasks run synchronously. FairDM sets it to <code class="docutils literal notranslate"><span class="pre">True</span></code> itself when <code class="docutils literal notranslate"><span class="pre">DJANGO_ENV</span></code> is <code class="docutils literal notranslate"><span class="pre">development</span></code> and <code class="docutils literal notranslate"><span class="pre">REDIS_URL</span></code> is unset.</p></li>
+<li><p><strong>Fix</strong>: Remove the assignment in your settings that sets it to <code class="docutils literal notranslate"><span class="pre">True</span></code>. For a development portal, set <code class="docutils literal notranslate"><span class="pre">REDIS_URL</span></code> to run tasks on a worker.</p></li>
+</ul>
+</section>
+<section id="fairdm-e400-the-language-settings-disagree">
+<h2>fairdm.E400: the language settings disagree<a class="headerlink" href="#fairdm-e400-the-language-settings-disagree" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Severity</strong>: Error.</p></li>
+<li><p><strong>Tags</strong>: <code class="docutils literal notranslate"><span class="pre">translation</span></code>. This is not a deployment check.</p></li>
+<li><p><strong>Reports</strong>: <code class="docutils literal notranslate"><span class="pre">PARLER_LANGUAGES</span></code> names a language code that <code class="docutils literal notranslate"><span class="pre">LANGUAGES</span></code> does not include. A code such as <code class="docutils literal notranslate"><span class="pre">fr-ca</span></code> is accepted when <code class="docutils literal notranslate"><span class="pre">LANGUAGES</span></code> has <code class="docutils literal notranslate"><span class="pre">fr</span></code>. The <code class="docutils literal notranslate"><span class="pre">code</span></code> under the <code class="docutils literal notranslate"><span class="pre">default</span></code> key and <code class="docutils literal notranslate"><span class="pre">PARLER_DEFAULT_LANGUAGE_CODE</span></code> are checked too. The same rule runs when the settings load and again when the portal’s models load, in every environment, so the portal stops before any command runs.</p></li>
+<li><p><strong>Fix</strong>: Add the missing codes to <code class="docutils literal notranslate"><span class="pre">LANGUAGES</span></code>, or remove them from <code class="docutils literal notranslate"><span class="pre">PARLER_LANGUAGES</span></code> and <code class="docutils literal notranslate"><span class="pre">PARLER_DEFAULT_LANGUAGE_CODE</span></code>.</p></li>
+</ul>
+</section>
+<section id="fairdm-e500-a-portal-role-is-missing">
+<h2>fairdm.E500: a portal role is missing<a class="headerlink" href="#fairdm-e500-a-portal-role-is-missing" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Severity</strong>: Error.</p></li>
+<li><p><strong>Tags</strong>: <code class="docutils literal notranslate"><span class="pre">deploy</span></code>, <code class="docutils literal notranslate"><span class="pre">production_critical</span></code>.</p></li>
+<li><p><strong>Reports</strong>: One or more of the four shipped roles is not in the database: Portal Administrator, Data Curator, Community Manager, Developer. The message names each missing role. The check stands down while <code class="docutils literal notranslate"><span class="pre">migrate</span></code> runs, and while <code class="docutils literal notranslate"><span class="pre">upgrade_literature</span></code>, <code class="docutils literal notranslate"><span class="pre">upgrade_vocabularies</span></code> or <code class="docutils literal notranslate"><span class="pre">sync_vocabularies</span></code> runs, because the upgrade guides run those before <code class="docutils literal notranslate"><span class="pre">migrate</span></code>. It reports nothing when the group table cannot be read.</p></li>
+<li><p><strong>Fix</strong>: Run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">manage.py</span> <span class="pre">migrate</span></code>, which installs the roles.</p></li>
+</ul>
+</section>
+<section id="fairdm-e501-development-accounts-exist-outside-development">
+<h2>fairdm.E501: development accounts exist outside development<a class="headerlink" href="#fairdm-e501-development-accounts-exist-outside-development" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Severity</strong>: Error.</p></li>
+<li><p><strong>Tags</strong>: <code class="docutils literal notranslate"><span class="pre">deploy</span></code>, <code class="docutils literal notranslate"><span class="pre">production_critical</span></code>.</p></li>
+<li><p><strong>Reports</strong>: A person holds one of the email addresses of FairDM’s development accounts, which share a published password. The check stands down when <code class="docutils literal notranslate"><span class="pre">DJANGO_ENV</span></code> is <code class="docutils literal notranslate"><span class="pre">development</span></code>. The addresses are:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">portal.administrator&#64;example.com</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data.curator&#64;example.com</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">community.manager&#64;example.com</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">portal.developer&#64;example.com</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">regular.user&#64;example.com</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">staff.user&#64;example.com</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">super.user&#64;example.com</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">admin.user&#64;example.com</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">member.user&#64;example.com</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">former-admin.user&#64;example.com</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">community-manager.user&#64;example.com</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data-curator.user&#64;example.com</span></code></p></li>
+</ul>
+</li>
+<li><p><strong>Fix</strong>: Remove the accounts the message names. If the portal is a development portal, set <code class="docutils literal notranslate"><span class="pre">DJANGO_ENV=development</span></code>.</p></li>
+</ul>
+</section>
+<section id="fairdm-e600-a-registered-type-cannot-be-created-through-the-api">
+<h2>fairdm.E600: a registered type cannot be created through the API<a class="headerlink" href="#fairdm-e600-a-registered-type-cannot-be-created-through-the-api" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Severity</strong>: Error.</p></li>
+<li><p><strong>Tags</strong>: <code class="docutils literal notranslate"><span class="pre">models</span></code>. This is not a deployment check.</p></li>
+<li><p><strong>Reports</strong>: The API serializer of a registered sample or measurement type has no writable field for a field the model requires. A field is required when it is editable, has no default and may be neither blank nor null. A field the serializer marks read-only counts as left out. The message names the type and the field, and no record of the type can be created through the API.</p></li>
+<li><p><strong>Fix</strong>: Add the field to <code class="docutils literal notranslate"><span class="pre">serializer_fields</span></code> or <code class="docutils literal notranslate"><span class="pre">fields</span></code> in the type’s registration, or to the serializer the registration names. See <a class="reference internal" href="../../developers/reference/model-configuration.html"><span class="std std-doc">Model configuration</span></a>.</p></li>
+</ul>
+</section>
+<section id="fairdm-w601-the-number-of-proxies-in-front-of-the-api-is-not-set">
+<h2>fairdm.W601: the number of proxies in front of the API is not set<a class="headerlink" href="#fairdm-w601-the-number-of-proxies-in-front-of-the-api-is-not-set" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Severity</strong>: Warning.</p></li>
+<li><p><strong>Tags</strong>: <code class="docutils literal notranslate"><span class="pre">security</span></code>, <code class="docutils literal notranslate"><span class="pre">deploy</span></code>. This check never stops the portal from starting.</p></li>
+<li><p><strong>Reports</strong>: <code class="docutils literal notranslate"><span class="pre">REST_FRAMEWORK</span></code> has no <code class="docutils literal notranslate"><span class="pre">NUM_PROXIES</span></code> key. The API then takes a caller’s address from the <code class="docutils literal notranslate"><span class="pre">X-Forwarded-For</span></code> header, which the caller writes. Any value you set silences the warning, <code class="docutils literal notranslate"><span class="pre">0</span></code> and <code class="docutils literal notranslate"><span class="pre">None</span></code> included.</p></li>
+<li><p><strong>Fix</strong>: Set the number of proxies between the visitor and the portal, or <code class="docutils literal notranslate"><span class="pre">0</span></code> when there is none. See <a class="reference internal" href="../../developers/how-to/count-api-callers-behind-a-proxy.html"><span class="std std-doc">How to count API callers behind a proxy</span></a>.</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">REST_FRAMEWORK</span><span class="p">[</span><span class="s2">"NUM_PROXIES"</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+</section>
+<section id="fairdm-e700-no-backup-public-key-is-set">
+<h2>fairdm.E700: no backup public key is set<a class="headerlink" href="#fairdm-e700-no-backup-public-key-is-set" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Severity</strong>: Error.</p></li>
+<li><p><strong>Tags</strong>: <code class="docutils literal notranslate"><span class="pre">security</span></code>, <code class="docutils literal notranslate"><span class="pre">deploy</span></code>, <code class="docutils literal notranslate"><span class="pre">production_critical</span></code>.</p></li>
+<li><p><strong>Reports</strong>: <code class="docutils literal notranslate"><span class="pre">BACKUP_PUBLIC_KEY</span></code> is empty. A production portal does not write unencrypted backups, so it does not start.</p></li>
+<li><p><strong>Fix</strong>: Set <code class="docutils literal notranslate"><span class="pre">BACKUP_PUBLIC_KEY</span></code> to an armoured OpenPGP public key. See <a class="reference internal" href="../../developers/how-to/back-up-a-portal.html#encrypt-the-backups"><span class="std std-ref">How to back up a portal</span></a>.</p></li>
+</ul>
+</section>
+<section id="fairdm-e701-the-backup-public-key-cannot-be-used">
+<h2>fairdm.E701: the backup public key cannot be used<a class="headerlink" href="#fairdm-e701-the-backup-public-key-cannot-be-used" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Severity</strong>: Error.</p></li>
+<li><p><strong>Tags</strong>: <code class="docutils literal notranslate"><span class="pre">security</span></code>, <code class="docutils literal notranslate"><span class="pre">deploy</span></code>, <code class="docutils literal notranslate"><span class="pre">production_critical</span></code>.</p></li>
+<li><p><strong>Reports</strong>: One of these. <code class="docutils literal notranslate"><span class="pre">BACKUP_PUBLIC_KEY</span></code> is not an armoured public key. The key cannot encrypt, as with a key that only signs. The value holds a private key, which the portal refuses so that it never holds the key that decrypts its backups. Or <code class="docutils literal notranslate"><span class="pre">gpg</span></code> is not installed, as in a custom image without <code class="docutils literal notranslate"><span class="pre">gnupg</span></code>.</p></li>
+<li><p><strong>Fix</strong>: Export the public key with <code class="docutils literal notranslate"><span class="pre">gpg</span> <span class="pre">--armor</span> <span class="pre">--export</span></code>, and set <code class="docutils literal notranslate"><span class="pre">BACKUP_PUBLIC_KEY</span></code> to its text. Remove a private key from the environment. In a custom image, install <code class="docutils literal notranslate"><span class="pre">gnupg</span></code>.</p></li>
+</ul>
+</section>
+<section id="fairdm-w700-backups-are-kept-on-the-local-disk">
+<h2>fairdm.W700: backups are kept on the local disk<a class="headerlink" href="#fairdm-w700-backups-are-kept-on-the-local-disk" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>Severity</strong>: Warning.</p></li>
+<li><p><strong>Tags</strong>: <code class="docutils literal notranslate"><span class="pre">security</span></code>.</p></li>
+<li><p><strong>Reports</strong>: The <code class="docutils literal notranslate"><span class="pre">dbbackup</span></code> storage in <code class="docutils literal notranslate"><span class="pre">STORAGES</span></code> is a <code class="docutils literal notranslate"><span class="pre">FileSystemStorage</span></code> and the portal runs in production. Backups on the server’s own disk are lost with the server. The check does not stop the portal starting, and <code class="docutils literal notranslate"><span class="pre">migrate</span></code> prints it.</p></li>
+<li><p><strong>Fix</strong>: Put the media on S3, so backups go to the bucket as well (see <a class="reference internal" href="../../developers/reference/settings.html#backup-s3-bucket-name"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">BACKUP_S3_BUCKET_NAME</span></code></span></a>), or assign <code class="docutils literal notranslate"><span class="pre">STORAGES[&quot;dbbackup&quot;]</span></code> a storage that is off the server. To keep local backups on purpose, for example on a volume that is itself backed up, add <code class="docutils literal notranslate"><span class="pre">fairdm.W700</span></code> to <code class="docutils literal notranslate"><span class="pre">SILENCED_SYSTEM_CHECKS</span></code>.</p></li>
+</ul>
+</section>
+<section id="what-you-can-do-with-the-checks">
+<h2>What you can do with the checks<a class="headerlink" href="#what-you-can-do-with-the-checks" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>Run them. See <a class="reference internal" href="../how-to/run-the-configuration-checks.html"><span class="std std-doc">How to run the configuration checks</span></a>.</p></li>
+<li><p>Hide one from the report. See <a class="reference internal" href="../how-to/silence-a-configuration-check.html"><span class="std std-doc">How to silence a configuration check</span></a>.</p></li>
+<li><p>Fix a portal that stops at start-up. See <a class="reference internal" href="../how-to/fix-a-portal-that-refuses-to-start-in-production.html"><span class="std std-doc">How to fix a portal that refuses to start in production</span></a>.</p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="claiming-audit-log.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Claiming audit logs</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="measurements.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Measurements</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tags">Tags</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#summary">Summary</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm-e001-the-secret-key-is-empty-insecure-or-too-short">fairdm.E001: the secret key is empty, insecure or too short</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm-e003-the-allowed-hosts-list-is-empty">fairdm.E003: the allowed hosts list is empty</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm-e004-the-allowed-hosts-list-contains-a-wildcard">fairdm.E004: the allowed hosts list contains a wildcard</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm-e005-debug-mode-is-on">fairdm.E005: debug mode is on</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm-e006-a-cookie-name-has-a-prefix-the-browser-will-not-accept">fairdm.E006: a cookie name has a prefix the browser will not accept</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm-e100-no-default-database-is-configured">fairdm.E100: no default database is configured</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm-e101-the-database-is-not-postgresql-with-postgis">fairdm.E101: the database is not PostgreSQL with PostGIS</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm-e102-the-database-has-no-name">fairdm.E102: the database has no name</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm-e200-the-cache-is-not-shared">fairdm.E200: the cache is not shared</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm-e300-no-celery-broker-is-configured">fairdm.E300: no Celery broker is configured</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm-e301-celery-tasks-run-in-the-web-process">fairdm.E301: Celery tasks run in the web process</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm-e400-the-language-settings-disagree">fairdm.E400: the language settings disagree</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm-e500-a-portal-role-is-missing">fairdm.E500: a portal role is missing</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm-e501-development-accounts-exist-outside-development">fairdm.E501: development accounts exist outside development</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm-e600-a-registered-type-cannot-be-created-through-the-api">fairdm.E600: a registered type cannot be created through the API</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm-w601-the-number-of-proxies-in-front-of-the-api-is-not-set">fairdm.W601: the number of proxies in front of the API is not set</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm-e700-no-backup-public-key-is-set">fairdm.E700: no backup public key is set</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm-e701-the-backup-public-key-cannot-be-used">fairdm.E701: the backup public key cannot be used</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm-w700-backups-are-kept-on-the-local-disk">fairdm.W700: backups are kept on the local disk</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-you-can-do-with-the-checks">What you can do with the checks</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026, Samuel Jennings.
+      <br/>
+    
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.21.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

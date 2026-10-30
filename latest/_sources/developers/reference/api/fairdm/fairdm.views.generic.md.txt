@@ -1,0 +1,226 @@
+# {py:mod}`fairdm.views.generic`
+
+```{py:module} fairdm.views.generic
+```
+
+```{autodoc2-docstring} fairdm.views.generic
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FairDMHomeView <fairdm.views.generic.FairDMHomeView>`
+  - ```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} FairDMHomeView(**kwargs)
+:canonical: fairdm.views.generic.FairDMHomeView
+
+Bases: {py:obj}`mvp.views.MVPHomeView`
+
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.__init__
+```
+
+````{py:attribute} page_subtitle
+:canonical: fairdm.views.generic.FairDMHomeView.page_subtitle
+:value: >
+   'Welcome'
+
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.page_subtitle
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.views.generic.FairDMHomeView.page_title
+:value: >
+   'Getting started'
+
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.page_title
+```
+
+````
+
+````{py:attribute} dashboard_template_name
+:canonical: fairdm.views.generic.FairDMHomeView.dashboard_template_name
+:value: >
+   'fairdm/dashboard.html'
+
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.dashboard_template_name
+```
+
+````
+
+````{py:attribute} landing_template_name
+:canonical: fairdm.views.generic.FairDMHomeView.landing_template_name
+:value: >
+   'fairdm/landing.html'
+
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.landing_template_name
+```
+
+````
+
+````{py:attribute} hero_defaults
+:canonical: fairdm.views.generic.FairDMHomeView.hero_defaults
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.hero_defaults
+```
+
+````
+
+````{py:attribute} latest_limit
+:canonical: fairdm.views.generic.FairDMHomeView.latest_limit
+:value: >
+   3
+
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.latest_limit
+```
+
+````
+
+````{py:attribute} record_type_limit
+:canonical: fairdm.views.generic.FairDMHomeView.record_type_limit
+:value: >
+   5
+
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.record_type_limit
+```
+
+````
+
+````{py:attribute} people_limit
+:canonical: fairdm.views.generic.FairDMHomeView.people_limit
+:value: >
+   8
+
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.people_limit
+```
+
+````
+
+````{py:attribute} organization_limit
+:canonical: fairdm.views.generic.FairDMHomeView.organization_limit
+:value: >
+   6
+
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.organization_limit
+```
+
+````
+
+````{py:method} get_landing_context(context)
+:canonical: fairdm.views.generic.FairDMHomeView.get_landing_context
+
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.get_landing_context
+```
+
+````
+
+````{py:method} get_portal_name()
+:canonical: fairdm.views.generic.FairDMHomeView.get_portal_name
+
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.get_portal_name
+```
+
+````
+
+````{py:method} get_hero()
+:canonical: fairdm.views.generic.FairDMHomeView.get_hero
+
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.get_hero
+```
+
+````
+
+````{py:method} get_about()
+:canonical: fairdm.views.generic.FairDMHomeView.get_about
+
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.get_about
+```
+
+````
+
+````{py:method} get_counts()
+:canonical: fairdm.views.generic.FairDMHomeView.get_counts
+
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.get_counts
+```
+
+````
+
+````{py:method} get_latest_datasets()
+:canonical: fairdm.views.generic.FairDMHomeView.get_latest_datasets
+
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.get_latest_datasets
+```
+
+````
+
+````{py:method} get_latest_projects()
+:canonical: fairdm.views.generic.FairDMHomeView.get_latest_projects
+
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.get_latest_projects
+```
+
+````
+
+````{py:method} get_record_types(base, models)
+:canonical: fairdm.views.generic.FairDMHomeView.get_record_types
+
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.get_record_types
+```
+
+````
+
+````{py:method} get_people()
+:canonical: fairdm.views.generic.FairDMHomeView.get_people
+
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.get_people
+```
+
+````
+
+````{py:method} get_organizations()
+:canonical: fairdm.views.generic.FairDMHomeView.get_organizations
+
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.get_organizations
+```
+
+````
+
+````{py:method} get_page_subtitle()
+:canonical: fairdm.views.generic.FairDMHomeView.get_page_subtitle
+
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.get_page_subtitle
+```
+
+````
+
+````{py:method} get_page_title()
+:canonical: fairdm.views.generic.FairDMHomeView.get_page_title
+
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.get_page_title
+```
+
+````
+
+`````

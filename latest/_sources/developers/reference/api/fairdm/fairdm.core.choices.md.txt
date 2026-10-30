@@ -1,0 +1,90 @@
+# {py:mod}`fairdm.core.choices`
+
+```{py:module} fairdm.core.choices
+```
+
+```{autodoc2-docstring} fairdm.core.choices
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ProjectStatus <fairdm.core.choices.ProjectStatus>`
+  - ```{autodoc2-docstring} fairdm.core.choices.ProjectStatus
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} ProjectStatus(*args, **kwds)
+:canonical: fairdm.core.choices.ProjectStatus
+
+Bases: {py:obj}`django.db.models.IntegerChoices`
+
+```{autodoc2-docstring} fairdm.core.choices.ProjectStatus
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.choices.ProjectStatus.__init__
+```
+
+````{py:attribute} CONCEPT
+:canonical: fairdm.core.choices.ProjectStatus.CONCEPT
+:value: >
+   (0,)
+
+```{autodoc2-docstring} fairdm.core.choices.ProjectStatus.CONCEPT
+```
+
+````
+
+````{py:attribute} PLANNING
+:canonical: fairdm.core.choices.ProjectStatus.PLANNING
+:value: >
+   (1,)
+
+```{autodoc2-docstring} fairdm.core.choices.ProjectStatus.PLANNING
+```
+
+````
+
+````{py:attribute} IN_PROGRESS
+:canonical: fairdm.core.choices.ProjectStatus.IN_PROGRESS
+:value: >
+   (2,)
+
+```{autodoc2-docstring} fairdm.core.choices.ProjectStatus.IN_PROGRESS
+```
+
+````
+
+````{py:attribute} COMPLETE
+:canonical: fairdm.core.choices.ProjectStatus.COMPLETE
+:value: >
+   (3,)
+
+```{autodoc2-docstring} fairdm.core.choices.ProjectStatus.COMPLETE
+```
+
+````
+
+````{py:attribute} SEARCHING_FOR_COLLABORATORS
+:canonical: fairdm.core.choices.ProjectStatus.SEARCHING_FOR_COLLABORATORS
+:value: >
+   (4,)
+
+```{autodoc2-docstring} fairdm.core.choices.ProjectStatus.SEARCHING_FOR_COLLABORATORS
+```
+
+````
+
+`````

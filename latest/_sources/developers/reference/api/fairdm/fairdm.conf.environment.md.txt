@@ -1,0 +1,34 @@
+# {py:mod}`fairdm.conf.environment`
+
+```{py:module} fairdm.conf.environment
+```
+
+```{autodoc2-docstring} fairdm.conf.environment
+:allowtitles:
+```
+
+## Module Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`env <fairdm.conf.environment.env>`
+  - ```{autodoc2-docstring} fairdm.conf.environment.env
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} env
+:canonical: fairdm.conf.environment.env
+:value: >
+   'Env(...)'
+
+```{autodoc2-docstring} fairdm.conf.environment.env
+```
+
+````

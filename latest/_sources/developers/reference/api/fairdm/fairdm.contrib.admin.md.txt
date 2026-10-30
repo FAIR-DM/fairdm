@@ -1,0 +1,21 @@
+# {py:mod}`fairdm.contrib.admin`
+
+```{py:module} fairdm.contrib.admin
+```
+
+```{autodoc2-docstring} fairdm.contrib.admin
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.contrib.admin.views
+fairdm.contrib.admin.urls
+fairdm.contrib.admin.admin
+fairdm.contrib.admin.apps
+fairdm.contrib.admin.sites
+```

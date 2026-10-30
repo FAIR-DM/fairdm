@@ -1,0 +1,64 @@
+# {py:mod}`fairdm.contrib.contributors.utils.helpers`
+
+```{py:module} fairdm.contrib.contributors.utils.helpers
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.helpers
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`get_contributor_avatar <fairdm.contrib.contributors.utils.helpers.get_contributor_avatar>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.helpers.get_contributor_avatar
+    :summary:
+    ```
+* - {py:obj}`avatar_url <fairdm.contrib.contributors.utils.helpers.avatar_url>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.helpers.avatar_url
+    :summary:
+    ```
+* - {py:obj}`current_user_has_role <fairdm.contrib.contributors.utils.helpers.current_user_has_role>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.helpers.current_user_has_role
+    :summary:
+    ```
+* - {py:obj}`update_or_create_contribution <fairdm.contrib.contributors.utils.helpers.update_or_create_contribution>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.helpers.update_or_create_contribution
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} get_contributor_avatar(contributor)
+:canonical: fairdm.contrib.contributors.utils.helpers.get_contributor_avatar
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.helpers.get_contributor_avatar
+```
+````
+
+````{py:function} avatar_url(contributor, size=None)
+:canonical: fairdm.contrib.contributors.utils.helpers.avatar_url
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.helpers.avatar_url
+```
+````
+
+````{py:function} current_user_has_role(request, obj, role)
+:canonical: fairdm.contrib.contributors.utils.helpers.current_user_has_role
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.helpers.current_user_has_role
+```
+````
+
+````{py:function} update_or_create_contribution(contributor, obj, roles=None)
+:canonical: fairdm.contrib.contributors.utils.helpers.update_or_create_contribution
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.helpers.update_or_create_contribution
+```
+````
