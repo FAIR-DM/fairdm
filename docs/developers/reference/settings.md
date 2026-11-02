@@ -140,14 +140,14 @@ The groups are:
 ### `INSTALLED_APPS`
 
 - **Type**: `list[str]`
-- **Default**: In this order, Django's admin-related apps and `django.contrib` apps, the apps in [`FAIRDM_APPS`](#fairdm_apps), `fairdm` and its own apps, then the third-party apps FairDM needs. Development appends `django_browser_reload`.
+- **Default**: In this order, Django's admin-related apps and `django.contrib` apps, the apps in [`FAIRDM_APPS`](#fairdm_apps), `fairdm` and its own apps, then the third-party apps FairDM needs. Development appends `django_browser_reload` when that package is installed.
 - **What it does**: The apps Django loads. The order matters, because Django takes the first template and static file it finds for a path.
 - **Accepts**: A list of app module paths or app configuration paths. Name a portal's apps in `fairdm.setup(apps=[...])` so they come before FairDM's. An app added by assignment after the call comes last and cannot override a FairDM template.
 
 ### `MIDDLEWARE`
 
 - **Type**: `list[str]`
-- **Default**: In this order, `SecurityMiddleware`, WhiteNoise, django-cors-headers, sessions, CSRF, authentication, `mvp_compliance.middleware.AgreementMiddleware`, messages, locale, common, current site, clickjacking, allauth's account middleware, django-htmx, django-tomselect and django-hijack. Development appends `django_browser_reload.middleware.BrowserReloadMiddleware`.
+- **Default**: In this order, `SecurityMiddleware`, WhiteNoise, django-cors-headers, sessions, CSRF, authentication, `mvp_compliance.middleware.AgreementMiddleware`, messages, locale, common, current site, clickjacking, allauth's account middleware, django-htmx, django-tomselect and django-hijack. Development appends `django_browser_reload.middleware.BrowserReloadMiddleware` when `django_browser_reload` is installed.
 - **What it does**: The request and response middleware. Security, WhiteNoise and authentication must keep their places, and the agreement middleware must come after authentication.
 - **Accepts**: A list of dotted paths. Add a portal's own middleware by assignment after `fairdm.setup()`.
 
@@ -1397,12 +1397,12 @@ These settings configure packages that FairDM installs. A portal rarely changes 
 - **What it does**: Makes django-waffle create a flag in the database the first time code asks for one that does not exist.
 - **Accepts**: `True` or `False`.
 
-### `WAFFLE_CREATE_MISSING_SAMPELS`
+### `WAFFLE_CREATE_MISSING_SAMPLES`
 
 - **Type**: `bool`
 - **Default**: `True`
-- **What it does**: FairDM defines it under this spelling. django-waffle reads `WAFFLE_CREATE_MISSING_SAMPLES`, with an E, so this setting has no effect.
-- **Accepts**: `True` or `False`, with no effect.
+- **What it does**: Makes django-waffle create a sample in the database the first time code asks for one that does not exist.
+- **Accepts**: `True` or `False`.
 
 ### `WAFFLE_CREATE_MISSING_SWITCHES`
 

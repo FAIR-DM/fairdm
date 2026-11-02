@@ -1,6 +1,10 @@
 """Tests for ``fairdm/conf/development.py``."""
 
+import importlib.util
 import os
+from unittest import mock
+
+import pytest
 
 
 class TestDevelopmentDefaults:
@@ -176,3 +180,40 @@ class TestDevelopmentWithoutRedis:
         assert module.CACHES["default"]["LOCATION"] == "redis://cachehost:6380/2"
         assert module.CELERY_BROKER_URL == "redis://cachehost:6380/2"
         assert module.CELERY_TASK_ALWAYS_EAGER is False
+
+
+class TestBrowserReload:
+    @pytest.fixture
+    def browser_reload_not_installed(self):
+        find_spec = importlib.util.find_spec
+
+        def without_browser_reload(name, *args, **kwargs):
+            if name == "django_browser_reload":
+                return None
+            return find_spec(name, *args, **kwargs)
+
+        with mock.patch("importlib.util.find_spec", without_browser_reload):
+            yield
+
+    def test_a_portal_without_the_package_composes_settings_without_it(
+        self, isolated_env, settings_module, browser_reload_not_installed
+    ):
+        os.environ["DJANGO_ENV"] = "development"
+
+        module = settings_module()
+
+        assert "django_browser_reload" not in module.INSTALLED_APPS
+        assert not [m for m in module.MIDDLEWARE if "browser_reload" in m]
+
+    def test_a_portal_with_the_package_gets_the_app_and_its_middleware(
+        self, isolated_env, settings_module
+    ):
+        os.environ["DJANGO_ENV"] = "development"
+
+        module = settings_module()
+
+        assert "django_browser_reload" in module.INSTALLED_APPS
+        assert (
+            "django_browser_reload.middleware.BrowserReloadMiddleware"
+            in module.MIDDLEWARE
+        )

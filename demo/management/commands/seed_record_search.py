@@ -26,7 +26,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        from fairdm.apps import NON_PRODUCTION_ENVIRONMENTS
+        from fairdm.conf.environment import NON_PRODUCTION_ENVIRONMENTS
 
         environment = apps.get_app_config("fairdm").resolved_environment()
         if environment not in NON_PRODUCTION_ENVIRONMENTS:

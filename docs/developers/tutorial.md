@@ -80,10 +80,10 @@ The command ends with the line `Container yourportal-postgres-1  Healthy`.
    name = "yourportal"
    version = "0.1.0"
    requires-python = ">=3.13"
-   dependencies = ["fairdm", "django-browser-reload"]
+   dependencies = ["fairdm"]
    ```
 
-   uv installs the latest FairDM release from [PyPI](https://pypi.org/project/fairdm/). FairDM's development settings load `django-browser-reload` without installing it, so the portal lists it.
+   uv installs the latest FairDM release from [PyPI](https://pypi.org/project/fairdm/).
 
 2. Install the locked dependencies into the image's virtual environment.
 
