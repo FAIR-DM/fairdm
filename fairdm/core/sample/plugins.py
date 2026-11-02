@@ -4,8 +4,10 @@ from typing import Any
 
 from django.utils.translation import gettext, ngettext
 from django.utils.translation import gettext_lazy as _
+from django.views.generic import RedirectView
 
 from fairdm import plugins
+from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins.access import has_perm
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.overview import safe_reverse, sentence_case
@@ -21,6 +23,24 @@ from fairdm.core.vocabularies import (
 )
 
 from .models import Sample, SampleRelation
+
+
+class OverviewRedirect(Plugin, RedirectView):
+    """Send ``overview/``, where a sample's page used to live, to the record's own address.
+
+    It looks at no record. The page it leads to decides who may see the sample, so a private
+    sample and an address that does not exist get the same answer here.
+    """
+
+    name = "redirect"
+    url_path = "overview"
+    pattern_name = "sample:overview"
+    permanent = True
+    query_string = True
+
+    def has_permission(self):
+        """Let everyone through to the page that decides."""
+        return True
 
 
 @plugins.register(Sample, label=_("Overview"), icon="view", order=0)
@@ -49,6 +69,10 @@ class Overview(TypedOverviewPlugin):
     fieldsets: list[tuple[str | None, dict[str, Any]]] = []
     base_model = Sample
     fallback_template = "sample/sample_overview.html"
+    # The root of the sample's address, as the other overviews are. Left unset the plugin base
+    # would mount it at `overview/`, and the record's own address would answer 404.
+    url_path = None
+    extra_views = [OverviewRedirect]
 
     lifecycle = [
         (f"{DATE_TYPES}/created", None, None, _("Created")),

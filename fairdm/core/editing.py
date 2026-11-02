@@ -262,9 +262,10 @@ class EditDetails(RecordEditingPage, FairDMUpdateView):
         return modelform_factory(model, fields=("name", "image"))
 
     def get_form_kwargs(self):
-        """Pass the request to a form whose constructor asks for it."""
+        """Pass the request to a form whose constructor names it or takes keyword arguments."""
         kwargs = super().get_form_kwargs()
-        if "request" in inspect.signature(self.get_form_class()).parameters:
+        parameters = inspect.signature(self.get_form_class()).parameters.values()
+        if any(p.name == "request" or p.kind is p.VAR_KEYWORD for p in parameters):
             kwargs["request"] = self.request
         return kwargs
 

@@ -18,6 +18,7 @@ from demo.factories import (
     ICP_MS_MeasurementFactory,
     RockSampleFactory,
 )
+from demo.models import ICP_MS_Measurement
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.measurement.forms import MeasurementForm
 from fairdm.core.measurement.models import (
@@ -518,6 +519,25 @@ class TestMeasurementValueMethods:
         value_str = measurement.print_value()
         assert isinstance(value_str, str)
         assert value_str == measurement.name
+
+    def test_a_negative_uncertainty_leaves_the_plain_value(self):
+        stored = ICP_MS_MeasurementFactory(
+            sample=RockSampleFactory(), value="120.5", uncertainty="-2.5"
+        )
+        measurement = ICP_MS_Measurement.objects.get(pk=stored.pk)
+
+        assert measurement.get_value() == measurement.value
+        assert measurement.print_value() == str(measurement.value)
+        assert str(measurement) == str(measurement.value)
+
+    def test_an_uncertainty_in_units_the_value_cannot_take_leaves_the_plain_value(self):
+        units = pint.get_application_registry()
+        measurement = ICP_MS_MeasurementFactory.build(
+            value=units.Quantity(120.5, "meter"),
+            uncertainty=units.Quantity(2, "second"),
+        )
+
+        assert measurement.get_value() == measurement.value
 
     def test_a_measurement_with_no_value_is_named_by_its_name(self):
         measurement = ICP_MS_MeasurementFactory(

@@ -75,7 +75,7 @@ A person whose level is removed while a page is open is refused when they save.
 - A project is edited with `ProjectForm` and a dataset with `DatasetForm`. Visibility, and the owner of a project or the project of a dataset, are offered only to someone at the manage level (`manager_only_fields`).
 - A sample or a measurement is edited with the form class its registered type's configuration returns from `get_form_class()`. The fields `dataset` and `sample` are removed, so a record cannot be moved. Set `form_class` or `form_fields` on the type's configuration to change what the page offers. See [Model configuration](model-configuration.md).
 - A type that is not registered is edited with a form of `name` and `image`.
-- A form whose `__init__` takes `request` receives it.
+- A form whose `__init__` names `request` or takes `**kwargs` receives it, so a form that passes `**kwargs` on to `ModelForm` must remove `request` first, as `SampleFormMixin` and `MeasurementFormMixin` do.
 - Dates and identifiers are not on this page.
 
 When a form carries a crispy-forms helper with a form tag or buttons of its own, the page turns both off. The page draws one form element and its own Save buttons. The keywords page does the same.

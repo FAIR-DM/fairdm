@@ -294,6 +294,21 @@ class TestOverviewResult:
         assert "±" in result["text"]
         assert "2.5" in result["text"]
 
+    def test_a_negative_uncertainty_still_shows_the_page_with_the_plain_value(
+        self, client, released
+    ):
+        icp = ICP_MS_MeasurementFactory(
+            dataset=released,
+            sample=RockSampleFactory(dataset=released),
+            value="120.5",
+            uncertainty="-2.5",
+        )
+
+        result = _page(client, icp).context["result"]
+
+        assert "120.5" in result["text"]
+        assert "±" not in result["text"]
+
     def test_a_type_that_declares_no_value_leaves_the_result_to_its_own_template(
         self, client, released
     ):

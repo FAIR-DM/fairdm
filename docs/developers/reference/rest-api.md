@@ -68,7 +68,7 @@ A sample of the example type:
 ```json
 {
   "url": "https://portal.example.org/api/v1/samples/plant-samples/sxXGUGgXRVStFw3jbpBWQeM/",
-  "html_url": "https://portal.example.org/samples/sxXGUGgXRVStFw3jbpBWQeM/overview/",
+  "html_url": "https://portal.example.org/samples/sxXGUGgXRVStFw3jbpBWQeM/",
   "uuid": "sxXGUGgXRVStFw3jbpBWQeM",
   "name": "PL-14",
   "local_id": "SAMPLE-5165",

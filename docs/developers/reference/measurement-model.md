@@ -68,7 +68,7 @@ The roles a person or organization can hold on a measurement, by identifier, are
 
 | Name | Returns |
 |---|---|
-| `get_value()` | The `value`, paired with the `uncertainty` when the value supports it. The measurement's `name` when the type declares no `value`. |
+| `get_value()` | The `value`, paired with the `uncertainty` when the value supports it and the uncertainty can be applied. The measurement's `name` when the type declares no `value`. |
 | `print_value()` | The result of `get_value()` as text. |
 | `__str__()` | The value as text when there is one, otherwise the `name`, otherwise the `uuid`. |
 | `effective_location_for(user=None)` | An `EffectiveLocation` for the viewer, or `None`. |
