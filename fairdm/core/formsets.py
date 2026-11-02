@@ -2,9 +2,7 @@
 
 from django.core.exceptions import ValidationError
 from django.forms import BaseInlineFormSet
-from partial_date import PartialDate
-
-from .dates import precedes
+from partial_dates import PartialDate, Relation
 
 
 def date_ordering_formset(start_type, end_type, message):
@@ -49,7 +47,7 @@ def date_ordering_formset(start_type, end_type, message):
                 # The form field holds the raw string. The model field only converts it
                 # in `full_clean()`, which runs after the formset's own `clean()`.
                 if not isinstance(value, PartialDate):
-                    value = PartialDate(value)
+                    value = PartialDate.fromisoformat(value)
                 # The type field cleans to the concept, and the pair is named by address.
                 chosen = getattr(form.cleaned_data.get("type"), "uri", None)
                 if chosen == start_type:
@@ -60,7 +58,7 @@ def date_ordering_formset(start_type, end_type, message):
             if start_value is None or end_value is None:
                 return
 
-            if precedes(end_value, start_value):
+            if end_value.relation_to(start_value) is Relation.BEFORE:
                 raise ValidationError(
                     message % {"start": start_value, "end": end_value}
                 )

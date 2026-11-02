@@ -110,7 +110,7 @@
               <div class="flex flex-col gap-1 min-w-0">
                 <c-contributor.name :contributor="membership.person" class="font-medium break-words" />
                 <span class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-base-content/70">
-                  {% if membership.start_date %}<span>{% blocktranslate with when=membership.start_date.date|date:"Y" %}Since {{ when }}{% endblocktranslate %}</span>{% endif %}
+                  {% if membership.start_date %}<span>{% blocktranslate with when=membership.start_date.start|date:"Y" %}Since {{ when }}{% endblocktranslate %}</span>{% endif %}
                   {% if membership.type == 3 %}
                     <span class="badge badge-soft badge-primary badge-xs">{% translate "Owner" %}</span>
                   {% elif membership.type == 2 %}

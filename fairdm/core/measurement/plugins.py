@@ -238,8 +238,7 @@ class Overview(TypedOverviewPlugin):
                 authors=self.get_contributors_with_role(
                     entries, f"{CONTRIBUTOR_ROLES}/measurement-collection"
                 ),
-                year=getattr(getattr(setup, "date", None), "year", None)
-                or measurement.added.year,
+                year=getattr(setup, "year", None) or measurement.added.year,
                 title=title,
                 link=doi["link"]
                 if doi

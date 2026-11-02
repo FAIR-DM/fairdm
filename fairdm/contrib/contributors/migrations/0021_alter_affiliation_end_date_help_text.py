@@ -1,4 +1,4 @@
-import fairdm.db.fields
+import partial_dates.conversion
 from django.db import migrations
 
 
@@ -12,6 +12,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='affiliation',
             name='end_date',
-            field=fairdm.db.fields.PartialDateField(blank=True, help_text="When the affiliation ended. Leave blank for active affiliations. Setting an end date ends any rights the affiliation's type would otherwise confer, such as manage_organization for an owner.", null=True, verbose_name='end date'),
+            field=partial_dates.conversion.OldPartialDateField(blank=True, help_text="When the affiliation ended. Leave blank for active affiliations. Setting an end date ends any rights the affiliation's type would otherwise confer, such as manage_organization for an owner.", null=True, verbose_name='end date'),
         ),
     ]

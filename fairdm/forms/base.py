@@ -8,7 +8,7 @@ from django import forms
 from django.contrib.admin.utils import flatten, flatten_fieldsets
 from django.forms.forms import DeclarativeFieldsMetaclass
 from django.forms.models import ModelFormMetaclass
-from partial_date import fields as partial_date_fields
+from partial_dates import PartialDateField as PartialDateModelField
 
 from fairdm.utils import fields_to_crispy_layout, fieldsets_to_crispy_layout
 
@@ -206,7 +206,7 @@ class Form(FairDMFormMixin, forms.Form, metaclass=FairDMFormMetaclass):
 
     class Meta:
         formfield_overrides = {
-            partial_date_fields.PartialDateField: PartialDateField,
+            PartialDateModelField: PartialDateField,
         }
         explicit_fields = True
         form_attrs: dict[str, Any] = {
@@ -219,7 +219,7 @@ class ModelForm(FairDMFormMixin, forms.ModelForm, metaclass=FairDMModelFormMetac
 
     class Meta:
         formfield_overrides = {
-            partial_date_fields.PartialDateField: PartialDateField,
+            PartialDateModelField: PartialDateField,
         }
         explicit_fields = True
         form_attrs: dict[str, Any] = {

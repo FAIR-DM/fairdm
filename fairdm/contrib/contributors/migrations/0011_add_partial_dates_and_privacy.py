@@ -1,4 +1,4 @@
-import fairdm.db.fields
+import partial_dates.conversion
 from django.db import migrations, models
 
 
@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="organizationmember",
             name="start_date",
-            field=fairdm.db.fields.PartialDateField(
+            field=partial_dates.conversion.OldPartialDateField(
                 blank=True,
                 null=True,
                 help_text="When the affiliation began. Supports year, year-month, or full date precision.",
@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="organizationmember",
             name="end_date",
-            field=fairdm.db.fields.PartialDateField(
+            field=partial_dates.conversion.OldPartialDateField(
                 blank=True,
                 null=True,
                 help_text="When the affiliation ended. Leave blank for active affiliations.",

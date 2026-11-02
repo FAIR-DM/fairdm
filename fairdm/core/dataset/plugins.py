@@ -7,7 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, Q
 from django.utils.translation import gettext, ngettext
 from django.utils.translation import gettext_lazy as _
-from partial_date import PartialDate
+from partial_dates import Precision
 
 from fairdm import plugins
 from fairdm.contrib.contributors.models import Person
@@ -262,8 +262,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
                     {
                         "label": label,
                         "sort": as_date(dates[key]),
-                        "day": dates[key].date
-                        if dates[key].precision == PartialDate.DAY
+                        "day": dates[key].start
+                        if dates[key].precision is Precision.DAY
                         else None,
                         "date": dates[key],
                     }

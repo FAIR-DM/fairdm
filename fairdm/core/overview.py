@@ -11,7 +11,7 @@ from datetime import date
 
 from django.urls import NoReverseMatch, reverse
 from django.utils.formats import date_format
-from partial_date import PartialDate
+from partial_dates import Precision
 
 
 def safe_reverse(name, **kwargs):
@@ -44,7 +44,7 @@ def as_date(partial):
     """
     if partial is None:
         return None
-    value = getattr(partial, "date", partial)
+    value = getattr(partial, "start", partial)
     return value if isinstance(value, date) else None
 
 
@@ -61,10 +61,10 @@ def format_partial_date(partial):
     when = as_date(partial)
     if when is None:
         return ""
-    precision = getattr(partial, "precision", PartialDate.DAY)
-    if precision == PartialDate.DAY:
+    precision = getattr(partial, "precision", Precision.DAY)
+    if precision is Precision.DAY:
         return date_format(when, "SHORT_DATE_FORMAT")
-    if precision == PartialDate.MONTH:
+    if precision is Precision.MONTH:
         return date_format(when, "YEAR_MONTH_FORMAT")
     return str(when.year)
 

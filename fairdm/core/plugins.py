@@ -11,6 +11,7 @@ from django.db.models.functions import TruncMonth
 from django.utils.formats import date_format
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
+from partial_dates import Precision
 from pyecharts import options as opts
 from pyecharts.charts import Bar, Line
 
@@ -248,8 +249,8 @@ class RecordOverviewPlugin(OverviewPlugin):
                     {
                         "label": label,
                         "date": when,
-                        "day": when.date
-                        if when is not None and when.precision == 2
+                        "day": when.start
+                        if when is not None and when.precision is Precision.DAY
                         else None,
                         "people": who,
                         "note": note,

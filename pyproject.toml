@@ -54,7 +54,7 @@ dependencies = [
     'whitenoise (>=6.4.0,<7.0.0)',
     'django-controlled-vocabularies (>=0.3.1,<0.4.0)',
     'shortuuid (>=1.0.13,<2.0.0)',
-    'django-literature[ui] (>=0.3.1,<0.4.0)',
+    'django-literature[ui] (>=0.4.0,<0.5.0)',
     'django-ordered-model (>=3.7.4,<4.0.0)',
     'django-taggit (>=6.1.0,<7.0.0)',
     'django-waffle (>=5.0.0,<6.0.0)',
@@ -91,16 +91,16 @@ dependencies = [
     # builtin, so it is declared here rather than relied on transitively.
     "django-easy-icons (>=0.6.0,<1.0.0)",
     # Imported directly rather than reached through another package: pint via
-    # fairdm/templatetags/fairdm.py, partial_date via fairdm/db/fields.py and
+    # fairdm/templatetags/fairdm.py, partial_dates via fairdm/db/fields.py and
     # fairdm/forms/, requests via fairdm/contrib/contributors/tasks.py.
     "pint (>=0.26.1,<1.0)",
-    "django-partial-date (>=1.3,<2.0)",
     "requests (>=2.32,<3.0)",
     # Imported directly by demo/management/commands/seed_profiles.py, and needed at run time by
     # every image field.
     "pillow>=11.0,<14.0",
     "django-tomselect>=2026.6.2,<2027",
     "python-gnupg>=0.5.7,<0.6",
+    "django-partial-dates (>=0.1.0,<0.2.0)",
 ]
 
 [project.urls]

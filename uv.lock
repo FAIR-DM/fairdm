@@ -1213,16 +1213,16 @@ wheels = [
 
 [[package]]
 name = "django-literature"
-version = "0.3.1"
+version = "0.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "bibtexparser" },
     { name = "django" },
-    { name = "django-partial-date" },
+    { name = "django-partial-dates" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a0/66/f89fffb8ffc0bdbe7ffa68897a44d6b2e9a4020466163e33a4e11a33f3b9/django_literature-0.3.1.tar.gz", hash = "sha256:6e06b3cc25ececd2d61c0deb8639c8626e78488f0e62aa4407fc7e910f89158b", size = 128789, upload-time = "2026-10-27T23:19:11.103Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/df/e4/54ce015a1105d9c8cff5984980f7b678a739b917298a243a0462ce1393b7/django_literature-0.4.0.tar.gz", hash = "sha256:642e467b4e55ecb9ad663c05f093e1f094bd63911832a7e203821c90ee7a9886", size = 113348, upload-time = "2026-11-02T10:42:06.225Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/36/a3/be4b4fb93383cba1ed5f9b99fee7b0ee67b50e665e6c1956876fed351d89/django_literature-0.3.1-py3-none-any.whl", hash = "sha256:ccb9916c2edc2605b8abc75b82608f121df827df1aea7696648cf3639ab21d08", size = 143993, upload-time = "2026-10-27T23:19:09.553Z" },
+    { url = "https://files.pythonhosted.org/packages/7d/cb/4d363fa265368773c163a71441882fa416304cfed1b6a9ea06de9c2f5627/django_literature-0.4.0-py3-none-any.whl", hash = "sha256:b9465e60b354409e160cffd61a9783ab32bf3bf0d3c6f9fabd9c564267b11d69", size = 139416, upload-time = "2026-11-02T10:42:04.887Z" },
 ]
 
 [package.optional-dependencies]
@@ -1375,16 +1375,15 @@ wheels = [
 ]
 
 [[package]]
-name = "django-partial-date"
-version = "1.3.2"
+name = "django-partial-dates"
+version = "0.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
-    { name = "six" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/4e/63/0d6198422a5b4a32f600bc595130817f9c8074d02c3b8d81202e1f3fdc35/django_partial_date-1.3.2.tar.gz", hash = "sha256:07bc97c04e7fbce8803f2a95723b508c726e466c175874985c5568b29f6ff893", size = 4742, upload-time = "2022-01-20T20:19:55.266Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f8/4d/a032ffb5855515c782b3526bc74ef5ec927dbe282a3ac67f7f10e98b927e/django_partial_dates-0.1.0.tar.gz", hash = "sha256:3987780f12d0ed3dd9db013411e463cc59926d3de49782da5fbf3e52a795af05", size = 20517, upload-time = "2026-11-02T08:45:41.577Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/76/c8/f0b5ac20a68c168e1ca5ac6755f7c2b96242992fcb2b2b63c2aadb5fa278/django_partial_date-1.3.2-py3-none-any.whl", hash = "sha256:8243ce1f9062e36d217a630c15a1436c419b3949799754f8cefb403b17d59fb4", size = 5450, upload-time = "2022-01-20T20:19:48.546Z" },
+    { url = "https://files.pythonhosted.org/packages/ea/de/9ed7ef028f5edffdf64ef0ae2238cb68977dd285b4bf8df2b2e0f65566d1/django_partial_dates-0.1.0-py3-none-any.whl", hash = "sha256:862203cb1b4a1b30da39a775fe301dba39287e95ca44d6db012abd6be2571cd5", size = 25437, upload-time = "2026-11-02T08:45:40.136Z" },
 ]
 
 [[package]]
@@ -1825,7 +1824,7 @@ dependencies = [
     { name = "django-mvp-forms" },
     { name = "django-ordered-model" },
     { name = "django-parler" },
-    { name = "django-partial-date" },
+    { name = "django-partial-dates" },
     { name = "django-pint" },
     { name = "django-polymorphic" },
     { name = "django-redis" },
@@ -1898,7 +1897,7 @@ requires-dist = [
     { name = "django-htmx", specifier = ">=1.29.0,<2.0.0" },
     { name = "django-import-export", specifier = ">=4.0.3,<5.0.0" },
     { name = "django-lifecycle", specifier = ">=1.2.4,<2.0.0" },
-    { name = "django-literature", extras = ["ui"], specifier = ">=0.3.1,<0.4.0" },
+    { name = "django-literature", extras = ["ui"], specifier = ">=0.4.0,<0.5.0" },
     { name = "django-meta", specifier = ">=2.1.0,<3.0.0" },
     { name = "django-model-utils", specifier = ">=4.3.1,<6.0.0" },
     { name = "django-mvp", specifier = ">=0.31.0,<0.33.0" },
@@ -1908,7 +1907,7 @@ requires-dist = [
     { name = "django-mvp-forms", specifier = ">=0.7.0,<1.0" },
     { name = "django-ordered-model", specifier = ">=3.7.4,<4.0.0" },
     { name = "django-parler", specifier = ">=2.3,<3.0" },
-    { name = "django-partial-date", specifier = ">=1.3,<2.0" },
+    { name = "django-partial-dates", specifier = ">=0.1.0,<0.2.0" },
     { name = "django-pint", specifier = ">=0.7.3,<1.1.0" },
     { name = "django-polymorphic", specifier = ">=4.11.7,<5.0.0" },
     { name = "django-redis", specifier = ">=5.2.0,<8.0.0" },

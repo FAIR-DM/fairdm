@@ -4,7 +4,7 @@ import json
 from datetime import date
 
 import pytest
-from partial_date import PartialDate
+from partial_dates import PartialDate
 
 from fairdm.core.overview import as_date, format_authors, json_ld
 from fairdm.factories import OrganizationFactory, PersonFactory
@@ -73,16 +73,16 @@ class TestJsonLd:
 class TestAsDate:
     @pytest.mark.parametrize("recorded", ["2020", "2020-03", "2020-03-04"])
     def test_a_partial_date_of_any_precision_gives_a_date(self, recorded):
-        assert isinstance(as_date(PartialDate(recorded)), date)
+        assert isinstance(as_date(PartialDate.fromisoformat(recorded)), date)
 
     def test_a_year_only_date_gives_the_first_day_of_that_year(self):
-        assert as_date(PartialDate("2020")) == date(2020, 1, 1)
+        assert as_date(PartialDate.fromisoformat("2020")) == date(2020, 1, 1)
 
     def test_a_month_only_date_gives_the_first_day_of_that_month(self):
-        assert as_date(PartialDate("2020-03")) == date(2020, 3, 1)
+        assert as_date(PartialDate.fromisoformat("2020-03")) == date(2020, 3, 1)
 
     def test_the_recorded_precision_is_left_on_the_partial_date(self):
-        recorded = PartialDate("2020-03")
+        recorded = PartialDate.fromisoformat("2020-03")
 
         as_date(recorded)
 

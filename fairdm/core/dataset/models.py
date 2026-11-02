@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from licensing.fields import LicenseField
+from partial_dates import Relation
 from shortuuid.django_fields import ShortUUIDField
 
 from fairdm.db import models
@@ -16,7 +17,6 @@ from fairdm.db.models import QuerySet
 from fairdm.utils.choices import Visibility
 
 from ..abstract import AbstractDate, AbstractDescription, AbstractIdentifier, BaseModel
-from ..dates import precedes
 from ..managers import RecordLevelMixin
 from ..utils import CORE_PERMISSIONS
 from ..vocabularies import (
@@ -495,7 +495,7 @@ class DatasetDate(AbstractDate):
         if start_value is None or end_value is None:
             return
 
-        if precedes(end_value, start_value):
+        if end_value.relation_to(start_value) is Relation.BEFORE:
             raise ValidationError(
                 {
                     "value": _(

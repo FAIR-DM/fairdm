@@ -4,7 +4,7 @@ import django_filters
 from django import forms
 from django.utils.translation import gettext_lazy as _
 from mvp.filters import SearchFilter
-from partial_date import PartialDate
+from partial_dates import PartialDateField
 
 from fairdm.contrib.autocomplete.fields import (
     DatasetMultipleChoiceField,
@@ -17,7 +17,7 @@ from fairdm.core.measurement.models import Measurement
 class PartialDateFilterField(forms.CharField):
     """A ``CharField`` that validates its value as a year, a year and month, or a full date.
 
-    It uses ``PartialDate``'s own parser rather than a second regex that could drift from it. A
+    It uses the model field's own parser rather than a second regex that could drift from it. A
     plain ``CharFilter`` let any string through, and the request failed later with an unhandled
     ``ValidationError`` when the queryset was evaluated.
     """
@@ -26,7 +26,7 @@ class PartialDateFilterField(forms.CharField):
         """Raise a ``ValidationError`` unless the value is ``YYYY``, ``YYYY-MM`` or ``YYYY-MM-DD``."""
         value = super().to_python(value)
         if value:
-            PartialDate.parseDate(value)
+            PartialDateField().to_python(value)
         return value
 
 
