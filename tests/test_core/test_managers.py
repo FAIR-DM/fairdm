@@ -15,6 +15,7 @@ from fairdm.factories import (
     DatasetFactory,
     PersonFactory,
     ProjectFactory,
+    UserFactory,
 )
 from fairdm.utils.choices import Visibility
 
@@ -269,3 +270,65 @@ class TestWithLevel:
         assert listed(Dataset, AnonymousUser(), VIEW) == set()
         assert listed(Dataset, None, VIEW) == set()
         assert listed(Dataset, holder, VIEW) == set()
+
+
+@pytest.mark.django_db
+class TestDatasetQuerySetVisibleTo:
+    def _held_at_view(self, record):
+        person = PersonFactory(is_active=True, is_claimed=True)
+        ContributionFactory(
+            content_object=record, contributor=person, level=ContributionLevel.VIEW
+        )
+        return person
+
+    def test_a_visitor_sees_a_public_dataset_and_not_a_private_one(self):
+        public = DatasetFactory(project=None, visibility=Visibility.PUBLIC)
+        DatasetFactory(project=None, visibility=Visibility.PRIVATE)
+
+        assert list(Dataset.all_objects.visible_to(AnonymousUser())) == [public]
+
+    def test_none_counts_as_a_visitor(self):
+        public = DatasetFactory(project=None, visibility=Visibility.PUBLIC)
+        DatasetFactory(project=None, visibility=Visibility.PRIVATE)
+
+        assert list(Dataset.all_objects.visible_to(None)) == [public]
+
+    def test_a_private_project_hides_a_public_dataset_from_a_visitor(self):
+        DatasetFactory(
+            visibility=Visibility.PUBLIC,
+            project=ProjectFactory(visibility=Visibility.PRIVATE),
+        )
+
+        assert not Dataset.all_objects.visible_to(None).exists()
+
+    def test_a_level_on_a_private_dataset_makes_it_visible(self):
+        held = DatasetFactory(visibility=Visibility.PRIVATE)
+        DatasetFactory(visibility=Visibility.PRIVATE)
+
+        visible = Dataset.all_objects.visible_to(self._held_at_view(held))
+
+        assert list(visible) == [held]
+
+    def test_a_level_on_the_project_makes_its_datasets_visible(self):
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        dataset = DatasetFactory(project=project, visibility=Visibility.PRIVATE)
+
+        visible = Dataset.all_objects.visible_to(self._held_at_view(project))
+
+        assert list(visible) == [dataset]
+
+    def test_a_portal_wide_right_shows_every_dataset(self):
+        private = DatasetFactory(visibility=Visibility.PRIVATE)
+        superuser = UserFactory(is_superuser=True)
+
+        assert private in Dataset.all_objects.visible_to(superuser)
+
+    def test_it_never_widens_a_narrowed_query(self):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        inside = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        DatasetFactory(visibility=Visibility.PRIVATE)
+        superuser = UserFactory(is_superuser=True)
+
+        visible = Dataset.all_objects.filter(project=project).visible_to(superuser)
+
+        assert list(visible) == [inside]

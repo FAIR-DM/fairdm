@@ -47,6 +47,7 @@ Every class below is imported from `fairdm.contrib.contributors.models` unless a
 | `credited_object_ids(base_model)` | A values queryset of ids | The ids of the contributor's credits on `base_model` or one of its subclasses |
 | `get_public_projects()` | Queryset | The public projects the contributor is credited on. `Organization` adds the ones it owns |
 | `get_public_datasets()` | Queryset | The public datasets the contributor is credited on, outside private projects. `Organization` adds the ones in its projects |
+| `get_credit_totals()` | `list` of `dict` | The number of credits for each credited model, each with the model's `singular` and `plural` verbose names and the `count` |
 | `get_credit_counts()` | `dict` | The number of credits for each credited model, keyed by the model's plural verbose name |
 | `get_visible_contributions(user)` | `list` of `Contribution` | The credits a profile may name, newest first. A project or dataset counts when it is one of the two public lists above. A sample or measurement counts when `visible_to(user)` lets the user see it and its dataset's project, if it has one, is public. Each credit carries `kind` (`project`, `dataset`, `sample` or `measurement`). Projects and datasets also carry `record` |
 | `get_role_counts(contributions=None)` | `Counter` | The number of credits each contribution role is held on, keyed by label. Counts every credit when `contributions` is omitted |

@@ -14,6 +14,7 @@ from django.utils.formats import date_format
 from partial_dates import PartialDate
 from pytest_django.asserts import assertContains, assertNotContains
 
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm import plugins
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.services.crediting import Crediting
@@ -24,6 +25,7 @@ from fairdm.core.project.plugins import Overview
 from fairdm.core.vocabularies import CONTRIBUTOR_ROLES, DATE_TYPES, IDENTIFIER_TYPES
 from fairdm.factories import (
     ContributionFactory,
+    DatasetFactory,
     OrganizationFactory,
     PersonFactory,
     ProjectDateFactory,
@@ -1576,3 +1578,72 @@ class TestOverviewNotAvailableYet:
         for card in placeholders:
             assert card.find("a") is None
             assert card.find("button") is None
+
+
+@pytest.mark.django_db
+class TestDatasetsTabListsWhatTheViewerMaySee:
+    """The tab agrees with the Overview's link and with the main dataset list."""
+
+    def _listed(self, client, project):
+        address = reverse("project:dataset-list", kwargs={"uuid": project.uuid})
+        return list(client.get(address).context["object_list"])
+
+    def test_a_visitor_sees_the_public_datasets_only(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        public = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        DatasetFactory(project=project, visibility=Visibility.PRIVATE)
+
+        assert self._listed(client, project) == [public]
+
+    def test_someone_holding_a_level_on_the_project_sees_a_private_dataset(
+        self, client
+    ):
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        private = DatasetFactory(project=project, visibility=Visibility.PRIVATE)
+        member = PersonFactory(is_active=True, is_claimed=True)
+        ContributionFactory(
+            content_object=project, contributor=member, level=ContributionLevel.VIEW
+        )
+        client.force_login(member)
+
+        assert self._listed(client, project) == [private]
+
+    def test_someone_holding_a_level_on_one_dataset_sees_that_one_and_not_its_sibling(
+        self, client
+    ):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        held = DatasetFactory(project=project, visibility=Visibility.PRIVATE)
+        DatasetFactory(project=project, visibility=Visibility.PRIVATE)
+        member = PersonFactory(is_active=True, is_claimed=True)
+        ContributionFactory(
+            content_object=held, contributor=member, level=ContributionLevel.VIEW
+        )
+        client.force_login(member)
+
+        assert self._listed(client, project) == [held]
+
+    def test_a_superuser_sees_a_private_dataset(self, client):
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        private = DatasetFactory(project=project, visibility=Visibility.PRIVATE)
+        client.force_login(UserFactory(is_superuser=True, is_staff=True))
+
+        assert self._listed(client, project) == [private]
+
+    def test_a_dataset_of_another_project_is_left_out(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        DatasetFactory(
+            project=ProjectFactory(visibility=Visibility.PUBLIC),
+            visibility=Visibility.PUBLIC,
+        )
+
+        assert self._listed(client, project) == []
+
+    def test_each_card_carries_the_counts_of_the_main_list(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+        sample = RockSampleFactory(dataset=dataset)
+        ExampleMeasurementFactory(dataset=dataset, sample=sample)
+
+        listed = self._listed(client, project)[0]
+
+        assert (listed.sample_count, listed.measurement_count) == (1, 1)

@@ -97,7 +97,7 @@ The querysets of the four core models take their level methods from `fairdm.core
 |---|---|---|
 | `with_level(user, level)` | Queryset | The records on which the user holds at least `level`, on the record itself or from a record above, in one query. An empty queryset for `None`, a visitor and an inactive user |
 | `accessible_to(user, level)` | Queryset | `with_level(user, level)`, plus every record when the user holds the portal-wide right for the model. That right is `view_<model>` for `VIEW` and `change_<model>` for `EDIT` and `MANAGE`. A superuser and a Data Curator hold it. Choice lists and filters offer what this returns |
-| `visible_to(user)` | Queryset | On the sample and measurement querysets only. The records of released datasets (public and published), and the records the user holds `VIEW` on. A user who holds `view_dataset` or `change_dataset` for the whole portal sees every record. A visitor sees released records only |
+| `visible_to(user)` | Queryset | On the sample and measurement querysets, the records of released datasets (public and published) and the records the user holds `VIEW` on. A user who holds `view_dataset` or `change_dataset` for the whole portal sees every record. A visitor sees released records only. On the dataset queryset, what `get_visible()` returns and what `accessible_to(user, VIEW)` returns |
 
 Two more methods keep a public listing to public records:
 

@@ -15,8 +15,8 @@ The panel holds these filters:
 
 - **Has image** keeps the datasets that have a cover image.
 - **Project** keeps the datasets that belong to the projects you choose. Everyone is offered the same public projects.
-- **Description Type** keeps the datasets that carry a description of the type you enter.
-- **Date Type** keeps the datasets that carry a date of the type you enter.
+- **Description Type** keeps the datasets that carry a description of the type you choose.
+- **Date Type** keeps the datasets that carry a date of the type you choose.
 
 Filters combine, so a dataset must match all of them. Under the toolbar a line gives the number of datasets that match and, when you have chosen a sort, the order the list is in.
 
