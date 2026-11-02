@@ -48,6 +48,16 @@ class TestRecordVisibilityMixin:
 
         assert set(model.objects.visible_to(AnonymousUser())) == {released}
 
+    def test_a_visitor_sees_no_record_in_a_private_project(self, model, make):
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        make(
+            DatasetFactory(
+                project=project, visibility=Visibility.PUBLIC, published=True
+            )
+        )
+
+        assert not model.objects.visible_to(AnonymousUser()).exists()
+
     def test_a_team_member_also_sees_their_datasets_records(self, model, make):
         held = DatasetFactory(visibility=Visibility.PRIVATE, published=False)
         mine = make(held)

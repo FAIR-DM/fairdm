@@ -17,17 +17,17 @@ Keeping them apart is deliberate. A researcher can describe their work publicly 
 
 ## Visibility and publication are different flags
 
-A project and a dataset each have a visibility, either private or public. A new record is private. Visibility decides whether the record's own page, and the metadata on it, may be read by anyone who is not on its team.
+A project and a dataset each have a visibility, either private or public. A new record is private. Visibility decides whether the record's own page, and the metadata on it, may be read by anyone who is not on its team. A private project hides every dataset in it, so a public dataset in one answers a stranger as though it did not exist, on its pages and in the API. People who hold a level on the dataset or the project still open it.
 
 A dataset also has a separate `published` flag. Publication decides whether the samples and measurements held in the dataset may be shown. It is set in the administration interface and nowhere a researcher can reach, so releasing data is never one click on the dataset page. Every dataset starts unpublished.
 
 Neither flag implies the other. These are all ordinary states:
 
-- A public dataset that is not published. Its description, counts and charts are open to everyone, and its records are not.
-- A published dataset that is private. Its records belong in portal-wide listings, but its own page is closed to people outside the team.
-- A dataset that is both public and published. This is the state in which everyone may see its samples and measurements.
+- A public dataset that is not published, in a public project or none. Its description, counts and charts are open to everyone, and its records are not.
+- A published dataset that is private, in a public project or none. Its records belong in portal-wide listings, but its own page is closed to people outside the team.
+- A dataset that is both public and published. This is the state in which everyone may see its samples and measurements, unless a private project holds it.
 
-A sample or measurement has no visibility of its own. It follows its own dataset: anyone may open it when that dataset is public and published, and otherwise only people who hold a level on it, or on its dataset or project, may. A record's presence is decided by the dataset that owns it, never by a dataset it merely refers to. A measurement can be made on a sample in a different dataset, and the two datasets are judged separately. The reasoning is in [ADR 0014](../adr/0014-publication-is-a-separate-flag-from-visibility.md) and [ADR 0015](../adr/0015-a-records-own-dataset-decides-and-a-row-never-links-past-it.md).
+A sample or measurement has no visibility of its own. It follows its own dataset: anyone may open it when that dataset is public and published and is not in a private project, and otherwise only people who hold a level on it, or on its dataset or project, may. A private project hides every dataset in it and their records, whatever the dataset's own flags say. A record's presence is decided by the dataset that owns it, never by a dataset it merely refers to. A measurement can be made on a sample in a different dataset, and the two datasets are judged separately. The reasoning is in [ADR 0014](../adr/0014-publication-is-a-separate-flag-from-visibility.md) and [ADR 0015](../adr/0015-a-records-own-dataset-decides-and-a-row-never-links-past-it.md).
 
 ## Contribution levels
 
@@ -110,14 +110,14 @@ The REST API follows the same reasoning. A request for a private record you cann
 
 ## Listings never depend on who is looking
 
-A portal-wide listing of a sample or measurement type shows the records held in published datasets, and shows the same rows to every viewer. Signing in changes nothing about it. A researcher does not see their own unpublished records mixed into a portal-wide listing. They find them on their dataset's page.
+A portal-wide listing of a sample or measurement type shows the records held in published datasets, leaves out those a private project hides, and shows the same rows to every viewer. Signing in changes nothing about it. A researcher does not see their own unpublished records mixed into a portal-wide listing. They find them on their dataset's page.
 
 The alternative, showing each viewer what they are entitled to, costs more than it returns. Every listing becomes viewer-dependent, nothing can be shared between viewers, every filter's choice list has to be worked out per viewer or it leaks the existence of records the table excluded, and every column added later inherits the same obligation. A single rule can be checked with one assertion that holds for every viewer. See [ADR 0013](../adr/0013-a-listing-shows-published-records-only-for-everyone.md).
 
 Two further rules follow from it:
 
 - A row never links past what the visitor may read. Where a row would name or link a record you cannot read, the cell keeps its place and shows a placeholder. The sample column reads "Unpublished", and the dataset column keeps its icon without the link. A filter's choice list obeys the same test, so a name withheld from a cell is not offered from a dropdown beside it.
-- A listing of projects shows public projects, and a listing of datasets shows public datasets. Neither depends on the viewer.
+- A listing of projects shows public projects, and a listing of datasets shows public datasets outside private projects. Neither depends on the viewer.
 
 A placeholder is a meaningful state. Read it as "there is a record here that you may not read".
 

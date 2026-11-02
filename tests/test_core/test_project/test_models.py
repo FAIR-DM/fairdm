@@ -1135,7 +1135,10 @@ class TestProjectWithMetadataQueryCount:
                     f"{DESCRIPTION_TYPES}/abstract",
                     f"{DESCRIPTION_TYPES}/objectives",
                 ],
-                dates=[(f"{DATE_TYPES}/start", "2020-01-01"), (f"{DATE_TYPES}/end", "2021-01-01")],
+                dates=[
+                    (f"{DATE_TYPES}/start", "2020-01-01"),
+                    (f"{DATE_TYPES}/end", "2021-01-01"),
+                ],
                 identifiers=[
                     (f"{IDENTIFIER_TYPES}/doi", f"10.1234/large-{i}"),
                     (f"{IDENTIFIER_TYPES}/grant-number", f"GRANT-{i}"),
@@ -1385,7 +1388,7 @@ class TestProjectSpatialCoverage:
         return Point(longitude, latitude, srid=4326)
 
     def test_it_holds_the_locations_of_every_dataset_in_the_project(self):
-        project = ProjectFactory()
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
         first = DatasetFactory(
             project=project, visibility=Visibility.PUBLIC, published=True
         )
@@ -1403,13 +1406,15 @@ class TestProjectSpatialCoverage:
         assert found == Coverage(west=-20.0, south=-5.0, east=30.0, north=40.0)
 
     def test_a_measurement_placed_by_a_sample_in_another_project_widens_the_box(self):
-        project = ProjectFactory()
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
         dataset = DatasetFactory(
             project=project, visibility=Visibility.PUBLIC, published=True
         )
         RockSampleFactory(dataset=dataset, location=self.at(10.0, 10.0))
         elsewhere = DatasetFactory(
-            project=ProjectFactory(), visibility=Visibility.PUBLIC, published=True
+            project=ProjectFactory(visibility=Visibility.PUBLIC),
+            visibility=Visibility.PUBLIC,
+            published=True,
         )
         distant = RockSampleFactory(dataset=elsewhere, location=self.at(50.0, 40.0))
         ExampleMeasurementFactory(sample=distant, dataset=dataset)
@@ -1417,7 +1422,7 @@ class TestProjectSpatialCoverage:
         assert project.spatial_coverage() == Coverage(10.0, 10.0, 50.0, 40.0)
 
     def test_it_is_none_when_nothing_is_located(self):
-        project = ProjectFactory()
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
         dataset = DatasetFactory(
             project=project, visibility=Visibility.PUBLIC, published=True
         )
@@ -1426,10 +1431,12 @@ class TestProjectSpatialCoverage:
         assert project.spatial_coverage() is None
 
     def test_another_projects_datasets_are_not_counted(self):
-        project = ProjectFactory()
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
         RockSampleFactory(
             dataset=DatasetFactory(
-                project=ProjectFactory(), visibility=Visibility.PUBLIC, published=True
+                project=ProjectFactory(visibility=Visibility.PUBLIC),
+                visibility=Visibility.PUBLIC,
+                published=True,
             ),
             location=self.at(10.0, 10.0),
         )
@@ -1437,7 +1444,7 @@ class TestProjectSpatialCoverage:
         assert project.spatial_coverage() is None
 
     def test_a_dataset_the_viewer_may_not_open_is_not_counted(self):
-        project = ProjectFactory()
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
         open_dataset = DatasetFactory(
             project=project, visibility=Visibility.PUBLIC, published=True
         )
@@ -1451,8 +1458,19 @@ class TestProjectSpatialCoverage:
         for viewer in (None, AnonymousUser(), stranger):
             assert project.spatial_coverage(viewer) == Coverage(10.0, 10.0, 10.0, 10.0)
 
+    def test_a_private_project_counts_nothing_for_someone_with_no_level_on_it(self):
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
+        RockSampleFactory(dataset=dataset, location=self.at(10.0, 10.0))
+        stranger = PersonFactory(is_active=True)
+
+        for viewer in (None, AnonymousUser(), stranger):
+            assert project.spatial_coverage(viewer) is None
+
     def test_a_member_of_a_private_dataset_counts_it(self):
-        project = ProjectFactory()
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
         private = DatasetFactory(
             project=project, visibility=Visibility.PRIVATE, published=False
         )
@@ -1466,7 +1484,7 @@ class TestProjectSpatialCoverage:
         assert project.spatial_coverage() is None
 
     def test_a_measurement_placed_only_by_a_hidden_sample_adds_nothing(self):
-        project = ProjectFactory()
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
         hidden = DatasetFactory(
             project=project, visibility=Visibility.PRIVATE, published=False
         )
@@ -1479,7 +1497,7 @@ class TestProjectSpatialCoverage:
         assert project.spatial_coverage() is None
 
     def test_locations_either_side_of_the_180th_meridian_make_a_narrow_box(self):
-        project = ProjectFactory()
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
         east = DatasetFactory(
             project=project, visibility=Visibility.PUBLIC, published=True
         )

@@ -131,6 +131,7 @@ from fairdm.core.vocabularies import (
     DOI,
     PROJECT_START,
 )
+from fairdm.utils.choices import Visibility
 
 from .contributors import (
     OrganizationFactory,
@@ -367,7 +368,8 @@ class DatasetFactory(DjangoModelFactory):
     """Factory for creating Dataset instances.
 
     By default, creates a minimal Dataset with only required fields.
-    Project is auto-created unless provided.
+    Project is auto-created unless provided. It is public, so the dataset's own visibility
+    decides: a private project would hide the dataset whatever its visibility.
 
     To create descriptions/dates:
         DatasetFactory(descriptions=2)  # Creates 2 descriptions
@@ -389,7 +391,7 @@ class DatasetFactory(DjangoModelFactory):
     name = Faker("sentence", nb_words=3, variable_nb_words=True)
     # visibility defaults to PRIVATE per model definition
 
-    project = SubFactory(ProjectFactory)
+    project = SubFactory(ProjectFactory, visibility=Visibility.PUBLIC)
 
     @LazyAttribute
     def license(self):

@@ -390,8 +390,8 @@ def published_related_queryset(related_model: type[models.Model]) -> Any:
     `Dataset.objects`: the default manager excludes PRIVATE datasets, and a
     published-but-private dataset is the ordinary state, so
     `Dataset.objects.published()` would leave a filter offering nothing while
-    the table shows that dataset's rows. Publication is the only test a listing
-    applies.
+    the table shows that dataset's rows. A listing applies publication and leaves
+    out what a private project hides.
 
     `None` rather than an unscoped queryset, so a caller can tell "every
     published one" from "not this model's question" - a content-type filter
@@ -401,17 +401,17 @@ def published_related_queryset(related_model: type[models.Model]) -> Any:
         related_model: The model whose records a filter offers.
 
     Returns:
-        A queryset of the published records for a Dataset, Sample or Measurement
-        model, otherwise ``None``.
+        A queryset of the published records outside private projects for a
+        Dataset, Sample or Measurement model, otherwise ``None``.
     """
     from fairdm.core.dataset.models import Dataset
     from fairdm.core.measurement.models import Measurement
     from fairdm.core.sample.models import Sample
 
     if issubclass(related_model, Dataset):
-        return Dataset.all_objects.published()
+        return Dataset.all_objects.published().outside_private_projects()
     if issubclass(related_model, (Sample, Measurement)):
-        return related_model._default_manager.published()
+        return related_model._default_manager.published().outside_private_projects()
     return None
 
 

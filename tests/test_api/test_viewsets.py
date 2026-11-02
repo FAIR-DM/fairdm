@@ -17,6 +17,7 @@ from fairdm.core.vocabularies import (
     IDENTIFIER_TYPES,
 )
 from fairdm.factories import (
+    ContributionFactory,
     DatasetFactory,
     OrganizationFactory,
     PersonFactory,
@@ -161,6 +162,15 @@ class TestDatasetListEndpoint:
 
 @pytest.mark.django_db
 class TestDatasetDetailEndpoint:
+    @pytest.fixture
+    def hidden_dataset(self):
+        """A public, published dataset inside a private project."""
+        return DatasetFactory(
+            project=ProjectFactory(visibility=Visibility.PRIVATE),
+            visibility=Visibility.PUBLIC,
+            published=True,
+        )
+
     def test_public_dataset_returns_200(self, api_client, public_dataset):
         url = reverse("api:dataset-detail", kwargs={"uuid": public_dataset.uuid})
         response = api_client.get(url)
@@ -172,6 +182,39 @@ class TestDatasetDetailEndpoint:
         url = reverse("api:dataset-detail", kwargs={"uuid": private_dataset.uuid})
         response = api_client.get(url)
         assert response.status_code == 404
+
+    def test_a_public_dataset_in_a_private_project_returns_404_to_anonymous(
+        self, api_client, hidden_dataset
+    ):
+        url = reverse("api:dataset-detail", kwargs={"uuid": hidden_dataset.uuid})
+        assert api_client.get(url).status_code == 404
+
+    def test_a_public_dataset_in_a_private_project_returns_404_to_a_stranger(
+        self, authenticated_client, hidden_dataset
+    ):
+        url = reverse("api:dataset-detail", kwargs={"uuid": hidden_dataset.uuid})
+        assert authenticated_client.get(url).status_code == 404
+
+    def test_a_public_dataset_in_a_private_project_is_not_listed(
+        self, api_client, authenticated_client, hidden_dataset
+    ):
+        for client in (api_client, authenticated_client):
+            response = client.get(reverse("api:dataset-list"))
+            uuids = [d["uuid"] for d in response.json()["results"]]
+            assert str(hidden_dataset.uuid) not in uuids
+
+    def test_a_level_on_the_private_project_opens_the_dataset(
+        self, api_client, hidden_dataset
+    ):
+        viewer = UserFactory()
+        ContributionFactory(
+            content_object=hidden_dataset.project,
+            contributor=viewer,
+            level=ContributionLevel.VIEW,
+        )
+        api_client.force_authenticate(viewer)
+        url = reverse("api:dataset-detail", kwargs={"uuid": hidden_dataset.uuid})
+        assert api_client.get(url).status_code == 200
 
     def test_nonexistent_uuid_returns_404(self, api_client):
         url = reverse("api:dataset-detail", kwargs={"uuid": "doesnotexist"})
@@ -444,8 +487,8 @@ class TestCompleteRecord:
         assert sample.status_code == 200
         assert sample.json()["uuid"] == measurement.sample.uuid
 
-    def test_a_public_dataset_in_a_private_project_hides_the_project_from_a_visitor(
-        self, api_client, url_of
+    def test_a_level_on_the_dataset_alone_does_not_name_its_private_project(
+        self, url_of
     ):
         from fairdm.contrib.contributors.choices import ContributionLevel
 
@@ -453,13 +496,14 @@ class TestCompleteRecord:
         dataset = DatasetFactory(
             project=project, visibility=Visibility.PUBLIC, published=True
         )
-        viewer = person_at(project, ContributionLevel.VIEW)
+        on_dataset = person_at(dataset, ContributionLevel.VIEW)
+        on_project = person_at(project, ContributionLevel.VIEW)
 
-        visitor_sees = api_client.get(url_of(dataset)).json()["project"]
-        viewer_sees = signed_in_as(viewer).get(url_of(dataset)).json()["project"]
+        dataset_viewer_sees = signed_in_as(on_dataset).get(url_of(dataset)).json()
+        project_viewer_sees = signed_in_as(on_project).get(url_of(dataset)).json()
 
-        assert visitor_sees is None
-        assert viewer_sees["uuid"] == project.uuid
+        assert dataset_viewer_sees["project"] is None
+        assert project_viewer_sees["project"]["uuid"] == project.uuid
 
     def test_a_sample_in_a_private_dataset_is_hidden_from_a_measurement_that_names_it(
         self, api_client, url_of, make_record
@@ -482,11 +526,16 @@ class TestCompleteRecord:
         assert visitor_sees is None
         assert viewer_sees["uuid"] == sample.uuid
 
-    def test_a_list_hides_the_parent_it_would_otherwise_name(self, api_client, url_of):
-        project = ProjectFactory(visibility=Visibility.PRIVATE)
-        DatasetFactory(project=project, visibility=Visibility.PUBLIC, published=True)
+    def test_a_list_hides_the_parent_it_would_otherwise_name(self, url_of):
+        from fairdm.contrib.contributors.choices import ContributionLevel
 
-        results = api_client.get(url_of(Dataset, "list")).json()["results"]
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
+        viewer = person_at(dataset, ContributionLevel.VIEW)
+
+        results = signed_in_as(viewer).get(url_of(Dataset, "list")).json()["results"]
 
         assert [row["project"] for row in results] == [None]
 

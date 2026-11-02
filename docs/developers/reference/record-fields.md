@@ -81,7 +81,7 @@ A record is public when:
 
 - a project's visibility is public,
 - a dataset's visibility is public and so is its project's, or it has no project,
-- a sample's or measurement's dataset is public and published.
+- a sample's or measurement's dataset is public and published and not in a private project.
 
 A person may view or edit a record when they hold that level on it, on the project above a dataset, or on the dataset or its project above a sample or measurement. A right the portal gives on every record, as the superuser and Data Curator roles have, offers all of them. The levels are in [Contribution levels and record access](contribution-levels-and-record-access.md).
 

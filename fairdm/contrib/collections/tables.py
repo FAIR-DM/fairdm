@@ -177,7 +177,12 @@ class MeasurementTable(BaseTable):
         order_by = ("-modified", "id")
 
     def render_sample(self, value):
-        """Link the sample only when its dataset is published."""
-        if value.dataset.published:
+        """Link the sample only when its dataset is published and no private project hides it."""
+        dataset = value.dataset
+        hidden_by_project = (
+            dataset.project is not None
+            and dataset.project.visibility != Visibility.PUBLIC
+        )
+        if dataset.published and not hidden_by_project:
             return format_html('<a href="{}">{}</a>', value.get_absolute_url(), value)
         return _("Unpublished")
