@@ -1299,8 +1299,12 @@ class TestDatasetViews:
         assert response.status_code == 200
 
     def test_dataset_list_view_shows_public_datasets(self, client):
-        public_dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        private_dataset = DatasetFactory(visibility=Visibility.PRIVATE)
+        public_dataset = DatasetFactory(
+            name="Basalt Listing Dataset Q7", visibility=Visibility.PUBLIC
+        )
+        private_dataset = DatasetFactory(
+            name="Gneiss Listing Dataset Z4", visibility=Visibility.PRIVATE
+        )
 
         response = client.get(reverse("dataset-list"))
 
