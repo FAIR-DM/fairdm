@@ -14,7 +14,7 @@ from django.test import RequestFactory
 from django.test.utils import isolate_apps
 from django.urls import reverse
 from partial_dates import PartialDate
-from pytest_django.asserts import assertContains, assertNotContains
+from pytest_django.asserts import assertContains, assertNotContains, assertRedirects
 
 from demo.factories import RockSampleFactory, WaterSampleFactory, XRFMeasurementFactory
 from demo.models import RockSample
@@ -101,6 +101,31 @@ def released():
 @pytest.fixture
 def rock(released):
     return RockSampleFactory(dataset=released, name="Zq-4471 rift core")
+
+
+@pytest.mark.django_db
+class TestOverviewAddress:
+    def test_the_page_opens_at_the_samples_own_address(self, client, rock):
+        assert rock.get_absolute_url() == f"/samples/{rock.uuid}/"
+        assert client.get(f"/samples/{rock.uuid}/").status_code == 200
+
+    def test_the_former_address_redirects_to_the_samples_own_address(
+        self, client, rock
+    ):
+        response = client.get(f"/samples/{rock.uuid}/overview/?from=citation")
+
+        assertRedirects(
+            response, f"/samples/{rock.uuid}/?from=citation", status_code=301
+        )
+
+    def test_the_former_address_says_no_more_than_the_page_about_a_private_sample(
+        self, client
+    ):
+        private = RockSampleFactory(dataset=_dataset(public=False, published=False))
+
+        response = client.get(f"/samples/{private.uuid}/overview/", follow=True)
+
+        assert response.status_code == 404
 
 
 @pytest.mark.django_db

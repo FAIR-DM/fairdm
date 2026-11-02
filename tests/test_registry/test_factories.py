@@ -3,15 +3,17 @@
 import pytest
 from django.contrib import admin
 from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import FieldError
 from django.db import models
 from django.forms import ModelForm
 from django.test import RequestFactory
 from django_filters import FilterSet
 from django_tables2 import Table
 
-from demo.models import ExampleMeasurement
+from demo.models import ExampleMeasurement, RockSample
 from fairdm.api.serializers import BaseMeasurementSerializer, BaseSampleSerializer
 from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
+from fairdm.core.measurement.config import BaseMeasurementConfiguration
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
 from fairdm.factories import DatasetFactory, ProjectFactory
@@ -302,6 +304,30 @@ class TestFormFactory:
         fields = factory.get_fields()
 
         assert fields == parent_fields
+
+    def test_a_field_inherited_from_fields_that_cannot_be_edited_is_left_out(self):
+        config = ModelConfiguration(model=RockSample, fields=["rock_type", "uuid"])
+
+        assert list(config.get_form_class().base_fields) == ["rock_type"]
+        assert config.resolve_fields("table") == ["rock_type", "uuid"]
+
+    def test_a_measurement_types_own_field_that_cannot_be_edited_is_left_out(self):
+        config = BaseMeasurementConfiguration(
+            model=ExampleMeasurement, fields=["char_field", "uuid"]
+        )
+
+        fields = config.get_form_class().base_fields
+
+        assert "char_field" in fields
+        assert "uuid" not in fields
+
+    def test_a_field_named_for_the_form_that_cannot_be_edited_is_still_refused(self):
+        config = ModelConfiguration(
+            model=RockSample, fields=["rock_type"], form_fields=["uuid"]
+        )
+
+        with pytest.raises(FieldError, match="non-editable"):
+            config.get_form_class()
 
     def test_form_with_custom_widgets(self):
         factory = FormFactory(SampleModel, fields=["name", "collected_at"])

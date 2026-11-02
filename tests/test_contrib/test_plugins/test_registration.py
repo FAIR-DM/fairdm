@@ -113,7 +113,7 @@ class TestAddresses:
     def test_a_registered_plugin_reverses_through_the_record_namespace(self):
         sample = RockSampleFactory()
         url = reverse("sample:overview", kwargs={"uuid": sample.uuid})
-        assert url == f"/samples/{sample.uuid}/overview/"
+        assert url == f"/samples/{sample.uuid}/"
 
     def test_an_explicit_segment_is_the_one_served(self):
         @plugins.register(Sample, label="Custom")
@@ -128,7 +128,7 @@ class TestAddresses:
 
     def test_reverse_uses_the_record_s_declared_lookup(self):
         sample = RockSampleFactory()
-        assert plugin_reverse(sample, "overview").endswith(f"{sample.uuid}/overview/")
+        assert plugin_reverse(sample, "overview").endswith(f"{sample.uuid}/")
 
 
 @pytest.mark.django_db
