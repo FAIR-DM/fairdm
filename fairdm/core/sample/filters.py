@@ -8,6 +8,7 @@ from mvp.filters import SearchFilter
 
 from fairdm.contrib.autocomplete.fields import DatasetMultipleChoiceField
 from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
+from fairdm.core.filters import RecordTypeFilter
 from fairdm.core.measurement.filters import PartialDateFilter
 from fairdm.core.sample.models import Sample
 from fairdm.core.vocabularies import SAMPLE_STATUS
@@ -98,7 +99,7 @@ class SampleFilter(SampleFilterMixin, django_filters.FilterSet):
 
     dataset = RecordMultipleFilter(DatasetMultipleChoiceField, field_name="dataset")
 
-    polymorphic_ctype = django_filters.ModelChoiceFilter(
+    polymorphic_ctype = RecordTypeFilter(
         field_name="polymorphic_ctype",
         label=_("Sample Type"),
         queryset=None,

@@ -187,6 +187,14 @@ class TestMeasurementFilterPolymorphicTypeFiltering:
 
 
 class TestMeasurementFilterPolymorphicTypeChoices:
+    def test_each_type_is_labelled_with_its_verbose_name(self):
+        field = MeasurementFilter().form.fields["polymorphic_ctype"]
+
+        labels = [label for value, label in field.choices if value]
+
+        assert str(XRFMeasurement._meta.verbose_name) in labels
+        assert all(" | " not in label for label in labels)
+
     def test_choices_are_exactly_the_registered_measurement_types(self, clean_registry):
         registry.register(ConcreteMeasurement)
         registry.register(ConcreteSample)

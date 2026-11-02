@@ -85,6 +85,14 @@ class TestSampleFilterStatusFiltering:
 
 
 class TestSampleFilterPolymorphicTypeFiltering:
+    def test_each_type_is_labelled_with_its_verbose_name(self):
+        field = SampleFilter().form.fields["polymorphic_ctype"]
+
+        labels = [label for value, label in field.choices if value]
+
+        assert str(RockSample._meta.verbose_name) in labels
+        assert all(" | " not in label for label in labels)
+
     def test_filter_by_polymorphic_type(self, user, project, dataset):
         from django.contrib.contenttypes.models import ContentType
 

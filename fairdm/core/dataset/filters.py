@@ -1,14 +1,13 @@
 """Filters for the dataset list page."""
 
-import django_filters
 from django.utils.translation import gettext_lazy as _
 from mvp.filters import SearchFilter, SortFilter
 
 from fairdm.contrib.autocomplete.fields import ProjectMultipleChoiceField
 from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
-from fairdm.core.filters import BaseListFilter
+from fairdm.core.filters import BaseListFilter, ConceptTypeFilter
 
-from .models import Dataset
+from .models import Dataset, DatasetDate, DatasetDescription
 
 
 class DatasetFilter(BaseListFilter):
@@ -67,19 +66,19 @@ class DatasetFilter(BaseListFilter):
         help_text=_("Filter by associated project"),
     )
 
-    description_type = django_filters.CharFilter(
+    description_type = ConceptTypeFilter(
         field_name="descriptions__type",
-        lookup_expr="exact",
-        label="Description Type",
-        help_text="Filter by the address of a description type",
+        row_model=DatasetDescription,
+        label=_("Description Type"),
+        help_text=_("Keep the datasets with a description of this type"),
         distinct=True,  # Prevent duplicate results from joins
     )
 
-    date_type = django_filters.CharFilter(
+    date_type = ConceptTypeFilter(
         field_name="dates__type",
-        lookup_expr="exact",
-        label="Date Type",
-        help_text="Filter by the address of a date type",
+        row_model=DatasetDate,
+        label=_("Date Type"),
+        help_text=_("Keep the datasets with a date of this type"),
         distinct=True,
     )
 
