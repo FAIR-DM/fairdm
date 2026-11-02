@@ -1,0 +1,11 @@
+{% extends "mvp/error_base.html" %}
+{% load static %}
+
+{% comment %}
+  The error pages extend django-mvp's base directly, past `base.html`, so the theme needs linking
+  here for them to draw in it. The templates that `extends` reaches after this one are django-mvp's.
+{% endcomment %}
+{% block styles %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'css/fairdm-theme.css' %}" />
+{% endblock styles %}

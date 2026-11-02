@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 from django import forms
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
-from django.urls import resolve, reverse
+from django.urls import resolve, reverse, reverse_lazy
 from django.views.generic import CreateView
 from pytest_django.asserts import assertContains, assertNotContains
 
@@ -976,6 +976,19 @@ class TestProjectCardRendering:
         response = client.get(reverse("dataset-list"))
         assert response.status_code == 200
         assert "css/fairdm.css" in response.content.decode()
+
+    @pytest.mark.parametrize(
+        ("path", "status"),
+        [
+            pytest.param("/", 200, id="page"),
+            pytest.param(reverse_lazy("account_login"), 200, id="entrance"),
+            pytest.param("/no-such-page/", 404, id="error"),
+        ],
+    )
+    def test_the_theme_is_linked_on_every_kind_of_page(self, client, path, status):
+        response = client.get(str(path))
+        assert response.status_code == status
+        assert "css/fairdm-theme.css" in response.content.decode()
 
 
 @pytest.mark.django_db

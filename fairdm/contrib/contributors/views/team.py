@@ -18,7 +18,7 @@ class TeamView(FairDMTemplateView):
 
     template_name = "contributors/team.html"
     page_title = _("Portal Team")
-    page_subtitle = _(
+    page_lead = _(
         "Meet the individuals that maintain this portal and keep the community "
         "thriving."
     )

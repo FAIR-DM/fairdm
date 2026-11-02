@@ -19,7 +19,7 @@ You need a templates directory in one of your portal's apps. The blocks and thei
 
    {% block landing.about %}
      {{ block.super }}
-     <c-section class="bg-base-200">
+     <c-section class="bg-base-100">
        <c-heading eyebrow="{% translate 'Funding' %}"
                   title="{% translate 'Supported by the German Research Foundation' %}" />
      </c-section>

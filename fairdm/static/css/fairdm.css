@@ -8,9 +8,12 @@
 /* The card is the container and `.record-card__layout` reflows: a container query is answered
  * by an ancestor, never by the element's own `container-type`. */
 /* The accent colour is reserved for the record type. The base is the Project colour and a
- * modifier overrides it, so a card without a modifier still draws a legible stripe and badge. */
+ * modifier overrides it, so a card without a modifier still draws a legible stripe and badge.
+ * Only FairDM's own themes define the entity colours, and any other theme falls back to its
+ * `info` and `success`. */
 .record-card {
-  --record-accent: var(--color-info);
+  --record-accent: var(--color-entity-project, var(--color-info));
+  --record-tint: var(--color-entity-project-tint, color-mix(in oklch, var(--color-info) 12%, transparent));
   container-type: inline-size;
   display: block;
   overflow: hidden;
@@ -25,7 +28,8 @@
 }
 
 .record-card--dataset {
-  --record-accent: var(--color-success);
+  --record-accent: var(--color-entity-dataset, var(--color-success));
+  --record-tint: var(--color-entity-dataset-tint, color-mix(in oklch, var(--color-success) 12%, transparent));
 }
 
 .record-card__layout {
@@ -49,7 +53,7 @@
 .record-card__media {
   flex: none;
   aspect-ratio: 2 / 1;
-  background-color: var(--color-base-200);
+  background-color: var(--color-base-300);
   overflow: hidden;
 }
 
@@ -98,14 +102,16 @@
   min-width: 0;
 }
 
-/* Drawn from the stripe's custom property, tinted, so the status badge stays the loudest thing in the row. */
+/* Drawn from the stripe's custom properties, tinted, so the status badge stays the loudest thing in
+ * the row. A record colour is a line and a surface, so the words stay in the text colour. */
 .record-card__type {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  border: 1px solid color-mix(in oklch, var(--record-accent) 45%, transparent);
-  background-color: color-mix(in oklch, var(--record-accent) 12%, transparent);
-  color: var(--record-accent);
+  border: none;
+  border-inline-start: 3px solid var(--record-accent);
+  background-color: var(--record-tint);
+  color: var(--color-base-content);
   font-weight: 600;
 }
 
@@ -365,7 +371,7 @@
   object-fit: contain;
   padding: 0.5rem;
   border-radius: var(--radius-box, 1rem);
-  background-color: var(--color-base-200);
+  background-color: var(--color-base-300);
 }
 
 /* Tabs standing in for a card's header: each tab's name set as a card title. */

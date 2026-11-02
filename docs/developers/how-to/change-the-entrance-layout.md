@@ -20,6 +20,7 @@ You need a templates directory in one of your portal's apps. The layout is descr
    {% block styles %}
      {{ block.super }}
      <link rel="stylesheet" href="{% static 'css/daisy-cotton-ext.css' %}" />
+     <link rel="stylesheet" href="{% static 'css/fairdm-theme.css' %}" />
      <link rel="stylesheet" href="{% static 'css/fairdm.css' %}" />
    {% endblock styles %}
 

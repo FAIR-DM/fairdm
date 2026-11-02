@@ -1,4 +1,4 @@
-```{figure} _static/fairdm_light.svg
+```{figure} _static/fairdm_horizontal.svg
 :align: center
 :target: https://www.fairdm.org
 :width: 100%

@@ -285,7 +285,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         """
         if self.image:
             return self.image.url
-        return static("img/brand/icon.svg")
+        return static("brand/icon.svg")
 
     def get_initials(self):
         """Return initials from the first letter of the first two words in the name.

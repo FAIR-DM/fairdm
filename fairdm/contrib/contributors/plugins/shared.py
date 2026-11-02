@@ -923,7 +923,7 @@ class ContributionList(ContributionPage):
         ContributionMove,
     ]
 
-    def get_page_subtitle(self):
+    def get_page_lead(self):
         """Name the record the contributors belong to."""
         return str(self.base_object)
 

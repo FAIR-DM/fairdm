@@ -185,13 +185,13 @@ The groups are:
 
 - **Type**: `dict`
 - **Default**: `{"brand": {"avatar_resolver": "fairdm.contrib.contributors.utils.helpers.avatar_url"}, "layout": {"sidebar": {"title": "FairDM", "collapse": "icons"}, "navbar": {"end": []}}}`
-- **What it does**: Configures django-mvp's page shell. `brand.avatar_resolver` is the function that returns the image of an avatar. The FairDM function returns the contributor's 150 by 150 thumbnail for sizes up to `md`, the 600 by 600 thumbnail for `lg` and larger, and `None` when the contributor has no image. `layout.sidebar.title` is the text above the sidebar menu. `layout.navbar.end` is empty because the sidebar already carries the sign-in and theme controls.
+- **What it does**: Configures django-mvp's page shell. `brand.avatar_resolver` is the function that returns the image of an avatar. The FairDM function returns the contributor's 150 by 150 thumbnail for sizes up to `md`, the 600 by 600 thumbnail for `lg` and larger, and `None` when the contributor has no image. `layout.sidebar.title` is the text above the sidebar menu. `layout.navbar.end` is empty because the sidebar already carries the sign-in and theme controls. `theme` names the `fairdm` and `fairdm-dark` themes, defined in `fairdm/static/css/fairdm-theme.css`.
 - **Accepts**: The format django-mvp reads. Assign items, such as `MVP_CONFIG["layout"]["sidebar"]["title"] = "My Portal"`. The avatar resolver is a dotted path to a function that takes the object and a size and returns an address or `None`.
 
 ### `PAGE_CONFIG`
 
 - **Type**: `dict`
-- **Default**: `brand` with `text` set to [`SITE_NAME`](#site_name), `image_light` set to `"img/brand/logo.svg"` and `icon_light` set to `"img/brand/icon.svg"`. `sidebar` with `show_at` set to `False` and `collapsible` set to `True`. `navbar` with `fixed` set to `False` and `menu_visible_at` set to `"lg"`. `actions` holding three links: a theme toggle, a GitHub link to the FairDM repository and a link to `/docs/`.
+- **Default**: `brand` with `text` set to [`SITE_NAME`](#site_name), `image_light` set to `"brand/logo.svg"` and `icon_light` set to `"brand/icon.svg"`. `sidebar` with `show_at` set to `False` and `collapsible` set to `True`. `navbar` with `fixed` set to `False` and `menu_visible_at` set to `"lg"`. `actions` holding three links: a theme toggle, a GitHub link to the FairDM repository and a link to `/docs/`.
 - **What it does**: Describes the page shell. FairDM passes it to every template as `page_config`, with the logo, icon and name saved on the portal identity in the administration interface laid over `brand`. FairDM's sign-in and entrance pages read `brand.text`. `sidebar.show_at` is `False` for a navbar-only layout or a breakpoint from `"sm"` to `"xxl"` to show the sidebar in the page flow. `navbar.menu_visible_at` applies only when `sidebar.show_at` is `False`, and `False` hides the navbar menu.
 - **Accepts**: A dictionary with the keys above. Assign items so the other keys stay, such as `PAGE_CONFIG["actions"] = []` to remove the three default links.
 

@@ -100,7 +100,7 @@ Removing someone from their last rights-carrying role closes the administration 
 | `list_item_template` | `str` | `"contributors/contributor_card.html"` | The template that draws one holder. It receives the person as `object` |
 | `grid_config` | `dict` | `{"cols": 1, "md": 2, "lg": 4, "gap": 4}` | The grid the holders are laid out in |
 | `page_title` | lazy `str` | "Portal Team" | The page title |
-| `page_subtitle`, `page_info` | lazy `str` | Fixed texts | The text under the title and the information text |
+| `page_lead`, `page_info` | lazy `str` | Fixed texts | The text under the title and the information text |
 | `page_info_actions` | `list` of `dict` | One link, "About portal roles" | The actions beside the information text |
 
 | Method | Returns | What it does |

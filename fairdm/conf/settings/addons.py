@@ -44,6 +44,11 @@ MVP_CONFIG = {
     "brand": {
         "avatar_resolver": "fairdm.contrib.contributors.utils.helpers.avatar_url",
     },
+    # The pair `css/fairdm-theme.css` defines.
+    "theme": {
+        "default": "fairdm",
+        "dark": "fairdm-dark",
+    },
     "layout": {
         "sidebar": {
             "title": "FairDM",
@@ -311,8 +316,8 @@ FAIRDM_DEFAULT_LICENSE = "CC BY 4.0"
 PAGE_CONFIG = {
     "brand": {
         "text": SITE_NAME,  # noqa: F821 - SITE_NAME is defined in apps.py
-        "image_light": "img/brand/logo.svg",
-        "icon_light": "img/brand/icon.svg",
+        "image_light": "brand/logo.svg",
+        "icon_light": "brand/icon.svg",
     },
     "sidebar": {
         # False is navbar-only mode; a breakpoint ('sm' to 'xxl') shows the sidebar in-flow.
@@ -381,8 +386,8 @@ FAIRDM_CONFIG = {
     ],
     "logo": {
         "text": "FairDM",
-        "image_dark": "img/brand/fairdm.svg",
-        "image_light": "img/brand/fairdm.svg",
+        "image_dark": "brand/logo_dark.svg",
+        "image_light": "brand/logo.svg",
     },
     "announcement": "",
     "footer_start": ["copyright"],

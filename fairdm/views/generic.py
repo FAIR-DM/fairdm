@@ -33,7 +33,7 @@ class FairDMHomeView(MVPHomeView):
         organization_limit: How many organizations are named.
     """
 
-    page_subtitle = "Welcome"
+    page_lead = "Welcome"
     page_title = "Getting started"
     dashboard_template_name = "fairdm/dashboard.html"
     landing_template_name = "fairdm/landing.html"
@@ -226,11 +226,11 @@ class FairDMHomeView(MVPHomeView):
             "-credits", "pk"
         )[: self.organization_limit]
 
-    def get_page_subtitle(self):
+    def get_page_lead(self):
         """Greet a signed-in user by first name, falling back to the username."""
         if self.request.user.is_authenticated:
             return f"Welcome, {self.request.user.first_name or self.request.user.username}!"
-        return self.page_subtitle
+        return self.page_lead
 
     def get_page_title(self):
         """Title a signed-in user's page as their dashboard."""

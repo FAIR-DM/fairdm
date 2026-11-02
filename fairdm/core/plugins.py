@@ -34,7 +34,7 @@ class OverviewPlugin(Plugin, FairDMTemplateView):
     - permission: Set required permission for access
 
     Attributes:
-        page_subtitle: The page subtitle.
+        page_lead: The line under the page title.
         page_icon: The icon shown beside the page title.
         menu: The tab label, icon and order.
 
@@ -56,7 +56,7 @@ class OverviewPlugin(Plugin, FairDMTemplateView):
         ```
     """
 
-    page_subtitle = _("Overview")
+    page_lead = _("Overview")
     page_icon = "overview"
     menu = {"label": _("Overview"), "icon": "overview", "order": 0}
 
