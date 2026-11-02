@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.4.1] - 2026-11-02
+
 ### Fixed
 
 - **A `fairdm.forms.ModelForm` with a partial date field opens again.** Building the form raised
