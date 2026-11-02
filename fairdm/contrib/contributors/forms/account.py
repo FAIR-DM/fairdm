@@ -1,7 +1,6 @@
 """allauth forms customised for FairDM."""
 
 from allauth.account import forms as account_forms
-from allauth.account.utils import filter_users_by_email
 from allauth.socialaccount import forms as social_forms
 from crispy_forms.helper import FormHelper
 from django import forms
@@ -41,10 +40,7 @@ class SignupForm(account_forms.SignupForm):
 
 
 class SocialSignupForm(social_forms.SignupForm):
-    """Social signup form that lets an ORCID signup claim an inactive contributor account.
-
-    Contributors added by hand get an inactive account. When they later sign up with ORCID,
-    the signup links to that record instead of creating a duplicate.
+    """allauth social signup form with a display name and a crispy helper.
 
     Args:
         *args: Passed to the allauth form.
@@ -67,13 +63,3 @@ class SocialSignupForm(social_forms.SignupForm):
         self.helper.form_method = "post"
         self.helper.form_action = "socialaccount_signup"
         self.helper.form_id = "social-signup-form"
-
-    def try_save(self, request):
-        """Reuse an inactive account with the same email for an ORCID signup, skipping the email conflict."""
-        if self.account_already_exists and self.sociallogin.account.provider == "orcid":
-            existing = filter_users_by_email(self.cleaned_data["email"])
-            if existing and not existing[0].is_active:
-                self.instance = existing[0]
-                user = self.save(request)
-                return user, None
-        return super().try_save(request)

@@ -40,6 +40,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   covers every form built on `SampleFormMixin` or `MeasurementFormMixin`. A form of a portal's own
   that takes `**kwargs` must pop `request` before it forwards them to `ModelForm`, or the page
   raises `TypeError`.
+- **An ORCID sign-up with an address that an inactive account already holds now meets the normal
+  email conflict check.** The ORCID sign-up form skipped that check for any address held by an
+  inactive account. The sign-up then failed with a server error, made a second account when the
+  address was the inactive account's secondary one, or connected the ORCID login to a deactivated
+  profile holding that iD. Now no account is created and the owner of the address gets the usual
+  email saying an account already exists.
 - **A private project hides every dataset in it, and their samples and measurements.** A public
   dataset inside a private project, and the records of a published one, were shown to anyone: on
   their own pages, in the dataset list, in the API, in collection tables and their filters, and in

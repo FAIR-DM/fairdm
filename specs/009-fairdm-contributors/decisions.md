@@ -390,11 +390,6 @@ Findings that are real and are not this specification's work.
   out (`urls.py:12`) and the application is included without a namespace
   (`fairdm/conf/urls.py:18`), while the action reverses `contributors:claim-profile`
   (`admin.py:295`). Belongs to `010-profile-claiming`; raised as a bug.
-- **A second, undocumented claiming path.** `SocialSignupForm.try_save` (`forms/account.py:63`) is
-  wired into the live authentication settings and reuses an existing inactive account sharing an
-  email address, bypassing the conflict check. It keys on the active flag rather than the claim
-  value, writes no audit entry, and matches no requirement in `010-profile-claiming`. Raised against
-  010.
 - **Dead code left in place.** Seven names are defined and never imported anywhere, including tests:
   `ContributorFilter`, `PersonSelect2Widget`, `OrganizationSelect2Widget`, `UserIdentifierForm`,
   `UserIdentifierFormSet`, `OrganizationProfileForm` and `UserProfileForm`. One of them,
