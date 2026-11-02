@@ -15,6 +15,10 @@
 :class: autosummary longtable
 :align: left
 
+* - {py:obj}`OverviewRedirect <fairdm.core.sample.plugins.OverviewRedirect>`
+  - ```{autodoc2-docstring} fairdm.core.sample.plugins.OverviewRedirect
+    :summary:
+    ```
 * - {py:obj}`Overview <fairdm.core.sample.plugins.Overview>`
   - ```{autodoc2-docstring} fairdm.core.sample.plugins.Overview
     :summary:
@@ -22,6 +26,80 @@
 ````
 
 ### API
+
+`````{py:class} OverviewRedirect(**kwargs)
+:canonical: fairdm.core.sample.plugins.OverviewRedirect
+
+Bases: {py:obj}`fairdm.contrib.plugins.Plugin`, {py:obj}`django.views.generic.RedirectView`
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.OverviewRedirect
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.OverviewRedirect.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.core.sample.plugins.OverviewRedirect.name
+:value: >
+   'redirect'
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.OverviewRedirect.name
+```
+
+````
+
+````{py:attribute} url_path
+:canonical: fairdm.core.sample.plugins.OverviewRedirect.url_path
+:value: >
+   'overview'
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.OverviewRedirect.url_path
+```
+
+````
+
+````{py:attribute} pattern_name
+:canonical: fairdm.core.sample.plugins.OverviewRedirect.pattern_name
+:value: >
+   'sample:overview'
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.OverviewRedirect.pattern_name
+```
+
+````
+
+````{py:attribute} permanent
+:canonical: fairdm.core.sample.plugins.OverviewRedirect.permanent
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.OverviewRedirect.permanent
+```
+
+````
+
+````{py:attribute} query_string
+:canonical: fairdm.core.sample.plugins.OverviewRedirect.query_string
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.OverviewRedirect.query_string
+```
+
+````
+
+````{py:method} has_permission()
+:canonical: fairdm.core.sample.plugins.OverviewRedirect.has_permission
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.OverviewRedirect.has_permission
+```
+
+````
+
+`````
 
 `````{py:class} Overview(**kwargs)
 :canonical: fairdm.core.sample.plugins.Overview
@@ -64,6 +142,26 @@ Bases: {py:obj}`fairdm.core.plugins.TypedOverviewPlugin`
    'sample/sample_overview.html'
 
 ```{autodoc2-docstring} fairdm.core.sample.plugins.Overview.fallback_template
+```
+
+````
+
+````{py:attribute} url_path
+:canonical: fairdm.core.sample.plugins.Overview.url_path
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.Overview.url_path
+```
+
+````
+
+````{py:attribute} extra_views
+:canonical: fairdm.core.sample.plugins.Overview.extra_views
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.Overview.extra_views
 ```
 
 ````

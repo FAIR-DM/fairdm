@@ -18,7 +18,7 @@ The base model supplies two methods, and a type does not override either.
 The answer depends on what the type declares.
 
 1. **The type declares `value` and `uncertainty`, and both are set.** If `value` is a quantity, which is a number with units, `get_value()` returns the value with the uncertainty attached, so it reads as "48.25 ± 0.50 μm".
-2. **The type declares `value`, and no uncertainty is set.** `get_value()` returns the value as it is.
+2. **The type declares `value`, and no uncertainty is set.** `get_value()` returns the value as it is. The same goes for an uncertainty that cannot be applied, such as a negative one or one in units the value cannot take, so that the record's page still opens.
 3. **`value` is a plain number.** `get_value()` returns the number as it is, because only a quantity can carry an uncertainty. A type can still use a plain number, and it loses only the "±" in the text.
 4. **The type declares no `value`.** `get_value()` returns the measurement's name. A microscopy image, for example, has no single result to report, so its name stands in for one.
 

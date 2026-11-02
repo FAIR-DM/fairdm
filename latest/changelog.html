@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="changelog.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="All notable changes to the FairDM project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.[Unreleased]: Fixed: A private pr..." />
-<meta name="description" content="All notable changes to the FairDM project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.[Unreleased]: Fixed: A private pr..." />
+<meta property="og:description" content="All notable changes to the FairDM project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.[Unreleased]: Fixed: A sample’s p..." />
+<meta name="description" content="All notable changes to the FairDM project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.[Unreleased]: Fixed: A sample’s p..." />
 
     <title>Changelog &#8212; fairdm 0.4.1 documentation</title>
   
@@ -815,6 +815,18 @@ and this project adheres to <a class="reference external" href="https://semver.o
 <section id="fixed">
 <h3>Fixed<a class="headerlink" href="#fixed" title="Link to this heading">#</a></h3>
 <ul class="simple">
+<li><p><strong>A sample’s page answers at its own address, <code class="docutils literal notranslate"><span class="pre">/samples/&lt;uuid&gt;/</span></code>,</strong> as a project, dataset and
+measurement already do. The former address, <code class="docutils literal notranslate"><span class="pre">/samples/&lt;uuid&gt;/overview/</span></code>, redirects to it.</p></li>
+<li><p><strong>An edit page opens for a registered type whose <code class="docutils literal notranslate"><span class="pre">fields</span></code> name a field that cannot be edited.</strong>
+The generated form leaves out a field with <code class="docutils literal notranslate"><span class="pre">editable=False</span></code> that it inherits from <code class="docutils literal notranslate"><span class="pre">fields</span></code>. The
+same field listed in <code class="docutils literal notranslate"><span class="pre">form_fields</span></code> is still refused.</p></li>
+<li><p><strong>A measurement with a negative uncertainty, or one in units its value cannot take, can be
+shown.</strong> <code class="docutils literal notranslate"><span class="pre">get_value()</span></code> and <code class="docutils literal notranslate"><span class="pre">print_value()</span></code> return the plain value instead of raising, so the
+measurement’s page opens.</p></li>
+<li><p><strong>The Edit details page passes the request to a form whose constructor takes <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code>,</strong> which
+covers every form built on <code class="docutils literal notranslate"><span class="pre">SampleFormMixin</span></code> or <code class="docutils literal notranslate"><span class="pre">MeasurementFormMixin</span></code>. A form of a portal’s own
+that takes <code class="docutils literal notranslate"><span class="pre">**kwargs</span></code> must pop <code class="docutils literal notranslate"><span class="pre">request</span></code> before it forwards them to <code class="docutils literal notranslate"><span class="pre">ModelForm</span></code>, or the page
+raises <code class="docutils literal notranslate"><span class="pre">TypeError</span></code>.</p></li>
 <li><p><strong>A private project hides every dataset in it, and their samples and measurements.</strong> A public
 dataset inside a private project, and the records of a published one, were shown to anyone: on
 their own pages, in the dataset list, in the API, in collection tables and their filters, and in

@@ -94,7 +94,7 @@
 
 `````
 
-`````{py:class} FormFactory(model: type[django.db.models.Model], fields: list[str] | None = None)
+`````{py:class} FormFactory(model: type[django.db.models.Model], fields: list[str] | None = None, declared: list[str] | None = None)
 :canonical: fairdm.registry.factories.FormFactory
 
 Bases: {py:obj}`fairdm.registry.factories.ComponentFactory`
@@ -107,6 +107,14 @@ Bases: {py:obj}`fairdm.registry.factories.ComponentFactory`
 
 ```{autodoc2-docstring} fairdm.registry.factories.FormFactory.__init__
 ```
+
+````{py:method} get_fields() -> list[str]
+:canonical: fairdm.registry.factories.FormFactory.get_fields
+
+```{autodoc2-docstring} fairdm.registry.factories.FormFactory.get_fields
+```
+
+````
 
 ````{py:method} generate() -> type[django.forms.ModelForm]
 :canonical: fairdm.registry.factories.FormFactory.generate

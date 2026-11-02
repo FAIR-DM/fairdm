@@ -1723,7 +1723,9 @@ window.runMermaid = runMermaid;</script>
 <a class="viewcode-back" href="../../../developers/reference/api/fairdm/fairdm.registry.config.html#fairdm.registry.config.ModelConfiguration.get_form_class">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_form_class</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">[</span><span class="n">ModelForm</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Return the ModelForm for this model. Override to build your own."""</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_component_class</span><span class="p">(</span><span class="s2">"form"</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_component_class</span><span class="p">(</span>
+            <span class="s2">"form"</span><span class="p">,</span> <span class="n">declared</span><span class="o">=</span><span class="n">flatten_fields</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">form_fields</span> <span class="ow">or</span> <span class="p">[])</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ModelConfiguration.get_table_class">

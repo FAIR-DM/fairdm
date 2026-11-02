@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="developers/reference/api/fairdm/fairdm.core.sample.plugins.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="Registered pages for a sample: its overview. Module Contents: Classes:,, Overview, The sample’s own page, drawn from sample/sample_overview.html, which reads only the base Sample model. A sample ty..." />
-<meta name="description" content="Registered pages for a sample: its overview. Module Contents: Classes:,, Overview, The sample’s own page, drawn from sample/sample_overview.html, which reads only the base Sample model. A sample ty..." />
+<meta property="og:description" content="Registered pages for a sample: its overview. Module Contents: Classes:,, OverviewRedirect, Send overview/, where a sample’s page used to live, to the record’s own address.,, Overview, The sample’s ..." />
+<meta name="description" content="Registered pages for a sample: its overview. Module Contents: Classes:,, OverviewRedirect, Send overview/, where a sample’s page used to live, to the record’s own address.,, Overview, The sample’s ..." />
 
     <title>fairdm.core.sample.plugins &#8212; fairdm 0.4.1 documentation</title>
   
@@ -1092,7 +1092,10 @@ commentsRunWhenDOMLoaded(addUtterances);
 <h3>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table table-left">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.core.sample.plugins.Overview" title="fairdm.core.sample.plugins.Overview"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Overview</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.core.sample.plugins.OverviewRedirect" title="fairdm.core.sample.plugins.OverviewRedirect"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OverviewRedirect</span></code></a></p></td>
+<td><p>Send <code class="docutils literal notranslate"><span class="pre">overview/</span></code>, where a sample’s page used to live, to the record’s own address.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.core.sample.plugins.Overview" title="fairdm.core.sample.plugins.Overview"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Overview</span></code></a></p></td>
 <td><p>The sample’s own page, drawn from <code class="docutils literal notranslate"><span class="pre">sample/sample_overview.html</span></code>, which reads only the
 base <code class="docutils literal notranslate"><span class="pre">Sample</span></code> model. A sample type adds its own content with
 <code class="docutils literal notranslate"><span class="pre">&lt;app_label&gt;/&lt;model_name&gt;_overview.html</span></code>; see :class:<code class="docutils literal notranslate"><span class="pre">TypedOverviewPlugin</span></code>.</p></td>
@@ -1103,6 +1106,54 @@ base <code class="docutils literal notranslate"><span class="pre">Sample</span><
 </section>
 <section id="api">
 <h3>API<a class="headerlink" href="#api" title="Link to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.core.sample.plugins.OverviewRedirect">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">OverviewRedirect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.sample.plugins.OverviewRedirect" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.contrib.plugins.Plugin</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.views.generic.RedirectView</span></code></p>
+<p>Send <code class="docutils literal notranslate"><span class="pre">overview/</span></code>, where a sample’s page used to live, to the record’s own address.</p>
+<p>It looks at no record. The page it leads to decides who may see the sample, so a private
+sample and an address that does not exist get the same answer here.</p>
+<p class="rubric">Initialization</p>
+<p>Constructor. Called in the URLconf; can contain helpful extra
+keyword arguments, and other things.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.core.sample.plugins.OverviewRedirect.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#fairdm.core.sample.plugins.OverviewRedirect.name" title="Link to this definition">#</a></dt>
+<dd><p>‘redirect’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.core.sample.plugins.OverviewRedirect.url_path">
+<span class="sig-name descname"><span class="pre">url_path</span></span><a class="headerlink" href="#fairdm.core.sample.plugins.OverviewRedirect.url_path" title="Link to this definition">#</a></dt>
+<dd><p>‘overview’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.core.sample.plugins.OverviewRedirect.pattern_name">
+<span class="sig-name descname"><span class="pre">pattern_name</span></span><a class="headerlink" href="#fairdm.core.sample.plugins.OverviewRedirect.pattern_name" title="Link to this definition">#</a></dt>
+<dd><p>‘sample:overview’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.core.sample.plugins.OverviewRedirect.permanent">
+<span class="sig-name descname"><span class="pre">permanent</span></span><a class="headerlink" href="#fairdm.core.sample.plugins.OverviewRedirect.permanent" title="Link to this definition">#</a></dt>
+<dd><p>True</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.core.sample.plugins.OverviewRedirect.query_string">
+<span class="sig-name descname"><span class="pre">query_string</span></span><a class="headerlink" href="#fairdm.core.sample.plugins.OverviewRedirect.query_string" title="Link to this definition">#</a></dt>
+<dd><p>True</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.sample.plugins.OverviewRedirect.has_permission">
+<span class="sig-name descname"><span class="pre">has_permission</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.sample.plugins.OverviewRedirect.has_permission" title="Link to this definition">#</a></dt>
+<dd><p>Let everyone through to the page that decides.</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="fairdm.core.sample.plugins.Overview">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Overview</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.sample.plugins.Overview" title="Link to this definition">#</a></dt>
@@ -1142,6 +1193,18 @@ keyword arguments, and other things.</p>
 <dt class="sig sig-object py" id="fairdm.core.sample.plugins.Overview.fallback_template">
 <span class="sig-name descname"><span class="pre">fallback_template</span></span><a class="headerlink" href="#fairdm.core.sample.plugins.Overview.fallback_template" title="Link to this definition">#</a></dt>
 <dd><p>‘sample/sample_overview.html’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.core.sample.plugins.Overview.url_path">
+<span class="sig-name descname"><span class="pre">url_path</span></span><a class="headerlink" href="#fairdm.core.sample.plugins.Overview.url_path" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.core.sample.plugins.Overview.extra_views">
+<span class="sig-name descname"><span class="pre">extra_views</span></span><a class="headerlink" href="#fairdm.core.sample.plugins.Overview.extra_views" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1294,10 +1357,21 @@ For example “1 parent · 2 subsamples”, or “None recorded”.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#api">API</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.OverviewRedirect"><code class="docutils literal notranslate"><span class="pre">OverviewRedirect</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.OverviewRedirect.name"><code class="docutils literal notranslate"><span class="pre">OverviewRedirect.name</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.OverviewRedirect.url_path"><code class="docutils literal notranslate"><span class="pre">OverviewRedirect.url_path</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.OverviewRedirect.pattern_name"><code class="docutils literal notranslate"><span class="pre">OverviewRedirect.pattern_name</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.OverviewRedirect.permanent"><code class="docutils literal notranslate"><span class="pre">OverviewRedirect.permanent</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.OverviewRedirect.query_string"><code class="docutils literal notranslate"><span class="pre">OverviewRedirect.query_string</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.OverviewRedirect.has_permission"><code class="docutils literal notranslate"><span class="pre">OverviewRedirect.has_permission()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.Overview"><code class="docutils literal notranslate"><span class="pre">Overview</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.Overview.fieldsets"><code class="docutils literal notranslate"><span class="pre">Overview.fieldsets</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.Overview.base_model"><code class="docutils literal notranslate"><span class="pre">Overview.base_model</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.Overview.fallback_template"><code class="docutils literal notranslate"><span class="pre">Overview.fallback_template</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.Overview.url_path"><code class="docutils literal notranslate"><span class="pre">Overview.url_path</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.Overview.extra_views"><code class="docutils literal notranslate"><span class="pre">Overview.extra_views</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.Overview.lifecycle"><code class="docutils literal notranslate"><span class="pre">Overview.lifecycle</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.Overview.status_variants"><code class="docutils literal notranslate"><span class="pre">Overview.status_variants</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.Overview.status_meanings"><code class="docutils literal notranslate"><span class="pre">Overview.status_meanings</span></code></a></li>
