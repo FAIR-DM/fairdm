@@ -1,6 +1,7 @@
 """allauth forms customised for FairDM."""
 
 from allauth.account import forms as account_forms
+from allauth.account.adapter import get_adapter
 from allauth.socialaccount import forms as social_forms
 from crispy_forms.helper import FormHelper
 from django import forms
@@ -21,6 +22,21 @@ class LoginForm(account_forms.LoginForm):
         self.helper.form_method = "post"
         self.helper.form_action = "account_login"
         self.helper.form_id = "login-form"
+
+
+class UserTokenForm(account_forms.UserTokenForm):
+    """allauth reset-link check that also applies ``can_reset_password``.
+
+    The account adapter stops new mail. This stops a link sent before that, which
+    stays valid for as long as the person's password is unchanged.
+    """
+
+    def clean(self):
+        """Refuse the link as invalid when the person may not reset a password."""
+        cleaned_data = super().clean()
+        if not self.reset_user.can_reset_password():
+            raise get_adapter().validation_error("invalid_password_reset")
+        return cleaned_data
 
 
 class SignupForm(account_forms.SignupForm):

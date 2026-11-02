@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A password reset no longer reaches a profile nobody has claimed.** An invited profile, one with
+  an email address and no account, was sent a reset link that set a password on it, which handed
+  the profile to whoever held the address without a claim. The reset page now answers as it does
+  for an unknown address, no mail goes out, and a link sent earlier is refused. A portal that sets
+  `ACCOUNT_FORMS` should keep the new `user_token` entry.
 - **A project's Datasets tab lists what the viewer may see, with its counts.** The tab left out
   every private dataset, even for the project's team, and every card said it held no samples or
   measurements. It now lists the project's datasets the viewer may see, through the new

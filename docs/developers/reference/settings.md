@@ -897,8 +897,8 @@ The Celery settings use the `CELERY_` prefix, which FairDM's Celery application 
 ### `ACCOUNT_FORMS`
 
 - **Type**: `dict[str, str]`
-- **Default**: `login` is `fairdm.contrib.contributors.forms.account.LoginForm` and `signup` is `fairdm.contrib.contributors.forms.account.SignupForm`.
-- **What it does**: The allauth forms FairDM replaces.
+- **Default**: `login` is `fairdm.contrib.contributors.forms.account.LoginForm`, `signup` is `fairdm.contrib.contributors.forms.account.SignupForm` and `user_token` is `fairdm.contrib.contributors.forms.account.UserTokenForm`.
+- **What it does**: The allauth forms FairDM replaces. `UserTokenForm` checks a password-reset link and refuses one for a profile nobody has claimed, so keep it when you set this dictionary.
 - **Accepts**: allauth's format. Subclass the FairDM form, so its fields stay.
 
 ### `ACCOUNT_LOGIN_METHODS`

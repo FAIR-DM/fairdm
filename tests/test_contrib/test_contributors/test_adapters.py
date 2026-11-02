@@ -5,11 +5,15 @@ from unittest.mock import MagicMock
 
 import pytest
 from allauth.core.exceptions import ImmediateHttpResponse
+from django.core import mail
+from django.urls import reverse
+from django.utils import timezone
 from waffle.testutils import override_switch
 
 from fairdm.contrib.contributors.adapters import AccountAdapter, SocialAccountAdapter
 from fairdm.contrib.contributors.models import ContributorIdentifier, Person
 from fairdm.core.vocabularies import IDENTIFIER_TYPES
+from fairdm.factories import PersonFactory
 
 ORCID_UID = "0000-0002-9999-0001"
 
@@ -234,3 +238,63 @@ class TestIsOpenForSignup:
         request_mock.session = {"account_verified_email": "person@example.com"}
         with override_switch("allow_signup", active=True):
             assert account_adapter.is_open_for_signup(request_mock) is True
+
+
+class TestSendPasswordResetMail:
+    def request_reset(self, client, email):
+        return client.post(reverse("account_reset_password"), {"email": email})
+
+    def test_invited_profile_gets_no_mail(self, client, db):
+        PersonFactory(email="invited@example.com")
+
+        response = self.request_reset(client, "invited@example.com")
+
+        assert response.status_code == 302
+        assert response.url == reverse("account_reset_password_done")
+        assert mail.outbox == []
+
+    def test_invited_profile_saved_with_a_blank_password_gets_no_mail(self, client, db):
+        Person.objects.create(email="imported@example.com")
+
+        self.request_reset(client, "imported@example.com")
+
+        assert mail.outbox == []
+
+    def test_unknown_address_gets_the_same_answer(self, client, db):
+        invited = PersonFactory(email="invited@example.com")
+
+        unknown = self.request_reset(client, "nobody@example.com")
+        answered = self.request_reset(client, invited.email)
+
+        assert (answered.status_code, answered.url) == (
+            unknown.status_code,
+            unknown.url,
+        )
+
+    def test_claimed_account_gets_the_mail(self, client, db):
+        PersonFactory(email="claimed@example.com", is_claimed=True, password="pw")
+
+        self.request_reset(client, "claimed@example.com")
+
+        assert [message.to for message in mail.outbox] == [["claimed@example.com"]]
+
+    def test_claimed_account_with_no_password_gets_the_mail(self, client, db):
+        PersonFactory(email="orcid@example.com", is_claimed=True)
+
+        self.request_reset(client, "orcid@example.com")
+
+        assert len(mail.outbox) == 1
+
+    def test_person_who_has_signed_in_gets_the_mail(self, client, db):
+        PersonFactory(email="signedin@example.com", last_login=timezone.now())
+
+        self.request_reset(client, "signedin@example.com")
+
+        assert len(mail.outbox) == 1
+
+    def test_account_with_a_password_not_yet_claimed_gets_the_mail(self, client, db):
+        PersonFactory(email="superuser@example.com", password="pw")
+
+        self.request_reset(client, "superuser@example.com")
+
+        assert len(mail.outbox) == 1

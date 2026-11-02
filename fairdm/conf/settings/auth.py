@@ -79,6 +79,7 @@ FAIRDM_INVITATION_ONLY_SIGNUP = False
 ACCOUNT_FORMS = {
     "login": "fairdm.contrib.contributors.forms.account.LoginForm",
     "signup": "fairdm.contrib.contributors.forms.account.SignupForm",
+    "user_token": "fairdm.contrib.contributors.forms.account.UserTokenForm",
 }
 
 SOCIALACCOUNT_FORMS = {

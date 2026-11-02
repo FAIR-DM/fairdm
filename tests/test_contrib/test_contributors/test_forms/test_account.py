@@ -1,7 +1,9 @@
 """Tests for the allauth signup forms."""
 
 import pytest
+from allauth.account.forms import default_token_generator
 from allauth.account.models import EmailAddress
+from allauth.account.utils import user_pk_to_url_str
 from allauth.socialaccount.models import SocialAccount, SocialApp, SocialLogin
 from django.contrib.sites.models import Site
 from django.urls import reverse
@@ -89,3 +91,37 @@ class TestSocialSignupForm:
 
         assert response.url == reverse("account_email_verification_sent")
         assert not SocialAccount.objects.exists()
+
+
+class TestUserTokenForm:
+    def follow_reset_link(self, client, person):
+        url = reverse(
+            "account_reset_password_from_key",
+            kwargs={
+                "uidb36": user_pk_to_url_str(person),
+                "key": default_token_generator.make_token(person),
+            },
+        )
+        response = client.get(url, follow=True)
+        return client.post(
+            response.redirect_chain[-1][0] if response.redirect_chain else url,
+            {"password1": "a-new-Passw0rd!", "password2": "a-new-Passw0rd!"},
+        )
+
+    def test_invited_profile_gets_no_password_from_a_sent_link(self, client, db):
+        person = PersonFactory(email="invited@example.com")
+
+        response = self.follow_reset_link(client, person)
+
+        person.refresh_from_db()
+        assert person.has_usable_password() is False
+        assert response.context["token_fail"] is True
+
+    def test_claimed_account_sets_a_password_from_the_link(self, client, db):
+        person = PersonFactory(email="claimed@example.com", is_claimed=True)
+
+        response = self.follow_reset_link(client, person)
+
+        person.refresh_from_db()
+        assert response.url == reverse("account_reset_password_from_key_done")
+        assert person.check_password("a-new-Passw0rd!") is True
