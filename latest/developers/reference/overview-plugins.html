@@ -1626,10 +1626,13 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">published()</span></code></p></td>
 <td><p>The records whose own dataset is published.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">visible_to(user)</span></code></p></td>
-<td><p>The records in a dataset that is public and published, and those the user holds at least the view level on, on the record or from its dataset or that dataset’s project.</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">outside_private_projects()</span></code></p></td>
+<td><p>The records no private project hides: their own dataset has no project or a public one.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_level(user,</span> <span class="pre">level)</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">visible_to(user)</span></code></p></td>
+<td><p>The records in a dataset that is public and published and not in a private project, and those the user holds at least the view level on, on the record or from its dataset or that dataset’s project.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_level(user,</span> <span class="pre">level)</span></code></p></td>
 <td><p>The records the user holds at least that level on.</p></td>
 </tr>
 </tbody>

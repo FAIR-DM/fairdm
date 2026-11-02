@@ -21,6 +21,6 @@ A person who manages the project can do this themselves, and it is the usual rou
 
 The project's page opens for everyone, and the project appears in the portal's list of projects. The project's status is unchanged.
 
-Its datasets keep their own visibility. A private dataset stays closed, and the samples and measurements of a public dataset stay hidden until the dataset is published. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md).
+Its datasets keep their own visibility, and its public datasets open for everyone from now on. A private dataset stays closed, and the samples and measurements of a public dataset stay hidden until the dataset is published. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md).
 
 The administration interface has no bulk action for visibility, so a project is made public one at a time. To close a project again, set **Visibility** to **Private**.

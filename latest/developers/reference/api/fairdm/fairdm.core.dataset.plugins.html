@@ -1133,7 +1133,8 @@ commentsRunWhenDOMLoaded(addUtterances);
 <dt class="sig sig-object py" id="fairdm.core.dataset.plugins.dataset_is_visible">
 <span class="sig-name descname"><span class="pre">dataset_is_visible</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.dataset.plugins.dataset_is_visible" title="Link to this definition">#</a></dt>
 <dd><p>Return whether the request’s user may view a dataset.</p>
-<p>A public dataset is always visible, a private one only with <code class="docutils literal notranslate"><span class="pre">dataset.view_dataset</span></code>.
+<p>A public dataset no private project hides is visible to anyone. Otherwise the viewer needs
+<code class="docutils literal notranslate"><span class="pre">dataset.view_dataset</span></code>, which a level on the dataset or its project gives.
 The plugin lookup reads through <code class="docutils literal notranslate"><span class="pre">Dataset.all_objects</span></code> so a private dataset’s owner can
 still open it, which is why this check is needed. It is set as <code class="docutils literal notranslate"><span class="pre">Overview.check</span></code>.</p>
 <p>Args:
@@ -1303,8 +1304,8 @@ The counts, each with a short description of how many types it spans.</p>
 <dt class="sig sig-object py" id="fairdm.core.dataset.plugins.Overview.get_project_info">
 <span class="sig-name descname"><span class="pre">get_project_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.dataset.plugins.Overview.get_project_info" title="Link to this definition">#</a></dt>
 <dd><p>Find the parent project when the viewer may see it.</p>
-<p>Nothing ties a dataset’s visibility to its project’s, so a public dataset can sit in a
-private project that must not be named.</p>
+<p>Someone with a level on the dataset alone can open a dataset in a private project, and
+that project must not be named to them.</p>
 <p>Returns:
 The project and how many other datasets in it the viewer may see, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 </dd></dl>

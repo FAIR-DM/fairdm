@@ -1215,7 +1215,8 @@ window.runMermaid = runMermaid;</script>
             <span class="n">visibility</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">"visibility"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">visibility</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">visibility</span> <span class="o">==</span> <span class="n">Visibility</span><span class="o">.</span><span class="n">PUBLIC</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">True</span>
-            <span class="c1"># Sample and Measurement are public when their dataset is public and published.</span>
+            <span class="c1"># FairDMVisibilityFilter has already removed a sample or measurement a private</span>
+            <span class="c1"># project hides, so here its dataset's own flags decide.</span>
             <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s2">"dataset"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="s2">"data_is_public"</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
                 <span class="k">return</span> <span class="kc">True</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">is_authenticated</span><span class="p">:</span>

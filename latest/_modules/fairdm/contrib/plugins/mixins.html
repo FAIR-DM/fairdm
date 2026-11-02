@@ -1147,8 +1147,6 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.http</span><span class="w"> </span><span class="kn">import</span> <span class="n">Http404</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">fairdm.utils.choices</span><span class="w"> </span><span class="kn">import</span> <span class="n">Visibility</span>
-
 
 <div class="viewcode-block" id="PrivateRecordNotFoundMixin">
 <a class="viewcode-back" href="../../../../developers/reference/api/fairdm/fairdm.contrib.plugins.mixins.html#fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin">[docs]</a>
@@ -1167,7 +1165,7 @@ window.runMermaid = runMermaid;</script>
     <span class="k">def</span><span class="w"> </span><span class="nf">handle_no_permission</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Raise a 404 for a non-public record, otherwise refuse as usual."""</span>
         <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_object</span>
-        <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">obj</span><span class="o">.</span><span class="n">visibility</span> <span class="o">!=</span> <span class="n">Visibility</span><span class="o">.</span><span class="n">PUBLIC</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">obj</span><span class="o">.</span><span class="n">open_to_everyone</span><span class="p">:</span>
             <span class="n">model</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"registered_model"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="n">kind</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">verbose_name</span> <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">"record"</span>
             <span class="k">raise</span> <span class="n">Http404</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2"> matches the given query."</span><span class="p">)</span>

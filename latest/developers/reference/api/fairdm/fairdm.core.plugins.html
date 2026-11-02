@@ -1347,7 +1347,7 @@ parent type’s page until it provides its own.</p>
 published, and otherwise only for people who hold a level on the record, or on its dataset or that dataset’s
 project (<code class="docutils literal notranslate"><span class="pre">visible_to</span></code>). Anyone else gets a
 404, so the address never confirms the record exists. <code class="docutils literal notranslate"><span class="pre">PrivateRecordNotFoundMixin</span></code> can’t be
-reused here: it reads <code class="docutils literal notranslate"><span class="pre">obj.visibility</span></code>, which samples and measurements don’t have.</p>
+reused here: it reads <code class="docutils literal notranslate"><span class="pre">obj.open_to_everyone</span></code>, which samples and measurements don’t have.</p>
 <p class="rubric">Initialization</p>
 <p>Constructor. Called in the URLconf; can contain helpful extra
 keyword arguments, and other things.</p>

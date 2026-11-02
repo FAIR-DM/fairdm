@@ -1351,8 +1351,13 @@ window.runMermaid = runMermaid;</script>
 <div class="viewcode-block" id="MeasurementTable.render_sample">
 <a class="viewcode-back" href="../../../../developers/reference/api/fairdm/fairdm.contrib.collections.tables.html#fairdm.contrib.collections.tables.MeasurementTable.render_sample">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">render_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Link the sample only when its dataset is published."""</span>
-        <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">published</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Link the sample only when its dataset is published and no private project hides it."""</span>
+        <span class="n">dataset</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">dataset</span>
+        <span class="n">hidden_by_project</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">dataset</span><span class="o">.</span><span class="n">project</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">dataset</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">visibility</span> <span class="o">!=</span> <span class="n">Visibility</span><span class="o">.</span><span class="n">PUBLIC</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">dataset</span><span class="o">.</span><span class="n">published</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">hidden_by_project</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">format_html</span><span class="p">(</span><span class="s1">'&lt;a href="</span><span class="si">{}</span><span class="s1">"&gt;</span><span class="si">{}</span><span class="s1">&lt;/a&gt;'</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">get_absolute_url</span><span class="p">(),</span> <span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_</span><span class="p">(</span><span class="s2">"Unpublished"</span><span class="p">)</span></div>
 </div>

@@ -1230,16 +1230,16 @@ The sample or measurement table for those hierarchies, otherwise
 <code class="docutils literal notranslate"><span class="pre">Dataset.objects</span></code>: the default manager excludes PRIVATE datasets, and a
 published-but-private dataset is the ordinary state, so
 <code class="docutils literal notranslate"><span class="pre">Dataset.objects.published()</span></code> would leave a filter offering nothing while
-the table shows that dataset’s rows. Publication is the only test a listing
-applies.</p>
+the table shows that dataset’s rows. A listing applies publication and leaves
+out what a private project hides.</p>
 <p><code class="docutils literal notranslate"><span class="pre">None</span></code> rather than an unscoped queryset, so a caller can tell “every
 published one” from “not this model’s question” - a content-type filter
 already scoped to the registered types must not be widened back out.</p>
 <p>Args:
 related_model: The model whose records a filter offers.</p>
 <p>Returns:
-A queryset of the published records for a Dataset, Sample or Measurement
-model, otherwise <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+A queryset of the published records outside private projects for a
+Dataset, Sample or Measurement model, otherwise <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 </dd></dl>
 
 <dl class="py class">

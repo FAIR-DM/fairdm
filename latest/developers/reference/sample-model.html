@@ -1361,16 +1361,19 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">published()</span></code></p></td>
 <td><p>The samples whose own dataset is published.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">visible_to(user)</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">outside_private_projects()</span></code></p></td>
+<td><p>The samples whose own dataset has no project or a public one.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">visible_to(user)</span></code></p></td>
 <td><p>The samples the user may see.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_level(user,</span> <span class="pre">level)</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_level(user,</span> <span class="pre">level)</span></code></p></td>
 <td><p>The samples on which the user holds at least a level.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">accessible_to(user,</span> <span class="pre">level)</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">accessible_to(user,</span> <span class="pre">level)</span></code></p></td>
 <td><p>The samples the user may act on at a level.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">instance_of(*types)</span></code> and <code class="docutils literal notranslate"><span class="pre">not_instance_of(*types)</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">instance_of(*types)</span></code> and <code class="docutils literal notranslate"><span class="pre">not_instance_of(*types)</span></code></p></td>
 <td><p>Samples that are, or are not, of the given types. These come from <a class="reference external" href="https://django-polymorphic.readthedocs.io/">django-polymorphic</a>.</p></td>
 </tr>
 </tbody>

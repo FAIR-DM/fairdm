@@ -1603,7 +1603,8 @@ authors: <code class="docutils literal notranslate"><span class="pre">(family,</
 <dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">factory.django.DjangoModelFactory</span></code></p>
 <p>Factory for creating Dataset instances.</p>
 <p>By default, creates a minimal Dataset with only required fields.
-Project is auto-created unless provided.</p>
+Project is auto-created unless provided. It is public, so the dataset’s own visibility
+decides: a private project would hide the dataset whatever its visibility.</p>
 <p>To create descriptions/dates:
 DatasetFactory(descriptions=2)  # Creates 2 descriptions
 DatasetFactory(descriptions=2, descriptions__types=[ABSTRACT, f”{DESCRIPTION_TYPES}/methods”])

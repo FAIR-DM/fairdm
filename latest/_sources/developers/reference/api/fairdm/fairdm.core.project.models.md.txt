@@ -263,6 +263,14 @@ Bases: {py:obj}`fairdm.core.abstract.BaseModel`
 
 ````
 
+````{py:property} open_to_everyone
+:canonical: fairdm.core.project.models.Project.open_to_everyone
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.open_to_everyone
+```
+
+````
+
 ````{py:property} is_active
 :canonical: fairdm.core.project.models.Project.is_active
 

@@ -1578,7 +1578,8 @@ keyword arguments, and other things.</p>
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">DatasetRecordsAutocompleteView</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.autocomplete.views.DatasetRecordsAutocompleteView" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#fairdm.contrib.autocomplete.views.RecordAutocompleteView" title="fairdm.contrib.autocomplete.views.RecordAutocompleteView"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.contrib.autocomplete.views.RecordAutocompleteView</span></code></a></p>
 <p>Offer samples or measurements, the records that sit inside a dataset.</p>
-<p>A record of these kinds is public when its dataset is public and published.</p>
+<p>A record of these kinds is public when its dataset is public and published and no private
+project hides it.</p>
 <p class="rubric">Initialization</p>
 <p>Constructor. Called in the URLconf; can contain helpful extra
 keyword arguments, and other things.</p>
@@ -1597,13 +1598,13 @@ keyword arguments, and other things.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="fairdm.contrib.autocomplete.views.DatasetRecordsAutocompleteView.public_q">
 <span class="sig-name descname"><span class="pre">public_q</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.autocomplete.views.DatasetRecordsAutocompleteView.public_q" title="Link to this definition">#</a></dt>
-<dd><p>Return the condition for a record whose dataset is public and published.</p>
+<dd><p>Return the condition for a record anyone may see.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="fairdm.contrib.autocomplete.views.DatasetRecordsAutocompleteView.get_value_fields">
 <span class="sig-name descname"><span class="pre">get_value_fields</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.autocomplete.views.DatasetRecordsAutocompleteView.get_value_fields" title="Link to this definition">#</a></dt>
-<dd><p>Add the visibility of the record’s own dataset, which decides its badge.</p>
+<dd><p>Add the visibility of the record’s dataset and project, which decide its badge.</p>
 </dd></dl>
 
 <dl class="py method">

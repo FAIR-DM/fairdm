@@ -29,7 +29,37 @@
     ```
 ````
 
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`no_private_project <fairdm.core.managers.no_private_project>`
+  - ```{autodoc2-docstring} fairdm.core.managers.no_private_project
+    :summary:
+    ```
+* - {py:obj}`released_to_everyone <fairdm.core.managers.released_to_everyone>`
+  - ```{autodoc2-docstring} fairdm.core.managers.released_to_everyone
+    :summary:
+    ```
+````
+
 ### API
+
+````{py:function} no_private_project(prefix: str = '') -> django.db.models.Q
+:canonical: fairdm.core.managers.no_private_project
+
+```{autodoc2-docstring} fairdm.core.managers.no_private_project
+```
+````
+
+````{py:function} released_to_everyone() -> django.db.models.Q
+:canonical: fairdm.core.managers.released_to_everyone
+
+```{autodoc2-docstring} fairdm.core.managers.released_to_everyone
+```
+````
 
 `````{py:class} PolymorphicManager
 :canonical: fairdm.core.managers.PolymorphicManager
@@ -85,6 +115,14 @@ Bases: {py:obj}`fairdm.core.managers.RecordLevelMixin`
 :canonical: fairdm.core.managers.RecordVisibilityMixin.published
 
 ```{autodoc2-docstring} fairdm.core.managers.RecordVisibilityMixin.published
+```
+
+````
+
+````{py:method} outside_private_projects()
+:canonical: fairdm.core.managers.RecordVisibilityMixin.outside_private_projects
+
+```{autodoc2-docstring} fairdm.core.managers.RecordVisibilityMixin.outside_private_projects
 ```
 
 ````

@@ -1120,8 +1120,33 @@ commentsRunWhenDOMLoaded(addUtterances);
 </table>
 </div>
 </section>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table table-left">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.api.filters.get_public_filter" title="fairdm.api.filters.get_public_filter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_public_filter</span></code></a></p></td>
+<td><p>Return a queryset condition that selects publicly-visible records.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <section id="api">
 <h3>API<a class="headerlink" href="#api" title="Link to this heading">#</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="fairdm.api.filters.get_public_filter">
+<span class="sig-name descname"><span class="pre">get_public_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">django.db.models.Q</span></span></span><a class="headerlink" href="#fairdm.api.filters.get_public_filter" title="Link to this definition">#</a></dt>
+<dd><p>Return a queryset condition that selects publicly-visible records.</p>
+<p>Project and Dataset carry an integer <code class="docutils literal notranslate"><span class="pre">visibility</span></code> field, and a private project also hides
+the datasets in it. Sample and Measurement have none: they are public when their dataset is
+public and published and no private project hides it, as the portal has it.</p>
+<p>Args:
+model: The model class to build the filter for.</p>
+<p>Returns:
+A <code class="docutils literal notranslate"><span class="pre">Q</span></code> to pass to <code class="docutils literal notranslate"><span class="pre">queryset.filter()</span></code>, or an empty <code class="docutils literal notranslate"><span class="pre">Q</span></code> when the model has no
+known visibility field and filtering should be skipped.</p>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="fairdm.api.filters.FairDMVisibilityFilter">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">FairDMVisibilityFilter</span></span><a class="headerlink" href="#fairdm.api.filters.FairDMVisibilityFilter" title="Link to this definition">#</a></dt>
@@ -1129,9 +1154,11 @@ commentsRunWhenDOMLoaded(addUtterances);
 <p>Queryset-level visibility filter for FairDM API list endpoints.</p>
 <p>Restricts list querysets to objects the requesting user can see:</p>
 <ul class="simple">
-<li><p>Projects and datasets with <code class="docutils literal notranslate"><span class="pre">visibility=PUBLIC</span></code> are always included. Samples and
-measurements are included when their dataset is public and published: a public dataset
-that is not published shows its own record and keeps its data back.</p></li>
+<li><p>Projects with <code class="docutils literal notranslate"><span class="pre">visibility=PUBLIC</span></code> are always included, and so are datasets unless a
+private project hides them. Samples and
+measurements are included when their dataset is public and published and no private
+project hides it: a public dataset that is not published shows its own record and keeps
+its data back.</p></li>
 <li><p>Records the user holds at least the view level on, directly or from the dataset or
 project above, are also included. Rows that django-guardian stores for a project, dataset,
 sample or measurement grant nothing.</p></li>
@@ -1530,7 +1557,9 @@ the filters are added to a class built here.</p>
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#api">API</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.api.filters.get_public_filter"><code class="docutils literal notranslate"><span class="pre">get_public_filter()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.api.filters.FairDMVisibilityFilter"><code class="docutils literal notranslate"><span class="pre">FairDMVisibilityFilter</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.api.filters.FairDMVisibilityFilter.hidden_contributors"><code class="docutils literal notranslate"><span class="pre">FairDMVisibilityFilter.hidden_contributors()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.api.filters.FairDMVisibilityFilter.filter_queryset"><code class="docutils literal notranslate"><span class="pre">FairDMVisibilityFilter.filter_queryset()</span></code></a></li>

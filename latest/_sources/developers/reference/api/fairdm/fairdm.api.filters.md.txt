@@ -53,7 +53,26 @@
     ```
 ````
 
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`get_public_filter <fairdm.api.filters.get_public_filter>`
+  - ```{autodoc2-docstring} fairdm.api.filters.get_public_filter
+    :summary:
+    ```
+````
+
 ### API
+
+````{py:function} get_public_filter(model) -> django.db.models.Q
+:canonical: fairdm.api.filters.get_public_filter
+
+```{autodoc2-docstring} fairdm.api.filters.get_public_filter
+```
+````
 
 `````{py:class} FairDMVisibilityFilter
 :canonical: fairdm.api.filters.FairDMVisibilityFilter

@@ -204,6 +204,14 @@ Bases: {py:obj}`fairdm.core.managers.RecordLevelMixin`, {py:obj}`fairdm.db.model
 
 ````
 
+````{py:method} outside_private_projects() -> fairdm.core.dataset.models.DatasetQuerySet
+:canonical: fairdm.core.dataset.models.DatasetQuerySet.outside_private_projects
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetQuerySet.outside_private_projects
+```
+
+````
+
 ````{py:method} published() -> fairdm.core.dataset.models.DatasetQuerySet
 :canonical: fairdm.core.dataset.models.DatasetQuerySet.published
 
@@ -516,6 +524,15 @@ Bases: {py:obj}`fairdm.core.abstract.BaseModel`
 ````
 
 `````
+
+````{py:property} open_to_everyone
+:canonical: fairdm.core.dataset.models.Dataset.open_to_everyone
+:type: bool
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.open_to_everyone
+```
+
+````
 
 ````{py:property} data_is_public
 :canonical: fairdm.core.dataset.models.Dataset.data_is_public

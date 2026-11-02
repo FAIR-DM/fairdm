@@ -1325,7 +1325,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </div>
 <ul class="simple">
 <li><p>Requesting the <code class="docutils literal notranslate"><span class="pre">url</span></code> returns the record it names.</p></li>
-<li><p>A reference is <code class="docutils literal notranslate"><span class="pre">null</span></code> when the caller may not see the record it would name. A public dataset can sit in a private project, and a measurement’s sample can be in another, private dataset. Both read <code class="docutils literal notranslate"><span class="pre">null</span></code> for a visitor and name the record for someone who holds at least the view level on it.</p></li>
+<li><p>A reference is <code class="docutils literal notranslate"><span class="pre">null</span></code> when the caller may not see the record it would name. Someone with a level on a dataset alone can read it inside a private project, and a measurement’s sample can be in another, private dataset. Both read <code class="docutils literal notranslate"><span class="pre">null</span></code> for a caller without at least the view level on the record, and name it for someone who holds that level.</p></li>
 <li><p>A contributor the people list leaves out, such as a superuser, reads <code class="docutils literal notranslate"><span class="pre">null</span></code> in a reference to them.</p></li>
 <li><p>A parent is sent as a bare string or as the <code class="docutils literal notranslate"><span class="pre">{&quot;uuid&quot;,</span> <span class="pre">&quot;url&quot;}</span></code> object a response carries. A database number is refused.</p></li>
 </ul>
@@ -1872,7 +1872,8 @@ GET /api/v1/samples/plant-samples/?modified_after=2026-10-01&amp;modified_before
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">404</span></code> for a private record is deliberate. A caller cannot tell a private record from one that does not exist.</p>
 <ul class="simple">
-<li><p>A sample or measurement is public when its dataset is public and published.</p></li>
+<li><p>A sample or measurement is public when its dataset is public and published and not in a private project.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fairdm.api.filters.get_public_filter(model)</span></code> returns these conditions for a model as a <code class="docutils literal notranslate"><span class="pre">Q</span></code>, and an empty <code class="docutils literal notranslate"><span class="pre">Q</span></code> for a model with no visibility rule.</p></li>
 <li><p>A dataset that is public but not yet published answers to everyone for its own record. Its samples and measurements are listed, counted and returned only to a person with a level on them, and everyone else gets <code class="docutils literal notranslate"><span class="pre">404</span></code>.</p></li>
 </ul>
 <p>Three rules about what a request may change apply to projects, datasets, samples and measurements, as they do to the portal’s update forms.</p>

@@ -1287,7 +1287,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">visible_to(user)</span></code></p></td>
 <td><p>Queryset</p></td>
-<td><p>On the sample and measurement querysets only. The records of released datasets (public and published), and the records the user holds <code class="docutils literal notranslate"><span class="pre">VIEW</span></code> on. A user who holds <code class="docutils literal notranslate"><span class="pre">view_dataset</span></code> or <code class="docutils literal notranslate"><span class="pre">change_dataset</span></code> for the whole portal sees every record. A visitor sees released records only</p></td>
+<td><p>On the sample and measurement querysets only. The records of released datasets (public, published and not in a private project, the condition <code class="docutils literal notranslate"><span class="pre">released_to_everyone()</span></code> in <code class="docutils literal notranslate"><span class="pre">fairdm.core.managers</span></code> builds, on top of <code class="docutils literal notranslate"><span class="pre">no_private_project(prefix)</span></code>, which tests a dataset’s project), and the records the user holds <code class="docutils literal notranslate"><span class="pre">VIEW</span></code> on. A user who holds <code class="docutils literal notranslate"><span class="pre">view_dataset</span></code> or <code class="docutils literal notranslate"><span class="pre">change_dataset</span></code> for the whole portal sees every record. A visitor sees released records only</p></td>
 </tr>
 </tbody>
 </table>
@@ -1308,6 +1308,10 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_visible()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">DatasetQuerySet</span></code></p></td>
 <td><p>Public datasets that are not inside a private project</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">outside_private_projects()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">DatasetQuerySet</span></code></p></td>
+<td><p>Datasets with no project or a public one</p></td>
 </tr>
 </tbody>
 </table>

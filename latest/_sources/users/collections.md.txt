@@ -8,7 +8,7 @@ You reach a collection in any of these ways:
 - Select the name of a kind in the **Samples and measurements** section of the [Home](home.md) screen.
 - Use the **Switch** menu on another collection.
 
-Each table has its own address, `collections/samples/` or `collections/measurements/` followed by the name of the kind. Anyone can open a collection, signed in or not. It lists published records only, whoever is looking. See [Dataset publication, DOIs and DataCite metadata](../explanation/dataset-publication-dois-and-datacite-metadata.md) for what publishing means.
+Each table has its own address, `collections/samples/` or `collections/measurements/` followed by the name of the kind. Anyone can open a collection, signed in or not. It lists published records only, whoever is looking, and leaves out those in a private project. See [Dataset publication, DOIs and DataCite metadata](../explanation/dataset-publication-dois-and-datacite-metadata.md) for what publishing means.
 
 ## The toolbar
 

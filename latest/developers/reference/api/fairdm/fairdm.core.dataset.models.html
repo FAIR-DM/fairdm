@@ -1233,6 +1233,14 @@ The datasets a profile or a public listing may name.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.dataset.models.DatasetQuerySet.outside_private_projects">
+<span class="sig-name descname"><span class="pre">outside_private_projects</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#fairdm.core.dataset.models.DatasetQuerySet" title="fairdm.core.dataset.models.DatasetQuerySet"><span class="pre">fairdm.core.dataset.models.DatasetQuerySet</span></a></span></span><a class="headerlink" href="#fairdm.core.dataset.models.DatasetQuerySet.outside_private_projects" title="Link to this definition">#</a></dt>
+<dd><p>Return the datasets no private project hides.</p>
+<p>Returns:
+The datasets with no project or a public one.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="fairdm.core.dataset.models.DatasetQuerySet.published">
 <span class="sig-name descname"><span class="pre">published</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#fairdm.core.dataset.models.DatasetQuerySet" title="fairdm.core.dataset.models.DatasetQuerySet"><span class="pre">fairdm.core.dataset.models.DatasetQuerySet</span></a></span></span><a class="headerlink" href="#fairdm.core.dataset.models.DatasetQuerySet.published" title="Link to this definition">#</a></dt>
 <dd><p>Return the datasets whose <code class="docutils literal notranslate"><span class="pre">published</span></code> flag is set.</p>
@@ -1452,11 +1460,18 @@ A dataset created with no licence gets the portal’s default (<code class="docu
 </dd></dl>
 
 <dl class="py property">
+<dt class="sig sig-object py" id="fairdm.core.dataset.models.Dataset.open_to_everyone">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">open_to_everyone</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#fairdm.core.dataset.models.Dataset.open_to_everyone" title="Link to this definition">#</a></dt>
+<dd><p>Whether anyone may open this dataset: it is public and no private project hides it.</p>
+</dd></dl>
+
+<dl class="py property">
 <dt class="sig sig-object py" id="fairdm.core.dataset.models.Dataset.data_is_public">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">data_is_public</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#fairdm.core.dataset.models.Dataset.data_is_public" title="Link to this definition">#</a></dt>
-<dd><p>Whether anyone may see this dataset’s samples and measurements.</p>
+<dd><p>Whether this dataset’s own flags release its samples and measurements.</p>
 <p>Publishing is meant to make a dataset public, so a published dataset should never be
-private. The two fields are still set separately, so both are checked.</p>
+private. The two fields are still set separately, so both are checked. A private project
+above still hides the records from anyone without a level, which <code class="docutils literal notranslate"><span class="pre">visible_to</span></code> applies.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1680,6 +1695,7 @@ cross-record check lives in <code class="docutils literal notranslate"><span cla
 </li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.models.DatasetQuerySet"><code class="docutils literal notranslate"><span class="pre">DatasetQuerySet</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.models.DatasetQuerySet.get_visible"><code class="docutils literal notranslate"><span class="pre">DatasetQuerySet.get_visible()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.models.DatasetQuerySet.outside_private_projects"><code class="docutils literal notranslate"><span class="pre">DatasetQuerySet.outside_private_projects()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.models.DatasetQuerySet.published"><code class="docutils literal notranslate"><span class="pre">DatasetQuerySet.published()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.models.DatasetQuerySet.with_related"><code class="docutils literal notranslate"><span class="pre">DatasetQuerySet.with_related()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.models.DatasetQuerySet.with_contributors"><code class="docutils literal notranslate"><span class="pre">DatasetQuerySet.with_contributors()</span></code></a></li>
@@ -1718,6 +1734,7 @@ cross-record check lives in <code class="docutils literal notranslate"><span cla
 <li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.models.Dataset.Meta.permissions"><code class="docutils literal notranslate"><span class="pre">Dataset.Meta.permissions</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.models.Dataset.open_to_everyone"><code class="docutils literal notranslate"><span class="pre">Dataset.open_to_everyone</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.models.Dataset.data_is_public"><code class="docutils literal notranslate"><span class="pre">Dataset.data_is_public</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.models.Dataset.clean"><code class="docutils literal notranslate"><span class="pre">Dataset.clean()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.models.Dataset.get_absolute_url"><code class="docutils literal notranslate"><span class="pre">Dataset.get_absolute_url()</span></code></a></li>

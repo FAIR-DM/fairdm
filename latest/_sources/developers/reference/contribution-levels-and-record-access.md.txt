@@ -97,7 +97,7 @@ The querysets of the four core models take their level methods from `fairdm.core
 |---|---|---|
 | `with_level(user, level)` | Queryset | The records on which the user holds at least `level`, on the record itself or from a record above, in one query. An empty queryset for `None`, a visitor and an inactive user |
 | `accessible_to(user, level)` | Queryset | `with_level(user, level)`, plus every record when the user holds the portal-wide right for the model. That right is `view_<model>` for `VIEW` and `change_<model>` for `EDIT` and `MANAGE`. A superuser and a Data Curator hold it. Choice lists and filters offer what this returns |
-| `visible_to(user)` | Queryset | On the sample and measurement querysets only. The records of released datasets (public and published), and the records the user holds `VIEW` on. A user who holds `view_dataset` or `change_dataset` for the whole portal sees every record. A visitor sees released records only |
+| `visible_to(user)` | Queryset | On the sample and measurement querysets only. The records of released datasets (public, published and not in a private project, the condition `released_to_everyone()` in `fairdm.core.managers` builds, on top of `no_private_project(prefix)`, which tests a dataset's project), and the records the user holds `VIEW` on. A user who holds `view_dataset` or `change_dataset` for the whole portal sees every record. A visitor sees released records only |
 
 Two more methods keep a public listing to public records:
 
@@ -105,6 +105,7 @@ Two more methods keep a public listing to public records:
 |---|---|---|
 | `get_visible()` | `ProjectQuerySet` | Projects whose visibility is public |
 | `get_visible()` | `DatasetQuerySet` | Public datasets that are not inside a private project |
+| `outside_private_projects()` | `DatasetQuerySet` | Datasets with no project or a public one |
 
 `Dataset.objects` leaves out private datasets. Use `Dataset.all_objects` when a query must reach them.
 
