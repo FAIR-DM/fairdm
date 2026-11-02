@@ -18,6 +18,17 @@ class TestEmail:
         assert module.EMAIL_HOST_USER == "portal@example.com"
         assert module.EMAIL_BACKEND == "django.core.mail.backends.smtp.EmailBackend"
 
+    def test_both_addresses_use_the_default_site_name_when_it_is_unset(
+        self, isolated_env, settings_module
+    ):
+        os.environ["DJANGO_ENV"] = "qa"
+        os.environ["DJANGO_SITE_DOMAIN"] = "example.com"
+
+        module = settings_module()
+
+        assert f"{module.SITE_NAME} <noreply@example.com>" == module.DEFAULT_FROM_EMAIL
+        assert f"{module.SITE_NAME} Server <server@example.com>" == module.SERVER_EMAIL
+
     def test_default_from_email_derives_from_site_domain(
         self, isolated_env, settings_module
     ):

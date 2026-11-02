@@ -73,7 +73,7 @@ One dataset is private, belongs to no project, and has no manager who can sign i
 
 ## Environment rule
 
-Every command above runs only in an environment for which FairDM ships a non-production override. The set is `fairdm.apps.NON_PRODUCTION_ENVIRONMENTS`, which holds `development`. The environment is the value of the `DJANGO_ENV` setting, and it defaults to `production`. See [Configuration](configuration.md).
+Every command above runs only in an environment for which FairDM ships a non-production override. The set is `fairdm.conf.environment.NON_PRODUCTION_ENVIRONMENTS`, which holds `development`. The environment is the value of the `DJANGO_ENV` setting, and it defaults to `production`. See [Configuration](configuration.md).
 
 On any other environment, including a misspelled one and the empty string, the command raises a `CommandError` and creates nothing.
 

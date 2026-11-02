@@ -31,7 +31,7 @@ fairdm.setup()
 
 `setup()` accepts no settings as arguments. Passing any other keyword argument raises `TypeError`. A setting changes by assignment after the call, as [How to override a FairDM setting](../how-to/override-a-fairdm-setting.md) shows.
 
-`setup()` raises `ImproperlyConfigured` when an addon's setup module cannot be found or fails while `DJANGO_ENV` is `production`. It raises `SystemCheckError` when `PARLER_LANGUAGES` names a language that `LANGUAGES` does not include.
+`setup()` raises `ImproperlyConfigured` when an addon's setup module cannot be found or fails while `DJANGO_ENV` is anything but `development`. It raises `SystemCheckError` when `PARLER_LANGUAGES` names a language that `LANGUAGES` does not include.
 
 `setup()` adds four names to the calling module besides the settings:
 
@@ -88,14 +88,14 @@ The baseline loads these modules in this order, and a module may read names an e
 
 An addon is a package that contributes settings. FairDM imports each package named in `addons=` and looks for the module path in the package's `__fdm_setup_module__` attribute. That module must be a single file and not a package. FairDM runs it in a private copy of the settings and merges the result only when the module runs to the end, so a module that fails leaves nothing behind.
 
-| Situation | In production | In any other environment |
+| Situation | In any environment but `development` | In `development` |
 | --- | --- | --- |
 | The package cannot be imported | Logs an error and skips the addon | Logs an error and skips the addon |
 | The package has no `__fdm_setup_module__` | Logs a warning and skips the addon | Logs a warning and skips the addon |
 | The setup module cannot be found | Raises `ImproperlyConfigured` naming the addon | Logs a warning and skips the addon |
 | The setup module raises while it runs | Raises `ImproperlyConfigured` naming the addon | Logs a warning and skips the addon |
 
-`setup()` applies an addon's settings and nothing else. An addon adds its apps and middleware by assigning `INSTALLED_APPS` and `MIDDLEWARE` in its setup module, and the portal includes the addon's URLs in its own URLconf.
+`setup()` applies an addon's settings and nothing else. An addon adds its apps and middleware by assigning `INSTALLED_APPS` and `MIDDLEWARE` in its setup module, and FairDM includes a `urls` module in the addon's package at the site root in `fairdm.conf.urls`.
 
 [How to create an addon](../how-to/create-an-addon.md) shows how to write one.
 

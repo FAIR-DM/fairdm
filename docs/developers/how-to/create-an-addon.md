@@ -36,14 +36,7 @@ An addon is a package that adds settings, apps or middleware to any portal that 
    fairdm.setup(addons=["my_addon"])
    ```
 
-4. If the addon has URLs, include them in the portal's URLconf.
-
-   ```python
-   # config/urls.py
-   from django.urls import include, path
-
-   urlpatterns += [path("", include("my_addon.urls"))]
-   ```
+4. If the addon has URLs, put them in `my_addon/urls.py`. FairDM includes that module at the site root in `fairdm.conf.urls`, which the portal's URLconf includes, so the portal adds nothing.
 
 5. List the layers and check that FairDM applied the addon.
 
@@ -55,4 +48,4 @@ An addon is a package that adds settings, apps or middleware to any portal that 
 
 The command prints `MY_ADDON_SETTING = value (addons)`. The addon's settings are layer 3, so a portal can always override them in its [environment override module](add-an-environment-override-module.md) or by [assigning the setting](override-a-fairdm-setting.md) after the `fairdm.setup()` call.
 
-FairDM applies the module to a private copy of the settings and keeps the result only when the module runs to the end, so an addon that fails leaves no half-written settings. When something goes wrong, the outcome depends on the environment. A setup module that cannot be found, or that raises, stops a production portal with an error that names the addon. In any other environment FairDM logs a warning and skips the addon. A package that cannot be imported, or that has no `__fdm_setup_module__`, is skipped in every environment with a log message. The full table is in [Configuration](../reference/configuration.md#addons).
+FairDM applies the module to a private copy of the settings and keeps the result only when the module runs to the end, so an addon that fails leaves no half-written settings. When something goes wrong, the outcome depends on the environment. A setup module that cannot be found, or that raises, stops the portal with an error that names the addon, in every environment but `development`. In `development` FairDM logs a warning and skips the addon. A package that cannot be imported, or that has no `__fdm_setup_module__`, is skipped in every environment with a log message. The full table is in [Configuration](../reference/configuration.md#addons).

@@ -103,7 +103,7 @@ class Command(BaseCommand):
 
         # Deferred: `fairdm.apps` imports `fairdm.conf.checks`, which imports this module
         # back for DEV_ACCOUNT_EMAILS, so a top-level import would be circular.
-        from fairdm.apps import NON_PRODUCTION_ENVIRONMENTS
+        from fairdm.conf.environment import NON_PRODUCTION_ENVIRONMENTS
 
         if environment not in NON_PRODUCTION_ENVIRONMENTS:
             raise CommandError(

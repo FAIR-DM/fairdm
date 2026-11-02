@@ -225,7 +225,7 @@ def setup(
     if not base_dir:
         base_dir = Path(caller_globals["__file__"]).resolve(strict=True).parent.parent
 
-    from .environment import env
+    from .environment import NON_PRODUCTION_ENVIRONMENTS, env
 
     env_files_to_load = []
 
@@ -306,8 +306,9 @@ def setup(
     )
 
     # Layer 3. Each addon applies to a scratch scope and merges only on success, so a
-    # module that raises partway leaves no partial writes. A failure fails fast in
-    # production and warns and skips elsewhere, like an addon that cannot be found.
+    # module that raises partway leaves no partial writes. A failure fails fast on the
+    # production baseline and warns and skips elsewhere, like an addon that cannot be
+    # found.
     applied_addon_modules: list[str] = []
     before = _snapshot_scope(caller_globals)
     if addons:
@@ -320,7 +321,7 @@ def setup(
                     f"Addon '{addon_name}' setup module raised while applying "
                     f"its settings: {exc}"
                 )
-                if env_profile == "production":
+                if env_profile not in NON_PRODUCTION_ENVIRONMENTS:
                     raise ImproperlyConfigured(message) from exc
                 logger.warning(message)
                 continue

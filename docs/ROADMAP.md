@@ -139,7 +139,7 @@ Everything needed to reach a minimum usable release.
 
 ### R14 — Access rules hold on every surface
 
-*feature · advances G8, G12*
+*delivered in [#275](https://github.com/FAIR-DM/fairdm/issues/275), [#279](https://github.com/FAIR-DM/fairdm/issues/279) · advances G8, G12*
 
 Visibility is decided per record and is enforced in some places and not others. A private dataset is readable by anyone who has its address, and the collection tables that list samples and measurements across the portal show rows belonging to private datasets. Until one rule governs every surface, no portal can hold embargoed data, and every capability built on top of visibility inherits the same hole. This comes first because it is the only item on the roadmap whose absence loses a research group its data.
 
@@ -332,7 +332,7 @@ Serves G10. Out of scope: harvesting protocols for portal-to-portal exchange, wh
 
 ### R26 — A research group can deploy the shipped stack
 
-*feature · advances G16*
+*delivered in [#520](https://github.com/FAIR-DM/fairdm/issues/520), [#601](https://github.com/FAIR-DM/fairdm/issues/601) · advances G16*
 
 The deployment story does not run. The container stack builds from a directory that is not in the repository, points at an environment file that is not there, and the production configuration described in the documentation does not exist. A group with no operations staff has nothing to follow.
 

@@ -537,7 +537,7 @@ nothing says so. ADR 0001's own prose — "a developer notices within seconds be
 behaves as if in production" — was false for exactly this path.
 
 **The refusal now stands down only for an environment FairDM ships a non-production override module
-for**, which today means `development` alone, expressed as `apps.NON_PRODUCTION_ENVIRONMENTS`. Every
+for**, which today means `development` alone, expressed as `environment.NON_PRODUCTION_ENVIRONMENTS`. Every
 other name is a production deployment and is checked as one. A portal supplying its own `staging.py`
 is included: layer 1 is still the production baseline underneath it, and a staging box is a
 deployment.

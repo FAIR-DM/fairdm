@@ -4,6 +4,11 @@ import logging
 
 from environ import Env
 
+#: Environments that ship a non-production override module. Every other name,
+#: including typos and the empty string, composes the production baseline and is
+#: checked as production.
+NON_PRODUCTION_ENVIRONMENTS = frozenset({"development"})
+
 env = Env(
     FAIRDM_ALLOW_PUBLIC_REGISTRATION=(bool, True),
     DJANGO_ADMIN_URL=(str, "admin/"),
