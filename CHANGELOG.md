@@ -10,9 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Partial dates are stored by [django-partial-dates](https://django-partial-dates.fairdm.org/)
-  instead of django-partial-date, which is no longer a dependency of FairDM.** A date is now stored
-  as the text `1990`, `1990-06` or `1990-06-14`, and new migrations convert the date columns of
-  projects, datasets, samples, measurements and affiliations in place. A portal with a
+  instead of django-partial-date, which FairDM no longer installs.** A date is now stored as the
+  text `1990`, `1990-06` or `1990-06-14`, and new migrations convert the date columns of projects,
+  datasets, samples, measurements and affiliations in place. FairDM now installs
+  django-literature 0.4, whose own migration converts the dates of literature items. A portal with a
   `PartialDateField` of its own has to convert that column as well, and code that reads a partial
   date changes: `partial_date.PartialDate` is now `partial_dates.PartialDate`, `.date` is `.start`,
   and `.precision` is a `Precision` member, not a number. A filter or form entry such as `2020-6`

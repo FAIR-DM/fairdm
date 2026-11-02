@@ -1,6 +1,6 @@
 # How to upgrade a portal to django-partial-dates
 
-FairDM now stores partial dates through [django-partial-dates](https://django-partial-dates.fairdm.org/) in place of django-partial-date. A date is stored as the text `1990`, `1990-06` or `1990-06-14` instead of as a timestamp whose seconds hold the precision. FairDM's own migrations convert the columns of its own tables. You convert the columns of your portal's own models, and you change any code that reads a partial date.
+FairDM now stores partial dates through [django-partial-dates](https://django-partial-dates.fairdm.org/) in place of django-partial-date. A date is stored as the text `1990`, `1990-06` or `1990-06-14` instead of as a timestamp whose seconds hold the precision. FairDM's migrations convert the columns of its own tables, and django-literature 0.4's migration converts the dates of literature items. You convert the columns of your portal's own models, and you change any code that reads a partial date.
 
 ## Before you start
 
@@ -10,7 +10,7 @@ FairDM now stores partial dates through [django-partial-dates](https://django-pa
 
 ## Steps
 
-1. Install the new FairDM release. It depends on django-partial-dates 0.1, and no longer on django-partial-date. If the portal imports `partial_date` itself, it needs that package installed until step 3 is done.
+1. Install the new FairDM release. It depends on django-partial-dates 0.1 and django-literature 0.4, and no longer installs django-partial-date. If the portal imports `partial_date` itself, declare that package in the portal's own requirements until step 3 is done.
 
 2. Point the portal's existing migrations at the stand-in field. Do this for every migration that creates or alters a field declared with `fairdm.db.models.PartialDateField` or with django-partial-date's own field:
 
