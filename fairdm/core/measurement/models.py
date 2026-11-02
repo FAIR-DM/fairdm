@@ -252,16 +252,6 @@ class Measurement(BasePolymorphicModel):
 
         return reverse("measurement:overview", kwargs={"uuid": self.uuid})
 
-    def get_template_name(self):
-        """Return the card templates to try for this measurement, in order of preference.
-
-        Returns:
-            The template paths.
-        """
-        app_name = self._meta.app_label
-        model_name = self._meta.model_name
-        return [f"{app_name}/{model_name}_card.html", "fairdm/measurement_card.html"]
-
 
 class VocabularyGuardedSave:
     """Refuse a ``type`` outside the record's own collection, even on a direct save.

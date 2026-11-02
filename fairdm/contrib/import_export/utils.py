@@ -9,6 +9,26 @@ from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
 from import_export.formats.base_formats import DEFAULT_FORMATS
 
+from fairdm.core.dataset.models import DatasetDate
+from fairdm.core.vocabularies import DATE_TYPES
+
+DATACITE_DATE_TYPES = {
+    f"{DATE_TYPES}/available": "Available",
+    f"{DATE_TYPES}/published": "Issued",
+    f"{DATE_TYPES}/submitted": "Submitted",
+    f"{DATE_TYPES}/withdrawn": "Withdrawn",
+}
+
+SPDX_IDENTIFIERS = {
+    "https://creativecommons.org/licenses/by/4.0/": "CC-BY-4.0",
+    "https://creativecommons.org/licenses/by-nc/4.0/": "CC-BY-NC-4.0",
+    "https://creativecommons.org/licenses/by-nc-nd/4.0/": "CC-BY-NC-ND-4.0",
+    "https://creativecommons.org/licenses/by-nc-sa/4.0/": "CC-BY-NC-SA-4.0",
+    "https://creativecommons.org/licenses/by-nd/4.0/": "CC-BY-ND-4.0",
+    "https://creativecommons.org/licenses/by-sa/4.0/": "CC-BY-SA-4.0",
+    "https://creativecommons.org/publicdomain/zero/1.0/": "CC0-1.0",
+}
+
 
 def get_formats():
     """Return the available import and export formats.
@@ -45,6 +65,28 @@ export_choices = {
 import_choices = {f: f for f in get_import_formats()}
 
 
+def datacite_dates(dataset):
+    """Write a dataset's dates with types from DataCite's ``dateType`` list.
+
+    DataCite has one ``Collected`` date, so the collection start and end become one range, open
+    at the side with no date. A type with no DataCite match is written as ``Other``.
+
+    Args:
+        dataset: The dataset whose dates to write.
+
+    Returns:
+        A list of dicts, each with the date's ``type`` and its ``value``.
+    """
+    values = {date.type_id: str(date.value) for date in dataset.dates.all()}
+    start = values.pop(DatasetDate.START_TYPE, "")
+    end = values.pop(DatasetDate.END_TYPE, "")
+    dates = [{"type": "Collected", "value": f"{start}/{end}"}] if start or end else []
+    return dates + [
+        {"type": DATACITE_DATE_TYPES.get(type_id, "Other"), "value": value}
+        for type_id, value in values.items()
+    ]
+
+
 def build_metadata(dataset, request):
     """Render a dataset's DataCite metadata as indented XML.
 
@@ -57,9 +99,14 @@ def build_metadata(dataset, request):
     """
     template_name = "publishing/datacite44.xml"
     uri = request.build_absolute_uri(dataset.get_absolute_url())
-    xml = render_to_string(
-        template_name, {"dataset": dataset, "uri": uri}, request=request
-    )
+    license_url = dataset.license.canonical_url if dataset.license else None
+    context = {
+        "dataset": dataset,
+        "uri": uri,
+        "dates": datacite_dates(dataset),
+        "spdx_identifier": SPDX_IDENTIFIERS.get(license_url),
+    }
+    xml = render_to_string(template_name, context, request=request)
     dom = parseString(xml)
     return dom.toprettyxml(indent="  ")
 

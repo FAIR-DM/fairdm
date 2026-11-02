@@ -360,7 +360,7 @@ class TestBaseSampleRefused:
 
         payload = (
             '[{"model": "sample.sample", "pk": null, '
-            '"fields": {"name": "Direct", "dataset": %d}}]' % dataset.pk
+            f'"fields": {{"name": "Direct", "dataset": {dataset.pk}}}}}]'
         )
         (deserialized,) = serializers.deserialize("json", payload)
 
@@ -964,14 +964,6 @@ class TestSampleModel:
         sample = RockSampleFactory()
         assert sample.status is not None
 
-    def test_sample_get_template_name(self):
-        sample = RockSampleFactory()
-        templates = sample.get_template_name()
-
-        assert isinstance(templates, list)
-        assert len(templates) == 2
-        assert templates[1] == "fairdm/sample_card.html"
-
     def test_sample_type_of_property(self):
         assert Sample.type_of == Sample
 
@@ -1568,7 +1560,7 @@ class TestSampleHierarchy:
         assert set(grandparent.get_descendants()) == {parent, child}
 
     def test_all_descendants_from_the_middle_of_the_chain(self, sample_hierarchy_chain):
-        grandparent, parent, child = sample_hierarchy_chain
+        _, parent, child = sample_hierarchy_chain
 
         assert set(parent.get_descendants()) == {child}
 
@@ -1578,7 +1570,7 @@ class TestSampleHierarchy:
         assert set(child.get_ancestors()) == {grandparent, parent}
 
     def test_all_ancestors_from_the_middle_of_the_chain(self, sample_hierarchy_chain):
-        grandparent, parent, child = sample_hierarchy_chain
+        grandparent, parent, _ = sample_hierarchy_chain
 
         assert set(parent.get_ancestors()) == {grandparent}
 
@@ -1609,7 +1601,7 @@ class TestSampleHierarchyDepth:
         return root, level1, level2, level3
 
     def test_depth_one_returns_direct_children_only(self, four_level_chain):
-        root, level1, level2, level3 = four_level_chain
+        root, level1, _, _ = four_level_chain
 
         assert set(root.get_descendants(depth=1)) == {level1}
 
@@ -1690,9 +1682,7 @@ class TestSampleDescriptions:
 @pytest.mark.django_db
 class TestSampleDescriptionVocabulary:
     def test_vocabulary_members_are_the_sample_description_collection(self):
-        assert set(
-            [concept.uri for concept in SampleDescription.get_type_concepts()]
-        ) == {
+        assert {concept.uri for concept in SampleDescription.get_type_concepts()} == {
             f"{DESCRIPTION_TYPES}/sample-collection",
             f"{DESCRIPTION_TYPES}/sample-preparation",
             f"{DESCRIPTION_TYPES}/sample-storage",
@@ -1742,7 +1732,7 @@ class TestSampleDates:
 @pytest.mark.django_db
 class TestSampleDateVocabulary:
     def test_vocabulary_members_are_the_sample_date_collection(self):
-        assert set([concept.uri for concept in SampleDate.get_type_concepts()]) == {
+        assert {concept.uri for concept in SampleDate.get_type_concepts()} == {
             f"{DATE_TYPES}/created",
             f"{DATE_TYPES}/destroyed",
             f"{DATE_TYPES}/collected",
@@ -1805,14 +1795,15 @@ class TestSampleIdentifiers:
 @pytest.mark.django_db
 class TestSampleIdentifierVocabulary:
     def test_available_types_are_igsn_and_doi_only(self):
-        assert set(
-            [concept.uri for concept in SampleIdentifier.get_type_concepts()]
-        ) == {f"{IDENTIFIER_TYPES}/igsn", f"{IDENTIFIER_TYPES}/doi"}
+        assert {concept.uri for concept in SampleIdentifier.get_type_concepts()} == {
+            f"{IDENTIFIER_TYPES}/igsn",
+            f"{IDENTIFIER_TYPES}/doi",
+        }
 
     def test_no_type_names_a_person_organisation_or_project(self):
-        assert set(
-            [concept.uri for concept in SampleIdentifier.get_type_concepts()]
-        ).isdisjoint(
+        assert {
+            concept.uri for concept in SampleIdentifier.get_type_concepts()
+        }.isdisjoint(
             {
                 f"{IDENTIFIER_TYPES}/orcid",
                 f"{IDENTIFIER_TYPES}/researcher-id",

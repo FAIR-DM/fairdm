@@ -335,14 +335,14 @@ class TestMeasurementVocabularyValidation:
 @pytest.mark.django_db
 class TestMeasurementIdentifierVocabulary:
     def test_available_types_are_doi_only(self):
-        assert set(
-            [concept.uri for concept in MeasurementIdentifier.get_type_concepts()]
-        ) == {f"{IDENTIFIER_TYPES}/doi"}
+        assert {
+            concept.uri for concept in MeasurementIdentifier.get_type_concepts()
+        } == {f"{IDENTIFIER_TYPES}/doi"}
 
     def test_no_type_names_a_sample_person_organisation_or_project(self):
-        assert set(
-            [concept.uri for concept in MeasurementIdentifier.get_type_concepts()]
-        ).isdisjoint(
+        assert {
+            concept.uri for concept in MeasurementIdentifier.get_type_concepts()
+        }.isdisjoint(
             {
                 f"{IDENTIFIER_TYPES}/igsn",
                 f"{IDENTIFIER_TYPES}/orcid",
@@ -387,9 +387,9 @@ class TestMeasurementMetadataRelations:
 @pytest.mark.django_db
 class TestMeasurementDescriptionVocabularyMembers:
     def test_available_types_are_named_one_by_one(self):
-        assert set(
-            [concept.uri for concept in MeasurementDescription.get_type_concepts()]
-        ) == {
+        assert {
+            concept.uri for concept in MeasurementDescription.get_type_concepts()
+        } == {
             f"{DESCRIPTION_TYPES}/measurement-conditions",
             f"{DESCRIPTION_TYPES}/measurement-setup",
             f"{DESCRIPTION_TYPES}/measurement-tear-down",
@@ -410,9 +410,10 @@ class TestMeasurementDescriptionVocabularyMembers:
 @pytest.mark.django_db
 class TestMeasurementDateVocabularyMembers:
     def test_available_types_are_named_one_by_one(self):
-        assert set(
-            [concept.uri for concept in MeasurementDate.get_type_concepts()]
-        ) == {f"{DATE_TYPES}/setup", f"{DATE_TYPES}/tear-down"}
+        assert {concept.uri for concept in MeasurementDate.get_type_concepts()} == {
+            f"{DATE_TYPES}/setup",
+            f"{DATE_TYPES}/tear-down",
+        }
 
     def test_a_date_type_is_drawn_from_the_measurement_collection(self, measurement):
         date = MeasurementDateFactory(
@@ -798,14 +799,6 @@ class TestMeasurementModel:
 
     def test_measurement_type_of_property(self):
         assert Measurement.type_of == Measurement
-
-    def test_measurement_get_template_name(self):
-        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
-        templates = measurement.get_template_name()
-
-        assert isinstance(templates, list)
-        assert len(templates) == 2
-        assert templates[1] == "fairdm/measurement_card.html"
 
     def test_measurement_get_absolute_url(self):
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())

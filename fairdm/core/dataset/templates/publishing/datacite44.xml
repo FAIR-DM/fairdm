@@ -19,7 +19,7 @@
 
   <creators>{% for c in dataset.contributors.all|by_role:"https://w3id.org/fairdm/vocabularies/contributor-roles/creator" %}{% with c.contributor as contributor %}
     <creator>
-      <creatorName nameType="{{ contributor.type|capfirst }}">{{ contributor.name }}</creatorName>
+      <creatorName nameType="{% if contributor.type == "person" %}Personal{% else %}Organizational{% endif %}">{{ contributor.name }}</creatorName>
       {% include "publishing/datacite/contributor.xml" %}
     </creator>
     {% endwith %}{% endfor %}
@@ -55,9 +55,9 @@
 
 
 
-  {% if dataset.dates.exists %}
-  <dates>{% for date in dataset.dates.all %}
-      <date dateType="{{ date.type|notation }}">{{ date.value }}</date>{% endfor %}
+  {% if dates %}
+  <dates>{% for date in dates %}
+      <date dateType="{{ date.type }}">{{ date.value }}</date>{% endfor %}
   </dates>
   {% endif %}
 
@@ -67,7 +67,7 @@
 
   {% if dataset.license %}
   <rightsList>{% with dataset.license as license %}
-    <rights xml:lang="en" schemeURI="{{ license.URL}}" rightsIdentifierScheme="{{ license.scheme }}" rightsIdentifier="{{ license.name }}" rightsURI="{{ license.URL }}">{{ license.name }}</rights>{% endwith %}
+    <rights xml:lang="en" rightsURI="{{ license.canonical_url }}"{% if spdx_identifier %} schemeURI="https://spdx.org/licenses/" rightsIdentifierScheme="SPDX" rightsIdentifier="{{ spdx_identifier }}"{% endif %}>{{ license.name }}</rights>{% endwith %}
   </rightsList>
   {% endif %}
 
