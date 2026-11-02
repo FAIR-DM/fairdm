@@ -132,8 +132,8 @@ putting it to him again. The longer reasoning is in [decisions.md](decisions.md)
   one viewing, and public records to anyone else.
 - Q: What counts as public? → A: The rules FairDM already applies when the feature is built. A
   project is public when its visibility is public. A dataset is public when it and its project are
-  public. A sample or measurement is public when its dataset is public and published. Making these
-  consistent everywhere is R14.
+  public. A sample or measurement is public when its dataset is public and published and not in a
+  private project. Making these consistent everywhere is R14.
 - Q: A record already links to a private record the person editing it cannot see. What does the
   field do? → A: It keeps the link, shows it as a private record without its name, and never
   offers it in a search. Saving the form unchanged keeps the link.

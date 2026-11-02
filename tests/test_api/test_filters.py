@@ -165,6 +165,51 @@ class TestVisibilityOfSamplesAndMeasurements:
         data = client.get(address).json()
         return {row["uuid"] for row in data["results"]}, data["count"]
 
+    @pytest.fixture
+    def in_private_project(self, make_record, url_of):
+        """A record of a public, published dataset inside a private project."""
+        from demo.models import RockSample
+
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
+        return make_record(RockSample, dataset), url_of(RockSample, "list")
+
+    def test_a_visitor_receives_nothing_from_a_private_project(
+        self, in_private_project
+    ):
+        record, address = in_private_project
+
+        listed, count = self.listed_by(APIClient(), address)
+
+        assert record.uuid not in listed
+        assert count == 0
+
+    def test_a_visitor_cannot_open_a_record_in_a_private_project(
+        self, in_private_project
+    ):
+        record, address = in_private_project
+
+        assert APIClient().get(f"{address}{record.uuid}/").status_code == 404
+
+    def test_a_person_with_a_level_on_the_project_receives_its_records(
+        self, in_private_project
+    ):
+        record, address = in_private_project
+        viewer = UserFactory()
+        ContributionFactory(
+            content_object=record.dataset.project,
+            contributor=viewer,
+            level=ContributionLevel.VIEW,
+        )
+        client = APIClient()
+        client.force_authenticate(viewer)
+
+        listed, _ = self.listed_by(client, address)
+
+        assert record.uuid in listed
+
     def test_a_person_with_a_level_on_the_dataset_receives_its_records(self, case):
         from rest_framework.test import APIClient
 

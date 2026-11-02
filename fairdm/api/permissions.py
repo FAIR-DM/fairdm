@@ -65,7 +65,8 @@ class FairDMObjectPermissions(DjangoObjectPermissions):
             visibility = getattr(obj, "visibility", None)
             if visibility is not None and visibility == Visibility.PUBLIC:
                 return True
-            # Sample and Measurement are public when their dataset is public and published.
+            # FairDMVisibilityFilter has already removed a sample or measurement a private
+            # project hides, so here its dataset's own flags decide.
             if getattr(getattr(obj, "dataset", None), "data_is_public", False):
                 return True
             if not request.user or not request.user.is_authenticated:

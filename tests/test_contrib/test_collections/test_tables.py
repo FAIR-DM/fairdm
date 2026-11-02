@@ -10,7 +10,12 @@ from demo.models import ExampleMeasurement, RockSample
 from fairdm.contrib.collections.views import DataTableView
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.sample.models import Sample
-from fairdm.factories import ContributionFactory, DatasetFactory, PersonFactory
+from fairdm.factories import (
+    ContributionFactory,
+    DatasetFactory,
+    PersonFactory,
+    ProjectFactory,
+)
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
 
@@ -138,6 +143,27 @@ class TestSampleColumn:
         table = response.context["table"]
         row = next(r for r in table.rows if r.record == measurement)
         sample_cell = row.get_cell("sample")
+        assert "Hidden Sample" not in sample_cell
+        assert sample.get_absolute_url() not in sample_cell
+
+    def test_a_measurement_whose_sample_is_in_a_private_project_shows_no_name_and_no_link(
+        self, client, published_dataset
+    ):
+        hidden_dataset = DatasetFactory(
+            project=ProjectFactory(visibility=Visibility.PRIVATE),
+            visibility=Visibility.PUBLIC,
+            published=True,
+        )
+        sample = RockSampleFactory(name="Hidden Sample", dataset=hidden_dataset)
+        measurement = ExampleMeasurementFactory(
+            sample=sample, dataset=published_dataset
+        )
+
+        slug = registry.get_for_model(ExampleMeasurement).get_slug()
+        table = client.get(reverse(f"{slug}-list")).context["table"]
+        row = next(r for r in table.rows if r.record == measurement)
+        sample_cell = row.get_cell("sample")
+
         assert "Hidden Sample" not in sample_cell
         assert sample.get_absolute_url() not in sample_cell
 

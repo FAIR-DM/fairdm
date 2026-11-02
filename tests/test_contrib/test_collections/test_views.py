@@ -56,6 +56,16 @@ class TestPublicationFiltering:
         assert self.published_sample in entries
         assert self.unpublished_sample not in entries
 
+    def test_a_published_record_in_a_private_project_is_left_out(self, client):
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        hidden = RockSampleFactory(
+            dataset=DatasetFactory(
+                project=project, visibility=Visibility.PUBLIC, published=True
+            )
+        )
+
+        assert hidden not in list(self._get(client).context["object_list"])
+
     def test_the_records_owner_sees_only_the_published_record(
         self, client, dataset_owner
     ):
@@ -392,6 +402,23 @@ class TestFilterChoicesOnTheRenderedPage:
 
         assert offered in choices
         assert withheld not in choices
+
+    def test_a_filter_offers_nothing_a_private_project_hides(
+        self, client, public_dataset
+    ):
+        hidden_dataset = DatasetFactory(
+            project=ProjectFactory(visibility=Visibility.PRIVATE),
+            visibility=Visibility.PUBLIC,
+            published=True,
+        )
+        hidden_sample = RockSampleFactory(dataset=hidden_dataset)
+        sample = RockSampleFactory(dataset=public_dataset)
+        ExampleMeasurementFactory(sample=sample, dataset=public_dataset)
+
+        assert hidden_dataset not in self._offered(
+            client, ExampleMeasurement, "dataset"
+        )
+        assert hidden_sample not in self._offered(client, ExampleMeasurement, "sample")
 
     def test_a_measurement_listings_dataset_filter_offers_no_unpublished_dataset(
         self, client, public_dataset, unpublished_dataset

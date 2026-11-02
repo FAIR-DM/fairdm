@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **A private project hides every dataset in it, and their samples and measurements.** A public
+  dataset inside a private project, and the records of a published one, were shown to anyone: on
+  their own pages, in the dataset list, in the API, in collection tables and their filters, and in
+  record search fields. People who hold a level on the record, its dataset or the project still see
+  them.
+
 ## [v0.4.1] - 2026-11-02
 
 ### Fixed

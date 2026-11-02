@@ -16,6 +16,7 @@ from mvp.warnings import MVPDeprecationWarning
 from partial_dates import PartialDate
 from pytest_django.asserts import assertContains, assertNotContains
 
+from demo.factories import RockSampleFactory
 from fairdm import plugins
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.services.crediting import Crediting
@@ -868,6 +869,73 @@ class TestNoAddressDisclosesAPrivateDatasetsExistence:
             assert "/login/" in response.url or "/accounts/login/" in response.url
 
 
+@pytest.fixture
+def in_private_project():
+    """A public, published dataset inside a private project."""
+    return DatasetFactory(
+        project=ProjectFactory(visibility=Visibility.PRIVATE),
+        visibility=Visibility.PUBLIC,
+        published=True,
+    )
+
+
+@pytest.mark.django_db
+class TestAPrivateProjectHidesThePublicDatasetsInIt:
+    ADDRESSES = (
+        "dataset:overview",
+        "dataset:edit",
+        "dataset:descriptions",
+        "dataset:delete",
+    )
+
+    def addresses_of(self, dataset):
+        overview = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
+        return [
+            *(reverse(name, kwargs={"uuid": dataset.uuid}) for name in self.ADDRESSES),
+            f"{overview}contributors/",
+        ]
+
+    def test_an_anonymous_visitor_gets_not_found_at_every_address(
+        self, client, in_private_project
+    ):
+        for address in self.addresses_of(in_private_project):
+            assert client.get(address).status_code == 404, address
+
+    def test_a_signed_in_stranger_gets_not_found_at_every_address(
+        self, client, in_private_project
+    ):
+        client.force_login(UserFactory())
+
+        for address in self.addresses_of(in_private_project):
+            assert client.get(address).status_code == 404, address
+
+    @pytest.mark.parametrize("held_on", ["dataset", "project"])
+    def test_a_level_on_the_dataset_or_its_project_opens_the_dataset(
+        self, client, in_private_project, held_on
+    ):
+        user = UserFactory()
+        record = (
+            in_private_project if held_on == "dataset" else in_private_project.project
+        )
+        ContributionFactory(
+            content_object=record, contributor=user, level=ContributionLevel.VIEW
+        )
+        client.force_login(user)
+
+        response = client.get(
+            reverse("dataset:overview", kwargs={"uuid": in_private_project.uuid})
+        )
+
+        assert response.status_code == 200
+
+    def test_a_sample_inside_is_not_found_for_a_visitor(
+        self, client, in_private_project
+    ):
+        sample = RockSampleFactory(dataset=in_private_project)
+
+        assert client.get(sample.get_absolute_url()).status_code == 404
+
+
 @pytest.mark.django_db
 class TestRetiredManagementPages:
     def test_the_dataset_menu_carries_one_entry(self):
@@ -1300,6 +1368,11 @@ class TestOverviewProject:
             visibility=Visibility.PRIVATE, name="Secret Rift Programme"
         )
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, project=project)
+        viewer = UserFactory()
+        ContributionFactory(
+            content_object=dataset, contributor=viewer, level=ContributionLevel.VIEW
+        )
+        client.force_login(viewer)
 
         response = _page(client, dataset)
 
