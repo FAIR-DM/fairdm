@@ -172,8 +172,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             )
         elif not citation["has_doi"]:
             result["citation"]["note"] = gettext(
-                "This dataset has no DOI yet, so the citation points at this page. It gets one "
-                "when it is published."
+                "This dataset has no DOI yet, so the citation points at this page. It will use "
+                "the DOI once one is recorded on the dataset's identifiers page."
             )
         if "readiness" in page:
             readiness = page["readiness"]

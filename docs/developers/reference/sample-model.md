@@ -91,7 +91,6 @@ The combination of source, target and type is unique. Both `clean()` and `save()
 | `get_descendants(depth=None)` | The descendants, to a depth. `None` means unlimited and `1` means direct children only. |
 | `get_ancestors(depth=None)` | The ancestors, to a depth. |
 | `get_absolute_url()` | The address of the sample's overview page. |
-| `get_template_name()` | The card templates to try, `<app_label>/<model_name>_card.html` then `fairdm/sample_card.html`. |
 
 `clean()` also refuses to move a sample to a dataset when that would leave nobody able to manage it.
 

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **`Sample.get_template_name()` and `Measurement.get_template_name()`.** They named card templates
+  that no longer exist and nothing called them. Draw a sample with the `c-sample.card` component.
+- **`sample/sample_detail.html`.** No view or plugin selected it, and it called components that no
+  longer exist.
+
 ### Fixed
 
 - **A project's Datasets tab lists what the viewer may see, with its counts.** The tab left out
@@ -38,6 +45,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   their own pages, in the dataset list, in the API, in collection tables and their filters, and in
   record search fields. People who hold a level on the record, its dataset or the project still see
   them.
+- **A dataset's DataCite XML now writes values DataCite 4.4 accepts.** A creator's name type is
+  `Personal` or `Organizational`. Dates use DataCite's types, with the collection start and end
+  combined into one `Collected` range. The rights entry carries the licence's address, and its SPDX
+  identifier for a Creative Commons licence.
+- **The dataset page no longer says publishing gives a dataset a DOI.** A portal doesn't issue
+  DOIs. The citation note now says the citation will use the DOI once one is recorded on the
+  identifiers page, and the Publish button no longer mentions one.
 - **An addon's `urls.py` is now mounted.** FairDM found the module and logged it, but the root
   URL configuration never saw it, so every address the addon defined answered 404. FairDM now
   includes it at the site root. A portal that includes the addon's URLs itself can drop that line.

@@ -136,8 +136,7 @@ type distributed with the framework to nominate a value and record an uncertaint
 exercised rather than described — the fault here was not the missing branch but that nothing ever
 ran it.
 
-The methods are load-bearing for display: `fairdm/core/sample/templates/sample/sample_detail.html:26`
-and the measurement overview template both call `get_value`.
+The methods are load-bearing for display: the measurement overview template calls `get_value`.
 
 **ADR:** docs/adr/0005-a-measurement-type-nominates-its-value.md
 
