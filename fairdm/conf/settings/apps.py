@@ -184,8 +184,10 @@ FIXTURE_DIRS = (str(BASE_DIR / "fixtures"),)
 LOCALE_PATHS = [str(BASE_DIR / "project" / "locale")]
 
 # The gateway address of each local network, for the debug toolbar.
-hostname, _, ips = socket.gethostbyname_ex(socket.gethostname())
-INTERNAL_IPS = [".".join(ip.split(".")[:-1] + ["1"]) for ip in ips]
+INTERNAL_IPS = [
+    ".".join(ip.split(".")[:-1] + ["1"])
+    for ip in socket.gethostbyname_ex(socket.gethostname())[2]
+]
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = ["daisyui"]
 CRISPY_TEMPLATE_PACK = "daisyui"

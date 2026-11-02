@@ -4,6 +4,18 @@ import pytest
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django.urls import reverse
+from waffle import get_waffle_sample_model, sample_is_active
+
+
+class TestWaffleSamples:
+    def test_a_sample_code_asks_for_is_created(self, db):
+        sample_is_active("sample-nobody-created")
+
+        assert (
+            get_waffle_sample_model()
+            .objects.filter(name="sample-nobody-created")
+            .exists()
+        )
 
 
 class TestSidebarFooterSettingIsNotDeclared:

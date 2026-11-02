@@ -11,6 +11,8 @@ from django.core.checks import Warning as CheckWarning
 from django.core.exceptions import ImproperlyConfigured
 from django.db.utils import OperationalError, ProgrammingError
 
+from fairdm.conf.environment import NON_PRODUCTION_ENVIRONMENTS
+
 logger = logging.getLogger(__name__)
 
 
@@ -275,8 +277,6 @@ def check_backup_storage_is_remote(app_configs, **kwargs):
     from django.core.files.storage import FileSystemStorage
     from django.utils.module_loading import import_string
 
-    from fairdm.apps import NON_PRODUCTION_ENVIRONMENTS
-
     if (
         apps.get_app_config("fairdm").resolved_environment()
         in NON_PRODUCTION_ENVIRONMENTS
@@ -465,7 +465,6 @@ def check_dev_accounts_absent(app_configs, **kwargs):
     from django.apps import apps
     from django.contrib.auth import get_user_model
 
-    from fairdm.apps import NON_PRODUCTION_ENVIRONMENTS
     from fairdm.management.commands.create_dev_accounts import (
         DEV_ACCOUNT_EMAILS,
         EXAMPLE_ACCOUNT_EMAILS,
@@ -636,11 +635,13 @@ def validate_addon_module(addon_name: str, module_path: str, env_profile: str) -
         ``True`` if the module is valid, ``False`` otherwise.
 
     Raises:
-        ImproperlyConfigured: The module is invalid and the environment is production.
+        ImproperlyConfigured: The module is invalid and the environment composes the
+            production baseline.
         ModuleNotFoundError: The module cannot be found. Handled inside this function, so
-            callers see ``False``, or ``ImproperlyConfigured`` in production.
+            callers see ``False``, or ``ImproperlyConfigured`` on the production
+            baseline.
     """
-    is_production_like = env_profile == "production"
+    is_production_like = env_profile not in NON_PRODUCTION_ENVIRONMENTS
 
     try:
         import importlib.util

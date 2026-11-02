@@ -5,6 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from django.utils.translation import gettext_lazy
+
 from tests.keys import BACKUP_PUBLIC_KEY
 
 
@@ -146,3 +148,19 @@ class TestGroupsFixtureRemoved:
         repo_root = Path(__file__).resolve().parents[3]
 
         assert not (repo_root / "fairdm" / "fixtures" / "groups.json").exists()
+
+
+class TestPortalNamespace:
+    def test_a_gettext_alias_imported_before_setup_survives_it(
+        self, isolated_env, settings_module
+    ):
+        os.environ["DJANGO_ENV"] = "qa"
+
+        module = settings_module(
+            setup_call=(
+                "from django.utils.translation import gettext_lazy as _\n\n"
+                "fairdm.setup()"
+            ),
+        )
+
+        assert module._ is gettext_lazy

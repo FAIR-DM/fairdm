@@ -52,7 +52,7 @@ Before any layer is composed, `setup()` reads environment files. Reading `stack.
 
 ### Addons are applied safely
 
-An addon's settings are applied to a private copy, and merged only if its module runs to the end. An addon that fails partway leaves no half-written settings. In production a failing addon stops the portal and names the addon. In any other environment it logs a warning and is skipped.
+An addon's settings are applied to a private copy, and merged only if its module runs to the end. An addon that fails partway leaves no half-written settings. In every environment but `development`, a failing addon stops the portal and names the addon. In `development` it logs a warning and is skipped.
 
 ## A portal's apps come first
 

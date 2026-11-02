@@ -14,6 +14,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   their own pages, in the dataset list, in the API, in collection tables and their filters, and in
   record search fields. People who hold a level on the record, its dataset or the project still see
   them.
+- **An addon's `urls.py` is now mounted.** FairDM found the module and logged it, but the root
+  URL configuration never saw it, so every address the addon defined answered 404. FairDM now
+  includes it at the site root. A portal that includes the addon's URLs itself can drop that line.
+- **A broken addon now stops every environment built on the production settings.** A setup module
+  that could not be found or that raised only stopped the portal when `DJANGO_ENV` was exactly
+  `production`. It now stops the portal for any name but `development`, such as `prod`, `staging`
+  or an empty string. `NON_PRODUCTION_ENVIRONMENTS` moved from `fairdm.apps` to
+  `fairdm.conf.environment`.
+- **Email no longer goes out from `None`.** With `DJANGO_SITE_NAME` unset, `DEFAULT_FROM_EMAIL` and
+  `SERVER_EMAIL` now carry the same default name as `SITE_NAME`.
+- **`fairdm.setup()` no longer replaces a `_` imported in the portal's settings module** before the
+  call, and no longer leaves `hostname` and `ips` there.
+- **`WAFFLE_CREATE_MISSING_SAMPLES` is spelt correctly**, so django-waffle now creates a sample that
+  code asks for and that does not exist, as it does for flags and switches.
+- **A portal's development settings start with only FairDM installed.** `django-browser-reload`
+  is added to `INSTALLED_APPS` and `MIDDLEWARE` only when the package is installed.
 
 ## [v0.4.1] - 2026-11-02
 

@@ -10,11 +10,7 @@ from fairdm import menus as _menus  # noqa: F401
 # Imported at module level so the checks also run under `manage.py check --deploy`
 # when the production-configuration guard in `ready()` is skipped.
 from fairdm.conf import checks as conf_checks  # noqa: F401
-
-#: Environments that ship a non-production override module. Every other name,
-#: including typos and the empty string, composes the production baseline and is
-#: checked as production.
-NON_PRODUCTION_ENVIRONMENTS = frozenset({"development"})
+from fairdm.conf.environment import NON_PRODUCTION_ENVIRONMENTS
 
 
 class FairDMConfig(AppConfig):

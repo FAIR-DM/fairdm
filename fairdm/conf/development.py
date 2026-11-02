@@ -3,18 +3,22 @@
 Applied after the settings modules load when ``DJANGO_ENV=development``.
 """
 
+import importlib.util
+
 env = globals()["env"]
 
 INSTALLED_APPS = globals().get("INSTALLED_APPS", [])
 MIDDLEWARE = globals().get("MIDDLEWARE", [])
 
-INSTALLED_APPS += [
-    "django_browser_reload",
-]
+# Not a dependency of FairDM, so a portal has it only if it installs it.
+if importlib.util.find_spec("django_browser_reload"):
+    INSTALLED_APPS += [
+        "django_browser_reload",
+    ]
 
-MIDDLEWARE += [
-    "django_browser_reload.middleware.BrowserReloadMiddleware",
-]
+    MIDDLEWARE += [
+        "django_browser_reload.middleware.BrowserReloadMiddleware",
+    ]
 
 DEBUG = True
 

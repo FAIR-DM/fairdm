@@ -1,10 +1,14 @@
 """Tests for FairDM addon integration system."""
 
+import importlib
 import os
 from unittest import mock
 
 import pytest
 from django.core.exceptions import ImproperlyConfigured
+from django.urls import clear_url_caches, resolve
+
+from fairdm.conf.addons import discover_addon_urls
 
 
 @pytest.fixture
@@ -143,6 +147,33 @@ fairdm.setup(addons=["tests.test_conf.dummy_addon"])
         assert "tests.test_conf.dummy_addon.urls" in urls
 
 
+class TestAddonUrlMounting:
+    @pytest.fixture
+    def root_urls(self):
+        from fairdm.conf import urls
+
+        yield urls
+
+        discover_addon_urls([])
+        importlib.reload(urls)
+        clear_url_caches()
+
+    def test_an_address_the_addon_defines_resolves(
+        self, production_env, settings_module, root_urls
+    ):
+        os.environ["DJANGO_ENV"] = "development"
+
+        settings_module(
+            setup_call="fairdm.setup(addons=['tests.test_conf.routed_addon'])"
+        )
+        importlib.reload(root_urls)
+        clear_url_caches()
+
+        match = resolve("/routed-addon/", urlconf=root_urls)
+
+        assert match.url_name == "routed-addon-page"
+
+
 class TestAddonPosition:
     def test_addon_setting_beats_fairdm_environment_override(
         self, production_env, tmp_path, settings_module
@@ -172,6 +203,21 @@ class TestAddonPosition:
         # The portal's own override (layer 4) applies after the addon
         # (layer 3) and must win.
         assert module.DEBUG == "portal-value"
+
+
+class TestEnvironmentsThatStopOnABrokenAddon:
+    @pytest.mark.parametrize("environment", ["production", "prod", "staging", ""])
+    @pytest.mark.parametrize(
+        "addon",
+        ["tests.test_conf.broken_execution_addon", "tests.test_conf.unloadable_addon"],
+    )
+    def test_every_environment_built_on_the_baseline_refuses_to_start(
+        self, production_env, settings_module, environment, addon
+    ):
+        os.environ["DJANGO_ENV"] = environment
+
+        with pytest.raises(ImproperlyConfigured, match=addon):
+            settings_module(setup_call=f"fairdm.setup(addons=['{addon}'])")
 
 
 class TestAddonValidation:
