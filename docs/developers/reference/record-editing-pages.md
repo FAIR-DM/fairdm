@@ -157,7 +157,7 @@ class ProjectDatesInline(ProjectDateInline):
 
 A project refuses an end before its start, and a dataset refuses a collection end before its collection start. No other record type has an ordering rule.
 
-`precedes(a, b)` in `fairdm.core.dates` is the comparison every date rule rests on. It compares two `PartialDate` values at the coarser of their two precisions, so `2020` and `2020-03-14` are the same year and neither precedes the other. Use it instead of comparing partial dates with `<`.
+`a.relation_to(b) is Relation.BEFORE` is the comparison every date rule rests on. `relation_to` compares the periods two `PartialDate` values cover, so `2020` and `2020-03-14` overlap and neither is before the other. Use it instead of comparing partial dates with `<`, which gives their sort order.
 
 ## Delete
 

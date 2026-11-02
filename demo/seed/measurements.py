@@ -22,7 +22,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from licensing.models import License
-from partial_date import PartialDate
+from partial_dates import PartialDate
 
 from demo.factories import (
     ICP_MS_MeasurementFactory,
@@ -107,7 +107,7 @@ class MeasurementSeed(BaseCommand):
             (f"{DATE_TYPES}/tear-down", "2025-06-11"),
         ]:
             MeasurementDate.objects.create(
-                related=full, type_id=type_, value=PartialDate(value)
+                related=full, type_id=type_, value=PartialDate.fromisoformat(value)
             )
         for type_, value in [
             (

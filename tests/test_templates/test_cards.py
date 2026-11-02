@@ -11,7 +11,7 @@ import pytest
 from django.contrib.gis.geos import Point as GEOSPoint
 from django.utils import translation
 from django.utils.formats import date_format
-from partial_date import PartialDate
+from partial_dates import PartialDate
 
 from fairdm.core.vocabularies import IDENTIFIER_TYPES
 from fairdm.factories import OrganizationFactory, PersonFactory
@@ -334,10 +334,10 @@ class TestDescriptionsCard:
 class TestTimelineCard:
     def test_each_step_is_listed_in_the_order_given(self, render_card, soup):
         steps = [
-            {"label": "FIRST", "date": PartialDate("2020"), "day": None},
+            {"label": "FIRST", "date": PartialDate.fromisoformat("2020"), "day": None},
             {
                 "label": "SECOND",
-                "date": PartialDate("2021-05-06"),
+                "date": PartialDate.fromisoformat("2021-05-06"),
                 "day": date(2021, 5, 6),
             },
         ]
@@ -349,7 +349,7 @@ class TestTimelineCard:
         assert "SECOND" in items[1]
 
     def test_a_date_recorded_only_to_the_year_is_shown_as_recorded(self, render_card):
-        steps = [{"label": "Step", "date": PartialDate("2020"), "day": None}]
+        steps = [{"label": "Step", "date": PartialDate.fromisoformat("2020"), "day": None}]
 
         html = render_card("timeline", title="History", steps=steps, empty="")
 
@@ -359,7 +359,7 @@ class TestTimelineCard:
     def test_a_date_recorded_only_to_the_month_follows_the_active_locale(
         self, render_card
     ):
-        steps = [{"label": "Step", "date": PartialDate("2021-05"), "day": None}]
+        steps = [{"label": "Step", "date": PartialDate.fromisoformat("2021-05"), "day": None}]
         with translation.override("de"):
             html = render_card("timeline", title="History", steps=steps, empty="")
             expected = date_format(date(2021, 5, 1), "YEAR_MONTH_FORMAT")
@@ -368,7 +368,7 @@ class TestTimelineCard:
 
     def test_a_full_day_follows_the_active_locale(self, render_card):
         when = date(2021, 5, 6)
-        steps = [{"label": "Step", "date": PartialDate("2021-05-06"), "day": when}]
+        steps = [{"label": "Step", "date": PartialDate.fromisoformat("2021-05-06"), "day": when}]
 
         with translation.override("de"):
             html = render_card("timeline", title="History", steps=steps, empty="")

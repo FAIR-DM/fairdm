@@ -77,7 +77,7 @@ class TestDemoOrganizationOwnership:
 @pytest.mark.django_db
 class TestDemoAffiliationWorkflow:
     def test_demo_affiliation_workflow(self):
-        from partial_date import PartialDate
+        from partial_dates import PartialDate
 
         person = PersonFactory(email="postdoc@example.com")
         university = OrganizationFactory(name="Example University")
@@ -86,7 +86,9 @@ class TestDemoAffiliationWorkflow:
             person=person,
             organization=university,
             type=Affiliation.MembershipType.MEMBER,
-            start_date=PartialDate("2020"),  # Year-only precision (string format)
+            start_date=PartialDate.fromisoformat(
+                "2020"
+            ),  # Year-only precision (string format)
             is_primary=True,
         )
 

@@ -11,7 +11,7 @@ from django.test import RequestFactory
 from django.urls import reverse
 from django.utils import timezone, translation
 from django.utils.formats import date_format
-from partial_date import PartialDate
+from partial_dates import PartialDate
 from pytest_django.asserts import assertContains, assertNotContains
 
 from fairdm import plugins
@@ -269,9 +269,7 @@ class TestDescriptionsPageOffersOneAreaPerVocabularyType:
         response = client.get(url)
 
         form = response.context["form"]
-        assert list(form.fields) == list(
-            [concept.uri for concept in ProjectDescription.get_type_concepts()]
-        )
+        assert list(form.fields) == [concept.uri for concept in ProjectDescription.get_type_concepts()]
 
     def test_every_area_starts_empty_for_a_project_with_no_descriptions(
         self, client, user_with_change_permission
@@ -317,9 +315,9 @@ class TestSavingTextIntoOneAreaRecordsOnlyThatType:
 
         project = user_with_change_permission.project
         client.force_login(user_with_change_permission)
-        first_type = [
+        first_type = next(
             concept.uri for concept in ProjectDescription.get_type_concepts()
-        ][0]
+        )
 
         url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
         client.post(url, data={first_type: "Some abstract text."})
@@ -361,9 +359,9 @@ class TestEditingAnExistingDescriptionPersists:
 
         project = user_with_change_permission.project
         client.force_login(user_with_change_permission)
-        first_type = [
+        first_type = next(
             concept.uri for concept in ProjectDescription.get_type_concepts()
-        ][0]
+        )
         row = ProjectDescription.objects.create(
             related=project, type_id=first_type, value="Original text."
         )
@@ -385,9 +383,9 @@ class TestClearingAnAreaRemovesTheDescription:
 
         project = user_with_change_permission.project
         client.force_login(user_with_change_permission)
-        first_type = [
+        first_type = next(
             concept.uri for concept in ProjectDescription.get_type_concepts()
-        ][0]
+        )
         ProjectDescription.objects.create(
             related=project, type_id=first_type, value="Existing text."
         )
@@ -409,9 +407,9 @@ class TestRepeatSubmissionNeverDuplicatesAType:
 
         project = user_with_change_permission.project
         client.force_login(user_with_change_permission)
-        first_type = [
+        first_type = next(
             concept.uri for concept in ProjectDescription.get_type_concepts()
-        ][0]
+        )
 
         url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
         client.post(url, data={first_type: "First."})
@@ -450,9 +448,9 @@ class TestEmptyAndWhitespaceOnlyAreasCreateNothing:
 
         project = user_with_change_permission.project
         client.force_login(user_with_change_permission)
-        first_type = [
+        first_type = next(
             concept.uri for concept in ProjectDescription.get_type_concepts()
-        ][0]
+        )
         ProjectDescription.objects.create(
             related=project, type_id=first_type, value="Existing text."
         )
@@ -474,9 +472,9 @@ class TestASuccessfulSubmissionRedirectsToTheProjectsPage:
 
         project = user_with_change_permission.project
         client.force_login(user_with_change_permission)
-        first_type = [
+        first_type = next(
             concept.uri for concept in ProjectDescription.get_type_concepts()
-        ][0]
+        )
 
         url = reverse("project:descriptions", kwargs={"uuid": project.uuid})
         response = client.post(url, data={first_type: "Some text."})
@@ -1123,7 +1121,7 @@ class TestOverviewCitation:
     def test_the_year_is_the_projects_start_year(self, client):
         project = self._project_with_creators(("Anna", "Keller"))
         ProjectDateFactory(
-            related=project, type_id=f"{DATE_TYPES}/start", value=PartialDate("2019-05")
+            related=project, type_id=f"{DATE_TYPES}/start", value=PartialDate.fromisoformat("2019-05")
         )
 
         assert "(2019)" in self._citation(client, project)
@@ -1134,7 +1132,7 @@ class TestOverviewTimeline:
     def _progress(self, client, project, start, end):
         for type_, day in ((f"{DATE_TYPES}/start", start), (f"{DATE_TYPES}/end", end)):
             ProjectDateFactory(
-                related=project, type_id=type_, value=PartialDate(day.isoformat())
+                related=project, type_id=type_, value=PartialDate.fromisoformat(day.isoformat())
             )
         response = _page(client, project)
         return response, response.page.find("progress")
@@ -1186,7 +1184,7 @@ class TestOverviewTimeline:
     ):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         ProjectDateFactory(
-            related=project, type_id=f"{DATE_TYPES}/start", value=PartialDate("2020-01")
+            related=project, type_id=f"{DATE_TYPES}/start", value=PartialDate.fromisoformat("2020-01")
         )
 
         response = _page(client, project)
@@ -1199,10 +1197,10 @@ class TestOverviewTimeline:
     ):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         ProjectDateFactory(
-            related=project, type_id=f"{DATE_TYPES}/start", value=PartialDate("2020")
+            related=project, type_id=f"{DATE_TYPES}/start", value=PartialDate.fromisoformat("2020")
         )
         ProjectDateFactory(
-            related=project, type_id=f"{DATE_TYPES}/end", value=PartialDate("2022-03")
+            related=project, type_id=f"{DATE_TYPES}/end", value=PartialDate.fromisoformat("2022-03")
         )
 
         response = _page(client, project)

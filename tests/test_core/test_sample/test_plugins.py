@@ -13,7 +13,7 @@ from django.template.loader import select_template
 from django.test import RequestFactory
 from django.test.utils import isolate_apps
 from django.urls import reverse
-from partial_date import PartialDate
+from partial_dates import PartialDate
 from pytest_django.asserts import assertContains, assertNotContains
 
 from demo.factories import RockSampleFactory, WaterSampleFactory, XRFMeasurementFactory
@@ -340,7 +340,7 @@ class TestOverviewHistory:
             (f"{DATE_TYPES}/prepared", "2024-03"),
         ]:
             SampleDate.objects.create(
-                related=rock, type_id=kind, value=PartialDate(value)
+                related=rock, type_id=kind, value=PartialDate.fromisoformat(value)
             )
 
         steps = _page(client, rock).context["lifecycle"]
@@ -359,7 +359,7 @@ class TestOverviewHistory:
         SampleDate.objects.create(
             related=rock,
             type_id=f"{DATE_TYPES}/collected",
-            value=PartialDate("2024-01-02"),
+            value=PartialDate.fromisoformat("2024-01-02"),
         )
 
         steps = _page(client, rock).context["lifecycle"]

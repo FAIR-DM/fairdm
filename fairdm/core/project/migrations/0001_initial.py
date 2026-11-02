@@ -7,7 +7,7 @@ import django.db.models.manager
 
 import django_lifecycle.mixins
 import easy_thumbnails.fields
-import fairdm.db.fields
+import partial_dates.conversion
 import fairdm.utils.utils
 import shortuuid.django_fields
 import taggit.managers
@@ -170,7 +170,7 @@ class Migration(migrations.Migration):
                     "type",
                     controlled_vocabularies.fields.ConceptField(collection='https://w3id.org/fairdm/vocabularies/date-types/project', help_text='What the date marks, from the project date types.', related_name='+', verbose_name='type', vocabulary=('https://w3id.org/fairdm/vocabularies/date-types',)),
                 ),
-                ("value", fairdm.db.fields.PartialDateField(verbose_name="date")),
+                ("value", partial_dates.conversion.OldPartialDateField(verbose_name="date")),
                 (
                     "related",
                     auto_prefetch.ForeignKey(
