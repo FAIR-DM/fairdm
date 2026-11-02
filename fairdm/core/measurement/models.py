@@ -9,6 +9,7 @@ from django.contrib.gis import geos
 from django.contrib.gis.db.models import PointField
 from django.utils.functional import classproperty
 from django.utils.translation import gettext_lazy as _
+from pint.errors import DimensionalityError
 from shortuuid.django_fields import ShortUUIDField
 
 from fairdm.db import models
@@ -187,8 +188,9 @@ class Measurement(BasePolymorphicModel):
         arithmetic is only attempted where the value supports it.
 
         Returns:
-            The value with its ``plus_minus`` uncertainty applied when both exist, the plain
-            value otherwise, or the name when the class defines no ``value`` (the base class).
+            The value with its ``plus_minus`` uncertainty applied when both exist and the
+            uncertainty can be applied, the plain value otherwise, or the name when the class
+            defines no ``value`` (the base class).
         """
         if not hasattr(self, "value"):
             return self.name
@@ -198,7 +200,12 @@ class Measurement(BasePolymorphicModel):
             and self.uncertainty is not None
             and hasattr(self.value, "plus_minus")
         ):
-            return self.value.plus_minus(self.uncertainty)
+            try:
+                return self.value.plus_minus(self.uncertainty)
+            except (ValueError, DimensionalityError):
+                # A negative uncertainty, or one in other units. Validators keep these out of a
+                # form, but not out of the database, and the record must still open to be fixed.
+                return self.value
         return self.value
 
     def print_value(self):

@@ -18,6 +18,7 @@ from demo.factories import (
     ICP_MS_MeasurementFactory,
     RockSampleFactory,
 )
+from demo.models import ICP_MS_Measurement
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.measurement.forms import MeasurementForm
 from fairdm.core.measurement.models import (
@@ -335,14 +336,14 @@ class TestMeasurementVocabularyValidation:
 @pytest.mark.django_db
 class TestMeasurementIdentifierVocabulary:
     def test_available_types_are_doi_only(self):
-        assert set(
-            [concept.uri for concept in MeasurementIdentifier.get_type_concepts()]
-        ) == {f"{IDENTIFIER_TYPES}/doi"}
+        assert {
+            concept.uri for concept in MeasurementIdentifier.get_type_concepts()
+        } == {f"{IDENTIFIER_TYPES}/doi"}
 
     def test_no_type_names_a_sample_person_organisation_or_project(self):
-        assert set(
-            [concept.uri for concept in MeasurementIdentifier.get_type_concepts()]
-        ).isdisjoint(
+        assert {
+            concept.uri for concept in MeasurementIdentifier.get_type_concepts()
+        }.isdisjoint(
             {
                 f"{IDENTIFIER_TYPES}/igsn",
                 f"{IDENTIFIER_TYPES}/orcid",
@@ -387,9 +388,9 @@ class TestMeasurementMetadataRelations:
 @pytest.mark.django_db
 class TestMeasurementDescriptionVocabularyMembers:
     def test_available_types_are_named_one_by_one(self):
-        assert set(
-            [concept.uri for concept in MeasurementDescription.get_type_concepts()]
-        ) == {
+        assert {
+            concept.uri for concept in MeasurementDescription.get_type_concepts()
+        } == {
             f"{DESCRIPTION_TYPES}/measurement-conditions",
             f"{DESCRIPTION_TYPES}/measurement-setup",
             f"{DESCRIPTION_TYPES}/measurement-tear-down",
@@ -410,9 +411,10 @@ class TestMeasurementDescriptionVocabularyMembers:
 @pytest.mark.django_db
 class TestMeasurementDateVocabularyMembers:
     def test_available_types_are_named_one_by_one(self):
-        assert set(
-            [concept.uri for concept in MeasurementDate.get_type_concepts()]
-        ) == {f"{DATE_TYPES}/setup", f"{DATE_TYPES}/tear-down"}
+        assert {concept.uri for concept in MeasurementDate.get_type_concepts()} == {
+            f"{DATE_TYPES}/setup",
+            f"{DATE_TYPES}/tear-down",
+        }
 
     def test_a_date_type_is_drawn_from_the_measurement_collection(self, measurement):
         date = MeasurementDateFactory(
@@ -517,6 +519,25 @@ class TestMeasurementValueMethods:
         value_str = measurement.print_value()
         assert isinstance(value_str, str)
         assert value_str == measurement.name
+
+    def test_a_negative_uncertainty_leaves_the_plain_value(self):
+        stored = ICP_MS_MeasurementFactory(
+            sample=RockSampleFactory(), value="120.5", uncertainty="-2.5"
+        )
+        measurement = ICP_MS_Measurement.objects.get(pk=stored.pk)
+
+        assert measurement.get_value() == measurement.value
+        assert measurement.print_value() == str(measurement.value)
+        assert str(measurement) == str(measurement.value)
+
+    def test_an_uncertainty_in_units_the_value_cannot_take_leaves_the_plain_value(self):
+        units = pint.get_application_registry()
+        measurement = ICP_MS_MeasurementFactory.build(
+            value=units.Quantity(120.5, "meter"),
+            uncertainty=units.Quantity(2, "second"),
+        )
+
+        assert measurement.get_value() == measurement.value
 
     def test_a_measurement_with_no_value_is_named_by_its_name(self):
         measurement = ICP_MS_MeasurementFactory(

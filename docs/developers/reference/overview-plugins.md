@@ -15,7 +15,7 @@ An overview page's numbers, lists and cards are worked out by a plugin registere
 | `Overview` | `fairdm.core.measurement.plugins` | `Measurement` | `measurement/measurement_overview.html`, or a type's own |
 | `Overview` | `fairdm.contrib.contributors.plugins.overview` | `Contributor` | `contributors/overview/person.html` or `organization.html` |
 
-Each core `Overview` has `url_path = None`, so the overview sits at the record's own address.
+Each core `Overview` has `url_path = None`, so the overview sits at the record's own address. `OverviewRedirect` in `fairdm.core.sample.plugins` sends a sample's `overview/` address to the record's own with a permanent redirect.
 
 ## `RecordOverviewPlugin`
 

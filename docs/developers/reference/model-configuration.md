@@ -68,6 +68,8 @@ Type: `list[str | tuple[str, ...]]`. Default: `[]`.
 
 The field list that every component uses when it has none of its own. An empty list leaves the choice to the framework. See [How a field list is resolved](#how-a-field-list-is-resolved).
 
+The generated form leaves out a field with `editable=False` that it inherits from this list, and the other components keep it. The same field listed in `form_fields` raises `FieldError` when the form is built.
+
 Accepts field names of the model. A name may be a double-underscore path, such as `dataset__name`. The registry checks each segment and refuses the configuration when one does not resolve. A tuple groups names for layout and gives the same fields as writing them one by one.
 
 ### `exclude`
@@ -132,7 +134,7 @@ A class option accepts the class or its dotted path. A path is imported when the
 
 ## Components
 
-The six components are the rows of `fairdm.registry.config.COMPONENTS`. A factory in `fairdm.registry.factories` builds each one when its class option is not set. `ComponentFactory` takes `model` and `fields`, `FilterFactory` also takes `search_fields`, and each has a `generate()` method that returns the class.
+The six components are the rows of `fairdm.registry.config.COMPONENTS`. A factory in `fairdm.registry.factories` builds each one when its class option is not set. `ComponentFactory` takes `model` and `fields`, `FormFactory` also takes `declared`, the names of `form_fields`, `FilterFactory` also takes `search_fields`, and each has a `generate()` method that returns the class.
 
 | Component | Field list | Class | Factory | Left out of the framework's own choice |
 |---|---|---|---|---|

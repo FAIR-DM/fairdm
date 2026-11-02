@@ -69,7 +69,37 @@ class FormFactory(ComponentFactory):
 
     Dates, large text, email and URL fields get a matching widget, and the form
     carries a crispy-forms helper with a submit button.
+
+    Args:
+        model: The Django model class to generate the form for.
+        fields: Field names to use. ``None`` uses the model's safe fields.
+        declared: The names the configuration lists for the form itself.
     """
+
+    def __init__(
+        self,
+        model: type[models.Model],
+        fields: list[str] | None = None,
+        declared: list[str] | None = None,
+    ):
+        super().__init__(model, fields)
+        self.declared = declared or []
+
+    def get_fields(self) -> list[str]:
+        """Return the fields to use, without those the form cannot edit and only inherited.
+
+        A shared list may name a non-editable field for the table, serializer or export. A name
+        the configuration lists for the form itself stays, so ``modelform_factory`` refuses it.
+
+        Returns:
+            The field names to use.
+        """
+        return [
+            name
+            for name in super().get_fields()
+            if name in self.declared
+            or getattr(self.inspector.get_field(name), "editable", True)
+        ]
 
     def generate(self) -> type[ModelForm]:
         """Generate a ModelForm class with smart widgets.
