@@ -14,7 +14,7 @@
 <meta property="og:description" content="This page lists the accounts that FairDM’s development commands create, their addresses, passwords and roles, the environment rule that restricts them, and the check that reports them outside devel..." />
 <meta name="description" content="This page lists the accounts that FairDM’s development commands create, their addresses, passwords and roles, the environment rule that restricts them, and the check that reports them outside devel..." />
 
-    <title>Development accounts &#8212; fairdm 0.4.0 documentation</title>
+    <title>Development accounts &#8212; fairdm 0.4.1 documentation</title>
   
   
   
@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
 
-    <script src="../../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../../_static/documentation_options.js?v=c87aa342"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -102,7 +102,7 @@ commentsRunWhenDOMLoaded(addUtterances);
     <link rel="prev" title="Crediting" href="crediting.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.4.0" />
+  <meta name="docsearch:version" content="0.4.1" />
     <meta name="docbuild:last-update" content="Nov 02, 2026"/>
   
     
@@ -175,8 +175,8 @@ commentsRunWhenDOMLoaded(addUtterances);
       
     
     
-    <img src="../../_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.4.0 documentation - Home"/>
-    <img src="../../_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.4.0 documentation - Home"/>
+    <img src="../../_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.4.1 documentation - Home"/>
+    <img src="../../_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.4.1 documentation - Home"/>
   
   
 </a></div>
@@ -1233,7 +1233,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="environment-rule">
 <h2>Environment rule<a class="headerlink" href="#environment-rule" title="Link to this heading">#</a></h2>
-<p>Every command above runs only in an environment for which FairDM ships a non-production override. The set is <code class="docutils literal notranslate"><span class="pre">fairdm.apps.NON_PRODUCTION_ENVIRONMENTS</span></code>, which holds <code class="docutils literal notranslate"><span class="pre">development</span></code>. The environment is the value of the <code class="docutils literal notranslate"><span class="pre">DJANGO_ENV</span></code> setting, and it defaults to <code class="docutils literal notranslate"><span class="pre">production</span></code>. See <a class="reference internal" href="configuration.html"><span class="std std-doc">Configuration</span></a>.</p>
+<p>Every command above runs only in an environment for which FairDM ships a non-production override. The set is <code class="docutils literal notranslate"><span class="pre">fairdm.conf.environment.NON_PRODUCTION_ENVIRONMENTS</span></code>, which holds <code class="docutils literal notranslate"><span class="pre">development</span></code>. The environment is the value of the <code class="docutils literal notranslate"><span class="pre">DJANGO_ENV</span></code> setting, and it defaults to <code class="docutils literal notranslate"><span class="pre">production</span></code>. See <a class="reference internal" href="configuration.html"><span class="std std-doc">Configuration</span></a>.</p>
 <p>On any other environment, including a misspelled one and the empty string, the command raises a <code class="docutils literal notranslate"><span class="pre">CommandError</span></code> and creates nothing.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>

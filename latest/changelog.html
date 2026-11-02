@@ -11,10 +11,10 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="changelog.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="All notable changes to the FairDM project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.[Unreleased]: Fixed: A fairdm.for..." />
-<meta name="description" content="All notable changes to the FairDM project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.[Unreleased]: Fixed: A fairdm.for..." />
+<meta property="og:description" content="All notable changes to the FairDM project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.[Unreleased]: Fixed: An addon’s u..." />
+<meta name="description" content="All notable changes to the FairDM project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.[Unreleased]: Fixed: An addon’s u..." />
 
-    <title>Changelog &#8212; fairdm 0.4.0 documentation</title>
+    <title>Changelog &#8212; fairdm 0.4.1 documentation</title>
   
   
   
@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
 
-    <script src="_static/documentation_options.js?v=6c02275b"></script>
+    <script src="_static/documentation_options.js?v=c87aa342"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -101,7 +101,7 @@ commentsRunWhenDOMLoaded(addUtterances);
     <link rel="prev" title="Roadmap — FairDM" href="ROADMAP.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.4.0" />
+  <meta name="docsearch:version" content="0.4.1" />
     <meta name="docbuild:last-update" content="Nov 02, 2026"/>
   
     
@@ -174,8 +174,8 @@ commentsRunWhenDOMLoaded(addUtterances);
       
     
     
-    <img src="_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.4.0 documentation - Home"/>
-    <img src="_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.4.0 documentation - Home"/>
+    <img src="_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.4.1 documentation - Home"/>
+    <img src="_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.4.1 documentation - Home"/>
   
   
 </a></div>
@@ -815,6 +815,30 @@ and this project adheres to <a class="reference external" href="https://semver.o
 <section id="fixed">
 <h3>Fixed<a class="headerlink" href="#fixed" title="Link to this heading">#</a></h3>
 <ul class="simple">
+<li><p><strong>An addon’s <code class="docutils literal notranslate"><span class="pre">urls.py</span></code> is now mounted.</strong> FairDM found the module and logged it, but the root
+URL configuration never saw it, so every address the addon defined answered 404. FairDM now
+includes it at the site root. A portal that includes the addon’s URLs itself can drop that line.</p></li>
+<li><p><strong>A broken addon now stops every environment built on the production settings.</strong> A setup module
+that could not be found or that raised only stopped the portal when <code class="docutils literal notranslate"><span class="pre">DJANGO_ENV</span></code> was exactly
+<code class="docutils literal notranslate"><span class="pre">production</span></code>. It now stops the portal for any name but <code class="docutils literal notranslate"><span class="pre">development</span></code>, such as <code class="docutils literal notranslate"><span class="pre">prod</span></code>, <code class="docutils literal notranslate"><span class="pre">staging</span></code>
+or an empty string. <code class="docutils literal notranslate"><span class="pre">NON_PRODUCTION_ENVIRONMENTS</span></code> moved from <code class="docutils literal notranslate"><span class="pre">fairdm.apps</span></code> to
+<code class="docutils literal notranslate"><span class="pre">fairdm.conf.environment</span></code>.</p></li>
+<li><p><strong>Email no longer goes out from <code class="docutils literal notranslate"><span class="pre">None</span></code>.</strong> With <code class="docutils literal notranslate"><span class="pre">DJANGO_SITE_NAME</span></code> unset, <code class="docutils literal notranslate"><span class="pre">DEFAULT_FROM_EMAIL</span></code> and
+<code class="docutils literal notranslate"><span class="pre">SERVER_EMAIL</span></code> now carry the same default name as <code class="docutils literal notranslate"><span class="pre">SITE_NAME</span></code>.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">fairdm.setup()</span></code> no longer replaces a <code class="docutils literal notranslate"><span class="pre">_</span></code> imported in the portal’s settings module</strong> before the
+call, and no longer leaves <code class="docutils literal notranslate"><span class="pre">hostname</span></code> and <code class="docutils literal notranslate"><span class="pre">ips</span></code> there.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">WAFFLE_CREATE_MISSING_SAMPLES</span></code> is spelt correctly</strong>, so django-waffle now creates a sample that
+code asks for and that does not exist, as it does for flags and switches.</p></li>
+<li><p><strong>A portal’s development settings start with only FairDM installed.</strong> <code class="docutils literal notranslate"><span class="pre">django-browser-reload</span></code>
+is added to <code class="docutils literal notranslate"><span class="pre">INSTALLED_APPS</span></code> and <code class="docutils literal notranslate"><span class="pre">MIDDLEWARE</span></code> only when the package is installed.</p></li>
+</ul>
+</section>
+</section>
+<section id="v0-4-1-2026-11-02">
+<h2>[v0.4.1] - 2026-11-02<a class="headerlink" href="#v0-4-1-2026-11-02" title="Link to this heading">#</a></h2>
+<section id="id1">
+<h3>Fixed<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
+<ul class="simple">
 <li><p><strong>A <code class="docutils literal notranslate"><span class="pre">fairdm.forms.ModelForm</span></code> with a partial date field opens again.</strong> Building the form raised
 <code class="docutils literal notranslate"><span class="pre">TypeError:</span> <span class="pre">Field.__init__()</span> <span class="pre">got</span> <span class="pre">an</span> <span class="pre">unexpected</span> <span class="pre">keyword</span> <span class="pre">argument</span> <span class="pre">'form_class'</span></code> for any field
 declared with <code class="docutils literal notranslate"><span class="pre">fairdm.db.models.PartialDateField</span></code>.</p></li>
@@ -874,8 +898,8 @@ field django-partial-dates provides.</p></li>
 </section>
 <section id="v0-3-1-2026-10-28">
 <h2>[v0.3.1] - 2026-10-28<a class="headerlink" href="#v0-3-1-2026-10-28" title="Link to this heading">#</a></h2>
-<section id="id1">
-<h3>Fixed<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
+<section id="id2">
+<h3>Fixed<a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><strong>A portal whose database predates the portal roles can run the upgrade commands before
 <code class="docutils literal notranslate"><span class="pre">migrate</span></code>.</strong> The start-up check <code class="docutils literal notranslate"><span class="pre">fairdm.E500</span></code> refused every command except <code class="docutils literal notranslate"><span class="pre">migrate</span></code> while a
@@ -926,8 +950,8 @@ not match stops the restore before anything changes. See
 <a class="reference internal" href="developers/how-to/restore-a-portal-from-a-backup.html"><span class="std std-doc">How to restore a portal from a backup</span></a>.</p></li>
 </ul>
 </section>
-<section id="id2">
-<h3>Changed<a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
+<section id="id3">
+<h3>Changed<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><strong>FairDM is published to PyPI.</strong> Publishing a release uploads the package to PyPI, so a portal
 depends on <code class="docutils literal notranslate"><span class="pre">fairdm</span></code> from PyPI (<code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">add</span> <span class="pre">fairdm</span></code>) rather than on a git source pinned to a release
@@ -970,8 +994,8 @@ as DataCite does. See
 <a class="reference internal" href="developers/how-to/upgrade-a-portal-to-vocabulary-addresses.html"><span class="std std-doc">How to upgrade a portal to vocabulary addresses</span></a>.</p></li>
 </ul>
 </section>
-<section id="id3">
-<h3>Removed<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
+<section id="id4">
+<h3>Removed<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><strong>django-research-vocabs is no longer installed, and the migrations no longer refer to it.</strong>
 <code class="docutils literal notranslate"><span class="pre">fairdm.core.vocabularies</span></code> holds the addresses of FairDM’s vocabularies in place of its
@@ -994,8 +1018,8 @@ upgrading, drops it.</p></li>
 </section>
 <section id="v0-2-1-2026-10-22">
 <h2>[v0.2.1] - 2026-10-22<a class="headerlink" href="#v0-2-1-2026-10-22" title="Link to this heading">#</a></h2>
-<section id="id4">
-<h3>Changed<a class="headerlink" href="#id4" title="Link to this heading">#</a></h3>
+<section id="id5">
+<h3>Changed<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><strong>FairDM requires django-mvp 0.31 and django-mvp-forms 0.8.</strong></p></li>
 <li><p><strong>The facts column on overview pages is a column of the page again.</strong> On project, dataset,
@@ -1006,8 +1030,8 @@ keeps working. One that filled <code class="docutils literal notranslate"><span 
 instead.</p></li>
 </ul>
 </section>
-<section id="id5">
-<h3>Removed<a class="headerlink" href="#id5" title="Link to this heading">#</a></h3>
+<section id="id6">
+<h3>Removed<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
 <ul>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">fairdm.contrib.theme</span></code> is gone.</strong> It held nothing in use but the brand logo and icon, which
 now ship from <code class="docutils literal notranslate"><span class="pre">fairdm/static/img/brand/</span></code> at the same paths, so a portal that replaces
@@ -1041,8 +1065,8 @@ longer installs it.</p></li>
 </section>
 <section id="v0-2-0-2026-10-21">
 <h2>[v0.2.0] - 2026-10-21<a class="headerlink" href="#v0-2-0-2026-10-21" title="Link to this heading">#</a></h2>
-<section id="id6">
-<h3>Added<a class="headerlink" href="#id6" title="Link to this heading">#</a></h3>
+<section id="id7">
+<h3>Added<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><strong>FairDM declares the image and database a portal runs on.</strong> <code class="docutils literal notranslate"><span class="pre">[tool.fairdm.platform]</span></code> in
 <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> records the base image version (<code class="docutils literal notranslate"><span class="pre">image</span></code>) and the <code class="docutils literal notranslate"><span class="pre">postgis/postgis</span></code> tag
@@ -1087,8 +1111,8 @@ seeds a walkthrough in development, and <code class="docutils literal notranslat
 <a class="reference internal" href="#portal-administration/api-limits.md#limits-on-the-search-fields"><span class="xref myst">Limits on the API</span></a>.</p></li>
 </ul>
 </section>
-<section id="id7">
-<h3>Changed<a class="headerlink" href="#id7" title="Link to this heading">#</a></h3>
+<section id="id8">
+<h3>Changed<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
 <ul>
 <li><p><strong>FairDM requires django-mvp 0.30, django-mvp-forms 0.7, django-mvp-accounts 0.4 and
 django-mvp-compliance 0.3.</strong> List and table pages show the filters that are not in the toolbar
@@ -1151,8 +1175,8 @@ picker itself; a person’s image is drawn as a circle.</p></li>
 either class no longer shows a second search field in the Filter dialog.</p></li>
 </ul>
 </section>
-<section id="id8">
-<h3>Removed<a class="headerlink" href="#id8" title="Link to this heading">#</a></h3>
+<section id="id9">
+<h3>Removed<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
 <ul>
 <li><p><strong>django-compressor and django-libsass are no longer dependencies.</strong> No template in FairDM used
 <code class="docutils literal notranslate"><span class="pre">{%</span> <span class="pre">compress</span> <span class="pre">%}</span></code>, so the <code class="docutils literal notranslate"><span class="pre">compress</span></code> step could only fail, and the container start sequence no
@@ -1218,8 +1242,8 @@ django-mvp depends on it, but FairDM no longer adds it to <code class="docutils 
 </li>
 </ul>
 </section>
-<section id="id9">
-<h3>Fixed<a class="headerlink" href="#id9" title="Link to this heading">#</a></h3>
+<section id="id10">
+<h3>Fixed<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><strong>Quantity fields can be edited.</strong> A quantity field’s form field was a plain number input, which
 dropped the stored value (it carries its units), so every quantity box on an edit page was empty
@@ -1233,8 +1257,8 @@ in the field’s base units with that unit selected. A value entered in another 
 </section>
 <section id="v0-1-0-2026-10-16">
 <h2>[v0.1.0] - 2026-10-16<a class="headerlink" href="#v0-1-0-2026-10-16" title="Link to this heading">#</a></h2>
-<section id="id10">
-<h3>Added<a class="headerlink" href="#id10" title="Link to this heading">#</a></h3>
+<section id="id11">
+<h3>Added<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
 <ul>
 <li><p><strong>A location on every sample and measurement, typed as decimal degrees in WGS 84.</strong>
 A sample and a measurement have <code class="docutils literal notranslate"><span class="pre">location</span></code> (a point in WGS 84), <code class="docutils literal notranslate"><span class="pre">location_elevation</span></code> (metres
@@ -1371,8 +1395,8 @@ package’s addresses out. See <a class="reference internal" href="developers/re
 (#463).</p></li>
 </ul>
 </section>
-<section id="id11">
-<h3>Removed<a class="headerlink" href="#id11" title="Link to this heading">#</a></h3>
+<section id="id12">
+<h3>Removed<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
 <ul>
 <li><p><strong>The <code class="docutils literal notranslate"><span class="pre">c-description-section</span></code> component and the <code class="docutils literal notranslate"><span class="pre">core/date.html</span></code> template.</strong> Both used
 <code class="docutils literal notranslate"><span class="pre">{%</span> <span class="pre">partialdef</span> <span class="pre">%}</span></code>, a tag FairDM does not install, so neither could load, and nothing in FairDM
@@ -1523,8 +1547,8 @@ not have. Locations are still stored as x and y coordinates, and a dataset’s b
 computed as before.</p></li>
 </ul>
 </section>
-<section id="id12">
-<h3>Fixed<a class="headerlink" href="#id12" title="Link to this heading">#</a></h3>
+<section id="id13">
+<h3>Fixed<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
 <ul>
 <li><p><strong>A dataset’s DataCite metadata can be produced, and describes the area the dataset covers.</strong>
 <code class="docutils literal notranslate"><span class="pre">build_metadata()</span></code> raised <code class="docutils literal notranslate"><span class="pre">TemplateSyntaxError</span></code> for every dataset, because the DataCite
@@ -1698,8 +1722,8 @@ for it: <code class="docutils literal notranslate"><span class="pre">ProjectFact
 used to generate on its own, and <code class="docutils literal notranslate"><span class="pre">image=&lt;file&gt;</span></code> still takes a specific one.</p></li>
 </ul>
 </section>
-<section id="id13">
-<h3>Changed<a class="headerlink" href="#id13" title="Link to this heading">#</a></h3>
+<section id="id14">
+<h3>Changed<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
 <ul>
 <li><p><strong>FairDM is released on GitHub, and a portal pins it to a release tag.</strong> A merged release pull
 request creates the tag and the GitHub release. FairDM is not published to PyPI, because
@@ -2009,8 +2033,8 @@ overview pages draw their charts with them, so a portal installing FairDM gets b
 <li><p><strong>Breadcrumbs show the full name of each page</strong> instead of a shortened one.</p></li>
 </ul>
 </section>
-<section id="id14">
-<h3>Added<a class="headerlink" href="#id14" title="Link to this heading">#</a></h3>
+<section id="id15">
+<h3>Added<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><strong>A measurement can be edited through the portal.</strong> Its overview page gains a Manage menu, and the
 edit details and descriptions pages open at <code class="docutils literal notranslate"><span class="pre">/measurement/&lt;uuid&gt;/edit/</span></code> and <code class="docutils literal notranslate"><span class="pre">/descriptions/</span></code>.
@@ -2503,8 +2527,8 @@ with <code class="docutils literal notranslate"><span class="pre">export()</span
 </ul>
 </section>
 </section>
-<section id="id15">
-<h3>Changed<a class="headerlink" href="#id15" title="Link to this heading">#</a></h3>
+<section id="id16">
+<h3>Changed<a class="headerlink" href="#id16" title="Link to this heading">#</a></h3>
 <section id="core-samples-feature-005-breaking">
 <h4>Core samples (Feature 005) — breaking<a class="headerlink" href="#core-samples-feature-005-breaking" title="Link to this heading">#</a></h4>
 <ul class="simple">
@@ -2611,8 +2635,8 @@ access the edit level on the sample or on its dataset, on the Contributors tab.<
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">THUMBNAIL_DEBUG</span></code> is off in the baseline.</strong> easy-thumbnails re-raises rather than degrading to a blank image when it is on, which turned a missing source file into a 500. It is on in development, as before.</p></li>
 </ul>
 </section>
-<section id="id16">
-<h4>Core datasets (Feature 004)<a class="headerlink" href="#id16" title="Link to this heading">#</a></h4>
+<section id="id17">
+<h4>Core datasets (Feature 004)<a class="headerlink" href="#id17" title="Link to this heading">#</a></h4>
 <ul class="simple">
 <li><p>Datasets are private by default. Reading datasets the ordinary way no longer returns private
 ones. <code class="docutils literal notranslate"><span class="pre">Dataset.all_objects</span></code> is the explicit route for code that needs them, and the surfaces
@@ -2636,8 +2660,8 @@ who had just made it, because a dataset is private by default.</p></li>
 private dataset exists.</p></li>
 </ul>
 </section>
-<section id="id17">
-<h4>Contributors and Contributions (Feature 009)<a class="headerlink" href="#id17" title="Link to this heading">#</a></h4>
+<section id="id18">
+<h4>Contributors and Contributions (Feature 009)<a class="headerlink" href="#id18" title="Link to this heading">#</a></h4>
 <ul class="simple">
 <li><p><strong>Deleting a parent organisation no longer deletes its children.</strong> <code class="docutils literal notranslate"><span class="pre">Organization.parent</span></code> is
 <code class="docutils literal notranslate"><span class="pre">on_delete=SET_NULL</span></code>; a surviving sub-organisation loses its parent link, keeping its own
@@ -2657,8 +2681,8 @@ check (<code class="docutils literal notranslate"><span class="pre">auth.W004</s
 </ul>
 </section>
 </section>
-<section id="id18">
-<h3>Removed<a class="headerlink" href="#id18" title="Link to this heading">#</a></h3>
+<section id="id19">
+<h3>Removed<a class="headerlink" href="#id19" title="Link to this heading">#</a></h3>
 <section id="portal-configuration-feature-001">
 <h4>Portal configuration (Feature 001)<a class="headerlink" href="#portal-configuration-feature-001" title="Link to this heading">#</a></h4>
 <ul class="simple">
@@ -2685,8 +2709,8 @@ check (<code class="docutils literal notranslate"><span class="pre">auth.W004</s
 <li><p><strong>Permissions</strong>: Permission checking now integrated into Plugin.dispatch() with guardian support</p></li>
 </ul>
 </section>
-<section id="id19">
-<h4>Core datasets (Feature 004)<a class="headerlink" href="#id19" title="Link to this heading">#</a></h4>
+<section id="id20">
+<h4>Core datasets (Feature 004)<a class="headerlink" href="#id20" title="Link to this heading">#</a></h4>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Dataset.ROLE_PERMISSIONS</span></code>, which mapped two role names the vocabulary does not contain and had no
 readers.</p></li>
@@ -2697,8 +2721,8 @@ permission no model declares.</p></li>
 ORM path in a filter that raised on every use.</p></li>
 </ul>
 </section>
-<section id="id20">
-<h4>Core measurements (Feature 006)<a class="headerlink" href="#id20" title="Link to this heading">#</a></h4>
+<section id="id21">
+<h4>Core measurements (Feature 006)<a class="headerlink" href="#id21" title="Link to this heading">#</a></h4>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">fairdm.core.admin.MeasurementAdmin</span></code> and the second, unregistered <code class="docutils literal notranslate"><span class="pre">MeasurementParentAdmin</span></code>
 beside it — an unconfigured stand-in the registry validated against and generated from by
@@ -2707,8 +2731,8 @@ mistake (see Changed, above). A portal’s own measurement admin classes inherit
 always named.</p></li>
 </ul>
 </section>
-<section id="id21">
-<h4>Contributors and Contributions (Feature 009)<a class="headerlink" href="#id21" title="Link to this heading">#</a></h4>
+<section id="id22">
+<h4>Contributors and Contributions (Feature 009)<a class="headerlink" href="#id22" title="Link to this heading">#</a></h4>
 <ul class="simple">
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">Contributor.privacy_settings</span></code></strong> and <strong><code class="docutils literal notranslate"><span class="pre">Contributor.get_visible_fields()</span></code></strong>. Nothing in the
 codebase called <code class="docutils literal notranslate"><span class="pre">get_visible_fields</span></code> outside its own tests, and the field it read had no
@@ -2849,8 +2873,8 @@ whose contents this feature does not define; existing data is cleared in the mig
 </li>
 </ul>
 </section>
-<section id="id22">
-<h4>Configuration Checks System (Spec 003)<a class="headerlink" href="#id22" title="Link to this heading">#</a></h4>
+<section id="id23">
+<h4>Configuration Checks System (Spec 003)<a class="headerlink" href="#id23" title="Link to this heading">#</a></h4>
 <ul class="simple">
 <li><p><strong>Django Check Framework Integration</strong>: Migrated configuration validation from runtime logging to Django’s check framework</p>
 <ul>
@@ -2875,8 +2899,8 @@ whose contents this feature does not define; existing data is cleared in the mig
 </ul>
 </section>
 </section>
-<section id="id23">
-<h3>Changed<a class="headerlink" href="#id23" title="Link to this heading">#</a></h3>
+<section id="id24">
+<h3>Changed<a class="headerlink" href="#id24" title="Link to this heading">#</a></h3>
 <section id="configuration-validation-improvements-spec-003">
 <h4>Configuration Validation Improvements (Spec 003)<a class="headerlink" href="#configuration-validation-improvements-spec-003" title="Link to this heading">#</a></h4>
 <ul class="simple">
@@ -3170,8 +3194,8 @@ whose contents this feature does not define; existing data is cleared in the mig
 </ul>
 </section>
 </section>
-<section id="id24">
-<h3>Fixed<a class="headerlink" href="#id24" title="Link to this heading">#</a></h3>
+<section id="id25">
+<h3>Fixed<a class="headerlink" href="#id25" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><strong>Model Registration</strong>: Fixed dataclass field inheritance issue where class-level <code class="docutils literal notranslate"><span class="pre">model</span></code> attributes weren’t properly inherited by instances</p></li>
 <li><p><strong>Demo App Registration</strong>: Corrected <code class="docutils literal notranslate"><span class="pre">&#64;register</span></code> decorator usage in demo configuration files</p></li>
@@ -3226,8 +3250,8 @@ whose contents this feature does not define; existing data is cleared in the mig
 <h3>Breaking Changes<a class="headerlink" href="#breaking-changes" title="Link to this heading">#</a></h3>
 <p>None - All changes are backward compatible additions to the existing API.</p>
 </section>
-<section id="id25">
-<h3>Migration Guide<a class="headerlink" href="#id25" title="Link to this heading">#</a></h3>
+<section id="id26">
+<h3>Migration Guide<a class="headerlink" href="#id26" title="Link to this heading">#</a></h3>
 <p>No migration required. New introspection properties are additive features that don’t affect existing code.</p>
 <section id="using-new-introspection-features">
 <h4>Using New Introspection Features<a class="headerlink" href="#using-new-introspection-features" title="Link to this heading">#</a></h4>
@@ -3303,39 +3327,43 @@ whose contents this feature does not define; existing data is cleared in the mig
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#fixed">Fixed</a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-4-1-2026-11-02">[v0.4.1] - 2026-11-02</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Fixed</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-4-0-2026-11-02">[v0.4.0] - 2026-11-02</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#changed">Changed</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#removed">Removed</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-3-1-2026-10-28">[v0.3.1] - 2026-10-28</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Fixed</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Fixed</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-3-0-2026-10-28">[v0.3.0] - 2026-10-28</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#added">Added</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Changed</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">Removed</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id3">Changed</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">Removed</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-2-1-2026-10-22">[v0.2.1] - 2026-10-22</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id4">Changed</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">Removed</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id5">Changed</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">Removed</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-2-0-2026-10-21">[v0.2.0] - 2026-10-21</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id6">Added</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">Changed</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">Removed</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">Fixed</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id7">Added</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id8">Changed</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id9">Removed</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">Fixed</a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#v0-1-0-2026-10-16">[v0.1.0] - 2026-10-16</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id10">Added</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">Removed</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">Fixed</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">Changed</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">Added</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id11">Added</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id12">Removed</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id13">Fixed</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id14">Changed</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">Added</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#portal-roles-feature-017">Portal roles (Feature 017)</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#portal-configuration-via-fairdm-setup-feature-001">Portal configuration via <code class="docutils literal notranslate"><span class="pre">fairdm.setup()</span></code> (Feature 001)</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#plugin-system-for-model-extensibility-feature-008">Plugin System for Model Extensibility (Feature 008)</a></li>
@@ -3345,28 +3373,28 @@ whose contents this feature does not define; existing data is cleared in the mig
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#contributors-and-contributions-feature-009">Contributors and Contributions (Feature 009)</a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id15">Changed</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">Changed</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#core-samples-feature-005-breaking">Core samples (Feature 005) — breaking</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#portal-configuration-feature-001-breaking">Portal configuration (Feature 001) — breaking</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id16">Core datasets (Feature 004)</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">Contributors and Contributions (Feature 009)</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id17">Core datasets (Feature 004)</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">Contributors and Contributions (Feature 009)</a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id18">Removed</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">Removed</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#portal-configuration-feature-001">Portal configuration (Feature 001)</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#plugin-api-migration-feature-008">Plugin API Migration (Feature 008)</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id19">Core datasets (Feature 004)</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">Core measurements (Feature 006)</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">Contributors and Contributions (Feature 009)</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id20">Core datasets (Feature 004)</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id21">Core measurements (Feature 006)</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">Contributors and Contributions (Feature 009)</a></li>
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#migration-guide">Migration Guide</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#upgrading-plugins-to-new-api">Upgrading Plugins to New API</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration-checks-system-spec-003">Configuration Checks System (Spec 003)</a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id22">Configuration Checks System (Spec 003)</a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">Configuration Checks System (Spec 003)</a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id23">Changed</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">Changed</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration-validation-improvements-spec-003">Configuration Validation Improvements (Spec 003)</a></li>
 </ul>
 </li>
@@ -3383,7 +3411,7 @@ whose contents this feature does not define; existing data is cleared in the mig
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#configuration-system-improvements">Configuration System Improvements</a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id24">Fixed</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id25">Fixed</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#technical-details">Technical Details</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#api-additions">API Additions</a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#performance-metrics">Performance Metrics</a></li>
@@ -3392,7 +3420,7 @@ whose contents this feature does not define; existing data is cleared in the mig
 </ul>
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#breaking-changes">Breaking Changes</a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id25">Migration Guide</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#id26">Migration Guide</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#using-new-introspection-features">Using New Introspection Features</a></li>
 </ul>
 </li>

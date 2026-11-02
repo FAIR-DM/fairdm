@@ -15,6 +15,10 @@
 :class: autosummary longtable
 :align: left
 
+* - {py:obj}`NON_PRODUCTION_ENVIRONMENTS <fairdm.conf.environment.NON_PRODUCTION_ENVIRONMENTS>`
+  - ```{autodoc2-docstring} fairdm.conf.environment.NON_PRODUCTION_ENVIRONMENTS
+    :summary:
+    ```
 * - {py:obj}`env <fairdm.conf.environment.env>`
   - ```{autodoc2-docstring} fairdm.conf.environment.env
     :summary:
@@ -22,6 +26,16 @@
 ````
 
 ### API
+
+````{py:data} NON_PRODUCTION_ENVIRONMENTS
+:canonical: fairdm.conf.environment.NON_PRODUCTION_ENVIRONMENTS
+:value: >
+   'frozenset(...)'
+
+```{autodoc2-docstring} fairdm.conf.environment.NON_PRODUCTION_ENVIRONMENTS
+```
+
+````
 
 ````{py:data} env
 :canonical: fairdm.conf.environment.env

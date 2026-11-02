@@ -21,29 +21,7 @@
     ```
 ````
 
-### Data
-
-````{list-table}
-:class: autosummary longtable
-:align: left
-
-* - {py:obj}`NON_PRODUCTION_ENVIRONMENTS <fairdm.apps.NON_PRODUCTION_ENVIRONMENTS>`
-  - ```{autodoc2-docstring} fairdm.apps.NON_PRODUCTION_ENVIRONMENTS
-    :summary:
-    ```
-````
-
 ### API
-
-````{py:data} NON_PRODUCTION_ENVIRONMENTS
-:canonical: fairdm.apps.NON_PRODUCTION_ENVIRONMENTS
-:value: >
-   'frozenset(...)'
-
-```{autodoc2-docstring} fairdm.apps.NON_PRODUCTION_ENVIRONMENTS
-```
-
-````
 
 `````{py:class} FairDMConfig(app_name, app_module)
 :canonical: fairdm.apps.FairDMConfig

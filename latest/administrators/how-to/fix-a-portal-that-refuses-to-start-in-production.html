@@ -14,7 +14,7 @@
 <meta property="og:description" content="A portal on the production configuration stops at start-up when a production-critical check fails, and it lists every failing check in one message. Each section below is headed by what you see, giv..." />
 <meta name="description" content="A portal on the production configuration stops at start-up when a production-critical check fails, and it lists every failing check in one message. Each section below is headed by what you see, giv..." />
 
-    <title>How to fix a portal that refuses to start in production &#8212; fairdm 0.4.0 documentation</title>
+    <title>How to fix a portal that refuses to start in production &#8212; fairdm 0.4.1 documentation</title>
   
   
   
@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
 
-    <script src="../../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../../_static/documentation_options.js?v=c87aa342"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -102,7 +102,7 @@ commentsRunWhenDOMLoaded(addUtterances);
     <link rel="prev" title="How to find why a user cannot see a dataset" href="find-why-a-user-cannot-see-a-dataset.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.4.0" />
+  <meta name="docsearch:version" content="0.4.1" />
     <meta name="docbuild:last-update" content="Nov 02, 2026"/>
   
     
@@ -175,8 +175,8 @@ commentsRunWhenDOMLoaded(addUtterances);
       
     
     
-    <img src="../../_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.4.0 documentation - Home"/>
-    <img src="../../_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.4.0 documentation - Home"/>
+    <img src="../../_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.4.1 documentation - Home"/>
+    <img src="../../_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.4.1 documentation - Home"/>
   
   
 </a></div>
@@ -923,8 +923,8 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="the-message-names-an-addon-and-says-its-setup-module-could-not-be-found-or-raised-an-error">
 <h2>The message names an addon and says its setup module could not be found or raised an error<a class="headerlink" href="#the-message-names-an-addon-and-says-its-setup-module-could-not-be-found-or-raised-an-error" title="Link to this heading">#</a></h2>
-<p>A package listed in <code class="docutils literal notranslate"><span class="pre">fairdm.setup(addons=[...])</span></code> is not installed, names a setup module that does not exist, or fails while its settings apply. Where <code class="docutils literal notranslate"><span class="pre">DJANGO_ENV</span></code> is <code class="docutils literal notranslate"><span class="pre">production</span></code>, this stops the portal.</p>
-<p>Install the addon package in the portal’s environment, or correct the module its <code class="docutils literal notranslate"><span class="pre">__fdm_setup_module__</span></code> names, or fix the error the message quotes. In any other environment the addon is skipped with a warning.</p>
+<p>A package listed in <code class="docutils literal notranslate"><span class="pre">fairdm.setup(addons=[...])</span></code> is not installed, names a setup module that does not exist, or fails while its settings apply. Where <code class="docutils literal notranslate"><span class="pre">DJANGO_ENV</span></code> is anything but <code class="docutils literal notranslate"><span class="pre">development</span></code>, this stops the portal.</p>
+<p>Install the addon package in the portal’s environment, or correct the module its <code class="docutils literal notranslate"><span class="pre">__fdm_setup_module__</span></code> names, or fix the error the message quotes. In <code class="docutils literal notranslate"><span class="pre">development</span></code> the addon is skipped with a warning.</p>
 </section>
 <section id="what-to-do-next">
 <h2>What to do next<a class="headerlink" href="#what-to-do-next" title="Link to this heading">#</a></h2>

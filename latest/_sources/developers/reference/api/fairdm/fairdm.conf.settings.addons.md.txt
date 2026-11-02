@@ -39,8 +39,8 @@
   - ```{autodoc2-docstring} fairdm.conf.settings.addons.WAFFLE_CREATE_MISSING_FLAGS
     :summary:
     ```
-* - {py:obj}`WAFFLE_CREATE_MISSING_SAMPELS <fairdm.conf.settings.addons.WAFFLE_CREATE_MISSING_SAMPELS>`
-  - ```{autodoc2-docstring} fairdm.conf.settings.addons.WAFFLE_CREATE_MISSING_SAMPELS
+* - {py:obj}`WAFFLE_CREATE_MISSING_SAMPLES <fairdm.conf.settings.addons.WAFFLE_CREATE_MISSING_SAMPLES>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.WAFFLE_CREATE_MISSING_SAMPLES
     :summary:
     ```
 * - {py:obj}`FLEX_MENUS <fairdm.conf.settings.addons.FLEX_MENUS>`
@@ -199,12 +199,12 @@
 
 ````
 
-````{py:data} WAFFLE_CREATE_MISSING_SAMPELS
-:canonical: fairdm.conf.settings.addons.WAFFLE_CREATE_MISSING_SAMPELS
+````{py:data} WAFFLE_CREATE_MISSING_SAMPLES
+:canonical: fairdm.conf.settings.addons.WAFFLE_CREATE_MISSING_SAMPLES
 :value: >
    True
 
-```{autodoc2-docstring} fairdm.conf.settings.addons.WAFFLE_CREATE_MISSING_SAMPELS
+```{autodoc2-docstring} fairdm.conf.settings.addons.WAFFLE_CREATE_MISSING_SAMPLES
 ```
 
 ````

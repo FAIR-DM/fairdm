@@ -14,7 +14,7 @@
 <meta property="og:description" content="In this tutorial you build a new portal that records rock samples and the density measurements made on them. You finish with both types in the portal’s menus and listings, in the administration int..." />
 <meta name="description" content="In this tutorial you build a new portal that records rock samples and the density measurements made on them. You finish with both types in the portal’s menus and listings, in the administration int..." />
 
-    <title>Build your first sample and measurement types &#8212; fairdm 0.4.0 documentation</title>
+    <title>Build your first sample and measurement types &#8212; fairdm 0.4.1 documentation</title>
   
   
   
@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
 
-    <script src="../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../_static/documentation_options.js?v=c87aa342"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -102,7 +102,7 @@ commentsRunWhenDOMLoaded(addUtterances);
     <link rel="prev" title="Developers" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.4.0" />
+  <meta name="docsearch:version" content="0.4.1" />
     <meta name="docbuild:last-update" content="Nov 02, 2026"/>
   
     
@@ -175,8 +175,8 @@ commentsRunWhenDOMLoaded(addUtterances);
       
     
     
-    <img src="../_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.4.0 documentation - Home"/>
-    <img src="../_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.4.0 documentation - Home"/>
+    <img src="../_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.4.1 documentation - Home"/>
+    <img src="../_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.4.1 documentation - Home"/>
   
   
 </a></div>
@@ -1149,10 +1149,10 @@ commentsRunWhenDOMLoaded(addUtterances);
 <span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"yourportal"</span>
 <span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"0.1.0"</span>
 <span class="n">requires-python</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"&gt;=3.13"</span>
-<span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"fairdm"</span><span class="p">,</span><span class="w"> </span><span class="s2">"django-browser-reload"</span><span class="p">]</span>
+<span class="n">dependencies</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"fairdm"</span><span class="p">]</span>
 </pre></div>
 </div>
-<p>uv installs the latest FairDM release from <a class="reference external" href="https://pypi.org/project/fairdm/">PyPI</a>. FairDM’s development settings load <code class="docutils literal notranslate"><span class="pre">django-browser-reload</span></code> without installing it, so the portal lists it.</p>
+<p>uv installs the latest FairDM release from <a class="reference external" href="https://pypi.org/project/fairdm/">PyPI</a>.</p>
 </li>
 <li><p>Install the locked dependencies into the image’s virtual environment.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>django<span class="w"> </span>uv<span class="w"> </span>sync

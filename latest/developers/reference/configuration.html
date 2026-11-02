@@ -14,7 +14,7 @@
 <meta property="og:description" content="This page describes fairdm.setup(): its arguments, the environment it resolves, the five layers it applies, the environment files it reads and the command that shows what it did. It does not list t..." />
 <meta name="description" content="This page describes fairdm.setup(): its arguments, the environment it resolves, the five layers it applies, the environment files it reads and the command that shows what it did. It does not list t..." />
 
-    <title>Configuration &#8212; fairdm 0.4.0 documentation</title>
+    <title>Configuration &#8212; fairdm 0.4.1 documentation</title>
   
   
   
@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
 
-    <script src="../../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../../_static/documentation_options.js?v=c87aa342"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -102,7 +102,7 @@ commentsRunWhenDOMLoaded(addUtterances);
     <link rel="prev" title="Components" href="components.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.4.0" />
+  <meta name="docsearch:version" content="0.4.1" />
     <meta name="docbuild:last-update" content="Nov 02, 2026"/>
   
     
@@ -175,8 +175,8 @@ commentsRunWhenDOMLoaded(addUtterances);
       
     
     
-    <img src="../../_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.4.0 documentation - Home"/>
-    <img src="../../_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.4.0 documentation - Home"/>
+    <img src="../../_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.4.1 documentation - Home"/>
+    <img src="../../_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.4.1 documentation - Home"/>
   
   
 </a></div>
@@ -1129,7 +1129,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </table>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">setup()</span></code> accepts no settings as arguments. Passing any other keyword argument raises <code class="docutils literal notranslate"><span class="pre">TypeError</span></code>. A setting changes by assignment after the call, as <a class="reference internal" href="../how-to/override-a-fairdm-setting.html"><span class="std std-doc">How to override a FairDM setting</span></a> shows.</p>
-<p><code class="docutils literal notranslate"><span class="pre">setup()</span></code> raises <code class="docutils literal notranslate"><span class="pre">ImproperlyConfigured</span></code> when an addon’s setup module cannot be found or fails while <code class="docutils literal notranslate"><span class="pre">DJANGO_ENV</span></code> is <code class="docutils literal notranslate"><span class="pre">production</span></code>. It raises <code class="docutils literal notranslate"><span class="pre">SystemCheckError</span></code> when <code class="docutils literal notranslate"><span class="pre">PARLER_LANGUAGES</span></code> names a language that <code class="docutils literal notranslate"><span class="pre">LANGUAGES</span></code> does not include.</p>
+<p><code class="docutils literal notranslate"><span class="pre">setup()</span></code> raises <code class="docutils literal notranslate"><span class="pre">ImproperlyConfigured</span></code> when an addon’s setup module cannot be found or fails while <code class="docutils literal notranslate"><span class="pre">DJANGO_ENV</span></code> is anything but <code class="docutils literal notranslate"><span class="pre">development</span></code>. It raises <code class="docutils literal notranslate"><span class="pre">SystemCheckError</span></code> when <code class="docutils literal notranslate"><span class="pre">PARLER_LANGUAGES</span></code> names a language that <code class="docutils literal notranslate"><span class="pre">LANGUAGES</span></code> does not include.</p>
 <p><code class="docutils literal notranslate"><span class="pre">setup()</span></code> adds four names to the calling module besides the settings:</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
@@ -1249,8 +1249,8 @@ commentsRunWhenDOMLoaded(addUtterances);
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Situation</p></th>
-<th class="head"><p>In production</p></th>
-<th class="head"><p>In any other environment</p></th>
+<th class="head"><p>In any environment but <code class="docutils literal notranslate"><span class="pre">development</span></code></p></th>
+<th class="head"><p>In <code class="docutils literal notranslate"><span class="pre">development</span></code></p></th>
 </tr>
 </thead>
 <tbody>
@@ -1273,7 +1273,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </tbody>
 </table>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">setup()</span></code> applies an addon’s settings and nothing else. An addon adds its apps and middleware by assigning <code class="docutils literal notranslate"><span class="pre">INSTALLED_APPS</span></code> and <code class="docutils literal notranslate"><span class="pre">MIDDLEWARE</span></code> in its setup module, and the portal includes the addon’s URLs in its own URLconf.</p>
+<p><code class="docutils literal notranslate"><span class="pre">setup()</span></code> applies an addon’s settings and nothing else. An addon adds its apps and middleware by assigning <code class="docutils literal notranslate"><span class="pre">INSTALLED_APPS</span></code> and <code class="docutils literal notranslate"><span class="pre">MIDDLEWARE</span></code> in its setup module, and FairDM includes a <code class="docutils literal notranslate"><span class="pre">urls</span></code> module in the addon’s package at the site root in <code class="docutils literal notranslate"><span class="pre">fairdm.conf.urls</span></code>.</p>
 <p><a class="reference internal" href="../how-to/create-an-addon.html"><span class="std std-doc">How to create an addon</span></a> shows how to write one.</p>
 </section>
 </section>

@@ -14,7 +14,7 @@
 <meta property="og:description" content="This page lists every setting that FairDM defines or reads, and the third-party settings that FairDM gives a value and that a portal is expected to change. Each entry gives the name, the type, the ..." />
 <meta name="description" content="This page lists every setting that FairDM defines or reads, and the third-party settings that FairDM gives a value and that a portal is expected to change. Each entry gives the name, the type, the ..." />
 
-    <title>Settings &#8212; fairdm 0.4.0 documentation</title>
+    <title>Settings &#8212; fairdm 0.4.1 documentation</title>
   
   
   
@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
 
-    <script src="../../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../../_static/documentation_options.js?v=c87aa342"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -102,7 +102,7 @@ commentsRunWhenDOMLoaded(addUtterances);
     <link rel="prev" title="Sample model" href="sample-model.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.4.0" />
+  <meta name="docsearch:version" content="0.4.1" />
     <meta name="docbuild:last-update" content="Nov 02, 2026"/>
   
     
@@ -175,8 +175,8 @@ commentsRunWhenDOMLoaded(addUtterances);
       
     
     
-    <img src="../../_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.4.0 documentation - Home"/>
-    <img src="../../_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.4.0 documentation - Home"/>
+    <img src="../../_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.4.1 documentation - Home"/>
+    <img src="../../_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.4.1 documentation - Home"/>
   
   
 </a></div>
@@ -1242,7 +1242,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <h3><code class="docutils literal notranslate"><span class="pre">INSTALLED_APPS</span></code><a class="headerlink" href="#installed-apps" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><strong>Type</strong>: <code class="docutils literal notranslate"><span class="pre">list[str]</span></code></p></li>
-<li><p><strong>Default</strong>: In this order, Django’s admin-related apps and <code class="docutils literal notranslate"><span class="pre">django.contrib</span></code> apps, the apps in <a class="reference internal" href="#fairdm-apps"><code class="docutils literal notranslate"><span class="pre">FAIRDM_APPS</span></code></a>, <code class="docutils literal notranslate"><span class="pre">fairdm</span></code> and its own apps, then the third-party apps FairDM needs. Development appends <code class="docutils literal notranslate"><span class="pre">django_browser_reload</span></code>.</p></li>
+<li><p><strong>Default</strong>: In this order, Django’s admin-related apps and <code class="docutils literal notranslate"><span class="pre">django.contrib</span></code> apps, the apps in <a class="reference internal" href="#fairdm-apps"><code class="docutils literal notranslate"><span class="pre">FAIRDM_APPS</span></code></a>, <code class="docutils literal notranslate"><span class="pre">fairdm</span></code> and its own apps, then the third-party apps FairDM needs. Development appends <code class="docutils literal notranslate"><span class="pre">django_browser_reload</span></code> when that package is installed.</p></li>
 <li><p><strong>What it does</strong>: The apps Django loads. The order matters, because Django takes the first template and static file it finds for a path.</p></li>
 <li><p><strong>Accepts</strong>: A list of app module paths or app configuration paths. Name a portal’s apps in <code class="docutils literal notranslate"><span class="pre">fairdm.setup(apps=[...])</span></code> so they come before FairDM’s. An app added by assignment after the call comes last and cannot override a FairDM template.</p></li>
 </ul>
@@ -1251,7 +1251,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <h3><code class="docutils literal notranslate"><span class="pre">MIDDLEWARE</span></code><a class="headerlink" href="#middleware" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><strong>Type</strong>: <code class="docutils literal notranslate"><span class="pre">list[str]</span></code></p></li>
-<li><p><strong>Default</strong>: In this order, <code class="docutils literal notranslate"><span class="pre">SecurityMiddleware</span></code>, WhiteNoise, django-cors-headers, sessions, CSRF, authentication, <code class="docutils literal notranslate"><span class="pre">mvp_compliance.middleware.AgreementMiddleware</span></code>, messages, locale, common, current site, clickjacking, allauth’s account middleware, django-htmx, django-tomselect and django-hijack. Development appends <code class="docutils literal notranslate"><span class="pre">django_browser_reload.middleware.BrowserReloadMiddleware</span></code>.</p></li>
+<li><p><strong>Default</strong>: In this order, <code class="docutils literal notranslate"><span class="pre">SecurityMiddleware</span></code>, WhiteNoise, django-cors-headers, sessions, CSRF, authentication, <code class="docutils literal notranslate"><span class="pre">mvp_compliance.middleware.AgreementMiddleware</span></code>, messages, locale, common, current site, clickjacking, allauth’s account middleware, django-htmx, django-tomselect and django-hijack. Development appends <code class="docutils literal notranslate"><span class="pre">django_browser_reload.middleware.BrowserReloadMiddleware</span></code> when <code class="docutils literal notranslate"><span class="pre">django_browser_reload</span></code> is installed.</p></li>
 <li><p><strong>What it does</strong>: The request and response middleware. Security, WhiteNoise and authentication must keep their places, and the agreement middleware must come after authentication.</p></li>
 <li><p><strong>Accepts</strong>: A list of dotted paths. Add a portal’s own middleware by assignment after <code class="docutils literal notranslate"><span class="pre">fairdm.setup()</span></code>.</p></li>
 </ul>
@@ -2897,13 +2897,13 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><p><strong>Accepts</strong>: <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
 </ul>
 </section>
-<section id="waffle-create-missing-sampels">
-<h3><code class="docutils literal notranslate"><span class="pre">WAFFLE_CREATE_MISSING_SAMPELS</span></code><a class="headerlink" href="#waffle-create-missing-sampels" title="Link to this heading">#</a></h3>
+<section id="waffle-create-missing-samples">
+<h3><code class="docutils literal notranslate"><span class="pre">WAFFLE_CREATE_MISSING_SAMPLES</span></code><a class="headerlink" href="#waffle-create-missing-samples" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><strong>Type</strong>: <code class="docutils literal notranslate"><span class="pre">bool</span></code></p></li>
 <li><p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">True</span></code></p></li>
-<li><p><strong>What it does</strong>: FairDM defines it under this spelling. django-waffle reads <code class="docutils literal notranslate"><span class="pre">WAFFLE_CREATE_MISSING_SAMPLES</span></code>, with an E, so this setting has no effect.</p></li>
-<li><p><strong>Accepts</strong>: <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>, with no effect.</p></li>
+<li><p><strong>What it does</strong>: Makes django-waffle create a sample in the database the first time code asks for one that does not exist.</p></li>
+<li><p><strong>Accepts</strong>: <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
 </ul>
 </section>
 <section id="waffle-create-missing-switches">
@@ -3549,7 +3549,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#solo-cache"><code class="docutils literal notranslate"><span class="pre">SOLO_CACHE</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#solo-cache-timeout"><code class="docutils literal notranslate"><span class="pre">SOLO_CACHE_TIMEOUT</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#waffle-create-missing-flags"><code class="docutils literal notranslate"><span class="pre">WAFFLE_CREATE_MISSING_FLAGS</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#waffle-create-missing-sampels"><code class="docutils literal notranslate"><span class="pre">WAFFLE_CREATE_MISSING_SAMPELS</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#waffle-create-missing-samples"><code class="docutils literal notranslate"><span class="pre">WAFFLE_CREATE_MISSING_SAMPLES</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#waffle-create-missing-switches"><code class="docutils literal notranslate"><span class="pre">WAFFLE_CREATE_MISSING_SWITCHES</span></code></a></li>
 </ul>
 </li>

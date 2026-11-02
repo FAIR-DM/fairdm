@@ -14,7 +14,7 @@
 <meta property="og:description" content="An addon is a package that adds settings, apps or middleware to any portal that names it. You create one when several portals need the same setup, so each portal enables it with one line. Steps: Cr..." />
 <meta name="description" content="An addon is a package that adds settings, apps or middleware to any portal that names it. You create one when several portals need the same setup, so each portal enables it with one line. Steps: Cr..." />
 
-    <title>How to create an addon &#8212; fairdm 0.4.0 documentation</title>
+    <title>How to create an addon &#8212; fairdm 0.4.1 documentation</title>
   
   
   
@@ -46,7 +46,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
 
-    <script src="../../_static/documentation_options.js?v=6c02275b"></script>
+    <script src="../../_static/documentation_options.js?v=c87aa342"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -102,7 +102,7 @@ commentsRunWhenDOMLoaded(addUtterances);
     <link rel="prev" title="How to create a plugin" href="create-a-plugin.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.4.0" />
+  <meta name="docsearch:version" content="0.4.1" />
     <meta name="docbuild:last-update" content="Nov 02, 2026"/>
   
     
@@ -175,8 +175,8 @@ commentsRunWhenDOMLoaded(addUtterances);
       
     
     
-    <img src="../../_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.4.0 documentation - Home"/>
-    <img src="../../_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.4.0 documentation - Home"/>
+    <img src="../../_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.4.1 documentation - Home"/>
+    <img src="../../_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.4.1 documentation - Home"/>
   
   
 </a></div>
@@ -1104,14 +1104,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </pre></div>
 </div>
 </li>
-<li><p>If the addon has URLs, include them in the portal’s URLconf.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># config/urls.py</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">django.urls</span><span class="w"> </span><span class="kn">import</span> <span class="n">include</span><span class="p">,</span> <span class="n">path</span>
-
-<span class="n">urlpatterns</span> <span class="o">+=</span> <span class="p">[</span><span class="n">path</span><span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="n">include</span><span class="p">(</span><span class="s2">"my_addon.urls"</span><span class="p">))]</span>
-</pre></div>
-</div>
-</li>
+<li><p>If the addon has URLs, put them in <code class="docutils literal notranslate"><span class="pre">my_addon/urls.py</span></code>. FairDM includes that module at the site root in <code class="docutils literal notranslate"><span class="pre">fairdm.conf.urls</span></code>, which the portal’s URLconf includes, so the portal adds nothing.</p></li>
 <li><p>List the layers and check that FairDM applied the addon.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>manage.py<span class="w"> </span>show_config<span class="w"> </span>MY_ADDON_SETTING
 </pre></div>
@@ -1122,7 +1115,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <section id="the-result">
 <h2>The result<a class="headerlink" href="#the-result" title="Link to this heading">#</a></h2>
 <p>The command prints <code class="docutils literal notranslate"><span class="pre">MY_ADDON_SETTING</span> <span class="pre">=</span> <span class="pre">value</span> <span class="pre">(addons)</span></code>. The addon’s settings are layer 3, so a portal can always override them in its <a class="reference internal" href="add-an-environment-override-module.html"><span class="std std-doc">environment override module</span></a> or by <a class="reference internal" href="override-a-fairdm-setting.html"><span class="std std-doc">assigning the setting</span></a> after the <code class="docutils literal notranslate"><span class="pre">fairdm.setup()</span></code> call.</p>
-<p>FairDM applies the module to a private copy of the settings and keeps the result only when the module runs to the end, so an addon that fails leaves no half-written settings. When something goes wrong, the outcome depends on the environment. A setup module that cannot be found, or that raises, stops a production portal with an error that names the addon. In any other environment FairDM logs a warning and skips the addon. A package that cannot be imported, or that has no <code class="docutils literal notranslate"><span class="pre">__fdm_setup_module__</span></code>, is skipped in every environment with a log message. The full table is in <a class="reference internal" href="../reference/configuration.html#addons"><span class="std std-ref">Configuration</span></a>.</p>
+<p>FairDM applies the module to a private copy of the settings and keeps the result only when the module runs to the end, so an addon that fails leaves no half-written settings. When something goes wrong, the outcome depends on the environment. A setup module that cannot be found, or that raises, stops the portal with an error that names the addon, in every environment but <code class="docutils literal notranslate"><span class="pre">development</span></code>. In <code class="docutils literal notranslate"><span class="pre">development</span></code> FairDM logs a warning and skips the addon. A package that cannot be imported, or that has no <code class="docutils literal notranslate"><span class="pre">__fdm_setup_module__</span></code>, is skipped in every environment with a log message. The full table is in <a class="reference internal" href="../reference/configuration.html#addons"><span class="std std-ref">Configuration</span></a>.</p>
 </section>
 </section>
 
