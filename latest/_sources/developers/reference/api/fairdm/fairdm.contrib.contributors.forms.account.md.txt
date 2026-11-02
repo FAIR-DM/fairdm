@@ -87,12 +87,4 @@ Bases: {py:obj}`allauth.socialaccount.forms.SignupForm`
 
 ````
 
-````{py:method} try_save(request)
-:canonical: fairdm.contrib.contributors.forms.account.SocialSignupForm.try_save
-
-```{autodoc2-docstring} fairdm.contrib.contributors.forms.account.SocialSignupForm.try_save
-```
-
-````
-
 `````

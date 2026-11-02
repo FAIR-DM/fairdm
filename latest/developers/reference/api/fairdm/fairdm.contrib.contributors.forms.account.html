@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="developers/reference/api/fairdm/fairdm.contrib.contributors.forms.account.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="allauth forms customised for FairDM. Module Contents: Classes:,, LoginForm, allauth login form with a crispy helper.,, SignupForm, allauth signup form with a crispy helper.,, SocialSignupForm, Soci..." />
-<meta name="description" content="allauth forms customised for FairDM. Module Contents: Classes:,, LoginForm, allauth login form with a crispy helper.,, SignupForm, allauth signup form with a crispy helper.,, SocialSignupForm, Soci..." />
+<meta property="og:description" content="allauth forms customised for FairDM. Module Contents: Classes:,, LoginForm, allauth login form with a crispy helper.,, SignupForm, allauth signup form with a crispy helper.,, SocialSignupForm, alla..." />
+<meta name="description" content="allauth forms customised for FairDM. Module Contents: Classes:,, LoginForm, allauth login form with a crispy helper.,, SignupForm, allauth signup form with a crispy helper.,, SocialSignupForm, alla..." />
 
     <title>fairdm.contrib.contributors.forms.account &#8212; fairdm 0.4.1 documentation</title>
   
@@ -1102,7 +1102,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p>allauth signup form with a crispy helper.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.forms.account.SocialSignupForm" title="fairdm.contrib.contributors.forms.account.SocialSignupForm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SocialSignupForm</span></code></a></p></td>
-<td><p>Social signup form that lets an ORCID signup claim an inactive contributor account.</p></td>
+<td><p>allauth social signup form with a display name and a crispy helper.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1136,9 +1136,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.forms.account.SocialSignupForm">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">SocialSignupForm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.forms.account.SocialSignupForm" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">allauth.socialaccount.forms.SignupForm</span></code></p>
-<p>Social signup form that lets an ORCID signup claim an inactive contributor account.</p>
-<p>Contributors added by hand get an inactive account. When they later sign up with ORCID,
-the signup links to that record instead of creating a duplicate.</p>
+<p>allauth social signup form with a display name and a crispy helper.</p>
 <p>Args:
 *args: Passed to the allauth form.
 **kwargs: Passed to the allauth form.</p>
@@ -1149,12 +1147,6 @@ name: The display name.</p>
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.forms.account.SocialSignupForm.name">
 <span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#fairdm.contrib.contributors.forms.account.SocialSignupForm.name" title="Link to this definition">#</a></dt>
 <dd><p>‘CharField(…)’</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.contributors.forms.account.SocialSignupForm.try_save">
-<span class="sig-name descname"><span class="pre">try_save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.forms.account.SocialSignupForm.try_save" title="Link to this definition">#</a></dt>
-<dd><p>Reuse an inactive account with the same email for an ORCID signup, skipping the email conflict.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1217,7 +1209,6 @@ name: The display name.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.forms.account.SignupForm"><code class="docutils literal notranslate"><span class="pre">SignupForm</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.forms.account.SocialSignupForm"><code class="docutils literal notranslate"><span class="pre">SocialSignupForm</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.forms.account.SocialSignupForm.name"><code class="docutils literal notranslate"><span class="pre">SocialSignupForm.name</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.forms.account.SocialSignupForm.try_save"><code class="docutils literal notranslate"><span class="pre">SocialSignupForm.try_save()</span></code></a></li>
 </ul>
 </li>
 </ul>
