@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **A `fairdm.forms.ModelForm` with a partial date field opens again.** Building the form raised
+  `TypeError: Field.__init__() got an unexpected keyword argument 'form_class'` for any field
+  declared with `fairdm.db.models.PartialDateField`.
+
 ## [v0.4.0] - 2026-11-02
 
 ### Changed

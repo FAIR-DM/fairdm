@@ -57,5 +57,6 @@ class PartialDateField(BasePartialDateField):
             "help_text": self.help_text,
         }
         defaults.update(kwargs)
+        form_class = defaults.pop("form_class", PartialDateFormField)
 
-        return PartialDateFormField(**defaults)
+        return form_class(**defaults)
