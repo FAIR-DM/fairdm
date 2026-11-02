@@ -90,12 +90,12 @@ All five fields share these rules:
 | Import | `fairdm.db.models.PartialDateField`, defined in `fairdm.db.fields` |
 | Signature | `PartialDateField(*args, **kwargs)` |
 | Default | None. Django's field options apply. |
-| Stores | A date and its precision, in one date-time column. The precision is held in the seconds. |
-| Python value | A `partial_date.PartialDate` with `date` and `precision`. |
+| Stores | The ISO form of the date, `YYYY`, `YYYY-MM` or `YYYY-MM-DD`, in one text column of ten characters. The database refuses any other text. |
+| Python value | A [`partial_dates.PartialDate`](https://django-partial-dates.fairdm.org/developer/values.html) with `year`, `month`, `day`, `precision`, `start` and `end`. A part nobody recorded is `None`. |
 | Form field | `fairdm.forms.fields.PartialDateField`, a text box with the mask `yyyy-mm-dd`. Hyphens at either end of the entry are removed. |
-| Accepts | `None`, a `PartialDate`, or a string in one of the forms `YYYY`, `YYYY-MM` and `YYYY-MM-DD`. Any other value, a `datetime.date` included, raises a `ValidationError`. |
+| Accepts | `None`, a `PartialDate`, or a string in one of the forms `YYYY`, `YYYY-MM` and `YYYY-MM-DD`. Any other value, a `datetime.date` included, raises a `ValidationError`, and in a query a `ValueError`. |
 
-A year-only value is stored as the first of January and a year-and-month value as the first of the month. The precision records what was entered. You can filter with the same strings, such as `dates__value__gte="2020"`.
+A year-only value is stored as the year alone and a year-and-month value as the year and the month, so nothing is stored that was not entered. You can filter with the same strings, such as `dates__value__gte="2020"`. [The querying guide](https://django-partial-dates.fairdm.org/developer/querying.html) says which dates each filter includes.
 
 ## ConceptField
 

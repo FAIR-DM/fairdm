@@ -453,7 +453,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.3.1" />
-    <meta name="docbuild:last-update" content="Oct 30, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 02, 2026"/>
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1143,87 +1143,9 @@ window.runMermaid = runMermaid;</script>
   <h1>Source code for fairdm.forms.fields</h1><div class="highlight"><pre>
 <span></span><span class="sd">"""Form fields and widgets for partial dates, quantities and fixed-precision decimals."""</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
-
 <span class="kn">import</span><span class="w"> </span><span class="nn">pint</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django</span><span class="w"> </span><span class="kn">import</span> <span class="n">forms</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">partial_date</span><span class="w"> </span><span class="kn">import</span> <span class="n">PartialDate</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quantityfield</span><span class="w"> </span><span class="kn">import</span> <span class="n">fields</span>
-
-
-<div class="viewcode-block" id="PartialDateWidget">
-<a class="viewcode-back" href="../../../developers/reference/api/fairdm/fairdm.forms.fields.html#fairdm.forms.fields.PartialDateWidget">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">PartialDateWidget</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">SelectDateWidget</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Date select widget that orders year, month, day and accepts partial dates.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        attrs: HTML attributes for the rendered selects.</span>
-<span class="sd">        years: Years offered in the year select. Defaults to 1900 through the</span>
-<span class="sd">            current year, newest first.</span>
-<span class="sd">        months: Months offered in the month select.</span>
-<span class="sd">        empty_label: Label of the empty choice in each select.</span>
-<span class="sd">    """</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">years</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">months</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">empty_label</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">attrs</span><span class="p">,</span> <span class="n">years</span><span class="p">,</span> <span class="n">months</span><span class="p">,</span> <span class="n">empty_label</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">years</span><span class="p">:</span>
-            <span class="n">this_year</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">year</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">years</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1900</span><span class="p">,</span> <span class="n">this_year</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">years</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
-
-<div class="viewcode-block" id="PartialDateWidget.get_context">
-<a class="viewcode-back" href="../../../developers/reference/api/fairdm/fairdm.forms.fields.html#fairdm.forms.fields.PartialDateWidget.get_context">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">attrs</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Reorder the subwidgets to year, month, day."""</span>
-        <span class="n">context</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_context</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">attrs</span><span class="p">)</span>
-        <span class="n">m</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">context</span><span class="p">[</span><span class="s2">"widget"</span><span class="p">][</span><span class="s2">"subwidgets"</span><span class="p">]</span>
-        <span class="n">context</span><span class="p">[</span><span class="s2">"widget"</span><span class="p">][</span><span class="s2">"subwidgets"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">y</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">d</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">context</span></div>
-
-
-<div class="viewcode-block" id="PartialDateWidget.format_value">
-<a class="viewcode-back" href="../../../developers/reference/api/fairdm/fairdm.forms.fields.html#fairdm.forms.fields.PartialDateWidget.format_value">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">format_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Split a ``PartialDate`` into the year, month and day the selects show."""</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">PartialDate</span><span class="p">):</span>
-            <span class="k">return</span> <span class="p">{</span>
-                <span class="s2">"year"</span><span class="p">:</span> <span class="n">value</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">year</span><span class="p">,</span>
-                <span class="s2">"month"</span><span class="p">:</span> <span class="p">(</span>
-                    <span class="n">value</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">month</span> <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">precision</span> <span class="o">&gt;=</span> <span class="n">PartialDate</span><span class="o">.</span><span class="n">MONTH</span> <span class="k">else</span> <span class="kc">None</span>
-                <span class="p">),</span>
-                <span class="s2">"day"</span><span class="p">:</span> <span class="n">value</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">day</span> <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">precision</span> <span class="o">==</span> <span class="n">PartialDate</span><span class="o">.</span><span class="n">DAY</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="p">}</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">"year"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"month"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"day"</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span></div>
-
-
-<div class="viewcode-block" id="PartialDateWidget.value_from_datadict">
-<a class="viewcode-back" href="../../../developers/reference/api/fairdm/fairdm.forms.fields.html#fairdm.forms.fields.PartialDateWidget.value_from_datadict">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">value_from_datadict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">files</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Join the year, month and day selects into a partial-date string."""</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">year_field</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
-        <span class="n">m</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">month_field</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
-        <span class="n">d</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">day_field</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">y</span> <span class="o">==</span> <span class="n">m</span> <span class="o">==</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-
-        <span class="n">value</span> <span class="o">=</span> <span class="n">y</span>
-        <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
-            <span class="n">value</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"-</span><span class="si">{</span><span class="n">m</span><span class="si">}</span><span class="s2">"</span>
-        <span class="k">if</span> <span class="n">m</span> <span class="ow">and</span> <span class="n">d</span><span class="p">:</span>
-            <span class="n">value</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"-</span><span class="si">{</span><span class="n">d</span><span class="si">}</span><span class="s2">"</span>
-
-        <span class="k">return</span> <span class="n">value</span></div>
-</div>
-
-
-
-<div class="viewcode-block" id="PartialDateFormField">
-<a class="viewcode-back" href="../../../developers/reference/api/fairdm/fairdm.forms.fields.html#fairdm.forms.fields.PartialDateFormField">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">PartialDateFormField</span><span class="p">(</span><span class="n">forms</span><span class="o">.</span><span class="n">CharField</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Field with separate year, month and day selects for a ``PartialDateField``."""</span>
-
-    <span class="n">widget</span> <span class="o">=</span> <span class="n">PartialDateWidget</span></div>
-
 
 
 <div class="viewcode-block" id="PartialDateField">

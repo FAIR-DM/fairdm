@@ -103,7 +103,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.3.1" />
-    <meta name="docbuild:last-update" content="Oct 30, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 02, 2026"/>
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -825,6 +825,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l1"><a class="reference internal" href="../how-to/sync-a-profile-from-orcid-or-ror-without-celery.html">How to sync a profile from ORCID or ROR without Celery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/test-a-portal-with-fairdm-factories.html">How to test a portal with FairDM factories</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/upgrade-a-portal-to-django-literature-0-3.html">How to upgrade a portal to django-literature 0.3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/upgrade-a-portal-to-django-partial-dates.html">How to upgrade a portal to django-partial-dates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/upgrade-a-portal-to-vocabulary-addresses.html">How to upgrade a portal to vocabulary addresses</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/use-a-controlled-vocabulary-in-a-model.html">How to use a controlled vocabulary in a model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/use-a-sample-form-in-a-view.html">How to use a sample form in a view</a></li>
@@ -909,7 +910,6 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.vocabularies.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.vocabularies</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.formsets.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.formsets</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.admin</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.dates.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dates</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.overview.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.overview</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.managers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.managers</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.core.image_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.image_utils</span></code></a></li>
@@ -1270,21 +1270,21 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p>None. Django’s field options apply.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Stores</p></td>
-<td><p>A date and its precision, in one date-time column. The precision is held in the seconds.</p></td>
+<td><p>The ISO form of the date, <code class="docutils literal notranslate"><span class="pre">YYYY</span></code>, <code class="docutils literal notranslate"><span class="pre">YYYY-MM</span></code> or <code class="docutils literal notranslate"><span class="pre">YYYY-MM-DD</span></code>, in one text column of ten characters. The database refuses any other text.</p></td>
 </tr>
 <tr class="row-even"><td><p>Python value</p></td>
-<td><p>A <code class="docutils literal notranslate"><span class="pre">partial_date.PartialDate</span></code> with <code class="docutils literal notranslate"><span class="pre">date</span></code> and <code class="docutils literal notranslate"><span class="pre">precision</span></code>.</p></td>
+<td><p>A <a class="reference external" href="https://django-partial-dates.fairdm.org/developer/values.html"><code class="docutils literal notranslate"><span class="pre">partial_dates.PartialDate</span></code></a> with <code class="docutils literal notranslate"><span class="pre">year</span></code>, <code class="docutils literal notranslate"><span class="pre">month</span></code>, <code class="docutils literal notranslate"><span class="pre">day</span></code>, <code class="docutils literal notranslate"><span class="pre">precision</span></code>, <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">end</span></code>. A part nobody recorded is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p>Form field</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">fairdm.forms.fields.PartialDateField</span></code>, a text box with the mask <code class="docutils literal notranslate"><span class="pre">yyyy-mm-dd</span></code>. Hyphens at either end of the entry are removed.</p></td>
 </tr>
 <tr class="row-even"><td><p>Accepts</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code>, a <code class="docutils literal notranslate"><span class="pre">PartialDate</span></code>, or a string in one of the forms <code class="docutils literal notranslate"><span class="pre">YYYY</span></code>, <code class="docutils literal notranslate"><span class="pre">YYYY-MM</span></code> and <code class="docutils literal notranslate"><span class="pre">YYYY-MM-DD</span></code>. Any other value, a <code class="docutils literal notranslate"><span class="pre">datetime.date</span></code> included, raises a <code class="docutils literal notranslate"><span class="pre">ValidationError</span></code>.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code>, a <code class="docutils literal notranslate"><span class="pre">PartialDate</span></code>, or a string in one of the forms <code class="docutils literal notranslate"><span class="pre">YYYY</span></code>, <code class="docutils literal notranslate"><span class="pre">YYYY-MM</span></code> and <code class="docutils literal notranslate"><span class="pre">YYYY-MM-DD</span></code>. Any other value, a <code class="docutils literal notranslate"><span class="pre">datetime.date</span></code> included, raises a <code class="docutils literal notranslate"><span class="pre">ValidationError</span></code>, and in a query a <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
-<p>A year-only value is stored as the first of January and a year-and-month value as the first of the month. The precision records what was entered. You can filter with the same strings, such as <code class="docutils literal notranslate"><span class="pre">dates__value__gte=&quot;2020&quot;</span></code>.</p>
+<p>A year-only value is stored as the year alone and a year-and-month value as the year and the month, so nothing is stored that was not entered. You can filter with the same strings, such as <code class="docutils literal notranslate"><span class="pre">dates__value__gte=&quot;2020&quot;</span></code>. <a class="reference external" href="https://django-partial-dates.fairdm.org/developer/querying.html">The querying guide</a> says which dates each filter includes.</p>
 </section>
 <section id="conceptfield">
 <h2>ConceptField<a class="headerlink" href="#conceptfield" title="Link to this heading">#</a></h2>

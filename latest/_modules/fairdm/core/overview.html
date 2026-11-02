@@ -453,7 +453,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.3.1" />
-    <meta name="docbuild:last-update" content="Oct 30, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 02, 2026"/>
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1154,7 +1154,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.urls</span><span class="w"> </span><span class="kn">import</span> <span class="n">NoReverseMatch</span><span class="p">,</span> <span class="n">reverse</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.formats</span><span class="w"> </span><span class="kn">import</span> <span class="n">date_format</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">partial_date</span><span class="w"> </span><span class="kn">import</span> <span class="n">PartialDate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">partial_dates</span><span class="w"> </span><span class="kn">import</span> <span class="n">Precision</span>
 
 
 <div class="viewcode-block" id="safe_reverse">
@@ -1192,7 +1192,7 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">partial</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
-    <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">partial</span><span class="p">,</span> <span class="s2">"date"</span><span class="p">,</span> <span class="n">partial</span><span class="p">)</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">partial</span><span class="p">,</span> <span class="s2">"start"</span><span class="p">,</span> <span class="n">partial</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">value</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">date</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span></div>
 
 
@@ -1212,10 +1212,10 @@ window.runMermaid = runMermaid;</script>
     <span class="n">when</span> <span class="o">=</span> <span class="n">as_date</span><span class="p">(</span><span class="n">partial</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">when</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="s2">""</span>
-    <span class="n">precision</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">partial</span><span class="p">,</span> <span class="s2">"precision"</span><span class="p">,</span> <span class="n">PartialDate</span><span class="o">.</span><span class="n">DAY</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">precision</span> <span class="o">==</span> <span class="n">PartialDate</span><span class="o">.</span><span class="n">DAY</span><span class="p">:</span>
+    <span class="n">precision</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">partial</span><span class="p">,</span> <span class="s2">"precision"</span><span class="p">,</span> <span class="n">Precision</span><span class="o">.</span><span class="n">DAY</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">precision</span> <span class="ow">is</span> <span class="n">Precision</span><span class="o">.</span><span class="n">DAY</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">date_format</span><span class="p">(</span><span class="n">when</span><span class="p">,</span> <span class="s2">"SHORT_DATE_FORMAT"</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">precision</span> <span class="o">==</span> <span class="n">PartialDate</span><span class="o">.</span><span class="n">MONTH</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">precision</span> <span class="ow">is</span> <span class="n">Precision</span><span class="o">.</span><span class="n">MONTH</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">date_format</span><span class="p">(</span><span class="n">when</span><span class="p">,</span> <span class="s2">"YEAR_MONTH_FORMAT"</span><span class="p">)</span>
     <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">when</span><span class="o">.</span><span class="n">year</span><span class="p">)</span></div>
 

@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="developers/reference/api/fairdm/fairdm.forms.fields.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="Form fields and widgets for partial dates, quantities and fixed-precision decimals. Module Contents: Classes:,, PartialDateWidget, Date select widget that orders year, month, day and accepts partia..." />
-<meta name="description" content="Form fields and widgets for partial dates, quantities and fixed-precision decimals. Module Contents: Classes:,, PartialDateWidget, Date select widget that orders year, month, day and accepts partia..." />
+<meta property="og:description" content="Form fields and widgets for partial dates, quantities and fixed-precision decimals. Module Contents: Classes:,, PartialDateField, Text field for a partial date typed as yyyy-mm-dd, with a masked in..." />
+<meta name="description" content="Form fields and widgets for partial dates, quantities and fixed-precision decimals. Module Contents: Classes:,, PartialDateField, Text field for a partial date typed as yyyy-mm-dd, with a masked in..." />
 
     <title>fairdm.forms.fields &#8212; fairdm 0.3.1 documentation</title>
   
@@ -103,7 +103,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.3.1" />
-    <meta name="docbuild:last-update" content="Oct 30, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 02, 2026"/>
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -825,6 +825,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/sync-a-profile-from-orcid-or-ror-without-celery.html">How to sync a profile from ORCID or ROR without Celery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/test-a-portal-with-fairdm-factories.html">How to test a portal with FairDM factories</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/upgrade-a-portal-to-django-literature-0-3.html">How to upgrade a portal to django-literature 0.3</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/upgrade-a-portal-to-django-partial-dates.html">How to upgrade a portal to django-partial-dates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/upgrade-a-portal-to-vocabulary-addresses.html">How to upgrade a portal to vocabulary addresses</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/use-a-controlled-vocabulary-in-a-model.html">How to use a controlled vocabulary in a model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/use-a-sample-form-in-a-view.html">How to use a sample form in a view</a></li>
@@ -909,7 +910,6 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l4"><a class="reference internal" href="fairdm.core.vocabularies.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.vocabularies</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.core.formsets.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.formsets</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.core.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.admin</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.dates.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dates</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.core.overview.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.overview</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.core.managers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.managers</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.core.image_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.image_utils</span></code></a></li>
@@ -1088,12 +1088,6 @@ commentsRunWhenDOMLoaded(addUtterances);
 <h3>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table table-left">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.forms.fields.PartialDateWidget" title="fairdm.forms.fields.PartialDateWidget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PartialDateWidget</span></code></a></p></td>
-<td><p>Date select widget that orders year, month, day and accepts partial dates.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.forms.fields.PartialDateFormField" title="fairdm.forms.fields.PartialDateFormField"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PartialDateFormField</span></code></a></p></td>
-<td><p>Field with separate year, month and day selects for a <code class="docutils literal notranslate"><span class="pre">PartialDateField</span></code>.</p></td>
-</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.forms.fields.PartialDateField" title="fairdm.forms.fields.PartialDateField"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PartialDateField</span></code></a></p></td>
 <td><p>Text field for a partial date typed as <code class="docutils literal notranslate"><span class="pre">yyyy-mm-dd</span></code>, with a masked input.</p></td>
 </tr>
@@ -1124,52 +1118,6 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="api">
 <h3>API<a class="headerlink" href="#api" title="Link to this heading">#</a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="fairdm.forms.fields.PartialDateWidget">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">PartialDateWidget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attrs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">years</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">months</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">empty_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/fairdm/forms/fields.html#PartialDateWidget"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fairdm.forms.fields.PartialDateWidget" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.forms.SelectDateWidget</span></code></p>
-<p>Date select widget that orders year, month, day and accepts partial dates.</p>
-<p>Args:
-attrs: HTML attributes for the rendered selects.
-years: Years offered in the year select. Defaults to 1900 through the
-current year, newest first.
-months: Months offered in the month select.
-empty_label: Label of the empty choice in each select.</p>
-<p class="rubric">Initialization</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.forms.fields.PartialDateWidget.get_context">
-<span class="sig-name descname"><span class="pre">get_context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/fairdm/forms/fields.html#PartialDateWidget.get_context"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fairdm.forms.fields.PartialDateWidget.get_context" title="Link to this definition">#</a></dt>
-<dd><p>Reorder the subwidgets to year, month, day.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.forms.fields.PartialDateWidget.format_value">
-<span class="sig-name descname"><span class="pre">format_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/fairdm/forms/fields.html#PartialDateWidget.format_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fairdm.forms.fields.PartialDateWidget.format_value" title="Link to this definition">#</a></dt>
-<dd><p>Split a <code class="docutils literal notranslate"><span class="pre">PartialDate</span></code> into the year, month and day the selects show.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.forms.fields.PartialDateWidget.value_from_datadict">
-<span class="sig-name descname"><span class="pre">value_from_datadict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">files</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/fairdm/forms/fields.html#PartialDateWidget.value_from_datadict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fairdm.forms.fields.PartialDateWidget.value_from_datadict" title="Link to this definition">#</a></dt>
-<dd><p>Join the year, month and day selects into a partial-date string.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="fairdm.forms.fields.PartialDateFormField">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">PartialDateFormField</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">empty_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/fairdm/forms/fields.html#PartialDateFormField"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fairdm.forms.fields.PartialDateFormField" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.forms.CharField</span></code></p>
-<p>Field with separate year, month and day selects for a <code class="docutils literal notranslate"><span class="pre">PartialDateField</span></code>.</p>
-<p class="rubric">Initialization</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.forms.fields.PartialDateFormField.widget">
-<span class="sig-name descname"><span class="pre">widget</span></span><a class="headerlink" href="#fairdm.forms.fields.PartialDateFormField.widget" title="Link to this definition">#</a></dt>
-<dd><p>None</p>
-</dd></dl>
-
-</dd></dl>
-
 <dl class="py class">
 <dt class="sig sig-object py" id="fairdm.forms.fields.PartialDateField">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">PartialDateField</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">empty_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/fairdm/forms/fields.html#PartialDateField"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fairdm.forms.fields.PartialDateField" title="Link to this definition">#</a></dt>
@@ -1340,16 +1288,6 @@ decimal_places: Number of digits after the decimal point.
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#api">API</a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.forms.fields.PartialDateWidget"><code class="docutils literal notranslate"><span class="pre">PartialDateWidget</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.forms.fields.PartialDateWidget.get_context"><code class="docutils literal notranslate"><span class="pre">PartialDateWidget.get_context()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.forms.fields.PartialDateWidget.format_value"><code class="docutils literal notranslate"><span class="pre">PartialDateWidget.format_value()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.forms.fields.PartialDateWidget.value_from_datadict"><code class="docutils literal notranslate"><span class="pre">PartialDateWidget.value_from_datadict()</span></code></a></li>
-</ul>
-</li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.forms.fields.PartialDateFormField"><code class="docutils literal notranslate"><span class="pre">PartialDateFormField</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.forms.fields.PartialDateFormField.widget"><code class="docutils literal notranslate"><span class="pre">PartialDateFormField.widget</span></code></a></li>
-</ul>
-</li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.forms.fields.PartialDateField"><code class="docutils literal notranslate"><span class="pre">PartialDateField</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.forms.fields.PartialDateField.widget"><code class="docutils literal notranslate"><span class="pre">PartialDateField.widget</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.forms.fields.PartialDateField.clean"><code class="docutils literal notranslate"><span class="pre">PartialDateField.clean()</span></code></a></li>

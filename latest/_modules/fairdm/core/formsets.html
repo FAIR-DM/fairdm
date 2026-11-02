@@ -453,7 +453,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.3.1" />
-    <meta name="docbuild:last-update" content="Oct 30, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 02, 2026"/>
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1145,9 +1145,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">ValidationError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.forms</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseInlineFormSet</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">partial_date</span><span class="w"> </span><span class="kn">import</span> <span class="n">PartialDate</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">.dates</span><span class="w"> </span><span class="kn">import</span> <span class="n">precedes</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">partial_dates</span><span class="w"> </span><span class="kn">import</span> <span class="n">PartialDate</span><span class="p">,</span> <span class="n">Relation</span>
 
 
 <div class="viewcode-block" id="date_ordering_formset">
@@ -1194,7 +1192,7 @@ window.runMermaid = runMermaid;</script>
                 <span class="c1"># The form field holds the raw string. The model field only converts it</span>
                 <span class="c1"># in `full_clean()`, which runs after the formset's own `clean()`.</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">PartialDate</span><span class="p">):</span>
-                    <span class="n">value</span> <span class="o">=</span> <span class="n">PartialDate</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">PartialDate</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
                 <span class="c1"># The type field cleans to the concept, and the pair is named by address.</span>
                 <span class="n">chosen</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"type"</span><span class="p">),</span> <span class="s2">"uri"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">chosen</span> <span class="o">==</span> <span class="n">start_type</span><span class="p">:</span>
@@ -1205,7 +1203,7 @@ window.runMermaid = runMermaid;</script>
             <span class="k">if</span> <span class="n">start_value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">end_value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">return</span>
 
-            <span class="k">if</span> <span class="n">precedes</span><span class="p">(</span><span class="n">end_value</span><span class="p">,</span> <span class="n">start_value</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">end_value</span><span class="o">.</span><span class="n">relation_to</span><span class="p">(</span><span class="n">start_value</span><span class="p">)</span> <span class="ow">is</span> <span class="n">Relation</span><span class="o">.</span><span class="n">BEFORE</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span>
                     <span class="n">message</span> <span class="o">%</span> <span class="p">{</span><span class="s2">"start"</span><span class="p">:</span> <span class="n">start_value</span><span class="p">,</span> <span class="s2">"end"</span><span class="p">:</span> <span class="n">end_value</span><span class="p">}</span>
                 <span class="p">)</span>

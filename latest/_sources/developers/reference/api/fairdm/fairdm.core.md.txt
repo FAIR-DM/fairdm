@@ -28,7 +28,6 @@ fairdm.core.sample
 fairdm.core.vocabularies
 fairdm.core.formsets
 fairdm.core.admin
-fairdm.core.dates
 fairdm.core.overview
 fairdm.core.managers
 fairdm.core.image_utils

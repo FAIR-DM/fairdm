@@ -15,14 +15,6 @@
 :class: autosummary longtable
 :align: left
 
-* - {py:obj}`PartialDateWidget <fairdm.forms.fields.PartialDateWidget>`
-  - ```{autodoc2-docstring} fairdm.forms.fields.PartialDateWidget
-    :summary:
-    ```
-* - {py:obj}`PartialDateFormField <fairdm.forms.fields.PartialDateFormField>`
-  - ```{autodoc2-docstring} fairdm.forms.fields.PartialDateFormField
-    :summary:
-    ```
 * - {py:obj}`PartialDateField <fairdm.forms.fields.PartialDateField>`
   - ```{autodoc2-docstring} fairdm.forms.fields.PartialDateField
     :summary:
@@ -58,72 +50,6 @@
 ````
 
 ### API
-
-`````{py:class} PartialDateWidget(attrs=None, years=None, months=None, empty_label=None)
-:canonical: fairdm.forms.fields.PartialDateWidget
-
-Bases: {py:obj}`django.forms.SelectDateWidget`
-
-```{autodoc2-docstring} fairdm.forms.fields.PartialDateWidget
-```
-
-```{rubric} Initialization
-```
-
-```{autodoc2-docstring} fairdm.forms.fields.PartialDateWidget.__init__
-```
-
-````{py:method} get_context(name, value, attrs)
-:canonical: fairdm.forms.fields.PartialDateWidget.get_context
-
-```{autodoc2-docstring} fairdm.forms.fields.PartialDateWidget.get_context
-```
-
-````
-
-````{py:method} format_value(value)
-:canonical: fairdm.forms.fields.PartialDateWidget.format_value
-
-```{autodoc2-docstring} fairdm.forms.fields.PartialDateWidget.format_value
-```
-
-````
-
-````{py:method} value_from_datadict(data, files, name)
-:canonical: fairdm.forms.fields.PartialDateWidget.value_from_datadict
-
-```{autodoc2-docstring} fairdm.forms.fields.PartialDateWidget.value_from_datadict
-```
-
-````
-
-`````
-
-`````{py:class} PartialDateFormField(*, max_length=None, min_length=None, strip=True, empty_value='', **kwargs)
-:canonical: fairdm.forms.fields.PartialDateFormField
-
-Bases: {py:obj}`django.forms.CharField`
-
-```{autodoc2-docstring} fairdm.forms.fields.PartialDateFormField
-```
-
-```{rubric} Initialization
-```
-
-```{autodoc2-docstring} fairdm.forms.fields.PartialDateFormField.__init__
-```
-
-````{py:attribute} widget
-:canonical: fairdm.forms.fields.PartialDateFormField.widget
-:value: >
-   None
-
-```{autodoc2-docstring} fairdm.forms.fields.PartialDateFormField.widget
-```
-
-````
-
-`````
 
 `````{py:class} PartialDateField(*, max_length=None, min_length=None, strip=True, empty_value='', **kwargs)
 :canonical: fairdm.forms.fields.PartialDateField
