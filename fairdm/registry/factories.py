@@ -69,7 +69,37 @@ class FormFactory(ComponentFactory):
 
     Dates, large text, email and URL fields get a matching widget, and the form
     carries a crispy-forms helper with a submit button.
+
+    Args:
+        model: The Django model class to generate the form for.
+        fields: Field names to use. ``None`` uses the model's safe fields.
+        declared: The names the configuration lists for the form itself.
     """
+
+    def __init__(
+        self,
+        model: type[models.Model],
+        fields: list[str] | None = None,
+        declared: list[str] | None = None,
+    ):
+        super().__init__(model, fields)
+        self.declared = declared or []
+
+    def get_fields(self) -> list[str]:
+        """Return the fields to use, without those the form cannot edit and only inherited.
+
+        A shared list may name a non-editable field for the table, serializer or export. A name
+        the configuration lists for the form itself stays, so ``modelform_factory`` refuses it.
+
+        Returns:
+            The field names to use.
+        """
+        return [
+            name
+            for name in super().get_fields()
+            if name in self.declared
+            or getattr(self.inspector.get_field(name), "editable", True)
+        ]
 
     def generate(self) -> type[ModelForm]:
         """Generate a ModelForm class with smart widgets.
@@ -360,8 +390,8 @@ def published_related_queryset(related_model: type[models.Model]) -> Any:
     `Dataset.objects`: the default manager excludes PRIVATE datasets, and a
     published-but-private dataset is the ordinary state, so
     `Dataset.objects.published()` would leave a filter offering nothing while
-    the table shows that dataset's rows. Publication is the only test a listing
-    applies.
+    the table shows that dataset's rows. A listing applies publication and leaves
+    out what a private project hides.
 
     `None` rather than an unscoped queryset, so a caller can tell "every
     published one" from "not this model's question" - a content-type filter
@@ -371,17 +401,17 @@ def published_related_queryset(related_model: type[models.Model]) -> Any:
         related_model: The model whose records a filter offers.
 
     Returns:
-        A queryset of the published records for a Dataset, Sample or Measurement
-        model, otherwise ``None``.
+        A queryset of the published records outside private projects for a
+        Dataset, Sample or Measurement model, otherwise ``None``.
     """
     from fairdm.core.dataset.models import Dataset
     from fairdm.core.measurement.models import Measurement
     from fairdm.core.sample.models import Sample
 
     if issubclass(related_model, Dataset):
-        return Dataset.all_objects.published()
+        return Dataset.all_objects.published().outside_private_projects()
     if issubclass(related_model, (Sample, Measurement)):
-        return related_model._default_manager.published()
+        return related_model._default_manager.published().outside_private_projects()
     return None
 
 

@@ -148,11 +148,6 @@ class Case:
         """Return the address of the record's own page."""
         return self.record.get_absolute_url()
 
-    @property
-    def root_url(self):
-        """Return the address every page of the record sits beneath."""
-        return self.own_url.removesuffix("overview/")
-
 
 @pytest.fixture
 def make_case(db):
@@ -332,7 +327,7 @@ class TestRegistration:
     def test_the_page_sits_beneath_the_records_address(self, make_case, kind, page):
         case = make_case(kind)
 
-        assert case.url(page) == f"{case.root_url}{page}/"
+        assert case.url(page) == f"{case.own_url}{page}/"
 
     @pytest.mark.parametrize("kind", KINDS)
     @pytest.mark.parametrize("page", PAGES)
@@ -361,7 +356,7 @@ class TestRegistration:
     def test_the_delete_page_sits_beneath_the_records_address(self, make_case, kind):
         case = make_case(kind)
 
-        assert case.url("delete") == f"{case.root_url}delete/"
+        assert case.url("delete") == f"{case.own_url}delete/"
 
     @pytest.mark.parametrize("kind", KINDS)
     def test_the_delete_page_is_not_a_tab(self, kind):
@@ -684,6 +679,17 @@ class TestManageMenu:
 
 @pytest.mark.django_db
 class TestEditDetails:
+    @pytest.mark.parametrize("kind", ["sample", "measurement"])
+    def test_a_form_built_on_the_record_mixin_receives_the_request(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind)
+        editor = person_at(case, ContributionLevel.EDIT)
+
+        response = browser_as(editor).get(case.url("edit"))
+
+        assert response.context["form"].request.user == editor
+
     @pytest.mark.parametrize("kind", KINDS)
     def test_a_valid_save_returns_to_the_record_with_a_message(
         self, make_case, person_at, kind
@@ -1546,7 +1552,7 @@ class TestOverviewPrompts:
 
         addresses = {item["url"] for item in response.context["readiness"]["items"]}
         assert {case.url("edit"), case.url("descriptions")} <= addresses
-        assert f"{case.root_url}update/" not in addresses
+        assert f"{case.own_url}update/" not in addresses
 
     @pytest.mark.parametrize("kind", ["project", "dataset"])
     def test_the_readiness_item_for_keywords_carries_the_keywords_page(

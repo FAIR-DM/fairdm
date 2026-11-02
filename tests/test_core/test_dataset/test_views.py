@@ -52,6 +52,17 @@ class TestDatasetListView:
         assert public.name in str(response.content)
         assert "Private Dataset" not in str(response.content)
 
+    def test_leaves_out_a_public_dataset_in_a_private_project(self, client):
+        DatasetFactory(
+            name="Hidden Dataset",
+            project=ProjectFactory(visibility=Visibility.PRIVATE),
+            visibility=Visibility.PUBLIC,
+        )
+
+        response = client.get(reverse("dataset-list"))
+
+        assert "Hidden Dataset" not in str(response.content)
+
     def test_order_by_added(self, client):
         older = DatasetFactory(name="Older Dataset", visibility=Visibility.PUBLIC)
         time.sleep(0.01)
@@ -1288,8 +1299,12 @@ class TestDatasetViews:
         assert response.status_code == 200
 
     def test_dataset_list_view_shows_public_datasets(self, client):
-        public_dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        private_dataset = DatasetFactory(visibility=Visibility.PRIVATE)
+        public_dataset = DatasetFactory(
+            name="Basalt Listing Dataset Q7", visibility=Visibility.PUBLIC
+        )
+        private_dataset = DatasetFactory(
+            name="Gneiss Listing Dataset Z4", visibility=Visibility.PRIVATE
+        )
 
         response = client.get(reverse("dataset-list"))
 
@@ -1508,13 +1523,13 @@ class TestDatasetCardRendering:
         assert "0 measurements" not in html
 
     def test_card_names_the_parent_project(self, client):
-        project = ProjectFactory(name="Deep Time Survey")
+        project = ProjectFactory(name="Deep Time Survey", visibility=Visibility.PUBLIC)
         DatasetFactory(project=project, visibility=Visibility.PUBLIC)
         response, _ = self._card_html(client)
         assertContains(response, "Deep Time Survey")
 
     def test_the_parent_project_is_not_a_nested_link(self, client):
-        project = ProjectFactory(name="Deep Time Survey")
+        project = ProjectFactory(name="Deep Time Survey", visibility=Visibility.PUBLIC)
         DatasetFactory(project=project, visibility=Visibility.PUBLIC)
         _, html = self._card_html(client)
         assert project.get_absolute_url() not in html

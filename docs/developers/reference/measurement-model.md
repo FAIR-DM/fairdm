@@ -68,7 +68,7 @@ The roles a person or organization can hold on a measurement, by identifier, are
 
 | Name | Returns |
 |---|---|
-| `get_value()` | The `value`, paired with the `uncertainty` when the value supports it. The measurement's `name` when the type declares no `value`. |
+| `get_value()` | The `value`, paired with the `uncertainty` when the value supports it and the uncertainty can be applied. The measurement's `name` when the type declares no `value`. |
 | `print_value()` | The result of `get_value()` as text. |
 | `__str__()` | The value as text when there is one, otherwise the `name`, otherwise the `uuid`. |
 | `effective_location_for(user=None)` | An `EffectiveLocation` for the viewer, or `None`. |
@@ -101,6 +101,7 @@ The roles a person or organization can hold on a measurement, by identifier, are
 | `within_distance(point, distance, user=None)` | The measurements whose effective location is within a distance of a point. |
 | `nearest(point, user=None)` | The measurements ordered by distance of their effective location, each carrying `distance`. |
 | `published()` | The measurements whose own dataset is published. |
+| `outside_private_projects()` | The measurements whose own dataset has no project or a public one. |
 | `visible_to(user)` | The measurements the user may see. |
 | `with_level(user, level)` | The measurements on which the user holds at least a level. |
 | `accessible_to(user, level)` | The measurements the user may act on at a level. |

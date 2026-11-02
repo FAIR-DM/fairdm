@@ -15,7 +15,7 @@ An overview page's numbers, lists and cards are worked out by a plugin registere
 | `Overview` | `fairdm.core.measurement.plugins` | `Measurement` | `measurement/measurement_overview.html`, or a type's own |
 | `Overview` | `fairdm.contrib.contributors.plugins.overview` | `Contributor` | `contributors/overview/person.html` or `organization.html` |
 
-Each core `Overview` has `url_path = None`, so the overview sits at the record's own address.
+Each core `Overview` has `url_path = None`, so the overview sits at the record's own address. `OverviewRedirect` in `fairdm.core.sample.plugins` sends a sample's `overview/` address to the record's own with a permanent redirect.
 
 ## `RecordOverviewPlugin`
 
@@ -211,7 +211,8 @@ A sample or measurement overview decides who may open a record through the base 
 | Method | Keeps |
 |---|---|
 | `published()` | The records whose own dataset is published. |
-| `visible_to(user)` | The records in a dataset that is public and published, and those the user holds at least the view level on, on the record or from its dataset or that dataset's project. |
+| `outside_private_projects()` | The records no private project hides: their own dataset has no project or a public one. |
+| `visible_to(user)` | The records in a dataset that is public and published and not in a private project, and those the user holds at least the view level on, on the record or from its dataset or that dataset's project. |
 | `with_level(user, level)` | The records the user holds at least that level on. |
 
 `SampleQuerySet` and `MeasurementQuerySet` have all three. A queryset of your own for a record with a `dataset` foreign key can use the mixin. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md).

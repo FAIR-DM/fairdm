@@ -21,6 +21,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   does this.
 - **An organization's card pluralises its credit counts**, so one project reads "1 project". The
   card reads the new `Contributor.get_credit_totals()`, which carries both forms of each name.
+- **A sample's page answers at its own address, `/samples/<uuid>/`,** as a project, dataset and
+  measurement already do. The former address, `/samples/<uuid>/overview/`, redirects to it.
+- **An edit page opens for a registered type whose `fields` name a field that cannot be edited.**
+  The generated form leaves out a field with `editable=False` that it inherits from `fields`. The
+  same field listed in `form_fields` is still refused.
+- **A measurement with a negative uncertainty, or one in units its value cannot take, can be
+  shown.** `get_value()` and `print_value()` return the plain value instead of raising, so the
+  measurement's page opens.
+- **The Edit details page passes the request to a form whose constructor takes `**kwargs`,** which
+  covers every form built on `SampleFormMixin` or `MeasurementFormMixin`. A form of a portal's own
+  that takes `**kwargs` must pop `request` before it forwards them to `ModelForm`, or the page
+  raises `TypeError`.
+- **A private project hides every dataset in it, and their samples and measurements.** A public
+  dataset inside a private project, and the records of a published one, were shown to anyone: on
+  their own pages, in the dataset list, in the API, in collection tables and their filters, and in
+  record search fields. People who hold a level on the record, its dataset or the project still see
+  them.
 - **An addon's `urls.py` is now mounted.** FairDM found the module and logged it, but the root
   URL configuration never saw it, so every address the addon defined answered 404. FairDM now
   includes it at the site root. A portal that includes the addon's URLs itself can drop that line.

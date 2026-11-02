@@ -24,6 +24,7 @@ from fairdm.contrib.contributors.choices import (
     OrganizationType,
 )
 from fairdm.contrib.contributors.models import Affiliation, Organization, Person
+from fairdm.core.managers import no_private_project, released_to_everyone
 from fairdm.core.models import Dataset, Project, Sample
 from fairdm.core.utils import get_objects_for_user
 
@@ -32,18 +33,19 @@ if TYPE_CHECKING:
     from rest_framework.views import APIView
 
 
-def _get_public_filter(model) -> dict:
-    """Return a queryset filter dict that selects publicly-visible records.
+def get_public_filter(model) -> Q:
+    """Return a queryset condition that selects publicly-visible records.
 
-    Project and Dataset carry an integer ``visibility`` field. Sample and Measurement have
-    none: they are public when their dataset is public and published, as the portal has it.
+    Project and Dataset carry an integer ``visibility`` field, and a private project also hides
+    the datasets in it. Sample and Measurement have none: they are public when their dataset is
+    public and published and no private project hides it, as the portal has it.
 
     Args:
         model: The model class to build the filter for.
 
     Returns:
-        A dict to pass to ``queryset.filter(**...)``, or an empty dict when the
-        model has no known visibility field and filtering should be skipped.
+        A ``Q`` to pass to ``queryset.filter()``, or an empty ``Q`` when the model has no
+        known visibility field and filtering should be skipped.
     """
     from django.db.models import IntegerField
 
@@ -52,15 +54,16 @@ def _get_public_filter(model) -> dict:
         if isinstance(field, IntegerField):
             from fairdm.utils.choices import Visibility
 
-            return {"visibility": Visibility.PUBLIC}
+            public = Q(visibility=Visibility.PUBLIC)
+            if issubclass(model, Dataset):
+                return public & no_private_project()
+            return public
 
     with contextlib.suppress(Exception):
         model._meta.get_field("dataset")
-        from fairdm.utils.choices import Visibility
+        return released_to_everyone()
 
-        return {"dataset__visibility": Visibility.PUBLIC, "dataset__published": True}
-
-    return {}
+    return Q()
 
 
 class FairDMVisibilityFilter(BaseFilterBackend):
@@ -68,9 +71,11 @@ class FairDMVisibilityFilter(BaseFilterBackend):
 
     Restricts list querysets to objects the requesting user can see:
 
-    - Projects and datasets with ``visibility=PUBLIC`` are always included. Samples and
-      measurements are included when their dataset is public and published: a public dataset
-      that is not published shows its own record and keeps its data back.
+    - Projects with ``visibility=PUBLIC`` are always included, and so are datasets unless a
+      private project hides them. Samples and
+      measurements are included when their dataset is public and published and no private
+      project hides it: a public dataset that is not published shows its own record and keeps
+      its data back.
     - Records the user holds at least the view level on, directly or from the dataset or
       project above, are also included. Rows that django-guardian stores for a project, dataset,
       sample or measurement grant nothing.
@@ -102,13 +107,13 @@ class FairDMVisibilityFilter(BaseFilterBackend):
 
     def filter_queryset(self, request: Request, queryset, view: APIView):
         """Limit the queryset to public records plus those the user may view."""
-        public_filter = _get_public_filter(queryset.model)
+        public_filter = get_public_filter(queryset.model)
 
         if not public_filter:
             return queryset
 
         if request.user and request.user.is_authenticated:
-            public_qs = queryset.filter(**public_filter)
+            public_qs = queryset.filter(public_filter)
             model = queryset.model
             core = getattr(model, "type_of", None) or model
             if RecordAccess.is_core_model(core):
@@ -120,7 +125,7 @@ class FairDMVisibilityFilter(BaseFilterBackend):
                 permitted_qs = get_objects_for_user(request.user, view_perm, queryset)
             return (public_qs | permitted_qs).distinct()
 
-        return queryset.filter(**public_filter)
+        return queryset.filter(public_filter)
 
 
 class DatasetFilterSet(django_filters.FilterSet):

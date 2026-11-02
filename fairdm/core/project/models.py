@@ -179,6 +179,11 @@ class Project(BaseModel):
     }
 
     @property
+    def open_to_everyone(self):
+        """Whether anyone may open this project: it is public."""
+        return self.visibility == Visibility.PUBLIC
+
+    @property
     def is_active(self):
         """Whether work on the project is under way: its status is in progress."""
         return self.status == self.STATUS_CHOICES.IN_PROGRESS

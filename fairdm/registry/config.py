@@ -552,7 +552,9 @@ class ModelConfiguration:
 
     def get_form_class(self) -> type[ModelForm]:
         """Return the ModelForm for this model. Override to build your own."""
-        return self._component_class("form")
+        return self._component_class(
+            "form", declared=flatten_fields(self.form_fields or [])
+        )
 
     def get_table_class(self) -> type[Table]:
         """Return the django-tables2 Table for this model. Override to replace it."""

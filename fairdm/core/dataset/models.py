@@ -4,7 +4,7 @@ from controlled_vocabularies.fields import ConceptField
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
@@ -17,7 +17,7 @@ from fairdm.db.models import QuerySet
 from fairdm.utils.choices import Visibility
 
 from ..abstract import AbstractDate, AbstractDescription, AbstractIdentifier, BaseModel
-from ..managers import RecordLevelMixin
+from ..managers import RecordLevelMixin, no_private_project
 from ..utils import CORE_PERMISSIONS
 from ..vocabularies import (
     CONTRIBUTOR_ROLES,
@@ -137,9 +137,15 @@ class DatasetQuerySet(RecordLevelMixin, QuerySet):
         Returns:
             The datasets a profile or a public listing may name.
         """
-        return self.filter(visibility=Visibility.PUBLIC).filter(
-            Q(project__isnull=True) | Q(project__visibility=Visibility.PUBLIC)
-        )
+        return self.filter(visibility=Visibility.PUBLIC).outside_private_projects()
+
+    def outside_private_projects(self) -> "DatasetQuerySet":
+        """Return the datasets no private project hides.
+
+        Returns:
+            The datasets with no project or a public one.
+        """
+        return self.filter(no_private_project())
 
     def visible_to(self, user=None) -> "DatasetQuerySet":
         """Return the datasets the user may see.
@@ -371,11 +377,19 @@ class Dataset(BaseModel):
         ]
 
     @property
+    def open_to_everyone(self) -> bool:
+        """Whether anyone may open this dataset: it is public and no private project hides it."""
+        return self.visibility == Visibility.PUBLIC and (
+            self.project is None or self.project.visibility == Visibility.PUBLIC
+        )
+
+    @property
     def data_is_public(self) -> bool:
-        """Whether anyone may see this dataset's samples and measurements.
+        """Whether this dataset's own flags release its samples and measurements.
 
         Publishing is meant to make a dataset public, so a published dataset should never be
-        private. The two fields are still set separately, so both are checked.
+        private. The two fields are still set separately, so both are checked. A private project
+        above still hides the records from anyone without a level, which ``visible_to`` applies.
         """
         return self.visibility == Visibility.PUBLIC and self.published
 

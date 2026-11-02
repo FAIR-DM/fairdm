@@ -23,7 +23,7 @@ The portal answers a person who may not open a private dataset exactly as it wou
 
 ## The dataset opens, but its samples and measurements are missing
 
-A dataset's page and the data beneath it are released by two separate flags. Visibility governs the page. **Published** governs whether the samples and measurements may be shown, and only the administration interface sets it. People who hold a level on the dataset see the data whatever the flags say.
+A dataset's page and the data beneath it are released by two separate flags. Visibility governs the page. **Published** governs whether the samples and measurements may be shown, and only the administration interface sets it. A private project hides the samples and measurements of every dataset in it, whatever the dataset's flags say. People who hold a level on the dataset see the data whatever the flags say.
 
 1. Open the dataset in the administration interface.
 2. Read **Published** in the first section. If it is not ticked, the data is hidden from everyone who holds no level.
@@ -33,7 +33,7 @@ See [Dataset publication, DOIs and DataCite metadata](../../explanation/dataset-
 
 ## The dataset is missing from the portal's list of datasets
 
-A list of datasets shows the public datasets, and it shows the same ones to everyone. A private dataset is in no list, whatever levels people hold. People who hold a level reach it by its address. To put it in the list, set **Visibility** to **Public**.
+A list of datasets shows the public datasets outside private projects, and it shows the same ones to everyone. A private dataset, or one in a private project, is in no list, whatever levels people hold. People who hold a level reach it by its address. To put it in the list, set **Visibility** to **Public**.
 
 ## The dataset opens, but its project says it does not exist
 

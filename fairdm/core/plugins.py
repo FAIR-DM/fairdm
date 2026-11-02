@@ -501,7 +501,7 @@ class TypedOverviewPlugin(RecordOverviewPlugin):
     published, and otherwise only for people who hold a level on the record, or on its dataset or that dataset's
     project (``visible_to``). Anyone else gets a
     404, so the address never confirms the record exists. ``PrivateRecordNotFoundMixin`` can't be
-    reused here: it reads ``obj.visibility``, which samples and measurements don't have.
+    reused here: it reads ``obj.open_to_everyone``, which samples and measurements don't have.
     """
 
     base_model = None

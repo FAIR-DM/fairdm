@@ -84,7 +84,7 @@ The router reads its routes once, when `fairdm.api.urls` is first loaded. A view
 The visibility filter lists every record of a model that has neither an integer `visibility` field nor a `dataset` relation, to every caller. Give the viewset a `get_queryset` that returns only what the caller may see.
 ```
 
-A record of a model with a `dataset` relation is listed for a visitor only when the dataset is public and published. A signed-in person also sees the records they hold a stored django-guardian `view` permission on. A contribution level on the dataset does not reach a model of your own.
+A record of a model with a `dataset` relation is listed for a visitor only when the dataset is public and published and not in a private project. A signed-in person also sees the records they hold a stored django-guardian `view` permission on. A contribution level on the dataset does not reach a model of your own.
 
 You do not need this for a registered type. Its endpoints are generated, and a mistake in its registration stops the portal with the real error instead of leaving a route missing. To choose which of a registered type's fields the API returns, see [How to choose the fields the API returns](choose-the-fields-the-api-returns.md).
 

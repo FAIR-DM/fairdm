@@ -68,7 +68,7 @@ A sample of the example type:
 ```json
 {
   "url": "https://portal.example.org/api/v1/samples/plant-samples/sxXGUGgXRVStFw3jbpBWQeM/",
-  "html_url": "https://portal.example.org/samples/sxXGUGgXRVStFw3jbpBWQeM/overview/",
+  "html_url": "https://portal.example.org/samples/sxXGUGgXRVStFw3jbpBWQeM/",
   "uuid": "sxXGUGgXRVStFw3jbpBWQeM",
   "name": "PL-14",
   "local_id": "SAMPLE-5165",
@@ -126,7 +126,7 @@ A record names another by its short identifier and its address in the API, and n
 ```
 
 - Requesting the `url` returns the record it names.
-- A reference is `null` when the caller may not see the record it would name. A public dataset can sit in a private project, and a measurement's sample can be in another, private dataset. Both read `null` for a visitor and name the record for someone who holds at least the view level on it.
+- A reference is `null` when the caller may not see the record it would name. Someone with a level on a dataset alone can read it inside a private project, and a measurement's sample can be in another, private dataset. Both read `null` for a caller without at least the view level on the record, and name it for someone who holds that level.
 - A contributor the people list leaves out, such as a superuser, reads `null` in a reference to them.
 - A parent is sent as a bare string or as the `{"uuid", "url"}` object a response carries. A database number is refused.
 
@@ -426,7 +426,8 @@ Any signed-in person may create a project. The answer to a caller who holds no l
 
 The `404` for a private record is deliberate. A caller cannot tell a private record from one that does not exist.
 
-- A sample or measurement is public when its dataset is public and published.
+- A sample or measurement is public when its dataset is public and published and not in a private project.
+- `fairdm.api.filters.get_public_filter(model)` returns these conditions for a model as a `Q`, and an empty `Q` for a model with no visibility rule.
 - A dataset that is public but not yet published answers to everyone for its own record. Its samples and measurements are listed, counted and returned only to a person with a level on them, and everyone else gets `404`.
 
 Three rules about what a request may change apply to projects, datasets, samples and measurements, as they do to the portal's update forms.
