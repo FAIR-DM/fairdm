@@ -8,7 +8,7 @@ what it wants.
 
 env = globals()["env"]
 
-site_name = env("DJANGO_SITE_NAME", default=None)
+site_name = env("DJANGO_SITE_NAME")
 
 if env("DJANGO_DEFAULT_FROM_EMAIL", default=None):
     from_email = env("DJANGO_DEFAULT_FROM_EMAIL")

@@ -106,8 +106,8 @@ def discover_addon_urls(addons: list[str]) -> list[str]:
     Returns:
         Addon URL module paths (e.g., ['addon1.urls', 'addon2.urls']).
     """
-    global addon_urls
-    addon_urls = []
+    # Filled in place: `fairdm.conf.setup` and `fairdm.conf.urls` hold this same list.
+    addon_urls.clear()
 
     for addon_name in addons:
         try:

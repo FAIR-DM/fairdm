@@ -84,9 +84,9 @@ Add the missing codes to `LANGUAGES`, or remove them from `PARLER_LANGUAGES` and
 
 ## The message names an addon and says its setup module could not be found or raised an error
 
-A package listed in `fairdm.setup(addons=[...])` is not installed, names a setup module that does not exist, or fails while its settings apply. Where `DJANGO_ENV` is `production`, this stops the portal.
+A package listed in `fairdm.setup(addons=[...])` is not installed, names a setup module that does not exist, or fails while its settings apply. Where `DJANGO_ENV` is anything but `development`, this stops the portal.
 
-Install the addon package in the portal's environment, or correct the module its `__fdm_setup_module__` names, or fix the error the message quotes. In any other environment the addon is skipped with a warning.
+Install the addon package in the portal's environment, or correct the module its `__fdm_setup_module__` names, or fix the error the message quotes. In `development` the addon is skipped with a warning.
 
 ## What to do next
 

@@ -149,8 +149,8 @@ behaviour belong here — the addon contract itself is R27.
 **Acceptance Scenarios**:
 
 1. **Given** a portal naming an addon, **when** settings resolve, **then** the addon's settings apply after FairDM's environment override and before the portal's.
-2. **Given** an addon that cannot be loaded, **when** the environment is production, **then** the portal fails to start and names the addon.
-3. **Given** the same addon, **when** the environment is not production, **then** a warning is emitted, the addon is skipped, and the portal starts.
+2. **Given** an addon that cannot be loaded, **when** the environment is any but one the platform ships a non-production override module for, **then** the portal fails to start and names the addon.
+3. **Given** the same addon, **when** the environment is one the platform ships a non-production override module for, **then** a warning is emitted, the addon is skipped, and the portal starts.
 
 ---
 
@@ -201,7 +201,7 @@ behaviour belong here — the addon contract itself is R27.
 **Addons**
 
 - **FR-021**: Settings contributed by an addon named in the entry point call MUST be applied at the position given in FR-008, so that a portal can always override an addon.
-- **FR-022**: An addon that cannot be loaded MUST prevent startup in production, naming the addon; in any other environment it MUST emit a warning, be skipped, and allow startup to continue.
+- **FR-022**: An addon that cannot be loaded MUST prevent startup, naming the addon, whenever the settings in force are the production baseline as FR-013 defines it. In an environment the platform ships a non-production override module for, it MUST emit a warning, be skipped, and allow startup to continue.
 
 **Documentation**
 
