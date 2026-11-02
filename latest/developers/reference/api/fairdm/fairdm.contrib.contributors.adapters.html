@@ -1144,6 +1144,12 @@ True when the login’s provider is <code class="docutils literal notranslate"><
 <dd><p>Return allauth’s <code class="docutils literal notranslate"><span class="pre">user_signed_up</span></code> signal.</p>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.adapters.AccountAdapter.send_password_reset_mail">
+<span class="sig-name descname"><span class="pre">send_password_reset_mail</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">email</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.adapters.AccountAdapter.send_password_reset_mail" title="Link to this definition">#</a></dt>
+<dd><p>Send the reset mail unless <code class="docutils literal notranslate"><span class="pre">can_reset_password</span></code> refuses the person.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -1253,6 +1259,7 @@ The profile, or None when no identifier row matches.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.adapters.AccountAdapter"><code class="docutils literal notranslate"><span class="pre">AccountAdapter</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.adapters.AccountAdapter.is_open_for_signup"><code class="docutils literal notranslate"><span class="pre">AccountAdapter.is_open_for_signup()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.adapters.AccountAdapter.get_user_signed_up_signal"><code class="docutils literal notranslate"><span class="pre">AccountAdapter.get_user_signed_up_signal()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.adapters.AccountAdapter.send_password_reset_mail"><code class="docutils literal notranslate"><span class="pre">AccountAdapter.send_password_reset_mail()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.adapters.SocialAccountAdapter"><code class="docutils literal notranslate"><span class="pre">SocialAccountAdapter</span></code></a><ul class="nav section-nav flex-column">

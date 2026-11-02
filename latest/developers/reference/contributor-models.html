@@ -1385,71 +1385,75 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
 <td><p>Whether the account is active and the person has claimed it or has signed in (<code class="docutils literal notranslate"><span class="pre">last_login</span></code> is set)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">is_editable_by(user)</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">can_reset_password()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+<td><p>Whether a password reset may reach the person: <code class="docutils literal notranslate"><span class="pre">can_sign_in()</span></code> is true or they already have a usable password. False for an invited profile, which gets no reset mail and whose reset links are refused</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">is_editable_by(user)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
 <td><p>See <a class="reference internal" href="#who-may-edit-a-profile">Who may edit a profile</a></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">orcid()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">orcid()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ContributorIdentifier</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
 <td><p>The person’s ORCID identifier</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">orcid_is_authenticated</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">orcid_is_authenticated</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code> property</p></td>
 <td><p>Whether the person has signed in with ORCID. Reads <code class="docutils literal notranslate"><span class="pre">socialaccount_set.all()</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_provider(provider)</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_provider(provider)</span></code></p></td>
 <td><p>Social account or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
 <td><p>The person’s allauth social account for a provider id such as <code class="docutils literal notranslate"><span class="pre">&quot;orcid&quot;</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">primary_affiliation()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">primary_affiliation()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Affiliation</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
 <td><p>The primary affiliation, when it is verified (member or above) and has no end date. Reads <code class="docutils literal notranslate"><span class="pre">affiliations.all()</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">primary_organization</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">primary_organization</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Organization</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
 <td><p>The organization of <code class="docutils literal notranslate"><span class="pre">primary_affiliation()</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">current_affiliations()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">current_affiliations()</span></code></p></td>
 <td><p>Queryset</p></td>
 <td><p>Affiliations with no end date and a type of member or above, with the organization loaded</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_affiliation_history()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_affiliation_history()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">current</span></code> (the primary affiliation first, the rest by organization name) and <code class="docutils literal notranslate"><span class="pre">past</span></code> (most recently ended first). Pending affiliations are left out</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">portal_roles</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">portal_roles</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">list</span></code> of labels</p></td>
 <td><p>The labels of the portal roles the person holds, in declaration order. Empty for an inactive person. Reads <code class="docutils literal notranslate"><span class="pre">groups.all()</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_initials()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_initials()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
 <td><p>The initials of <code class="docutils literal notranslate"><span class="pre">first_name</span></code> and <code class="docutils literal notranslate"><span class="pre">last_name</span></code>, else of <code class="docutils literal notranslate"><span class="pre">name</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">given</span></code>, <code class="docutils literal notranslate"><span class="pre">family</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">given</span></code>, <code class="docutils literal notranslate"><span class="pre">family</span></code></p></td>
 <td><p>Properties</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">first_name</span></code> and <code class="docutils literal notranslate"><span class="pre">last_name</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_full_name_display(name_format=&quot;given_family&quot;)</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_full_name_display(name_format=&quot;given_family&quot;)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
 <td><p>The name as <code class="docutils literal notranslate"><span class="pre">given_family</span></code> (“John Doe”), <code class="docutils literal notranslate"><span class="pre">family_given</span></code> (“Doe, John”), <code class="docutils literal notranslate"><span class="pre">family_initial</span></code> (“Doe, J.”) or <code class="docutils literal notranslate"><span class="pre">initials_family</span></code> (“J. Doe”). Any other value gives <code class="docutils literal notranslate"><span class="pre">given_family</span></code>. Returns <code class="docutils literal notranslate"><span class="pre">name</span></code> when both names are empty</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">member_since</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">member_since</span></code></p></td>
 <td><p>Property</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">date_joined</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a profile nobody has claimed</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_profile_completeness()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_profile_completeness()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
 <td><p>A flag for each of <code class="docutils literal notranslate"><span class="pre">image</span></code>, <code class="docutils literal notranslate"><span class="pre">orcid</span></code>, <code class="docutils literal notranslate"><span class="pre">profile</span></code>, <code class="docutils literal notranslate"><span class="pre">primary_affiliation</span></code> and <code class="docutils literal notranslate"><span class="pre">links</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_location_display()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_location_display()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">str</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
 <td><p>The city and country of the primary affiliation’s organization</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">as_geojson()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">as_geojson()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">str</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
 <td><p>A GeoJSON feature placed at the primary affiliation’s organization. <code class="docutils literal notranslate"><span class="pre">None</span></code> when that organization has no location</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">icon()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">icon()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&quot;orcid&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;orcid_unauthenticated&quot;</span></code></p></td>
 </tr>

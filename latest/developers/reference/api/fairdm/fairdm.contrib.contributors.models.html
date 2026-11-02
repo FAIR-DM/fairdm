@@ -1739,6 +1739,19 @@ is active and in use without being marked claimed.</p>
 True when the account is active and the person has claimed it or has signed in.</p>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.models.Person.can_reset_password">
+<span class="sig-name descname"><span class="pre">can_reset_password</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#fairdm.contrib.contributors.models.Person.can_reset_password" title="Link to this definition">#</a></dt>
+<dd><p>Say whether a password reset may reach this person.</p>
+<p>A profile nobody has claimed has no password, and a reset would give it one
+without a claim. An account that already has a password is not that case,
+whether or not it is marked claimed: one made with <code class="docutils literal notranslate"><span class="pre">createsuperuser</span></code>, or a
+sign-up waiting on its confirmation. <code class="docutils literal notranslate"><span class="pre">has_usable_password</span></code> alone cannot say
+that: it is also true of the blank password an imported profile is saved with.</p>
+<p>Returns:
+True when <code class="docutils literal notranslate"><span class="pre">can_sign_in</span></code> is true or the person has a usable password set.</p>
+</dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.models.Person.account_state">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">account_state</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="fairdm.contrib.contributors.choices.html#fairdm.contrib.contributors.choices.AccountState" title="fairdm.contrib.contributors.choices.AccountState"><span class="pre">fairdm.contrib.contributors.choices.AccountState</span></a></span><a class="headerlink" href="#fairdm.contrib.contributors.models.Person.account_state" title="Link to this definition">#</a></dt>
@@ -2913,6 +2926,7 @@ details: Extra structured details.</p>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Person.save"><code class="docutils literal notranslate"><span class="pre">Person.save()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Person.is_editable_by"><code class="docutils literal notranslate"><span class="pre">Person.is_editable_by()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Person.can_sign_in"><code class="docutils literal notranslate"><span class="pre">Person.can_sign_in()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Person.can_reset_password"><code class="docutils literal notranslate"><span class="pre">Person.can_reset_password()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Person.account_state"><code class="docutils literal notranslate"><span class="pre">Person.account_state</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Person.clean"><code class="docutils literal notranslate"><span class="pre">Person.clean()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Person.orcid"><code class="docutils literal notranslate"><span class="pre">Person.orcid()</span></code></a></li>

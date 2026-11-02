@@ -19,6 +19,10 @@
   - ```{autodoc2-docstring} fairdm.contrib.contributors.forms.account.LoginForm
     :summary:
     ```
+* - {py:obj}`UserTokenForm <fairdm.contrib.contributors.forms.account.UserTokenForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.forms.account.UserTokenForm
+    :summary:
+    ```
 * - {py:obj}`SignupForm <fairdm.contrib.contributors.forms.account.SignupForm>`
   - ```{autodoc2-docstring} fairdm.contrib.contributors.forms.account.SignupForm
     :summary:
@@ -46,6 +50,30 @@ Bases: {py:obj}`allauth.account.forms.LoginForm`
 ```
 
 ````
+
+`````{py:class} UserTokenForm(data=None, files=None, auto_id='id_%s', prefix=None, initial=None, error_class=ErrorList, label_suffix=None, empty_permitted=False, field_order=None, use_required_attribute=None, renderer=None, bound_field_class=None)
+:canonical: fairdm.contrib.contributors.forms.account.UserTokenForm
+
+Bases: {py:obj}`allauth.account.forms.UserTokenForm`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.account.UserTokenForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.account.UserTokenForm.__init__
+```
+
+````{py:method} clean()
+:canonical: fairdm.contrib.contributors.forms.account.UserTokenForm.clean
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.account.UserTokenForm.clean
+```
+
+````
+
+`````
 
 ````{py:class} SignupForm(*args, **kwargs)
 :canonical: fairdm.contrib.contributors.forms.account.SignupForm

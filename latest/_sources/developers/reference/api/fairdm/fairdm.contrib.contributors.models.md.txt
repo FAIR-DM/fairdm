@@ -751,6 +751,14 @@ Bases: {py:obj}`django.contrib.auth.models.AbstractUser.Meta`
 
 ````
 
+````{py:method} can_reset_password() -> bool
+:canonical: fairdm.contrib.contributors.models.Person.can_reset_password
+
+```{autodoc2-docstring} fairdm.contrib.contributors.models.Person.can_reset_password
+```
+
+````
+
 ````{py:property} account_state
 :canonical: fairdm.contrib.contributors.models.Person.account_state
 :type: fairdm.contrib.contributors.choices.AccountState

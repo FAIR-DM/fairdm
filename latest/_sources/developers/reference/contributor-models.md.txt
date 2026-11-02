@@ -91,6 +91,7 @@ The `AbstractUser` fields (`first_name`, `last_name`, `is_active`, `is_staff`, `
 |---|---|---|
 | `account_state` | `AccountState` | One of `GHOST`, `INVITED`, `CLAIMED` or `INACTIVE`, worked out from `is_active`, `is_claimed` and `email`. Inactive wins, then claimed, then invited when there is an email, else ghost |
 | `can_sign_in()` | `bool` | Whether the account is active and the person has claimed it or has signed in (`last_login` is set) |
+| `can_reset_password()` | `bool` | Whether a password reset may reach the person: `can_sign_in()` is true or they already have a usable password. False for an invited profile, which gets no reset mail and whose reset links are refused |
 | `is_editable_by(user)` | `bool` | See [Who may edit a profile](#who-may-edit-a-profile) |
 | `orcid()` | `ContributorIdentifier` or `None` | The person's ORCID identifier |
 | `orcid_is_authenticated` | `bool` property | Whether the person has signed in with ORCID. Reads `socialaccount_set.all()` |

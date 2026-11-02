@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="developers/reference/api/fairdm/fairdm.contrib.contributors.forms.account.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="allauth forms customised for FairDM. Module Contents: Classes:,, LoginForm, allauth login form with a crispy helper.,, SignupForm, allauth signup form with a crispy helper.,, SocialSignupForm, alla..." />
-<meta name="description" content="allauth forms customised for FairDM. Module Contents: Classes:,, LoginForm, allauth login form with a crispy helper.,, SignupForm, allauth signup form with a crispy helper.,, SocialSignupForm, alla..." />
+<meta property="og:description" content="allauth forms customised for FairDM. Module Contents: Classes:,, LoginForm, allauth login form with a crispy helper.,, UserTokenForm, allauth reset-link check that also applies can_reset_password.,..." />
+<meta name="description" content="allauth forms customised for FairDM. Module Contents: Classes:,, LoginForm, allauth login form with a crispy helper.,, UserTokenForm, allauth reset-link check that also applies can_reset_password.,..." />
 
     <title>fairdm.contrib.contributors.forms.account &#8212; fairdm 0.4.1 documentation</title>
   
@@ -1098,10 +1098,13 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.forms.account.LoginForm" title="fairdm.contrib.contributors.forms.account.LoginForm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LoginForm</span></code></a></p></td>
 <td><p>allauth login form with a crispy helper.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.forms.account.SignupForm" title="fairdm.contrib.contributors.forms.account.SignupForm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SignupForm</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.forms.account.UserTokenForm" title="fairdm.contrib.contributors.forms.account.UserTokenForm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UserTokenForm</span></code></a></p></td>
+<td><p>allauth reset-link check that also applies <code class="docutils literal notranslate"><span class="pre">can_reset_password</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.forms.account.SignupForm" title="fairdm.contrib.contributors.forms.account.SignupForm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SignupForm</span></code></a></p></td>
 <td><p>allauth signup form with a crispy helper.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.forms.account.SocialSignupForm" title="fairdm.contrib.contributors.forms.account.SocialSignupForm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SocialSignupForm</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.forms.account.SocialSignupForm" title="fairdm.contrib.contributors.forms.account.SocialSignupForm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SocialSignupForm</span></code></a></p></td>
 <td><p>allauth social signup form with a display name and a crispy helper.</p></td>
 </tr>
 </tbody>
@@ -1119,6 +1122,22 @@ commentsRunWhenDOMLoaded(addUtterances);
 *args: Passed to the allauth form.
 **kwargs: Passed to the allauth form.</p>
 <p class="rubric">Initialization</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.forms.account.UserTokenForm">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">UserTokenForm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'id_%s'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">ErrorList</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_suffix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">empty_permitted</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_required_attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bound_field_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.forms.account.UserTokenForm" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">allauth.account.forms.UserTokenForm</span></code></p>
+<p>allauth reset-link check that also applies <code class="docutils literal notranslate"><span class="pre">can_reset_password</span></code>.</p>
+<p>The account adapter stops new mail. This stops a link sent before that, which
+stays valid for as long as the person’s password is unchanged.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.forms.account.UserTokenForm.clean">
+<span class="sig-name descname"><span class="pre">clean</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.forms.account.UserTokenForm.clean" title="Link to this definition">#</a></dt>
+<dd><p>Refuse the link as invalid when the person may not reset a password.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -1206,6 +1225,10 @@ name: The display name.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#api">API</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.forms.account.LoginForm"><code class="docutils literal notranslate"><span class="pre">LoginForm</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.forms.account.UserTokenForm"><code class="docutils literal notranslate"><span class="pre">UserTokenForm</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.forms.account.UserTokenForm.clean"><code class="docutils literal notranslate"><span class="pre">UserTokenForm.clean()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.forms.account.SignupForm"><code class="docutils literal notranslate"><span class="pre">SignupForm</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.forms.account.SocialSignupForm"><code class="docutils literal notranslate"><span class="pre">SocialSignupForm</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.forms.account.SocialSignupForm.name"><code class="docutils literal notranslate"><span class="pre">SocialSignupForm.name</span></code></a></li>

@@ -76,6 +76,14 @@ Bases: {py:obj}`allauth.account.adapter.DefaultAccountAdapter`
 
 ````
 
+````{py:method} send_password_reset_mail(user, email, context)
+:canonical: fairdm.contrib.contributors.adapters.AccountAdapter.send_password_reset_mail
+
+```{autodoc2-docstring} fairdm.contrib.contributors.adapters.AccountAdapter.send_password_reset_mail
+```
+
+````
+
 `````
 
 `````{py:class} SocialAccountAdapter(request: django.http.HttpRequest | None = None)

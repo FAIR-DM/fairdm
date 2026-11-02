@@ -2236,8 +2236,8 @@ commentsRunWhenDOMLoaded(addUtterances);
 <h3><code class="docutils literal notranslate"><span class="pre">ACCOUNT_FORMS</span></code><a class="headerlink" href="#account-forms" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><strong>Type</strong>: <code class="docutils literal notranslate"><span class="pre">dict[str,</span> <span class="pre">str]</span></code></p></li>
-<li><p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">login</span></code> is <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.forms.account.LoginForm</span></code> and <code class="docutils literal notranslate"><span class="pre">signup</span></code> is <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.forms.account.SignupForm</span></code>.</p></li>
-<li><p><strong>What it does</strong>: The allauth forms FairDM replaces.</p></li>
+<li><p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">login</span></code> is <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.forms.account.LoginForm</span></code>, <code class="docutils literal notranslate"><span class="pre">signup</span></code> is <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.forms.account.SignupForm</span></code> and <code class="docutils literal notranslate"><span class="pre">user_token</span></code> is <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.forms.account.UserTokenForm</span></code>.</p></li>
+<li><p><strong>What it does</strong>: The allauth forms FairDM replaces. <code class="docutils literal notranslate"><span class="pre">UserTokenForm</span></code> checks a password-reset link and refuses one for a profile nobody has claimed, so keep it when you set this dictionary.</p></li>
 <li><p><strong>Accepts</strong>: allauth’s format. Subclass the FairDM form, so its fields stay.</p></li>
 </ul>
 </section>

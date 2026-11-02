@@ -824,6 +824,11 @@ longer exist.</p></li>
 <section id="fixed">
 <h3>Fixed<a class="headerlink" href="#fixed" title="Link to this heading">#</a></h3>
 <ul class="simple">
+<li><p><strong>A password reset no longer reaches a profile nobody has claimed.</strong> An invited profile, one with
+an email address and no account, was sent a reset link that set a password on it, which handed
+the profile to whoever held the address without a claim. The reset page now answers as it does
+for an unknown address, no mail goes out, and a link sent earlier is refused. A portal that sets
+<code class="docutils literal notranslate"><span class="pre">ACCOUNT_FORMS</span></code> should keep the new <code class="docutils literal notranslate"><span class="pre">user_token</span></code> entry.</p></li>
 <li><p><strong>A project’s Datasets tab lists what the viewer may see, with its counts.</strong> The tab left out
 every private dataset, even for the project’s team, and every card said it held no samples or
 measurements. It now lists the project’s datasets the viewer may see, through the new
