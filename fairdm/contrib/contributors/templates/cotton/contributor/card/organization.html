@@ -5,7 +5,7 @@
 <c-vars contributor class />
 {% with c=contributor|as_contributor %}
   {% if c %}
-    {% with roles=contributor.roles.all location=c.get_location_display counts=c.get_credit_counts members=c.members.count %}
+    {% with roles=contributor.roles.all location=c.get_location_display totals=c.get_credit_totals members=c.members.count %}
       <c-mvp.card.wrapper class="h-full py-5 {{ class }}">
         <figure class="px-6 pt-6">
           <c-contributor.avatar :contributor="c" size="xl" class="" />
@@ -25,10 +25,10 @@
             {% if members %}
               <c-badge variant="neutral" class="badge-soft">{% blocktranslate count counter=members %}{{ counter }} member{% plural %}{{ counter }} members{% endblocktranslate %}</c-badge>
             {% endif %}
-            {% for label, count in counts.items %}
-              <c-badge variant="neutral" class="badge-soft">{{ count }} {{ label }}</c-badge>
+            {% for total in totals %}
+              <c-badge variant="neutral" class="badge-soft">{% blocktranslate count counter=total.count with singular=total.singular many=total.plural %}{{ counter }} {{ singular }}{% plural %}{{ counter }} {{ many }}{% endblocktranslate %}</c-badge>
             {% endfor %}
-            {% if not members and not counts %}<span class="text-sm text-base-content/70">{% translate "No members or credits yet" %}</span>{% endif %}
+            {% if not members and not totals %}<span class="text-sm text-base-content/70">{% translate "No members or credits yet" %}</span>{% endif %}
           </div>
         </div>
       </c-mvp.card.wrapper>

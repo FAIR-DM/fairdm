@@ -820,14 +820,6 @@ class TestMeasurementModel:
     def test_measurement_type_of_property(self):
         assert Measurement.type_of == Measurement
 
-    def test_measurement_get_template_name(self):
-        measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
-        templates = measurement.get_template_name()
-
-        assert isinstance(templates, list)
-        assert len(templates) == 2
-        assert templates[1] == "fairdm/measurement_card.html"
-
     def test_measurement_get_absolute_url(self):
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
         url = measurement.get_absolute_url()

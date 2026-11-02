@@ -246,7 +246,7 @@ class DatasetPublishConfirm(FairDMModelFormMixin, FormView):
     heading_config = {
         "title": _("Publish your dataset"),
         "description": _(
-            "Get your dataset formally published and receive a DOI (Digital Object Identifier) for it. This process ensures that your dataset is discoverable and citable in the academic community."
+            "Get your dataset formally published. A data repository gives it a DOI (Digital Object Identifier), which you record on the dataset's identifiers page so that the dataset is discoverable and citable in the academic community."
         ),
         "links": [
             {

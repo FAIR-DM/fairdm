@@ -147,6 +147,25 @@ class DatasetQuerySet(RecordLevelMixin, QuerySet):
         """
         return self.filter(no_private_project())
 
+    def visible_to(self, user=None) -> "DatasetQuerySet":
+        """Return the datasets the user may see.
+
+        Those ``get_visible()`` returns, and those the user holds a level on, on the
+        dataset or on its project. A user who holds ``view_dataset`` for the whole
+        portal sees every dataset. Call it on ``all_objects``: the default manager
+        excludes private datasets.
+
+        Args:
+            user: The user, or ``None``, the default, for a visitor.
+
+        Returns:
+            The datasets the user may see.
+        """
+        from fairdm.contrib.contributors.choices import ContributionLevel
+
+        held: DatasetQuerySet = self.accessible_to(user, ContributionLevel.VIEW)
+        return self.get_visible() | held
+
     def published(self) -> "DatasetQuerySet":
         """Return the datasets whose ``published`` flag is set.
 

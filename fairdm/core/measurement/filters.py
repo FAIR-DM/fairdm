@@ -11,6 +11,7 @@ from fairdm.contrib.autocomplete.fields import (
     SampleMultipleChoiceField,
 )
 from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
+from fairdm.core.filters import RecordTypeFilter
 from fairdm.core.measurement.models import Measurement
 
 
@@ -74,7 +75,7 @@ class MeasurementFilterMixin(django_filters.FilterSet):
 
     sample = RecordMultipleFilter(SampleMultipleChoiceField, field_name="sample")
 
-    polymorphic_ctype = django_filters.ModelChoiceFilter(
+    polymorphic_ctype = RecordTypeFilter(
         field_name="polymorphic_ctype",
         label=_("Measurement Type"),
         queryset=None,

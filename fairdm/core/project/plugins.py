@@ -540,8 +540,9 @@ class DatasetList(PrivateRecordNotFoundMixin, Plugin, DatasetListView):
     check = staticmethod(project_is_visible)
 
     def get_queryset(self, *args, **kwargs):
-        """Limit to the project's datasets."""
-        return self.base_object.datasets.all()
+        """List the project's datasets the viewer may see, loaded for their cards."""
+        datasets = Dataset.all_objects.filter(project=self.base_object)
+        return datasets.visible_to(self.request.user).with_list_data()
 
     def get_lookup_kwargs(self) -> dict:
         """Return no lookup kwargs, as the queryset is already scoped to the project."""

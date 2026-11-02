@@ -100,7 +100,7 @@ Module: `fairdm.core.sample.filters`. The filter set for `Sample` itself, built 
 |---|---|---|
 | `status` | `ModelChoiceFilter` over the sample status concepts, chosen by slug | Filters by custody status |
 | `dataset` | `RecordMultipleFilter` at `public` scope | Keeps the samples of any chosen dataset |
-| `polymorphic_ctype` | `ModelChoiceFilter` | Filters by sample type |
+| `polymorphic_ctype` | `RecordTypeFilter` | Filters by sample type |
 | `q` | `SearchFilter` over `name`, `local_id` and `uuid` | Searches by any word of the text |
 | `description` | `CharFilter` on the description text, contains | Searches the descriptions |
 | `date_after`, `date_before` | `PartialDateFilter` on the dates' values | Keeps the samples with a date on or after, or on or before, a year, a year and month, or a day |
@@ -113,7 +113,7 @@ Module: `fairdm.core.measurement.filters`. It declares every filter below, and i
 |---|---|---|
 | `dataset` | `RecordMultipleFilter` at `public` scope | Keeps the measurements of any chosen dataset |
 | `sample` | `RecordMultipleFilter` at `public` scope | Keeps the measurements of any chosen sample |
-| `polymorphic_ctype` | `ModelChoiceFilter`, labelled "Measurement Type" | Offers the registered measurement types |
+| `polymorphic_ctype` | `RecordTypeFilter`, labelled "Measurement Type" | Offers the registered measurement types |
 | `q` | `SearchFilter` over `name` and `uuid` | Searches by any word of the text |
 | `description` | `CharFilter` on the description text, contains | Searches the descriptions |
 | `date_after`, `date_before` | `PartialDateFilter` on the dates' values | Keeps the measurements with a date on or after, or on or before, a year, a year and month, or a day |
@@ -121,6 +121,14 @@ Module: `fairdm.core.measurement.filters`. It declares every filter below, and i
 ### `MeasurementFilter`
 
 Module: `fairdm.core.measurement.filters`. The filter set for `Measurement` itself. Every filter comes from `MeasurementFilterMixin`, and `Meta.fields` adds `date_after` and `date_before`.
+
+### `ConceptTypeFilter`
+
+Module: `fairdm.core.filters`. A drop-down filter over the `type` of a typed row. Pass the row model as `row_model`, such as `DatasetDate`, and the path to the row's type as `field_name`, such as `dates__type`. It offers the concepts the row's collection holds, in the collection's order, each shown by name in the reading language. The value in the address is the concept's address. `DatasetFilter` uses it for `description_type` and `date_type`.
+
+### `RecordTypeFilter`
+
+Module: `fairdm.core.filters`. A `ModelChoiceFilter` over content types whose field, `RecordTypeChoiceField`, labels each option with the model's verbose name, such as "XRF Measurement" rather than "Demo | XRF Measurement". Set its `queryset` to the content types to offer.
 
 ### `PartialDateFilter`
 
