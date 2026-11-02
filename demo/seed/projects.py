@@ -23,7 +23,7 @@ from django.utils import timezone
 from licensing.models import License
 from literature.converters import from_csl_json
 from literature.models import Item
-from partial_date import PartialDate
+from partial_dates import PartialDate
 
 from demo.factories import (
     ICP_MS_MeasurementFactory,
@@ -289,12 +289,12 @@ class ProjectSeed(BaseCommand):
         ProjectDate.objects.create(
             related=project,
             type_id=f"{DATE_TYPES}/start",
-            value=PartialDate("2024-03-01"),
+            value=PartialDate.fromisoformat("2024-03-01"),
         )
         ProjectDate.objects.create(
             related=project,
             type_id=f"{DATE_TYPES}/end",
-            value=PartialDate("2028-02-29"),
+            value=PartialDate.fromisoformat("2028-02-29"),
         )
         ProjectIdentifier.objects.create(
             related=project,
@@ -466,7 +466,7 @@ class ProjectSeed(BaseCommand):
             (f"{DATE_TYPES}/available", "2026-03-04"),
         ]:
             DatasetDate.objects.create(
-                related=cores, type_id=type_, value=PartialDate(value)
+                related=cores, type_id=type_, value=PartialDate.fromisoformat(value)
             )
         DatasetIdentifier.objects.create(
             related=cores,
@@ -551,7 +551,7 @@ class ProjectSeed(BaseCommand):
         DatasetDate.objects.create(
             related=soil,
             type_id=f"{DATE_TYPES}/collection-start",
-            value=PartialDate("2025-06"),
+            value=PartialDate.fromisoformat("2025-06"),
         )
         soil.add_contributor(
             people["Martin"],

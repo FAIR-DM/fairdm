@@ -7,7 +7,7 @@ import django.db.models.manager
 
 import django_lifecycle.mixins
 import easy_thumbnails.fields
-import fairdm.db.fields
+import partial_dates.conversion
 import fairdm.utils.utils
 import shortuuid.django_fields
 from django.db import migrations, models
@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
                     "type",
                     controlled_vocabularies.fields.ConceptField(collection='https://w3id.org/fairdm/vocabularies/date-types/measurement', help_text='What the date marks, from the measurement date types.', related_name='+', verbose_name='type', vocabulary=('https://w3id.org/fairdm/vocabularies/date-types',)),
                 ),
-                ("value", fairdm.db.fields.PartialDateField(verbose_name="date")),
+                ("value", partial_dates.conversion.OldPartialDateField(verbose_name="date")),
             ],
             options={
                 "verbose_name": "date",

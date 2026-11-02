@@ -13,7 +13,7 @@ from django.urls import reverse
 from django.utils.formats import date_format
 from licensing.models import License
 from mvp.warnings import MVPDeprecationWarning
-from partial_date import PartialDate
+from partial_dates import PartialDate
 from pytest_django.asserts import assertContains, assertNotContains
 
 from fairdm import plugins
@@ -378,9 +378,7 @@ class TestDescriptionsPageOffersOneAreaPerVocabularyType:
         response = client.get(url)
 
         form = response.context["form"]
-        assert list(form.fields) == list(
-            [concept.uri for concept in DatasetDescription.get_type_concepts()]
-        )
+        assert list(form.fields) == [concept.uri for concept in DatasetDescription.get_type_concepts()]
 
     def test_every_area_starts_empty_for_a_dataset_with_no_descriptions(
         self, client, user_with_change_permission
@@ -422,9 +420,9 @@ class TestSavingTextIntoOneAreaRecordsOnlyThatType:
     ):
         dataset = user_with_change_permission.dataset
         client.force_login(user_with_change_permission)
-        first_type = [
+        first_type = next(
             concept.uri for concept in DatasetDescription.get_type_concepts()
-        ][0]
+        )
 
         url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         client.post(url, data={first_type: "Some abstract text."})
@@ -462,9 +460,9 @@ class TestEditingAnExistingDescriptionPersists:
     def test_the_changed_text_persists(self, client, user_with_change_permission):
         dataset = user_with_change_permission.dataset
         client.force_login(user_with_change_permission)
-        first_type = [
+        first_type = next(
             concept.uri for concept in DatasetDescription.get_type_concepts()
-        ][0]
+        )
         row = DatasetDescription.objects.create(
             related=dataset, type_id=first_type, value="Original text."
         )
@@ -484,9 +482,9 @@ class TestRepeatSubmissionNeverDuplicatesAType:
     ):
         dataset = user_with_change_permission.dataset
         client.force_login(user_with_change_permission)
-        first_type = [
+        first_type = next(
             concept.uri for concept in DatasetDescription.get_type_concepts()
-        ][0]
+        )
 
         url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         client.post(url, data={first_type: "First."})
@@ -510,9 +508,9 @@ class TestClearingAnAreaRemovesTheDescription:
     ):
         dataset = user_with_change_permission.dataset
         client.force_login(user_with_change_permission)
-        first_type = [
+        first_type = next(
             concept.uri for concept in DatasetDescription.get_type_concepts()
-        ][0]
+        )
         DatasetDescription.objects.create(
             related=dataset, type_id=first_type, value="Existing text."
         )
@@ -543,9 +541,9 @@ class TestEmptyAndWhitespaceOnlyAreasCreateNothing:
     ):
         dataset = user_with_change_permission.dataset
         client.force_login(user_with_change_permission)
-        first_type = [
+        first_type = next(
             concept.uri for concept in DatasetDescription.get_type_concepts()
-        ][0]
+        )
         DatasetDescription.objects.create(
             related=dataset, type_id=first_type, value="Existing text."
         )
@@ -565,9 +563,9 @@ class TestASuccessfulSubmissionRedirectsToTheDatasetsPage:
     ):
         dataset = user_with_change_permission.dataset
         client.force_login(user_with_change_permission)
-        first_type = [
+        first_type = next(
             concept.uri for concept in DatasetDescription.get_type_concepts()
-        ][0]
+        )
 
         url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         response = client.post(url, data={first_type: "Some text."})
@@ -1005,7 +1003,7 @@ class TestOverviewReadinessChecklist:
         DatasetDateFactory(
             related=dataset,
             type_id=f"{DATE_TYPES}/collection-start",
-            value=PartialDate("2024-01-01"),
+            value=PartialDate.fromisoformat("2024-01-01"),
         )
         dataset.add_contributor(
             PersonFactory(is_active=True),
@@ -1059,12 +1057,12 @@ class TestOverviewCitation:
         DatasetDateFactory(
             related=dataset,
             type_id=f"{DATE_TYPES}/published",
-            value=PartialDate("2021-05-04"),
+            value=PartialDate.fromisoformat("2021-05-04"),
         )
         DatasetDateFactory(
             related=dataset,
             type_id=f"{DATE_TYPES}/available",
-            value=PartialDate("2022-01-01"),
+            value=PartialDate.fromisoformat("2022-01-01"),
         )
 
         assert "(2021)" in self._citation(client, dataset)
@@ -1074,7 +1072,7 @@ class TestOverviewCitation:
         DatasetDateFactory(
             related=dataset,
             type_id=f"{DATE_TYPES}/available",
-            value=PartialDate("2022-01-01"),
+            value=PartialDate.fromisoformat("2022-01-01"),
         )
 
         assert "(2022)" in self._citation(client, dataset)
@@ -1193,7 +1191,7 @@ class TestOverviewTimeline:
             (f"{DATE_TYPES}/collection-start", "2023-02-01"),
             (f"{DATE_TYPES}/collection-end", "2023-09-30"),
         ):
-            DatasetDateFactory(related=dataset, type_id=type_, value=PartialDate(value))
+            DatasetDateFactory(related=dataset, type_id=type_, value=PartialDate.fromisoformat(value))
 
         steps = self._steps(_page(client, dataset).page)
 
@@ -1211,7 +1209,7 @@ class TestOverviewTimeline:
         DatasetDateFactory(
             related=dataset,
             type_id=f"{DATE_TYPES}/withdrawn",
-            value=PartialDate("2999-01-01"),
+            value=PartialDate.fromisoformat("2999-01-01"),
         )
         when = date_format(date(2999, 1, 1), "SHORT_DATE_FORMAT")
 
@@ -1226,12 +1224,12 @@ class TestOverviewTimeline:
         DatasetDateFactory(
             related=year_only,
             type_id=f"{DATE_TYPES}/collection-start",
-            value=PartialDate("2023"),
+            value=PartialDate.fromisoformat("2023"),
         )
         DatasetDateFactory(
             related=month_only,
             type_id=f"{DATE_TYPES}/collection-start",
-            value=PartialDate("2023-02"),
+            value=PartialDate.fromisoformat("2023-02"),
         )
 
         year_steps = self._steps(_page(client, year_only).page)
@@ -1249,7 +1247,7 @@ class TestOverviewTimeline:
         DatasetDateFactory(
             related=dataset,
             type_id=f"{DATE_TYPES}/withdrawn",
-            value=PartialDate("2999"),
+            value=PartialDate.fromisoformat("2999"),
         )
 
         response = _page(client, dataset)

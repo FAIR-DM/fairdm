@@ -221,8 +221,7 @@ class Overview(TypedOverviewPlugin):
             authors=self.get_contributors_with_role(
                 entries, f"{CONTRIBUTOR_ROLES}/collection"
             ),
-            year=getattr(getattr(collected, "date", None), "year", None)
-            or sample.added.year,
+            year=getattr(collected, "year", None) or sample.added.year,
             title=f"{sample.name} [{type(sample)._meta.verbose_name}]",
             link=igsn["link"]
             if igsn

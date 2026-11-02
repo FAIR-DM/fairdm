@@ -1,71 +1,8 @@
 """Form fields and widgets for partial dates, quantities and fixed-precision decimals."""
 
-import datetime
-
 import pint
 from django import forms
-from partial_date import PartialDate
 from quantityfield import fields
-
-
-class PartialDateWidget(forms.SelectDateWidget):
-    """Date select widget that orders year, month, day and accepts partial dates.
-
-    Args:
-        attrs: HTML attributes for the rendered selects.
-        years: Years offered in the year select. Defaults to 1900 through the
-            current year, newest first.
-        months: Months offered in the month select.
-        empty_label: Label of the empty choice in each select.
-    """
-
-    def __init__(self, attrs=None, years=None, months=None, empty_label=None):
-        super().__init__(attrs, years, months, empty_label)
-        if not years:
-            this_year = datetime.date.today().year
-            self.years = list(range(1900, this_year + 1))
-            self.years.reverse()
-
-    def get_context(self, name, value, attrs):
-        """Reorder the subwidgets to year, month, day."""
-        context = super().get_context(name, value, attrs)
-        m, d, y = context["widget"]["subwidgets"]
-        context["widget"]["subwidgets"] = [y, m, d]
-        return context
-
-    def format_value(self, value):
-        """Split a ``PartialDate`` into the year, month and day the selects show."""
-        if isinstance(value, PartialDate):
-            return {
-                "year": value.date.year,
-                "month": (
-                    value.date.month if value.precision >= PartialDate.MONTH else None
-                ),
-                "day": value.date.day if value.precision == PartialDate.DAY else None,
-            }
-        return {"year": None, "month": None, "day": None}
-
-    def value_from_datadict(self, data, files, name):
-        """Join the year, month and day selects into a partial-date string."""
-        y = data.get(self.year_field % name)
-        m = data.get(self.month_field % name)
-        d = data.get(self.day_field % name)
-        if y == m == d == "":
-            return None
-
-        value = y
-        if m:
-            value += f"-{m}"
-        if m and d:
-            value += f"-{d}"
-
-        return value
-
-
-class PartialDateFormField(forms.CharField):
-    """Field with separate year, month and day selects for a ``PartialDateField``."""
-
-    widget = PartialDateWidget
 
 
 class PartialDateField(forms.CharField):

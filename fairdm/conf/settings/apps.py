@@ -83,6 +83,7 @@ INSTALLED_APPS = [
     "licensing",
     "controlled_vocabularies",
     "ordered_model",
+    "partial_dates",
     "taggit",
     "import_export",
     "waffle",

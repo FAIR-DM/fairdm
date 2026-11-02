@@ -2,7 +2,7 @@
 
 from decimal import Decimal
 
-from partial_date import PartialDateField as BasePartialDateField
+from partial_dates import PartialDateField as BasePartialDateField
 from quantityfield import fields
 
 from fairdm.forms import fields as form_fields

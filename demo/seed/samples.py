@@ -25,7 +25,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from licensing.models import License
-from partial_date import PartialDate
+from partial_dates import PartialDate
 
 from demo.factories import (
     ICP_MS_MeasurementFactory,
@@ -159,7 +159,7 @@ class SampleSeed(BaseCommand):
             (f"{DATE_TYPES}/archival", "2025-07-01"),
         ]:
             SampleDate.objects.create(
-                related=core, type_id=type_, value=PartialDate(value)
+                related=core, type_id=type_, value=PartialDate.fromisoformat(value)
             )
         for type_, value in [
             (
@@ -218,7 +218,7 @@ class SampleSeed(BaseCommand):
             (f"{DATE_TYPES}/destroyed", "2025-09-30"),
         ]:
             SampleDate.objects.create(
-                related=water, type_id=type_, value=PartialDate(value)
+                related=water, type_id=type_, value=PartialDate.fromisoformat(value)
             )
         SampleDescription.objects.create(
             related=water,

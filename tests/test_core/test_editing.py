@@ -14,7 +14,7 @@ from django.contrib.messages import SUCCESS, get_messages
 from django.shortcuts import resolve_url
 from django.test import Client, RequestFactory
 from django.urls import NoReverseMatch, reverse
-from partial_date import PartialDate
+from partial_dates import Precision
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm import plugins
@@ -405,9 +405,7 @@ class TestAccess:
         reader = person_at(case, ContributionLevel.VIEW)
         client = browser_as(reader)
         description_model = DESCRIPTION_MODELS[kind]
-        first_type = [concept.uri for concept in description_model.get_type_concepts()][
-            0
-        ]
+        first_type = next(concept.uri for concept in description_model.get_type_concepts())
 
         assert client.get(case.url(page)).status_code == 403
         response = client.post(
@@ -904,9 +902,7 @@ class TestEditKeyDates:
         assert response.status_code == 200
         row_set = only_row_set(response, "dates")
         offered = [value for value, _label in row_set.empty_form.fields["type"].choices]
-        assert [value for value in offered if value] == list(
-            [concept.uri for concept in model.get_type_concepts()]
-        )
+        assert [value for value in offered if value] == [concept.uri for concept in model.get_type_concepts()]
         assert row_set.initial_form_count() == 1
         assert len(row_set.forms) == 1
         assert row_set.forms[0]["type"].value() == recorded
@@ -931,7 +927,7 @@ class TestEditKeyDates:
     ):
         case = make_case(kind)
         editor = person_at(case, ContributionLevel.EDIT)
-        model, _factory, added, _other = DATES[kind]
+        _model, _factory, added, _other = DATES[kind]
 
         response = browser_as(editor).post(
             case.url("key-dates"),
@@ -1099,7 +1095,7 @@ class TestEditKeyDates:
     @pytest.mark.parametrize("kind", KINDS)
     @pytest.mark.parametrize(
         ("entered", "precision"),
-        [("2019", PartialDate.YEAR), ("2019-06", PartialDate.MONTH)],
+        [("2019", Precision.YEAR), ("2019-06", Precision.MONTH)],
     )
     def test_a_date_is_kept_and_read_back_as_precisely_as_it_was_entered(
         self, make_case, person_at, kind, entered, precision
@@ -1116,7 +1112,7 @@ class TestEditKeyDates:
 
         assert response.status_code == 302
         stored = case.record.dates.get()
-        assert stored.value.precision == precision
+        assert stored.value.precision is precision
         assert str(stored.value) == entered
         shown = only_row_set(client.get(case.url("key-dates")), "dates")
         assert str(shown.forms[0]["value"].value()) == entered
@@ -1142,9 +1138,7 @@ class TestEditIdentifiers:
         assert response.status_code == 200
         row_set = only_row_set(response, "identifiers")
         offered = [value for value, _label in row_set.empty_form.fields["type"].choices]
-        assert [value for value in offered if value] == list(
-            [concept.uri for concept in model.get_type_concepts()]
-        )
+        assert [value for value in offered if value] == [concept.uri for concept in model.get_type_concepts()]
         assert row_set.initial_form_count() == 1
         assert len(row_set.forms) == 1
         assert row_set.forms[0]["type"].value() == f"{IDENTIFIER_TYPES}/doi"
@@ -1349,7 +1343,7 @@ class TestEditDescriptions:
         case = make_case(kind)
         editor = person_at(case, ContributionLevel.EDIT)
         model = DESCRIPTION_MODELS[kind]
-        recorded = [concept.uri for concept in model.get_type_concepts()][0]
+        recorded = next(concept.uri for concept in model.get_type_concepts())
         model.objects.create(
             related=case.record, type_id=recorded, value="Written down"
         )
@@ -1357,9 +1351,7 @@ class TestEditDescriptions:
         response = browser_as(editor).get(case.url("descriptions"))
 
         form = response.context["form"]
-        assert list(form.fields) == list(
-            [concept.uri for concept in model.get_type_concepts()]
-        )
+        assert list(form.fields) == [concept.uri for concept in model.get_type_concepts()]
         assert form[recorded].value() == "Written down"
 
     @pytest.mark.parametrize("kind", KINDS)

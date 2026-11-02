@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Partial dates are stored by [django-partial-dates](https://django-partial-dates.fairdm.org/)
+  instead of django-partial-date, which FairDM no longer installs.** A date is now stored as the
+  text `1990`, `1990-06` or `1990-06-14`, and new migrations convert the date columns of projects,
+  datasets, samples, measurements and affiliations in place. FairDM now installs
+  django-literature 0.4, whose own migration converts the dates of literature items. A portal with a
+  `PartialDateField` of its own has to convert that column as well, and code that reads a partial
+  date changes: `partial_date.PartialDate` is now `partial_dates.PartialDate`, `.date` is `.start`,
+  and `.precision` is a `Precision` member, not a number. A filter or form entry such as `2020-6`
+  is now refused: write `2020-06`. Follow
+  [How to upgrade a portal to django-partial-dates](docs/developers/how-to/upgrade-a-portal-to-django-partial-dates.md).
+
 - **The documentation is published at <https://docs.fairdm.org/>.** It was on Read the Docs, where
   the last build that succeeded was in April 2026. The **User Guide** and **Admin Guide** links in
   a portal's **Documentation** menu, the **User guide** link in the landing page footer and the
@@ -17,6 +28,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   folder of its own such as `0.4/`, and a switcher in the site's header moves between them. Page
   addresses gain `latest/`, and the links in a portal, the README and the package metadata point
   there.
+
+### Removed
+
+- **`fairdm.core.dates.precedes`.** Use `a.relation_to(b) is Relation.BEFORE`, with `Relation` from
+  `partial_dates`.
+- **`PartialDateWidget` and `PartialDateFormField` in `fairdm.forms.fields`.** Nothing used them.
+  `fairdm.forms.PartialDateField`, the text box, stays. For year, month and day selects use the form
+  field django-partial-dates provides.
 
 ## [v0.3.1] - 2026-10-28
 

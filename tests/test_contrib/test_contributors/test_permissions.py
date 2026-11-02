@@ -6,7 +6,7 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from guardian.shortcuts import assign_perm
-from partial_date import PartialDate
+from partial_dates import PartialDate
 
 from fairdm.contrib.contributors.models import Affiliation, Organization, Person
 from fairdm.factories import PersonFactory
@@ -223,7 +223,7 @@ class TestTransferOwnership:
     ):
         old_owner = owner_affiliation.person
 
-        owner_affiliation.end_date = PartialDate("2026-02-18")
+        owner_affiliation.end_date = PartialDate.fromisoformat("2026-02-18")
         owner_affiliation.save()
 
         new_owner = PersonFactory(
@@ -237,7 +237,7 @@ class TestTransferOwnership:
             organization=organization,
             type=Affiliation.MembershipType.OWNER,
             is_primary=True,
-            start_date=PartialDate("2026-02-18"),
+            start_date=PartialDate.fromisoformat("2026-02-18"),
         )
 
         assert organization.affiliations.filter(person=old_owner).exists()
@@ -301,7 +301,7 @@ class TestEndedOwnershipRevokesPermission:
         person = owner_affiliation.person
         assert person.has_perm("manage_organization", organization)
 
-        owner_affiliation.end_date = PartialDate("2020-01-01")
+        owner_affiliation.end_date = PartialDate.fromisoformat("2020-01-01")
         owner_affiliation.save()
 
         person = Person.objects.get(pk=person.pk)
