@@ -797,6 +797,21 @@ class Person(AbstractUser, Contributor):
         """
         return self.is_active and (self.is_claimed or self.last_login is not None)
 
+    def can_reset_password(self) -> bool:
+        """Say whether a password reset may reach this person.
+
+        A profile nobody has claimed has no password, and a reset would give it one
+        without a claim. An account that already has a password is not that case,
+        whether or not it is marked claimed: one made with ``createsuperuser``, or a
+        sign-up waiting on its confirmation. ``has_usable_password`` alone cannot say
+        that: it is also true of the blank password an imported profile is saved with.
+
+        Returns:
+            True when ``can_sign_in`` is true or the person has a usable password set.
+        """
+        has_password = bool(self.password) and self.has_usable_password()
+        return self.can_sign_in() or has_password
+
     @property
     def account_state(self) -> AccountState:
         """The person's account state, derived from ``is_active``, ``is_claimed`` and ``email``.

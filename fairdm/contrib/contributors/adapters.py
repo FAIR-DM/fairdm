@@ -44,6 +44,11 @@ class AccountAdapter(DefaultAccountAdapter):
         """Return allauth's ``user_signed_up`` signal."""
         return user_signed_up
 
+    def send_password_reset_mail(self, user, email, context):
+        """Send the reset mail unless ``can_reset_password`` refuses the person."""
+        if user.can_reset_password():
+            super().send_password_reset_mail(user, email, context)
+
 
 class SocialAccountAdapter(DefaultSocialAccountAdapter):
     """Social account adapter that claims or links a profile on ORCID sign-in."""

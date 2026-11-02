@@ -53,6 +53,8 @@ To help an administrator find records that need merging, the administration page
 
 Each route requires something only the real owner holds: the ORCID login, access to the email inbox, or a decision by an administrator who knows both records. None of them lets a visitor claim a profile on a guess. A profile found by name alone is never claimed, which is also why the portal matches people by identifier and not by name when it credits them.
 
+Password reset is not a route. A reset would put a password on a profile on the strength of the address it holds, and an address on an unclaimed profile may be mistyped, so it is not proof of who the profile belongs to. The reset page answers for an invited profile as it does for an address it does not know, sends no mail, and refuses a reset link that was sent earlier. An account that already has a password resets it as usual, claimed or not, because a reset then gives it nothing new.
+
 A deactivated profile refuses every route for a reason of the same kind. Deactivation is a decision about the account, and claiming would otherwise undo it as a side effect of signing in.
 
 ## Related pages

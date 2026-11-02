@@ -119,7 +119,7 @@ no email address, and confirm they cannot sign in but can be credited.
 2. **Given** I add a person for attribution alone, **When** I save them, **Then** they have no email
    address and no usable password, and cannot sign in
 3. **Given** a person added for attribution alone, **When** I inspect them, **Then** they remain
-   eligible for activation later, so that an invitation or a reset can reach them
+   eligible for activation later, so that an invitation can reach them
 4. **Given** a person has claimed their account, **When** they try to remove their email address,
    **Then** the change is refused
 5. **Given** a person exists with an email address, **When** another person is created with the same
@@ -370,7 +370,9 @@ promises are present, and confirm the actions it offers do what they say.
 - **FR-010**: A person MUST be able to exist with no email address and no usable password, and such
   a person MUST NOT be able to sign in.
 - **FR-011**: A person added for attribution alone MUST remain eligible for later activation, so
-  that an invitation or a password reset can reach them once an address is known.
+  that an invitation can reach them once an address is known. A password reset MUST NOT reach a
+  person who has no usable password, has not claimed their account and has never signed in: claiming
+  is the only way in for such a person.
 - **FR-012**: A person MUST record whether their account has been claimed, as a stored value, and
   that value MUST be the only stored expression of claim status.
 - **FR-013**: A person MUST report their account state as exactly one of ghost, invited, claimed or
