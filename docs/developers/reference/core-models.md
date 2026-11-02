@@ -102,6 +102,7 @@ A value that is not a list of such objects fails validation with one of the code
 
 | Name | Returns |
 |---|---|
+| `open_to_everyone` | Whether the visibility is public. |
 | `is_active` | Whether the status is `IN_PROGRESS`. |
 | `status_badge_variant` | The colour name for the status badge. `neutral` when the status has none. |
 | `spatial_coverage(user=None)` | The box that holds the locations the viewer may see in the project's datasets, or `None`. |
@@ -143,7 +144,8 @@ Deleting a project deletes its datasets. A project that still has a public datas
 
 | Name | Returns |
 |---|---|
-| `data_is_public` | Whether the visibility is public and the dataset is published. |
+| `open_to_everyone` | Whether the visibility is public and no private project holds the dataset. |
+| `data_is_public` | Whether the visibility is public and the dataset is published. A private project above still hides its records. |
 | `has_data` | Whether any sample or measurement hangs beneath the dataset. A cached property. |
 | `spatial_coverage(user=None)` | The box that holds the locations the viewer may see in the dataset's samples and measurements, or `None`. |
 
@@ -185,6 +187,7 @@ Both models have a queryset with these methods.
 |---|---|---|---|
 | `get_visible()` | Yes | Yes | For a project, the public projects. For a dataset, the public datasets that are not inside a private project. |
 | `published()` | No | Yes | The datasets whose `published` flag is set. Call it on `all_objects`. |
+| `outside_private_projects()` | No | Yes | The datasets with no project or a public one. |
 | `with_contributors()` | Yes | Yes | The records with their credits loaded. |
 | `with_metadata()` | Yes | Yes | The records with descriptions, dates, identifiers, credits and keywords loaded. A project also loads its owner. |
 | `with_related()` | No | Yes | The records with project and credits loaded. |

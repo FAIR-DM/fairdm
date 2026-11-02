@@ -19,7 +19,7 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.fields import get_error_detail
 from rest_framework.reverse import reverse
 
-from fairdm.api.filters import FairDMVisibilityFilter, _get_public_filter
+from fairdm.api.filters import FairDMVisibilityFilter, get_public_filter
 from fairdm.contrib.contributors.access import RecordAccess
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import (
@@ -244,7 +244,7 @@ class RecordReferenceField(serializers.SlugRelatedField):
         if issubclass(core, Contributor):
             context = cast("dict[str, Any]", self.context)
             return set(pks) - self.hidden_contributor_pks(context)
-        if not _get_public_filter(core):
+        if not get_public_filter(core):
             return set(pks)
         manager = getattr(core, "all_objects", core._default_manager)
         queryset = manager.filter(pk__in=pks)

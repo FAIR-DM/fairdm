@@ -59,4 +59,4 @@ class DatasetListView(FairDMListView):
     def get_queryset(self) -> QuerySet[Dataset]:
         """Load everything a card draws, so the query count does not grow with the page."""
         qs: DatasetQuerySet = super().get_queryset()
-        return qs.with_list_data()
+        return qs.outside_private_projects().with_list_data()

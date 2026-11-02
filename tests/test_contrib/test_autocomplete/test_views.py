@@ -400,6 +400,38 @@ class TestSampleAutocompleteView:
         assert [r["id"] for r in answer["results"]] == [shown.pk]
         assert answer["results"][0]["private"] is False
 
+    def test_public_does_not_offer_a_sample_in_a_private_project(
+        self, client, make_sample
+    ):
+        make_sample(
+            "Hidden",
+            dataset=DatasetFactory(
+                project=ProjectFactory(visibility=Visibility.PRIVATE),
+                visibility=Visibility.PUBLIC,
+                published=True,
+            ),
+        )
+
+        assert search(client, "sample", "public")["results"] == []
+
+    def test_a_sample_in_a_private_project_the_researcher_holds_is_flagged_private(
+        self, researcher_client, researcher, make_sample
+    ):
+        project = ProjectFactory(visibility=Visibility.PRIVATE)
+        ContributionFactory(
+            content_object=project, contributor=researcher, level=ContributionLevel.VIEW
+        )
+        make_sample(
+            "Mine",
+            dataset=DatasetFactory(
+                project=project, visibility=Visibility.PUBLIC, published=True
+            ),
+        )
+
+        row = search(researcher_client, "sample", "view")["results"][0]
+
+        assert row["private"] is True
+
     def test_a_sample_of_a_dataset_the_researcher_holds_is_flagged_private(
         self, researcher_client, researcher, make_dataset, make_sample
     ):

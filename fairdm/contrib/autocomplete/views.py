@@ -44,6 +44,7 @@ from fairdm.contrib.contributors.models import (
 )
 from fairdm.contrib.contributors.services.registries import RegistryUnavailable, Ror
 from fairdm.core.dataset.models import Dataset
+from fairdm.core.managers import no_private_project, released_to_everyone
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.project.models import Project
 from fairdm.core.sample.models import Sample, SampleIdentifier
@@ -430,9 +431,7 @@ class DatasetAutocompleteView(RecordAutocompleteView):
 
     def public_q(self):
         """Return the condition for a dataset that is public along with its project."""
-        return Q(visibility=Visibility.PUBLIC) & (
-            Q(project__isnull=True) | Q(project__visibility=Visibility.PUBLIC)
-        )
+        return Q(visibility=Visibility.PUBLIC) & no_private_project()
 
     def describe(self, result):
         """Show the dataset's project, and mark it private when it or its project is."""
@@ -470,22 +469,24 @@ DATASET_RECORD_FIELDS = ["local_id", "dataset__name", "polymorphic_ctype"]
 class DatasetRecordsAutocompleteView(RecordAutocompleteView):
     """Offer samples or measurements, the records that sit inside a dataset.
 
-    A record of these kinds is public when its dataset is public and published.
+    A record of these kinds is public when its dataset is public and published and no private
+    project hides it.
     """
 
     allowed_filter_fields = ["dataset", "polymorphic_ctype"]
     preferred_heading = _("%(things)s in this dataset")
 
     def public_q(self):
-        """Return the condition for a record whose dataset is public and published."""
-        return Q(dataset__visibility=Visibility.PUBLIC, dataset__published=True)
+        """Return the condition for a record anyone may see."""
+        return released_to_everyone()
 
     def get_value_fields(self):
-        """Add the visibility of the record's own dataset, which decides its badge."""
+        """Add the visibility of the record's dataset and project, which decide its badge."""
         return [
             *super().get_value_fields(),
             "dataset__visibility",
             "dataset__published",
+            "dataset__project__visibility",
         ]
 
     def describe(self, result):
@@ -498,10 +499,14 @@ class DatasetRecordsAutocompleteView(RecordAutocompleteView):
             for part in (result["type"], result["local_id"], result["dataset"])
             if part
         )
-        released = result.pop(
-            "dataset__visibility"
-        ) == Visibility.PUBLIC and result.pop("dataset__published")
-        result["private"] = not released
+        dataset_visibility = result.pop("dataset__visibility")
+        published = result.pop("dataset__published")
+        project_visibility = result.pop("dataset__project__visibility")
+        result["private"] = not (
+            dataset_visibility == Visibility.PUBLIC
+            and published
+            and project_visibility in (None, Visibility.PUBLIC)
+        )
 
 
 class SampleAutocompleteView(DatasetRecordsAutocompleteView):

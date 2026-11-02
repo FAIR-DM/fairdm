@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from django.http import Http404
 
-from fairdm.utils.choices import Visibility
-
 
 class PrivateRecordNotFoundMixin:
     """Answer 404 rather than 403 or a sign-in redirect for a private record.
@@ -20,7 +18,7 @@ class PrivateRecordNotFoundMixin:
     def handle_no_permission(self):
         """Raise a 404 for a non-public record, otherwise refuse as usual."""
         obj = self.base_object
-        if obj is not None and obj.visibility != Visibility.PUBLIC:
+        if obj is not None and not obj.open_to_everyone:
             model = getattr(self, "registered_model", None)
             kind = model._meta.verbose_name if model is not None else "record"
             raise Http404(f"No {kind} matches the given query.")

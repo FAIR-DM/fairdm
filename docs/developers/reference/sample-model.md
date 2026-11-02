@@ -111,6 +111,7 @@ The combination of source, target and type is unique. Both `clean()` and `save()
 | `within_distance(point, distance)` | The samples within a distance of a point, measured on the ground. |
 | `nearest(point)` | The samples ordered by distance, each carrying `distance`. |
 | `published()` | The samples whose own dataset is published. |
+| `outside_private_projects()` | The samples whose own dataset has no project or a public one. |
 | `visible_to(user)` | The samples the user may see. |
 | `with_level(user, level)` | The samples on which the user holds at least a level. |
 | `accessible_to(user, level)` | The samples the user may act on at a level. |

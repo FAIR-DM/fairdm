@@ -6,6 +6,38 @@ from django.db.models.functions import Cast
 from polymorphic import managers
 
 
+def no_private_project(prefix: str = "") -> Q:
+    """Return the condition for a dataset that no private project hides.
+
+    Args:
+        prefix: The path from the queried model to the dataset, such as ``"dataset__"``.
+
+    Returns:
+        A ``Q`` object: the dataset has no project or a public one.
+    """
+    from fairdm.utils.choices import Visibility
+
+    return Q(**{f"{prefix}project__isnull": True}) | Q(
+        **{f"{prefix}project__visibility": Visibility.PUBLIC}
+    )
+
+
+def released_to_everyone() -> Q:
+    """Return the condition for a record anyone may see.
+
+    Its own dataset is public and published, and no private project hides that dataset. A dataset
+    with no project counts on its own.
+
+    Returns:
+        A ``Q`` object over a model with a ``dataset`` foreign key.
+    """
+    from fairdm.utils.choices import Visibility
+
+    return Q(
+        dataset__visibility=Visibility.PUBLIC, dataset__published=True
+    ) & no_private_project("dataset__")
+
+
 class PolymorphicManager(managers.PolymorphicManager):
     """Polymorphic manager that can count records per child type."""
 
@@ -134,13 +166,22 @@ class RecordVisibilityMixin(RecordLevelMixin):
         """
         return self.filter(dataset__published=True)
 
+    def outside_private_projects(self):
+        """Return the records no private project hides, for a listing that does not ask who looks.
+
+        Returns:
+            The records whose own dataset has no project or a public one.
+        """
+        return self.filter(no_private_project("dataset__"))
+
     def visible_to(self, user):
         """Return the records the user may see.
 
-        Those whose own dataset is public and published, and those the user holds a level on, on
-        the record itself or from its dataset or that dataset's project. Someone listed only on
-        one record sees that record and not its siblings. A user who holds ``view_dataset`` or
-        ``change_dataset`` for the whole portal sees every record.
+        Those whose own dataset is public and published, unless a private project hides that
+        dataset, and those the user holds a level on, on the record itself or from its dataset or
+        that dataset's project. Someone listed only on one record sees that record and not its
+        siblings. A user who holds ``view_dataset`` or ``change_dataset`` for the whole portal
+        sees every record.
 
         Args:
             user: The user, or ``None`` for a visitor.
@@ -149,9 +190,8 @@ class RecordVisibilityMixin(RecordLevelMixin):
             The records the user may see.
         """
         from fairdm.contrib.contributors.choices import ContributionLevel
-        from fairdm.utils.choices import Visibility
 
-        released = Q(dataset__visibility=Visibility.PUBLIC, dataset__published=True)
+        released = released_to_everyone()
         if user is None or not user.is_authenticated:
             return self.filter(released)
         if user.has_perm("dataset.view_dataset") or user.has_perm(

@@ -49,7 +49,8 @@ DATASET_SETTINGS = getattr(settings, "FAIRDM_DATASET", {})
 def dataset_is_visible(request, obj):
     """Return whether the request's user may view a dataset.
 
-    A public dataset is always visible, a private one only with ``dataset.view_dataset``.
+    A public dataset no private project hides is visible to anyone. Otherwise the viewer needs
+    ``dataset.view_dataset``, which a level on the dataset or its project gives.
     The plugin lookup reads through ``Dataset.all_objects`` so a private dataset's owner can
     still open it, which is why this check is needed. It is set as ``Overview.check``.
 
@@ -62,7 +63,7 @@ def dataset_is_visible(request, obj):
     """
     if obj is None:
         return True
-    if obj.visibility == Visibility.PUBLIC:
+    if obj.open_to_everyone:
         return True
     return has_perm(request, "dataset.view_dataset", obj)
 
@@ -469,8 +470,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
     def get_project_info(self):
         """Find the parent project when the viewer may see it.
 
-        Nothing ties a dataset's visibility to its project's, so a public dataset can sit in a
-        private project that must not be named.
+        Someone with a level on the dataset alone can open a dataset in a private project, and
+        that project must not be named to them.
 
         Returns:
             The project and how many other datasets in it the viewer may see, or ``None``.
