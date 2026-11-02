@@ -1569,8 +1569,8 @@ class TestOverviewNotAvailableYet:
         placeholders = [
             card
             for card in response.page.select(".card")
-            if card.select_one(".card.bg-base-200")
-            and card.select_one(".card.bg-base-200") is not card
+            if card.select_one(".card.bg-base-300")
+            and card.select_one(".card.bg-base-300") is not card
         ]
         assert len(placeholders) == 2
         for card in placeholders:

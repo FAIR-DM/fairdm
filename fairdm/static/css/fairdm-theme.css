@@ -1,0 +1,133 @@
+/* FairDM's two themes, `fairdm` and `fairdm-dark`, and the fonts they use. `MVP_CONFIG["theme"]` makes them
+ * a portal's default pair. FairDM has no Tailwind build, so this is the plain form of a daisyUI theme:
+ * custom properties under `[data-theme]`, read by django-mvp's stylesheet when the page is painted.
+ *
+ * One hue carries the interface. `secondary` is a neutral weight and `accent` is the same blue raised,
+ * so neither is a second brand colour. `info` shares `accent`'s value on purpose.
+ *
+ * Accent, info and the status colours are fills, borders and focus rings, never body text: on
+ * `base-300` they measure about 4.2:1. The `--color-entity-*` values are lines and surfaces only, and
+ * the label beside one always names the record type. `--color-fairdm-line-strong` is for a border
+ * that identifies a control, which needs 3:1. `--color-line` is the decorative one. */
+
+[data-theme="fairdm"] {
+  color-scheme: light;
+
+  --color-base-100: #FFFFFF;
+  --color-base-200: #F3F6F8;
+  --color-base-300: #E7ECF1;
+  --color-base-content: #111820;
+  --color-primary: #17517D;
+  --color-primary-content: #FFFFFF;
+  --color-secondary: #37434F;
+  --color-secondary-content: #FFFFFF;
+  --color-accent: #2C74AC;
+  --color-accent-content: #FFFFFF;
+  --color-neutral: #111820;
+  --color-neutral-content: #F3F6F8;
+  --color-info: #2C74AC;
+  --color-info-content: #FFFFFF;
+  --color-success: #2B8054;
+  --color-success-content: #FFFFFF;
+  --color-warning: #96631B;
+  --color-warning-content: #FFFFFF;
+  --color-error: #97302C;
+  --color-error-content: #FFFFFF;
+  --radius-selector: 0.125rem;
+  --radius-field: 0.1875rem;
+  --radius-box: 0.25rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+
+  --color-entity-project: #17517D;
+  --color-entity-dataset: #A876C9;
+  --color-entity-sample: #E0BE1E;
+  --color-entity-measurement: #254F36;
+  --color-entity-project-tint: #DCE7F0;
+  --color-entity-dataset-tint: #EFE7F7;
+  --color-entity-sample-tint: #FBF4D2;
+  --color-entity-measurement-tint: #E0EAE4;
+  --color-fairdm-line: #D2DAE2;
+  --color-fairdm-line-strong: #77828F;
+  --color-primary-text: #14486F;
+  --color-line: #D2DAE2;
+  --font-sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --font-heading: "Archivo", "Helvetica Neue", Arial, sans-serif;
+}
+
+[data-theme="fairdm-dark"] {
+  color-scheme: dark;
+
+  --color-base-100: #19212A;
+  --color-base-200: #10151A;
+  --color-base-300: #0A0E12;
+  --color-base-content: #E8ECF0;
+  --color-primary: #4A86BB;
+  --color-primary-content: #05131F;
+  --color-secondary: #8894A1;
+  --color-secondary-content: #0A0E12;
+  --color-accent: #A8CEEC;
+  --color-accent-content: #05131F;
+  --color-neutral: #E8ECF0;
+  --color-neutral-content: #10151A;
+  --color-info: #A8CEEC;
+  --color-info-content: #05131F;
+  --color-success: #74BC94;
+  --color-success-content: #04170D;
+  --color-warning: #D3A052;
+  --color-warning-content: #221904;
+  --color-error: #DE7A75;
+  --color-error-content: #260B0A;
+  --radius-selector: 0.125rem;
+  --radius-field: 0.1875rem;
+  --radius-box: 0.25rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+
+  --color-entity-project: #4A86BB;
+  --color-entity-dataset: #E0D4FA;
+  --color-entity-sample: #F5E663;
+  --color-entity-measurement: #3D8259;
+  --color-entity-project-tint: #16293B;
+  --color-entity-dataset-tint: #2A2440;
+  --color-entity-sample-tint: #2E2A12;
+  --color-entity-measurement-tint: #142A1F;
+  --color-fairdm-line: #2B343E;
+  --color-fairdm-line-strong: #74808D;
+  --color-primary-text: #8CBBE2;
+  --color-line: #2B343E;
+  --font-sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --font-heading: "Archivo", "Helvetica Neue", Arial, sans-serif;
+}
+
+@font-face {
+  font-family: "Archivo";
+  src: url("../fonts/Archivo.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("../fonts/IBMPlexSans.woff2") format("woff2");
+  font-weight: 100 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("../fonts/JetBrainsMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}

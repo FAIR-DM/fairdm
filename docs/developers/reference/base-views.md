@@ -39,7 +39,7 @@ These come from django-mvp's `PageMixin`. Each has a `get_*` method of the same 
 | Attribute | Type | Default | What it does |
 |---|---|---|---|
 | `page_title` | `str` | `""` | The page heading |
-| `page_subtitle` | `str` | `""` | The line under the heading |
+| `page_lead` | `str` | `""` | The line under the heading |
 | `page_class` | `str` | `""` | Classes added to the page container, after `mvp-page` |
 | `page_width` | `PageWidth` | `PageWidth.WIDE` | How wide the content is. One of `NARROW`, `MEDIUM`, `WIDE`, `FULL`, importable from `mvp.views` |
 | `breadcrumbs` | list of dicts | `[]` | The trail. Each dict has `text` and, optionally, `href` |

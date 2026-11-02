@@ -13,7 +13,7 @@
 {% endcomment %}
 <c-vars title text class />
 <c-mvp.card title="{{ title }}" class="bg-base-100 scroll-mt-24 {{ class }}" id="cite" data-card="citation" only>
-  <p class="text-sm bg-base-200 rounded-box p-3 break-words" id="citation-text">{{ text }}</p>
+  <p class="text-sm bg-base-300 rounded-box p-3 break-words" id="citation-text">{{ text }}</p>
   {% if slot %}<div class="text-xs text-base-content/70">{{ slot }}</div>{% endif %}
   <c-slot name="footer">
     <button type="button" class="btn btn-sm"

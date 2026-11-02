@@ -111,9 +111,9 @@ class TestTeamView:
     def test_lead_paragraph_introduces_the_people_listed(self, client):
         response = client.get(reverse("team"))
 
-        subtitle = response.context["page"]["subtitle"]
-        assert subtitle
-        assertContains(response, escape(subtitle), html=False)
+        lead = response.context["page"]["title_args"]["lead"]
+        assert lead
+        assertContains(response, escape(lead), html=False)
 
     def test_info_dialog_carries_its_text_and_links_to_the_docs(self, client):
         response = client.get(reverse("team"))

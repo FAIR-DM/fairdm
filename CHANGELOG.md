@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **A portal now starts on FairDM's own themes, `fairdm` and `fairdm-dark`, with the FairDM fonts,
+  logo and favicon.** They sit in `css/fairdm-theme.css` and `MVP_CONFIG["theme"]`. Set that key
+  to keep another theme, as
+  [How to change the portal theme](docs/developers/how-to/change-the-portal-theme.md) shows. A
+  portal that overrides `mvp_accounts/entrance/base.html` should add the new stylesheet to its
+  `styles` block. A visitor who already picked a theme with the switcher keeps it until they use
+  the switcher again.
+- **FairDM now needs django-mvp 0.33.** Every page sits on `base-200`, cards on `base-100` and
+  the sidebar on `base-300`, so the home page's alternate sections are now `base-100` and its
+  footer `base-300`, and a project or dataset card marks its type with a coloured line and tint, with
+  the words in the text colour. A view of a portal's own that sets `page_subtitle` or
+  `get_page_subtitle()` must rename it to `page_lead` or `get_page_lead()`, or its lead stops being drawn.
+- The logo files in `img/brand/` and `brand/fairdm.svg` are gone. The logo and icon are
+  `brand/logo.svg`, `brand/logo_dark.svg`, `brand/icon.svg` and `brand/icon_dark.svg`, and the
+  favicon is `brand/favicon.svg`. A portal with its own icon should add its own favicon too.
+
 - **Partial dates are stored by [django-partial-dates](https://django-partial-dates.fairdm.org/)
   instead of django-partial-date, which FairDM no longer installs.** A date is now stored as the
   text `1990`, `1990-06` or `1990-06-14`, and new migrations convert the date columns of projects,
