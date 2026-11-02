@@ -73,7 +73,6 @@ The roles a person or organization can hold on a measurement, by identifier, are
 | `__str__()` | The value as text when there is one, otherwise the `name`, otherwise the `uuid`. |
 | `effective_location_for(user=None)` | An `EffectiveLocation` for the viewer, or `None`. |
 | `get_absolute_url()` | The address of the measurement's overview page. |
-| `get_template_name()` | The card templates to try, `<app_label>/<model_name>_card.html` then `fairdm/measurement_card.html`. |
 
 `clean()` refuses to move a measurement to a dataset when that would leave nobody able to manage it.
 

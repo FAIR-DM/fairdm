@@ -1112,10 +1112,13 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.utils.get_import_formats" title="fairdm.contrib.import_export.utils.get_import_formats"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_import_formats</span></code></a></p></td>
 <td><p>Return the formats that can be imported.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.utils.build_metadata" title="fairdm.contrib.import_export.utils.build_metadata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_metadata</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.utils.datacite_dates" title="fairdm.contrib.import_export.utils.datacite_dates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">datacite_dates</span></code></a></p></td>
+<td><p>Write a dataset’s dates with types from DataCite’s <code class="docutils literal notranslate"><span class="pre">dateType</span></code> list.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.utils.build_metadata" title="fairdm.contrib.import_export.utils.build_metadata"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_metadata</span></code></a></p></td>
 <td><p>Render a dataset’s DataCite metadata as indented XML.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.utils.build_export_for_datatype" title="fairdm.contrib.import_export.utils.build_export_for_datatype"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_export_for_datatype</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.utils.build_export_for_datatype" title="fairdm.contrib.import_export.utils.build_export_for_datatype"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_export_for_datatype</span></code></a></p></td>
 <td><p>Export a queryset of one data type for inclusion in a ZIP file.</p></td>
 </tr>
 </tbody>
@@ -1126,6 +1129,12 @@ commentsRunWhenDOMLoaded(addUtterances);
 <h3>Data<a class="headerlink" href="#data" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table table-left">
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.utils.DATACITE_DATE_TYPES" title="fairdm.contrib.import_export.utils.DATACITE_DATE_TYPES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DATACITE_DATE_TYPES</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.utils.SPDX_IDENTIFIERS" title="fairdm.contrib.import_export.utils.SPDX_IDENTIFIERS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SPDX_IDENTIFIERS</span></code></a></p></td>
+<td></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.utils.export_choices" title="fairdm.contrib.import_export.utils.export_choices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_choices</span></code></a></p></td>
 <td></td>
 </tr>
@@ -1138,6 +1147,18 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="api">
 <h3>API<a class="headerlink" href="#api" title="Link to this heading">#</a></h3>
+<dl class="py data">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.utils.DATACITE_DATE_TYPES">
+<span class="sig-name descname"><span class="pre">DATACITE_DATE_TYPES</span></span><a class="headerlink" href="#fairdm.contrib.import_export.utils.DATACITE_DATE_TYPES" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.utils.SPDX_IDENTIFIERS">
+<span class="sig-name descname"><span class="pre">SPDX_IDENTIFIERS</span></span><a class="headerlink" href="#fairdm.contrib.import_export.utils.SPDX_IDENTIFIERS" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="fairdm.contrib.import_export.utils.get_formats">
 <span class="sig-name descname"><span class="pre">get_formats</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.import_export.utils.get_formats" title="Link to this definition">#</a></dt>
@@ -1172,6 +1193,18 @@ A map of format title to format class.</p>
 <dt class="sig sig-object py" id="fairdm.contrib.import_export.utils.import_choices">
 <span class="sig-name descname"><span class="pre">import_choices</span></span><a class="headerlink" href="#fairdm.contrib.import_export.utils.import_choices" title="Link to this definition">#</a></dt>
 <dd><p>None</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.utils.datacite_dates">
+<span class="sig-name descname"><span class="pre">datacite_dates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.import_export.utils.datacite_dates" title="Link to this definition">#</a></dt>
+<dd><p>Write a dataset’s dates with types from DataCite’s <code class="docutils literal notranslate"><span class="pre">dateType</span></code> list.</p>
+<p>DataCite has one <code class="docutils literal notranslate"><span class="pre">Collected</span></code> date, so the collection start and end become one range, open
+at the side with no date. A type with no DataCite match is written as <code class="docutils literal notranslate"><span class="pre">Other</span></code>.</p>
+<p>Args:
+dataset: The dataset whose dates to write.</p>
+<p>Returns:
+A list of dicts, each with the date’s <code class="docutils literal notranslate"><span class="pre">type</span></code> and its <code class="docutils literal notranslate"><span class="pre">value</span></code>.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -1311,11 +1344,14 @@ zip_file: The open ZIP file.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#data">Data</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#api">API</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.import_export.utils.DATACITE_DATE_TYPES"><code class="docutils literal notranslate"><span class="pre">DATACITE_DATE_TYPES</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.import_export.utils.SPDX_IDENTIFIERS"><code class="docutils literal notranslate"><span class="pre">SPDX_IDENTIFIERS</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.import_export.utils.get_formats"><code class="docutils literal notranslate"><span class="pre">get_formats()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.import_export.utils.get_export_formats"><code class="docutils literal notranslate"><span class="pre">get_export_formats()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.import_export.utils.get_import_formats"><code class="docutils literal notranslate"><span class="pre">get_import_formats()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.import_export.utils.export_choices"><code class="docutils literal notranslate"><span class="pre">export_choices</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.import_export.utils.import_choices"><code class="docutils literal notranslate"><span class="pre">import_choices</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.import_export.utils.datacite_dates"><code class="docutils literal notranslate"><span class="pre">datacite_dates()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.import_export.utils.build_metadata"><code class="docutils literal notranslate"><span class="pre">build_metadata()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.import_export.utils.build_export_for_datatype"><code class="docutils literal notranslate"><span class="pre">build_export_for_datatype()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.import_export.utils.DataPackage"><code class="docutils literal notranslate"><span class="pre">DataPackage</span></code></a><ul class="nav section-nav flex-column">

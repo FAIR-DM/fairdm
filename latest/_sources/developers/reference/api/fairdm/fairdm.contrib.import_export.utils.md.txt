@@ -39,6 +39,10 @@
   - ```{autodoc2-docstring} fairdm.contrib.import_export.utils.get_import_formats
     :summary:
     ```
+* - {py:obj}`datacite_dates <fairdm.contrib.import_export.utils.datacite_dates>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.utils.datacite_dates
+    :summary:
+    ```
 * - {py:obj}`build_metadata <fairdm.contrib.import_export.utils.build_metadata>`
   - ```{autodoc2-docstring} fairdm.contrib.import_export.utils.build_metadata
     :summary:
@@ -55,6 +59,14 @@
 :class: autosummary longtable
 :align: left
 
+* - {py:obj}`DATACITE_DATE_TYPES <fairdm.contrib.import_export.utils.DATACITE_DATE_TYPES>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.utils.DATACITE_DATE_TYPES
+    :summary:
+    ```
+* - {py:obj}`SPDX_IDENTIFIERS <fairdm.contrib.import_export.utils.SPDX_IDENTIFIERS>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.utils.SPDX_IDENTIFIERS
+    :summary:
+    ```
 * - {py:obj}`export_choices <fairdm.contrib.import_export.utils.export_choices>`
   - ```{autodoc2-docstring} fairdm.contrib.import_export.utils.export_choices
     :summary:
@@ -66,6 +78,26 @@
 ````
 
 ### API
+
+````{py:data} DATACITE_DATE_TYPES
+:canonical: fairdm.contrib.import_export.utils.DATACITE_DATE_TYPES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.utils.DATACITE_DATE_TYPES
+```
+
+````
+
+````{py:data} SPDX_IDENTIFIERS
+:canonical: fairdm.contrib.import_export.utils.SPDX_IDENTIFIERS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.utils.SPDX_IDENTIFIERS
+```
+
+````
 
 ````{py:function} get_formats()
 :canonical: fairdm.contrib.import_export.utils.get_formats
@@ -106,6 +138,13 @@
 ```{autodoc2-docstring} fairdm.contrib.import_export.utils.import_choices
 ```
 
+````
+
+````{py:function} datacite_dates(dataset)
+:canonical: fairdm.contrib.import_export.utils.datacite_dates
+
+```{autodoc2-docstring} fairdm.contrib.import_export.utils.datacite_dates
+```
 ````
 
 ````{py:function} build_metadata(dataset, request)

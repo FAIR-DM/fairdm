@@ -409,14 +409,6 @@ Bases: {py:obj}`fairdm.core.abstract.BasePolymorphicModel`
 
 ````
 
-````{py:method} get_template_name()
-:canonical: fairdm.core.sample.models.Sample.get_template_name
-
-```{autodoc2-docstring} fairdm.core.sample.models.Sample.get_template_name
-```
-
-````
-
 ``````
 
 ````{py:function} block_base_sample_creation(sender, instance, **kwargs)
