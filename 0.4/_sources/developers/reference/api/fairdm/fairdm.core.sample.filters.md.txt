@@ -1,0 +1,196 @@
+# {py:mod}`fairdm.core.sample.filters`
+
+```{py:module} fairdm.core.sample.filters
+```
+
+```{autodoc2-docstring} fairdm.core.sample.filters
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`SampleFilterMixin <fairdm.core.sample.filters.SampleFilterMixin>`
+  - ```{autodoc2-docstring} fairdm.core.sample.filters.SampleFilterMixin
+    :summary:
+    ```
+* - {py:obj}`SampleFilter <fairdm.core.sample.filters.SampleFilter>`
+  - ```{autodoc2-docstring} fairdm.core.sample.filters.SampleFilter
+    :summary:
+    ```
+````
+
+### API
+
+``````{py:class} SampleFilterMixin(data=None, queryset=None, *, request=None, prefix=None)
+:canonical: fairdm.core.sample.filters.SampleFilterMixin
+
+Bases: {py:obj}`django_filters.FilterSet`
+
+```{autodoc2-docstring} fairdm.core.sample.filters.SampleFilterMixin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.sample.filters.SampleFilterMixin.__init__
+```
+
+````{py:attribute} image
+:canonical: fairdm.core.sample.filters.SampleFilterMixin.image
+:value: >
+   'BooleanFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.filters.SampleFilterMixin.image
+```
+
+````
+
+````{py:method} filter_has_image(queryset, name, value)
+:canonical: fairdm.core.sample.filters.SampleFilterMixin.filter_has_image
+
+```{autodoc2-docstring} fairdm.core.sample.filters.SampleFilterMixin.filter_has_image
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.sample.filters.SampleFilterMixin.Meta
+
+```{autodoc2-docstring} fairdm.core.sample.filters.SampleFilterMixin.Meta
+```
+
+````{py:attribute} fields
+:canonical: fairdm.core.sample.filters.SampleFilterMixin.Meta.fields
+:value: >
+   ['status', 'dataset', 'polymorphic_ctype']
+
+```{autodoc2-docstring} fairdm.core.sample.filters.SampleFilterMixin.Meta.fields
+```
+
+````
+
+`````
+
+``````
+
+``````{py:class} SampleFilter(*args, **kwargs)
+:canonical: fairdm.core.sample.filters.SampleFilter
+
+Bases: {py:obj}`fairdm.core.sample.filters.SampleFilterMixin`, {py:obj}`django_filters.FilterSet`
+
+```{autodoc2-docstring} fairdm.core.sample.filters.SampleFilter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.sample.filters.SampleFilter.__init__
+```
+
+````{py:attribute} status
+:canonical: fairdm.core.sample.filters.SampleFilter.status
+:value: >
+   'ModelChoiceFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.filters.SampleFilter.status
+```
+
+````
+
+````{py:attribute} dataset
+:canonical: fairdm.core.sample.filters.SampleFilter.dataset
+:value: >
+   'RecordMultipleFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.filters.SampleFilter.dataset
+```
+
+````
+
+````{py:attribute} polymorphic_ctype
+:canonical: fairdm.core.sample.filters.SampleFilter.polymorphic_ctype
+:value: >
+   'ModelChoiceFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.filters.SampleFilter.polymorphic_ctype
+```
+
+````
+
+````{py:attribute} q
+:canonical: fairdm.core.sample.filters.SampleFilter.q
+:value: >
+   'SearchFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.filters.SampleFilter.q
+```
+
+````
+
+````{py:attribute} description
+:canonical: fairdm.core.sample.filters.SampleFilter.description
+:value: >
+   'CharFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.filters.SampleFilter.description
+```
+
+````
+
+````{py:attribute} date_after
+:canonical: fairdm.core.sample.filters.SampleFilter.date_after
+:value: >
+   'PartialDateFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.filters.SampleFilter.date_after
+```
+
+````
+
+````{py:attribute} date_before
+:canonical: fairdm.core.sample.filters.SampleFilter.date_before
+:value: >
+   'PartialDateFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.filters.SampleFilter.date_before
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.sample.filters.SampleFilter.Meta
+
+Bases: {py:obj}`fairdm.core.sample.filters.SampleFilterMixin`
+
+```{autodoc2-docstring} fairdm.core.sample.filters.SampleFilter.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.sample.filters.SampleFilter.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.filters.SampleFilter.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.core.sample.filters.SampleFilter.Meta.fields
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.filters.SampleFilter.Meta.fields
+```
+
+````
+
+`````
+
+``````

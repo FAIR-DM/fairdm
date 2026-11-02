@@ -1,0 +1,8 @@
+# {py:mod}`fairdm.menus`
+
+```{py:module} fairdm.menus
+```
+
+```{autodoc2-docstring} fairdm.menus
+:allowtitles:
+```

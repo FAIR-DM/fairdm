@@ -1,0 +1,50 @@
+# {py:mod}`fairdm.contrib.contributors.forms.widgets`
+
+```{py:module} fairdm.contrib.contributors.forms.widgets
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.widgets
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`OrcidInputWidget <fairdm.contrib.contributors.forms.widgets.OrcidInputWidget>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.forms.widgets.OrcidInputWidget
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} OrcidInputWidget(attrs=None)
+:canonical: fairdm.contrib.contributors.forms.widgets.OrcidInputWidget
+
+Bases: {py:obj}`django.forms.TextInput`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.widgets.OrcidInputWidget
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.widgets.OrcidInputWidget.__init__
+```
+
+````{py:attribute} template_name
+:canonical: fairdm.contrib.contributors.forms.widgets.OrcidInputWidget.template_name
+:value: >
+   'widgets/orcid.html'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.widgets.OrcidInputWidget.template_name
+```
+
+````
+
+`````

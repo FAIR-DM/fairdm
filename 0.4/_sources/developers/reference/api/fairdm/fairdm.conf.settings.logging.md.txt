@@ -1,0 +1,76 @@
+# {py:mod}`fairdm.conf.settings.logging`
+
+```{py:module} fairdm.conf.settings.logging
+```
+
+```{autodoc2-docstring} fairdm.conf.settings.logging
+:allowtitles:
+```
+
+## Module Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`env <fairdm.conf.settings.logging.env>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.logging.env
+    :summary:
+    ```
+* - {py:obj}`SENTRY_DSN <fairdm.conf.settings.logging.SENTRY_DSN>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.logging.SENTRY_DSN
+    :summary:
+    ```
+* - {py:obj}`SENTRY_LOG_LEVEL <fairdm.conf.settings.logging.SENTRY_LOG_LEVEL>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.logging.SENTRY_LOG_LEVEL
+    :summary:
+    ```
+* - {py:obj}`LOGGING <fairdm.conf.settings.logging.LOGGING>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.logging.LOGGING
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} env
+:canonical: fairdm.conf.settings.logging.env
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.logging.env
+```
+
+````
+
+````{py:data} SENTRY_DSN
+:canonical: fairdm.conf.settings.logging.SENTRY_DSN
+:value: >
+   'env(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.logging.SENTRY_DSN
+```
+
+````
+
+````{py:data} SENTRY_LOG_LEVEL
+:canonical: fairdm.conf.settings.logging.SENTRY_LOG_LEVEL
+:value: >
+   'int(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.logging.SENTRY_LOG_LEVEL
+```
+
+````
+
+````{py:data} LOGGING
+:canonical: fairdm.conf.settings.logging.LOGGING
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.logging.LOGGING
+```
+
+````

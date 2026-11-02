@@ -1,0 +1,17 @@
+# {py:mod}`fairdm.contrib.location`
+
+```{py:module} fairdm.contrib.location
+```
+
+```{autodoc2-docstring} fairdm.contrib.location
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.contrib.location.apps
+```

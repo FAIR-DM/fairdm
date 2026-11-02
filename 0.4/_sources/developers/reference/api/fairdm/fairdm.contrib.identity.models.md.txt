@@ -1,0 +1,261 @@
+# {py:mod}`fairdm.contrib.identity.models`
+
+```{py:module} fairdm.contrib.identity.models
+```
+
+```{autodoc2-docstring} fairdm.contrib.identity.models
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`BrandAssets <fairdm.contrib.identity.models.BrandAssets>`
+  - ```{autodoc2-docstring} fairdm.contrib.identity.models.BrandAssets
+    :summary:
+    ```
+* - {py:obj}`Authority <fairdm.contrib.identity.models.Authority>`
+  - ```{autodoc2-docstring} fairdm.contrib.identity.models.Authority
+    :summary:
+    ```
+* - {py:obj}`Identity <fairdm.contrib.identity.models.Identity>`
+  - ```{autodoc2-docstring} fairdm.contrib.identity.models.Identity
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`brand_asset_path <fairdm.contrib.identity.models.brand_asset_path>`
+  - ```{autodoc2-docstring} fairdm.contrib.identity.models.brand_asset_path
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} brand_asset_path(instance, filename: str) -> str
+:canonical: fairdm.contrib.identity.models.brand_asset_path
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.brand_asset_path
+```
+````
+
+``````{py:class} BrandAssets(*args, **kwargs)
+:canonical: fairdm.contrib.identity.models.BrandAssets
+
+Bases: {py:obj}`django.db.models.Model`
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.BrandAssets
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.BrandAssets.__init__
+```
+
+````{py:attribute} logo_light
+:canonical: fairdm.contrib.identity.models.BrandAssets.logo_light
+:value: >
+   'ThumbnailerImageField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.BrandAssets.logo_light
+```
+
+````
+
+````{py:attribute} logo_dark
+:canonical: fairdm.contrib.identity.models.BrandAssets.logo_dark
+:value: >
+   'ThumbnailerImageField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.BrandAssets.logo_dark
+```
+
+````
+
+````{py:attribute} icon_light
+:canonical: fairdm.contrib.identity.models.BrandAssets.icon_light
+:value: >
+   'ThumbnailerImageField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.BrandAssets.icon_light
+```
+
+````
+
+````{py:attribute} icon_dark
+:canonical: fairdm.contrib.identity.models.BrandAssets.icon_dark
+:value: >
+   'ThumbnailerImageField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.BrandAssets.icon_dark
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.contrib.identity.models.BrandAssets.Meta
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.BrandAssets.Meta
+```
+
+````{py:attribute} abstract
+:canonical: fairdm.contrib.identity.models.BrandAssets.Meta.abstract
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.BrandAssets.Meta.abstract
+```
+
+````
+
+`````
+
+``````
+
+``````{py:class} Authority(*args, **kwargs)
+:canonical: fairdm.contrib.identity.models.Authority
+
+Bases: {py:obj}`fairdm.contrib.identity.models.BrandAssets`, {py:obj}`solo.models.SingletonModel`, {py:obj}`parler.models.TranslatableModel`
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.Authority
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.Authority.__init__
+```
+
+````{py:attribute} url
+:canonical: fairdm.contrib.identity.models.Authority.url
+:value: >
+   'URLField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.Authority.url
+```
+
+````
+
+````{py:attribute} contact
+:canonical: fairdm.contrib.identity.models.Authority.contact
+:value: >
+   'EmailField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.Authority.contact
+```
+
+````
+
+````{py:attribute} translations
+:canonical: fairdm.contrib.identity.models.Authority.translations
+:value: >
+   'TranslatedFields(...)'
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.Authority.translations
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.contrib.identity.models.Authority.Meta
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.Authority.Meta
+```
+
+````{py:attribute} verbose_name
+:canonical: fairdm.contrib.identity.models.Authority.Meta.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.Authority.Meta.verbose_name
+```
+
+````
+
+`````
+
+``````
+
+``````{py:class} Identity(*args, **kwargs)
+:canonical: fairdm.contrib.identity.models.Identity
+
+Bases: {py:obj}`fairdm.contrib.identity.models.BrandAssets`, {py:obj}`solo.models.SingletonModel`, {py:obj}`parler.models.TranslatableModel`
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.Identity
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.Identity.__init__
+```
+
+````{py:attribute} keywords
+:canonical: fairdm.contrib.identity.models.Identity.keywords
+:value: >
+   'MultiConceptField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.Identity.keywords
+```
+
+````
+
+````{py:attribute} translations
+:canonical: fairdm.contrib.identity.models.Identity.translations
+:value: >
+   'TranslatedFields(...)'
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.Identity.translations
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.contrib.identity.models.Identity.Meta
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.Identity.Meta
+```
+
+````{py:attribute} db_table
+:canonical: fairdm.contrib.identity.models.Identity.Meta.db_table
+:value: >
+   'identity_database'
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.Identity.Meta.db_table
+```
+
+````
+
+````{py:attribute} verbose_name
+:canonical: fairdm.contrib.identity.models.Identity.Meta.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.Identity.Meta.verbose_name
+```
+
+````
+
+`````
+
+````{py:method} save(*args, **kwargs)
+:canonical: fairdm.contrib.identity.models.Identity.save
+
+```{autodoc2-docstring} fairdm.contrib.identity.models.Identity.save
+```
+
+````
+
+``````

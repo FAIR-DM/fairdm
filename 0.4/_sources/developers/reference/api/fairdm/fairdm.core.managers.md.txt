@@ -1,0 +1,100 @@
+# {py:mod}`fairdm.core.managers`
+
+```{py:module} fairdm.core.managers
+```
+
+```{autodoc2-docstring} fairdm.core.managers
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`PolymorphicManager <fairdm.core.managers.PolymorphicManager>`
+  - ```{autodoc2-docstring} fairdm.core.managers.PolymorphicManager
+    :summary:
+    ```
+* - {py:obj}`RecordLevelMixin <fairdm.core.managers.RecordLevelMixin>`
+  - ```{autodoc2-docstring} fairdm.core.managers.RecordLevelMixin
+    :summary:
+    ```
+* - {py:obj}`RecordVisibilityMixin <fairdm.core.managers.RecordVisibilityMixin>`
+  - ```{autodoc2-docstring} fairdm.core.managers.RecordVisibilityMixin
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} PolymorphicManager
+:canonical: fairdm.core.managers.PolymorphicManager
+
+Bases: {py:obj}`polymorphic.managers.PolymorphicManager`
+
+```{autodoc2-docstring} fairdm.core.managers.PolymorphicManager
+```
+
+````{py:method} get_type_counts()
+:canonical: fairdm.core.managers.PolymorphicManager.get_type_counts
+
+```{autodoc2-docstring} fairdm.core.managers.PolymorphicManager.get_type_counts
+```
+
+````
+
+`````
+
+`````{py:class} RecordLevelMixin
+:canonical: fairdm.core.managers.RecordLevelMixin
+
+```{autodoc2-docstring} fairdm.core.managers.RecordLevelMixin
+```
+
+````{py:method} with_level(user, level)
+:canonical: fairdm.core.managers.RecordLevelMixin.with_level
+
+```{autodoc2-docstring} fairdm.core.managers.RecordLevelMixin.with_level
+```
+
+````
+
+````{py:method} accessible_to(user, level)
+:canonical: fairdm.core.managers.RecordLevelMixin.accessible_to
+
+```{autodoc2-docstring} fairdm.core.managers.RecordLevelMixin.accessible_to
+```
+
+````
+
+`````
+
+`````{py:class} RecordVisibilityMixin
+:canonical: fairdm.core.managers.RecordVisibilityMixin
+
+Bases: {py:obj}`fairdm.core.managers.RecordLevelMixin`
+
+```{autodoc2-docstring} fairdm.core.managers.RecordVisibilityMixin
+```
+
+````{py:method} published()
+:canonical: fairdm.core.managers.RecordVisibilityMixin.published
+
+```{autodoc2-docstring} fairdm.core.managers.RecordVisibilityMixin.published
+```
+
+````
+
+````{py:method} visible_to(user)
+:canonical: fairdm.core.managers.RecordVisibilityMixin.visible_to
+
+```{autodoc2-docstring} fairdm.core.managers.RecordVisibilityMixin.visible_to
+```
+
+````
+
+`````

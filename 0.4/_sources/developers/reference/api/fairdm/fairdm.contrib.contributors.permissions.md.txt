@@ -1,0 +1,104 @@
+# {py:mod}`fairdm.contrib.contributors.permissions`
+
+```{py:module} fairdm.contrib.contributors.permissions
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.permissions
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`OrganizationPermissionBackend <fairdm.contrib.contributors.permissions.OrganizationPermissionBackend>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.permissions.OrganizationPermissionBackend
+    :summary:
+    ```
+* - {py:obj}`RecordLevelBackend <fairdm.contrib.contributors.permissions.RecordLevelBackend>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.permissions.RecordLevelBackend
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} OrganizationPermissionBackend
+:canonical: fairdm.contrib.contributors.permissions.OrganizationPermissionBackend
+
+Bases: {py:obj}`fairdm.core.permissions.PolymorphicObjectPermissionBackend`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.permissions.OrganizationPermissionBackend
+```
+
+````{py:attribute} supports_object_permissions
+:canonical: fairdm.contrib.contributors.permissions.OrganizationPermissionBackend.supports_object_permissions
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.contrib.contributors.permissions.OrganizationPermissionBackend.supports_object_permissions
+```
+
+````
+
+````{py:attribute} supports_anonymous_user
+:canonical: fairdm.contrib.contributors.permissions.OrganizationPermissionBackend.supports_anonymous_user
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.contrib.contributors.permissions.OrganizationPermissionBackend.supports_anonymous_user
+```
+
+````
+
+````{py:method} has_perm(user_obj, perm, obj=None)
+:canonical: fairdm.contrib.contributors.permissions.OrganizationPermissionBackend.has_perm
+
+```{autodoc2-docstring} fairdm.contrib.contributors.permissions.OrganizationPermissionBackend.has_perm
+```
+
+````
+
+`````
+
+`````{py:class} RecordLevelBackend
+:canonical: fairdm.contrib.contributors.permissions.RecordLevelBackend
+
+Bases: {py:obj}`django.contrib.auth.backends.BaseBackend`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.permissions.RecordLevelBackend
+```
+
+````{py:attribute} supports_object_permissions
+:canonical: fairdm.contrib.contributors.permissions.RecordLevelBackend.supports_object_permissions
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.contrib.contributors.permissions.RecordLevelBackend.supports_object_permissions
+```
+
+````
+
+````{py:attribute} supports_anonymous_user
+:canonical: fairdm.contrib.contributors.permissions.RecordLevelBackend.supports_anonymous_user
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.contrib.contributors.permissions.RecordLevelBackend.supports_anonymous_user
+```
+
+````
+
+````{py:method} has_perm(user_obj, perm, obj=None)
+:canonical: fairdm.contrib.contributors.permissions.RecordLevelBackend.has_perm
+
+```{autodoc2-docstring} fairdm.contrib.contributors.permissions.RecordLevelBackend.has_perm
+```
+
+````
+
+`````

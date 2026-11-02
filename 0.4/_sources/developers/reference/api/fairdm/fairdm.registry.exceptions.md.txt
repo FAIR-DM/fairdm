@@ -1,0 +1,92 @@
+# {py:mod}`fairdm.registry.exceptions`
+
+```{py:module} fairdm.registry.exceptions
+```
+
+```{autodoc2-docstring} fairdm.registry.exceptions
+:allowtitles:
+```
+
+## Module Contents
+
+### API
+
+````{py:exception} RegistryError()
+:canonical: fairdm.registry.exceptions.RegistryError
+
+Bases: {py:obj}`Exception`
+
+```{autodoc2-docstring} fairdm.registry.exceptions.RegistryError
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.registry.exceptions.RegistryError.__init__
+```
+
+````
+
+````{py:exception} ConfigurationError(message: str, model: type[django.db.models.Model] | None = None, config_class: type | None = None)
+:canonical: fairdm.registry.exceptions.ConfigurationError
+
+Bases: {py:obj}`fairdm.registry.exceptions.RegistryError`
+
+```{autodoc2-docstring} fairdm.registry.exceptions.ConfigurationError
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.registry.exceptions.ConfigurationError.__init__
+```
+
+````
+
+````{py:exception} FieldValidationError(field_name: str, model: type[django.db.models.Model], attribute: str | None = None, suggestion: str | None = None, reason: str | None = None)
+:canonical: fairdm.registry.exceptions.FieldValidationError
+
+Bases: {py:obj}`fairdm.registry.exceptions.RegistryError`
+
+```{autodoc2-docstring} fairdm.registry.exceptions.FieldValidationError
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.registry.exceptions.FieldValidationError.__init__
+```
+
+````
+
+````{py:exception} NotRegisteredError(model: type[models.Model] | str)
+:canonical: fairdm.registry.exceptions.NotRegisteredError
+
+Bases: {py:obj}`fairdm.registry.exceptions.RegistryError`, {py:obj}`KeyError`
+
+```{autodoc2-docstring} fairdm.registry.exceptions.NotRegisteredError
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.registry.exceptions.NotRegisteredError.__init__
+```
+
+````
+
+````{py:exception} DuplicateRegistrationError(model: type[django.db.models.Model], original_location: str, new_location: str | None = None)
+:canonical: fairdm.registry.exceptions.DuplicateRegistrationError
+
+Bases: {py:obj}`fairdm.registry.exceptions.RegistryError`
+
+```{autodoc2-docstring} fairdm.registry.exceptions.DuplicateRegistrationError
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.registry.exceptions.DuplicateRegistrationError.__init__
+```
+
+````

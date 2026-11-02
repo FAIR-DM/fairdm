@@ -1,0 +1,53 @@
+# {py:mod}`fairdm.contrib.contributors.signals`
+
+```{py:module} fairdm.contrib.contributors.signals
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.signals
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`handle_email_confirmed <fairdm.contrib.contributors.signals.handle_email_confirmed>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.signals.handle_email_confirmed
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`logger <fairdm.contrib.contributors.signals.logger>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.signals.logger
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} logger
+:canonical: fairdm.contrib.contributors.signals.logger
+:value: >
+   'getLogger(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.signals.logger
+```
+
+````
+
+````{py:function} handle_email_confirmed(sender, request=None, email_address=None, **kwargs)
+:canonical: fairdm.contrib.contributors.signals.handle_email_confirmed
+
+```{autodoc2-docstring} fairdm.contrib.contributors.signals.handle_email_confirmed
+```
+````

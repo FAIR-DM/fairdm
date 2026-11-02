@@ -1,0 +1,34 @@
+# {py:mod}`fairdm.conf.celery`
+
+```{py:module} fairdm.conf.celery
+```
+
+```{autodoc2-docstring} fairdm.conf.celery
+:allowtitles:
+```
+
+## Module Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`app <fairdm.conf.celery.app>`
+  - ```{autodoc2-docstring} fairdm.conf.celery.app
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} app
+:canonical: fairdm.conf.celery.app
+:value: >
+   'Celery(...)'
+
+```{autodoc2-docstring} fairdm.conf.celery.app
+```
+
+````

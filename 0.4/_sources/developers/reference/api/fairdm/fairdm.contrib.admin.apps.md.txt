@@ -1,0 +1,90 @@
+# {py:mod}`fairdm.contrib.admin.apps`
+
+```{py:module} fairdm.contrib.admin.apps
+```
+
+```{autodoc2-docstring} fairdm.contrib.admin.apps
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FairDMAdminConfig <fairdm.contrib.admin.apps.FairDMAdminConfig>`
+  - ```{autodoc2-docstring} fairdm.contrib.admin.apps.FairDMAdminConfig
+    :summary:
+    ```
+* - {py:obj}`FairDMAdminSite <fairdm.contrib.admin.apps.FairDMAdminSite>`
+  - ```{autodoc2-docstring} fairdm.contrib.admin.apps.FairDMAdminSite
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} FairDMAdminConfig(app_name, app_module)
+:canonical: fairdm.contrib.admin.apps.FairDMAdminConfig
+
+Bases: {py:obj}`django.apps.AppConfig`
+
+```{autodoc2-docstring} fairdm.contrib.admin.apps.FairDMAdminConfig
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.admin.apps.FairDMAdminConfig.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.contrib.admin.apps.FairDMAdminConfig.name
+:value: >
+   'fairdm.contrib.admin'
+
+```{autodoc2-docstring} fairdm.contrib.admin.apps.FairDMAdminConfig.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.contrib.admin.apps.FairDMAdminConfig.label
+:value: >
+   'fairdm_admin'
+
+```{autodoc2-docstring} fairdm.contrib.admin.apps.FairDMAdminConfig.label
+```
+
+````
+
+`````
+
+`````{py:class} FairDMAdminSite(app_name, app_module)
+:canonical: fairdm.contrib.admin.apps.FairDMAdminSite
+
+Bases: {py:obj}`django.contrib.admin.apps.AdminConfig`
+
+```{autodoc2-docstring} fairdm.contrib.admin.apps.FairDMAdminSite
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.admin.apps.FairDMAdminSite.__init__
+```
+
+````{py:attribute} default_site
+:canonical: fairdm.contrib.admin.apps.FairDMAdminSite.default_site
+:value: >
+   'fairdm.contrib.admin.sites.CustomAdminSite'
+
+```{autodoc2-docstring} fairdm.contrib.admin.apps.FairDMAdminSite.default_site
+```
+
+````
+
+`````

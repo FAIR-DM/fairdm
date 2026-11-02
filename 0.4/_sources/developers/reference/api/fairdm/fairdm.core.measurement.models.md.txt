@@ -1,0 +1,531 @@
+# {py:mod}`fairdm.core.measurement.models`
+
+```{py:module} fairdm.core.measurement.models
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.models
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`EffectiveLocation <fairdm.core.measurement.models.EffectiveLocation>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.models.EffectiveLocation
+    :summary:
+    ```
+* - {py:obj}`Measurement <fairdm.core.measurement.models.Measurement>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.models.Measurement
+    :summary:
+    ```
+* - {py:obj}`VocabularyGuardedSave <fairdm.core.measurement.models.VocabularyGuardedSave>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.models.VocabularyGuardedSave
+    :summary:
+    ```
+* - {py:obj}`MeasurementDescription <fairdm.core.measurement.models.MeasurementDescription>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.models.MeasurementDescription
+    :summary:
+    ```
+* - {py:obj}`MeasurementDate <fairdm.core.measurement.models.MeasurementDate>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.models.MeasurementDate
+    :summary:
+    ```
+* - {py:obj}`MeasurementIdentifier <fairdm.core.measurement.models.MeasurementIdentifier>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.models.MeasurementIdentifier
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} EffectiveLocation
+:canonical: fairdm.core.measurement.models.EffectiveLocation
+
+Bases: {py:obj}`typing.NamedTuple`
+
+```{autodoc2-docstring} fairdm.core.measurement.models.EffectiveLocation
+```
+
+````{py:attribute} point
+:canonical: fairdm.core.measurement.models.EffectiveLocation.point
+:type: django.contrib.gis.geos.Point
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.models.EffectiveLocation.point
+```
+
+````
+
+````{py:attribute} elevation
+:canonical: fairdm.core.measurement.models.EffectiveLocation.elevation
+:type: float | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.models.EffectiveLocation.elevation
+```
+
+````
+
+````{py:attribute} uncertainty
+:canonical: fairdm.core.measurement.models.EffectiveLocation.uncertainty
+:type: float | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.models.EffectiveLocation.uncertainty
+```
+
+````
+
+````{py:attribute} source
+:canonical: fairdm.core.measurement.models.EffectiveLocation.source
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.models.EffectiveLocation.source
+```
+
+````
+
+`````
+
+``````{py:class} Measurement(*args, **kwargs)
+:canonical: fairdm.core.measurement.models.Measurement
+
+Bases: {py:obj}`fairdm.core.abstract.BasePolymorphicModel`
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.__init__
+```
+
+````{py:attribute} CONTRIBUTOR_ROLES
+:canonical: fairdm.core.measurement.models.Measurement.CONTRIBUTOR_ROLES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.CONTRIBUTOR_ROLES
+```
+
+````
+
+````{py:attribute} DESCRIPTION_TYPES
+:canonical: fairdm.core.measurement.models.Measurement.DESCRIPTION_TYPES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.DESCRIPTION_TYPES
+```
+
+````
+
+````{py:attribute} DATE_TYPES
+:canonical: fairdm.core.measurement.models.Measurement.DATE_TYPES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.DATE_TYPES
+```
+
+````
+
+````{py:attribute} objects
+:canonical: fairdm.core.measurement.models.Measurement.objects
+:value: >
+   '(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.objects
+```
+
+````
+
+````{py:attribute} dataset
+:canonical: fairdm.core.measurement.models.Measurement.dataset
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.dataset
+```
+
+````
+
+````{py:attribute} uuid
+:canonical: fairdm.core.measurement.models.Measurement.uuid
+:value: >
+   'ShortUUIDField(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.uuid
+```
+
+````
+
+````{py:attribute} contributors
+:canonical: fairdm.core.measurement.models.Measurement.contributors
+:value: >
+   'GenericRelation(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.contributors
+```
+
+````
+
+````{py:attribute} sample
+:canonical: fairdm.core.measurement.models.Measurement.sample
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.sample
+```
+
+````
+
+````{py:attribute} local_id
+:canonical: fairdm.core.measurement.models.Measurement.local_id
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.local_id
+```
+
+````
+
+````{py:attribute} location
+:canonical: fairdm.core.measurement.models.Measurement.location
+:value: >
+   'PointField(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.location
+```
+
+````
+
+````{py:attribute} location_elevation
+:canonical: fairdm.core.measurement.models.Measurement.location_elevation
+:value: >
+   'FloatField(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.location_elevation
+```
+
+````
+
+````{py:attribute} location_uncertainty
+:canonical: fairdm.core.measurement.models.Measurement.location_uncertainty
+:value: >
+   'FloatField(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.location_uncertainty
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.measurement.models.Measurement.Meta
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.Meta
+```
+
+````{py:attribute} verbose_name
+:canonical: fairdm.core.measurement.models.Measurement.Meta.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.Meta.verbose_name
+```
+
+````
+
+````{py:attribute} verbose_name_plural
+:canonical: fairdm.core.measurement.models.Measurement.Meta.verbose_name_plural
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.Meta.verbose_name_plural
+```
+
+````
+
+````{py:attribute} ordering
+:canonical: fairdm.core.measurement.models.Measurement.Meta.ordering
+:value: >
+   ['-modified']
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.Meta.ordering
+```
+
+````
+
+````{py:attribute} default_related_name
+:canonical: fairdm.core.measurement.models.Measurement.Meta.default_related_name
+:value: >
+   'measurements'
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.Meta.default_related_name
+```
+
+````
+
+````{py:attribute} indexes
+:canonical: fairdm.core.measurement.models.Measurement.Meta.indexes
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.Meta.indexes
+```
+
+````
+
+````{py:attribute} constraints
+:canonical: fairdm.core.measurement.models.Measurement.Meta.constraints
+:value: >
+   'location_constraints(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.Meta.constraints
+```
+
+````
+
+````{py:attribute} permissions
+:canonical: fairdm.core.measurement.models.Measurement.Meta.permissions
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.Meta.permissions
+```
+
+````
+
+`````
+
+````{py:method} clean()
+:canonical: fairdm.core.measurement.models.Measurement.clean
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.clean
+```
+
+````
+
+````{py:method} type_of()
+:canonical: fairdm.core.measurement.models.Measurement.type_of
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.type_of
+```
+
+````
+
+````{py:method} get_value()
+:canonical: fairdm.core.measurement.models.Measurement.get_value
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.get_value
+```
+
+````
+
+````{py:method} print_value()
+:canonical: fairdm.core.measurement.models.Measurement.print_value
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.print_value
+```
+
+````
+
+````{py:method} effective_location_for(user=None)
+:canonical: fairdm.core.measurement.models.Measurement.effective_location_for
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.effective_location_for
+```
+
+````
+
+````{py:method} get_absolute_url()
+:canonical: fairdm.core.measurement.models.Measurement.get_absolute_url
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.get_absolute_url
+```
+
+````
+
+````{py:method} get_template_name()
+:canonical: fairdm.core.measurement.models.Measurement.get_template_name
+
+```{autodoc2-docstring} fairdm.core.measurement.models.Measurement.get_template_name
+```
+
+````
+
+``````
+
+`````{py:class} VocabularyGuardedSave
+:canonical: fairdm.core.measurement.models.VocabularyGuardedSave
+
+```{autodoc2-docstring} fairdm.core.measurement.models.VocabularyGuardedSave
+```
+
+````{py:attribute} VOCABULARY_NOUN
+:canonical: fairdm.core.measurement.models.VocabularyGuardedSave.VOCABULARY_NOUN
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.core.measurement.models.VocabularyGuardedSave.VOCABULARY_NOUN
+```
+
+````
+
+````{py:method} save(*args, **kwargs)
+:canonical: fairdm.core.measurement.models.VocabularyGuardedSave.save
+
+```{autodoc2-docstring} fairdm.core.measurement.models.VocabularyGuardedSave.save
+```
+
+````
+
+`````
+
+`````{py:class} MeasurementDescription(*args, **kwargs)
+:canonical: fairdm.core.measurement.models.MeasurementDescription
+
+Bases: {py:obj}`fairdm.core.measurement.models.VocabularyGuardedSave`, {py:obj}`fairdm.core.abstract.AbstractDescription`
+
+```{autodoc2-docstring} fairdm.core.measurement.models.MeasurementDescription
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.models.MeasurementDescription.__init__
+```
+
+````{py:attribute} VOCABULARY_NOUN
+:canonical: fairdm.core.measurement.models.MeasurementDescription.VOCABULARY_NOUN
+:value: >
+   'description'
+
+```{autodoc2-docstring} fairdm.core.measurement.models.MeasurementDescription.VOCABULARY_NOUN
+```
+
+````
+
+````{py:attribute} type
+:canonical: fairdm.core.measurement.models.MeasurementDescription.type
+:value: >
+   'ConceptField(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.models.MeasurementDescription.type
+```
+
+````
+
+````{py:attribute} related
+:canonical: fairdm.core.measurement.models.MeasurementDescription.related
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.models.MeasurementDescription.related
+```
+
+````
+
+`````
+
+`````{py:class} MeasurementDate(*args, **kwargs)
+:canonical: fairdm.core.measurement.models.MeasurementDate
+
+Bases: {py:obj}`fairdm.core.measurement.models.VocabularyGuardedSave`, {py:obj}`fairdm.core.abstract.AbstractDate`
+
+```{autodoc2-docstring} fairdm.core.measurement.models.MeasurementDate
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.models.MeasurementDate.__init__
+```
+
+````{py:attribute} VOCABULARY_NOUN
+:canonical: fairdm.core.measurement.models.MeasurementDate.VOCABULARY_NOUN
+:value: >
+   'date'
+
+```{autodoc2-docstring} fairdm.core.measurement.models.MeasurementDate.VOCABULARY_NOUN
+```
+
+````
+
+````{py:attribute} type
+:canonical: fairdm.core.measurement.models.MeasurementDate.type
+:value: >
+   'ConceptField(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.models.MeasurementDate.type
+```
+
+````
+
+````{py:attribute} related
+:canonical: fairdm.core.measurement.models.MeasurementDate.related
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.models.MeasurementDate.related
+```
+
+````
+
+`````
+
+`````{py:class} MeasurementIdentifier(*args, **kwargs)
+:canonical: fairdm.core.measurement.models.MeasurementIdentifier
+
+Bases: {py:obj}`fairdm.core.measurement.models.VocabularyGuardedSave`, {py:obj}`fairdm.core.abstract.AbstractIdentifier`
+
+```{autodoc2-docstring} fairdm.core.measurement.models.MeasurementIdentifier
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.models.MeasurementIdentifier.__init__
+```
+
+````{py:attribute} VOCABULARY_NOUN
+:canonical: fairdm.core.measurement.models.MeasurementIdentifier.VOCABULARY_NOUN
+:value: >
+   'identifier'
+
+```{autodoc2-docstring} fairdm.core.measurement.models.MeasurementIdentifier.VOCABULARY_NOUN
+```
+
+````
+
+````{py:attribute} type
+:canonical: fairdm.core.measurement.models.MeasurementIdentifier.type
+:value: >
+   'ConceptField(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.models.MeasurementIdentifier.type
+```
+
+````
+
+````{py:attribute} related
+:canonical: fairdm.core.measurement.models.MeasurementIdentifier.related
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.models.MeasurementIdentifier.related
+```
+
+````
+
+`````

@@ -1,0 +1,138 @@
+# {py:mod}`fairdm.utils.choices`
+
+```{py:module} fairdm.utils.choices
+```
+
+```{autodoc2-docstring} fairdm.utils.choices
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Visibility <fairdm.utils.choices.Visibility>`
+  - ```{autodoc2-docstring} fairdm.utils.choices.Visibility
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`SchemeChoices <fairdm.utils.choices.SchemeChoices>`
+  - ```{autodoc2-docstring} fairdm.utils.choices.SchemeChoices
+    :summary:
+    ```
+* - {py:obj}`HAS_TAGS <fairdm.utils.choices.HAS_TAGS>`
+  - ```{autodoc2-docstring} fairdm.utils.choices.HAS_TAGS
+    :summary:
+    ```
+* - {py:obj}`NEEDS_TAGS <fairdm.utils.choices.NEEDS_TAGS>`
+  - ```{autodoc2-docstring} fairdm.utils.choices.NEEDS_TAGS
+    :summary:
+    ```
+* - {py:obj}`DiscoveryTags <fairdm.utils.choices.DiscoveryTags>`
+  - ```{autodoc2-docstring} fairdm.utils.choices.DiscoveryTags
+    :summary:
+    ```
+* - {py:obj}`iso_639_1_languages <fairdm.utils.choices.iso_639_1_languages>`
+  - ```{autodoc2-docstring} fairdm.utils.choices.iso_639_1_languages
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} SchemeChoices
+:canonical: fairdm.utils.choices.SchemeChoices
+:value: >
+   []
+
+```{autodoc2-docstring} fairdm.utils.choices.SchemeChoices
+```
+
+````
+
+`````{py:class} Visibility(*args, **kwds)
+:canonical: fairdm.utils.choices.Visibility
+
+Bases: {py:obj}`django.db.models.IntegerChoices`
+
+```{autodoc2-docstring} fairdm.utils.choices.Visibility
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.utils.choices.Visibility.__init__
+```
+
+````{py:attribute} PRIVATE
+:canonical: fairdm.utils.choices.Visibility.PRIVATE
+:value: >
+   (0,)
+
+```{autodoc2-docstring} fairdm.utils.choices.Visibility.PRIVATE
+```
+
+````
+
+````{py:attribute} PUBLIC
+:canonical: fairdm.utils.choices.Visibility.PUBLIC
+:value: >
+   (1,)
+
+```{autodoc2-docstring} fairdm.utils.choices.Visibility.PUBLIC
+```
+
+````
+
+`````
+
+````{py:data} HAS_TAGS
+:canonical: fairdm.utils.choices.HAS_TAGS
+:value: >
+   [('has_funding',), ('has_equipment',)]
+
+```{autodoc2-docstring} fairdm.utils.choices.HAS_TAGS
+```
+
+````
+
+````{py:data} NEEDS_TAGS
+:canonical: fairdm.utils.choices.NEEDS_TAGS
+:value: >
+   [('needs_collaborators',), ('funding_wanted',), ('equipment_wanted',)]
+
+```{autodoc2-docstring} fairdm.utils.choices.NEEDS_TAGS
+```
+
+````
+
+````{py:data} DiscoveryTags
+:canonical: fairdm.utils.choices.DiscoveryTags
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.utils.choices.DiscoveryTags
+```
+
+````
+
+````{py:data} iso_639_1_languages
+:canonical: fairdm.utils.choices.iso_639_1_languages
+:value: >
+   [('Common', [('en',), ('es',), ('fr',), ('de',), ('it',), ('pt',), ('ru',), ('zh',), ('ja',), ('ar',...
+
+```{autodoc2-docstring} fairdm.utils.choices.iso_639_1_languages
+```
+
+````

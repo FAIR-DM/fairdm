@@ -1,0 +1,129 @@
+# {py:mod}`fairdm.core.measurement.apps`
+
+```{py:module} fairdm.core.measurement.apps
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.apps
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FairDMMeasurementConfig <fairdm.core.measurement.apps.FairDMMeasurementConfig>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.apps.FairDMMeasurementConfig
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`block_base_measurement_creation <fairdm.core.measurement.apps.block_base_measurement_creation>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.apps.block_base_measurement_creation
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`BASE_MEASUREMENT_ERROR <fairdm.core.measurement.apps.BASE_MEASUREMENT_ERROR>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.apps.BASE_MEASUREMENT_ERROR
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} BASE_MEASUREMENT_ERROR
+:canonical: fairdm.core.measurement.apps.BASE_MEASUREMENT_ERROR
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.apps.BASE_MEASUREMENT_ERROR
+```
+
+````
+
+````{py:function} block_base_measurement_creation(sender, instance, **kwargs)
+:canonical: fairdm.core.measurement.apps.block_base_measurement_creation
+
+```{autodoc2-docstring} fairdm.core.measurement.apps.block_base_measurement_creation
+```
+````
+
+`````{py:class} FairDMMeasurementConfig(app_name, app_module)
+:canonical: fairdm.core.measurement.apps.FairDMMeasurementConfig
+
+Bases: {py:obj}`django.apps.AppConfig`
+
+```{autodoc2-docstring} fairdm.core.measurement.apps.FairDMMeasurementConfig
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.apps.FairDMMeasurementConfig.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.core.measurement.apps.FairDMMeasurementConfig.name
+:value: >
+   'fairdm.core.measurement'
+
+```{autodoc2-docstring} fairdm.core.measurement.apps.FairDMMeasurementConfig.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.core.measurement.apps.FairDMMeasurementConfig.label
+:value: >
+   'measurement'
+
+```{autodoc2-docstring} fairdm.core.measurement.apps.FairDMMeasurementConfig.label
+```
+
+````
+
+````{py:attribute} verbose_name
+:canonical: fairdm.core.measurement.apps.FairDMMeasurementConfig.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.apps.FairDMMeasurementConfig.verbose_name
+```
+
+````
+
+````{py:attribute} verbose_name_plural
+:canonical: fairdm.core.measurement.apps.FairDMMeasurementConfig.verbose_name_plural
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.apps.FairDMMeasurementConfig.verbose_name_plural
+```
+
+````
+
+````{py:method} ready()
+:canonical: fairdm.core.measurement.apps.FairDMMeasurementConfig.ready
+
+```{autodoc2-docstring} fairdm.core.measurement.apps.FairDMMeasurementConfig.ready
+```
+
+````
+
+`````

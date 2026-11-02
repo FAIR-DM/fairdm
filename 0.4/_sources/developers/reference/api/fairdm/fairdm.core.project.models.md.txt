@@ -1,0 +1,633 @@
+# {py:mod}`fairdm.core.project.models`
+
+```{py:module} fairdm.core.project.models
+```
+
+```{autodoc2-docstring} fairdm.core.project.models
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ProjectQuerySet <fairdm.core.project.models.ProjectQuerySet>`
+  - ```{autodoc2-docstring} fairdm.core.project.models.ProjectQuerySet
+    :summary:
+    ```
+* - {py:obj}`Project <fairdm.core.project.models.Project>`
+  - ```{autodoc2-docstring} fairdm.core.project.models.Project
+    :summary:
+    ```
+* - {py:obj}`ProjectDescription <fairdm.core.project.models.ProjectDescription>`
+  - ```{autodoc2-docstring} fairdm.core.project.models.ProjectDescription
+    :summary:
+    ```
+* - {py:obj}`ProjectDate <fairdm.core.project.models.ProjectDate>`
+  - ```{autodoc2-docstring} fairdm.core.project.models.ProjectDate
+    :summary:
+    ```
+* - {py:obj}`ProjectIdentifier <fairdm.core.project.models.ProjectIdentifier>`
+  - ```{autodoc2-docstring} fairdm.core.project.models.ProjectIdentifier
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`prevent_project_deletion_with_datasets <fairdm.core.project.models.prevent_project_deletion_with_datasets>`
+  - ```{autodoc2-docstring} fairdm.core.project.models.prevent_project_deletion_with_datasets
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} ProjectQuerySet(model=None, query=None, using=None, hints=None)
+:canonical: fairdm.core.project.models.ProjectQuerySet
+
+Bases: {py:obj}`fairdm.core.managers.RecordLevelMixin`, {py:obj}`fairdm.db.models.QuerySet`
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectQuerySet
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectQuerySet.__init__
+```
+
+````{py:method} get_visible() -> fairdm.core.project.models.ProjectQuerySet
+:canonical: fairdm.core.project.models.ProjectQuerySet.get_visible
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectQuerySet.get_visible
+```
+
+````
+
+````{py:method} with_contributors() -> fairdm.core.project.models.ProjectQuerySet
+:canonical: fairdm.core.project.models.ProjectQuerySet.with_contributors
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectQuerySet.with_contributors
+```
+
+````
+
+````{py:method} with_metadata() -> fairdm.core.project.models.ProjectQuerySet
+:canonical: fairdm.core.project.models.ProjectQuerySet.with_metadata
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectQuerySet.with_metadata
+```
+
+````
+
+````{py:method} with_list_data() -> fairdm.core.project.models.ProjectQuerySet
+:canonical: fairdm.core.project.models.ProjectQuerySet.with_list_data
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectQuerySet.with_list_data
+```
+
+````
+
+`````
+
+``````{py:class} Project(*args, **kwargs)
+:canonical: fairdm.core.project.models.Project
+
+Bases: {py:obj}`fairdm.core.abstract.BaseModel`
+
+```{autodoc2-docstring} fairdm.core.project.models.Project
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.__init__
+```
+
+````{py:attribute} DEFAULT_ROLES
+:canonical: fairdm.core.project.models.Project.DEFAULT_ROLES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.DEFAULT_ROLES
+```
+
+````
+
+````{py:attribute} CONTRIBUTOR_ROLES
+:canonical: fairdm.core.project.models.Project.CONTRIBUTOR_ROLES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.CONTRIBUTOR_ROLES
+```
+
+````
+
+````{py:attribute} DATE_TYPES
+:canonical: fairdm.core.project.models.Project.DATE_TYPES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.DATE_TYPES
+```
+
+````
+
+````{py:attribute} DESCRIPTION_TYPES
+:canonical: fairdm.core.project.models.Project.DESCRIPTION_TYPES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.DESCRIPTION_TYPES
+```
+
+````
+
+````{py:attribute} STATUS_CHOICES
+:canonical: fairdm.core.project.models.Project.STATUS_CHOICES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.STATUS_CHOICES
+```
+
+````
+
+````{py:attribute} VISIBILITY
+:canonical: fairdm.core.project.models.Project.VISIBILITY
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.VISIBILITY
+```
+
+````
+
+````{py:attribute} objects
+:canonical: fairdm.core.project.models.Project.objects
+:value: >
+   'as_manager(...)'
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.objects
+```
+
+````
+
+````{py:attribute} uuid
+:canonical: fairdm.core.project.models.Project.uuid
+:value: >
+   'ShortUUIDField(...)'
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.uuid
+```
+
+````
+
+````{py:attribute} visibility
+:canonical: fairdm.core.project.models.Project.visibility
+:value: >
+   'IntegerField(...)'
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.visibility
+```
+
+````
+
+````{py:attribute} funding
+:canonical: fairdm.core.project.models.Project.funding
+:value: >
+   'JSONField(...)'
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.funding
+```
+
+````
+
+````{py:attribute} status
+:canonical: fairdm.core.project.models.Project.status
+:value: >
+   'IntegerField(...)'
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.status
+```
+
+````
+
+````{py:attribute} contributors
+:canonical: fairdm.core.project.models.Project.contributors
+:value: >
+   'GenericRelation(...)'
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.contributors
+```
+
+````
+
+````{py:attribute} created_by
+:canonical: fairdm.core.project.models.Project.created_by
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.created_by
+```
+
+````
+
+````{py:attribute} owner
+:canonical: fairdm.core.project.models.Project.owner
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.owner
+```
+
+````
+
+````{py:attribute} STATUS_BADGE_VARIANTS
+:canonical: fairdm.core.project.models.Project.STATUS_BADGE_VARIANTS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.STATUS_BADGE_VARIANTS
+```
+
+````
+
+````{py:property} is_active
+:canonical: fairdm.core.project.models.Project.is_active
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.is_active
+```
+
+````
+
+````{py:property} status_badge_variant
+:canonical: fairdm.core.project.models.Project.status_badge_variant
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.status_badge_variant
+```
+
+````
+
+````{py:method} spatial_coverage(user=None)
+:canonical: fairdm.core.project.models.Project.spatial_coverage
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.spatial_coverage
+```
+
+````
+
+````{py:method} get_absolute_url()
+:canonical: fairdm.core.project.models.Project.get_absolute_url
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.get_absolute_url
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.project.models.Project.Meta
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.Meta
+```
+
+````{py:attribute} verbose_name
+:canonical: fairdm.core.project.models.Project.Meta.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.Meta.verbose_name
+```
+
+````
+
+````{py:attribute} verbose_name_plural
+:canonical: fairdm.core.project.models.Project.Meta.verbose_name_plural
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.Meta.verbose_name_plural
+```
+
+````
+
+````{py:attribute} default_related_name
+:canonical: fairdm.core.project.models.Project.Meta.default_related_name
+:value: >
+   'projects'
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.Meta.default_related_name
+```
+
+````
+
+````{py:attribute} ordering
+:canonical: fairdm.core.project.models.Project.Meta.ordering
+:value: >
+   ['-modified']
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.Meta.ordering
+```
+
+````
+
+````{py:attribute} indexes
+:canonical: fairdm.core.project.models.Project.Meta.indexes
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.Meta.indexes
+```
+
+````
+
+````{py:attribute} permissions
+:canonical: fairdm.core.project.models.Project.Meta.permissions
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.project.models.Project.Meta.permissions
+```
+
+````
+
+`````
+
+``````
+
+``````{py:class} ProjectDescription(*args, **kwargs)
+:canonical: fairdm.core.project.models.ProjectDescription
+
+Bases: {py:obj}`fairdm.core.abstract.AbstractDescription`
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectDescription
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectDescription.__init__
+```
+
+````{py:attribute} type
+:canonical: fairdm.core.project.models.ProjectDescription.type
+:value: >
+   'ConceptField(...)'
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectDescription.type
+```
+
+````
+
+````{py:attribute} related
+:canonical: fairdm.core.project.models.ProjectDescription.related
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectDescription.related
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.project.models.ProjectDescription.Meta
+
+Bases: {py:obj}`fairdm.core.abstract.AbstractDescription.Meta`
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectDescription.Meta
+```
+
+````{py:attribute} unique_together
+:canonical: fairdm.core.project.models.ProjectDescription.Meta.unique_together
+:value: >
+   [('related', 'type')]
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectDescription.Meta.unique_together
+```
+
+````
+
+````{py:attribute} verbose_name
+:canonical: fairdm.core.project.models.ProjectDescription.Meta.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectDescription.Meta.verbose_name
+```
+
+````
+
+````{py:attribute} verbose_name_plural
+:canonical: fairdm.core.project.models.ProjectDescription.Meta.verbose_name_plural
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectDescription.Meta.verbose_name_plural
+```
+
+````
+
+`````
+
+````{py:method} clean()
+:canonical: fairdm.core.project.models.ProjectDescription.clean
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectDescription.clean
+```
+
+````
+
+``````
+
+``````{py:class} ProjectDate(*args, **kwargs)
+:canonical: fairdm.core.project.models.ProjectDate
+
+Bases: {py:obj}`fairdm.core.abstract.AbstractDate`
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectDate
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectDate.__init__
+```
+
+````{py:attribute} type
+:canonical: fairdm.core.project.models.ProjectDate.type
+:value: >
+   'ConceptField(...)'
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectDate.type
+```
+
+````
+
+````{py:attribute} related
+:canonical: fairdm.core.project.models.ProjectDate.related
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectDate.related
+```
+
+````
+
+````{py:attribute} START_TYPE
+:canonical: fairdm.core.project.models.ProjectDate.START_TYPE
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectDate.START_TYPE
+```
+
+````
+
+````{py:attribute} END_TYPE
+:canonical: fairdm.core.project.models.ProjectDate.END_TYPE
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectDate.END_TYPE
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.project.models.ProjectDate.Meta
+
+Bases: {py:obj}`fairdm.core.abstract.AbstractDate.Meta`
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectDate.Meta
+```
+
+````{py:attribute} verbose_name
+:canonical: fairdm.core.project.models.ProjectDate.Meta.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectDate.Meta.verbose_name
+```
+
+````
+
+````{py:attribute} verbose_name_plural
+:canonical: fairdm.core.project.models.ProjectDate.Meta.verbose_name_plural
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectDate.Meta.verbose_name_plural
+```
+
+````
+
+`````
+
+````{py:method} clean()
+:canonical: fairdm.core.project.models.ProjectDate.clean
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectDate.clean
+```
+
+````
+
+``````
+
+``````{py:class} ProjectIdentifier(*args, **kwargs)
+:canonical: fairdm.core.project.models.ProjectIdentifier
+
+Bases: {py:obj}`fairdm.core.abstract.AbstractIdentifier`
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectIdentifier
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectIdentifier.__init__
+```
+
+````{py:attribute} type
+:canonical: fairdm.core.project.models.ProjectIdentifier.type
+:value: >
+   'ConceptField(...)'
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectIdentifier.type
+```
+
+````
+
+````{py:attribute} related
+:canonical: fairdm.core.project.models.ProjectIdentifier.related
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectIdentifier.related
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.project.models.ProjectIdentifier.Meta
+
+Bases: {py:obj}`fairdm.core.abstract.AbstractIdentifier.Meta`
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectIdentifier.Meta
+```
+
+````{py:attribute} verbose_name
+:canonical: fairdm.core.project.models.ProjectIdentifier.Meta.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectIdentifier.Meta.verbose_name
+```
+
+````
+
+````{py:attribute} verbose_name_plural
+:canonical: fairdm.core.project.models.ProjectIdentifier.Meta.verbose_name_plural
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.project.models.ProjectIdentifier.Meta.verbose_name_plural
+```
+
+````
+
+`````
+
+``````
+
+````{py:exception} PublicDatasetsProtect(datasets)
+:canonical: fairdm.core.project.models.PublicDatasetsProtect
+
+Bases: {py:obj}`Exception`
+
+```{autodoc2-docstring} fairdm.core.project.models.PublicDatasetsProtect
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.project.models.PublicDatasetsProtect.__init__
+```
+
+````
+
+````{py:function} prevent_project_deletion_with_datasets(sender, instance, **kwargs)
+:canonical: fairdm.core.project.models.prevent_project_deletion_with_datasets
+
+```{autodoc2-docstring} fairdm.core.project.models.prevent_project_deletion_with_datasets
+```
+````

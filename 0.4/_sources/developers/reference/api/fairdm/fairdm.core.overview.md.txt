@@ -1,0 +1,97 @@
+# {py:mod}`fairdm.core.overview`
+
+```{py:module} fairdm.core.overview
+```
+
+```{autodoc2-docstring} fairdm.core.overview
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`safe_reverse <fairdm.core.overview.safe_reverse>`
+  - ```{autodoc2-docstring} fairdm.core.overview.safe_reverse
+    :summary:
+    ```
+* - {py:obj}`as_date <fairdm.core.overview.as_date>`
+  - ```{autodoc2-docstring} fairdm.core.overview.as_date
+    :summary:
+    ```
+* - {py:obj}`format_partial_date <fairdm.core.overview.format_partial_date>`
+  - ```{autodoc2-docstring} fairdm.core.overview.format_partial_date
+    :summary:
+    ```
+* - {py:obj}`author_name <fairdm.core.overview.author_name>`
+  - ```{autodoc2-docstring} fairdm.core.overview.author_name
+    :summary:
+    ```
+* - {py:obj}`sentence_case <fairdm.core.overview.sentence_case>`
+  - ```{autodoc2-docstring} fairdm.core.overview.sentence_case
+    :summary:
+    ```
+* - {py:obj}`format_authors <fairdm.core.overview.format_authors>`
+  - ```{autodoc2-docstring} fairdm.core.overview.format_authors
+    :summary:
+    ```
+* - {py:obj}`json_ld <fairdm.core.overview.json_ld>`
+  - ```{autodoc2-docstring} fairdm.core.overview.json_ld
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} safe_reverse(name, **kwargs)
+:canonical: fairdm.core.overview.safe_reverse
+
+```{autodoc2-docstring} fairdm.core.overview.safe_reverse
+```
+````
+
+````{py:function} as_date(partial)
+:canonical: fairdm.core.overview.as_date
+
+```{autodoc2-docstring} fairdm.core.overview.as_date
+```
+````
+
+````{py:function} format_partial_date(partial)
+:canonical: fairdm.core.overview.format_partial_date
+
+```{autodoc2-docstring} fairdm.core.overview.format_partial_date
+```
+````
+
+````{py:function} author_name(contributor)
+:canonical: fairdm.core.overview.author_name
+
+```{autodoc2-docstring} fairdm.core.overview.author_name
+```
+````
+
+````{py:function} sentence_case(text)
+:canonical: fairdm.core.overview.sentence_case
+
+```{autodoc2-docstring} fairdm.core.overview.sentence_case
+```
+````
+
+````{py:function} format_authors(contributors)
+:canonical: fairdm.core.overview.format_authors
+
+```{autodoc2-docstring} fairdm.core.overview.format_authors
+```
+````
+
+````{py:function} json_ld(data)
+:canonical: fairdm.core.overview.json_ld
+
+```{autodoc2-docstring} fairdm.core.overview.json_ld
+```
+````

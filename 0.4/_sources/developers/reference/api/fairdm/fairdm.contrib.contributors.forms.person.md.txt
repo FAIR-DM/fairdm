@@ -1,0 +1,176 @@
+# {py:mod}`fairdm.contrib.contributors.forms.person`
+
+```{py:module} fairdm.contrib.contributors.forms.person
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.person
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`SignupExtraForm <fairdm.contrib.contributors.forms.person.SignupExtraForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.forms.person.SignupExtraForm
+    :summary:
+    ```
+* - {py:obj}`MergePersonForm <fairdm.contrib.contributors.forms.person.MergePersonForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.forms.person.MergePersonForm
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`User <fairdm.contrib.contributors.forms.person.User>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.forms.person.User
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} User
+:canonical: fairdm.contrib.contributors.forms.person.User
+:value: >
+   'get_user_model(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.person.User
+```
+
+````
+
+``````{py:class} SignupExtraForm(data=None, files=None, auto_id='id_%s', prefix=None, initial=None, error_class=ErrorList, label_suffix=None, empty_permitted=False, instance=None, use_required_attribute=None, renderer=None)
+:canonical: fairdm.contrib.contributors.forms.person.SignupExtraForm
+
+Bases: {py:obj}`django.forms.ModelForm`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.person.SignupExtraForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.person.SignupExtraForm.__init__
+```
+
+````{py:attribute} first_name
+:canonical: fairdm.contrib.contributors.forms.person.SignupExtraForm.first_name
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.person.SignupExtraForm.first_name
+```
+
+````
+
+````{py:attribute} last_name
+:canonical: fairdm.contrib.contributors.forms.person.SignupExtraForm.last_name
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.person.SignupExtraForm.last_name
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.contrib.contributors.forms.person.SignupExtraForm.Meta
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.person.SignupExtraForm.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.contributors.forms.person.SignupExtraForm.Meta.model
+:value: >
+   'get_user_model(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.person.SignupExtraForm.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.contrib.contributors.forms.person.SignupExtraForm.Meta.fields
+:value: >
+   ('first_name', 'last_name')
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.person.SignupExtraForm.Meta.fields
+```
+
+````
+
+````{py:attribute} labels
+:canonical: fairdm.contrib.contributors.forms.person.SignupExtraForm.Meta.labels
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.person.SignupExtraForm.Meta.labels
+```
+
+````
+
+````{py:attribute} help_texts
+:canonical: fairdm.contrib.contributors.forms.person.SignupExtraForm.Meta.help_texts
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.person.SignupExtraForm.Meta.help_texts
+```
+
+````
+
+`````
+
+````{py:method} signup(request, user)
+:canonical: fairdm.contrib.contributors.forms.person.SignupExtraForm.signup
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.person.SignupExtraForm.signup
+```
+
+````
+
+``````
+
+`````{py:class} MergePersonForm(*args, exclude_pk=None, **kwargs)
+:canonical: fairdm.contrib.contributors.forms.person.MergePersonForm
+
+Bases: {py:obj}`django.forms.Form`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.person.MergePersonForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.person.MergePersonForm.__init__
+```
+
+````{py:attribute} merge_into
+:canonical: fairdm.contrib.contributors.forms.person.MergePersonForm.merge_into
+:value: >
+   'PersonChoiceField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.person.MergePersonForm.merge_into
+```
+
+````
+
+````{py:method} clean_merge_into()
+:canonical: fairdm.contrib.contributors.forms.person.MergePersonForm.clean_merge_into
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.person.MergePersonForm.clean_merge_into
+```
+
+````
+
+`````

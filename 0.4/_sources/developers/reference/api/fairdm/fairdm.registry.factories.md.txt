@@ -1,0 +1,293 @@
+# {py:mod}`fairdm.registry.factories`
+
+```{py:module} fairdm.registry.factories
+```
+
+```{autodoc2-docstring} fairdm.registry.factories
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ComponentFactory <fairdm.registry.factories.ComponentFactory>`
+  - ```{autodoc2-docstring} fairdm.registry.factories.ComponentFactory
+    :summary:
+    ```
+* - {py:obj}`FormFactory <fairdm.registry.factories.FormFactory>`
+  - ```{autodoc2-docstring} fairdm.registry.factories.FormFactory
+    :summary:
+    ```
+* - {py:obj}`TableFactory <fairdm.registry.factories.TableFactory>`
+  - ```{autodoc2-docstring} fairdm.registry.factories.TableFactory
+    :summary:
+    ```
+* - {py:obj}`PublishedChoicesMixin <fairdm.registry.factories.PublishedChoicesMixin>`
+  - ```{autodoc2-docstring} fairdm.registry.factories.PublishedChoicesMixin
+    :summary:
+    ```
+* - {py:obj}`FilterFactory <fairdm.registry.factories.FilterFactory>`
+  - ```{autodoc2-docstring} fairdm.registry.factories.FilterFactory
+    :summary:
+    ```
+* - {py:obj}`AdminFactory <fairdm.registry.factories.AdminFactory>`
+  - ```{autodoc2-docstring} fairdm.registry.factories.AdminFactory
+    :summary:
+    ```
+* - {py:obj}`SerializerFactory <fairdm.registry.factories.SerializerFactory>`
+  - ```{autodoc2-docstring} fairdm.registry.factories.SerializerFactory
+    :summary:
+    ```
+* - {py:obj}`ResourceFactory <fairdm.registry.factories.ResourceFactory>`
+  - ```{autodoc2-docstring} fairdm.registry.factories.ResourceFactory
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`published_related_queryset <fairdm.registry.factories.published_related_queryset>`
+  - ```{autodoc2-docstring} fairdm.registry.factories.published_related_queryset
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} ComponentFactory(model: type[django.db.models.Model], fields: list[str] | None = None)
+:canonical: fairdm.registry.factories.ComponentFactory
+
+```{autodoc2-docstring} fairdm.registry.factories.ComponentFactory
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.registry.factories.ComponentFactory.__init__
+```
+
+````{py:method} get_fields() -> list[str]
+:canonical: fairdm.registry.factories.ComponentFactory.get_fields
+
+```{autodoc2-docstring} fairdm.registry.factories.ComponentFactory.get_fields
+```
+
+````
+
+````{py:method} generate() -> typing.Any
+:canonical: fairdm.registry.factories.ComponentFactory.generate
+:abstractmethod:
+
+```{autodoc2-docstring} fairdm.registry.factories.ComponentFactory.generate
+```
+
+````
+
+`````
+
+`````{py:class} FormFactory(model: type[django.db.models.Model], fields: list[str] | None = None)
+:canonical: fairdm.registry.factories.FormFactory
+
+Bases: {py:obj}`fairdm.registry.factories.ComponentFactory`
+
+```{autodoc2-docstring} fairdm.registry.factories.FormFactory
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.registry.factories.FormFactory.__init__
+```
+
+````{py:method} generate() -> type[django.forms.ModelForm]
+:canonical: fairdm.registry.factories.FormFactory.generate
+
+```{autodoc2-docstring} fairdm.registry.factories.FormFactory.generate
+```
+
+````
+
+````{py:method} get_base_form_class() -> type[django.forms.ModelForm]
+:canonical: fairdm.registry.factories.FormFactory.get_base_form_class
+
+```{autodoc2-docstring} fairdm.registry.factories.FormFactory.get_base_form_class
+```
+
+````
+
+`````
+
+`````{py:class} TableFactory(model: type[django.db.models.Model], fields: list[str] | None = None)
+:canonical: fairdm.registry.factories.TableFactory
+
+Bases: {py:obj}`fairdm.registry.factories.ComponentFactory`
+
+```{autodoc2-docstring} fairdm.registry.factories.TableFactory
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.registry.factories.TableFactory.__init__
+```
+
+````{py:method} generate() -> type[django_tables2.Table]
+:canonical: fairdm.registry.factories.TableFactory.generate
+
+```{autodoc2-docstring} fairdm.registry.factories.TableFactory.generate
+```
+
+````
+
+````{py:method} get_base_table_class() -> type[django_tables2.Table]
+:canonical: fairdm.registry.factories.TableFactory.get_base_table_class
+
+```{autodoc2-docstring} fairdm.registry.factories.TableFactory.get_base_table_class
+```
+
+````
+
+`````
+
+````{py:function} published_related_queryset(related_model: type[django.db.models.Model]) -> typing.Any
+:canonical: fairdm.registry.factories.published_related_queryset
+
+```{autodoc2-docstring} fairdm.registry.factories.published_related_queryset
+```
+````
+
+`````{py:class} PublishedChoicesMixin(*args, **kwargs)
+:canonical: fairdm.registry.factories.PublishedChoicesMixin
+
+```{autodoc2-docstring} fairdm.registry.factories.PublishedChoicesMixin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.registry.factories.PublishedChoicesMixin.__init__
+```
+
+````{py:method} applied_to(filterset_class: type) -> type
+:canonical: fairdm.registry.factories.PublishedChoicesMixin.applied_to
+:classmethod:
+
+```{autodoc2-docstring} fairdm.registry.factories.PublishedChoicesMixin.applied_to
+```
+
+````
+
+`````
+
+`````{py:class} FilterFactory(model: type[django.db.models.Model], fields: list[str] | None = None, search_fields: list[str] | None = None)
+:canonical: fairdm.registry.factories.FilterFactory
+
+Bases: {py:obj}`fairdm.registry.factories.ComponentFactory`
+
+```{autodoc2-docstring} fairdm.registry.factories.FilterFactory
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.registry.factories.FilterFactory.__init__
+```
+
+````{py:method} generate() -> type[django_filters.FilterSet]
+:canonical: fairdm.registry.factories.FilterFactory.generate
+
+```{autodoc2-docstring} fairdm.registry.factories.FilterFactory.generate
+```
+
+````
+
+````{py:method} get_base_filterset_class() -> type[django_filters.FilterSet]
+:canonical: fairdm.registry.factories.FilterFactory.get_base_filterset_class
+
+```{autodoc2-docstring} fairdm.registry.factories.FilterFactory.get_base_filterset_class
+```
+
+````
+
+`````
+
+`````{py:class} AdminFactory(model: type[django.db.models.Model], fields: list[str] | None = None)
+:canonical: fairdm.registry.factories.AdminFactory
+
+Bases: {py:obj}`fairdm.registry.factories.ComponentFactory`
+
+```{autodoc2-docstring} fairdm.registry.factories.AdminFactory
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.registry.factories.AdminFactory.__init__
+```
+
+````{py:method} generate() -> type[django.contrib.admin.ModelAdmin]
+:canonical: fairdm.registry.factories.AdminFactory.generate
+
+```{autodoc2-docstring} fairdm.registry.factories.AdminFactory.generate
+```
+
+````
+
+`````
+
+`````{py:class} SerializerFactory(model: type[django.db.models.Model], fields: list[str] | None = None)
+:canonical: fairdm.registry.factories.SerializerFactory
+
+Bases: {py:obj}`fairdm.registry.factories.ComponentFactory`
+
+```{autodoc2-docstring} fairdm.registry.factories.SerializerFactory
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.registry.factories.SerializerFactory.__init__
+```
+
+````{py:method} generate() -> type
+:canonical: fairdm.registry.factories.SerializerFactory.generate
+
+```{autodoc2-docstring} fairdm.registry.factories.SerializerFactory.generate
+```
+
+````
+
+`````
+
+`````{py:class} ResourceFactory(model: type[django.db.models.Model], fields: list[str] | None = None)
+:canonical: fairdm.registry.factories.ResourceFactory
+
+Bases: {py:obj}`fairdm.registry.factories.ComponentFactory`
+
+```{autodoc2-docstring} fairdm.registry.factories.ResourceFactory
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.registry.factories.ResourceFactory.__init__
+```
+
+````{py:method} generate() -> type
+:canonical: fairdm.registry.factories.ResourceFactory.generate
+
+```{autodoc2-docstring} fairdm.registry.factories.ResourceFactory.generate
+```
+
+````
+
+`````

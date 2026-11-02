@@ -1,0 +1,101 @@
+# {py:mod}`fairdm.conf.addons`
+
+```{py:module} fairdm.conf.addons
+```
+
+```{autodoc2-docstring} fairdm.conf.addons
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`get_module_path <fairdm.conf.addons.get_module_path>`
+  - ```{autodoc2-docstring} fairdm.conf.addons.get_module_path
+    :summary:
+    ```
+* - {py:obj}`discover_addon_setup_modules <fairdm.conf.addons.discover_addon_setup_modules>`
+  - ```{autodoc2-docstring} fairdm.conf.addons.discover_addon_setup_modules
+    :summary:
+    ```
+* - {py:obj}`discover_addon_urls <fairdm.conf.addons.discover_addon_urls>`
+  - ```{autodoc2-docstring} fairdm.conf.addons.discover_addon_urls
+    :summary:
+    ```
+* - {py:obj}`load_addons <fairdm.conf.addons.load_addons>`
+  - ```{autodoc2-docstring} fairdm.conf.addons.load_addons
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`logger <fairdm.conf.addons.logger>`
+  - ```{autodoc2-docstring} fairdm.conf.addons.logger
+    :summary:
+    ```
+* - {py:obj}`addon_urls <fairdm.conf.addons.addon_urls>`
+  - ```{autodoc2-docstring} fairdm.conf.addons.addon_urls
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} logger
+:canonical: fairdm.conf.addons.logger
+:value: >
+   'getLogger(...)'
+
+```{autodoc2-docstring} fairdm.conf.addons.logger
+```
+
+````
+
+````{py:data} addon_urls
+:canonical: fairdm.conf.addons.addon_urls
+:type: list[str]
+:value: >
+   []
+
+```{autodoc2-docstring} fairdm.conf.addons.addon_urls
+```
+
+````
+
+````{py:function} get_module_path(module_name: str) -> str
+:canonical: fairdm.conf.addons.get_module_path
+
+```{autodoc2-docstring} fairdm.conf.addons.get_module_path
+```
+````
+
+````{py:function} discover_addon_setup_modules(addons: list[str], env_profile: str) -> list[tuple[str, str]]
+:canonical: fairdm.conf.addons.discover_addon_setup_modules
+
+```{autodoc2-docstring} fairdm.conf.addons.discover_addon_setup_modules
+```
+````
+
+````{py:function} discover_addon_urls(addons: list[str]) -> list[str]
+:canonical: fairdm.conf.addons.discover_addon_urls
+
+```{autodoc2-docstring} fairdm.conf.addons.discover_addon_urls
+```
+````
+
+````{py:function} load_addons(addons: list[str], env_profile: str) -> list[tuple[str, str]]
+:canonical: fairdm.conf.addons.load_addons
+
+```{autodoc2-docstring} fairdm.conf.addons.load_addons
+```
+````

@@ -1,0 +1,494 @@
+# {py:mod}`fairdm.core.sample.admin`
+
+```{py:module} fairdm.core.sample.admin
+```
+
+```{autodoc2-docstring} fairdm.core.sample.admin
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`SampleDatasetListFilter <fairdm.core.sample.admin.SampleDatasetListFilter>`
+  - ```{autodoc2-docstring} fairdm.core.sample.admin.SampleDatasetListFilter
+    :summary:
+    ```
+* - {py:obj}`SampleDescriptionInline <fairdm.core.sample.admin.SampleDescriptionInline>`
+  - ```{autodoc2-docstring} fairdm.core.sample.admin.SampleDescriptionInline
+    :summary:
+    ```
+* - {py:obj}`SampleDateInline <fairdm.core.sample.admin.SampleDateInline>`
+  - ```{autodoc2-docstring} fairdm.core.sample.admin.SampleDateInline
+    :summary:
+    ```
+* - {py:obj}`SampleIdentifierInline <fairdm.core.sample.admin.SampleIdentifierInline>`
+  - ```{autodoc2-docstring} fairdm.core.sample.admin.SampleIdentifierInline
+    :summary:
+    ```
+* - {py:obj}`SampleContributionInline <fairdm.core.sample.admin.SampleContributionInline>`
+  - ```{autodoc2-docstring} fairdm.core.sample.admin.SampleContributionInline
+    :summary:
+    ```
+* - {py:obj}`SampleRelationInline <fairdm.core.sample.admin.SampleRelationInline>`
+  - ```{autodoc2-docstring} fairdm.core.sample.admin.SampleRelationInline
+    :summary:
+    ```
+* - {py:obj}`SampleChildAdmin <fairdm.core.sample.admin.SampleChildAdmin>`
+  - ```{autodoc2-docstring} fairdm.core.sample.admin.SampleChildAdmin
+    :summary:
+    ```
+* - {py:obj}`SampleParentAdmin <fairdm.core.sample.admin.SampleParentAdmin>`
+  - ```{autodoc2-docstring} fairdm.core.sample.admin.SampleParentAdmin
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} SampleDatasetListFilter(field, request, params, model, model_admin, field_path)
+:canonical: fairdm.core.sample.admin.SampleDatasetListFilter
+
+Bases: {py:obj}`django.contrib.admin.RelatedFieldListFilter`
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleDatasetListFilter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleDatasetListFilter.__init__
+```
+
+````{py:method} field_choices(field, request, model_admin)
+:canonical: fairdm.core.sample.admin.SampleDatasetListFilter.field_choices
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleDatasetListFilter.field_choices
+```
+
+````
+
+`````
+
+`````{py:class} SampleDescriptionInline(parent_model, admin_site)
+:canonical: fairdm.core.sample.admin.SampleDescriptionInline
+
+Bases: {py:obj}`django.contrib.admin.StackedInline`
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleDescriptionInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleDescriptionInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.sample.admin.SampleDescriptionInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleDescriptionInline.model
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.core.sample.admin.SampleDescriptionInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleDescriptionInline.extra
+```
+
+````
+
+````{py:method} get_formset(request, obj=None, **kwargs)
+:canonical: fairdm.core.sample.admin.SampleDescriptionInline.get_formset
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleDescriptionInline.get_formset
+```
+
+````
+
+`````
+
+`````{py:class} SampleDateInline(parent_model, admin_site)
+:canonical: fairdm.core.sample.admin.SampleDateInline
+
+Bases: {py:obj}`django.contrib.admin.StackedInline`
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleDateInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleDateInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.sample.admin.SampleDateInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleDateInline.model
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.core.sample.admin.SampleDateInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleDateInline.extra
+```
+
+````
+
+````{py:method} get_formset(request, obj=None, **kwargs)
+:canonical: fairdm.core.sample.admin.SampleDateInline.get_formset
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleDateInline.get_formset
+```
+
+````
+
+`````
+
+`````{py:class} SampleIdentifierInline(parent_model, admin_site)
+:canonical: fairdm.core.sample.admin.SampleIdentifierInline
+
+Bases: {py:obj}`django.contrib.admin.StackedInline`
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleIdentifierInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleIdentifierInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.sample.admin.SampleIdentifierInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleIdentifierInline.model
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.core.sample.admin.SampleIdentifierInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleIdentifierInline.extra
+```
+
+````
+
+````{py:method} get_formset(request, obj=None, **kwargs)
+:canonical: fairdm.core.sample.admin.SampleIdentifierInline.get_formset
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleIdentifierInline.get_formset
+```
+
+````
+
+`````
+
+`````{py:class} SampleContributionInline(parent_model, admin_site)
+:canonical: fairdm.core.sample.admin.SampleContributionInline
+
+Bases: {py:obj}`django.contrib.contenttypes.admin.GenericTabularInline`
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleContributionInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleContributionInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.sample.admin.SampleContributionInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleContributionInline.model
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.core.sample.admin.SampleContributionInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleContributionInline.extra
+```
+
+````
+
+````{py:attribute} ct_field
+:canonical: fairdm.core.sample.admin.SampleContributionInline.ct_field
+:value: >
+   'content_type'
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleContributionInline.ct_field
+```
+
+````
+
+````{py:attribute} ct_fk_field
+:canonical: fairdm.core.sample.admin.SampleContributionInline.ct_fk_field
+:value: >
+   'object_id'
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleContributionInline.ct_fk_field
+```
+
+````
+
+`````
+
+`````{py:class} SampleRelationInline(parent_model, admin_site)
+:canonical: fairdm.core.sample.admin.SampleRelationInline
+
+Bases: {py:obj}`django.contrib.admin.TabularInline`
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleRelationInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleRelationInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.sample.admin.SampleRelationInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleRelationInline.model
+```
+
+````
+
+````{py:attribute} fk_name
+:canonical: fairdm.core.sample.admin.SampleRelationInline.fk_name
+:value: >
+   'source'
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleRelationInline.fk_name
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.core.sample.admin.SampleRelationInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleRelationInline.extra
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.core.sample.admin.SampleRelationInline.fields
+:value: >
+   ['type', 'target']
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleRelationInline.fields
+```
+
+````
+
+`````
+
+`````{py:class} SampleChildAdmin(model: type[polymorphic.admin.childadmin._ModelT], admin_site: typing.Any, *args: typing.Any, **kwargs: typing.Any)
+:canonical: fairdm.core.sample.admin.SampleChildAdmin
+
+Bases: {py:obj}`polymorphic.admin.PolymorphicChildModelAdmin`
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleChildAdmin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleChildAdmin.__init__
+```
+
+````{py:attribute} list_display
+:canonical: fairdm.core.sample.admin.SampleChildAdmin.list_display
+:value: >
+   ['name', 'dataset', 'status', 'sample_type', 'location', 'added', 'modified']
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleChildAdmin.list_display
+```
+
+````
+
+````{py:attribute} list_filter
+:canonical: fairdm.core.sample.admin.SampleChildAdmin.list_filter
+:value: >
+   [('dataset',), 'status', 'added']
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleChildAdmin.list_filter
+```
+
+````
+
+````{py:attribute} search_fields
+:canonical: fairdm.core.sample.admin.SampleChildAdmin.search_fields
+:value: >
+   ['name', 'local_id', 'uuid']
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleChildAdmin.search_fields
+```
+
+````
+
+````{py:attribute} readonly_fields
+:canonical: fairdm.core.sample.admin.SampleChildAdmin.readonly_fields
+:value: >
+   ['uuid', 'added', 'modified']
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleChildAdmin.readonly_fields
+```
+
+````
+
+````{py:attribute} autocomplete_fields
+:canonical: fairdm.core.sample.admin.SampleChildAdmin.autocomplete_fields
+:value: >
+   ['dataset']
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleChildAdmin.autocomplete_fields
+```
+
+````
+
+````{py:attribute} inlines
+:canonical: fairdm.core.sample.admin.SampleChildAdmin.inlines
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleChildAdmin.inlines
+```
+
+````
+
+````{py:method} formfield_for_foreignkey(db_field, request, **kwargs)
+:canonical: fairdm.core.sample.admin.SampleChildAdmin.formfield_for_foreignkey
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleChildAdmin.formfield_for_foreignkey
+```
+
+````
+
+````{py:attribute} base_fieldsets
+:canonical: fairdm.core.sample.admin.SampleChildAdmin.base_fieldsets
+:value: >
+   ((None,), ('Metadata',))
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleChildAdmin.base_fieldsets
+```
+
+````
+
+````{py:method} sample_type(obj)
+:canonical: fairdm.core.sample.admin.SampleChildAdmin.sample_type
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleChildAdmin.sample_type
+```
+
+````
+
+`````
+
+`````{py:class} SampleParentAdmin(model: type[polymorphic.admin.parentadmin._ModelT], admin_site: typing.Any, *args: typing.Any, **kwargs: typing.Any)
+:canonical: fairdm.core.sample.admin.SampleParentAdmin
+
+Bases: {py:obj}`polymorphic.admin.PolymorphicParentModelAdmin`
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleParentAdmin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleParentAdmin.__init__
+```
+
+````{py:attribute} base_model
+:canonical: fairdm.core.sample.admin.SampleParentAdmin.base_model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleParentAdmin.base_model
+```
+
+````
+
+````{py:attribute} list_display
+:canonical: fairdm.core.sample.admin.SampleParentAdmin.list_display
+:value: >
+   ['name', 'dataset', 'status', 'sample_type', 'location', 'added', 'modified']
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleParentAdmin.list_display
+```
+
+````
+
+````{py:attribute} list_filter
+:canonical: fairdm.core.sample.admin.SampleParentAdmin.list_filter
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleParentAdmin.list_filter
+```
+
+````
+
+````{py:attribute} search_fields
+:canonical: fairdm.core.sample.admin.SampleParentAdmin.search_fields
+:value: >
+   ['name', 'local_id', 'uuid']
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleParentAdmin.search_fields
+```
+
+````
+
+````{py:method} sample_type(obj)
+:canonical: fairdm.core.sample.admin.SampleParentAdmin.sample_type
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleParentAdmin.sample_type
+```
+
+````
+
+````{py:method} get_child_models()
+:canonical: fairdm.core.sample.admin.SampleParentAdmin.get_child_models
+
+```{autodoc2-docstring} fairdm.core.sample.admin.SampleParentAdmin.get_child_models
+```
+
+````
+
+`````

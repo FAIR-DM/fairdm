@@ -1,0 +1,88 @@
+# {py:mod}`fairdm.core.measurement.managers`
+
+```{py:module} fairdm.core.measurement.managers
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.managers
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`MeasurementQuerySet <fairdm.core.measurement.managers.MeasurementQuerySet>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.managers.MeasurementQuerySet
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} MeasurementQuerySet(*args: typing.Any, **kwargs: typing.Any)
+:canonical: fairdm.core.measurement.managers.MeasurementQuerySet
+
+Bases: {py:obj}`fairdm.core.managers.RecordVisibilityMixin`, {py:obj}`polymorphic.managers.PolymorphicQuerySet`
+
+```{autodoc2-docstring} fairdm.core.measurement.managers.MeasurementQuerySet
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.managers.MeasurementQuerySet.__init__
+```
+
+````{py:method} with_related()
+:canonical: fairdm.core.measurement.managers.MeasurementQuerySet.with_related
+
+```{autodoc2-docstring} fairdm.core.measurement.managers.MeasurementQuerySet.with_related
+```
+
+````
+
+````{py:method} with_effective_location(user=None)
+:canonical: fairdm.core.measurement.managers.MeasurementQuerySet.with_effective_location
+
+```{autodoc2-docstring} fairdm.core.measurement.managers.MeasurementQuerySet.with_effective_location
+```
+
+````
+
+````{py:method} inside(area, user=None)
+:canonical: fairdm.core.measurement.managers.MeasurementQuerySet.inside
+
+```{autodoc2-docstring} fairdm.core.measurement.managers.MeasurementQuerySet.inside
+```
+
+````
+
+````{py:method} within_distance(point, distance, user=None)
+:canonical: fairdm.core.measurement.managers.MeasurementQuerySet.within_distance
+
+```{autodoc2-docstring} fairdm.core.measurement.managers.MeasurementQuerySet.within_distance
+```
+
+````
+
+````{py:method} nearest(point, user=None)
+:canonical: fairdm.core.measurement.managers.MeasurementQuerySet.nearest
+
+```{autodoc2-docstring} fairdm.core.measurement.managers.MeasurementQuerySet.nearest
+```
+
+````
+
+````{py:method} with_metadata()
+:canonical: fairdm.core.measurement.managers.MeasurementQuerySet.with_metadata
+
+```{autodoc2-docstring} fairdm.core.measurement.managers.MeasurementQuerySet.with_metadata
+```
+
+````
+
+`````

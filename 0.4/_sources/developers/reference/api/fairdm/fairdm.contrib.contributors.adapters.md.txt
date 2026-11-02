@@ -1,0 +1,143 @@
+# {py:mod}`fairdm.contrib.contributors.adapters`
+
+```{py:module} fairdm.contrib.contributors.adapters
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.adapters
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`AccountAdapter <fairdm.contrib.contributors.adapters.AccountAdapter>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.adapters.AccountAdapter
+    :summary:
+    ```
+* - {py:obj}`SocialAccountAdapter <fairdm.contrib.contributors.adapters.SocialAccountAdapter>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.adapters.SocialAccountAdapter
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`is_provider <fairdm.contrib.contributors.adapters.is_provider>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.adapters.is_provider
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} is_provider(name, sociallogin)
+:canonical: fairdm.contrib.contributors.adapters.is_provider
+
+```{autodoc2-docstring} fairdm.contrib.contributors.adapters.is_provider
+```
+````
+
+`````{py:class} AccountAdapter(request: django.http.HttpRequest | None = None)
+:canonical: fairdm.contrib.contributors.adapters.AccountAdapter
+
+Bases: {py:obj}`allauth.account.adapter.DefaultAccountAdapter`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.adapters.AccountAdapter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.adapters.AccountAdapter.__init__
+```
+
+````{py:method} is_open_for_signup(request: django.http.HttpRequest)
+:canonical: fairdm.contrib.contributors.adapters.AccountAdapter.is_open_for_signup
+
+```{autodoc2-docstring} fairdm.contrib.contributors.adapters.AccountAdapter.is_open_for_signup
+```
+
+````
+
+````{py:method} get_user_signed_up_signal()
+:canonical: fairdm.contrib.contributors.adapters.AccountAdapter.get_user_signed_up_signal
+
+```{autodoc2-docstring} fairdm.contrib.contributors.adapters.AccountAdapter.get_user_signed_up_signal
+```
+
+````
+
+`````
+
+`````{py:class} SocialAccountAdapter(request: django.http.HttpRequest | None = None)
+:canonical: fairdm.contrib.contributors.adapters.SocialAccountAdapter
+
+Bases: {py:obj}`allauth.socialaccount.adapter.DefaultSocialAccountAdapter`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.adapters.SocialAccountAdapter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.adapters.SocialAccountAdapter.__init__
+```
+
+````{py:method} is_open_for_signup(request, socialogin)
+:canonical: fairdm.contrib.contributors.adapters.SocialAccountAdapter.is_open_for_signup
+
+```{autodoc2-docstring} fairdm.contrib.contributors.adapters.SocialAccountAdapter.is_open_for_signup
+```
+
+````
+
+````{py:method} get_signup_form_initial_data(sociallogin)
+:canonical: fairdm.contrib.contributors.adapters.SocialAccountAdapter.get_signup_form_initial_data
+
+```{autodoc2-docstring} fairdm.contrib.contributors.adapters.SocialAccountAdapter.get_signup_form_initial_data
+```
+
+````
+
+````{py:method} get_db_user_by_orcid(orcid_id)
+:canonical: fairdm.contrib.contributors.adapters.SocialAccountAdapter.get_db_user_by_orcid
+
+```{autodoc2-docstring} fairdm.contrib.contributors.adapters.SocialAccountAdapter.get_db_user_by_orcid
+```
+
+````
+
+````{py:method} pre_social_login(request, sociallogin)
+:canonical: fairdm.contrib.contributors.adapters.SocialAccountAdapter.pre_social_login
+
+```{autodoc2-docstring} fairdm.contrib.contributors.adapters.SocialAccountAdapter.pre_social_login
+```
+
+````
+
+````{py:method} save_user(request, sociallogin, form=None)
+:canonical: fairdm.contrib.contributors.adapters.SocialAccountAdapter.save_user
+
+```{autodoc2-docstring} fairdm.contrib.contributors.adapters.SocialAccountAdapter.save_user
+```
+
+````
+
+````{py:method} populate_user(request, sociallogin, data)
+:canonical: fairdm.contrib.contributors.adapters.SocialAccountAdapter.populate_user
+
+```{autodoc2-docstring} fairdm.contrib.contributors.adapters.SocialAccountAdapter.populate_user
+```
+
+````
+
+`````

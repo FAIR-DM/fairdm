@@ -1,0 +1,182 @@
+# {py:mod}`fairdm.management.commands.upgrade_vocabularies`
+
+```{py:module} fairdm.management.commands.upgrade_vocabularies
+```
+
+```{autodoc2-docstring} fairdm.management.commands.upgrade_vocabularies
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Command <fairdm.management.commands.upgrade_vocabularies.Command>`
+  - ```{autodoc2-docstring} fairdm.management.commands.upgrade_vocabularies.Command
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FAIRDM_VOCABULARIES <fairdm.management.commands.upgrade_vocabularies.FAIRDM_VOCABULARIES>`
+  - ```{autodoc2-docstring} fairdm.management.commands.upgrade_vocabularies.FAIRDM_VOCABULARIES
+    :summary:
+    ```
+* - {py:obj}`LEGACY_TABLES <fairdm.management.commands.upgrade_vocabularies.LEGACY_TABLES>`
+  - ```{autodoc2-docstring} fairdm.management.commands.upgrade_vocabularies.LEGACY_TABLES
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} FAIRDM_VOCABULARIES
+:canonical: fairdm.management.commands.upgrade_vocabularies.FAIRDM_VOCABULARIES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.management.commands.upgrade_vocabularies.FAIRDM_VOCABULARIES
+```
+
+````
+
+````{py:data} LEGACY_TABLES
+:canonical: fairdm.management.commands.upgrade_vocabularies.LEGACY_TABLES
+:value: >
+   ('research_vocabs_concept', 'research_vocabs_vocabulary')
+
+```{autodoc2-docstring} fairdm.management.commands.upgrade_vocabularies.LEGACY_TABLES
+```
+
+````
+
+`````{py:class} Command(stdout=None, stderr=None, no_color=False, force_color=False)
+:canonical: fairdm.management.commands.upgrade_vocabularies.Command
+
+Bases: {py:obj}`django.core.management.base.BaseCommand`
+
+```{autodoc2-docstring} fairdm.management.commands.upgrade_vocabularies.Command
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.management.commands.upgrade_vocabularies.Command.__init__
+```
+
+````{py:attribute} help
+:canonical: fairdm.management.commands.upgrade_vocabularies.Command.help
+:value: >
+   'Store the terms django-research-vocabs held as the addresses of the same concepts. Load the vocabula...'
+
+```{autodoc2-docstring} fairdm.management.commands.upgrade_vocabularies.Command.help
+```
+
+````
+
+````{py:method} add_arguments(parser)
+:canonical: fairdm.management.commands.upgrade_vocabularies.Command.add_arguments
+
+```{autodoc2-docstring} fairdm.management.commands.upgrade_vocabularies.Command.add_arguments
+```
+
+````
+
+````{py:method} handle(*args, database, **options)
+:canonical: fairdm.management.commands.upgrade_vocabularies.Command.handle
+
+```{autodoc2-docstring} fairdm.management.commands.upgrade_vocabularies.Command.handle
+```
+
+````
+
+````{py:method} create_vocabulary_tables(connection)
+:canonical: fairdm.management.commands.upgrade_vocabularies.Command.create_vocabulary_tables
+
+```{autodoc2-docstring} fairdm.management.commands.upgrade_vocabularies.Command.create_vocabulary_tables
+```
+
+````
+
+````{py:method} models_to_upgrade(database)
+:canonical: fairdm.management.commands.upgrade_vocabularies.Command.models_to_upgrade
+
+```{autodoc2-docstring} fairdm.management.commands.upgrade_vocabularies.Command.models_to_upgrade
+```
+
+````
+
+````{py:method} legacy_columns(connection, database)
+:canonical: fairdm.management.commands.upgrade_vocabularies.Command.legacy_columns
+
+```{autodoc2-docstring} fairdm.management.commands.upgrade_vocabularies.Command.legacy_columns
+```
+
+````
+
+````{py:method} legacy_tables(connection, database)
+:canonical: fairdm.management.commands.upgrade_vocabularies.Command.legacy_tables
+
+```{autodoc2-docstring} fairdm.management.commands.upgrade_vocabularies.Command.legacy_tables
+```
+
+````
+
+````{py:method} admitted(field, database)
+:canonical: fairdm.management.commands.upgrade_vocabularies.Command.admitted
+
+```{autodoc2-docstring} fairdm.management.commands.upgrade_vocabularies.Command.admitted
+```
+
+````
+
+````{py:method} match_columns(cursor, database, fields)
+:canonical: fairdm.management.commands.upgrade_vocabularies.Command.match_columns
+
+```{autodoc2-docstring} fairdm.management.commands.upgrade_vocabularies.Command.match_columns
+```
+
+````
+
+````{py:method} match_tables(cursor, database, tables)
+:canonical: fairdm.management.commands.upgrade_vocabularies.Command.match_tables
+
+```{autodoc2-docstring} fairdm.management.commands.upgrade_vocabularies.Command.match_tables
+```
+
+````
+
+````{py:method} through_columns(field)
+:canonical: fairdm.management.commands.upgrade_vocabularies.Command.through_columns
+
+```{autodoc2-docstring} fairdm.management.commands.upgrade_vocabularies.Command.through_columns
+```
+
+````
+
+````{py:method} wide_column(model, field)
+:canonical: fairdm.management.commands.upgrade_vocabularies.Command.wide_column
+
+```{autodoc2-docstring} fairdm.management.commands.upgrade_vocabularies.Command.wide_column
+```
+
+````
+
+````{py:method} widen(editor, model, field, length)
+:canonical: fairdm.management.commands.upgrade_vocabularies.Command.widen
+
+```{autodoc2-docstring} fairdm.management.commands.upgrade_vocabularies.Command.widen
+```
+
+````
+
+`````

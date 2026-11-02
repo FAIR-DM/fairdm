@@ -1,0 +1,70 @@
+# {py:mod}`fairdm.contrib.location.apps`
+
+```{py:module} fairdm.contrib.location.apps
+```
+
+```{autodoc2-docstring} fairdm.contrib.location.apps
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`LocationConfig <fairdm.contrib.location.apps.LocationConfig>`
+  - ```{autodoc2-docstring} fairdm.contrib.location.apps.LocationConfig
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} LocationConfig(app_name, app_module)
+:canonical: fairdm.contrib.location.apps.LocationConfig
+
+Bases: {py:obj}`django.apps.AppConfig`
+
+```{autodoc2-docstring} fairdm.contrib.location.apps.LocationConfig
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.location.apps.LocationConfig.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.contrib.location.apps.LocationConfig.name
+:value: >
+   'fairdm.contrib.location'
+
+```{autodoc2-docstring} fairdm.contrib.location.apps.LocationConfig.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.contrib.location.apps.LocationConfig.label
+:value: >
+   'fairdm_location'
+
+```{autodoc2-docstring} fairdm.contrib.location.apps.LocationConfig.label
+```
+
+````
+
+````{py:attribute} verbose_name
+:canonical: fairdm.contrib.location.apps.LocationConfig.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.location.apps.LocationConfig.verbose_name
+```
+
+````
+
+`````

@@ -1,0 +1,745 @@
+# {py:mod}`fairdm.core.dataset.models`
+
+```{py:module} fairdm.core.dataset.models
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.models
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`DatasetLiteratureRelation <fairdm.core.dataset.models.DatasetLiteratureRelation>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.models.DatasetLiteratureRelation
+    :summary:
+    ```
+* - {py:obj}`DatasetQuerySet <fairdm.core.dataset.models.DatasetQuerySet>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.models.DatasetQuerySet
+    :summary:
+    ```
+* - {py:obj}`DatasetManager <fairdm.core.dataset.models.DatasetManager>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.models.DatasetManager
+    :summary:
+    ```
+* - {py:obj}`Dataset <fairdm.core.dataset.models.Dataset>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.models.Dataset
+    :summary:
+    ```
+* - {py:obj}`DatasetDescription <fairdm.core.dataset.models.DatasetDescription>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.models.DatasetDescription
+    :summary:
+    ```
+* - {py:obj}`DatasetDate <fairdm.core.dataset.models.DatasetDate>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.models.DatasetDate
+    :summary:
+    ```
+* - {py:obj}`DatasetIdentifier <fairdm.core.dataset.models.DatasetIdentifier>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.models.DatasetIdentifier
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`get_default_license_pk <fairdm.core.dataset.models.get_default_license_pk>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.models.get_default_license_pk
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`DATACITE_RELATIONSHIP_TYPES <fairdm.core.dataset.models.DATACITE_RELATIONSHIP_TYPES>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.models.DATACITE_RELATIONSHIP_TYPES
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} get_default_license_pk()
+:canonical: fairdm.core.dataset.models.get_default_license_pk
+
+```{autodoc2-docstring} fairdm.core.dataset.models.get_default_license_pk
+```
+````
+
+````{py:data} DATACITE_RELATIONSHIP_TYPES
+:canonical: fairdm.core.dataset.models.DATACITE_RELATIONSHIP_TYPES
+:value: >
+   [('IsCitedBy',), ('Cites',), ('IsSupplementTo',), ('IsSupplementedBy',), ('IsContinuedBy',), ('Conti...
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DATACITE_RELATIONSHIP_TYPES
+```
+
+````
+
+``````{py:class} DatasetLiteratureRelation(*args, **kwargs)
+:canonical: fairdm.core.dataset.models.DatasetLiteratureRelation
+
+Bases: {py:obj}`fairdm.db.models.Model`
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetLiteratureRelation
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetLiteratureRelation.__init__
+```
+
+````{py:attribute} dataset
+:canonical: fairdm.core.dataset.models.DatasetLiteratureRelation.dataset
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetLiteratureRelation.dataset
+```
+
+````
+
+````{py:attribute} literature_item
+:canonical: fairdm.core.dataset.models.DatasetLiteratureRelation.literature_item
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetLiteratureRelation.literature_item
+```
+
+````
+
+````{py:attribute} relationship_type
+:canonical: fairdm.core.dataset.models.DatasetLiteratureRelation.relationship_type
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetLiteratureRelation.relationship_type
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.dataset.models.DatasetLiteratureRelation.Meta
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetLiteratureRelation.Meta
+```
+
+````{py:attribute} verbose_name
+:canonical: fairdm.core.dataset.models.DatasetLiteratureRelation.Meta.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetLiteratureRelation.Meta.verbose_name
+```
+
+````
+
+````{py:attribute} verbose_name_plural
+:canonical: fairdm.core.dataset.models.DatasetLiteratureRelation.Meta.verbose_name_plural
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetLiteratureRelation.Meta.verbose_name_plural
+```
+
+````
+
+````{py:attribute} unique_together
+:canonical: fairdm.core.dataset.models.DatasetLiteratureRelation.Meta.unique_together
+:value: >
+   [['dataset', 'literature_item', 'relationship_type']]
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetLiteratureRelation.Meta.unique_together
+```
+
+````
+
+````{py:attribute} indexes
+:canonical: fairdm.core.dataset.models.DatasetLiteratureRelation.Meta.indexes
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetLiteratureRelation.Meta.indexes
+```
+
+````
+
+`````
+
+``````
+
+`````{py:class} DatasetQuerySet(model=None, query=None, using=None, hints=None)
+:canonical: fairdm.core.dataset.models.DatasetQuerySet
+
+Bases: {py:obj}`fairdm.core.managers.RecordLevelMixin`, {py:obj}`fairdm.db.models.QuerySet`
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetQuerySet
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetQuerySet.__init__
+```
+
+````{py:method} get_visible() -> fairdm.core.dataset.models.DatasetQuerySet
+:canonical: fairdm.core.dataset.models.DatasetQuerySet.get_visible
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetQuerySet.get_visible
+```
+
+````
+
+````{py:method} published() -> fairdm.core.dataset.models.DatasetQuerySet
+:canonical: fairdm.core.dataset.models.DatasetQuerySet.published
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetQuerySet.published
+```
+
+````
+
+````{py:method} with_related() -> fairdm.core.dataset.models.DatasetQuerySet
+:canonical: fairdm.core.dataset.models.DatasetQuerySet.with_related
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetQuerySet.with_related
+```
+
+````
+
+````{py:method} with_contributors() -> fairdm.core.dataset.models.DatasetQuerySet
+:canonical: fairdm.core.dataset.models.DatasetQuerySet.with_contributors
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetQuerySet.with_contributors
+```
+
+````
+
+````{py:method} with_list_data() -> fairdm.core.dataset.models.DatasetQuerySet
+:canonical: fairdm.core.dataset.models.DatasetQuerySet.with_list_data
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetQuerySet.with_list_data
+```
+
+````
+
+````{py:method} with_metadata() -> fairdm.core.dataset.models.DatasetQuerySet
+:canonical: fairdm.core.dataset.models.DatasetQuerySet.with_metadata
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetQuerySet.with_metadata
+```
+
+````
+
+`````
+
+`````{py:class} DatasetManager
+:canonical: fairdm.core.dataset.models.DatasetManager
+
+Bases: {py:obj}`models.Manager.from_queryset`\({py:obj}`DatasetQuerySet`\)
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetManager
+```
+
+````{py:method} get_queryset() -> fairdm.core.dataset.models.DatasetQuerySet
+:canonical: fairdm.core.dataset.models.DatasetManager.get_queryset
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetManager.get_queryset
+```
+
+````
+
+`````
+
+``````{py:class} Dataset(*args, **kwargs)
+:canonical: fairdm.core.dataset.models.Dataset
+
+Bases: {py:obj}`fairdm.core.abstract.BaseModel`
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.__init__
+```
+
+````{py:attribute} CONTRIBUTOR_ROLES
+:canonical: fairdm.core.dataset.models.Dataset.CONTRIBUTOR_ROLES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.CONTRIBUTOR_ROLES
+```
+
+````
+
+````{py:attribute} DATE_TYPES
+:canonical: fairdm.core.dataset.models.Dataset.DATE_TYPES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.DATE_TYPES
+```
+
+````
+
+````{py:attribute} DESCRIPTION_TYPES
+:canonical: fairdm.core.dataset.models.Dataset.DESCRIPTION_TYPES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.DESCRIPTION_TYPES
+```
+
+````
+
+````{py:attribute} IDENTIFIER_TYPES
+:canonical: fairdm.core.dataset.models.Dataset.IDENTIFIER_TYPES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.IDENTIFIER_TYPES
+```
+
+````
+
+````{py:attribute} VISIBILITY_CHOICES
+:canonical: fairdm.core.dataset.models.Dataset.VISIBILITY_CHOICES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.VISIBILITY_CHOICES
+```
+
+````
+
+````{py:attribute} DEFAULT_ROLES
+:canonical: fairdm.core.dataset.models.Dataset.DEFAULT_ROLES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.DEFAULT_ROLES
+```
+
+````
+
+````{py:attribute} objects
+:canonical: fairdm.core.dataset.models.Dataset.objects
+:value: >
+   'DatasetManager(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.objects
+```
+
+````
+
+````{py:attribute} all_objects
+:canonical: fairdm.core.dataset.models.Dataset.all_objects
+:value: >
+   'as_manager(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.all_objects
+```
+
+````
+
+````{py:attribute} uuid
+:canonical: fairdm.core.dataset.models.Dataset.uuid
+:value: >
+   'ShortUUIDField(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.uuid
+```
+
+````
+
+````{py:attribute} visibility
+:canonical: fairdm.core.dataset.models.Dataset.visibility
+:value: >
+   'IntegerField(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.visibility
+```
+
+````
+
+````{py:attribute} published
+:canonical: fairdm.core.dataset.models.Dataset.published
+:value: >
+   'BooleanField(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.published
+```
+
+````
+
+````{py:attribute} contributors
+:canonical: fairdm.core.dataset.models.Dataset.contributors
+:value: >
+   'GenericRelation(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.contributors
+```
+
+````
+
+````{py:attribute} created_by
+:canonical: fairdm.core.dataset.models.Dataset.created_by
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.created_by
+```
+
+````
+
+````{py:attribute} project
+:canonical: fairdm.core.dataset.models.Dataset.project
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.project
+```
+
+````
+
+````{py:attribute} reference
+:canonical: fairdm.core.dataset.models.Dataset.reference
+:value: >
+   'OneToOneField(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.reference
+```
+
+````
+
+````{py:attribute} related_literature
+:canonical: fairdm.core.dataset.models.Dataset.related_literature
+:type: fairdm.db.models.ManyToManyField
+:value: >
+   'ManyToManyField(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.related_literature
+```
+
+````
+
+````{py:attribute} license
+:canonical: fairdm.core.dataset.models.Dataset.license
+:value: >
+   'LicenseField(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.license
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.dataset.models.Dataset.Meta
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.Meta
+```
+
+````{py:attribute} verbose_name
+:canonical: fairdm.core.dataset.models.Dataset.Meta.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.Meta.verbose_name
+```
+
+````
+
+````{py:attribute} verbose_name_plural
+:canonical: fairdm.core.dataset.models.Dataset.Meta.verbose_name_plural
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.Meta.verbose_name_plural
+```
+
+````
+
+````{py:attribute} default_related_name
+:canonical: fairdm.core.dataset.models.Dataset.Meta.default_related_name
+:value: >
+   'datasets'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.Meta.default_related_name
+```
+
+````
+
+````{py:attribute} ordering
+:canonical: fairdm.core.dataset.models.Dataset.Meta.ordering
+:value: >
+   ['-modified']
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.Meta.ordering
+```
+
+````
+
+````{py:attribute} indexes
+:canonical: fairdm.core.dataset.models.Dataset.Meta.indexes
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.Meta.indexes
+```
+
+````
+
+````{py:attribute} permissions
+:canonical: fairdm.core.dataset.models.Dataset.Meta.permissions
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.Meta.permissions
+```
+
+````
+
+`````
+
+````{py:property} data_is_public
+:canonical: fairdm.core.dataset.models.Dataset.data_is_public
+:type: bool
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.data_is_public
+```
+
+````
+
+````{py:method} clean()
+:canonical: fairdm.core.dataset.models.Dataset.clean
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.clean
+```
+
+````
+
+````{py:method} get_absolute_url()
+:canonical: fairdm.core.dataset.models.Dataset.get_absolute_url
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.get_absolute_url
+```
+
+````
+
+````{py:method} has_data()
+:canonical: fairdm.core.dataset.models.Dataset.has_data
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.has_data
+```
+
+````
+
+````{py:method} spatial_coverage(user=None)
+:canonical: fairdm.core.dataset.models.Dataset.spatial_coverage
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.spatial_coverage
+```
+
+````
+
+``````
+
+``````{py:class} DatasetDescription(*args, **kwargs)
+:canonical: fairdm.core.dataset.models.DatasetDescription
+
+Bases: {py:obj}`fairdm.core.abstract.AbstractDescription`
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetDescription
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetDescription.__init__
+```
+
+````{py:attribute} type
+:canonical: fairdm.core.dataset.models.DatasetDescription.type
+:value: >
+   'ConceptField(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetDescription.type
+```
+
+````
+
+````{py:attribute} related
+:canonical: fairdm.core.dataset.models.DatasetDescription.related
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetDescription.related
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.dataset.models.DatasetDescription.Meta
+
+Bases: {py:obj}`fairdm.core.abstract.AbstractDescription.Meta`
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetDescription.Meta
+```
+
+````{py:attribute} indexes
+:canonical: fairdm.core.dataset.models.DatasetDescription.Meta.indexes
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetDescription.Meta.indexes
+```
+
+````
+
+`````
+
+````{py:method} clean()
+:canonical: fairdm.core.dataset.models.DatasetDescription.clean
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetDescription.clean
+```
+
+````
+
+``````
+
+``````{py:class} DatasetDate(*args, **kwargs)
+:canonical: fairdm.core.dataset.models.DatasetDate
+
+Bases: {py:obj}`fairdm.core.abstract.AbstractDate`
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetDate
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetDate.__init__
+```
+
+````{py:attribute} type
+:canonical: fairdm.core.dataset.models.DatasetDate.type
+:value: >
+   'ConceptField(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetDate.type
+```
+
+````
+
+````{py:attribute} related
+:canonical: fairdm.core.dataset.models.DatasetDate.related
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetDate.related
+```
+
+````
+
+````{py:attribute} START_TYPE
+:canonical: fairdm.core.dataset.models.DatasetDate.START_TYPE
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetDate.START_TYPE
+```
+
+````
+
+````{py:attribute} END_TYPE
+:canonical: fairdm.core.dataset.models.DatasetDate.END_TYPE
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetDate.END_TYPE
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.dataset.models.DatasetDate.Meta
+
+Bases: {py:obj}`fairdm.core.abstract.AbstractDate.Meta`
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetDate.Meta
+```
+
+````{py:attribute} indexes
+:canonical: fairdm.core.dataset.models.DatasetDate.Meta.indexes
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetDate.Meta.indexes
+```
+
+````
+
+`````
+
+````{py:method} clean()
+:canonical: fairdm.core.dataset.models.DatasetDate.clean
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetDate.clean
+```
+
+````
+
+``````
+
+`````{py:class} DatasetIdentifier(*args, **kwargs)
+:canonical: fairdm.core.dataset.models.DatasetIdentifier
+
+Bases: {py:obj}`fairdm.core.abstract.AbstractIdentifier`
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetIdentifier
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetIdentifier.__init__
+```
+
+````{py:attribute} type
+:canonical: fairdm.core.dataset.models.DatasetIdentifier.type
+:value: >
+   'ConceptField(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetIdentifier.type
+```
+
+````
+
+````{py:attribute} related
+:canonical: fairdm.core.dataset.models.DatasetIdentifier.related
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetIdentifier.related
+```
+
+````
+
+`````

@@ -1,0 +1,88 @@
+# {py:mod}`fairdm.core.sample.managers`
+
+```{py:module} fairdm.core.sample.managers
+```
+
+```{autodoc2-docstring} fairdm.core.sample.managers
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`SampleQuerySet <fairdm.core.sample.managers.SampleQuerySet>`
+  - ```{autodoc2-docstring} fairdm.core.sample.managers.SampleQuerySet
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} SampleQuerySet(*args: typing.Any, **kwargs: typing.Any)
+:canonical: fairdm.core.sample.managers.SampleQuerySet
+
+Bases: {py:obj}`fairdm.utils.location.managers.LocatedQuerySet`, {py:obj}`fairdm.core.managers.RecordVisibilityMixin`, {py:obj}`polymorphic.managers.PolymorphicQuerySet`
+
+```{autodoc2-docstring} fairdm.core.sample.managers.SampleQuerySet
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.sample.managers.SampleQuerySet.__init__
+```
+
+````{py:method} with_related()
+:canonical: fairdm.core.sample.managers.SampleQuerySet.with_related
+
+```{autodoc2-docstring} fairdm.core.sample.managers.SampleQuerySet.with_related
+```
+
+````
+
+````{py:method} with_keywords()
+:canonical: fairdm.core.sample.managers.SampleQuerySet.with_keywords
+
+```{autodoc2-docstring} fairdm.core.sample.managers.SampleQuerySet.with_keywords
+```
+
+````
+
+````{py:method} with_metadata()
+:canonical: fairdm.core.sample.managers.SampleQuerySet.with_metadata
+
+```{autodoc2-docstring} fairdm.core.sample.managers.SampleQuerySet.with_metadata
+```
+
+````
+
+````{py:method} by_relationship(related_to=None, relationship_type=None)
+:canonical: fairdm.core.sample.managers.SampleQuerySet.by_relationship
+
+```{autodoc2-docstring} fairdm.core.sample.managers.SampleQuerySet.by_relationship
+```
+
+````
+
+````{py:method} get_descendants(sample, max_depth=None)
+:canonical: fairdm.core.sample.managers.SampleQuerySet.get_descendants
+
+```{autodoc2-docstring} fairdm.core.sample.managers.SampleQuerySet.get_descendants
+```
+
+````
+
+````{py:method} get_ancestors(sample, max_depth=None)
+:canonical: fairdm.core.sample.managers.SampleQuerySet.get_ancestors
+
+```{autodoc2-docstring} fairdm.core.sample.managers.SampleQuerySet.get_ancestors
+```
+
+````
+
+`````

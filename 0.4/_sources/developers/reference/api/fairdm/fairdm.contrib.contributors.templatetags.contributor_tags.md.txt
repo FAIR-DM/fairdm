@@ -1,0 +1,108 @@
+# {py:mod}`fairdm.contrib.contributors.templatetags.contributor_tags`
+
+```{py:module} fairdm.contrib.contributors.templatetags.contributor_tags
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.templatetags.contributor_tags
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`by_role <fairdm.contrib.contributors.templatetags.contributor_tags.by_role>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.templatetags.contributor_tags.by_role
+    :summary:
+    ```
+* - {py:obj}`has_role <fairdm.contrib.contributors.templatetags.contributor_tags.has_role>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.templatetags.contributor_tags.has_role
+    :summary:
+    ```
+* - {py:obj}`as_contributor <fairdm.contrib.contributors.templatetags.contributor_tags.as_contributor>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.templatetags.contributor_tags.as_contributor
+    :summary:
+    ```
+* - {py:obj}`as_contributors <fairdm.contrib.contributors.templatetags.contributor_tags.as_contributors>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.templatetags.contributor_tags.as_contributors
+    :summary:
+    ```
+* - {py:obj}`contributor_name <fairdm.contrib.contributors.templatetags.contributor_tags.contributor_name>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.templatetags.contributor_tags.contributor_name
+    :summary:
+    ```
+* - {py:obj}`split_contributors <fairdm.contrib.contributors.templatetags.contributor_tags.split_contributors>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.templatetags.contributor_tags.split_contributors
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`register <fairdm.contrib.contributors.templatetags.contributor_tags.register>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.templatetags.contributor_tags.register
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} register
+:canonical: fairdm.contrib.contributors.templatetags.contributor_tags.register
+:value: >
+   'Library(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.templatetags.contributor_tags.register
+```
+
+````
+
+````{py:function} by_role(contributions, roles=None)
+:canonical: fairdm.contrib.contributors.templatetags.contributor_tags.by_role
+
+```{autodoc2-docstring} fairdm.contrib.contributors.templatetags.contributor_tags.by_role
+```
+````
+
+````{py:function} has_role(contribution, roles=None)
+:canonical: fairdm.contrib.contributors.templatetags.contributor_tags.has_role
+
+```{autodoc2-docstring} fairdm.contrib.contributors.templatetags.contributor_tags.has_role
+```
+````
+
+````{py:function} as_contributor(value)
+:canonical: fairdm.contrib.contributors.templatetags.contributor_tags.as_contributor
+
+```{autodoc2-docstring} fairdm.contrib.contributors.templatetags.contributor_tags.as_contributor
+```
+````
+
+````{py:function} as_contributors(values)
+:canonical: fairdm.contrib.contributors.templatetags.contributor_tags.as_contributors
+
+```{autodoc2-docstring} fairdm.contrib.contributors.templatetags.contributor_tags.as_contributors
+```
+````
+
+````{py:function} contributor_name(contributor, name_format='')
+:canonical: fairdm.contrib.contributors.templatetags.contributor_tags.contributor_name
+
+```{autodoc2-docstring} fairdm.contrib.contributors.templatetags.contributor_tags.contributor_name
+```
+````
+
+````{py:function} split_contributors(values, limit=0, total=None)
+:canonical: fairdm.contrib.contributors.templatetags.contributor_tags.split_contributors
+
+```{autodoc2-docstring} fairdm.contrib.contributors.templatetags.contributor_tags.split_contributors
+```
+````

@@ -1,0 +1,185 @@
+# {py:mod}`fairdm.contrib.import_export.utils`
+
+```{py:module} fairdm.contrib.import_export.utils
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.utils
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`DataPackage <fairdm.contrib.import_export.utils.DataPackage>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.utils.DataPackage
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`get_formats <fairdm.contrib.import_export.utils.get_formats>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.utils.get_formats
+    :summary:
+    ```
+* - {py:obj}`get_export_formats <fairdm.contrib.import_export.utils.get_export_formats>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.utils.get_export_formats
+    :summary:
+    ```
+* - {py:obj}`get_import_formats <fairdm.contrib.import_export.utils.get_import_formats>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.utils.get_import_formats
+    :summary:
+    ```
+* - {py:obj}`build_metadata <fairdm.contrib.import_export.utils.build_metadata>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.utils.build_metadata
+    :summary:
+    ```
+* - {py:obj}`build_export_for_datatype <fairdm.contrib.import_export.utils.build_export_for_datatype>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.utils.build_export_for_datatype
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`export_choices <fairdm.contrib.import_export.utils.export_choices>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.utils.export_choices
+    :summary:
+    ```
+* - {py:obj}`import_choices <fairdm.contrib.import_export.utils.import_choices>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.utils.import_choices
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} get_formats()
+:canonical: fairdm.contrib.import_export.utils.get_formats
+
+```{autodoc2-docstring} fairdm.contrib.import_export.utils.get_formats
+```
+````
+
+````{py:function} get_export_formats()
+:canonical: fairdm.contrib.import_export.utils.get_export_formats
+
+```{autodoc2-docstring} fairdm.contrib.import_export.utils.get_export_formats
+```
+````
+
+````{py:function} get_import_formats()
+:canonical: fairdm.contrib.import_export.utils.get_import_formats
+
+```{autodoc2-docstring} fairdm.contrib.import_export.utils.get_import_formats
+```
+````
+
+````{py:data} export_choices
+:canonical: fairdm.contrib.import_export.utils.export_choices
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.utils.export_choices
+```
+
+````
+
+````{py:data} import_choices
+:canonical: fairdm.contrib.import_export.utils.import_choices
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.utils.import_choices
+```
+
+````
+
+````{py:function} build_metadata(dataset, request)
+:canonical: fairdm.contrib.import_export.utils.build_metadata
+
+```{autodoc2-docstring} fairdm.contrib.import_export.utils.build_metadata
+```
+````
+
+````{py:function} build_export_for_datatype(dataset, queryset, fmt='csv')
+:canonical: fairdm.contrib.import_export.utils.build_export_for_datatype
+
+```{autodoc2-docstring} fairdm.contrib.import_export.utils.build_export_for_datatype
+```
+````
+
+`````{py:class} DataPackage(dataset, request)
+:canonical: fairdm.contrib.import_export.utils.DataPackage
+
+```{autodoc2-docstring} fairdm.contrib.import_export.utils.DataPackage
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.utils.DataPackage.__init__
+```
+
+````{py:method} build_package()
+:canonical: fairdm.contrib.import_export.utils.DataPackage.build_package
+
+```{autodoc2-docstring} fairdm.contrib.import_export.utils.DataPackage.build_package
+```
+
+````
+
+````{py:method} add_license(zip_file)
+:canonical: fairdm.contrib.import_export.utils.DataPackage.add_license
+
+```{autodoc2-docstring} fairdm.contrib.import_export.utils.DataPackage.add_license
+```
+
+````
+
+````{py:method} add_readme(zip_file)
+:canonical: fairdm.contrib.import_export.utils.DataPackage.add_readme
+
+```{autodoc2-docstring} fairdm.contrib.import_export.utils.DataPackage.add_readme
+```
+
+````
+
+````{py:method} add_metadata(zip_file)
+:canonical: fairdm.contrib.import_export.utils.DataPackage.add_metadata
+
+```{autodoc2-docstring} fairdm.contrib.import_export.utils.DataPackage.add_metadata
+```
+
+````
+
+````{py:method} add_samples(zip_file)
+:canonical: fairdm.contrib.import_export.utils.DataPackage.add_samples
+
+```{autodoc2-docstring} fairdm.contrib.import_export.utils.DataPackage.add_samples
+```
+
+````
+
+````{py:method} add_measurements(zip_file)
+:canonical: fairdm.contrib.import_export.utils.DataPackage.add_measurements
+
+```{autodoc2-docstring} fairdm.contrib.import_export.utils.DataPackage.add_measurements
+```
+
+````
+
+`````

@@ -1,0 +1,68 @@
+# {py:mod}`fairdm.backups.apps`
+
+```{py:module} fairdm.backups.apps
+```
+
+```{autodoc2-docstring} fairdm.backups.apps
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`BackupsConfig <fairdm.backups.apps.BackupsConfig>`
+  - ```{autodoc2-docstring} fairdm.backups.apps.BackupsConfig
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} BackupsConfig(app_name, app_module)
+:canonical: fairdm.backups.apps.BackupsConfig
+
+Bases: {py:obj}`django.apps.AppConfig`
+
+```{autodoc2-docstring} fairdm.backups.apps.BackupsConfig
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.backups.apps.BackupsConfig.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.backups.apps.BackupsConfig.name
+:value: >
+   'fairdm.backups'
+
+```{autodoc2-docstring} fairdm.backups.apps.BackupsConfig.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.backups.apps.BackupsConfig.label
+:value: >
+   'backups'
+
+```{autodoc2-docstring} fairdm.backups.apps.BackupsConfig.label
+```
+
+````
+
+````{py:method} ready()
+:canonical: fairdm.backups.apps.BackupsConfig.ready
+
+```{autodoc2-docstring} fairdm.backups.apps.BackupsConfig.ready
+```
+
+````
+
+`````

@@ -1,0 +1,50 @@
+# {py:mod}`fairdm.core.sample.config`
+
+```{py:module} fairdm.core.sample.config
+```
+
+```{autodoc2-docstring} fairdm.core.sample.config
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`BaseSampleConfiguration <fairdm.core.sample.config.BaseSampleConfiguration>`
+  - ```{autodoc2-docstring} fairdm.core.sample.config.BaseSampleConfiguration
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} BaseSampleConfiguration(model: type[models.Model] | None = None, **overrides: typing.Any)
+:canonical: fairdm.core.sample.config.BaseSampleConfiguration
+
+Bases: {py:obj}`fairdm.registry.config.ModelConfiguration`
+
+```{autodoc2-docstring} fairdm.core.sample.config.BaseSampleConfiguration
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.sample.config.BaseSampleConfiguration.__init__
+```
+
+````{py:attribute} fields
+:canonical: fairdm.core.sample.config.BaseSampleConfiguration.fields
+:value: >
+   ['name', 'dataset', 'local_id', 'status', 'location', 'image']
+
+```{autodoc2-docstring} fairdm.core.sample.config.BaseSampleConfiguration.fields
+```
+
+````
+
+`````

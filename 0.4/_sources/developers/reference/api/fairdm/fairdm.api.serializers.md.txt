@@ -1,0 +1,2329 @@
+# {py:mod}`fairdm.api.serializers`
+
+```{py:module} fairdm.api.serializers
+```
+
+```{autodoc2-docstring} fairdm.api.serializers
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`CreatorCreditMixin <fairdm.api.serializers.CreatorCreditMixin>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.CreatorCreditMixin
+    :summary:
+    ```
+* - {py:obj}`RecordReferenceField <fairdm.api.serializers.RecordReferenceField>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.RecordReferenceField
+    :summary:
+    ```
+* - {py:obj}`RecordURLField <fairdm.api.serializers.RecordURLField>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.RecordURLField
+    :summary:
+    ```
+* - {py:obj}`PortalPageField <fairdm.api.serializers.PortalPageField>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.PortalPageField
+    :summary:
+    ```
+* - {py:obj}`GeoJSONPointField <fairdm.api.serializers.GeoJSONPointField>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.GeoJSONPointField
+    :summary:
+    ```
+* - {py:obj}`RecordListSerializer <fairdm.api.serializers.RecordListSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.RecordListSerializer
+    :summary:
+    ```
+* - {py:obj}`DescriptionSerializer <fairdm.api.serializers.DescriptionSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.DescriptionSerializer
+    :summary:
+    ```
+* - {py:obj}`DateSerializer <fairdm.api.serializers.DateSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.DateSerializer
+    :summary:
+    ```
+* - {py:obj}`IdentifierSerializer <fairdm.api.serializers.IdentifierSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.IdentifierSerializer
+    :summary:
+    ```
+* - {py:obj}`ConceptSerializer <fairdm.api.serializers.ConceptSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.ConceptSerializer
+    :summary:
+    ```
+* - {py:obj}`KeywordSerializer <fairdm.api.serializers.KeywordSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.KeywordSerializer
+    :summary:
+    ```
+* - {py:obj}`RoleSerializer <fairdm.api.serializers.RoleSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.RoleSerializer
+    :summary:
+    ```
+* - {py:obj}`NameIdentifierSerializer <fairdm.api.serializers.NameIdentifierSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.NameIdentifierSerializer
+    :summary:
+    ```
+* - {py:obj}`OrganizationReferenceSerializer <fairdm.api.serializers.OrganizationReferenceSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.OrganizationReferenceSerializer
+    :summary:
+    ```
+* - {py:obj}`CreditAffiliationSerializer <fairdm.api.serializers.CreditAffiliationSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.CreditAffiliationSerializer
+    :summary:
+    ```
+* - {py:obj}`ContributionListSerializer <fairdm.api.serializers.ContributionListSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.ContributionListSerializer
+    :summary:
+    ```
+* - {py:obj}`ContributionSerializer <fairdm.api.serializers.ContributionSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.ContributionSerializer
+    :summary:
+    ```
+* - {py:obj}`LicenseSerializer <fairdm.api.serializers.LicenseSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.LicenseSerializer
+    :summary:
+    ```
+* - {py:obj}`RecordSerializer <fairdm.api.serializers.RecordSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.RecordSerializer
+    :summary:
+    ```
+* - {py:obj}`ProjectSerializer <fairdm.api.serializers.ProjectSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.ProjectSerializer
+    :summary:
+    ```
+* - {py:obj}`DatasetSerializer <fairdm.api.serializers.DatasetSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.DatasetSerializer
+    :summary:
+    ```
+* - {py:obj}`BaseSampleSerializer <fairdm.api.serializers.BaseSampleSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.BaseSampleSerializer
+    :summary:
+    ```
+* - {py:obj}`BaseMeasurementSerializer <fairdm.api.serializers.BaseMeasurementSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.BaseMeasurementSerializer
+    :summary:
+    ```
+* - {py:obj}`ContributorIdentifierSerializer <fairdm.api.serializers.ContributorIdentifierSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.ContributorIdentifierSerializer
+    :summary:
+    ```
+* - {py:obj}`ContributorRecordsMixin <fairdm.api.serializers.ContributorRecordsMixin>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.ContributorRecordsMixin
+    :summary:
+    ```
+* - {py:obj}`PersonListSerializer <fairdm.api.serializers.PersonListSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.PersonListSerializer
+    :summary:
+    ```
+* - {py:obj}`AffiliationTypeField <fairdm.api.serializers.AffiliationTypeField>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.AffiliationTypeField
+    :summary:
+    ```
+* - {py:obj}`AffiliationSerializer <fairdm.api.serializers.AffiliationSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.AffiliationSerializer
+    :summary:
+    ```
+* - {py:obj}`PersonSerializer <fairdm.api.serializers.PersonSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.PersonSerializer
+    :summary:
+    ```
+* - {py:obj}`OrganizationListSerializer <fairdm.api.serializers.OrganizationListSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.OrganizationListSerializer
+    :summary:
+    ```
+* - {py:obj}`PersonReferenceSerializer <fairdm.api.serializers.PersonReferenceSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.PersonReferenceSerializer
+    :summary:
+    ```
+* - {py:obj}`MemberSerializer <fairdm.api.serializers.MemberSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.MemberSerializer
+    :summary:
+    ```
+* - {py:obj}`OrganizationSerializer <fairdm.api.serializers.OrganizationSerializer>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.OrganizationSerializer
+    :summary:
+    ```
+* - {py:obj}`BaseSerializerMixin <fairdm.api.serializers.BaseSerializerMixin>`
+  - ```{autodoc2-docstring} fairdm.api.serializers.BaseSerializerMixin
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} CreatorCreditMixin
+:canonical: fairdm.api.serializers.CreatorCreditMixin
+
+```{autodoc2-docstring} fairdm.api.serializers.CreatorCreditMixin
+```
+
+````{py:attribute} manager_only_fields
+:canonical: fairdm.api.serializers.CreatorCreditMixin.manager_only_fields
+:value: >
+   ('visibility', 'owner', 'project', 'dataset', 'sample')
+
+```{autodoc2-docstring} fairdm.api.serializers.CreatorCreditMixin.manager_only_fields
+```
+
+````
+
+````{py:method} get_fields()
+:canonical: fairdm.api.serializers.CreatorCreditMixin.get_fields
+
+```{autodoc2-docstring} fairdm.api.serializers.CreatorCreditMixin.get_fields
+```
+
+````
+
+````{py:method} differs(instance, name, value) -> bool
+:canonical: fairdm.api.serializers.CreatorCreditMixin.differs
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.api.serializers.CreatorCreditMixin.differs
+```
+
+````
+
+````{py:method} create(validated_data)
+:canonical: fairdm.api.serializers.CreatorCreditMixin.create
+
+```{autodoc2-docstring} fairdm.api.serializers.CreatorCreditMixin.create
+```
+
+````
+
+````{py:method} update(instance, validated_data)
+:canonical: fairdm.api.serializers.CreatorCreditMixin.update
+
+```{autodoc2-docstring} fairdm.api.serializers.CreatorCreditMixin.update
+```
+
+````
+
+`````
+
+`````{py:class} RecordReferenceField(**kwargs)
+:canonical: fairdm.api.serializers.RecordReferenceField
+
+Bases: {py:obj}`rest_framework.serializers.SlugRelatedField`
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordReferenceField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordReferenceField.__init__
+```
+
+````{py:method} route_name(record) -> str
+:canonical: fairdm.api.serializers.RecordReferenceField.route_name
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordReferenceField.route_name
+```
+
+````
+
+````{py:method} hidden_contributor_pks(context) -> set
+:canonical: fairdm.api.serializers.RecordReferenceField.hidden_contributor_pks
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordReferenceField.hidden_contributor_pks
+```
+
+````
+
+````{py:method} visible_pks(model, pks) -> set
+:canonical: fairdm.api.serializers.RecordReferenceField.visible_pks
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordReferenceField.visible_pks
+```
+
+````
+
+````{py:method} prime(records, many: str | None = None) -> None
+:canonical: fairdm.api.serializers.RecordReferenceField.prime
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordReferenceField.prime
+```
+
+````
+
+````{py:method} is_visible(record) -> bool
+:canonical: fairdm.api.serializers.RecordReferenceField.is_visible
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordReferenceField.is_visible
+```
+
+````
+
+````{py:method} to_internal_value(data)
+:canonical: fairdm.api.serializers.RecordReferenceField.to_internal_value
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordReferenceField.to_internal_value
+```
+
+````
+
+````{py:method} to_representation(record)
+:canonical: fairdm.api.serializers.RecordReferenceField.to_representation
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordReferenceField.to_representation
+```
+
+````
+
+````{py:method} get_choices(cutoff=None)
+:canonical: fairdm.api.serializers.RecordReferenceField.get_choices
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordReferenceField.get_choices
+```
+
+````
+
+`````
+
+`````{py:class} RecordURLField(**kwargs)
+:canonical: fairdm.api.serializers.RecordURLField
+
+Bases: {py:obj}`rest_framework.serializers.HyperlinkedIdentityField`
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordURLField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordURLField.__init__
+```
+
+````{py:method} get_url(obj, view_name, request, format)
+:canonical: fairdm.api.serializers.RecordURLField.get_url
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordURLField.get_url
+```
+
+````
+
+`````
+
+`````{py:class} PortalPageField(**kwargs)
+:canonical: fairdm.api.serializers.PortalPageField
+
+Bases: {py:obj}`rest_framework.serializers.ReadOnlyField`
+
+```{autodoc2-docstring} fairdm.api.serializers.PortalPageField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.PortalPageField.__init__
+```
+
+````{py:method} to_representation(value) -> str
+:canonical: fairdm.api.serializers.PortalPageField.to_representation
+
+```{autodoc2-docstring} fairdm.api.serializers.PortalPageField.to_representation
+```
+
+````
+
+`````
+
+`````{py:class} GeoJSONPointField(**kwargs)
+:canonical: fairdm.api.serializers.GeoJSONPointField
+
+Bases: {py:obj}`rest_framework.serializers.Field`
+
+```{autodoc2-docstring} fairdm.api.serializers.GeoJSONPointField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.GeoJSONPointField.__init__
+```
+
+````{py:method} to_representation(value) -> dict | None
+:canonical: fairdm.api.serializers.GeoJSONPointField.to_representation
+
+```{autodoc2-docstring} fairdm.api.serializers.GeoJSONPointField.to_representation
+```
+
+````
+
+`````
+
+`````{py:class} RecordListSerializer(*args, **kwargs)
+:canonical: fairdm.api.serializers.RecordListSerializer
+
+Bases: {py:obj}`rest_framework.serializers.ListSerializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordListSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordListSerializer.__init__
+```
+
+````{py:method} to_representation(data)
+:canonical: fairdm.api.serializers.RecordListSerializer.to_representation
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordListSerializer.to_representation
+```
+
+````
+
+`````
+
+`````{py:class} DescriptionSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.DescriptionSerializer
+
+Bases: {py:obj}`rest_framework.serializers.Serializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.DescriptionSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.DescriptionSerializer.__init__
+```
+
+````{py:attribute} type
+:canonical: fairdm.api.serializers.DescriptionSerializer.type
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.DescriptionSerializer.type
+```
+
+````
+
+````{py:attribute} value
+:canonical: fairdm.api.serializers.DescriptionSerializer.value
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.DescriptionSerializer.value
+```
+
+````
+
+`````
+
+`````{py:class} DateSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.DateSerializer
+
+Bases: {py:obj}`rest_framework.serializers.Serializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.DateSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.DateSerializer.__init__
+```
+
+````{py:attribute} type
+:canonical: fairdm.api.serializers.DateSerializer.type
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.DateSerializer.type
+```
+
+````
+
+````{py:attribute} value
+:canonical: fairdm.api.serializers.DateSerializer.value
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.DateSerializer.value
+```
+
+````
+
+`````
+
+`````{py:class} IdentifierSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.IdentifierSerializer
+
+Bases: {py:obj}`rest_framework.serializers.Serializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.IdentifierSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.IdentifierSerializer.__init__
+```
+
+````{py:attribute} type
+:canonical: fairdm.api.serializers.IdentifierSerializer.type
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.IdentifierSerializer.type
+```
+
+````
+
+````{py:attribute} value
+:canonical: fairdm.api.serializers.IdentifierSerializer.value
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.IdentifierSerializer.value
+```
+
+````
+
+`````
+
+`````{py:class} ConceptSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.ConceptSerializer
+
+Bases: {py:obj}`rest_framework.serializers.Serializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.ConceptSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.ConceptSerializer.__init__
+```
+
+````{py:attribute} uri
+:canonical: fairdm.api.serializers.ConceptSerializer.uri
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.ConceptSerializer.uri
+```
+
+````
+
+````{py:attribute} name
+:canonical: fairdm.api.serializers.ConceptSerializer.name
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.ConceptSerializer.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.api.serializers.ConceptSerializer.label
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.ConceptSerializer.label
+```
+
+````
+
+````{py:method} get_name(concept) -> str
+:canonical: fairdm.api.serializers.ConceptSerializer.get_name
+
+```{autodoc2-docstring} fairdm.api.serializers.ConceptSerializer.get_name
+```
+
+````
+
+`````
+
+`````{py:class} KeywordSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.KeywordSerializer
+
+Bases: {py:obj}`fairdm.api.serializers.ConceptSerializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.KeywordSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.KeywordSerializer.__init__
+```
+
+````{py:attribute} vocabulary
+:canonical: fairdm.api.serializers.KeywordSerializer.vocabulary
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.KeywordSerializer.vocabulary
+```
+
+````
+
+`````
+
+````{py:class} RoleSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.RoleSerializer
+
+Bases: {py:obj}`fairdm.api.serializers.ConceptSerializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.RoleSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.RoleSerializer.__init__
+```
+
+````
+
+`````{py:class} NameIdentifierSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.NameIdentifierSerializer
+
+Bases: {py:obj}`rest_framework.serializers.Serializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.NameIdentifierSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.NameIdentifierSerializer.__init__
+```
+
+````{py:attribute} name_identifier
+:canonical: fairdm.api.serializers.NameIdentifierSerializer.name_identifier
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.NameIdentifierSerializer.name_identifier
+```
+
+````
+
+````{py:attribute} name_identifier_scheme
+:canonical: fairdm.api.serializers.NameIdentifierSerializer.name_identifier_scheme
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.NameIdentifierSerializer.name_identifier_scheme
+```
+
+````
+
+````{py:attribute} scheme_uri
+:canonical: fairdm.api.serializers.NameIdentifierSerializer.scheme_uri
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.NameIdentifierSerializer.scheme_uri
+```
+
+````
+
+````{py:method} get_name_identifier(identifier) -> str
+:canonical: fairdm.api.serializers.NameIdentifierSerializer.get_name_identifier
+
+```{autodoc2-docstring} fairdm.api.serializers.NameIdentifierSerializer.get_name_identifier
+```
+
+````
+
+````{py:method} get_name_identifier_scheme(identifier) -> str
+:canonical: fairdm.api.serializers.NameIdentifierSerializer.get_name_identifier_scheme
+
+```{autodoc2-docstring} fairdm.api.serializers.NameIdentifierSerializer.get_name_identifier_scheme
+```
+
+````
+
+````{py:method} get_scheme_uri(identifier) -> str | None
+:canonical: fairdm.api.serializers.NameIdentifierSerializer.get_scheme_uri
+
+```{autodoc2-docstring} fairdm.api.serializers.NameIdentifierSerializer.get_scheme_uri
+```
+
+````
+
+`````
+
+`````{py:class} OrganizationReferenceSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.OrganizationReferenceSerializer
+
+Bases: {py:obj}`rest_framework.serializers.Serializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationReferenceSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationReferenceSerializer.__init__
+```
+
+````{py:attribute} uuid
+:canonical: fairdm.api.serializers.OrganizationReferenceSerializer.uuid
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationReferenceSerializer.uuid
+```
+
+````
+
+````{py:attribute} url
+:canonical: fairdm.api.serializers.OrganizationReferenceSerializer.url
+:value: >
+   'RecordURLField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationReferenceSerializer.url
+```
+
+````
+
+````{py:attribute} name
+:canonical: fairdm.api.serializers.OrganizationReferenceSerializer.name
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationReferenceSerializer.name
+```
+
+````
+
+`````
+
+`````{py:class} CreditAffiliationSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.CreditAffiliationSerializer
+
+Bases: {py:obj}`fairdm.api.serializers.OrganizationReferenceSerializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.CreditAffiliationSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.CreditAffiliationSerializer.__init__
+```
+
+````{py:attribute} affiliation_identifier
+:canonical: fairdm.api.serializers.CreditAffiliationSerializer.affiliation_identifier
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.CreditAffiliationSerializer.affiliation_identifier
+```
+
+````
+
+````{py:attribute} affiliation_identifier_scheme
+:canonical: fairdm.api.serializers.CreditAffiliationSerializer.affiliation_identifier_scheme
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.CreditAffiliationSerializer.affiliation_identifier_scheme
+```
+
+````
+
+````{py:attribute} scheme_uri
+:canonical: fairdm.api.serializers.CreditAffiliationSerializer.scheme_uri
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.CreditAffiliationSerializer.scheme_uri
+```
+
+````
+
+````{py:method} identifier_of(organization)
+:canonical: fairdm.api.serializers.CreditAffiliationSerializer.identifier_of
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.api.serializers.CreditAffiliationSerializer.identifier_of
+```
+
+````
+
+````{py:method} get_affiliation_identifier(organization) -> str | None
+:canonical: fairdm.api.serializers.CreditAffiliationSerializer.get_affiliation_identifier
+
+```{autodoc2-docstring} fairdm.api.serializers.CreditAffiliationSerializer.get_affiliation_identifier
+```
+
+````
+
+````{py:method} get_affiliation_identifier_scheme(organization) -> str | None
+:canonical: fairdm.api.serializers.CreditAffiliationSerializer.get_affiliation_identifier_scheme
+
+```{autodoc2-docstring} fairdm.api.serializers.CreditAffiliationSerializer.get_affiliation_identifier_scheme
+```
+
+````
+
+````{py:method} get_scheme_uri(organization) -> str | None
+:canonical: fairdm.api.serializers.CreditAffiliationSerializer.get_scheme_uri
+
+```{autodoc2-docstring} fairdm.api.serializers.CreditAffiliationSerializer.get_scheme_uri
+```
+
+````
+
+`````
+
+`````{py:class} ContributionListSerializer(*args, **kwargs)
+:canonical: fairdm.api.serializers.ContributionListSerializer
+
+Bases: {py:obj}`rest_framework.serializers.ListSerializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionListSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionListSerializer.__init__
+```
+
+````{py:method} to_representation(data)
+:canonical: fairdm.api.serializers.ContributionListSerializer.to_representation
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionListSerializer.to_representation
+```
+
+````
+
+`````
+
+``````{py:class} ContributionSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.ContributionSerializer
+
+Bases: {py:obj}`rest_framework.serializers.Serializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionSerializer.__init__
+```
+
+````{py:attribute} uuid
+:canonical: fairdm.api.serializers.ContributionSerializer.uuid
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionSerializer.uuid
+```
+
+````
+
+````{py:attribute} url
+:canonical: fairdm.api.serializers.ContributionSerializer.url
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionSerializer.url
+```
+
+````
+
+````{py:attribute} name
+:canonical: fairdm.api.serializers.ContributionSerializer.name
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionSerializer.name
+```
+
+````
+
+````{py:attribute} type
+:canonical: fairdm.api.serializers.ContributionSerializer.type
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionSerializer.type
+```
+
+````
+
+````{py:attribute} given_name
+:canonical: fairdm.api.serializers.ContributionSerializer.given_name
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionSerializer.given_name
+```
+
+````
+
+````{py:attribute} family_name
+:canonical: fairdm.api.serializers.ContributionSerializer.family_name
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionSerializer.family_name
+```
+
+````
+
+````{py:attribute} name_identifiers
+:canonical: fairdm.api.serializers.ContributionSerializer.name_identifiers
+:value: >
+   'NameIdentifierSerializer(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionSerializer.name_identifiers
+```
+
+````
+
+````{py:attribute} affiliation
+:canonical: fairdm.api.serializers.ContributionSerializer.affiliation
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionSerializer.affiliation
+```
+
+````
+
+````{py:attribute} roles
+:canonical: fairdm.api.serializers.ContributionSerializer.roles
+:value: >
+   'RoleSerializer(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionSerializer.roles
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.api.serializers.ContributionSerializer.Meta
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionSerializer.Meta
+```
+
+````{py:attribute} list_serializer_class
+:canonical: fairdm.api.serializers.ContributionSerializer.Meta.list_serializer_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionSerializer.Meta.list_serializer_class
+```
+
+````
+
+`````
+
+````{py:method} is_organization(credit) -> bool
+:canonical: fairdm.api.serializers.ContributionSerializer.is_organization
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionSerializer.is_organization
+```
+
+````
+
+````{py:method} is_hidden(credit) -> bool
+:canonical: fairdm.api.serializers.ContributionSerializer.is_hidden
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionSerializer.is_hidden
+```
+
+````
+
+````{py:method} get_uuid(credit) -> str | None
+:canonical: fairdm.api.serializers.ContributionSerializer.get_uuid
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionSerializer.get_uuid
+```
+
+````
+
+````{py:method} get_url(credit) -> str | None
+:canonical: fairdm.api.serializers.ContributionSerializer.get_url
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionSerializer.get_url
+```
+
+````
+
+````{py:method} get_name(credit) -> str
+:canonical: fairdm.api.serializers.ContributionSerializer.get_name
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionSerializer.get_name
+```
+
+````
+
+````{py:method} get_type(credit) -> str
+:canonical: fairdm.api.serializers.ContributionSerializer.get_type
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionSerializer.get_type
+```
+
+````
+
+````{py:method} get_given_name(credit) -> str | None
+:canonical: fairdm.api.serializers.ContributionSerializer.get_given_name
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionSerializer.get_given_name
+```
+
+````
+
+````{py:method} get_family_name(credit) -> str | None
+:canonical: fairdm.api.serializers.ContributionSerializer.get_family_name
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionSerializer.get_family_name
+```
+
+````
+
+````{py:method} get_affiliation(credit) -> dict | None
+:canonical: fairdm.api.serializers.ContributionSerializer.get_affiliation
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributionSerializer.get_affiliation
+```
+
+````
+
+``````
+
+`````{py:class} LicenseSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.LicenseSerializer
+
+Bases: {py:obj}`rest_framework.serializers.Serializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.LicenseSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.LicenseSerializer.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.api.serializers.LicenseSerializer.name
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.LicenseSerializer.name
+```
+
+````
+
+````{py:attribute} url
+:canonical: fairdm.api.serializers.LicenseSerializer.url
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.LicenseSerializer.url
+```
+
+````
+
+`````
+
+``````{py:class} RecordSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.RecordSerializer
+
+Bases: {py:obj}`fairdm.api.serializers.CreatorCreditMixin`, {py:obj}`rest_framework.serializers.ModelSerializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordSerializer.__init__
+```
+
+````{py:attribute} metadata_fields
+:canonical: fairdm.api.serializers.RecordSerializer.metadata_fields
+:value: >
+   ('descriptions', 'dates', 'identifiers', 'keywords', 'contributors')
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordSerializer.metadata_fields
+```
+
+````
+
+````{py:attribute} parents
+:canonical: fairdm.api.serializers.RecordSerializer.parents
+:type: tuple[str, ...]
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordSerializer.parents
+```
+
+````
+
+````{py:attribute} url
+:canonical: fairdm.api.serializers.RecordSerializer.url
+:value: >
+   'RecordURLField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordSerializer.url
+```
+
+````
+
+````{py:attribute} html_url
+:canonical: fairdm.api.serializers.RecordSerializer.html_url
+:value: >
+   'PortalPageField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordSerializer.html_url
+```
+
+````
+
+````{py:attribute} descriptions
+:canonical: fairdm.api.serializers.RecordSerializer.descriptions
+:value: >
+   'DescriptionSerializer(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordSerializer.descriptions
+```
+
+````
+
+````{py:attribute} dates
+:canonical: fairdm.api.serializers.RecordSerializer.dates
+:value: >
+   'DateSerializer(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordSerializer.dates
+```
+
+````
+
+````{py:attribute} identifiers
+:canonical: fairdm.api.serializers.RecordSerializer.identifiers
+:value: >
+   'IdentifierSerializer(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordSerializer.identifiers
+```
+
+````
+
+````{py:attribute} keywords
+:canonical: fairdm.api.serializers.RecordSerializer.keywords
+:value: >
+   'KeywordSerializer(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordSerializer.keywords
+```
+
+````
+
+````{py:attribute} contributors
+:canonical: fairdm.api.serializers.RecordSerializer.contributors
+:value: >
+   'ContributionSerializer(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordSerializer.contributors
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.api.serializers.RecordSerializer.Meta
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordSerializer.Meta
+```
+
+````{py:attribute} list_serializer_class
+:canonical: fairdm.api.serializers.RecordSerializer.Meta.list_serializer_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordSerializer.Meta.list_serializer_class
+```
+
+````
+
+`````
+
+````{py:method} load_related(queryset)
+:canonical: fairdm.api.serializers.RecordSerializer.load_related
+:classmethod:
+
+```{autodoc2-docstring} fairdm.api.serializers.RecordSerializer.load_related
+```
+
+````
+
+``````
+
+``````{py:class} ProjectSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.ProjectSerializer
+
+Bases: {py:obj}`fairdm.api.serializers.RecordSerializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.ProjectSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.ProjectSerializer.__init__
+```
+
+````{py:attribute} parents
+:canonical: fairdm.api.serializers.ProjectSerializer.parents
+:value: >
+   ('owner',)
+
+```{autodoc2-docstring} fairdm.api.serializers.ProjectSerializer.parents
+```
+
+````
+
+````{py:attribute} owner
+:canonical: fairdm.api.serializers.ProjectSerializer.owner
+:value: >
+   'RecordReferenceField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.ProjectSerializer.owner
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.api.serializers.ProjectSerializer.Meta
+
+Bases: {py:obj}`fairdm.api.serializers.RecordSerializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.ProjectSerializer.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.api.serializers.ProjectSerializer.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.serializers.ProjectSerializer.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.api.serializers.ProjectSerializer.Meta.fields
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.serializers.ProjectSerializer.Meta.fields
+```
+
+````
+
+````{py:attribute} read_only_fields
+:canonical: fairdm.api.serializers.ProjectSerializer.Meta.read_only_fields
+:value: >
+   ['image']
+
+```{autodoc2-docstring} fairdm.api.serializers.ProjectSerializer.Meta.read_only_fields
+```
+
+````
+
+`````
+
+``````
+
+``````{py:class} DatasetSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.DatasetSerializer
+
+Bases: {py:obj}`fairdm.api.serializers.RecordSerializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.DatasetSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.DatasetSerializer.__init__
+```
+
+````{py:attribute} parents
+:canonical: fairdm.api.serializers.DatasetSerializer.parents
+:value: >
+   ('project', 'license')
+
+```{autodoc2-docstring} fairdm.api.serializers.DatasetSerializer.parents
+```
+
+````
+
+````{py:attribute} project
+:canonical: fairdm.api.serializers.DatasetSerializer.project
+:value: >
+   'RecordReferenceField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.DatasetSerializer.project
+```
+
+````
+
+````{py:attribute} license
+:canonical: fairdm.api.serializers.DatasetSerializer.license
+:value: >
+   'LicenseSerializer(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.DatasetSerializer.license
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.api.serializers.DatasetSerializer.Meta
+
+Bases: {py:obj}`fairdm.api.serializers.RecordSerializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.DatasetSerializer.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.api.serializers.DatasetSerializer.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.serializers.DatasetSerializer.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.api.serializers.DatasetSerializer.Meta.fields
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.serializers.DatasetSerializer.Meta.fields
+```
+
+````
+
+````{py:attribute} read_only_fields
+:canonical: fairdm.api.serializers.DatasetSerializer.Meta.read_only_fields
+:value: >
+   ['image', 'published']
+
+```{autodoc2-docstring} fairdm.api.serializers.DatasetSerializer.Meta.read_only_fields
+```
+
+````
+
+`````
+
+``````
+
+``````{py:class} BaseSampleSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.BaseSampleSerializer
+
+Bases: {py:obj}`fairdm.api.serializers.RecordSerializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.BaseSampleSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.BaseSampleSerializer.__init__
+```
+
+````{py:attribute} common_fields
+:canonical: fairdm.api.serializers.BaseSampleSerializer.common_fields
+:value: >
+   ('url', 'html_url', 'uuid', 'name', 'local_id', 'status', 'dataset', 'location', 'location_uncertain...
+
+```{autodoc2-docstring} fairdm.api.serializers.BaseSampleSerializer.common_fields
+```
+
+````
+
+````{py:attribute} parents
+:canonical: fairdm.api.serializers.BaseSampleSerializer.parents
+:value: >
+   ('dataset',)
+
+```{autodoc2-docstring} fairdm.api.serializers.BaseSampleSerializer.parents
+```
+
+````
+
+````{py:attribute} dataset
+:canonical: fairdm.api.serializers.BaseSampleSerializer.dataset
+:value: >
+   'RecordReferenceField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.BaseSampleSerializer.dataset
+```
+
+````
+
+````{py:attribute} location
+:canonical: fairdm.api.serializers.BaseSampleSerializer.location
+:value: >
+   'GeoJSONPointField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.BaseSampleSerializer.location
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.api.serializers.BaseSampleSerializer.Meta
+
+Bases: {py:obj}`fairdm.api.serializers.RecordSerializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.BaseSampleSerializer.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.api.serializers.BaseSampleSerializer.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.serializers.BaseSampleSerializer.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.api.serializers.BaseSampleSerializer.Meta.fields
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.serializers.BaseSampleSerializer.Meta.fields
+```
+
+````
+
+````{py:attribute} read_only_fields
+:canonical: fairdm.api.serializers.BaseSampleSerializer.Meta.read_only_fields
+:value: >
+   ['location', 'location_elevation', 'location_uncertainty']
+
+```{autodoc2-docstring} fairdm.api.serializers.BaseSampleSerializer.Meta.read_only_fields
+```
+
+````
+
+`````
+
+``````
+
+``````{py:class} BaseMeasurementSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.BaseMeasurementSerializer
+
+Bases: {py:obj}`fairdm.api.serializers.RecordSerializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.BaseMeasurementSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.BaseMeasurementSerializer.__init__
+```
+
+````{py:attribute} common_fields
+:canonical: fairdm.api.serializers.BaseMeasurementSerializer.common_fields
+:value: >
+   ('url', 'html_url', 'uuid', 'name', 'sample', 'dataset', 'location', 'location_uncertainty', 'added'...
+
+```{autodoc2-docstring} fairdm.api.serializers.BaseMeasurementSerializer.common_fields
+```
+
+````
+
+````{py:attribute} parents
+:canonical: fairdm.api.serializers.BaseMeasurementSerializer.parents
+:value: >
+   ('sample', 'dataset')
+
+```{autodoc2-docstring} fairdm.api.serializers.BaseMeasurementSerializer.parents
+```
+
+````
+
+````{py:attribute} sample
+:canonical: fairdm.api.serializers.BaseMeasurementSerializer.sample
+:value: >
+   'RecordReferenceField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.BaseMeasurementSerializer.sample
+```
+
+````
+
+````{py:attribute} dataset
+:canonical: fairdm.api.serializers.BaseMeasurementSerializer.dataset
+:value: >
+   'RecordReferenceField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.BaseMeasurementSerializer.dataset
+```
+
+````
+
+````{py:attribute} location
+:canonical: fairdm.api.serializers.BaseMeasurementSerializer.location
+:value: >
+   'GeoJSONPointField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.BaseMeasurementSerializer.location
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.api.serializers.BaseMeasurementSerializer.Meta
+
+Bases: {py:obj}`fairdm.api.serializers.RecordSerializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.BaseMeasurementSerializer.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.api.serializers.BaseMeasurementSerializer.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.serializers.BaseMeasurementSerializer.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.api.serializers.BaseMeasurementSerializer.Meta.fields
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.serializers.BaseMeasurementSerializer.Meta.fields
+```
+
+````
+
+````{py:attribute} read_only_fields
+:canonical: fairdm.api.serializers.BaseMeasurementSerializer.Meta.read_only_fields
+:value: >
+   ['location', 'location_elevation', 'location_uncertainty']
+
+```{autodoc2-docstring} fairdm.api.serializers.BaseMeasurementSerializer.Meta.read_only_fields
+```
+
+````
+
+`````
+
+``````
+
+`````{py:class} ContributorIdentifierSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.ContributorIdentifierSerializer
+
+Bases: {py:obj}`rest_framework.serializers.Serializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributorIdentifierSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributorIdentifierSerializer.__init__
+```
+
+````{py:attribute} type
+:canonical: fairdm.api.serializers.ContributorIdentifierSerializer.type
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributorIdentifierSerializer.type
+```
+
+````
+
+````{py:attribute} value
+:canonical: fairdm.api.serializers.ContributorIdentifierSerializer.value
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributorIdentifierSerializer.value
+```
+
+````
+
+````{py:attribute} link
+:canonical: fairdm.api.serializers.ContributorIdentifierSerializer.link
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributorIdentifierSerializer.link
+```
+
+````
+
+`````
+
+`````{py:class} ContributorRecordsMixin(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.ContributorRecordsMixin
+
+Bases: {py:obj}`rest_framework.serializers.Serializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributorRecordsMixin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributorRecordsMixin.__init__
+```
+
+````{py:attribute} projects
+:canonical: fairdm.api.serializers.ContributorRecordsMixin.projects
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributorRecordsMixin.projects
+```
+
+````
+
+````{py:attribute} datasets
+:canonical: fairdm.api.serializers.ContributorRecordsMixin.datasets
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributorRecordsMixin.datasets
+```
+
+````
+
+````{py:method} records_address(route: str, contributor) -> str
+:canonical: fairdm.api.serializers.ContributorRecordsMixin.records_address
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributorRecordsMixin.records_address
+```
+
+````
+
+````{py:method} get_projects(contributor) -> str
+:canonical: fairdm.api.serializers.ContributorRecordsMixin.get_projects
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributorRecordsMixin.get_projects
+```
+
+````
+
+````{py:method} get_datasets(contributor) -> str
+:canonical: fairdm.api.serializers.ContributorRecordsMixin.get_datasets
+
+```{autodoc2-docstring} fairdm.api.serializers.ContributorRecordsMixin.get_datasets
+```
+
+````
+
+`````
+
+``````{py:class} PersonListSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.PersonListSerializer
+
+Bases: {py:obj}`rest_framework.serializers.ModelSerializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonListSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonListSerializer.__init__
+```
+
+````{py:attribute} url
+:canonical: fairdm.api.serializers.PersonListSerializer.url
+:value: >
+   'RecordURLField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonListSerializer.url
+```
+
+````
+
+````{py:attribute} html_url
+:canonical: fairdm.api.serializers.PersonListSerializer.html_url
+:value: >
+   'PortalPageField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonListSerializer.html_url
+```
+
+````
+
+````{py:attribute} given_name
+:canonical: fairdm.api.serializers.PersonListSerializer.given_name
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonListSerializer.given_name
+```
+
+````
+
+````{py:attribute} family_name
+:canonical: fairdm.api.serializers.PersonListSerializer.family_name
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonListSerializer.family_name
+```
+
+````
+
+````{py:attribute} identifiers
+:canonical: fairdm.api.serializers.PersonListSerializer.identifiers
+:value: >
+   'ContributorIdentifierSerializer(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonListSerializer.identifiers
+```
+
+````
+
+````{py:attribute} primary_affiliation
+:canonical: fairdm.api.serializers.PersonListSerializer.primary_affiliation
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonListSerializer.primary_affiliation
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.api.serializers.PersonListSerializer.Meta
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonListSerializer.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.api.serializers.PersonListSerializer.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonListSerializer.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.api.serializers.PersonListSerializer.Meta.fields
+:type: tuple[str, ...]
+:value: >
+   ('url', 'html_url', 'uuid', 'name', 'given_name', 'family_name', 'identifiers', 'primary_affiliation...
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonListSerializer.Meta.fields
+```
+
+````
+
+````{py:attribute} read_only_fields
+:canonical: fairdm.api.serializers.PersonListSerializer.Meta.read_only_fields
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonListSerializer.Meta.read_only_fields
+```
+
+````
+
+`````
+
+````{py:method} get_primary_affiliation(person) -> dict | None
+:canonical: fairdm.api.serializers.PersonListSerializer.get_primary_affiliation
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonListSerializer.get_primary_affiliation
+```
+
+````
+
+``````
+
+`````{py:class} AffiliationTypeField(**kwargs)
+:canonical: fairdm.api.serializers.AffiliationTypeField
+
+Bases: {py:obj}`rest_framework.serializers.Field`
+
+```{autodoc2-docstring} fairdm.api.serializers.AffiliationTypeField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.AffiliationTypeField.__init__
+```
+
+````{py:method} to_representation(value) -> str
+:canonical: fairdm.api.serializers.AffiliationTypeField.to_representation
+
+```{autodoc2-docstring} fairdm.api.serializers.AffiliationTypeField.to_representation
+```
+
+````
+
+`````
+
+`````{py:class} AffiliationSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.AffiliationSerializer
+
+Bases: {py:obj}`rest_framework.serializers.Serializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.AffiliationSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.AffiliationSerializer.__init__
+```
+
+````{py:attribute} organization
+:canonical: fairdm.api.serializers.AffiliationSerializer.organization
+:value: >
+   'OrganizationReferenceSerializer(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.AffiliationSerializer.organization
+```
+
+````
+
+````{py:attribute} type
+:canonical: fairdm.api.serializers.AffiliationSerializer.type
+:value: >
+   'AffiliationTypeField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.AffiliationSerializer.type
+```
+
+````
+
+````{py:attribute} start
+:canonical: fairdm.api.serializers.AffiliationSerializer.start
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.AffiliationSerializer.start
+```
+
+````
+
+````{py:attribute} end
+:canonical: fairdm.api.serializers.AffiliationSerializer.end
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.AffiliationSerializer.end
+```
+
+````
+
+````{py:attribute} is_primary
+:canonical: fairdm.api.serializers.AffiliationSerializer.is_primary
+:value: >
+   'BooleanField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.AffiliationSerializer.is_primary
+```
+
+````
+
+````{py:method} get_start(affiliation) -> str | None
+:canonical: fairdm.api.serializers.AffiliationSerializer.get_start
+
+```{autodoc2-docstring} fairdm.api.serializers.AffiliationSerializer.get_start
+```
+
+````
+
+````{py:method} get_end(affiliation) -> str | None
+:canonical: fairdm.api.serializers.AffiliationSerializer.get_end
+
+```{autodoc2-docstring} fairdm.api.serializers.AffiliationSerializer.get_end
+```
+
+````
+
+`````
+
+``````{py:class} PersonSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.PersonSerializer
+
+Bases: {py:obj}`fairdm.api.serializers.ContributorRecordsMixin`, {py:obj}`fairdm.api.serializers.PersonListSerializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonSerializer.__init__
+```
+
+````{py:attribute} alternative_names
+:canonical: fairdm.api.serializers.PersonSerializer.alternative_names
+:value: >
+   'ListField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonSerializer.alternative_names
+```
+
+````
+
+````{py:attribute} image
+:canonical: fairdm.api.serializers.PersonSerializer.image
+:value: >
+   'ImageField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonSerializer.image
+```
+
+````
+
+````{py:attribute} links
+:canonical: fairdm.api.serializers.PersonSerializer.links
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonSerializer.links
+```
+
+````
+
+````{py:attribute} languages
+:canonical: fairdm.api.serializers.PersonSerializer.languages
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonSerializer.languages
+```
+
+````
+
+````{py:attribute} affiliations
+:canonical: fairdm.api.serializers.PersonSerializer.affiliations
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonSerializer.affiliations
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.api.serializers.PersonSerializer.Meta
+
+Bases: {py:obj}`fairdm.api.serializers.PersonListSerializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonSerializer.Meta
+```
+
+````{py:attribute} fields
+:canonical: fairdm.api.serializers.PersonSerializer.Meta.fields
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonSerializer.Meta.fields
+```
+
+````
+
+````{py:attribute} read_only_fields
+:canonical: fairdm.api.serializers.PersonSerializer.Meta.read_only_fields
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonSerializer.Meta.read_only_fields
+```
+
+````
+
+`````
+
+````{py:method} get_links(person) -> list[str]
+:canonical: fairdm.api.serializers.PersonSerializer.get_links
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonSerializer.get_links
+```
+
+````
+
+````{py:method} get_languages(person) -> list[str]
+:canonical: fairdm.api.serializers.PersonSerializer.get_languages
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonSerializer.get_languages
+```
+
+````
+
+````{py:method} get_affiliations(person) -> list[dict]
+:canonical: fairdm.api.serializers.PersonSerializer.get_affiliations
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonSerializer.get_affiliations
+```
+
+````
+
+``````
+
+``````{py:class} OrganizationListSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.OrganizationListSerializer
+
+Bases: {py:obj}`rest_framework.serializers.ModelSerializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationListSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationListSerializer.__init__
+```
+
+````{py:attribute} url
+:canonical: fairdm.api.serializers.OrganizationListSerializer.url
+:value: >
+   'RecordURLField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationListSerializer.url
+```
+
+````
+
+````{py:attribute} html_url
+:canonical: fairdm.api.serializers.OrganizationListSerializer.html_url
+:value: >
+   'PortalPageField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationListSerializer.html_url
+```
+
+````
+
+````{py:attribute} identifiers
+:canonical: fairdm.api.serializers.OrganizationListSerializer.identifiers
+:value: >
+   'ContributorIdentifierSerializer(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationListSerializer.identifiers
+```
+
+````
+
+````{py:attribute} country
+:canonical: fairdm.api.serializers.OrganizationListSerializer.country
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationListSerializer.country
+```
+
+````
+
+````{py:attribute} location
+:canonical: fairdm.api.serializers.OrganizationListSerializer.location
+:value: >
+   'GeoJSONPointField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationListSerializer.location
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.api.serializers.OrganizationListSerializer.Meta
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationListSerializer.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.api.serializers.OrganizationListSerializer.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationListSerializer.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.api.serializers.OrganizationListSerializer.Meta.fields
+:type: tuple[str, ...]
+:value: >
+   ('url', 'html_url', 'uuid', 'name', 'type', 'country', 'location', 'identifiers')
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationListSerializer.Meta.fields
+```
+
+````
+
+````{py:attribute} read_only_fields
+:canonical: fairdm.api.serializers.OrganizationListSerializer.Meta.read_only_fields
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationListSerializer.Meta.read_only_fields
+```
+
+````
+
+`````
+
+````{py:method} get_country(organization) -> str | None
+:canonical: fairdm.api.serializers.OrganizationListSerializer.get_country
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationListSerializer.get_country
+```
+
+````
+
+``````
+
+`````{py:class} PersonReferenceSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.PersonReferenceSerializer
+
+Bases: {py:obj}`rest_framework.serializers.Serializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonReferenceSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonReferenceSerializer.__init__
+```
+
+````{py:attribute} uuid
+:canonical: fairdm.api.serializers.PersonReferenceSerializer.uuid
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonReferenceSerializer.uuid
+```
+
+````
+
+````{py:attribute} url
+:canonical: fairdm.api.serializers.PersonReferenceSerializer.url
+:value: >
+   'RecordURLField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonReferenceSerializer.url
+```
+
+````
+
+````{py:attribute} name
+:canonical: fairdm.api.serializers.PersonReferenceSerializer.name
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.PersonReferenceSerializer.name
+```
+
+````
+
+`````
+
+`````{py:class} MemberSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.MemberSerializer
+
+Bases: {py:obj}`rest_framework.serializers.Serializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.MemberSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.MemberSerializer.__init__
+```
+
+````{py:attribute} person
+:canonical: fairdm.api.serializers.MemberSerializer.person
+:value: >
+   'PersonReferenceSerializer(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.MemberSerializer.person
+```
+
+````
+
+````{py:attribute} type
+:canonical: fairdm.api.serializers.MemberSerializer.type
+:value: >
+   'AffiliationTypeField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.MemberSerializer.type
+```
+
+````
+
+`````
+
+``````{py:class} OrganizationSerializer(instance=None, data=empty, **kwargs)
+:canonical: fairdm.api.serializers.OrganizationSerializer
+
+Bases: {py:obj}`fairdm.api.serializers.ContributorRecordsMixin`, {py:obj}`fairdm.api.serializers.OrganizationListSerializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationSerializer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationSerializer.__init__
+```
+
+````{py:attribute} alternative_names
+:canonical: fairdm.api.serializers.OrganizationSerializer.alternative_names
+:value: >
+   'ListField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationSerializer.alternative_names
+```
+
+````
+
+````{py:attribute} image
+:canonical: fairdm.api.serializers.OrganizationSerializer.image
+:value: >
+   'ImageField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationSerializer.image
+```
+
+````
+
+````{py:attribute} links
+:canonical: fairdm.api.serializers.OrganizationSerializer.links
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationSerializer.links
+```
+
+````
+
+````{py:attribute} parent_organization
+:canonical: fairdm.api.serializers.OrganizationSerializer.parent_organization
+:value: >
+   'OrganizationReferenceSerializer(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationSerializer.parent_organization
+```
+
+````
+
+````{py:attribute} sub_organizations
+:canonical: fairdm.api.serializers.OrganizationSerializer.sub_organizations
+:value: >
+   'OrganizationReferenceSerializer(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationSerializer.sub_organizations
+```
+
+````
+
+````{py:attribute} members
+:canonical: fairdm.api.serializers.OrganizationSerializer.members
+:value: >
+   'SerializerMethodField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationSerializer.members
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.api.serializers.OrganizationSerializer.Meta
+
+Bases: {py:obj}`fairdm.api.serializers.OrganizationListSerializer`
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationSerializer.Meta
+```
+
+````{py:attribute} fields
+:canonical: fairdm.api.serializers.OrganizationSerializer.Meta.fields
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationSerializer.Meta.fields
+```
+
+````
+
+````{py:attribute} read_only_fields
+:canonical: fairdm.api.serializers.OrganizationSerializer.Meta.read_only_fields
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationSerializer.Meta.read_only_fields
+```
+
+````
+
+`````
+
+````{py:method} get_links(organization) -> list[str]
+:canonical: fairdm.api.serializers.OrganizationSerializer.get_links
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationSerializer.get_links
+```
+
+````
+
+````{py:method} get_members(organization) -> list[dict]
+:canonical: fairdm.api.serializers.OrganizationSerializer.get_members
+
+```{autodoc2-docstring} fairdm.api.serializers.OrganizationSerializer.get_members
+```
+
+````
+
+``````
+
+`````{py:class} BaseSerializerMixin
+:canonical: fairdm.api.serializers.BaseSerializerMixin
+
+```{autodoc2-docstring} fairdm.api.serializers.BaseSerializerMixin
+```
+
+````{py:attribute} url
+:canonical: fairdm.api.serializers.BaseSerializerMixin.url
+:value: >
+   'HyperlinkedIdentityField(...)'
+
+```{autodoc2-docstring} fairdm.api.serializers.BaseSerializerMixin.url
+```
+
+````
+
+`````

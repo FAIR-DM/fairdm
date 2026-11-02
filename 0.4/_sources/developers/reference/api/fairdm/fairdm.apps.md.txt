@@ -1,0 +1,96 @@
+# {py:mod}`fairdm.apps`
+
+```{py:module} fairdm.apps
+```
+
+```{autodoc2-docstring} fairdm.apps
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FairDMConfig <fairdm.apps.FairDMConfig>`
+  - ```{autodoc2-docstring} fairdm.apps.FairDMConfig
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`NON_PRODUCTION_ENVIRONMENTS <fairdm.apps.NON_PRODUCTION_ENVIRONMENTS>`
+  - ```{autodoc2-docstring} fairdm.apps.NON_PRODUCTION_ENVIRONMENTS
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} NON_PRODUCTION_ENVIRONMENTS
+:canonical: fairdm.apps.NON_PRODUCTION_ENVIRONMENTS
+:value: >
+   'frozenset(...)'
+
+```{autodoc2-docstring} fairdm.apps.NON_PRODUCTION_ENVIRONMENTS
+```
+
+````
+
+`````{py:class} FairDMConfig(app_name, app_module)
+:canonical: fairdm.apps.FairDMConfig
+
+Bases: {py:obj}`django.apps.AppConfig`
+
+```{autodoc2-docstring} fairdm.apps.FairDMConfig
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.apps.FairDMConfig.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.apps.FairDMConfig.name
+:value: >
+   'fairdm'
+
+```{autodoc2-docstring} fairdm.apps.FairDMConfig.name
+```
+
+````
+
+````{py:method} resolved_environment() -> str
+:canonical: fairdm.apps.FairDMConfig.resolved_environment
+
+```{autodoc2-docstring} fairdm.apps.FairDMConfig.resolved_environment
+```
+
+````
+
+````{py:method} import_models() -> None
+:canonical: fairdm.apps.FairDMConfig.import_models
+
+```{autodoc2-docstring} fairdm.apps.FairDMConfig.import_models
+```
+
+````
+
+````{py:method} ready() -> None
+:canonical: fairdm.apps.FairDMConfig.ready
+
+```{autodoc2-docstring} fairdm.apps.FairDMConfig.ready
+```
+
+````
+
+`````

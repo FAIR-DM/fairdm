@@ -1,0 +1,275 @@
+# {py:mod}`fairdm.templatetags.fairdm`
+
+```{py:module} fairdm.templatetags.fairdm
+```
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`MyFormatter <fairdm.templatetags.fairdm.MyFormatter>`
+  - ```{autodoc2-docstring} fairdm.templatetags.fairdm.MyFormatter
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`is_active <fairdm.templatetags.fairdm.is_active>`
+  - ```{autodoc2-docstring} fairdm.templatetags.fairdm.is_active
+    :summary:
+    ```
+* - {py:obj}`notation_filter <fairdm.templatetags.fairdm.notation_filter>`
+  - ```{autodoc2-docstring} fairdm.templatetags.fairdm.notation_filter
+    :summary:
+    ```
+* - {py:obj}`unit <fairdm.templatetags.fairdm.unit>`
+  - ```{autodoc2-docstring} fairdm.templatetags.fairdm.unit
+    :summary:
+    ```
+* - {py:obj}`get_registry_info <fairdm.templatetags.fairdm.get_registry_info>`
+  - ```{autodoc2-docstring} fairdm.templatetags.fairdm.get_registry_info
+    :summary:
+    ```
+* - {py:obj}`display_url <fairdm.templatetags.fairdm.display_url>`
+  - ```{autodoc2-docstring} fairdm.templatetags.fairdm.display_url
+    :summary:
+    ```
+* - {py:obj}`get_field <fairdm.templatetags.fairdm.get_field>`
+  - ```{autodoc2-docstring} fairdm.templatetags.fairdm.get_field
+    :summary:
+    ```
+* - {py:obj}`get_field_and_value <fairdm.templatetags.fairdm.get_field_and_value>`
+  - ```{autodoc2-docstring} fairdm.templatetags.fairdm.get_field_and_value
+    :summary:
+    ```
+* - {py:obj}`get_fields <fairdm.templatetags.fairdm.get_fields>`
+  - ```{autodoc2-docstring} fairdm.templatetags.fairdm.get_fields
+    :summary:
+    ```
+* - {py:obj}`edit_url <fairdm.templatetags.fairdm.edit_url>`
+  - ```{autodoc2-docstring} fairdm.templatetags.fairdm.edit_url
+    :summary:
+    ```
+* - {py:obj}`avatar_url <fairdm.templatetags.fairdm.avatar_url>`
+  - ```{autodoc2-docstring} fairdm.templatetags.fairdm.avatar_url
+    :summary:
+    ```
+* - {py:obj}`plugin_url <fairdm.templatetags.fairdm.plugin_url>`
+  - ```{autodoc2-docstring} fairdm.templatetags.fairdm.plugin_url
+    :summary:
+    ```
+* - {py:obj}`safe_markdown <fairdm.templatetags.fairdm.safe_markdown>`
+  - ```{autodoc2-docstring} fairdm.templatetags.fairdm.safe_markdown
+    :summary:
+    ```
+* - {py:obj}`has_perms <fairdm.templatetags.fairdm.has_perms>`
+  - ```{autodoc2-docstring} fairdm.templatetags.fairdm.has_perms
+    :summary:
+    ```
+* - {py:obj}`has_permission <fairdm.templatetags.fairdm.has_permission>`
+  - ```{autodoc2-docstring} fairdm.templatetags.fairdm.has_permission
+    :summary:
+    ```
+* - {py:obj}`get_related_field <fairdm.templatetags.fairdm.get_related_field>`
+  - ```{autodoc2-docstring} fairdm.templatetags.fairdm.get_related_field
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`register <fairdm.templatetags.fairdm.register>`
+  - ```{autodoc2-docstring} fairdm.templatetags.fairdm.register
+    :summary:
+    ```
+* - {py:obj}`ureg <fairdm.templatetags.fairdm.ureg>`
+  - ```{autodoc2-docstring} fairdm.templatetags.fairdm.ureg
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} register
+:canonical: fairdm.templatetags.fairdm.register
+:value: >
+   'Library(...)'
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.register
+```
+
+````
+
+````{py:data} ureg
+:canonical: fairdm.templatetags.fairdm.ureg
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.ureg
+```
+
+````
+
+`````{py:class} MyFormatter(registry: pint.registry.UnitRegistry | None = None)
+:canonical: fairdm.templatetags.fairdm.MyFormatter
+
+Bases: {py:obj}`pint.delegates.formatter.plain.PrettyFormatter`
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.MyFormatter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.MyFormatter.__init__
+```
+
+````{py:attribute} default_format
+:canonical: fairdm.templatetags.fairdm.MyFormatter.default_format
+:value: >
+   '.2f~P'
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.MyFormatter.default_format
+```
+
+````
+
+````{py:method} format_uncertainty(uncertainty, unc_spec: str = '', sort_func=None, **babel_kwds) -> str
+:canonical: fairdm.templatetags.fairdm.MyFormatter.format_uncertainty
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.MyFormatter.format_uncertainty
+```
+
+````
+
+````{py:method} format_measurement(measurement, meas_spec='', sort_func=None, **babel_kwds) -> str
+:canonical: fairdm.templatetags.fairdm.MyFormatter.format_measurement
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.MyFormatter.format_measurement
+```
+
+````
+
+`````
+
+````{py:function} is_active(context, url)
+:canonical: fairdm.templatetags.fairdm.is_active
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.is_active
+```
+````
+
+````{py:function} notation_filter(concept)
+:canonical: fairdm.templatetags.fairdm.notation_filter
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.notation_filter
+```
+````
+
+````{py:function} unit(unit)
+:canonical: fairdm.templatetags.fairdm.unit
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.unit
+```
+````
+
+````{py:function} get_registry_info(model_or_qs)
+:canonical: fairdm.templatetags.fairdm.get_registry_info
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.get_registry_info
+```
+````
+
+````{py:function} display_url(url)
+:canonical: fairdm.templatetags.fairdm.display_url
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.display_url
+```
+````
+
+````{py:function} get_field(obj, fname)
+:canonical: fairdm.templatetags.fairdm.get_field
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.get_field
+```
+````
+
+````{py:function} get_field_and_value(obj, fname)
+:canonical: fairdm.templatetags.fairdm.get_field_and_value
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.get_field_and_value
+```
+````
+
+````{py:function} get_fields(obj, fields)
+:canonical: fairdm.templatetags.fairdm.get_fields
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.get_fields
+```
+````
+
+````{py:function} edit_url(obj, fields=None)
+:canonical: fairdm.templatetags.fairdm.edit_url
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.edit_url
+```
+````
+
+````{py:function} avatar_url(contributor, **kwargs)
+:canonical: fairdm.templatetags.fairdm.avatar_url
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.avatar_url
+```
+````
+
+````{py:function} plugin_url(context, view_name, *args, **kwargs)
+:canonical: fairdm.templatetags.fairdm.plugin_url
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.plugin_url
+```
+````
+
+````{py:function} safe_markdown(content)
+:canonical: fairdm.templatetags.fairdm.safe_markdown
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.safe_markdown
+```
+````
+
+````{py:function} has_perms(permission_obj, perms)
+:canonical: fairdm.templatetags.fairdm.has_perms
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.has_perms
+```
+````
+
+````{py:function} has_permission(context, perms)
+:canonical: fairdm.templatetags.fairdm.has_permission
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.has_permission
+```
+````
+
+````{py:function} get_related_field(obj, field_name)
+:canonical: fairdm.templatetags.fairdm.get_related_field
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.get_related_field
+```
+````

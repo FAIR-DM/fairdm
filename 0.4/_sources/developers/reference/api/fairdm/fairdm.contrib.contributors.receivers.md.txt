@@ -1,0 +1,42 @@
+# {py:mod}`fairdm.contrib.contributors.receivers`
+
+```{py:module} fairdm.contrib.contributors.receivers
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.receivers
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`refuse_shipped_role_deletion <fairdm.contrib.contributors.receivers.refuse_shipped_role_deletion>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.receivers.refuse_shipped_role_deletion
+    :summary:
+    ```
+* - {py:obj}`refuse_shipped_role_rename <fairdm.contrib.contributors.receivers.refuse_shipped_role_rename>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.receivers.refuse_shipped_role_rename
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} refuse_shipped_role_deletion(sender, instance, **kwargs)
+:canonical: fairdm.contrib.contributors.receivers.refuse_shipped_role_deletion
+
+```{autodoc2-docstring} fairdm.contrib.contributors.receivers.refuse_shipped_role_deletion
+```
+````
+
+````{py:function} refuse_shipped_role_rename(sender, instance, **kwargs)
+:canonical: fairdm.contrib.contributors.receivers.refuse_shipped_role_rename
+
+```{autodoc2-docstring} fairdm.contrib.contributors.receivers.refuse_shipped_role_rename
+```
+````

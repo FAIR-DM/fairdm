@@ -1,0 +1,20 @@
+# {py:mod}`fairdm.registry`
+
+```{py:module} fairdm.registry
+```
+
+```{autodoc2-docstring} fairdm.registry
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.registry.exceptions
+fairdm.registry.config
+fairdm.registry.factories
+fairdm.registry.registry
+```

@@ -1,0 +1,673 @@
+# {py:mod}`fairdm.core.sample.models`
+
+```{py:module} fairdm.core.sample.models
+```
+
+```{autodoc2-docstring} fairdm.core.sample.models
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Sample <fairdm.core.sample.models.Sample>`
+  - ```{autodoc2-docstring} fairdm.core.sample.models.Sample
+    :summary:
+    ```
+* - {py:obj}`SampleDescription <fairdm.core.sample.models.SampleDescription>`
+  - ```{autodoc2-docstring} fairdm.core.sample.models.SampleDescription
+    :summary:
+    ```
+* - {py:obj}`SampleDate <fairdm.core.sample.models.SampleDate>`
+  - ```{autodoc2-docstring} fairdm.core.sample.models.SampleDate
+    :summary:
+    ```
+* - {py:obj}`SampleIdentifier <fairdm.core.sample.models.SampleIdentifier>`
+  - ```{autodoc2-docstring} fairdm.core.sample.models.SampleIdentifier
+    :summary:
+    ```
+* - {py:obj}`SampleRelation <fairdm.core.sample.models.SampleRelation>`
+  - ```{autodoc2-docstring} fairdm.core.sample.models.SampleRelation
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`block_base_sample_creation <fairdm.core.sample.models.block_base_sample_creation>`
+  - ```{autodoc2-docstring} fairdm.core.sample.models.block_base_sample_creation
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`BASE_SAMPLE_ERROR <fairdm.core.sample.models.BASE_SAMPLE_ERROR>`
+  - ```{autodoc2-docstring} fairdm.core.sample.models.BASE_SAMPLE_ERROR
+    :summary:
+    ```
+* - {py:obj}`IGSN_DISPLAY_PREFIXES <fairdm.core.sample.models.IGSN_DISPLAY_PREFIXES>`
+  - ```{autodoc2-docstring} fairdm.core.sample.models.IGSN_DISPLAY_PREFIXES
+    :summary:
+    ```
+* - {py:obj}`IGSN_DOI_PATTERN <fairdm.core.sample.models.IGSN_DOI_PATTERN>`
+  - ```{autodoc2-docstring} fairdm.core.sample.models.IGSN_DOI_PATTERN
+    :summary:
+    ```
+* - {py:obj}`IGSN_LEGACY_HANDLE_PATTERN <fairdm.core.sample.models.IGSN_LEGACY_HANDLE_PATTERN>`
+  - ```{autodoc2-docstring} fairdm.core.sample.models.IGSN_LEGACY_HANDLE_PATTERN
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} BASE_SAMPLE_ERROR
+:canonical: fairdm.core.sample.models.BASE_SAMPLE_ERROR
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.BASE_SAMPLE_ERROR
+```
+
+````
+
+````{py:data} IGSN_DISPLAY_PREFIXES
+:canonical: fairdm.core.sample.models.IGSN_DISPLAY_PREFIXES
+:value: >
+   ('https://doi.org/', 'http://doi.org/', 'https://igsn.org/', 'hdl.handle.net/', 'doi:', 'igsn:')
+
+```{autodoc2-docstring} fairdm.core.sample.models.IGSN_DISPLAY_PREFIXES
+```
+
+````
+
+````{py:data} IGSN_DOI_PATTERN
+:canonical: fairdm.core.sample.models.IGSN_DOI_PATTERN
+:value: >
+   'compile(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.IGSN_DOI_PATTERN
+```
+
+````
+
+````{py:data} IGSN_LEGACY_HANDLE_PATTERN
+:canonical: fairdm.core.sample.models.IGSN_LEGACY_HANDLE_PATTERN
+:value: >
+   'compile(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.IGSN_LEGACY_HANDLE_PATTERN
+```
+
+````
+
+``````{py:class} Sample(*args, **kwargs)
+:canonical: fairdm.core.sample.models.Sample
+
+Bases: {py:obj}`fairdm.core.abstract.BasePolymorphicModel`
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.__init__
+```
+
+````{py:attribute} CONTRIBUTOR_ROLES
+:canonical: fairdm.core.sample.models.Sample.CONTRIBUTOR_ROLES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.CONTRIBUTOR_ROLES
+```
+
+````
+
+````{py:attribute} DATE_TYPES
+:canonical: fairdm.core.sample.models.Sample.DATE_TYPES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.DATE_TYPES
+```
+
+````
+
+````{py:attribute} DESCRIPTION_TYPES
+:canonical: fairdm.core.sample.models.Sample.DESCRIPTION_TYPES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.DESCRIPTION_TYPES
+```
+
+````
+
+````{py:attribute} dataset
+:canonical: fairdm.core.sample.models.Sample.dataset
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.dataset
+```
+
+````
+
+````{py:attribute} uuid
+:canonical: fairdm.core.sample.models.Sample.uuid
+:value: >
+   'ShortUUIDField(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.uuid
+```
+
+````
+
+````{py:attribute} local_id
+:canonical: fairdm.core.sample.models.Sample.local_id
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.local_id
+```
+
+````
+
+````{py:attribute} status
+:canonical: fairdm.core.sample.models.Sample.status
+:value: >
+   'ConceptField(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.status
+```
+
+````
+
+````{py:attribute} location
+:canonical: fairdm.core.sample.models.Sample.location
+:value: >
+   'PointField(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.location
+```
+
+````
+
+````{py:attribute} location_elevation
+:canonical: fairdm.core.sample.models.Sample.location_elevation
+:value: >
+   'FloatField(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.location_elevation
+```
+
+````
+
+````{py:attribute} location_uncertainty
+:canonical: fairdm.core.sample.models.Sample.location_uncertainty
+:value: >
+   'FloatField(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.location_uncertainty
+```
+
+````
+
+````{py:attribute} contributors
+:canonical: fairdm.core.sample.models.Sample.contributors
+:value: >
+   'GenericRelation(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.contributors
+```
+
+````
+
+````{py:attribute} related
+:canonical: fairdm.core.sample.models.Sample.related
+:value: >
+   'ManyToManyField(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.related
+```
+
+````
+
+````{py:attribute} objects
+:canonical: fairdm.core.sample.models.Sample.objects
+:value: >
+   '(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.objects
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.sample.models.Sample.Meta
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.Meta
+```
+
+````{py:attribute} verbose_name
+:canonical: fairdm.core.sample.models.Sample.Meta.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.Meta.verbose_name
+```
+
+````
+
+````{py:attribute} verbose_name_plural
+:canonical: fairdm.core.sample.models.Sample.Meta.verbose_name_plural
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.Meta.verbose_name_plural
+```
+
+````
+
+````{py:attribute} ordering
+:canonical: fairdm.core.sample.models.Sample.Meta.ordering
+:value: >
+   ['added']
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.Meta.ordering
+```
+
+````
+
+````{py:attribute} default_related_name
+:canonical: fairdm.core.sample.models.Sample.Meta.default_related_name
+:value: >
+   'samples'
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.Meta.default_related_name
+```
+
+````
+
+````{py:attribute} indexes
+:canonical: fairdm.core.sample.models.Sample.Meta.indexes
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.Meta.indexes
+```
+
+````
+
+````{py:attribute} constraints
+:canonical: fairdm.core.sample.models.Sample.Meta.constraints
+:value: >
+   'location_constraints(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.Meta.constraints
+```
+
+````
+
+````{py:attribute} permissions
+:canonical: fairdm.core.sample.models.Sample.Meta.permissions
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.Meta.permissions
+```
+
+````
+
+`````
+
+````{py:method} clean()
+:canonical: fairdm.core.sample.models.Sample.clean
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.clean
+```
+
+````
+
+````{py:method} get_absolute_url()
+:canonical: fairdm.core.sample.models.Sample.get_absolute_url
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.get_absolute_url
+```
+
+````
+
+````{py:method} get_all_relationships()
+:canonical: fairdm.core.sample.models.Sample.get_all_relationships
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.get_all_relationships
+```
+
+````
+
+````{py:method} get_related_samples(relationship_type=None)
+:canonical: fairdm.core.sample.models.Sample.get_related_samples
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.get_related_samples
+```
+
+````
+
+````{py:method} get_children()
+:canonical: fairdm.core.sample.models.Sample.get_children
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.get_children
+```
+
+````
+
+````{py:method} get_parents()
+:canonical: fairdm.core.sample.models.Sample.get_parents
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.get_parents
+```
+
+````
+
+````{py:method} get_descendants(depth=None)
+:canonical: fairdm.core.sample.models.Sample.get_descendants
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.get_descendants
+```
+
+````
+
+````{py:method} get_ancestors(depth=None)
+:canonical: fairdm.core.sample.models.Sample.get_ancestors
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.get_ancestors
+```
+
+````
+
+````{py:method} type_of()
+:canonical: fairdm.core.sample.models.Sample.type_of
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.type_of
+```
+
+````
+
+````{py:method} get_template_name()
+:canonical: fairdm.core.sample.models.Sample.get_template_name
+
+```{autodoc2-docstring} fairdm.core.sample.models.Sample.get_template_name
+```
+
+````
+
+``````
+
+````{py:function} block_base_sample_creation(sender, instance, **kwargs)
+:canonical: fairdm.core.sample.models.block_base_sample_creation
+
+```{autodoc2-docstring} fairdm.core.sample.models.block_base_sample_creation
+```
+````
+
+`````{py:class} SampleDescription(*args, **kwargs)
+:canonical: fairdm.core.sample.models.SampleDescription
+
+Bases: {py:obj}`fairdm.core.abstract.AbstractDescription`
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleDescription
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleDescription.__init__
+```
+
+````{py:attribute} type
+:canonical: fairdm.core.sample.models.SampleDescription.type
+:value: >
+   'ConceptField(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleDescription.type
+```
+
+````
+
+````{py:attribute} related
+:canonical: fairdm.core.sample.models.SampleDescription.related
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleDescription.related
+```
+
+````
+
+`````
+
+`````{py:class} SampleDate(*args, **kwargs)
+:canonical: fairdm.core.sample.models.SampleDate
+
+Bases: {py:obj}`fairdm.core.abstract.AbstractDate`
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleDate
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleDate.__init__
+```
+
+````{py:attribute} type
+:canonical: fairdm.core.sample.models.SampleDate.type
+:value: >
+   'ConceptField(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleDate.type
+```
+
+````
+
+````{py:attribute} related
+:canonical: fairdm.core.sample.models.SampleDate.related
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleDate.related
+```
+
+````
+
+`````
+
+`````{py:class} SampleIdentifier(*args, **kwargs)
+:canonical: fairdm.core.sample.models.SampleIdentifier
+
+Bases: {py:obj}`fairdm.core.abstract.AbstractIdentifier`
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleIdentifier
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleIdentifier.__init__
+```
+
+````{py:attribute} type
+:canonical: fairdm.core.sample.models.SampleIdentifier.type
+:value: >
+   'ConceptField(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleIdentifier.type
+```
+
+````
+
+````{py:attribute} related
+:canonical: fairdm.core.sample.models.SampleIdentifier.related
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleIdentifier.related
+```
+
+````
+
+````{py:method} clean()
+:canonical: fairdm.core.sample.models.SampleIdentifier.clean
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleIdentifier.clean
+```
+
+````
+
+`````
+
+``````{py:class} SampleRelation(*args, **kwargs)
+:canonical: fairdm.core.sample.models.SampleRelation
+
+Bases: {py:obj}`fairdm.db.models.Model`
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleRelation
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleRelation.__init__
+```
+
+````{py:attribute} RELATION_TYPES
+:canonical: fairdm.core.sample.models.SampleRelation.RELATION_TYPES
+:value: >
+   [('child_of',)]
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleRelation.RELATION_TYPES
+```
+
+````
+
+````{py:attribute} type
+:canonical: fairdm.core.sample.models.SampleRelation.type
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleRelation.type
+```
+
+````
+
+````{py:attribute} source
+:canonical: fairdm.core.sample.models.SampleRelation.source
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleRelation.source
+```
+
+````
+
+````{py:attribute} target
+:canonical: fairdm.core.sample.models.SampleRelation.target
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleRelation.target
+```
+
+````
+
+````{py:attribute} added
+:canonical: fairdm.core.sample.models.SampleRelation.added
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleRelation.added
+```
+
+````
+
+````{py:attribute} modified
+:canonical: fairdm.core.sample.models.SampleRelation.modified
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleRelation.modified
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.sample.models.SampleRelation.Meta
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleRelation.Meta
+```
+
+````{py:attribute} unique_together
+:canonical: fairdm.core.sample.models.SampleRelation.Meta.unique_together
+:value: >
+   [('source', 'target', 'type')]
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleRelation.Meta.unique_together
+```
+
+````
+
+````{py:attribute} verbose_name
+:canonical: fairdm.core.sample.models.SampleRelation.Meta.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleRelation.Meta.verbose_name
+```
+
+````
+
+````{py:attribute} verbose_name_plural
+:canonical: fairdm.core.sample.models.SampleRelation.Meta.verbose_name_plural
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleRelation.Meta.verbose_name_plural
+```
+
+````
+
+`````
+
+````{py:method} clean()
+:canonical: fairdm.core.sample.models.SampleRelation.clean
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleRelation.clean
+```
+
+````
+
+````{py:method} save(*args, **kwargs)
+:canonical: fairdm.core.sample.models.SampleRelation.save
+
+```{autodoc2-docstring} fairdm.core.sample.models.SampleRelation.save
+```
+
+````
+
+``````

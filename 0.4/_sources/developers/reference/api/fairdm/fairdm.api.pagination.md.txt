@@ -1,0 +1,62 @@
+# {py:mod}`fairdm.api.pagination`
+
+```{py:module} fairdm.api.pagination
+```
+
+```{autodoc2-docstring} fairdm.api.pagination
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FairDMPagination <fairdm.api.pagination.FairDMPagination>`
+  - ```{autodoc2-docstring} fairdm.api.pagination.FairDMPagination
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} FairDMPagination
+:canonical: fairdm.api.pagination.FairDMPagination
+
+Bases: {py:obj}`rest_framework.pagination.PageNumberPagination`
+
+```{autodoc2-docstring} fairdm.api.pagination.FairDMPagination
+```
+
+````{py:attribute} page_size_query_param
+:canonical: fairdm.api.pagination.FairDMPagination.page_size_query_param
+:value: >
+   'page_size'
+
+```{autodoc2-docstring} fairdm.api.pagination.FairDMPagination.page_size_query_param
+```
+
+````
+
+````{py:property} page_size
+:canonical: fairdm.api.pagination.FairDMPagination.page_size
+:type: int | None
+
+```{autodoc2-docstring} fairdm.api.pagination.FairDMPagination.page_size
+```
+
+````
+
+````{py:property} max_page_size
+:canonical: fairdm.api.pagination.FairDMPagination.max_page_size
+:type: int | None
+
+```{autodoc2-docstring} fairdm.api.pagination.FairDMPagination.max_page_size
+```
+
+````
+
+`````

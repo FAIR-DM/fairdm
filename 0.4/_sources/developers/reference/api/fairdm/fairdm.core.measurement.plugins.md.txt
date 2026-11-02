@@ -1,0 +1,154 @@
+# {py:mod}`fairdm.core.measurement.plugins`
+
+```{py:module} fairdm.core.measurement.plugins
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.plugins
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Overview <fairdm.core.measurement.plugins.Overview>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.plugins.Overview
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} Overview(**kwargs)
+:canonical: fairdm.core.measurement.plugins.Overview
+
+Bases: {py:obj}`fairdm.core.plugins.TypedOverviewPlugin`
+
+```{autodoc2-docstring} fairdm.core.measurement.plugins.Overview
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.plugins.Overview.__init__
+```
+
+````{py:attribute} base_model
+:canonical: fairdm.core.measurement.plugins.Overview.base_model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.plugins.Overview.base_model
+```
+
+````
+
+````{py:attribute} fallback_template
+:canonical: fairdm.core.measurement.plugins.Overview.fallback_template
+:value: >
+   'measurement/measurement_overview.html'
+
+```{autodoc2-docstring} fairdm.core.measurement.plugins.Overview.fallback_template
+```
+
+````
+
+````{py:attribute} url_path
+:canonical: fairdm.core.measurement.plugins.Overview.url_path
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.plugins.Overview.url_path
+```
+
+````
+
+````{py:attribute} procedure_steps
+:canonical: fairdm.core.measurement.plugins.Overview.procedure_steps
+:value: >
+   [(), (None,), ()]
+
+```{autodoc2-docstring} fairdm.core.measurement.plugins.Overview.procedure_steps
+```
+
+````
+
+````{py:attribute} siblings_shown
+:canonical: fairdm.core.measurement.plugins.Overview.siblings_shown
+:value: >
+   8
+
+```{autodoc2-docstring} fairdm.core.measurement.plugins.Overview.siblings_shown
+```
+
+````
+
+````{py:method} get_page_title()
+:canonical: fairdm.core.measurement.plugins.Overview.get_page_title
+
+```{autodoc2-docstring} fairdm.core.measurement.plugins.Overview.get_page_title
+```
+
+````
+
+````{py:method} get_breadcrumbs()
+:canonical: fairdm.core.measurement.plugins.Overview.get_breadcrumbs
+
+```{autodoc2-docstring} fairdm.core.measurement.plugins.Overview.get_breadcrumbs
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.core.measurement.plugins.Overview.get_context_data
+
+```{autodoc2-docstring} fairdm.core.measurement.plugins.Overview.get_context_data
+```
+
+````
+
+````{py:method} get_result()
+:canonical: fairdm.core.measurement.plugins.Overview.get_result
+
+```{autodoc2-docstring} fairdm.core.measurement.plugins.Overview.get_result
+```
+
+````
+
+````{py:method} get_sample_status()
+:canonical: fairdm.core.measurement.plugins.Overview.get_sample_status
+
+```{autodoc2-docstring} fairdm.core.measurement.plugins.Overview.get_sample_status
+```
+
+````
+
+````{py:method} get_siblings()
+:canonical: fairdm.core.measurement.plugins.Overview.get_siblings
+
+```{autodoc2-docstring} fairdm.core.measurement.plugins.Overview.get_siblings
+```
+
+````
+
+````{py:method} get_citation_details(entries, dates, identifiers, sample)
+:canonical: fairdm.core.measurement.plugins.Overview.get_citation_details
+
+```{autodoc2-docstring} fairdm.core.measurement.plugins.Overview.get_citation_details
+```
+
+````
+
+````{py:method} get_details(project)
+:canonical: fairdm.core.measurement.plugins.Overview.get_details
+
+```{autodoc2-docstring} fairdm.core.measurement.plugins.Overview.get_details
+```
+
+````
+
+`````

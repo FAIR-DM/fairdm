@@ -1,0 +1,236 @@
+# {py:mod}`fairdm.core.measurement.filters`
+
+```{py:module} fairdm.core.measurement.filters
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.filters
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`PartialDateFilterField <fairdm.core.measurement.filters.PartialDateFilterField>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.filters.PartialDateFilterField
+    :summary:
+    ```
+* - {py:obj}`PartialDateFilter <fairdm.core.measurement.filters.PartialDateFilter>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.filters.PartialDateFilter
+    :summary:
+    ```
+* - {py:obj}`MeasurementFilterMixin <fairdm.core.measurement.filters.MeasurementFilterMixin>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.filters.MeasurementFilterMixin
+    :summary:
+    ```
+* - {py:obj}`MeasurementFilter <fairdm.core.measurement.filters.MeasurementFilter>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.filters.MeasurementFilter
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} PartialDateFilterField(*, max_length=None, min_length=None, strip=True, empty_value='', **kwargs)
+:canonical: fairdm.core.measurement.filters.PartialDateFilterField
+
+Bases: {py:obj}`django.forms.CharField`
+
+```{autodoc2-docstring} fairdm.core.measurement.filters.PartialDateFilterField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.filters.PartialDateFilterField.__init__
+```
+
+````{py:method} to_python(value)
+:canonical: fairdm.core.measurement.filters.PartialDateFilterField.to_python
+
+```{autodoc2-docstring} fairdm.core.measurement.filters.PartialDateFilterField.to_python
+```
+
+````
+
+`````
+
+`````{py:class} PartialDateFilter(field_name=None, lookup_expr=None, *, label=None, method=None, distinct=False, exclude=False, **kwargs)
+:canonical: fairdm.core.measurement.filters.PartialDateFilter
+
+Bases: {py:obj}`django_filters.CharFilter`
+
+```{autodoc2-docstring} fairdm.core.measurement.filters.PartialDateFilter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.filters.PartialDateFilter.__init__
+```
+
+````{py:attribute} field_class
+:canonical: fairdm.core.measurement.filters.PartialDateFilter.field_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.filters.PartialDateFilter.field_class
+```
+
+````
+
+`````
+
+``````{py:class} MeasurementFilterMixin(*args, **kwargs)
+:canonical: fairdm.core.measurement.filters.MeasurementFilterMixin
+
+Bases: {py:obj}`django_filters.FilterSet`
+
+```{autodoc2-docstring} fairdm.core.measurement.filters.MeasurementFilterMixin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.filters.MeasurementFilterMixin.__init__
+```
+
+````{py:attribute} dataset
+:canonical: fairdm.core.measurement.filters.MeasurementFilterMixin.dataset
+:value: >
+   'RecordMultipleFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.filters.MeasurementFilterMixin.dataset
+```
+
+````
+
+````{py:attribute} sample
+:canonical: fairdm.core.measurement.filters.MeasurementFilterMixin.sample
+:value: >
+   'RecordMultipleFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.filters.MeasurementFilterMixin.sample
+```
+
+````
+
+````{py:attribute} polymorphic_ctype
+:canonical: fairdm.core.measurement.filters.MeasurementFilterMixin.polymorphic_ctype
+:value: >
+   'ModelChoiceFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.filters.MeasurementFilterMixin.polymorphic_ctype
+```
+
+````
+
+````{py:attribute} q
+:canonical: fairdm.core.measurement.filters.MeasurementFilterMixin.q
+:value: >
+   'SearchFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.filters.MeasurementFilterMixin.q
+```
+
+````
+
+````{py:attribute} description
+:canonical: fairdm.core.measurement.filters.MeasurementFilterMixin.description
+:value: >
+   'CharFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.filters.MeasurementFilterMixin.description
+```
+
+````
+
+````{py:attribute} date_after
+:canonical: fairdm.core.measurement.filters.MeasurementFilterMixin.date_after
+:value: >
+   'PartialDateFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.filters.MeasurementFilterMixin.date_after
+```
+
+````
+
+````{py:attribute} date_before
+:canonical: fairdm.core.measurement.filters.MeasurementFilterMixin.date_before
+:value: >
+   'PartialDateFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.measurement.filters.MeasurementFilterMixin.date_before
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.measurement.filters.MeasurementFilterMixin.Meta
+
+```{autodoc2-docstring} fairdm.core.measurement.filters.MeasurementFilterMixin.Meta
+```
+
+````{py:attribute} fields
+:canonical: fairdm.core.measurement.filters.MeasurementFilterMixin.Meta.fields
+:value: >
+   ['dataset', 'sample', 'polymorphic_ctype']
+
+```{autodoc2-docstring} fairdm.core.measurement.filters.MeasurementFilterMixin.Meta.fields
+```
+
+````
+
+`````
+
+``````
+
+``````{py:class} MeasurementFilter(*args, **kwargs)
+:canonical: fairdm.core.measurement.filters.MeasurementFilter
+
+Bases: {py:obj}`fairdm.core.measurement.filters.MeasurementFilterMixin`, {py:obj}`django_filters.FilterSet`
+
+```{autodoc2-docstring} fairdm.core.measurement.filters.MeasurementFilter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.filters.MeasurementFilter.__init__
+```
+
+`````{py:class} Meta
+:canonical: fairdm.core.measurement.filters.MeasurementFilter.Meta
+
+Bases: {py:obj}`fairdm.core.measurement.filters.MeasurementFilterMixin`
+
+```{autodoc2-docstring} fairdm.core.measurement.filters.MeasurementFilter.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.measurement.filters.MeasurementFilter.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.filters.MeasurementFilter.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.core.measurement.filters.MeasurementFilter.Meta.fields
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.measurement.filters.MeasurementFilter.Meta.fields
+```
+
+````
+
+`````
+
+``````

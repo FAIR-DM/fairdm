@@ -1,0 +1,187 @@
+# {py:mod}`fairdm.utils.location.forms`
+
+```{py:module} fairdm.utils.location.forms
+```
+
+```{autodoc2-docstring} fairdm.utils.location.forms
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Location <fairdm.utils.location.forms.Location>`
+  - ```{autodoc2-docstring} fairdm.utils.location.forms.Location
+    :summary:
+    ```
+* - {py:obj}`LocationWidget <fairdm.utils.location.forms.LocationWidget>`
+  - ```{autodoc2-docstring} fairdm.utils.location.forms.LocationWidget
+    :summary:
+    ```
+* - {py:obj}`LocationField <fairdm.utils.location.forms.LocationField>`
+  - ```{autodoc2-docstring} fairdm.utils.location.forms.LocationField
+    :summary:
+    ```
+* - {py:obj}`LocationFormMixin <fairdm.utils.location.forms.LocationFormMixin>`
+  - ```{autodoc2-docstring} fairdm.utils.location.forms.LocationFormMixin
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} Location
+:canonical: fairdm.utils.location.forms.Location
+
+Bases: {py:obj}`typing.NamedTuple`
+
+```{autodoc2-docstring} fairdm.utils.location.forms.Location
+```
+
+````{py:attribute} point
+:canonical: fairdm.utils.location.forms.Location.point
+:type: django.contrib.gis.geos.Point
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.utils.location.forms.Location.point
+```
+
+````
+
+````{py:attribute} elevation
+:canonical: fairdm.utils.location.forms.Location.elevation
+:type: float | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.utils.location.forms.Location.elevation
+```
+
+````
+
+````{py:attribute} uncertainty
+:canonical: fairdm.utils.location.forms.Location.uncertainty
+:type: float | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.utils.location.forms.Location.uncertainty
+```
+
+````
+
+`````
+
+`````{py:class} LocationWidget(full=True, attrs=None)
+:canonical: fairdm.utils.location.forms.LocationWidget
+
+Bases: {py:obj}`django.forms.MultiWidget`
+
+```{autodoc2-docstring} fairdm.utils.location.forms.LocationWidget
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.utils.location.forms.LocationWidget.__init__
+```
+
+````{py:attribute} template_name
+:canonical: fairdm.utils.location.forms.LocationWidget.template_name
+:value: >
+   'location/widgets/location.html'
+
+```{autodoc2-docstring} fairdm.utils.location.forms.LocationWidget.template_name
+```
+
+````
+
+````{py:attribute} full_parts
+:canonical: fairdm.utils.location.forms.LocationWidget.full_parts
+:value: >
+   ('first', 'second', 'elevation', 'uncertainty')
+
+```{autodoc2-docstring} fairdm.utils.location.forms.LocationWidget.full_parts
+```
+
+````
+
+````{py:attribute} point_parts
+:canonical: fairdm.utils.location.forms.LocationWidget.point_parts
+:value: >
+   ('first', 'second')
+
+```{autodoc2-docstring} fairdm.utils.location.forms.LocationWidget.point_parts
+```
+
+````
+
+````{py:method} decompress(value)
+:canonical: fairdm.utils.location.forms.LocationWidget.decompress
+
+```{autodoc2-docstring} fairdm.utils.location.forms.LocationWidget.decompress
+```
+
+````
+
+````{py:method} get_context(name, value, attrs)
+:canonical: fairdm.utils.location.forms.LocationWidget.get_context
+
+```{autodoc2-docstring} fairdm.utils.location.forms.LocationWidget.get_context
+```
+
+````
+
+`````
+
+`````{py:class} LocationField(full=True, **kwargs)
+:canonical: fairdm.utils.location.forms.LocationField
+
+Bases: {py:obj}`django.forms.MultiValueField`
+
+```{autodoc2-docstring} fairdm.utils.location.forms.LocationField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.utils.location.forms.LocationField.__init__
+```
+
+````{py:method} compress(data_list)
+:canonical: fairdm.utils.location.forms.LocationField.compress
+
+```{autodoc2-docstring} fairdm.utils.location.forms.LocationField.compress
+```
+
+````
+
+`````
+
+`````{py:class} LocationFormMixin(*args, **kwargs)
+:canonical: fairdm.utils.location.forms.LocationFormMixin
+
+```{autodoc2-docstring} fairdm.utils.location.forms.LocationFormMixin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.utils.location.forms.LocationFormMixin.__init__
+```
+
+````{py:method} clean()
+:canonical: fairdm.utils.location.forms.LocationFormMixin.clean
+
+```{autodoc2-docstring} fairdm.utils.location.forms.LocationFormMixin.clean
+```
+
+````
+
+`````

@@ -1,0 +1,188 @@
+# {py:mod}`fairdm.conf.settings.email`
+
+```{py:module} fairdm.conf.settings.email
+```
+
+```{autodoc2-docstring} fairdm.conf.settings.email
+:allowtitles:
+```
+
+## Module Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`env <fairdm.conf.settings.email.env>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.email.env
+    :summary:
+    ```
+* - {py:obj}`site_name <fairdm.conf.settings.email.site_name>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.email.site_name
+    :summary:
+    ```
+* - {py:obj}`DEFAULT_FROM_EMAIL <fairdm.conf.settings.email.DEFAULT_FROM_EMAIL>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.email.DEFAULT_FROM_EMAIL
+    :summary:
+    ```
+* - {py:obj}`SERVER_EMAIL <fairdm.conf.settings.email.SERVER_EMAIL>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.email.SERVER_EMAIL
+    :summary:
+    ```
+* - {py:obj}`EMAIL_HOST <fairdm.conf.settings.email.EMAIL_HOST>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.email.EMAIL_HOST
+    :summary:
+    ```
+* - {py:obj}`EMAIL_PORT <fairdm.conf.settings.email.EMAIL_PORT>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.email.EMAIL_PORT
+    :summary:
+    ```
+* - {py:obj}`EMAIL_BACKEND <fairdm.conf.settings.email.EMAIL_BACKEND>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.email.EMAIL_BACKEND
+    :summary:
+    ```
+* - {py:obj}`EMAIL_TIMEOUT <fairdm.conf.settings.email.EMAIL_TIMEOUT>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.email.EMAIL_TIMEOUT
+    :summary:
+    ```
+* - {py:obj}`EMAIL_SUBJECT_PREFIX <fairdm.conf.settings.email.EMAIL_SUBJECT_PREFIX>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.email.EMAIL_SUBJECT_PREFIX
+    :summary:
+    ```
+* - {py:obj}`EMAIL_HOST_USER <fairdm.conf.settings.email.EMAIL_HOST_USER>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.email.EMAIL_HOST_USER
+    :summary:
+    ```
+* - {py:obj}`EMAIL_HOST_PASSWORD <fairdm.conf.settings.email.EMAIL_HOST_PASSWORD>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.email.EMAIL_HOST_PASSWORD
+    :summary:
+    ```
+* - {py:obj}`EMAIL_USE_TLS <fairdm.conf.settings.email.EMAIL_USE_TLS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.email.EMAIL_USE_TLS
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} env
+:canonical: fairdm.conf.settings.email.env
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.email.env
+```
+
+````
+
+````{py:data} site_name
+:canonical: fairdm.conf.settings.email.site_name
+:value: >
+   'env(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.email.site_name
+```
+
+````
+
+````{py:data} DEFAULT_FROM_EMAIL
+:canonical: fairdm.conf.settings.email.DEFAULT_FROM_EMAIL
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.email.DEFAULT_FROM_EMAIL
+```
+
+````
+
+````{py:data} SERVER_EMAIL
+:canonical: fairdm.conf.settings.email.SERVER_EMAIL
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.email.SERVER_EMAIL
+```
+
+````
+
+````{py:data} EMAIL_HOST
+:canonical: fairdm.conf.settings.email.EMAIL_HOST
+:value: >
+   'env(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.email.EMAIL_HOST
+```
+
+````
+
+````{py:data} EMAIL_PORT
+:canonical: fairdm.conf.settings.email.EMAIL_PORT
+:value: >
+   'env(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.email.EMAIL_PORT
+```
+
+````
+
+````{py:data} EMAIL_BACKEND
+:canonical: fairdm.conf.settings.email.EMAIL_BACKEND
+:value: >
+   'env(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.email.EMAIL_BACKEND
+```
+
+````
+
+````{py:data} EMAIL_TIMEOUT
+:canonical: fairdm.conf.settings.email.EMAIL_TIMEOUT
+:value: >
+   5
+
+```{autodoc2-docstring} fairdm.conf.settings.email.EMAIL_TIMEOUT
+```
+
+````
+
+````{py:data} EMAIL_SUBJECT_PREFIX
+:canonical: fairdm.conf.settings.email.EMAIL_SUBJECT_PREFIX
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.email.EMAIL_SUBJECT_PREFIX
+```
+
+````
+
+````{py:data} EMAIL_HOST_USER
+:canonical: fairdm.conf.settings.email.EMAIL_HOST_USER
+:value: >
+   'env(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.email.EMAIL_HOST_USER
+```
+
+````
+
+````{py:data} EMAIL_HOST_PASSWORD
+:canonical: fairdm.conf.settings.email.EMAIL_HOST_PASSWORD
+:value: >
+   'env(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.email.EMAIL_HOST_PASSWORD
+```
+
+````
+
+````{py:data} EMAIL_USE_TLS
+:canonical: fairdm.conf.settings.email.EMAIL_USE_TLS
+:value: >
+   'env(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.email.EMAIL_USE_TLS
+```
+
+````

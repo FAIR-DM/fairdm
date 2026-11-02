@@ -1,0 +1,75 @@
+# {py:mod}`fairdm.contrib.contributors.tasks`
+
+```{py:module} fairdm.contrib.contributors.tasks
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.tasks
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`sync_contributor_identifier <fairdm.contrib.contributors.tasks.sync_contributor_identifier>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.tasks.sync_contributor_identifier
+    :summary:
+    ```
+* - {py:obj}`refresh_all_contributors <fairdm.contrib.contributors.tasks.refresh_all_contributors>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.tasks.refresh_all_contributors
+    :summary:
+    ```
+* - {py:obj}`detect_duplicate_contributors <fairdm.contrib.contributors.tasks.detect_duplicate_contributors>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.tasks.detect_duplicate_contributors
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`logger <fairdm.contrib.contributors.tasks.logger>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.tasks.logger
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} logger
+:canonical: fairdm.contrib.contributors.tasks.logger
+:value: >
+   'getLogger(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.tasks.logger
+```
+
+````
+
+````{py:function} sync_contributor_identifier(identifier_pk: int) -> bool
+:canonical: fairdm.contrib.contributors.tasks.sync_contributor_identifier
+
+```{autodoc2-docstring} fairdm.contrib.contributors.tasks.sync_contributor_identifier
+```
+````
+
+````{py:function} refresh_all_contributors() -> int
+:canonical: fairdm.contrib.contributors.tasks.refresh_all_contributors
+
+```{autodoc2-docstring} fairdm.contrib.contributors.tasks.refresh_all_contributors
+```
+````
+
+````{py:function} detect_duplicate_contributors() -> dict
+:canonical: fairdm.contrib.contributors.tasks.detect_duplicate_contributors
+
+```{autodoc2-docstring} fairdm.contrib.contributors.tasks.detect_duplicate_contributors
+```
+````

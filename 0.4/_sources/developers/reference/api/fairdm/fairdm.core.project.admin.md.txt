@@ -1,0 +1,356 @@
+# {py:mod}`fairdm.core.project.admin`
+
+```{py:module} fairdm.core.project.admin
+```
+
+```{autodoc2-docstring} fairdm.core.project.admin
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`DescriptionInline <fairdm.core.project.admin.DescriptionInline>`
+  - ```{autodoc2-docstring} fairdm.core.project.admin.DescriptionInline
+    :summary:
+    ```
+* - {py:obj}`DateInline <fairdm.core.project.admin.DateInline>`
+  - ```{autodoc2-docstring} fairdm.core.project.admin.DateInline
+    :summary:
+    ```
+* - {py:obj}`IdentifierInline <fairdm.core.project.admin.IdentifierInline>`
+  - ```{autodoc2-docstring} fairdm.core.project.admin.IdentifierInline
+    :summary:
+    ```
+* - {py:obj}`ProjectAdmin <fairdm.core.project.admin.ProjectAdmin>`
+  - ```{autodoc2-docstring} fairdm.core.project.admin.ProjectAdmin
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`DateInlineFormSet <fairdm.core.project.admin.DateInlineFormSet>`
+  - ```{autodoc2-docstring} fairdm.core.project.admin.DateInlineFormSet
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} DescriptionInline(parent_model, admin_site)
+:canonical: fairdm.core.project.admin.DescriptionInline
+
+Bases: {py:obj}`django.contrib.admin.StackedInline`
+
+```{autodoc2-docstring} fairdm.core.project.admin.DescriptionInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.project.admin.DescriptionInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.project.admin.DescriptionInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.project.admin.DescriptionInline.model
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.core.project.admin.DescriptionInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.core.project.admin.DescriptionInline.extra
+```
+
+````
+
+````{py:attribute} max_num
+:canonical: fairdm.core.project.admin.DescriptionInline.max_num
+:value: >
+   6
+
+```{autodoc2-docstring} fairdm.core.project.admin.DescriptionInline.max_num
+```
+
+````
+
+`````
+
+````{py:data} DateInlineFormSet
+:canonical: fairdm.core.project.admin.DateInlineFormSet
+:value: >
+   'date_ordering_formset(...)'
+
+```{autodoc2-docstring} fairdm.core.project.admin.DateInlineFormSet
+```
+
+````
+
+`````{py:class} DateInline(parent_model, admin_site)
+:canonical: fairdm.core.project.admin.DateInline
+
+Bases: {py:obj}`django.contrib.admin.TabularInline`
+
+```{autodoc2-docstring} fairdm.core.project.admin.DateInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.project.admin.DateInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.project.admin.DateInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.project.admin.DateInline.model
+```
+
+````
+
+````{py:attribute} formset
+:canonical: fairdm.core.project.admin.DateInline.formset
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.project.admin.DateInline.formset
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.core.project.admin.DateInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.core.project.admin.DateInline.extra
+```
+
+````
+
+````{py:attribute} max_num
+:canonical: fairdm.core.project.admin.DateInline.max_num
+:value: >
+   10
+
+```{autodoc2-docstring} fairdm.core.project.admin.DateInline.max_num
+```
+
+````
+
+`````
+
+`````{py:class} IdentifierInline(parent_model, admin_site)
+:canonical: fairdm.core.project.admin.IdentifierInline
+
+Bases: {py:obj}`django.contrib.admin.TabularInline`
+
+```{autodoc2-docstring} fairdm.core.project.admin.IdentifierInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.project.admin.IdentifierInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.project.admin.IdentifierInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.project.admin.IdentifierInline.model
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.core.project.admin.IdentifierInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.core.project.admin.IdentifierInline.extra
+```
+
+````
+
+````{py:attribute} max_num
+:canonical: fairdm.core.project.admin.IdentifierInline.max_num
+:value: >
+   5
+
+```{autodoc2-docstring} fairdm.core.project.admin.IdentifierInline.max_num
+```
+
+````
+
+`````
+
+`````{py:class} ProjectAdmin(model, admin_site)
+:canonical: fairdm.core.project.admin.ProjectAdmin
+
+Bases: {py:obj}`django.contrib.admin.ModelAdmin`
+
+```{autodoc2-docstring} fairdm.core.project.admin.ProjectAdmin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.project.admin.ProjectAdmin.__init__
+```
+
+````{py:attribute} search_fields
+:canonical: fairdm.core.project.admin.ProjectAdmin.search_fields
+:value: >
+   ('uuid', 'name', 'owner__name', 'identifiers__value')
+
+```{autodoc2-docstring} fairdm.core.project.admin.ProjectAdmin.search_fields
+```
+
+````
+
+````{py:attribute} inlines
+:canonical: fairdm.core.project.admin.ProjectAdmin.inlines
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.core.project.admin.ProjectAdmin.inlines
+```
+
+````
+
+````{py:attribute} list_display
+:canonical: fairdm.core.project.admin.ProjectAdmin.list_display
+:value: >
+   ('name', 'status', 'visibility', 'owner', 'has_abstract', 'has_start_date', 'added')
+
+```{autodoc2-docstring} fairdm.core.project.admin.ProjectAdmin.list_display
+```
+
+````
+
+````{py:attribute} list_filter
+:canonical: fairdm.core.project.admin.ProjectAdmin.list_filter
+:value: >
+   ('status', 'visibility', 'added')
+
+```{autodoc2-docstring} fairdm.core.project.admin.ProjectAdmin.list_filter
+```
+
+````
+
+````{py:attribute} list_per_page
+:canonical: fairdm.core.project.admin.ProjectAdmin.list_per_page
+:value: >
+   50
+
+```{autodoc2-docstring} fairdm.core.project.admin.ProjectAdmin.list_per_page
+```
+
+````
+
+````{py:method} get_queryset(request)
+:canonical: fairdm.core.project.admin.ProjectAdmin.get_queryset
+
+```{autodoc2-docstring} fairdm.core.project.admin.ProjectAdmin.get_queryset
+```
+
+````
+
+````{py:method} has_abstract(obj)
+:canonical: fairdm.core.project.admin.ProjectAdmin.has_abstract
+
+```{autodoc2-docstring} fairdm.core.project.admin.ProjectAdmin.has_abstract
+```
+
+````
+
+````{py:method} has_start_date(obj)
+:canonical: fairdm.core.project.admin.ProjectAdmin.has_start_date
+
+```{autodoc2-docstring} fairdm.core.project.admin.ProjectAdmin.has_start_date
+```
+
+````
+
+````{py:attribute} fieldsets
+:canonical: fairdm.core.project.admin.ProjectAdmin.fieldsets
+:value: >
+   ((None,), (), (), ())
+
+```{autodoc2-docstring} fairdm.core.project.admin.ProjectAdmin.fieldsets
+```
+
+````
+
+````{py:attribute} actions
+:canonical: fairdm.core.project.admin.ProjectAdmin.actions
+:value: >
+   ['make_concept', 'make_active', 'make_completed', 'export_json', 'export_datacite']
+
+```{autodoc2-docstring} fairdm.core.project.admin.ProjectAdmin.actions
+```
+
+````
+
+````{py:method} make_concept(request, queryset)
+:canonical: fairdm.core.project.admin.ProjectAdmin.make_concept
+
+```{autodoc2-docstring} fairdm.core.project.admin.ProjectAdmin.make_concept
+```
+
+````
+
+````{py:method} make_active(request, queryset)
+:canonical: fairdm.core.project.admin.ProjectAdmin.make_active
+
+```{autodoc2-docstring} fairdm.core.project.admin.ProjectAdmin.make_active
+```
+
+````
+
+````{py:method} make_completed(request, queryset)
+:canonical: fairdm.core.project.admin.ProjectAdmin.make_completed
+
+```{autodoc2-docstring} fairdm.core.project.admin.ProjectAdmin.make_completed
+```
+
+````
+
+````{py:method} export_json(request, queryset)
+:canonical: fairdm.core.project.admin.ProjectAdmin.export_json
+
+```{autodoc2-docstring} fairdm.core.project.admin.ProjectAdmin.export_json
+```
+
+````
+
+````{py:method} export_datacite(request, queryset)
+:canonical: fairdm.core.project.admin.ProjectAdmin.export_datacite
+
+```{autodoc2-docstring} fairdm.core.project.admin.ProjectAdmin.export_datacite
+```
+
+````
+
+`````

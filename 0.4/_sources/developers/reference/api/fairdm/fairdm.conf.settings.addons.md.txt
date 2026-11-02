@@ -1,0 +1,440 @@
+# {py:mod}`fairdm.conf.settings.addons`
+
+```{py:module} fairdm.conf.settings.addons
+```
+
+```{autodoc2-docstring} fairdm.conf.settings.addons
+:allowtitles:
+```
+
+## Module Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ACTSTREAM_SETTINGS <fairdm.conf.settings.addons.ACTSTREAM_SETTINGS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.ACTSTREAM_SETTINGS
+    :summary:
+    ```
+* - {py:obj}`GET_SOLO_TEMPLATE_TAG_NAME <fairdm.conf.settings.addons.GET_SOLO_TEMPLATE_TAG_NAME>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.GET_SOLO_TEMPLATE_TAG_NAME
+    :summary:
+    ```
+* - {py:obj}`SOLO_CACHE <fairdm.conf.settings.addons.SOLO_CACHE>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.SOLO_CACHE
+    :summary:
+    ```
+* - {py:obj}`SOLO_CACHE_TIMEOUT <fairdm.conf.settings.addons.SOLO_CACHE_TIMEOUT>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.SOLO_CACHE_TIMEOUT
+    :summary:
+    ```
+* - {py:obj}`WAFFLE_CREATE_MISSING_SWITCHES <fairdm.conf.settings.addons.WAFFLE_CREATE_MISSING_SWITCHES>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.WAFFLE_CREATE_MISSING_SWITCHES
+    :summary:
+    ```
+* - {py:obj}`WAFFLE_CREATE_MISSING_FLAGS <fairdm.conf.settings.addons.WAFFLE_CREATE_MISSING_FLAGS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.WAFFLE_CREATE_MISSING_FLAGS
+    :summary:
+    ```
+* - {py:obj}`WAFFLE_CREATE_MISSING_SAMPELS <fairdm.conf.settings.addons.WAFFLE_CREATE_MISSING_SAMPELS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.WAFFLE_CREATE_MISSING_SAMPELS
+    :summary:
+    ```
+* - {py:obj}`FLEX_MENUS <fairdm.conf.settings.addons.FLEX_MENUS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.FLEX_MENUS
+    :summary:
+    ```
+* - {py:obj}`MVP_CONFIG <fairdm.conf.settings.addons.MVP_CONFIG>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.MVP_CONFIG
+    :summary:
+    ```
+* - {py:obj}`MVP_COMPLIANCE_AGREEMENT_EXEMPT_URLS <fairdm.conf.settings.addons.MVP_COMPLIANCE_AGREEMENT_EXEMPT_URLS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.MVP_COMPLIANCE_AGREEMENT_EXEMPT_URLS
+    :summary:
+    ```
+* - {py:obj}`EASY_ICONS <fairdm.conf.settings.addons.EASY_ICONS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.EASY_ICONS
+    :summary:
+    ```
+* - {py:obj}`IMPORT_EXPORT_FORMATS <fairdm.conf.settings.addons.IMPORT_EXPORT_FORMATS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.IMPORT_EXPORT_FORMATS
+    :summary:
+    ```
+* - {py:obj}`IMPORT_FORMATS <fairdm.conf.settings.addons.IMPORT_FORMATS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.IMPORT_FORMATS
+    :summary:
+    ```
+* - {py:obj}`FAIRDM_MARKDOWN_EXTENSIONS <fairdm.conf.settings.addons.FAIRDM_MARKDOWN_EXTENSIONS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.FAIRDM_MARKDOWN_EXTENSIONS
+    :summary:
+    ```
+* - {py:obj}`ALLOWED_URL_SCHEMES <fairdm.conf.settings.addons.ALLOWED_URL_SCHEMES>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.ALLOWED_URL_SCHEMES
+    :summary:
+    ```
+* - {py:obj}`ALLOWED_HTML_TAGS <fairdm.conf.settings.addons.ALLOWED_HTML_TAGS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.ALLOWED_HTML_TAGS
+    :summary:
+    ```
+* - {py:obj}`ALLOWED_HTML_ATTRIBUTES <fairdm.conf.settings.addons.ALLOWED_HTML_ATTRIBUTES>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.ALLOWED_HTML_ATTRIBUTES
+    :summary:
+    ```
+* - {py:obj}`META_SITE_PROTOCOL <fairdm.conf.settings.addons.META_SITE_PROTOCOL>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.META_SITE_PROTOCOL
+    :summary:
+    ```
+* - {py:obj}`META_USE_TITLE_TAG <fairdm.conf.settings.addons.META_USE_TITLE_TAG>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.META_USE_TITLE_TAG
+    :summary:
+    ```
+* - {py:obj}`META_USE_SITES <fairdm.conf.settings.addons.META_USE_SITES>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.META_USE_SITES
+    :summary:
+    ```
+* - {py:obj}`META_USE_OG_PROPERTIES <fairdm.conf.settings.addons.META_USE_OG_PROPERTIES>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.META_USE_OG_PROPERTIES
+    :summary:
+    ```
+* - {py:obj}`META_USE_TWITTER_PROPERTIES <fairdm.conf.settings.addons.META_USE_TWITTER_PROPERTIES>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.META_USE_TWITTER_PROPERTIES
+    :summary:
+    ```
+* - {py:obj}`FAIRDM_ALLOWED_IDENTIFIERS <fairdm.conf.settings.addons.FAIRDM_ALLOWED_IDENTIFIERS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.FAIRDM_ALLOWED_IDENTIFIERS
+    :summary:
+    ```
+* - {py:obj}`FAIRDM_DATASET <fairdm.conf.settings.addons.FAIRDM_DATASET>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.FAIRDM_DATASET
+    :summary:
+    ```
+* - {py:obj}`FAIRDM_PROJECT <fairdm.conf.settings.addons.FAIRDM_PROJECT>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.FAIRDM_PROJECT
+    :summary:
+    ```
+* - {py:obj}`FAIRDM_DEFAULT_LICENSE <fairdm.conf.settings.addons.FAIRDM_DEFAULT_LICENSE>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.FAIRDM_DEFAULT_LICENSE
+    :summary:
+    ```
+* - {py:obj}`PAGE_CONFIG <fairdm.conf.settings.addons.PAGE_CONFIG>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.PAGE_CONFIG
+    :summary:
+    ```
+* - {py:obj}`FAIRDM_CONFIG <fairdm.conf.settings.addons.FAIRDM_CONFIG>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.FAIRDM_CONFIG
+    :summary:
+    ```
+* - {py:obj}`html_sidebars <fairdm.conf.settings.addons.html_sidebars>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.html_sidebars
+    :summary:
+    ```
+* - {py:obj}`html_context <fairdm.conf.settings.addons.html_context>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.addons.html_context
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} ACTSTREAM_SETTINGS
+:canonical: fairdm.conf.settings.addons.ACTSTREAM_SETTINGS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.ACTSTREAM_SETTINGS
+```
+
+````
+
+````{py:data} GET_SOLO_TEMPLATE_TAG_NAME
+:canonical: fairdm.conf.settings.addons.GET_SOLO_TEMPLATE_TAG_NAME
+:value: >
+   'site_config'
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.GET_SOLO_TEMPLATE_TAG_NAME
+```
+
+````
+
+````{py:data} SOLO_CACHE
+:canonical: fairdm.conf.settings.addons.SOLO_CACHE
+:value: >
+   'default'
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.SOLO_CACHE
+```
+
+````
+
+````{py:data} SOLO_CACHE_TIMEOUT
+:canonical: fairdm.conf.settings.addons.SOLO_CACHE_TIMEOUT
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.SOLO_CACHE_TIMEOUT
+```
+
+````
+
+````{py:data} WAFFLE_CREATE_MISSING_SWITCHES
+:canonical: fairdm.conf.settings.addons.WAFFLE_CREATE_MISSING_SWITCHES
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.WAFFLE_CREATE_MISSING_SWITCHES
+```
+
+````
+
+````{py:data} WAFFLE_CREATE_MISSING_FLAGS
+:canonical: fairdm.conf.settings.addons.WAFFLE_CREATE_MISSING_FLAGS
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.WAFFLE_CREATE_MISSING_FLAGS
+```
+
+````
+
+````{py:data} WAFFLE_CREATE_MISSING_SAMPELS
+:canonical: fairdm.conf.settings.addons.WAFFLE_CREATE_MISSING_SAMPELS
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.WAFFLE_CREATE_MISSING_SAMPELS
+```
+
+````
+
+````{py:data} FLEX_MENUS
+:canonical: fairdm.conf.settings.addons.FLEX_MENUS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.FLEX_MENUS
+```
+
+````
+
+````{py:data} MVP_CONFIG
+:canonical: fairdm.conf.settings.addons.MVP_CONFIG
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.MVP_CONFIG
+```
+
+````
+
+````{py:data} MVP_COMPLIANCE_AGREEMENT_EXEMPT_URLS
+:canonical: fairdm.conf.settings.addons.MVP_COMPLIANCE_AGREEMENT_EXEMPT_URLS
+:value: >
+   ['/hijack/']
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.MVP_COMPLIANCE_AGREEMENT_EXEMPT_URLS
+```
+
+````
+
+````{py:data} EASY_ICONS
+:canonical: fairdm.conf.settings.addons.EASY_ICONS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.EASY_ICONS
+```
+
+````
+
+````{py:data} IMPORT_EXPORT_FORMATS
+:canonical: fairdm.conf.settings.addons.IMPORT_EXPORT_FORMATS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.IMPORT_EXPORT_FORMATS
+```
+
+````
+
+````{py:data} IMPORT_FORMATS
+:canonical: fairdm.conf.settings.addons.IMPORT_FORMATS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.IMPORT_FORMATS
+```
+
+````
+
+````{py:data} FAIRDM_MARKDOWN_EXTENSIONS
+:canonical: fairdm.conf.settings.addons.FAIRDM_MARKDOWN_EXTENSIONS
+:value: >
+   ['markdown.extensions.extra', 'markdown.extensions.nl2br', 'markdown.extensions.smarty', 'markdown.e...
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.FAIRDM_MARKDOWN_EXTENSIONS
+```
+
+````
+
+````{py:data} ALLOWED_URL_SCHEMES
+:canonical: fairdm.conf.settings.addons.ALLOWED_URL_SCHEMES
+:value: >
+   ['https']
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.ALLOWED_URL_SCHEMES
+```
+
+````
+
+````{py:data} ALLOWED_HTML_TAGS
+:canonical: fairdm.conf.settings.addons.ALLOWED_HTML_TAGS
+:value: >
+   ['abbr', 'b', 'blockquote', 'br', 'dd', 'dl', 'dt', 'em', 'hr', 'i', 'li', 'ol', 'p', 'pre', 'small'...
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.ALLOWED_HTML_TAGS
+```
+
+````
+
+````{py:data} ALLOWED_HTML_ATTRIBUTES
+:canonical: fairdm.conf.settings.addons.ALLOWED_HTML_ATTRIBUTES
+:value: >
+   []
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.ALLOWED_HTML_ATTRIBUTES
+```
+
+````
+
+````{py:data} META_SITE_PROTOCOL
+:canonical: fairdm.conf.settings.addons.META_SITE_PROTOCOL
+:value: >
+   'https'
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.META_SITE_PROTOCOL
+```
+
+````
+
+````{py:data} META_USE_TITLE_TAG
+:canonical: fairdm.conf.settings.addons.META_USE_TITLE_TAG
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.META_USE_TITLE_TAG
+```
+
+````
+
+````{py:data} META_USE_SITES
+:canonical: fairdm.conf.settings.addons.META_USE_SITES
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.META_USE_SITES
+```
+
+````
+
+````{py:data} META_USE_OG_PROPERTIES
+:canonical: fairdm.conf.settings.addons.META_USE_OG_PROPERTIES
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.META_USE_OG_PROPERTIES
+```
+
+````
+
+````{py:data} META_USE_TWITTER_PROPERTIES
+:canonical: fairdm.conf.settings.addons.META_USE_TWITTER_PROPERTIES
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.META_USE_TWITTER_PROPERTIES
+```
+
+````
+
+````{py:data} FAIRDM_ALLOWED_IDENTIFIERS
+:canonical: fairdm.conf.settings.addons.FAIRDM_ALLOWED_IDENTIFIERS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.FAIRDM_ALLOWED_IDENTIFIERS
+```
+
+````
+
+````{py:data} FAIRDM_DATASET
+:canonical: fairdm.conf.settings.addons.FAIRDM_DATASET
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.FAIRDM_DATASET
+```
+
+````
+
+````{py:data} FAIRDM_PROJECT
+:canonical: fairdm.conf.settings.addons.FAIRDM_PROJECT
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.FAIRDM_PROJECT
+```
+
+````
+
+````{py:data} FAIRDM_DEFAULT_LICENSE
+:canonical: fairdm.conf.settings.addons.FAIRDM_DEFAULT_LICENSE
+:value: >
+   'CC BY 4.0'
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.FAIRDM_DEFAULT_LICENSE
+```
+
+````
+
+````{py:data} PAGE_CONFIG
+:canonical: fairdm.conf.settings.addons.PAGE_CONFIG
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.PAGE_CONFIG
+```
+
+````
+
+````{py:data} FAIRDM_CONFIG
+:canonical: fairdm.conf.settings.addons.FAIRDM_CONFIG
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.FAIRDM_CONFIG
+```
+
+````
+
+````{py:data} html_sidebars
+:canonical: fairdm.conf.settings.addons.html_sidebars
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.html_sidebars
+```
+
+````
+
+````{py:data} html_context
+:canonical: fairdm.conf.settings.addons.html_context
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.addons.html_context
+```
+
+````
