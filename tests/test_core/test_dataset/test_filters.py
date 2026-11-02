@@ -11,7 +11,8 @@ from licensing.models import License
 from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.dataset.filters import DatasetFilter
-from fairdm.core.dataset.models import Dataset
+from fairdm.core.dataset.models import Dataset, DatasetDate, DatasetDescription
+from fairdm.core.project.models import ProjectDate
 from fairdm.core.vocabularies import DATE_TYPES, DESCRIPTION_TYPES
 from fairdm.factories import (
     ContributionFactory,
@@ -172,6 +173,40 @@ class TestCrossRelationshipFilters:
         assert filterset.is_valid()
         assert matching in filterset.qs
         assert other not in filterset.qs
+
+
+@pytest.mark.django_db
+class TestTypeFilterChoices:
+    @pytest.mark.parametrize(
+        ("name", "row_model"),
+        [("description_type", DatasetDescription), ("date_type", DatasetDate)],
+    )
+    def test_it_offers_the_collection_by_label_in_its_order(self, name, row_model):
+        concepts = row_model.get_type_concepts()
+
+        choices = list(DatasetFilter().form.fields[name].choices)[1:]
+
+        assert concepts
+        assert choices == [(c.uri, c.display_label()) for c in concepts]
+
+    @pytest.mark.parametrize(
+        ("name", "code"),
+        [("description_type", "ABSTRACT"), ("date_type", "COLLECTED")],
+    )
+    def test_a_value_outside_the_collection_is_refused(self, name, code):
+        filterset = DatasetFilter(data={name: code}, queryset=Dataset.all_objects.all())
+
+        assert filterset.form.has_error(name, code="invalid_choice")
+
+    def test_a_type_the_project_collection_holds_alone_is_not_offered(self):
+        dataset_types = {c.uri for c in DatasetDate.get_type_concepts()}
+        project_only = {c.uri for c in ProjectDate.get_type_concepts()} - dataset_types
+
+        field = DatasetFilter().form.fields["date_type"]
+        offered = {uri for uri, label in field.choices}
+
+        assert project_only
+        assert not project_only & offered
 
 
 @pytest.mark.django_db

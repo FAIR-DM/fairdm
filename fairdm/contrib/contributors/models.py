@@ -390,23 +390,38 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         Measurement = apps.get_model("measurement.Measurement")
         return Measurement.objects.filter(pk__in=self.credited_object_ids(Measurement))
 
+    def get_credit_totals(self):
+        """Count this contributor's credits for each kind of research output.
+
+        Returns:
+            One dict per credited model, with its ``singular`` and ``plural`` verbose
+            names and its ``count``.
+        """
+        counts_by_type = self.contributions.values("content_type").annotate(
+            total=Count("id")
+        )
+        totals = []
+        for entry in counts_by_type:
+            model_class = ContentType.objects.get_for_id(
+                entry["content_type"]
+            ).model_class()
+            if model_class is not None:
+                totals.append(
+                    {
+                        "singular": model_class._meta.verbose_name,
+                        "plural": model_class._meta.verbose_name_plural,
+                        "count": entry["total"],
+                    }
+                )
+        return totals
+
     def get_credit_counts(self):
         """Count this contributor's credits for each kind of research output.
 
         Returns:
             A map of each credited model's plural verbose name to its count.
         """
-        counts_by_type = self.contributions.values("content_type").annotate(
-            total=Count("id")
-        )
-        result = {}
-        for entry in counts_by_type:
-            model_class = ContentType.objects.get_for_id(
-                entry["content_type"]
-            ).model_class()
-            if model_class is not None:
-                result[model_class._meta.verbose_name_plural] = entry["total"]
-        return result
+        return {total["plural"]: total["count"] for total in self.get_credit_totals()}
 
     def to_datacite(self):
         """Export the contributor as a DataCite 4.4 creator or contributor object.
