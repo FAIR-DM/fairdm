@@ -5,7 +5,9 @@ from bs4 import BeautifulSoup
 from django import forms
 from quantityfield.units import ureg
 
+from fairdm.core.project.models import ProjectDate
 from fairdm.db.fields import PartialDateField
+from fairdm.forms import ModelForm
 from fairdm.forms.fields import PartialDateField as PartialDateFormField
 from tests.registry_models.models import ConcreteMeasurement
 
@@ -78,3 +80,16 @@ class TestPartialDateField:
         assert form_field.required is True
         assert form_field.label == "Custom Label"
         assert form_field.help_text == "Custom help text"
+
+    def test_formfield_builds_the_form_class_it_is_given(self):
+        form_field = PartialDateField(blank=True).formfield(form_class=forms.CharField)
+
+        assert type(form_field) is forms.CharField
+
+    def test_a_fairdm_model_form_draws_the_field(self):
+        class DateForm(ModelForm):
+            class Meta:
+                model = ProjectDate
+                fields = ["value"]
+
+        assert isinstance(DateForm().fields["value"], PartialDateFormField)
