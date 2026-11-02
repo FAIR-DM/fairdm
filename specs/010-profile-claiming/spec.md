@@ -105,6 +105,7 @@ As a portal administrator reviewing an unclaimed Person profile, I see a list of
 ### Edge Cases
 
 - What happens when a user has an ORCID match but also a partial email match to different unclaimed profiles? (Priority: ORCID match)
+- What happens when an ORCID sign-up submits an email address that an existing account holds, active or not, and no profile holds the ORCID identifier? (Normal email conflict check: no account is created, nothing is claimed, and the address's owner is told an account already exists)
 - How does the system handle email claiming when the user's email provider has a typo in allauth (e.g., "gmial.com")? (Fail verification, no claim)
 - What happens if an admin generates a claim token for an unclaimed profile, then the profile gets claimed via ORCID before the token is used? (Token becomes invalid)
 - How does the system prevent an authenticated user from using someone else's claim token to gain their attribution? (Token is single-use and creates a link to a specific Person; if user already has a Person account, they can't claim another without merge permission)

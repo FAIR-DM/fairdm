@@ -22,6 +22,8 @@ If an unclaimed profile holds the ORCID iD that you sign in with, the portal lin
 
 An ORCID iD is proof only for a profile that is still unclaimed. The identifier on a claimed profile is never treated as a credential, because an identifier can also be written by an administrator or an import, and it would not prove who is signing in. Someone whose ORCID iD matches a claimed profile is not signed in to it. They go through the ordinary sign-up flow, like anyone with no matching record.
 
+The email address entered during an ORCID sign-up claims nothing, because only the iD is proof on this route. An address that any account already holds is treated as taken, whether that account is active or not. No account is created, and the owner of the address gets an email saying that an account already exists.
+
 ### Confirming an email address
 
 The portal claims an unclaimed profile when the email address the profile holds is confirmed, and only while email verification is mandatory, which is the default. If verification is set to any other value, nothing is claimed, because an unconfirmed address proves nothing about who owns it.
