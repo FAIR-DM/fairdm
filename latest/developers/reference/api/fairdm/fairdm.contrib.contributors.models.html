@@ -1482,6 +1482,15 @@ The datasets, as a queryset.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.models.Contributor.get_credit_totals">
+<span class="sig-name descname"><span class="pre">get_credit_totals</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.models.Contributor.get_credit_totals" title="Link to this definition">#</a></dt>
+<dd><p>Count this contributor’s credits for each kind of research output.</p>
+<p>Returns:
+One dict per credited model, with its <code class="docutils literal notranslate"><span class="pre">singular</span></code> and <code class="docutils literal notranslate"><span class="pre">plural</span></code> verbose
+names and its <code class="docutils literal notranslate"><span class="pre">count</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.models.Contributor.get_credit_counts">
 <span class="sig-name descname"><span class="pre">get_credit_counts</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.models.Contributor.get_credit_counts" title="Link to this definition">#</a></dt>
 <dd><p>Count this contributor’s credits for each kind of research output.</p>
@@ -2872,6 +2881,7 @@ details: Extra structured details.</p>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.get_public_datasets"><code class="docutils literal notranslate"><span class="pre">Contributor.get_public_datasets()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.samples"><code class="docutils literal notranslate"><span class="pre">Contributor.samples</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.measurements"><code class="docutils literal notranslate"><span class="pre">Contributor.measurements</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.get_credit_totals"><code class="docutils literal notranslate"><span class="pre">Contributor.get_credit_totals()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.get_credit_counts"><code class="docutils literal notranslate"><span class="pre">Contributor.get_credit_counts()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.to_datacite"><code class="docutils literal notranslate"><span class="pre">Contributor.to_datacite()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.to_schema_org"><code class="docutils literal notranslate"><span class="pre">Contributor.to_schema_org()</span></code></a></li>

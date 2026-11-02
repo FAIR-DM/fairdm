@@ -499,6 +499,14 @@ Bases: {py:obj}`fairdm.utils.models.PolymorphicMixin`, {py:obj}`fairdm.db.models
 
 ````
 
+````{py:method} get_credit_totals()
+:canonical: fairdm.contrib.contributors.models.Contributor.get_credit_totals
+
+```{autodoc2-docstring} fairdm.contrib.contributors.models.Contributor.get_credit_totals
+```
+
+````
+
 ````{py:method} get_credit_counts()
 :canonical: fairdm.contrib.contributors.models.Contributor.get_credit_counts
 

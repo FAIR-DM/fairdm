@@ -122,7 +122,7 @@ Bases: {py:obj}`django_filters.FilterSet`
 ````{py:attribute} polymorphic_ctype
 :canonical: fairdm.core.measurement.filters.MeasurementFilterMixin.polymorphic_ctype
 :value: >
-   'ModelChoiceFilter(...)'
+   'RecordTypeFilter(...)'
 
 ```{autodoc2-docstring} fairdm.core.measurement.filters.MeasurementFilterMixin.polymorphic_ctype
 ```

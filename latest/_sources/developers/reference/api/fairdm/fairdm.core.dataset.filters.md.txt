@@ -70,7 +70,7 @@ Bases: {py:obj}`fairdm.core.filters.BaseListFilter`
 ````{py:attribute} description_type
 :canonical: fairdm.core.dataset.filters.DatasetFilter.description_type
 :value: >
-   'CharFilter(...)'
+   'ConceptTypeFilter(...)'
 
 ```{autodoc2-docstring} fairdm.core.dataset.filters.DatasetFilter.description_type
 ```
@@ -80,7 +80,7 @@ Bases: {py:obj}`fairdm.core.filters.BaseListFilter`
 ````{py:attribute} date_type
 :canonical: fairdm.core.dataset.filters.DatasetFilter.date_type
 :value: >
-   'CharFilter(...)'
+   'ConceptTypeFilter(...)'
 
 ```{autodoc2-docstring} fairdm.core.dataset.filters.DatasetFilter.date_type
 ```

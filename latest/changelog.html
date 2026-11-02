@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="changelog.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="All notable changes to the FairDM project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.[Unreleased]: Fixed: A sample’s p..." />
-<meta name="description" content="All notable changes to the FairDM project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.[Unreleased]: Fixed: A sample’s p..." />
+<meta property="og:description" content="All notable changes to the FairDM project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.[Unreleased]: Fixed: A project’s ..." />
+<meta name="description" content="All notable changes to the FairDM project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.[Unreleased]: Fixed: A project’s ..." />
 
     <title>Changelog &#8212; fairdm 0.4.1 documentation</title>
   
@@ -815,6 +815,18 @@ and this project adheres to <a class="reference external" href="https://semver.o
 <section id="fixed">
 <h3>Fixed<a class="headerlink" href="#fixed" title="Link to this heading">#</a></h3>
 <ul class="simple">
+<li><p><strong>A project’s Datasets tab lists what the viewer may see, with its counts.</strong> The tab left out
+every private dataset, even for the project’s team, and every card said it held no samples or
+measurements. It now lists the project’s datasets the viewer may see, through the new
+<code class="docutils literal notranslate"><span class="pre">DatasetQuerySet.visible_to(user)</span></code>, with the same counts as the main dataset list.</p></li>
+<li><p><strong>The dataset list’s Description Type and Date Type filters are drop-downs.</strong> They were text boxes
+that matched only a stored address. They now offer the dataset collections of their vocabularies
+by label, in the reading language, through the new <code class="docutils literal notranslate"><span class="pre">fairdm.core.filters.ConceptTypeFilter</span></code>.</p></li>
+<li><p><strong>The sample and measurement type filters show each type’s name.</strong> An option read
+“Demo | XRF Measurement” and now reads “XRF Measurement”. <code class="docutils literal notranslate"><span class="pre">fairdm.core.filters.RecordTypeFilter</span></code>
+does this.</p></li>
+<li><p><strong>An organization’s card pluralises its credit counts</strong>, so one project reads “1 project”. The
+card reads the new <code class="docutils literal notranslate"><span class="pre">Contributor.get_credit_totals()</span></code>, which carries both forms of each name.</p></li>
 <li><p><strong>A sample’s page answers at its own address, <code class="docutils literal notranslate"><span class="pre">/samples/&lt;uuid&gt;/</span></code>,</strong> as a project, dataset and
 measurement already do. The former address, <code class="docutils literal notranslate"><span class="pre">/samples/&lt;uuid&gt;/overview/</span></code>, redirects to it.</p></li>
 <li><p><strong>An edit page opens for a registered type whose <code class="docutils literal notranslate"><span class="pre">fields</span></code> name a field that cannot be edited.</strong>

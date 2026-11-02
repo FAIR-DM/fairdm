@@ -116,7 +116,7 @@ Bases: {py:obj}`fairdm.core.sample.filters.SampleFilterMixin`, {py:obj}`django_f
 ````{py:attribute} polymorphic_ctype
 :canonical: fairdm.core.sample.filters.SampleFilter.polymorphic_ctype
 :value: >
-   'ModelChoiceFilter(...)'
+   'RecordTypeFilter(...)'
 
 ```{autodoc2-docstring} fairdm.core.sample.filters.SampleFilter.polymorphic_ctype
 ```

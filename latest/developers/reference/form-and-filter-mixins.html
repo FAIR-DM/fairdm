@@ -1262,7 +1262,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p>Keeps the samples of any chosen dataset</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">polymorphic_ctype</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">ModelChoiceFilter</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RecordTypeFilter</span></code></p></td>
 <td><p>Filters by sample type</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">q</span></code></p></td>
@@ -1301,7 +1301,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p>Keeps the measurements of any chosen sample</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">polymorphic_ctype</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">ModelChoiceFilter</span></code>, labelled “Measurement Type”</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RecordTypeFilter</span></code>, labelled “Measurement Type”</p></td>
 <td><p>Offers the registered measurement types</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">q</span></code></p></td>
@@ -1323,6 +1323,14 @@ commentsRunWhenDOMLoaded(addUtterances);
 <section id="measurementfilter">
 <h3><code class="docutils literal notranslate"><span class="pre">MeasurementFilter</span></code><a class="headerlink" href="#measurementfilter" title="Link to this heading">#</a></h3>
 <p>Module: <code class="docutils literal notranslate"><span class="pre">fairdm.core.measurement.filters</span></code>. The filter set for <code class="docutils literal notranslate"><span class="pre">Measurement</span></code> itself. Every filter comes from <code class="docutils literal notranslate"><span class="pre">MeasurementFilterMixin</span></code>, and <code class="docutils literal notranslate"><span class="pre">Meta.fields</span></code> adds <code class="docutils literal notranslate"><span class="pre">date_after</span></code> and <code class="docutils literal notranslate"><span class="pre">date_before</span></code>.</p>
+</section>
+<section id="concepttypefilter">
+<h3><code class="docutils literal notranslate"><span class="pre">ConceptTypeFilter</span></code><a class="headerlink" href="#concepttypefilter" title="Link to this heading">#</a></h3>
+<p>Module: <code class="docutils literal notranslate"><span class="pre">fairdm.core.filters</span></code>. A drop-down filter over the <code class="docutils literal notranslate"><span class="pre">type</span></code> of a typed row. Pass the row model as <code class="docutils literal notranslate"><span class="pre">row_model</span></code>, such as <code class="docutils literal notranslate"><span class="pre">DatasetDate</span></code>, and the path to the row’s type as <code class="docutils literal notranslate"><span class="pre">field_name</span></code>, such as <code class="docutils literal notranslate"><span class="pre">dates__type</span></code>. It offers the concepts the row’s collection holds, in the collection’s order, each shown by name in the reading language. The value in the address is the concept’s address. <code class="docutils literal notranslate"><span class="pre">DatasetFilter</span></code> uses it for <code class="docutils literal notranslate"><span class="pre">description_type</span></code> and <code class="docutils literal notranslate"><span class="pre">date_type</span></code>.</p>
+</section>
+<section id="recordtypefilter">
+<h3><code class="docutils literal notranslate"><span class="pre">RecordTypeFilter</span></code><a class="headerlink" href="#recordtypefilter" title="Link to this heading">#</a></h3>
+<p>Module: <code class="docutils literal notranslate"><span class="pre">fairdm.core.filters</span></code>. A <code class="docutils literal notranslate"><span class="pre">ModelChoiceFilter</span></code> over content types whose field, <code class="docutils literal notranslate"><span class="pre">RecordTypeChoiceField</span></code>, labels each option with the model’s verbose name, such as “XRF Measurement” rather than “Demo | XRF Measurement”. Set its <code class="docutils literal notranslate"><span class="pre">queryset</span></code> to the content types to offer.</p>
 </section>
 <section id="partialdatefilter">
 <h3><code class="docutils literal notranslate"><span class="pre">PartialDateFilter</span></code><a class="headerlink" href="#partialdatefilter" title="Link to this heading">#</a></h3>
@@ -1398,6 +1406,8 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#samplefilter"><code class="docutils literal notranslate"><span class="pre">SampleFilter</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#measurementfiltermixin"><code class="docutils literal notranslate"><span class="pre">MeasurementFilterMixin</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#measurementfilter"><code class="docutils literal notranslate"><span class="pre">MeasurementFilter</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#concepttypefilter"><code class="docutils literal notranslate"><span class="pre">ConceptTypeFilter</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#recordtypefilter"><code class="docutils literal notranslate"><span class="pre">RecordTypeFilter</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#partialdatefilter"><code class="docutils literal notranslate"><span class="pre">PartialDateFilter</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dataset-filters">Dataset filters</a></li>
 </ul>

@@ -212,6 +212,14 @@ Bases: {py:obj}`fairdm.core.managers.RecordLevelMixin`, {py:obj}`fairdm.db.model
 
 ````
 
+````{py:method} visible_to(user=None) -> fairdm.core.dataset.models.DatasetQuerySet
+:canonical: fairdm.core.dataset.models.DatasetQuerySet.visible_to
+
+```{autodoc2-docstring} fairdm.core.dataset.models.DatasetQuerySet.visible_to
+```
+
+````
+
 ````{py:method} published() -> fairdm.core.dataset.models.DatasetQuerySet
 :canonical: fairdm.core.dataset.models.DatasetQuerySet.published
 

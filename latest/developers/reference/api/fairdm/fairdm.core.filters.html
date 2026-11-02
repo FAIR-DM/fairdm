@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="developers/reference/api/fairdm/fairdm.core.filters.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="Base filter set shared by the core list pages. Module Contents: Classes:,, BaseListFilter, Base filter set for the core list pages, adding a “has image” filter.,,,, API:" />
-<meta name="description" content="Base filter set shared by the core list pages. Module Contents: Classes:,, BaseListFilter, Base filter set for the core list pages, adding a “has image” filter.,,,, API:" />
+<meta property="og:description" content="Base filter set shared by the core list pages. Module Contents: Classes:,, BaseListFilter, Base filter set for the core list pages, adding a “has image” filter.,, RecordTypeChoiceField, A choice of..." />
+<meta name="description" content="Base filter set shared by the core list pages. Module Contents: Classes:,, BaseListFilter, Base filter set for the core list pages, adding a “has image” filter.,, RecordTypeChoiceField, A choice of..." />
 
     <title>fairdm.core.filters &#8212; fairdm 0.4.1 documentation</title>
   
@@ -1092,6 +1092,15 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.core.filters.BaseListFilter" title="fairdm.core.filters.BaseListFilter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseListFilter</span></code></a></p></td>
 <td><p>Base filter set for the core list pages, adding a “has image” filter.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.core.filters.RecordTypeChoiceField" title="fairdm.core.filters.RecordTypeChoiceField"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RecordTypeChoiceField</span></code></a></p></td>
+<td><p>A choice of content type, each shown by its model’s verbose name.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.core.filters.RecordTypeFilter" title="fairdm.core.filters.RecordTypeFilter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RecordTypeFilter</span></code></a></p></td>
+<td><p>Filter a polymorphic record by its concrete type, offered by verbose name.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.core.filters.ConceptTypeFilter" title="fairdm.core.filters.ConceptTypeFilter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ConceptTypeFilter</span></code></a></p></td>
+<td><p>Filter by a typed row, offering the concepts its <code class="docutils literal notranslate"><span class="pre">type</span></code> field offers.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1100,7 +1109,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <h3>API<a class="headerlink" href="#api" title="Link to this heading">#</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="fairdm.core.filters.BaseListFilter">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">BaseListFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queryset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/fairdm/core/filters.html#BaseListFilter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fairdm.core.filters.BaseListFilter" title="Link to this definition">#</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">BaseListFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queryset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.filters.BaseListFilter" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django_filters.rest_framework.FilterSet</span></code></p>
 <p>Base filter set for the core list pages, adding a “has image” filter.</p>
 <p class="rubric">Initialization</p>
@@ -1108,6 +1117,55 @@ commentsRunWhenDOMLoaded(addUtterances);
 <dt class="sig sig-object py" id="fairdm.core.filters.BaseListFilter.image">
 <span class="sig-name descname"><span class="pre">image</span></span><a class="headerlink" href="#fairdm.core.filters.BaseListFilter.image" title="Link to this definition">#</a></dt>
 <dd><p>‘BooleanFilter(…)’</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.core.filters.RecordTypeChoiceField">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">RecordTypeChoiceField</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.filters.RecordTypeChoiceField" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django_filters.fields.ModelChoiceField</span></code></p>
+<p>A choice of content type, each shown by its model’s verbose name.</p>
+<p class="rubric">Initialization</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.filters.RecordTypeChoiceField.label_from_instance">
+<span class="sig-name descname"><span class="pre">label_from_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.filters.RecordTypeChoiceField.label_from_instance" title="Link to this definition">#</a></dt>
+<dd><p>Return the model’s verbose name, which a content type calls its <code class="docutils literal notranslate"><span class="pre">name</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.core.filters.RecordTypeFilter">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">RecordTypeFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.filters.RecordTypeFilter" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django_filters.ModelChoiceFilter</span></code></p>
+<p>Filter a polymorphic record by its concrete type, offered by verbose name.</p>
+<p class="rubric">Initialization</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.core.filters.RecordTypeFilter.field_class">
+<span class="sig-name descname"><span class="pre">field_class</span></span><a class="headerlink" href="#fairdm.core.filters.RecordTypeFilter.field_class" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.core.filters.ConceptTypeFilter">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ConceptTypeFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">row_model</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.filters.ConceptTypeFilter" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django_filters.ModelChoiceFilter</span></code></p>
+<p>Filter by a typed row, offering the concepts its <code class="docutils literal notranslate"><span class="pre">type</span></code> field offers.</p>
+<p>The concepts are shown by name in the reading language, in their collection’s
+order, and the address of a filtered list carries the concept’s address.</p>
+<p>Args:
+*args: Passed to <code class="docutils literal notranslate"><span class="pre">ModelChoiceFilter</span></code>.
+row_model: The row model, such as <code class="docutils literal notranslate"><span class="pre">DatasetDate</span></code>, whose <code class="docutils literal notranslate"><span class="pre">type</span></code> field is
+offered.
+**kwargs: Passed to <code class="docutils literal notranslate"><span class="pre">ModelChoiceFilter</span></code>.</p>
+<p class="rubric">Initialization</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.core.filters.ConceptTypeFilter.field_class">
+<span class="sig-name descname"><span class="pre">field_class</span></span><a class="headerlink" href="#fairdm.core.filters.ConceptTypeFilter.field_class" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
 </dd></dl>
 
 </dd></dl>
@@ -1168,6 +1226,18 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#api">API</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.filters.BaseListFilter"><code class="docutils literal notranslate"><span class="pre">BaseListFilter</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.filters.BaseListFilter.image"><code class="docutils literal notranslate"><span class="pre">BaseListFilter.image</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.filters.RecordTypeChoiceField"><code class="docutils literal notranslate"><span class="pre">RecordTypeChoiceField</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.filters.RecordTypeChoiceField.label_from_instance"><code class="docutils literal notranslate"><span class="pre">RecordTypeChoiceField.label_from_instance()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.filters.RecordTypeFilter"><code class="docutils literal notranslate"><span class="pre">RecordTypeFilter</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.filters.RecordTypeFilter.field_class"><code class="docutils literal notranslate"><span class="pre">RecordTypeFilter.field_class</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.filters.ConceptTypeFilter"><code class="docutils literal notranslate"><span class="pre">ConceptTypeFilter</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.filters.ConceptTypeFilter.field_class"><code class="docutils literal notranslate"><span class="pre">ConceptTypeFilter.field_class</span></code></a></li>
 </ul>
 </li>
 </ul>

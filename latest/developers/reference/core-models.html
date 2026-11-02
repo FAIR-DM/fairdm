@@ -1957,42 +1957,47 @@ window.runMermaid = runMermaid;</script>
 <td><p>Yes</p></td>
 <td><p>For a project, the public projects. For a dataset, the public datasets that are not inside a private project.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">published()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">visible_to(user)</span></code></p></td>
+<td><p>No</p></td>
+<td><p>Yes</p></td>
+<td><p>The datasets <code class="docutils literal notranslate"><span class="pre">get_visible()</span></code> returns and those the user holds <code class="docutils literal notranslate"><span class="pre">VIEW</span></code> on, on the dataset or its project. Every dataset for a user with <code class="docutils literal notranslate"><span class="pre">view_dataset</span></code> across the portal. Call it on <code class="docutils literal notranslate"><span class="pre">all_objects</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">published()</span></code></p></td>
 <td><p>No</p></td>
 <td><p>Yes</p></td>
 <td><p>The datasets whose <code class="docutils literal notranslate"><span class="pre">published</span></code> flag is set. Call it on <code class="docutils literal notranslate"><span class="pre">all_objects</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">outside_private_projects()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">outside_private_projects()</span></code></p></td>
 <td><p>No</p></td>
 <td><p>Yes</p></td>
 <td><p>The datasets with no project or a public one.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_contributors()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_contributors()</span></code></p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>The records with their credits loaded.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_metadata()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_metadata()</span></code></p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>The records with descriptions, dates, identifiers, credits and keywords loaded. A project also loads its owner.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_related()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_related()</span></code></p></td>
 <td><p>No</p></td>
 <td><p>Yes</p></td>
 <td><p>The records with project and credits loaded.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_list_data()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_list_data()</span></code></p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>The records with what a list card draws loaded, and a count. A project gets <code class="docutils literal notranslate"><span class="pre">dataset_count</span></code>, which counts public datasets only. A dataset gets <code class="docutils literal notranslate"><span class="pre">sample_count</span></code> and <code class="docutils literal notranslate"><span class="pre">measurement_count</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_level(user,</span> <span class="pre">level)</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_level(user,</span> <span class="pre">level)</span></code></p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>The records on which the user holds at least a level.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">accessible_to(user,</span> <span class="pre">level)</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">accessible_to(user,</span> <span class="pre">level)</span></code></p></td>
 <td><p>Yes</p></td>
 <td><p>Yes</p></td>
 <td><p>The records the user may act on at a level, which is every record for a user with the matching portal-wide right.</p></td>

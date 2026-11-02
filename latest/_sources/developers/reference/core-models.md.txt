@@ -186,6 +186,7 @@ Both models have a queryset with these methods.
 | Method | Project | Dataset | Returns |
 |---|---|---|---|
 | `get_visible()` | Yes | Yes | For a project, the public projects. For a dataset, the public datasets that are not inside a private project. |
+| `visible_to(user)` | No | Yes | The datasets `get_visible()` returns and those the user holds `VIEW` on, on the dataset or its project. Every dataset for a user with `view_dataset` across the portal. Call it on `all_objects`. |
 | `published()` | No | Yes | The datasets whose `published` flag is set. Call it on `all_objects`. |
 | `outside_private_projects()` | No | Yes | The datasets with no project or a public one. |
 | `with_contributors()` | Yes | Yes | The records with their credits loaded. |
