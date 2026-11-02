@@ -57,12 +57,12 @@ Bases: {py:obj}`fairdm.views.FairDMTemplateView`
 
 ````
 
-````{py:attribute} page_subtitle
-:canonical: fairdm.contrib.contributors.views.team.TeamView.page_subtitle
+````{py:attribute} page_lead
+:canonical: fairdm.contrib.contributors.views.team.TeamView.page_lead
 :value: >
    '_(...)'
 
-```{autodoc2-docstring} fairdm.contrib.contributors.views.team.TeamView.page_subtitle
+```{autodoc2-docstring} fairdm.contrib.contributors.views.team.TeamView.page_lead
 ```
 
 ````

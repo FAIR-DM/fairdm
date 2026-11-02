@@ -28,5 +28,6 @@ fairdm.utils.models
 fairdm.utils.utils
 fairdm.utils.permissions
 fairdm.utils.choices
+fairdm.utils.brand
 fairdm.utils.context_processors
 ```

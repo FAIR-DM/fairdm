@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="changelog.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="All notable changes to the FairDM project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.[Unreleased]: Changed: Partial da..." />
-<meta name="description" content="All notable changes to the FairDM project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.[Unreleased]: Changed: Partial da..." />
+<meta property="og:description" content="All notable changes to the FairDM project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.[Unreleased]: Changed: A portal n..." />
+<meta name="description" content="All notable changes to the FairDM project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.[Unreleased]: Changed: A portal n..." />
 
     <title>Changelog &#8212; fairdm 0.3.1 documentation</title>
   
@@ -815,6 +815,21 @@ and this project adheres to <a class="reference external" href="https://semver.o
 <section id="changed">
 <h3>Changed<a class="headerlink" href="#changed" title="Link to this heading">#</a></h3>
 <ul class="simple">
+<li><p><strong>A portal now starts on FairDM’s own themes, <code class="docutils literal notranslate"><span class="pre">fairdm</span></code> and <code class="docutils literal notranslate"><span class="pre">fairdm-dark</span></code>, with the FairDM fonts,
+logo and favicon.</strong> They sit in <code class="docutils literal notranslate"><span class="pre">css/fairdm-theme.css</span></code> and <code class="docutils literal notranslate"><span class="pre">MVP_CONFIG[&quot;theme&quot;]</span></code>. Set that key
+to keep another theme, as
+<a class="reference internal" href="developers/how-to/change-the-portal-theme.html"><span class="std std-doc">How to change the portal theme</span></a> shows. A
+portal that overrides <code class="docutils literal notranslate"><span class="pre">mvp_accounts/entrance/base.html</span></code> should add the new stylesheet to its
+<code class="docutils literal notranslate"><span class="pre">styles</span></code> block. A visitor who already picked a theme with the switcher keeps it until they use
+the switcher again.</p></li>
+<li><p><strong>FairDM now needs django-mvp 0.33.</strong> Every page sits on <code class="docutils literal notranslate"><span class="pre">base-200</span></code>, cards on <code class="docutils literal notranslate"><span class="pre">base-100</span></code> and
+the sidebar on <code class="docutils literal notranslate"><span class="pre">base-300</span></code>, so the home page’s alternate sections are now <code class="docutils literal notranslate"><span class="pre">base-100</span></code> and its
+footer <code class="docutils literal notranslate"><span class="pre">base-300</span></code>, and a project or dataset card marks its type with a coloured line and tint, with
+the words in the text colour. A view of a portal’s own that sets <code class="docutils literal notranslate"><span class="pre">page_subtitle</span></code> or
+<code class="docutils literal notranslate"><span class="pre">get_page_subtitle()</span></code> must rename it to <code class="docutils literal notranslate"><span class="pre">page_lead</span></code> or <code class="docutils literal notranslate"><span class="pre">get_page_lead()</span></code>, or its lead stops being drawn.</p></li>
+<li><p>The logo files in <code class="docutils literal notranslate"><span class="pre">img/brand/</span></code> and <code class="docutils literal notranslate"><span class="pre">brand/fairdm.svg</span></code> are gone. The logo and icon are
+<code class="docutils literal notranslate"><span class="pre">brand/logo.svg</span></code>, <code class="docutils literal notranslate"><span class="pre">brand/logo_dark.svg</span></code>, <code class="docutils literal notranslate"><span class="pre">brand/icon.svg</span></code> and <code class="docutils literal notranslate"><span class="pre">brand/icon_dark.svg</span></code>, and the
+favicon is <code class="docutils literal notranslate"><span class="pre">brand/favicon.svg</span></code>. A portal with its own icon should add its own favicon too.</p></li>
 <li><p><strong>Partial dates are stored by <a class="reference external" href="https://django-partial-dates.fairdm.org/">django-partial-dates</a>
 instead of django-partial-date, which FairDM no longer installs.</strong> A date is now stored as the
 text <code class="docutils literal notranslate"><span class="pre">1990</span></code>, <code class="docutils literal notranslate"><span class="pre">1990-06</span></code> or <code class="docutils literal notranslate"><span class="pre">1990-06-14</span></code>, and new migrations convert the date columns of projects,

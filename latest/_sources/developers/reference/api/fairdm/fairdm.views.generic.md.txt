@@ -37,12 +37,12 @@ Bases: {py:obj}`mvp.views.MVPHomeView`
 ```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.__init__
 ```
 
-````{py:attribute} page_subtitle
-:canonical: fairdm.views.generic.FairDMHomeView.page_subtitle
+````{py:attribute} page_lead
+:canonical: fairdm.views.generic.FairDMHomeView.page_lead
 :value: >
    'Welcome'
 
-```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.page_subtitle
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.page_lead
 ```
 
 ````
@@ -207,10 +207,10 @@ Bases: {py:obj}`mvp.views.MVPHomeView`
 
 ````
 
-````{py:method} get_page_subtitle()
-:canonical: fairdm.views.generic.FairDMHomeView.get_page_subtitle
+````{py:method} get_page_lead()
+:canonical: fairdm.views.generic.FairDMHomeView.get_page_lead
 
-```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.get_page_subtitle
+```{autodoc2-docstring} fairdm.views.generic.FairDMHomeView.get_page_lead
 ```
 
 ````

@@ -985,6 +985,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l4"><a class="reference internal" href="fairdm.utils.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.utils</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.utils.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.permissions</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.utils.choices.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.choices</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.utils.brand.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.brand</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.utils.context_processors.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.context_processors</span></code></a></li>
 </ul>
 </details></li>
@@ -1117,7 +1118,7 @@ Portal developers can inherit from this and customize:</p>
 <li><p>permission: Set required permission for access</p></li>
 </ul>
 <p>Attributes:
-page_subtitle: The page subtitle.
+page_lead: The line under the page title.
 page_icon: The icon shown beside the page title.
 menu: The tab label, icon and order.</p>
 <p>Example:
@@ -1140,8 +1141,8 @@ class SampleOverview(OverviewPlugin):
 <p>Constructor. Called in the URLconf; can contain helpful extra
 keyword arguments, and other things.</p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.core.plugins.OverviewPlugin.page_subtitle">
-<span class="sig-name descname"><span class="pre">page_subtitle</span></span><a class="headerlink" href="#fairdm.core.plugins.OverviewPlugin.page_subtitle" title="Link to this definition">#</a></dt>
+<dt class="sig sig-object py" id="fairdm.core.plugins.OverviewPlugin.page_lead">
+<span class="sig-name descname"><span class="pre">page_lead</span></span><a class="headerlink" href="#fairdm.core.plugins.OverviewPlugin.page_lead" title="Link to this definition">#</a></dt>
 <dd><p>‘_(…)’</p>
 </dd></dl>
 
@@ -1445,7 +1446,7 @@ or <code class="docutils literal notranslate"><span class="pre">None</span></cod
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#api">API</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.OverviewPlugin"><code class="docutils literal notranslate"><span class="pre">OverviewPlugin</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.OverviewPlugin.page_subtitle"><code class="docutils literal notranslate"><span class="pre">OverviewPlugin.page_subtitle</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.OverviewPlugin.page_lead"><code class="docutils literal notranslate"><span class="pre">OverviewPlugin.page_lead</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.OverviewPlugin.page_icon"><code class="docutils literal notranslate"><span class="pre">OverviewPlugin.page_icon</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.OverviewPlugin.menu"><code class="docutils literal notranslate"><span class="pre">OverviewPlugin.menu</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.OverviewPlugin.get_page_title"><code class="docutils literal notranslate"><span class="pre">OverviewPlugin.get_page_title()</span></code></a></li>

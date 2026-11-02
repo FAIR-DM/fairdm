@@ -959,10 +959,10 @@ Bases: {py:obj}`fairdm.contrib.contributors.plugins.shared.ContributionPage`
 
 ````
 
-````{py:method} get_page_subtitle()
-:canonical: fairdm.contrib.contributors.plugins.shared.ContributionList.get_page_subtitle
+````{py:method} get_page_lead()
+:canonical: fairdm.contrib.contributors.plugins.shared.ContributionList.get_page_lead
 
-```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionList.get_page_subtitle
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.shared.ContributionList.get_page_lead
 ```
 
 ````

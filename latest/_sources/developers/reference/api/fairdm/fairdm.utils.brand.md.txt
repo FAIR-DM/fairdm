@@ -1,0 +1,53 @@
+# {py:mod}`fairdm.utils.brand`
+
+```{py:module} fairdm.utils.brand
+```
+
+```{autodoc2-docstring} fairdm.utils.brand
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`icon_url <fairdm.utils.brand.icon_url>`
+  - ```{autodoc2-docstring} fairdm.utils.brand.icon_url
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FAVICON_HEIGHT <fairdm.utils.brand.FAVICON_HEIGHT>`
+  - ```{autodoc2-docstring} fairdm.utils.brand.FAVICON_HEIGHT
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} FAVICON_HEIGHT
+:canonical: fairdm.utils.brand.FAVICON_HEIGHT
+:value: >
+   '16px'
+
+```{autodoc2-docstring} fairdm.utils.brand.FAVICON_HEIGHT
+```
+
+````
+
+````{py:function} icon_url(request, height, theme)
+:canonical: fairdm.utils.brand.icon_url
+
+```{autodoc2-docstring} fairdm.utils.brand.icon_url
+```
+````

@@ -985,6 +985,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l4"><a class="reference internal" href="fairdm.utils.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.utils</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.utils.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.permissions</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.utils.choices.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.choices</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.utils.brand.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.brand</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.utils.context_processors.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.context_processors</span></code></a></li>
 </ul>
 </details></li>
@@ -1115,8 +1116,8 @@ organization_limit: How many organizations are named.</p>
 <p>Constructor. Called in the URLconf; can contain helpful extra
 keyword arguments, and other things.</p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.views.generic.FairDMHomeView.page_subtitle">
-<span class="sig-name descname"><span class="pre">page_subtitle</span></span><a class="headerlink" href="#fairdm.views.generic.FairDMHomeView.page_subtitle" title="Link to this definition">#</a></dt>
+<dt class="sig sig-object py" id="fairdm.views.generic.FairDMHomeView.page_lead">
+<span class="sig-name descname"><span class="pre">page_lead</span></span><a class="headerlink" href="#fairdm.views.generic.FairDMHomeView.page_lead" title="Link to this definition">#</a></dt>
 <dd><p>‘Welcome’</p>
 </dd></dl>
 
@@ -1253,8 +1254,8 @@ At most <code class="docutils literal notranslate"><span class="pre">organizatio
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="fairdm.views.generic.FairDMHomeView.get_page_subtitle">
-<span class="sig-name descname"><span class="pre">get_page_subtitle</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.views.generic.FairDMHomeView.get_page_subtitle" title="Link to this definition">#</a></dt>
+<dt class="sig sig-object py" id="fairdm.views.generic.FairDMHomeView.get_page_lead">
+<span class="sig-name descname"><span class="pre">get_page_lead</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.views.generic.FairDMHomeView.get_page_lead" title="Link to this definition">#</a></dt>
 <dd><p>Greet a signed-in user by first name, falling back to the username.</p>
 </dd></dl>
 
@@ -1321,7 +1322,7 @@ At most <code class="docutils literal notranslate"><span class="pre">organizatio
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#api">API</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.views.generic.FairDMHomeView"><code class="docutils literal notranslate"><span class="pre">FairDMHomeView</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.views.generic.FairDMHomeView.page_subtitle"><code class="docutils literal notranslate"><span class="pre">FairDMHomeView.page_subtitle</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.views.generic.FairDMHomeView.page_lead"><code class="docutils literal notranslate"><span class="pre">FairDMHomeView.page_lead</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.views.generic.FairDMHomeView.page_title"><code class="docutils literal notranslate"><span class="pre">FairDMHomeView.page_title</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.views.generic.FairDMHomeView.dashboard_template_name"><code class="docutils literal notranslate"><span class="pre">FairDMHomeView.dashboard_template_name</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.views.generic.FairDMHomeView.landing_template_name"><code class="docutils literal notranslate"><span class="pre">FairDMHomeView.landing_template_name</span></code></a></li>
@@ -1340,7 +1341,7 @@ At most <code class="docutils literal notranslate"><span class="pre">organizatio
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.views.generic.FairDMHomeView.get_record_types"><code class="docutils literal notranslate"><span class="pre">FairDMHomeView.get_record_types()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.views.generic.FairDMHomeView.get_people"><code class="docutils literal notranslate"><span class="pre">FairDMHomeView.get_people()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.views.generic.FairDMHomeView.get_organizations"><code class="docutils literal notranslate"><span class="pre">FairDMHomeView.get_organizations()</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.views.generic.FairDMHomeView.get_page_subtitle"><code class="docutils literal notranslate"><span class="pre">FairDMHomeView.get_page_subtitle()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.views.generic.FairDMHomeView.get_page_lead"><code class="docutils literal notranslate"><span class="pre">FairDMHomeView.get_page_lead()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.views.generic.FairDMHomeView.get_page_title"><code class="docutils literal notranslate"><span class="pre">FairDMHomeView.get_page_title()</span></code></a></li>
 </ul>
 </li>
