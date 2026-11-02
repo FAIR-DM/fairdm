@@ -43,6 +43,7 @@ MVP_CONFIG = {
     # `c-mvp.avatar :for="contributor"` draws the contributor's photo or logo.
     "brand": {
         "avatar_resolver": "fairdm.contrib.contributors.utils.helpers.avatar_url",
+        "icon_resolver": "fairdm.utils.brand.icon_url",
     },
     # The pair `css/fairdm-theme.css` defines.
     "theme": {

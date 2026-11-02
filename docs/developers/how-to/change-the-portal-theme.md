@@ -43,6 +43,6 @@ Every page uses the theme. A visitor's choice is remembered in their browser. If
 
 The colours that mark a record type, used on the project and dataset cards, exist only in FairDM's two themes. On any other theme a project card draws `info` and a dataset card draws `success`.
 
-To replace the logo, add your own `brand/logo.svg`, `brand/logo_dark.svg`, `brand/icon.svg` and `brand/icon_dark.svg` to the portal's static files. `icon.svg` is also the favicon.
+To replace the logo, add your own `brand/logo.svg`, `brand/logo_dark.svg`, `brand/icon.svg`, `brand/icon_dark.svg` and `brand/favicon.svg` to the portal's static files.
 
 `MVP_CONFIG` is described in [Settings](../reference/settings.md), and the theme keys in django-mvp's documentation. To override a FairDM setting in general, see [How to override a FairDM setting](override-a-fairdm-setting.md). Why a portal is configured this way is explained in [How FairDM configures a portal](../../explanation/how-fairdm-configures-a-portal.md), and the styling stack in [The technology stack](../../explanation/the-technology-stack.md).

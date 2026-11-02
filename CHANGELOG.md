@@ -22,7 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the words in the text colour. A view of a portal's own that sets `page_subtitle` or
   `get_page_subtitle()` must rename it to `page_lead` or `get_page_lead()`, or its lead stops being drawn.
 - The logo files in `img/brand/` and `brand/fairdm.svg` are gone. The logo and icon are
-  `brand/logo.svg`, `brand/logo_dark.svg`, `brand/icon.svg` and `brand/icon_dark.svg`.
+  `brand/logo.svg`, `brand/logo_dark.svg`, `brand/icon.svg` and `brand/icon_dark.svg`, and the
+  favicon is `brand/favicon.svg`. A portal with its own icon should add its own favicon too.
 
 - **Partial dates are stored by [django-partial-dates](https://django-partial-dates.fairdm.org/)
   instead of django-partial-date, which FairDM no longer installs.** A date is now stored as the

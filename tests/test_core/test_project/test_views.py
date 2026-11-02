@@ -992,6 +992,17 @@ class TestProjectCardRendering:
 
 
 @pytest.mark.django_db
+class TestBrandIcons:
+    def test_the_tab_gets_the_favicon_and_the_sidebar_gets_the_symbol(self, client):
+        html = client.get("/").content.decode()
+        head, body = html.split("</head>", 1)
+        assert "brand/favicon.svg" in head
+        assert "brand/icon.svg" not in head
+        assert "brand/favicon.svg" not in body
+        assert "brand/icon.svg" in body
+
+
+@pytest.mark.django_db
 class TestProjectListingQueryCount:
     @staticmethod
     def _build_projects(count):
