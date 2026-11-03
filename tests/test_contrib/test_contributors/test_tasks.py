@@ -14,7 +14,10 @@ from django_celery_beat.models import CrontabSchedule, PeriodicTask
 from fairdm.contrib.contributors.choices import SyncStatus
 from fairdm.contrib.contributors.models import ContributorIdentifier
 from fairdm.contrib.contributors.receivers import REFRESH_TASK, seed_refresh_task
-from fairdm.contrib.contributors.services.registries import seconds_to_wait
+from fairdm.contrib.contributors.services.registries import (
+    RegistryRateLimited,
+    seconds_to_wait,
+)
 from fairdm.contrib.contributors.tasks import (
     refresh_all_contributors,
     sync_contributor_identifier,
@@ -204,7 +207,7 @@ class TestSyncRetries:
         with pytest.raises(Retry):
             sync_contributor_identifier(orcid_identifier.pk)
 
-        assert "countdown" not in retry.call_args.kwargs
+        assert isinstance(retry.call_args.kwargs["exc"], RegistryRateLimited)
 
 
 class TestSecondsToWait:
