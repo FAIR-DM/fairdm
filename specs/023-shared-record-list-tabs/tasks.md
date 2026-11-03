@@ -103,8 +103,8 @@ The page around the table, the overview links, records of an unregistered type, 
   row names its dataset and links it where the viewer may open it. A project whose only records are
   unpublished, and one whose records are all in private datasets, give a visitor the same `empty` as
   one with none. A measurement on another project's sample is listed and that sample
-  is not. A private project's tabs answer 404 to a visitor. The dataset filter offers only the
-  project's datasets with visible rows.
+  is not. A private project's tabs answer 404 to a visitor. The dataset filter offers only datasets the viewer may see
+  (decisions D5).
 - [ ] T019 [US2] same file: the project overview's figures link to the tabs and equal the tabs'
   totals for a visitor, a member of a private dataset and the project's team, on a project holding a
   published, an unpublished and a private dataset. Ten and sixty rows issue the same
