@@ -33,12 +33,17 @@ Credit does not flow sideways or upward:
 An organization also lists the records in the projects it owns, because its Datasets tab already
 lists the datasets in those projects (specification 019).
 
-## The same records for every viewer on a contributor's page
+## Whose records a contributor's page shows, to whom
 
-Specification 019 shows a contributor's page the same way to every viewer: public projects and
-public datasets only. The tabs follow it, listing records whose own dataset is public, published and
-not in a private project. A person therefore does not see their own unpublished work on their own
-page. They reach it from the dataset or project, where the team sees everything.
+Specification 032 ruled that a list of one person's records shows that person their private
+records and their public ones, and everyone else the public ones only, and that its filters offer
+the same. The tabs follow it. A person on their own page sees every record of theirs they may see,
+unpublished and private included. Every other viewer sees released records: those whose own
+dataset is public, published and not in a private project.
+
+An organization has no one who views its page as itself, so its tabs show released records to
+everyone, a member of a dataset's team included. That team member reaches the private records from
+the dataset or the project.
 
 ## What the viewer may see on a dataset or a project
 

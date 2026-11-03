@@ -52,10 +52,11 @@ Settled while writing the specification. The reasoning for each is in `decisions
 - Q: Does credit flow anywhere else? → A: No. Being credited on a sample does not bring in the
   measurements others made of it. An organization does not get the records its members are
   credited on.
-- Q: On a person's or an organization's page, which records are shown to whom? → A: The same
-  records to every viewer, the contributor included: those whose own dataset is public, published
-  and not in a private project. This is the rule specification 019 set for those pages' Projects
-  and Datasets tabs.
+- Q: On a person's or an organization's page, which records are shown to whom? → A: A person
+  viewing their own page sees every record of theirs they may see, unpublished and private ones
+  included. Everyone else, and every viewer of an organization's page, sees released records only:
+  those whose own dataset is public, published and not in a private project. This is the rule
+  specification 032 set for lists of one person's records, and the filters follow it.
 - Q: On a dataset's or a project's page? → A: What the viewer may see. The dataset's team sees its
   unpublished records, and a visitor sees published ones.
 - Q: Which records count as a dataset's? → A: The ones that belong to it. A measurement that
@@ -179,9 +180,10 @@ private datasets, and of a project with no datasets. Compare against FR-021 to F
 ### User Story 3 - A contributor's samples and measurements can be browsed from their page (Priority: P2)
 
 A reader opens a person's or an organization's page and wants to see the samples and measurements
-that contributor has worked on. The Samples and Measurements tabs list the public records the
-contributor is credited on directly, and every public record in the datasets and projects they are
-credited on. An organization's tabs also list the public records in the projects it owns. Each row
+that contributor has worked on. The Samples and Measurements tabs list the records the
+contributor is credited on directly, and every record in the datasets and projects they are
+credited on. An organization's tabs also list the records in the projects it owns. Visitors see
+released records. A person on their own page also sees their unpublished and private ones. Each row
 names the dataset it belongs to.
 
 **Why this priority**: A contributor's page is where a reader learns what someone has done. It
@@ -211,11 +213,15 @@ against FR-026 to FR-030.
 6. **Given** an organization whose members are credited on records the organization is not, **When**
    its tabs are opened, **Then** those records are not listed.
 7. **Given** a person credited on a private dataset, an unpublished public dataset and a public
-   dataset in a private project, **When** anyone opens the person's tabs, the person included,
-   **Then** none of those records are listed, counted or offered as filter choices.
-8. **Given** a record a contributor is credited on in more than one way, **When** their tab is
+   dataset in a private project, **When** anyone else opens the person's tabs, **Then** none of
+   those records are listed, counted or offered as filter choices.
+8. **Given** the same person, **When** they open their own tabs, **Then** the records in those
+   datasets they may see are listed and offered as filter choices.
+9. **Given** an organization credited on a private dataset, **When** anyone opens its tabs, a
+   member of the dataset's team included, **Then** that dataset's records are not listed.
+10. **Given** a record a contributor is credited on in more than one way, **When** their tab is
    opened, **Then** the record is listed once.
-9. **Given** a contributor with no released records, **When** either tab is opened, **Then** the tab
+11. **Given** a contributor with no records the viewer may see, **When** either tab is opened, **Then** the tab
    is there and says there are none.
 
 ---
@@ -314,8 +320,9 @@ against FR-026 to FR-030.
   measurement that belongs to a dataset in a project it owns.
 - **FR-028**: Credit on a sample MUST NOT bring in measurements made of it. Credit held by an
   organization's members MUST NOT bring in records for the organization.
-- **FR-029**: The tabs MUST list only records whose own dataset is public, published and not in a
-  private project, and MUST list the same records to every viewer, the contributor included.
+- **FR-029**: On a person's own page, viewed by that person, the tabs MUST list the records FR-026
+  names that the person may see. To every other viewer, and on an organization's page to every
+  viewer, they MUST list only released records. Filter choices MUST follow the same rule.
 - **FR-030**: A measurement MUST be listed or left out by its own dataset, never by its sample's.
 
 **Across the feature**
@@ -356,7 +363,7 @@ each later story meets them on its own pages. Each later story also extends the 
   through a dataset or project above them, and for an organization the records in the projects it
   owns.
 - **Released**: A record whose own dataset is public, published and not in a private project. A
-  contributor's tabs list released records only.
+  contributor's tabs list released records only, except a person's own tabs viewed by that person.
 
 ## Success Criteria *(mandatory)*
 
