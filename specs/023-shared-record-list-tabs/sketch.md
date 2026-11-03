@@ -51,6 +51,8 @@
   the type's name with a caret, opening a menu of each type with its count. Where one type is
   listed, the heading is the type's name with no caret. The menu sits outside the heading, so the
   heading's accessible name is the type alone.
+- Choosing a type is boosted: the page's `<main>` is swapped in place and the type's address is
+  pushed, so the back button returns to the previous type. Nothing on the server knows about it.
 - On a project, a person and an organization, the dataset is a column of its own, by name, right
   after the record's name. The dataset icon column is dropped on every tab.
 - A row starts with the record's name, then the dataset where rows span several, then a

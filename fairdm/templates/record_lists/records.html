@@ -24,6 +24,8 @@
           </div>
           </h1>
         </c-slot>
+        {% comment %}Boosted: a type swaps the page's <main> in place and pushes its address.{% endcomment %}
+        <div hx-boost="true" hx-target="main" hx-select="main" hx-swap="outerHTML">
         <c-menu class="w-full"
                 aria-label="{% if kind == 'sample' %}{% translate 'Sample types' %}{% else %}{% translate 'Measurement types' %}{% endif %}">
           {% for entry in type_entries %}
@@ -32,6 +34,7 @@
                          :active="entry.is_current" />
           {% endfor %}
         </c-menu>
+        </div>
       </c-mvp.dropdown>
   {% elif current_type %}
     <h1 class="text-xl font-semibold leading-tight truncate">{{ current_type.name }}</h1>
