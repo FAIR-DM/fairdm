@@ -7,6 +7,7 @@ from django.views import defaults as default_views
 from django.views.i18n import JavaScriptCatalog
 from mvp.views.account import AccountCenterView
 
+from fairdm.contrib.contributors.views.orcid import orcid_callback, orcid_login
 from fairdm.views.generic import FairDMHomeView
 
 from .setup import addon_urls
@@ -25,6 +26,10 @@ urlpatterns = [
     path("api/", include(("fairdm.api.urls", "api"), namespace="api")),
     path("account/tokens/", include("mvp_accounts.tokens.urls")),
     path("account-center/", include("mvp.urls")),
+    # Ahead of allauth's own routes for these addresses, which fail with a server error
+    # while no ORCID application is configured.
+    path("account-center/orcid/login/", orcid_login),
+    path("account-center/orcid/login/callback/", orcid_callback),
     path("account-center/", include("allauth.urls")),
     # django-mvp mounts its landing page at ``account/`` inside ``mvp.urls``. Django reverses a
     # name to the last pattern that carries it, so this route, which keeps FairDM's address for

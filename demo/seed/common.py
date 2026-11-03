@@ -38,6 +38,7 @@ def create_accounts(accounts) -> dict[str, Person]:
                 password=DEV_ACCOUNT_PASSWORD,
                 first_name=first,
                 last_name=last,
+                is_claimed=True,
             )
             user.name = f"{first} {last}"
             user.is_staff, user.is_superuser = staff, superuser

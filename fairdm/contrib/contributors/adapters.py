@@ -40,6 +40,22 @@ class AccountAdapter(DefaultAccountAdapter):
             return True
         return not settings.FAIRDM_INVITATION_ONLY_SIGNUP
 
+    def new_user(self, request: HttpRequest):
+        """Build the person a sign-up creates, who is claimed from the start.
+
+        A profile adopted during an ORCID sign-up already exists, so it never comes
+        through here.
+
+        Args:
+            request: The sign-up request.
+
+        Returns:
+            The unsaved person.
+        """
+        user = super().new_user(request)
+        user.is_claimed = True
+        return user
+
     def get_user_signed_up_signal(self):
         """Return allauth's ``user_signed_up`` signal."""
         return user_signed_up

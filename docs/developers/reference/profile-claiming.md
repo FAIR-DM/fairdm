@@ -11,6 +11,7 @@ This page lists the functions, exceptions, adapters and models that take an uncl
 | `fairdm.contrib.contributors.exceptions` | `ClaimingError` |
 | `fairdm.contrib.contributors.adapters` | `AccountAdapter`, `SocialAccountAdapter`, `is_provider` |
 | `fairdm.contrib.contributors.signals` | `handle_email_confirmed` |
+| `fairdm.contrib.contributors.views.orcid` | `orcid_login`, `orcid_callback`, `not_found_without_application` |
 | `fairdm.contrib.contributors.models` | `ClaimMethod`, `ClaimingAuditLog` |
 
 ## Claiming services
@@ -35,8 +36,13 @@ The adapter and the signal handler call these. A portal that keeps the shipped a
 | `SocialAccountAdapter.save_user(request, sociallogin, form=None)` | For an ORCID sign-up, adopts the unclaimed profile that holds the iD. When no profile holds it, creates the user and attaches the iD |
 | `SocialAccountAdapter.populate_user(request, sociallogin, data)` | Fills the user from the ORCID record with `ORCIDTransform` |
 | `SocialAccountAdapter.is_open_for_signup(request, sociallogin)` | True when the `allow_signup` waffle switch is active and allauth agrees |
+| `AccountAdapter.new_user(request)` | Builds the person a sign-up creates, with email or with ORCID, marked claimed. A profile adopted during an ORCID sign-up already exists, so it does not pass through here and stays as it was |
 | `AccountAdapter.is_open_for_signup(request)` | False when the `allow_signup` switch is off. True when the session holds a verified email address (`account_verified_email`). Otherwise true unless `FAIRDM_INVITATION_ONLY_SIGNUP` is set |
 | `handle_email_confirmed(sender, request=None, email_address=None, **kwargs)` | Connected to allauth's `email_confirmed` signal. Does nothing unless `ACCOUNT_EMAIL_VERIFICATION` is `"mandatory"`. Finds the unclaimed person with the confirmed address and calls `claim_via_email`. A failure is logged and not raised |
+
+## ORCID sign-in addresses
+
+`fairdm.conf.urls` routes `account-center/orcid/login/` to `orcid_login` and `account-center/orcid/login/callback/` to `orcid_callback`, ahead of allauth's own routes for those addresses. Both are allauth's views wrapped in `not_found_without_application(view)`, which turns `SocialApp.DoesNotExist` into a 404, so the addresses answer 404 until a portal configures an ORCID application.
 
 ## Merge service
 

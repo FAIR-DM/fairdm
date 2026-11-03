@@ -17,20 +17,12 @@ class SignupExtraForm(forms.ModelForm):
         last_name: The family name.
     """
 
-    first_name = forms.CharField(required=True)
-    last_name = forms.CharField(required=True)
+    first_name = forms.CharField(label=_("First name"), help_text=_("Your given name."))
+    last_name = forms.CharField(label=_("Last name"), help_text=_("Your family name."))
 
     class Meta:
         model = get_user_model()
         fields = ("first_name", "last_name")
-        labels = {
-            "first_name": _("First name"),
-            "last_name": _("Last name"),
-        }
-        help_texts = {
-            "first_name": _("Your given name."),
-            "last_name": _("Your family name."),
-        }
 
     def signup(self, request, user):
         """Save the user's first and last name.

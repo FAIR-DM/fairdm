@@ -16,6 +16,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A person who signs up is claimed from the start.** With email or with ORCID, whatever
+  `ACCOUNT_EMAIL_VERIFICATION` says. With `"optional"` or `"none"`, nobody who signed up was ever
+  claimed, so their own profile called them unclaimed. Accounts that signed up before this change
+  keep their state. Confirming an email address still claims a profile someone else created.
+- **The ORCID sign-in addresses answer 404 while no ORCID application is configured.**
+  `account-center/orcid/login/` and its `callback/` address failed with a server error.
+- **`Person.from_orcid()` returns the person.** It raised `AttributeError` for every ORCID iD after
+  saving the person, and `PersonCreateForm` unpacked the result as a pair. The form's ORCID action
+  also no longer asks for a name, which the ORCID record supplies.
+- **The sign-up form's name fields show their help text and translated labels.** The labels and
+  help texts sat in `Meta`, which Django ignores for fields declared on the form.
 - **A model-wide permission outside the shipped portal roles gives no right on any record.** A
   person granted `dataset.change_dataset` directly in the administration, or through a group the
   portal made up, could open the editing pages of every dataset they could see and change the
