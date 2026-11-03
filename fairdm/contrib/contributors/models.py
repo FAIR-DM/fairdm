@@ -1122,7 +1122,9 @@ class Person(AbstractUser, Contributor):
 
     @classmethod
     def from_orcid(cls, orcid_id):
-        """Create or update a person from ORCID data and schedule a full sync after commit.
+        """Create or update a person from ORCID data.
+
+        A new ORCID identifier queues its own sync once the transaction commits.
 
         Args:
             orcid_id: The ORCID iD, such as ``0000-0002-1825-0097``.
@@ -1130,19 +1132,9 @@ class Person(AbstractUser, Contributor):
         Returns:
             The created or updated person.
         """
-        from django.db import transaction
-
-        from .tasks import sync_contributor_identifier
         from .utils.transforms import ORCIDTransform
 
         person, _created = ORCIDTransform.update_or_create(orcid_id)
-
-        orcid_identifier = person.identifiers.filter(type_id=ORCID).first()
-        if orcid_identifier:
-            transaction.on_commit(
-                lambda: sync_contributor_identifier.delay(orcid_identifier.pk)
-            )
-
         return person
 
     def as_geojson(self):
@@ -1504,30 +1496,20 @@ class Organization(Contributor):
                 self.identifiers.get_or_create(type_id=ROR, defaults={"value": ror})
 
     @classmethod
-    def from_ror(cls, ror, commit=True):
-        """Create or update an organisation from a ROR record and, when committing, schedule a full sync after commit.
+    def from_ror(cls, ror):
+        """Create or update an organisation from a ROR record.
+
+        A new ROR identifier queues its own sync once the transaction commits.
 
         Args:
             ror: The ROR identifier, such as ``https://ror.org/04aj4c181``.
-            commit: Whether to schedule the full sync. The organisation is saved either way.
 
         Returns:
             The created or updated organisation.
         """
-        from django.db import transaction
-
-        from .tasks import sync_contributor_identifier
         from .utils.transforms import RORTransform
 
         org, _created = RORTransform.update_or_create(ror)
-
-        if commit:
-            ror_identifier = org.identifiers.filter(type_id=ROR).first()
-            if ror_identifier:
-                transaction.on_commit(
-                    lambda: sync_contributor_identifier.delay(ror_identifier.pk)
-                )
-
         return org
 
     def icon(self):
@@ -2028,7 +2010,7 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         )
 
 
-class ContributorIdentifier(AbstractIdentifier, LifecycleModelMixin):
+class ContributorIdentifier(LifecycleModelMixin, AbstractIdentifier):
     """An external identifier of a contributor, such as an ORCID iD or a ROR id.
 
     Types are drawn from the contributor identifier collection, so a person cannot hold a

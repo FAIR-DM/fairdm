@@ -17,8 +17,10 @@ Every class below is imported from `fairdm.contrib.contributors.models` unless a
 | `profile` | `TextField` | `None` | A free-text description | Text |
 | `links` | `JSONField` | `[]` | Online resources about the contributor | A list of web addresses. `Person.clean()` and `Organization.clean()` check each with Django's `URLValidator` |
 | `lang` | `JSONField` | `[]` | The contributor's languages | A list of ISO 639-1 codes, checked by `validate_iso_639_1_language_codes` |
-| `last_synced` | `DateField` | `None` | The date `synced_data` last changed. Set on save. Not editable | Not set by hand |
+| `last_synced` | `DateField` | `None` | The date a record was last fetched from the external provider. Not editable | Not set by hand |
 | `synced_data` | `JSONField` | `{}` | The raw record from the external provider. Not editable | Not set by hand |
+| `sync_status` | `CharField`, choices `SyncStatus` | `""` | Whether the last fetch succeeded (`succeeded`) or failed (`failed`). Blank until one is tried. Not editable | Not set by hand |
+| `sync_error` | `TextField` | `""` | Why the last fetch failed. Blank after a success. Not editable | Not set by hand |
 | `config` | `JSONField` | `{}` | A general-purpose store. Nothing in FairDM reads it or enforces anything from it | Any JSON value |
 | `added` | `DateTimeField` | Set once, on creation | When the row was created | Not set by hand |
 | `modified` | `DateTimeField` | Set on every save | When the row was last saved. Indexed | Not set by hand |
@@ -35,6 +37,8 @@ Every class below is imported from `fairdm.contrib.contributors.models` unless a
 | `get_absolute_url()` | `str` | The address of the overview page |
 | `get_update_url()` | `str` | The address of the profile editing page |
 | `is_editable_by(user)` | `bool` | Whether `user` may edit the profile. `False` on `Contributor`, overridden by `Person` and `Organization`. See [Who may edit a profile](#who-may-edit-a-profile) |
+| `record_fetch(data)` | `None` | Holds a record fetched from the external provider: sets `synced_data`, dates `last_synced` today, sets `sync_status` to `succeeded` and clears `sync_error`. Does not save |
+| `record_failed_fetch(reason)` | `None` | Saves `sync_status` as `failed` and `sync_error` as `reason`, and nothing else on the instance |
 | `get_default_identifier()` | `ContributorIdentifier` or `None` | The identifier of type `DEFAULT_IDENTIFIER`. Reads `identifiers.all()`, so a queryset that prefetches `identifiers` costs no query per contributor |
 | `default_identifier` | Property, same as above | |
 | `get_identifier_icon()` | The rendered icon | The icon for the default identifier type |
@@ -170,7 +174,7 @@ An anonymous visitor, a superuser and the holder of any other portal role get no
 | Member | Returns | What it does |
 |---|---|---|
 | `lat`, `lon` | Properties | The latitude and longitude of `location`, or `None` |
-| `from_ror(ror, commit=True)` | `Organization` | Creates or updates an organization from a ROR record through `RORTransform.update_or_create`. With `commit`, it also queues a sync after the transaction commits |
+| `from_ror(ror)` | `Organization` | Creates or updates an organization from a ROR record through `RORTransform.update_or_create`. A new ROR identifier queues its own sync after the transaction commits |
 | `get_memberships()` | Queryset | The organization's affiliations with `person` loaded |
 | `get_current_memberships()` | `list` of `Affiliation` | Verified affiliations with no end date, the owner first, then administrators, then members, each group by name |
 | `owner()` | `Person` or `None` | The person with a current owner affiliation |
@@ -307,7 +311,7 @@ The contributor collection offers, by identifier, `orcid`, `researcher-id`, `ror
 
 `resolver_url` is the address the identifier resolves to, or `None` for a type with no resolver. ORCID, ROR, Wikidata, ISNI and Crossref Funder ID identifiers have one. A ResearcherID has none.
 
-Creating an identifier queues a sync with the external provider once the transaction commits. The sync is a Celery task, `sync_contributor_identifier`. See [How to sync a profile from ORCID or ROR without Celery](../how-to/sync-a-profile-from-orcid-or-ror-without-celery.md).
+Creating an identifier, or changing its value or type, queues a sync with the external provider once the transaction commits. The sync is a Celery task, `sync_contributor_identifier`. Every contributor with an ORCID or ROR identifier is also refreshed weekly: the periodic task "Refresh profiles from ORCID and ROR" runs `refresh_all_contributors` on Mondays at 03:00 in the portal's time zone, and queues a sync for up to 100 contributors not synced in the last seven days. The task is created when the database is migrated, and a portal that changes or disables it keeps its choice. See [How to sync a profile from ORCID or ROR without Celery](../how-to/sync-a-profile-from-orcid-or-ror-without-celery.md).
 
 ## Profile helpers
 
@@ -431,7 +435,7 @@ The built-in transforms:
 
 | Member | Returns | What it does |
 |---|---|---|
-| `fetch_from_api(identifier)` | `dict` | Fetches the public record with a 30 second timeout. Raises `requests.RequestException` on failure |
+| `fetch_from_api(identifier)` | `dict` | Fetches the public record with a 10 second timeout. Raises `requests.RequestException` on failure, including a missing record |
 | `update_or_create(identifier, force=False, **kwargs)` | `(contributor, created)` | Finds a contributor by `kwargs` or by identifier value. Fetches and updates it when `force` is true or it was last synced more than a day ago. Creates one when none is found |
 | `get_or_create(identifier)` | `(contributor, created)` | Finds a contributor by identifier value, or fetches the record and creates one |
 
