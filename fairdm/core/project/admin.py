@@ -5,6 +5,7 @@ import json
 from django.contrib import admin
 from django.db.models import Exists, OuterRef
 from django.http import HttpResponse
+from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy as _
 
 from fairdm.core.vocabularies import ABSTRACT
@@ -13,6 +14,18 @@ from ..choices import ProjectStatus
 from ..formsets import date_ordering_formset
 from .models import Project, ProjectDate, ProjectDescription, ProjectIdentifier
 from .transforms import to_datacite, to_json_ld
+
+
+def status_action_description(status):
+    """Return the description of the bulk action that sets a status, in the status's words.
+
+    Args:
+        status: The status the action sets.
+
+    Returns:
+        A lazily translated description.
+    """
+    return format_lazy(_("Mark selected projects as {status}"), status=status.label)
 
 
 class DescriptionInline(admin.StackedInline):
@@ -139,29 +152,35 @@ class ProjectAdmin(admin.ModelAdmin):
         "export_datacite",
     ]
 
-    @admin.action(description=_("Mark selected projects as Concept"))
+    def set_status(self, request, queryset, status):
+        """Set the selected projects to a status and report how many changed.
+
+        Args:
+            request: The current request.
+            queryset: The selected projects.
+            status: The status to set.
+        """
+        updated = queryset.update(status=status)
+        self.message_user(
+            request,
+            _("%(count)d project(s) marked as %(status)s.")
+            % {"count": updated, "status": status.label},
+        )
+
+    @admin.action(description=status_action_description(ProjectStatus.CONCEPT))
     def make_concept(self, request, queryset):
-        """Set the selected projects to Concept status."""
-        updated = queryset.update(status=ProjectStatus.CONCEPT)
-        self.message_user(
-            request, _("%(count)d project(s) marked as Concept.") % {"count": updated}
-        )
+        """Set the selected projects to Concept."""
+        self.set_status(request, queryset, ProjectStatus.CONCEPT)
 
-    @admin.action(description=_("Mark selected projects as Active"))
+    @admin.action(description=status_action_description(ProjectStatus.IN_PROGRESS))
     def make_active(self, request, queryset):
-        """Set the selected projects to In progress, which the admin labels Active."""
-        updated = queryset.update(status=ProjectStatus.IN_PROGRESS)
-        self.message_user(
-            request, _("%(count)d project(s) marked as Active.") % {"count": updated}
-        )
+        """Set the selected projects to In progress."""
+        self.set_status(request, queryset, ProjectStatus.IN_PROGRESS)
 
-    @admin.action(description=_("Mark selected projects as Completed"))
+    @admin.action(description=status_action_description(ProjectStatus.COMPLETE))
     def make_completed(self, request, queryset):
-        """Set the selected projects to Complete status."""
-        updated = queryset.update(status=ProjectStatus.COMPLETE)
-        self.message_user(
-            request, _("%(count)d project(s) marked as Completed.") % {"count": updated}
-        )
+        """Set the selected projects to Complete."""
+        self.set_status(request, queryset, ProjectStatus.COMPLETE)
 
     @admin.action(description=_("Export selected projects as JSON"))
     def export_json(self, request, queryset):

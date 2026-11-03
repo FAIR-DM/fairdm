@@ -1,7 +1,6 @@
 """Singleton models holding the portal's branding and governing authority."""
 
 from controlled_vocabularies.fields import MultiConceptField
-from django.contrib import admin
 from django.db import models
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
@@ -118,13 +117,6 @@ class Identity(BrandAssets, SingletonModel, TranslatableModel):
     class Meta:
         db_table = "identity_database"
         verbose_name = _("Portal Identity")
-
-    def save(self, *args, **kwargs):
-        """Save, then use the portal name as the admin site header and title."""
-        super().save(*args, **kwargs)
-        name = self.safe_translation_getter("name", default="FairDM")
-        admin.site.site_header = name
-        admin.site.site_title = name
 
     def __str__(self):
         """Return a fixed label, since the portal has one identity."""

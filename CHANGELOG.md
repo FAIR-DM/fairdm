@@ -16,6 +16,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Importing people needs the permission to add them, and exporting them the permission to view
+  them.** The Import and Export pages of the People administration were open to anyone admitted to
+  the administration, including the Portal Administrator, Community Manager and Data Curator roles.
+  None of the shipped roles holds `contributors.add_person`, so by default only a superuser can
+  import people. A portal that relied on a role importing people grants it that permission.
+- **The possible-duplicates panel shows the similarity as a percentage.** Every match showed as 1%.
+- **The panel's Merge button chooses the person to merge into.** The merge page opened with nothing
+  chosen, whichever row the button was on.
+- **The administration's header and title show the portal's name in every process, after every
+  restart, and in the visitor's language.** They were set on the admin site object of the one
+  process that saved the portal identity. `Identity.save()` no longer touches the admin site, and
+  the admin site reads the name when it renders.
+- **The project administration's bulk actions and their messages use the status labels.** "Mark
+  selected projects as Active" and "as Completed" are now "as In progress" and "as Complete".
 - **The API's single-record route reads a proxy of a record type by the concrete type's rules.**
   `FairDMObjectPermissions` asked for the proxy's own permission, which no level grants, so a person
   at the view level was refused a record the list showed them. A portal that overrode

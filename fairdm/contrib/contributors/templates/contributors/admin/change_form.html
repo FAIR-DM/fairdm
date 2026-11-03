@@ -26,7 +26,7 @@
                    target="_blank">{{ entry.person }}</a>
               </td>
               <td>{{ entry.person.email|default:"—" }}</td>
-              <td>{{ entry.score|floatformat:0 }}%</td>
+              <td>{{ entry.percent|floatformat:0 }}%</td>
               <td>
                 <a href="{% url 'admin:contributors_person_merge' original.pk %}?merge_into={{ entry.person.pk }}"
                    class="button">{% trans "Merge" %}</a>

@@ -1152,3 +1152,164 @@ class TestPersonChoicesInTheAdmin:
         media = str(response.context["form"].media)
         assert media
         assert media in response.content.decode()
+
+
+def _admitted_holder_of(role, email):
+    """Return a person holding a shipped role, which admits them to the administration."""
+    from django.contrib.auth.models import Group
+
+    from fairdm.factories import PersonFactory
+    from fairdm.portal_roles import PortalRoles
+
+    PortalRoles.reconcile()
+    holder = PersonFactory(email=email, is_active=True)
+    holder.groups.add(Group.objects.get(name=role.name))
+    return holder
+
+
+@pytest.mark.django_db
+class TestPersonImportAndExportPermissions:
+    def test_a_role_without_the_permission_to_add_people_cannot_open_the_import(
+        self, client
+    ):
+        from fairdm.portal_roles import PortalRoles
+
+        for role in (
+            PortalRoles.PORTAL_ADMINISTRATOR,
+            PortalRoles.DATA_CURATOR,
+            PortalRoles.COMMUNITY_MANAGER,
+        ):
+            client.force_login(_admitted_holder_of(role, f"{role.name}@example.com"))
+
+            response = client.get(reverse("admin:contributors_person_import"))
+
+            assert response.status_code == 403, role.name
+
+    def test_a_role_without_the_permission_to_add_people_cannot_run_an_import(
+        self, client
+    ):
+        from fairdm.portal_roles import PortalRoles
+
+        manager = _admitted_holder_of(
+            PortalRoles.COMMUNITY_MANAGER, "import-manager@example.com"
+        )
+        client.force_login(manager)
+
+        response = client.post(reverse("admin:contributors_person_process_import"))
+
+        assert response.status_code == 403
+
+    def test_the_import_button_is_withheld_from_someone_who_cannot_add_people(
+        self, client
+    ):
+        from fairdm.portal_roles import PortalRoles
+
+        manager = _admitted_holder_of(
+            PortalRoles.COMMUNITY_MANAGER, "button-manager@example.com"
+        )
+        client.force_login(manager)
+
+        response = client.get(reverse("admin:contributors_person_changelist"))
+
+        assert response.status_code == 200
+        assert response.context["has_import_permission"] is False
+        assert response.context["has_export_permission"] is True
+
+    def test_someone_granted_the_permission_to_add_people_can_open_the_import(
+        self, client
+    ):
+        from fairdm.factories import PersonFactory
+
+        staff = PersonFactory(
+            email="adds-people@example.com", is_staff=True, is_active=True
+        )
+        _grant(staff, Person, "add_person")
+        client.force_login(staff)
+
+        response = client.get(reverse("admin:contributors_person_import"))
+
+        assert response.status_code == 200
+
+    def test_a_role_that_can_view_people_can_export_them(self, client):
+        from fairdm.portal_roles import PortalRoles
+
+        for role in (PortalRoles.PORTAL_ADMINISTRATOR, PortalRoles.COMMUNITY_MANAGER):
+            client.force_login(
+                _admitted_holder_of(role, f"export-{role.name}@example.com")
+            )
+
+            response = client.get(reverse("admin:contributors_person_export"))
+
+            assert response.status_code == 200, role.name
+
+    def test_a_role_that_cannot_view_people_cannot_export_them(self, client):
+        from fairdm.portal_roles import PortalRoles
+
+        curator = _admitted_holder_of(
+            PortalRoles.DATA_CURATOR, "export-curator@example.com"
+        )
+        client.force_login(curator)
+
+        response = client.get(reverse("admin:contributors_person_export"))
+
+        assert response.status_code == 403
+
+
+@pytest.mark.django_db
+class TestPossibleDuplicatesPanel:
+    def test_the_similarity_is_shown_as_a_percentage_of_the_score(self, admin_client):
+        from fairdm.factories import PersonFactory
+
+        # Scores 94.1, so a fraction rounded to no places shows as 1%.
+        person = PersonFactory(name="Margaret Hamilton")
+        PersonFactory(name="Margaret Hamiltom")
+
+        response = admin_client.get(
+            reverse("admin:contributors_person_change", args=[person.pk])
+        )
+
+        assert "<td>94%</td>" in response.content.decode()
+
+
+@pytest.mark.django_db
+class TestMergePagePreselection:
+    def _merge_url(self, person, merge_into):
+        url = reverse("admin:contributors_person_merge", args=[person.pk])
+        return f"{url}?merge_into={merge_into}"
+
+    def test_the_person_named_in_the_query_is_chosen(
+        self, admin_client, unclaimed_person
+    ):
+        from fairdm.factories import PersonFactory
+
+        target = PersonFactory()
+
+        response = admin_client.get(self._merge_url(unclaimed_person, target.pk))
+
+        assert response.context["form"]["merge_into"].value() == target.pk
+
+    def test_the_chosen_person_is_drawn_in_the_field(
+        self, admin_client, unclaimed_person
+    ):
+        from fairdm.factories import PersonFactory
+
+        target = PersonFactory(name="Margaret Hamilton")
+
+        response = admin_client.get(self._merge_url(unclaimed_person, target.pk))
+
+        assert target.name in response.content.decode()
+
+    def test_a_query_that_cannot_name_a_choice_chooses_nothing(
+        self, admin_client, unclaimed_person, admin_user
+    ):
+        for merge_into in (
+            "not-a-number",
+            "99999999",
+            "",
+            unclaimed_person.pk,
+            admin_user.pk,
+        ):
+            response = admin_client.get(self._merge_url(unclaimed_person, merge_into))
+
+            assert response.status_code == 200, merge_into
+            assert response.context["form"]["merge_into"].value() is None, merge_into

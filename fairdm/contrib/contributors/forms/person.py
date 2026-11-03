@@ -66,6 +66,20 @@ class MergePersonForm(forms.Form):
             qs = qs.exclude(pk=exclude_pk)
         self.fields["merge_into"].queryset = qs
 
+    def choose(self, value):
+        """Start the form on a person, when submitting that person would be accepted.
+
+        Args:
+            value: The primary key of the person, from outside the form. Anything the
+                field would refuse, or the person being merged, chooses nothing.
+        """
+        try:
+            keep = self.fields["merge_into"].clean(value)
+        except forms.ValidationError:
+            return
+        if keep.pk != self.exclude_pk:
+            self.initial["merge_into"] = keep.pk
+
     def clean_merge_into(self):
         """Refuse the person being merged as the person that survives."""
         keep = self.cleaned_data["merge_into"]

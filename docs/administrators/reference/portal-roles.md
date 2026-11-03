@@ -96,7 +96,7 @@ The Portal Administrator is a role that a person is given in the administration 
 
 ## Reaching the administration interface
 
-The administration interface is at `/admin/` on the portal, unless the portal sets another address with `ADMIN_URL`. The setting is described on the [settings reference](../../developers/reference/settings.md). Its pages are headed **Portal Administration**.
+The administration interface is at `/admin/` on the portal, unless the portal sets another address with `ADMIN_URL`. The setting is described on the [settings reference](../../developers/reference/settings.md). Its pages are headed with the portal's name, in the visitor's language, or **Portal Administration** until a name has been saved in the portal identity.
 
 A person is admitted when their account is active and either is marked as staff or holds at least one role that carries permissions. The Portal Administrator, Data Curator and Community Manager roles carry permissions. The Developer role does not, so holding only that role does not admit a person.
 
