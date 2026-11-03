@@ -508,6 +508,7 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
         context["record_state"] = self.record_state
         context["kind"] = self.base_model.__name__.lower()
         context["holder"] = self.holder
+        context["own_page"] = self.is_own_page()
         return context
 
     def get_page_title(self):
