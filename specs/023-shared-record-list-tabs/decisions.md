@@ -173,3 +173,16 @@ this feature does not change (D5).
 **Revisit if:** the record search gains a way to restrict its choices to the datasets of a list.
 
 **ADR:** none — follows decision D5, local to this feature.
+
+## D7. The records tab keeps its scoped filter set class per configuration
+
+`ScopedChoicesMixin.applied_to` returns the filter set it is given when the mixin is already in it,
+and what differs between pages (`drop`, `scope`, `owner`) goes through the filter set's constructor.
+The registry builds a type's filter set anew on every call, so wrapping it still makes a class per
+request. The tab therefore keeps the wrapped class per type configuration.
+
+**Why:** a class per request is never released.
+
+**Revisit if:** the registry caches the filter sets it generates, which makes the tab's cache redundant.
+
+**ADR:** none — local to this feature.
