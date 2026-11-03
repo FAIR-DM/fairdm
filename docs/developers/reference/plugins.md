@@ -275,7 +275,7 @@ of the record whose page it is on, one registered type at a time.
 |---|---|---|
 | Dataset | Yes | The samples or measurements of the dataset that the viewer may see |
 | Project | Yes | The samples or measurements of any of the project's datasets that the viewer may see |
-| Contributor | Yes | The samples or measurements credited to the contributor, or beneath a dataset or project credited to them, that the viewer may see. One registration covers `Person` and `Organization` |
+| Contributor | Yes | The samples or measurements credited to the contributor, or beneath a dataset or project credited to them: the released ones, unless it is the person's own page, where the viewer sees what they hold a level on as well. One registration covers `Person` and `Organization` |
 
 `RecordsTab.scope()` returns every record of the kind that belongs to the page's record, and
 `visible_records()` narrows it with `visible_to(viewer)`, where `viewer()` is the request's user. `holder` names the kind of page,
@@ -290,7 +290,7 @@ The check is `records_are_offered`, which hands a dataset to `dataset_records_vi
 `dataset_is_visible` in `fairdm.core.dataset.plugins`, and a project to `project_is_visible`. A
 dataset's check holds when the dataset's overview opens for the viewer and so do its records: the
 dataset is published and no private project hides it, or the viewer holds a level on the dataset or
-its project. For anyone else the tab is not offered and its address answers 404.
+its project, or the portal-wide right to view datasets (`dataset.view_dataset`). For anyone else the tab is not offered and its address answers 404.
 
 A contributor's tabs are offered to everyone, as the contributor's overview is. `viewer()` returns
 `None` on a contributor's page, so only records released to everyone are listed, unless a person

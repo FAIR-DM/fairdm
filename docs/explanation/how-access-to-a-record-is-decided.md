@@ -23,7 +23,7 @@ A dataset also has a separate `published` flag. Publication decides whether the 
 
 Neither flag implies the other. These are all ordinary states:
 
-- A public dataset that is not published, in a public project or none. Its description, counts and charts are open to everyone, and its records are not.
+- A public dataset that is not published, in a public project or none. Its description is open to everyone. Its sample and measurement counts, its charts and its spatial coverage, like its records, are open only to people who hold a level on it or on its project.
 - A published dataset that is private, in a public project or none. Its records belong in portal-wide listings, but its own page is closed to people outside the team.
 - A dataset that is both public and published. This is the state in which everyone may see its samples and measurements, unless a private project holds it.
 
