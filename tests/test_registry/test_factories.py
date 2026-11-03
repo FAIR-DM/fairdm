@@ -15,12 +15,12 @@ from demo.factories import RockSampleFactory
 from demo.models import ExampleMeasurement, RockSample
 from fairdm.api.serializers import BaseMeasurementSerializer, BaseSampleSerializer
 from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
-from fairdm.core.measurement.config import BaseMeasurementConfiguration
-from fairdm.core.measurement.models import Measurement
-from fairdm.core.sample.models import Sample
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.dataset.models import Dataset
+from fairdm.core.measurement.config import BaseMeasurementConfiguration
+from fairdm.core.measurement.models import Measurement
 from fairdm.core.project.models import Project
+from fairdm.core.sample.models import Sample
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
