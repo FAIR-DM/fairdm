@@ -59,12 +59,11 @@ class DataTableView(FairDMTableView):
         context["measurement_listings"] = self.get_listing_entries(
             registry.measurements
         )
-
-        context["page"] = {
-            "title": self.model_config.get_verbose_name_plural(),
-        }
-
         return context
+
+    def get_page_title(self):
+        """Return the listed type's plural name."""
+        return self.model_config.get_verbose_name_plural()
 
     def get_listing_entries(self, models):
         """Build the switcher entries for samples or measurements.
