@@ -9,7 +9,7 @@ from typing import Any
 
 import django_tables2 as tables
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count, Exists, Model, OuterRef, QuerySet
+from django.db.models import Case, Count, Exists, F, Model, OuterRef, QuerySet, When
 from django.http import Http404, HttpRequest
 from django.urls import path
 from django.utils.html import format_html
@@ -222,8 +222,9 @@ class SampleColumn(tables.Column):
     def order(self, queryset: QuerySet, is_descending: bool) -> tuple[QuerySet, bool]:
         """Order by the sample's name, with the samples the viewer may not open last.
 
-        The rows with an unopenable sample sort as one block after the named ones in
-        either direction, so the order reveals nothing about where a hidden name would fall.
+        Only the rows with an openable sample are ordered by name. The rest sort as one block
+        after them, left to the table's primary-key tie-break in either direction, so the order
+        reveals neither which measurements share a hidden sample nor where its name would fall.
 
         Args:
             queryset: The rows to order.
@@ -232,8 +233,13 @@ class SampleColumn(tables.Column):
         Returns:
             The ordered rows, and ``True`` to say the column ordered them itself.
         """
-        name = "-sample__name" if is_descending else "sample__name"
-        return queryset.order_by("-sample_open", name), True
+        name = Case(When(sample_open=True, then=F("sample__name")))
+        return (
+            queryset.order_by(
+                "-sample_open", name.desc() if is_descending else name.asc()
+            ),
+            True,
+        )
 
 
 def records_are_offered(request: HttpRequest, obj: Model | None) -> bool:

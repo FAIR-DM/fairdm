@@ -432,6 +432,19 @@ class TestRecordTable:
         named = [r.sample.name for r in rows if r.sample_open]
         assert named == sorted(named, reverse=sort.startswith("-"))
 
+    def test_the_hidden_samples_keep_one_order_whichever_way_the_sort_runs(
+        self, client, sample_dataset
+    ):
+        url = address(sample_dataset, "measurements")
+
+        def hidden_block(sort):
+            rows = listed(client.get(url, {"sort": sort}))
+            return [r.pk for r in rows if not r.sample_open]
+
+        ascending = hidden_block("sample_name")
+        assert len(ascending) == 2
+        assert hidden_block("-sample_name") == ascending
+
     def test_the_order_of_a_generated_table_ends_in_a_unique_key(
         self, client, sample_dataset
     ):
