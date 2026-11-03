@@ -158,3 +158,16 @@ every organization page, `public`. Filters that hold a queryset are narrowed to 
 planned.
 
 **ADR:** none — applies an existing mechanism.
+
+## D12. A contributor's page keeps the dataset filter at the public scope
+
+On someone else's person page and on an organization page the dataset filter offers the portal's
+public datasets, the scope D5 names, not only the datasets the page's rows point to. A public
+dataset that is not yet published is among them, because its own page opens for anyone. Its records
+are never offered: the sample filter at the same scope offers released samples only, and the rows,
+totals and types follow the viewer rule.
+
+**Why:** the record filters are autocomplete fields whose choices come from the record search, which
+this feature does not change (D5).
+
+**Revisit if:** the record search gains a way to restrict its choices to the datasets of a list.
