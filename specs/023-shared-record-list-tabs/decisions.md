@@ -159,7 +159,7 @@ planned.
 
 **ADR:** none — applies an existing mechanism.
 
-## D12. A contributor's page keeps the dataset filter at the public scope
+## D6. A contributor's page keeps the dataset filter at the public scope
 
 On someone else's person page and on an organization page the dataset filter offers the portal's
 public datasets, the scope D5 names, not only the datasets the page's rows point to. A public
