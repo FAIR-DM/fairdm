@@ -171,3 +171,5 @@ totals and types follow the viewer rule.
 this feature does not change (D5).
 
 **Revisit if:** the record search gains a way to restrict its choices to the datasets of a list.
+
+**ADR:** none — follows decision D5, local to this feature.
