@@ -340,18 +340,23 @@ that `search_fields` builds. The tab then changes four things:
 - `StableOrderData` ends every ordering with the primary key, so a page never repeats a row.
 - Fifty rows are shown to a page.
 
-The choices the filters offer are narrowed by `ScopedChoicesMixin`, applied with
-`ScopedChoicesMixin.applied_to(filterset_class, drop=(), scope="view", owner=None)`:
+The choices the filters offer are narrowed by `ScopedChoicesMixin`. `ScopedChoicesMixin.applied_to(filterset_class)`
+puts it in front of a filter set, and returns the filter set itself when it is already there. What
+differs between pages goes through the filter set's constructor as the keyword arguments `drop`
+(default `()`), `scope` (default `"view"`) and `owner` (default `None`):
 
 ```python
-ScopedChoicesMixin.applied_to(
-    config.get_filterset_class(),
+filterset_class = ScopedChoicesMixin.applied_to(config.get_filterset_class())
+filterset = filterset_class(
+    data=request.GET or None,
+    queryset=rows,
+    request=request,
     drop=("dataset",),
     scope="view",
 )
 ```
 
-A filter that holds a queryset of records is narrowed to the records the listed rows point to, and
+`RecordsTab.get_filterset_kwargs()` supplies them for a tab. A filter that holds a queryset of records is narrowed to the records the listed rows point to, and
 for datasets and samples to those the viewer may see. The record filters of a registered type,
 which offer what the record search offers, are set to `scope`, or to the records of `owner` for the
 list of one person's records. `drop` takes filters out of the set, such as the dataset filter on a
