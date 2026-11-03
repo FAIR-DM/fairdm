@@ -20,10 +20,10 @@ from demo.models import (
     SoilSample,
     XRFMeasurement,
 )
-from fairdm.core.sample.models import Sample
 from fairdm.contrib.collections.plugins import Measurements
 from fairdm.contrib.collections.tables import SampleTable
 from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.core.sample.models import Sample
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
