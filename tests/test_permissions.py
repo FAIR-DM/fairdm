@@ -171,3 +171,42 @@ class TestImportAndPublishGatePermissions:
         )
 
         assert contributor.has_perm("dataset.can_publish", dataset)
+
+
+@pytest.mark.django_db
+class TestReachesEveryRecord:
+    def test_a_superuser_reaches_every_record(self):
+        assert PortalRoles.reaches_every_record(
+            PersonFactory(is_superuser=True), "dataset.change_dataset"
+        )
+
+    def test_a_right_held_through_a_shipped_role_does(self):
+        person = PersonFactory()
+        person.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+
+        assert PortalRoles.reaches_every_record(person, "dataset.change_dataset")
+
+    def test_a_right_the_role_does_not_hold_does_not(self):
+        person = PersonFactory()
+        person.groups.add(Group.objects.get(name=PortalRoles.COMMUNITY_MANAGER.name))
+
+        assert not PortalRoles.reaches_every_record(person, "dataset.change_dataset")
+
+    def test_a_right_granted_directly_does_not(self):
+        person = PersonFactory()
+        person.user_permissions.add(_permission("dataset", "change_dataset"))
+
+        assert not PortalRoles.reaches_every_record(person, "dataset.change_dataset")
+
+    def test_a_right_held_through_a_group_the_portal_made_up_does_not(self):
+        person = PersonFactory()
+        group = Group.objects.create(name="A Group The Portal Made Up")
+        group.permissions.add(_permission("dataset", "change_dataset"))
+        person.groups.add(group)
+
+        assert not PortalRoles.reaches_every_record(person, "dataset.change_dataset")
+
+    def test_a_visitor_does_not(self):
+        assert not PortalRoles.reaches_every_record(
+            AnonymousUser(), "dataset.change_dataset"
+        )

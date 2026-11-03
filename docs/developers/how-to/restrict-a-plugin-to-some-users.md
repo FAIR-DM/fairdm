@@ -40,7 +40,7 @@ A plugin has two settings that decide who gets in, and they are one guarantee. A
        permission = "sample.change_sample"
    ```
 
-   A permission counts when the user holds it for the whole portal or on this record. Give a list to require all of them.
+   A permission counts when the user holds it on this record, which a model-wide permission does only through a shipped portal role. Give a list to require all of them.
 
 3. If the record can be private, write its visibility rule yourself. A plugin reads its record through the model's `all_objects` manager when the model has one, which skips the filtering of the default manager. A private record therefore reaches the plugin, and the plugin must refuse it. This is the rule FairDM's project pages use:
 

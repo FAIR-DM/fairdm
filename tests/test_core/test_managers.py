@@ -1,7 +1,7 @@
 """Tests for the visibility rules samples and measurements share."""
 
 import pytest
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import AnonymousUser, Group, Permission
 
 from demo.factories import RockSampleFactory, XRFMeasurementFactory
 from fairdm.contrib.contributors.choices import ContributionLevel
@@ -17,6 +17,7 @@ from fairdm.factories import (
     ProjectFactory,
     UserFactory,
 )
+from fairdm.portal_roles import PortalRoles
 from fairdm.utils.choices import Visibility
 
 VIEW, EDIT, MANAGE = (
@@ -280,6 +281,64 @@ class TestWithLevel:
         assert listed(Dataset, AnonymousUser(), VIEW) == set()
         assert listed(Dataset, None, VIEW) == set()
         assert listed(Dataset, holder, VIEW) == set()
+
+
+def direct_grant(person, *codenames):
+    """Grant model-wide permissions straight to a person, and return a fresh copy of them."""
+    person.user_permissions.add(*Permission.objects.filter(codename__in=codenames))
+    return type(person).objects.get(pk=person.pk)
+
+
+def curator(person):
+    """Put a person in the Data Curator role."""
+    person.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+    return person
+
+
+@pytest.mark.django_db
+class TestModelWideRights:
+    """Only a shipped portal role or a superuser reaches every record."""
+
+    @pytest.mark.parametrize("codename", ["view_dataset", "change_dataset"])
+    @pytest.mark.parametrize(
+        ("model", "key"), [(Sample, "sample"), (Measurement, "measurement")]
+    )
+    def test_a_direct_grant_shows_no_private_sample_or_measurement(
+        self, tree, holder, model, key, codename
+    ):
+        person = direct_grant(holder, codename)
+
+        assert tree[key] not in model.objects.visible_to(person)
+
+    @pytest.mark.parametrize(
+        ("model", "key"), [(Sample, "sample"), (Measurement, "measurement")]
+    )
+    def test_a_data_curator_sees_every_sample_and_measurement(
+        self, tree, holder, model, key
+    ):
+        assert tree[key] in model.objects.visible_to(curator(holder))
+
+    def test_a_direct_grant_shows_no_private_dataset(self, tree, holder):
+        person = direct_grant(holder, "view_dataset")
+
+        assert tree["loose"] not in Dataset.all_objects.visible_to(person)
+
+    def test_a_data_curator_sees_every_dataset(self, tree, holder):
+        assert tree["loose"] in Dataset.all_objects.visible_to(curator(holder))
+
+    @pytest.mark.parametrize("level", [VIEW, EDIT, MANAGE])
+    def test_a_direct_grant_offers_no_record_in_a_choice_list(
+        self, tree, holder, level
+    ):
+        person = direct_grant(holder, "view_dataset", "change_dataset")
+
+        assert not Dataset.all_objects.accessible_to(person, level).exists()
+
+    @pytest.mark.parametrize("level", [VIEW, EDIT, MANAGE])
+    def test_a_data_curator_is_offered_every_record(self, tree, holder, level):
+        offered = Dataset.all_objects.accessible_to(curator(holder), level)
+
+        assert tree["loose"] in offered
 
 
 @pytest.mark.django_db

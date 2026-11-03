@@ -317,16 +317,16 @@ class RecordAccess:
     def can_manage(self, user):
         """Say whether a user may change the record's contributors.
 
+        Asks ``delete_<model>`` of the record, the permission the manage level stands for, so
+        the answer comes from the record's levels and from the shipped portal roles.
+        ``change_<model>`` would answer yes to the edit level.
+
         Args:
             user: The user, or an anonymous user for a visitor.
 
         Returns:
-            True for the manage level on the record or above it, and for anyone holding
-            ``change_<model>`` for the whole portal, which a superuser and a Data Curator do.
+            True for the manage level on the record or above it, for a Data Curator and for a
+            superuser.
         """
-        if not (user.is_authenticated and user.is_active):
-            return False
-        if self.level_of(user) == ContributionLevel.MANAGE:
-            return True
         meta = self.model._meta
-        return user.has_perm(f"{meta.app_label}.change_{meta.model_name}")
+        return user.has_perm(f"{meta.app_label}.delete_{meta.model_name}", self.record)

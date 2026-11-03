@@ -4,13 +4,17 @@ import pytest
 from django.contrib.auth.models import AnonymousUser, Group, Permission
 from django.core.exceptions import ValidationError
 from django.db import connection, transaction
+from django.urls import reverse
 
-from fairdm.factories import PersonFactory
+from demo.factories import RockSampleFactory, XRFMeasurementFactory
+from fairdm.factories import DatasetFactory, PersonFactory, ProjectFactory
 from fairdm.portal_roles import PortalRoles
+from fairdm.registry import registry
 
 # The Data Curator's declared rights: view/add/change/delete over Project, Dataset, Sample and
-# Measurement and their attached description, date and contribution records, plus the two
-# permissions the import and publish plugin checks read directly.
+# Measurement and their attached description, date, identifier and contribution records, over
+# sample relations and literature items, plus the two permissions the import and publish plugin
+# checks read directly.
 DATA_CURATOR_PERMISSIONS = {
     "project.view_project",
     "project.add_project",
@@ -66,6 +70,30 @@ DATA_CURATOR_PERMISSIONS = {
     "contributors.add_contribution",
     "contributors.change_contribution",
     "contributors.delete_contribution",
+    "project.view_projectidentifier",
+    "project.add_projectidentifier",
+    "project.change_projectidentifier",
+    "project.delete_projectidentifier",
+    "dataset.view_datasetidentifier",
+    "dataset.add_datasetidentifier",
+    "dataset.change_datasetidentifier",
+    "dataset.delete_datasetidentifier",
+    "sample.view_sampleidentifier",
+    "sample.add_sampleidentifier",
+    "sample.change_sampleidentifier",
+    "sample.delete_sampleidentifier",
+    "measurement.view_measurementidentifier",
+    "measurement.add_measurementidentifier",
+    "measurement.change_measurementidentifier",
+    "measurement.delete_measurementidentifier",
+    "sample.view_samplerelation",
+    "sample.add_samplerelation",
+    "sample.change_samplerelation",
+    "sample.delete_samplerelation",
+    "literature.view_item",
+    "literature.add_item",
+    "literature.change_item",
+    "literature.delete_item",
 }
 
 COMMUNITY_MANAGER_PERMISSIONS = {
@@ -95,6 +123,8 @@ class TestDeclarations:
             "contributors.view_person",
             "contributors.change_person",
             "identity.change_identity",
+            "identity.view_authority",
+            "identity.change_authority",
         }
 
     def test_portal_administrator_cannot_edit_a_group(self):
@@ -122,6 +152,24 @@ class TestDeclarations:
     def test_developer_holds_no_permissions(self):
         assert PortalRoles.DEVELOPER.permissions == ()
 
+    @pytest.mark.parametrize("model", [*registry.samples, *registry.measurements])
+    @pytest.mark.parametrize("action", ["view", "add", "change", "delete"])
+    def test_the_data_curator_holds_every_registered_type(self, model, action):
+        permission = f"{model._meta.app_label}.{action}_{model._meta.model_name}"
+
+        assert permission in PortalRoles.permissions_of(PortalRoles.DATA_CURATOR)
+
+    @pytest.mark.parametrize(
+        "role",
+        [
+            PortalRoles.PORTAL_ADMINISTRATOR,
+            PortalRoles.COMMUNITY_MANAGER,
+            PortalRoles.DEVELOPER,
+        ],
+    )
+    def test_no_other_role_holds_a_registered_type(self, role):
+        assert PortalRoles.permissions_of(role) == role.permissions
+
     def test_every_permission_is_an_explicit_app_label_codename(self):
         for role in PortalRoles.ROLES:
             for permission in role.permissions:
@@ -144,13 +192,99 @@ def _resolvable_permissions(role):
     right now. ``dataset.can_publish`` does not - no model declares it - and ``reconcile()``
     must tolerate that rather than raise (D19, research R5)."""
     resolvable = set()
-    for permission_name in role.permissions:
+    for permission_name in PortalRoles.permissions_of(role):
         app_label, codename = permission_name.split(".", 1)
         if Permission.objects.filter(
             content_type__app_label=app_label, codename=codename
         ).exists():
             resolvable.add(permission_name)
     return resolvable
+
+
+def holder_of(role):
+    """A person in a shipped role, who holds nothing on any record."""
+    person = PersonFactory(is_active=True, is_claimed=True, password="x")
+    person.groups.add(Group.objects.get(name=role.name))
+    return person
+
+
+@pytest.mark.django_db
+class TestDataCuratorAdministrationPages:
+    @pytest.fixture
+    def curator(self, client):
+        client.force_login(holder_of(PortalRoles.DATA_CURATOR))
+        return client
+
+    @pytest.fixture
+    def rock_sample(self):
+        return RockSampleFactory(dataset=DatasetFactory())
+
+    def test_opens_a_sample_of_a_registered_type(self, curator, rock_sample):
+        url = reverse("admin:sample_sample_change", args=[rock_sample.pk])
+
+        assert curator.get(url, follow=True).status_code == 200
+
+    def test_opens_a_measurement_of_a_registered_type(self, curator, rock_sample):
+        measurement = XRFMeasurementFactory(
+            dataset=rock_sample.dataset, sample=rock_sample
+        )
+        url = reverse("admin:measurement_measurement_change", args=[measurement.pk])
+
+        assert curator.get(url, follow=True).status_code == 200
+
+    def test_may_add_a_sample_of_a_registered_type(self, curator):
+        response = curator.get(reverse("admin:demo_rocksample_add"))
+
+        assert response.status_code == 200
+
+    def test_may_delete_a_sample_of_a_registered_type(self, curator, rock_sample):
+        url = reverse("admin:demo_rocksample_delete", args=[rock_sample.pk])
+
+        assert curator.get(url).status_code == 200
+
+    @pytest.mark.parametrize(
+        ("factory", "url_name"),
+        [
+            (ProjectFactory, "admin:project_project_change"),
+            (DatasetFactory, "admin:dataset_dataset_change"),
+        ],
+    )
+    def test_project_and_dataset_pages_offer_identifiers(
+        self, curator, factory, url_name
+    ):
+        record = factory()
+
+        response = curator.get(reverse(url_name, args=[record.pk]))
+
+        offered = {
+            formset.opts.model._meta.model_name
+            for formset in response.context["inline_admin_formsets"]
+        }
+        assert f"{record._meta.model_name}identifier" in offered
+
+    def test_a_sample_page_offers_identifiers_and_relations(self, curator, rock_sample):
+        url = reverse("admin:demo_rocksample_change", args=[rock_sample.pk])
+
+        offered = {
+            formset.opts.model._meta.model_name
+            for formset in curator.get(url).context["inline_admin_formsets"]
+        }
+        assert {"sampleidentifier", "samplerelation"} <= offered
+
+    def test_opens_the_literature_list(self, curator):
+        response = curator.get(reverse("admin:literature_item_changelist"))
+
+        assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestPortalAdministratorAuthorityPage:
+    def test_opens_the_governing_authority(self, client):
+        client.force_login(holder_of(PortalRoles.PORTAL_ADMINISTRATOR))
+
+        response = client.get(reverse("admin:identity_authority_change"))
+
+        assert response.status_code == 200
 
 
 @pytest.mark.django_db
@@ -448,6 +582,8 @@ PERMISSIONS_ON_MAIN = {
         "contributors.view_person",
         "contributors.change_person",
         "identity.change_identity",
+        "identity.view_authority",
+        "identity.change_authority",
     ),
     "Data Curator": (
         "project.view_project",
@@ -462,6 +598,10 @@ PERMISSIONS_ON_MAIN = {
         "project.add_projectdate",
         "project.change_projectdate",
         "project.delete_projectdate",
+        "project.view_projectidentifier",
+        "project.add_projectidentifier",
+        "project.change_projectidentifier",
+        "project.delete_projectidentifier",
         "dataset.view_dataset",
         "dataset.add_dataset",
         "dataset.change_dataset",
@@ -474,6 +614,10 @@ PERMISSIONS_ON_MAIN = {
         "dataset.add_datasetdate",
         "dataset.change_datasetdate",
         "dataset.delete_datasetdate",
+        "dataset.view_datasetidentifier",
+        "dataset.add_datasetidentifier",
+        "dataset.change_datasetidentifier",
+        "dataset.delete_datasetidentifier",
         "dataset.import_data",
         "dataset.can_publish",
         "sample.view_sample",
@@ -488,6 +632,14 @@ PERMISSIONS_ON_MAIN = {
         "sample.add_sampledate",
         "sample.change_sampledate",
         "sample.delete_sampledate",
+        "sample.view_sampleidentifier",
+        "sample.add_sampleidentifier",
+        "sample.change_sampleidentifier",
+        "sample.delete_sampleidentifier",
+        "sample.view_samplerelation",
+        "sample.add_samplerelation",
+        "sample.change_samplerelation",
+        "sample.delete_samplerelation",
         "measurement.view_measurement",
         "measurement.add_measurement",
         "measurement.change_measurement",
@@ -500,10 +652,18 @@ PERMISSIONS_ON_MAIN = {
         "measurement.add_measurementdate",
         "measurement.change_measurementdate",
         "measurement.delete_measurementdate",
+        "measurement.view_measurementidentifier",
+        "measurement.add_measurementidentifier",
+        "measurement.change_measurementidentifier",
+        "measurement.delete_measurementidentifier",
         "contributors.view_contribution",
         "contributors.add_contribution",
         "contributors.change_contribution",
         "contributors.delete_contribution",
+        "literature.view_item",
+        "literature.add_item",
+        "literature.change_item",
+        "literature.delete_item",
     ),
     "Community Manager": (
         "contributors.view_person",
@@ -532,7 +692,7 @@ class TestPermissionsAreThoseOnMain:
         group = Group.objects.get(name=role.name)
 
         assert _permission_strings(group) == _resolvable_permissions(role)
-        assert _permission_strings(group) <= set(PERMISSIONS_ON_MAIN[role.name])
+        assert _permission_strings(group) <= set(PortalRoles.permissions_of(role))
 
     def test_no_role_is_added_or_removed(self):
         assert set(PERMISSIONS_ON_MAIN) == set(PortalRoles.shipped_names())

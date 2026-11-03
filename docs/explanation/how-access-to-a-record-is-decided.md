@@ -72,7 +72,7 @@ The roles are separate because looking after people is not the same job as looki
 
 A role and a level combine by addition. A person who holds both has everything either gives them. A role never changes what a level allows, and a level never gives a right over other records. A Data Curator therefore opens, edits and manages the contributors of any record without being listed on it, and doing so does not add them to the record.
 
-Portal-wide rights apply to individual records only through these four roles. A permission granted straight to a person, or through a group a portal made up for itself, is not turned into a right over a particular record. A person holding only such a model-wide permission is refused on a private record's editing pages, because a page that inherited its visibility rule from the model would not be guarded.
+Portal-wide rights apply to individual records only through these four roles. A permission granted straight to a person, or through a group a portal made up for itself, is not turned into a right over a particular record. A person holding only such a model-wide permission is refused on every record's editing pages and cannot change its contributors, and it shows them no private record. A page that inherited its rule from the model would not be guarded.
 
 A superuser holds every permission, and is a flag for whoever deploys the portal rather than a role. A superuser cannot be credited on a record.
 
