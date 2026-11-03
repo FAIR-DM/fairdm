@@ -128,6 +128,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             ),
             "urls": {
                 "datasets": safe_reverse("project:dataset-list", uuid=project.uuid),
+                "samples": safe_reverse("project:samples", uuid=project.uuid),
+                "measurements": safe_reverse("project:measurements", uuid=project.uuid),
                 "contributors": safe_reverse(
                     "project:contribution-list", uuid=project.uuid
                 ),

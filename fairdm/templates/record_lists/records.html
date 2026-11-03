@@ -1,0 +1,100 @@
+{% extends "table_view.html" %}
+{% load i18n humanize %}
+{% comment %}
+  The Samples and Measurements tabs of a dataset, a project, a person and an organization: one
+  registered type's table at a time. The type switcher is the portal-wide listing's dropdown, at
+  the same trailing edge of the toolbar, holding only the types listed here, each with its count.
+  Where one type is listed it is named and no choice is offered.
+{% endcomment %}
+{% block page.title %}
+  <h1 class="text-xl font-semibold leading-tight truncate">{{ page.title }}</h1>
+  {% if record_state == "listed" %}
+    {% if type_entries|length == 1 %}
+      <span class="text-sm text-base-content/70 whitespace-nowrap">{{ current_type.name }}</span>
+    {% endif %}
+    <c-mvp.page.list.summary class="whitespace-nowrap" />
+  {% endif %}
+{% endblock page.title %}
+
+{% block page.actions %}
+  {% if type_entries|length > 1 %}
+    <div id="type-switcher">
+      <c-mvp.dropdown text="{{ current_type.name }}" size="sm">
+        <c-menu class="w-full"
+                aria-label="{% if kind == 'sample' %}{% translate 'Sample types' %}{% else %}{% translate 'Measurement types' %}{% endif %}">
+          {% for entry in type_entries %}
+            <c-menu.item text="{{ entry.name }} ({{ entry.count|intcomma }})"
+                         href="{{ entry.url }}"
+                         :active="entry.is_current" />
+          {% endfor %}
+        </c-menu>
+      </c-mvp.dropdown>
+    </div>
+  {% endif %}
+{% endblock page.actions %}
+
+{% block page.panel %}
+  {% if record_state == "listed" %}{{ block.super }}{% endif %}
+{% endblock page.panel %}
+
+{% block page.content %}
+  {% if record_state == "listed" %}
+    <c-mvp.addons.django-table :table="table" class="flex-1 min-h-0" />
+  {% else %}
+    <div class="flex-1 flex items-center justify-center px-4">
+      {% if record_state == "unpublished" %}
+        {% if kind == "sample" %}
+          {% translate "These samples are not published yet" as heading %}
+          {% if holder == "dataset" %}
+            {% translate "The dataset's team is still working on it. Its samples will be listed here once the dataset is published." as message %}
+          {% else %}
+            {% translate "The project's datasets are still being prepared. Their samples will be listed here once they are published." as message %}
+          {% endif %}
+        {% else %}
+          {% translate "These measurements are not published yet" as heading %}
+          {% if holder == "dataset" %}
+            {% translate "The dataset's team is still working on it. Its measurements will be listed here once the dataset is published." as message %}
+          {% else %}
+            {% translate "The project's datasets are still being prepared. Their measurements will be listed here once they are published." as message %}
+          {% endif %}
+        {% endif %}
+        <c-mvp.page.list.empty icon="lock" heading="{{ heading }}" message="{{ message }}" />
+      {% else %}
+        {% if kind == "sample" %}
+          {% if holder == "dataset" %}
+            {% translate "This dataset has no samples" as heading %}
+            {% translate "Samples added to the dataset will be listed here, in one table for each sample type." as message %}
+          {% elif holder == "project" %}
+            {% translate "No samples in this project" as heading %}
+            {% translate "Samples in the project's datasets will be listed here, in one table for each sample type." as message %}
+          {% elif own_page %}
+            {% translate "You have no samples yet" as heading %}
+            {% translate "Samples you are credited on, and those in your datasets and projects, will be listed here." as message %}
+          {% else %}
+            {% translate "No published samples" as heading %}
+            {% translate "Published samples this contributor is credited on, or that are in their datasets and projects, will be listed here." as message %}
+          {% endif %}
+        {% else %}
+          {% if holder == "dataset" %}
+            {% translate "This dataset has no measurements" as heading %}
+            {% translate "Measurements added to the dataset will be listed here, in one table for each measurement type." as message %}
+          {% elif holder == "project" %}
+            {% translate "No measurements in this project" as heading %}
+            {% translate "Measurements in the project's datasets will be listed here, in one table for each measurement type." as message %}
+          {% elif own_page %}
+            {% translate "You have no measurements yet" as heading %}
+            {% translate "Measurements you are credited on, and those in your datasets and projects, will be listed here." as message %}
+          {% else %}
+            {% translate "No published measurements" as heading %}
+            {% translate "Published measurements this contributor is credited on, or that are in their datasets and projects, will be listed here." as message %}
+          {% endif %}
+        {% endif %}
+        <c-mvp.page.list.empty icon="{{ kind }}" heading="{{ heading }}" message="{{ message }}" />
+      {% endif %}
+    </div>
+  {% endif %}
+{% endblock page.content %}
+
+{% block page.footer %}
+  {% if record_state == "listed" %}{{ block.super }}{% endif %}
+{% endblock page.footer %}

@@ -125,6 +125,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             "api_url": safe_reverse("api:dataset-detail", uuid=dataset.uuid),
             "urls": {
                 "update": safe_reverse("dataset:edit", uuid=dataset.uuid),
+                "samples": safe_reverse("dataset:samples", uuid=dataset.uuid),
+                "measurements": safe_reverse("dataset:measurements", uuid=dataset.uuid),
                 "key_dates": safe_reverse("dataset:key-dates", uuid=dataset.uuid),
                 "descriptions": safe_reverse("dataset:descriptions", uuid=dataset.uuid),
                 "keywords": safe_reverse("dataset:keywords", uuid=dataset.uuid),
