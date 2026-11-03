@@ -274,16 +274,25 @@ of the record whose page it is on, one registered type at a time.
 | Page | Registered | Records the tab lists |
 |---|---|---|
 | Dataset | Yes | The samples or measurements of the dataset that the viewer may see |
+| Project | Yes | The samples or measurements of any of the project's datasets that the viewer may see |
 
 `RecordsTab.scope()` returns every record of the kind that belongs to the page's record, and
-`visible_records()` narrows it with `visible_to(request.user)`. A page that gains the tabs
-overrides `scope()` and keeps the rest. A measurement belongs to its own dataset, which can differ
-from its sample's dataset.
+`visible_records()` narrows it with `visible_to(request.user)`. `holder` names the kind of page,
+`"dataset"` or `"project"`, from the model the mount was registered for, and `scope()` follows it.
+A page that gains the tabs registers the plugins for its model and extends `scope()`. A
+measurement belongs to its own dataset, which can differ from its sample's dataset: a project's
+Measurements tab lists a measurement made on a sample of another project, and that sample is not on
+the project's Samples tab.
 
-A dataset's tabs use the check `dataset_records_visible`, beside `dataset_is_visible` in
-`fairdm.core.dataset.plugins`. It holds when the dataset's overview opens for the viewer and so do
-its records: the dataset is published and no private project hides it, or the viewer holds a level
-on the dataset or its project. For anyone else the tab is not offered and its address answers 404.
+The check is `records_are_offered`, which hands a dataset to `dataset_records_visible`, beside
+`dataset_is_visible` in `fairdm.core.dataset.plugins`, and a project to `project_is_visible`. A
+dataset's check holds when the dataset's overview opens for the viewer and so do its records: the
+dataset is published and no private project hides it, or the viewer holds a level on the dataset or
+its project. For anyone else the tab is not offered and its address answers 404.
+
+A project's tabs are offered to anyone who may open the project, and a private project answers 404
+to everyone else. What a project's datasets hold is decided row by row, so a viewer who may see none
+of them gets the same `"empty"` page as a project with no records.
 
 ### Types and the address
 
@@ -317,8 +326,8 @@ that `search_fields` builds. The tab then changes four things:
 - The first columns are the record's name and, on measurements, `SampleColumn`. It links a sample
   only where the viewer may open it and shows a dash otherwise, and it orders the samples the viewer
   may not open as one block after the named ones.
-- `DatasetColumn` names a record's dataset and links it where the viewer may open it. Pages that
-  list records of several datasets add it. A dataset's own tab does not.
+- `DatasetColumn` names a record's dataset and links it where the viewer may open it. A project's
+  tabs add it right after the name, as `dataset_name`. A dataset's own tab does not.
 - `StableOrderData` ends every ordering with the primary key, so a page never repeats a row.
 - Fifty rows are shown to a page.
 
@@ -337,8 +346,9 @@ A filter that holds a queryset of records is narrowed to the records the listed 
 for datasets and samples to those the viewer may see. The record filters of a registered type,
 which offer what the record search offers, are set to `scope`, or to the records of `owner` for the
 list of one person's records. `drop` takes filters out of the set, such as the dataset filter on a
-dataset's own page, where every row has the same dataset. The mixin's attributes are `dropped`,
-`record_scope` and `record_owner`.
+dataset's own page, where every row has the same dataset. A project's tab keeps the dataset filter,
+at scope `"view"`, for the registrations whose filter set has one. The mixin's attributes are
+`dropped`, `record_scope` and `record_owner`.
 
 ### The tab mark
 
@@ -347,12 +357,13 @@ It holds every view name the plugin mounts: its own, each `extra_views` entry an
 `get_urls` returns. The tab is marked as the current page on any of them, so the Samples tab stays
 marked on a type's address and the Contributors tab on its add and edit pages.
 
-### The dataset overview
+### The overviews
 
-The dataset's overview counts its records with `visible_to`, so its Samples and Measurements
-figures, which link to the tabs, always equal the tabs' totals. Where the viewer may not see the
-records, the figures, the composition and growth charts and the spatial coverage are left out of
-the page.
+The dataset's and the project's overviews count their records with `visible_to`, so their Samples
+and Measurements figures, which link to the tabs, always equal the tabs' totals. A project's
+Datasets figure counts the datasets the viewer may see, so a member of a private dataset counts it
+and a visitor does not. On a dataset whose records the viewer may not see, the figures, the
+composition and growth charts and the spatial coverage are left out of the page.
 
 ### Development data
 
