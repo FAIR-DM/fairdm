@@ -34,9 +34,11 @@
 
 - Filter choices use the portal-wide listings' published-only scoping. A team member or a person on
   their own page is offered choices that leave out their unpublished records.
-- A measurement's sample is linked only when the sample's dataset is published, as on the
-  portal-wide listing. On a team member's tab an unpublished sample they may open shows as
-  "Unpublished".
+- A measurement's sample is named and linked when the viewer may see samples in its dataset, and
+  shown as a dash otherwise. A sample opened only by a credit on the sample itself is missed.
+- The tab stays marked in the tab strip on a type's own address by rewriting the request's resolved
+  view name. The tab strip needs a real way to count a tab's sub-addresses as the tab.
+- The table view replaces the page metadata, so the breadcrumb trail is put back by hand.
 - The project overview's sample and measurement counts are not checked against what the tabs list.
 - The query count is not measured.
 - The tabs are loaded from `fairdm/contrib/contributors/plugins/__init__.py`, because that app is
@@ -50,6 +52,9 @@
   no dropdown is drawn.
 - On a project, a person and an organization, the dataset is a column of its own, by name, right
   after the record's name. The dataset icon column is dropped on every tab.
+- A row starts with the record's name, then the dataset where rows span several, then a
+  measurement's sample, then the type's own columns.
+- A dataset's own tab has no Dataset filter.
 - The two tabs come after the Projects and Datasets tabs, samples first.
 - An empty tab and an unpublished one each show the list's empty-state panel, with a lock for "not
   published yet" and the kind's icon for "no records". A person on their own page is addressed as

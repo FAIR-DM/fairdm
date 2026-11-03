@@ -8,13 +8,11 @@
 {% endcomment %}
 {% block page.title %}
   <h1 class="text-xl font-semibold leading-tight truncate">{{ page.title }}</h1>
-  {% if record_state == "listed" %}
-    {% if type_entries|length == 1 %}
-      <span class="text-sm text-base-content/70 whitespace-nowrap">{{ current_type.name }}</span>
-    {% endif %}
-    <c-mvp.page.list.summary class="whitespace-nowrap" />
-  {% endif %}
 {% endblock page.title %}
+
+{% block page.summary %}
+  {% if record_state == "listed" %}{{ block.super }}{% endif %}
+{% endblock page.summary %}
 
 {% block page.actions %}
   {% if type_entries|length > 1 %}
@@ -32,6 +30,10 @@
     </div>
   {% endif %}
 {% endblock page.actions %}
+
+{% block page.side %}
+  {% if record_state == "listed" %}{{ block.super }}{% endif %}
+{% endblock page.side %}
 
 {% block page.panel %}
   {% if record_state == "listed" %}{{ block.super }}{% endif %}

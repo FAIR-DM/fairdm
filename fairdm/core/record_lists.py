@@ -75,6 +75,21 @@ class DatasetColumn(tables.Column):
         return str(value)
 
 
+class SampleColumn(tables.Column):
+    """A measurement's sample, named and linked only where the viewer may open it."""
+
+    def __init__(self, openable, **kwargs):
+        self.openable = openable
+        kwargs.setdefault("verbose_name", _("Sample"))
+        kwargs.setdefault("order_by", ("sample__name",))
+        super().__init__(accessor="sample", **kwargs)
+
+    def render(self, value):
+        if value.dataset_id in self.openable:
+            return format_html('<a href="{}">{}</a>', value.get_absolute_url(), value)
+        return "—"
+
+
 class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
     """The samples or the measurements associated with one record, one registered type at a time.
 
@@ -146,6 +161,12 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
     def setup(self, request, *args, **kwargs):
         """Choose the type to show before the table view reads its configuration."""
         self.request, self.args, self.kwargs = request, args, kwargs
+        match = getattr(request, "resolver_match", None)
+        if match is not None and kwargs.get("type"):
+            # Sketch only: the tab strip marks a tab by its view name, so a type's own address
+            # answers to the tab's.
+            match.url_name = self.get_name()
+            match.view_name = ":".join([*match.namespaces, match.url_name])
         self.type_entries = []
         self.record_state = "listed"
         self.model = None
@@ -221,9 +242,37 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
             )
             # A name of its own: the base table's ``render_dataset`` draws the icon column.
             kwargs["extra_columns"] = [("dataset_name", DatasetColumn(openable))]
-            kwargs["sequence"] = ("name", "dataset_name", "...")
+            lead = ["name", "dataset_name"]
+        else:
+            lead = ["name"]
+        if self.model in registry.measurements:
+            # Sketch: decided per dataset, which misses a sample opened by a credit on itself.
+            seen = set(
+                Sample.objects.visible_to(self.request.user)
+                .values_list("dataset_id", flat=True)
+                .distinct()
+            )
+            kwargs.setdefault("extra_columns", []).append(
+                ("sample_name", SampleColumn(seen))
+            )
+            kwargs["exclude"] = [*kwargs["exclude"], "sample"]
+            lead.append("sample_name")
+        # The registration's own order puts a measurement's name last, so the lead is pinned.
+        kwargs["sequence"] = (*lead, "...")
         kwargs["exclude"] = [*kwargs["exclude"], "dataset"]
         return kwargs
+
+    def get_filterset_class(self):
+        """Drop the dataset filter on a dataset's own tab, where every row is that dataset."""
+        filterset = super().get_filterset_class()
+        if filterset is None or self.spans_datasets or "dataset" not in filterset.base_filters:
+            return filterset
+        narrowed = type(filterset.__name__, (filterset,), {})
+        # Set after the class exists: the filter set's metaclass rebuilds ``base_filters``.
+        narrowed.base_filters = {
+            name: f for name, f in filterset.base_filters.items() if name != "dataset"
+        }
+        return narrowed
 
     def get_empty_state_heading(self):
         """Say that nothing matches, since an empty table here always follows a search or filter."""
@@ -250,7 +299,12 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
         context["own_page"] = (
             isinstance(obj, Contributor) and self.request.user.pk == obj.pk
         )
-        context["page"] = {"title": self.kind_label}
+        # The table view replaces ``page`` with its own title, which drops the record's trail.
+        context["page"] = {
+            **(context.get("page") or {}),
+            "title": self.kind_label,
+            "breadcrumbs": self.get_breadcrumbs(),
+        }
         return context
 
 

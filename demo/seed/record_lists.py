@@ -45,6 +45,15 @@ WAITING = "Record list examples, nothing published yet"
 ORGANIZATION = "Record List Laboratory"
 
 
+def near(lon, lat):
+    """Return a point a short way from ``lon``, ``lat``, so each sample has a place of its own."""
+    return Point(
+        round(lon + random.uniform(-0.02, 0.02), 5),
+        round(lat + random.uniform(-0.02, 0.02), 5),
+        srid=4326,
+    )
+
+
 class RecordListSeed(BaseCommand):
     help = "Seed every state of the Samples and Measurements tabs (development only)."
 
@@ -69,11 +78,19 @@ class RecordListSeed(BaseCommand):
         partner = self.dataset(main, "Partner laboratory ICP-MS runs", published=True)
 
         rocks = [
-            RockSampleFactory(dataset=published, name=f"BH-1 core, {100 + 12 * i} m")
+            RockSampleFactory(
+                dataset=published,
+                name=f"BH-1 core, {100 + 12 * i} m",
+                location=near(7.86, 48.93),
+            )
             for i in range(60)
         ]
         for i in range(8):
-            WaterSampleFactory(dataset=published, name=f"BH-1 pore water {i + 1}")
+            WaterSampleFactory(
+                dataset=published,
+                name=f"BH-1 pore water {i + 1}",
+                location=near(7.86, 48.93),
+            )
         for rock in rocks[:40]:
             XRFMeasurementFactory(dataset=published, sample=rock, name=f"XRF {rock.name}")
         for rock in rocks[:12]:
@@ -81,21 +98,27 @@ class RecordListSeed(BaseCommand):
                 dataset=published, sample=rock, name=f"ICP-MS {rock.name}"
             )
         waiting = [
-            RockSampleFactory(dataset=unpublished, name=f"BH-2 core, {200 + 10 * i} m")
+            RockSampleFactory(
+                dataset=unpublished,
+                name=f"BH-2 core, {200 + 10 * i} m",
+                location=near(7.91, 48.95),
+            )
             for i in range(5)
         ]
         for rock in waiting:
             XRFMeasurementFactory(dataset=unpublished, sample=rock, name=f"XRF {rock.name}")
         soils = [
-            SoilSampleFactory(dataset=private, name=f"Pilot soil {i + 1}") for i in range(4)
+            SoilSampleFactory(
+                dataset=private, name=f"Pilot soil {i + 1}", location=near(8.1, 49.0)
+            ) for i in range(4)
         ]
         for rock in rocks[:6]:
             ICP_MS_MeasurementFactory(
                 dataset=partner, sample=rock, name=f"Partner ICP-MS {rock.name}"
             )
-        for soil in soils[:2]:
+        for i, soil in enumerate(soils[:2]):
             ICP_MS_MeasurementFactory(
-                dataset=partner, sample=soil, name=f"Partner ICP-MS {soil.name}"
+                dataset=partner, sample=soil, name=f"Partner ICP-MS run {i + 1}"
             )
 
         hidden_project = self.project(HIDDEN, Visibility.PRIVATE, users)
