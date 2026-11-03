@@ -1,7 +1,7 @@
 """Tests for fairdm.contrib.plugins.base.Plugin."""
 
 import pytest
-from django.contrib.auth.models import AnonymousUser, Permission
+from django.contrib.auth.models import AnonymousUser, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.http import Http404
@@ -237,7 +237,7 @@ class TestPluginHasPermission:
 
         assert plugin.has_permission() is True
 
-    def test_has_permission_with_model_level_permission(self, sample):
+    def test_has_permission_with_a_shipped_role(self, sample):
 
         @plugins.register(Sample)
         class PermissionPlugin(Plugin, TemplateView):
@@ -247,11 +247,7 @@ class TestPluginHasPermission:
         request = RequestFactory().get("/")
 
         user_with_perm = UserFactory()
-        content_type = ContentType.objects.get_for_model(Sample)
-        perm = Permission.objects.get(
-            codename="change_sample", content_type=content_type
-        )
-        user_with_perm.user_permissions.add(perm)
+        user_with_perm.groups.add(Group.objects.get(name="Data Curator"))
         request.user = user_with_perm
 
         plugin = PermissionPlugin()

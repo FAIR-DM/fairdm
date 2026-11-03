@@ -257,8 +257,8 @@ the fragment is present for a viewer who holds the level and absent for one who 
    level or the edit level on it, **Then** the answer is yes, and for the manage level it is no
 2. **Given** a viewer who holds a level on a record above, **When** a template asks for that level
    on the record below, **Then** the answer is yes
-3. **Given** a viewer who holds the matching permission for the whole portal, **When** a template
-   asks for the level on any record, **Then** the answer is yes
+3. **Given** a viewer who holds the matching permission through a shipped portal role, **When** a
+   template asks for the level on any record, **Then** the answer is yes
 4. **Given** a visitor who is not signed in, **When** a template asks for any level on a record,
    public or private, **Then** the answer is no
 5. **Given** something that is not a project, dataset, sample or measurement, or no record at all,

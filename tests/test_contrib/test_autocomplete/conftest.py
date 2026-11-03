@@ -1,7 +1,7 @@
 """Fixtures for the autocomplete views, fields and request limits."""
 
 import pytest
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import Group
 
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.sample.models import SampleIdentifier
@@ -89,7 +89,7 @@ def grant_view_everywhere(db):
     """Return a function giving a person the portal-wide right to view every dataset."""
 
     def grant(person):
-        person.user_permissions.add(Permission.objects.get(codename="view_dataset"))
+        person.groups.add(Group.objects.get(name="Data Curator"))
 
     return grant
 

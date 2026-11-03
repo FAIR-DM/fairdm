@@ -110,7 +110,7 @@ class TestUpdatePageDoesNotDiscloseAPrivateDataset:
 
         assert response.status_code == 404
 
-    def test_a_model_level_holder_with_view_rights_is_admitted(self, client):
+    def test_a_model_level_grant_adds_nothing_to_a_view_level(self, client):
         from django.contrib.auth.models import Permission
 
         dataset = DatasetFactory()
@@ -128,7 +128,7 @@ class TestUpdatePageDoesNotDiscloseAPrivateDataset:
         url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
 
-        assert response.status_code == 200
+        assert response.status_code == 403
 
 
 class TestUpdatePageFieldSet:
@@ -340,7 +340,7 @@ class TestDescriptionsPageDoesNotDiscloseAPrivateDataset:
 
         assert response.status_code == 404
 
-    def test_a_model_level_holder_with_view_rights_is_admitted(self, client):
+    def test_a_model_level_grant_adds_nothing_to_a_view_level(self, client):
         from django.contrib.auth.models import Permission
 
         dataset = DatasetFactory()
@@ -358,7 +358,7 @@ class TestDescriptionsPageDoesNotDiscloseAPrivateDataset:
         url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
         response = client.get(url)
 
-        assert response.status_code == 200
+        assert response.status_code == 403
 
     def test_an_anonymous_visitor_to_a_private_dataset_gets_not_found(self, client):
         dataset = DatasetFactory()
