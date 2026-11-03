@@ -170,6 +170,13 @@ class SampleColumn(tables.Column):
 
         The rows with an unopenable sample sort as one block after the named ones in
         either direction, so the order reveals nothing about where a hidden name would fall.
+
+        Args:
+            queryset: The rows to order.
+            is_descending: Whether the reader asked for the descending order.
+
+        Returns:
+            The ordered rows, and ``True`` to say the column ordered them itself.
         """
         name = "-sample__name" if is_descending else "sample__name"
         return queryset.order_by("-sample_open", name), True
