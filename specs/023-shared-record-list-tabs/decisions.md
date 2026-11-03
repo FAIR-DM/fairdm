@@ -118,3 +118,28 @@ The type tables already exist on the portal-wide listings. Two pieces of layout 
 moving between types inside a tab, and the dataset column on rows drawn from several datasets. Both
 are judgements about how a page reads, so the tabs are sketched on the four pages and shown before
 the build is planned.
+
+## D1. The sketch's code is rebuilt, its screens kept
+
+The approved sketch fixed the templates, the markup and the copy. Everything behind them is rebuilt
+test-first, and every item the sketch listed as faked is a task in `tasks.md`.
+
+**ADR:** none — local to this feature, nothing downstream inherits it.
+
+## D2. Overview counts and the tabs agree where every counted record is visible
+
+Specification 018 counts a public, unpublished dataset's samples and measurements for a visitor and
+lists none of them. FR-025 asks the tab to list as many records as the overview counts for the same
+viewer. Both hold where the viewer may see every counted record, and a test pins that. Where some
+counted records are not published, the overview keeps 018's counts and the tab lists what the
+viewer may see, with the not-published state where that is nothing.
+
+**ADR:** none — local to this feature, nothing downstream inherits it.
+
+## D3. A plugin's tab is marked on every address it mounts
+
+The tab strip marked a tab only on its plugin's own view name, so a type's address and a plugin's
+extra pages left no tab marked. The tab item now holds every view name its plugin mounts. This also
+marks the Contributors tab on its add and edit pages, which it did not do before.
+
+**ADR:** none — a fix to existing behaviour, recorded in the plugin reference documentation.
