@@ -1,4 +1,4 @@
-"""The Samples and Measurements tabs of a dataset and of a project."""
+"""The Samples and Measurements tabs of a dataset, a project and a contributor."""
 
 import django_tables2 as tables
 import pytest
@@ -23,10 +23,14 @@ from demo.models import (
 from fairdm.contrib.collections.plugins import Measurements
 from fairdm.contrib.collections.tables import SampleTable
 from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.contrib.contributors.models import Organization
 from fairdm.core.sample.models import Sample
 from fairdm.factories import (
+    AffiliationFactory,
     ContributionFactory,
     DatasetFactory,
+    OrganizationFactory,
+    PersonFactory,
     ProjectFactory,
     UserFactory,
 )
@@ -1022,4 +1026,274 @@ class TestProjectRecordQueries:
 
         assert self.count(client, small.get_absolute_url()) == self.count(
             client, large.get_absolute_url()
+        )
+
+
+def contributor_address(contributor, kind, type_model=None):
+    """Return the address of a contributor's tab, or of one type beneath it."""
+    kwargs = {"uuid": contributor.uuid}
+    if type_model is None:
+        return reverse(f"contributor:{kind}", kwargs=kwargs)
+    slug = registry.get_for_model(type_model).get_slug()
+    return reverse(f"contributor:{kind}-type", kwargs={**kwargs, "type": slug})
+
+
+def credit(contributor, record):
+    """Credit a contributor on a record, a person at the view level as the Contributors tab does."""
+    level = None if isinstance(contributor, Organization) else ContributionLevel.VIEW
+    ContributionFactory(content_object=record, contributor=contributor, level=level)
+
+
+def released_dataset(project=None):
+    """Return a published public dataset, in the project when one is given."""
+    return DatasetFactory(project=project, visibility=Visibility.PUBLIC, published=True)
+
+
+@pytest.fixture
+def credited():
+    """A person credited on a project, on a dataset in another project and on one sample.
+
+    The project holds a released dataset of two rocks and an XRF run on the first, and an
+    unpublished dataset of one rock. The other project holds the credited dataset of three
+    rocks and a sibling of two. A third dataset holds the credited sample, its sibling and an
+    XRF run on the credited sample made by someone else. The credited dataset also holds an
+    XRF run on a rock of a private dataset. One rock of the first project is credited directly
+    too.
+    """
+    person = PersonFactory()
+    project = ProjectFactory(visibility=Visibility.PUBLIC)
+    first = released_dataset(project)
+    unpublished = DatasetFactory(
+        project=project, visibility=Visibility.PUBLIC, published=False
+    )
+    first_rocks = RockSampleFactory.create_batch(2, dataset=first)
+    first_run = XRFMeasurementFactory(dataset=first, sample=first_rocks[0])
+    RockSampleFactory(dataset=unpublished)
+    credit(person, project)
+    credit(person, first_rocks[0])
+
+    other = ProjectFactory(visibility=Visibility.PUBLIC)
+    own = released_dataset(other)
+    sibling = released_dataset(other)
+    own_rocks = RockSampleFactory.create_batch(3, dataset=own)
+    sibling_rocks = RockSampleFactory.create_batch(2, dataset=sibling)
+    credit(person, own)
+    private = DatasetFactory(visibility=Visibility.PRIVATE, published=True)
+    behind = RockSampleFactory(dataset=private)
+    behind_run = XRFMeasurementFactory(dataset=own, sample=behind)
+
+    holder = released_dataset()
+    picked, left = RockSampleFactory.create_batch(2, dataset=holder)
+    credit(person, picked)
+    others_run = XRFMeasurementFactory(dataset=holder, sample=picked)
+    person.samples_listed = [*first_rocks, *own_rocks, picked]
+    person.samples_unlisted = [*sibling_rocks, left]
+    person.runs_listed = [first_run, behind_run]
+    person.runs_unlisted = [others_run]
+    person.held = {"first": first, "own": own}
+    return person
+
+
+class TestContributorRecords:
+    def test_a_person_lists_the_records_credited_directly_or_beneath_a_credit_once_each(
+        self, client, credited
+    ):
+        response = client.get(contributor_address(credited, "samples"))
+
+        assert response.status_code == 200
+        pks = [r.pk for r in listed(response)]
+        assert sorted(pks) == sorted(r.pk for r in credited.samples_listed)
+        assert not set(pks) & {r.pk for r in credited.samples_unlisted}
+
+    def test_credit_on_a_sample_brings_in_no_one_elses_measurements_of_it(
+        self, client, credited
+    ):
+        response = client.get(contributor_address(credited, "measurements"))
+
+        pks = {r.pk for r in listed(response)}
+        assert pks == {r.pk for r in credited.runs_listed}
+        assert not pks & {r.pk for r in credited.runs_unlisted}
+
+    def test_a_measurement_released_with_an_unreleased_sample_is_listed_with_a_dash(
+        self, client, credited
+    ):
+        response = client.get(contributor_address(credited, "measurements"))
+
+        run = credited.runs_listed[1]
+        assert run.pk in {r.pk for r in listed(response)}
+        assert cell(response, run, "sample_name") == "—"
+
+    def test_each_rows_dataset_is_linked_where_it_opens(self, client, credited):
+        response = client.get(contributor_address(credited, "samples"))
+
+        row = next(
+            r for r in listed(response) if r.dataset_id == credited.held["own"].pk
+        )
+        assert f'href="{credited.held["own"].get_absolute_url()}"' in cell(
+            response, row, "dataset_name"
+        )
+
+    def test_an_organization_lists_the_records_of_a_project_it_owns_and_not_its_members(
+        self, client
+    ):
+        organization = OrganizationFactory()
+        owned = ProjectFactory(visibility=Visibility.PUBLIC, owner=organization)
+        inside = released_dataset(owned)
+        mine = RockSampleFactory.create_batch(2, dataset=inside)
+        member = PersonFactory()
+        AffiliationFactory(person=member, organization=organization)
+        elsewhere = released_dataset()
+        RockSampleFactory.create_batch(2, dataset=elsewhere)
+        credit(member, elsewhere)
+
+        response = client.get(contributor_address(organization, "samples"))
+
+        assert response.status_code == 200
+        assert {r.pk for r in listed(response)} == {r.pk for r in mine}
+
+
+class TestContributorViewer:
+    @pytest.fixture
+    def hidden(self):
+        """A person credited on a private, an unpublished public and a private-project dataset."""
+        person = PersonFactory()
+        private = DatasetFactory(visibility=Visibility.PRIVATE, published=True)
+        unpublished = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        walled = DatasetFactory(
+            project=ProjectFactory(visibility=Visibility.PRIVATE),
+            visibility=Visibility.PUBLIC,
+            published=True,
+        )
+        person.hidden = {}
+        for name, dataset in (
+            ("private", private),
+            ("unpublished", unpublished),
+            ("walled", walled),
+        ):
+            credit(person, dataset)
+            sample = RockSampleFactory(dataset=dataset)
+            XRFMeasurementFactory(dataset=dataset, sample=sample)
+            person.hidden[name] = dataset
+        return person
+
+    @staticmethod
+    def offered_datasets(response, user):
+        """Return the datasets the page's dataset filter offers the request's user."""
+        field = response.context["filter"].filters["dataset"].field
+        view = field.view_class.for_scope(field.scope)()
+        return set(view.offered(user, owner=field.owner_pk))
+
+    @pytest.mark.parametrize("kind", ["samples", "measurements"])
+    def test_anyone_else_sees_none_of_them_in_rows_totals_types_or_choices(
+        self, client, hidden, kind
+    ):
+        client.force_login(team_member(hidden.hidden["private"]))
+
+        response = client.get(contributor_address(hidden, kind))
+
+        assert response.context["record_state"] == "empty"
+        assert listed(response) == []
+        assert response.context["type_entries"] == []
+        page = response.content.decode()
+        assert not any(d.name in page for d in hidden.hidden.values())
+
+    def test_the_filter_choices_of_someone_elses_page_hold_none_of_them(
+        self, client, hidden
+    ):
+        released = released_dataset()
+        XRFMeasurementFactory(
+            dataset=released, sample=RockSampleFactory(dataset=released)
+        )
+        credit(hidden, released)
+
+        response = client.get(contributor_address(hidden, "measurements"))
+
+        filters = response.context["filter"].filters
+        assert filters["dataset"].field.scope == "public"
+        assert filters["dataset"].field.owner_pk is None
+        user = response.wsgi_request.user
+        datasets = self.offered_datasets(response, user)
+        assert released in datasets
+        assert not datasets & {hidden.hidden["private"], hidden.hidden["walled"]}
+        field = filters["sample"].field
+        samples = set(field.view_class.for_scope(field.scope)().offered(user))
+        assert not samples & set(
+            Sample.objects.filter(dataset__in=hidden.hidden.values())
+        )
+
+    @pytest.mark.parametrize("kind", ["samples", "measurements"])
+    def test_the_person_sees_them_and_their_choices_include_them(
+        self, client, hidden, kind
+    ):
+        client.force_login(hidden)
+
+        response = client.get(contributor_address(hidden, kind))
+
+        assert response.context["record_state"] == "listed"
+        assert {r.dataset_id for r in listed(response)} == {
+            d.pk for d in hidden.hidden.values()
+        }
+        assert sum(e["count"] for e in response.context["type_entries"]) == 3
+
+    def test_the_persons_own_filters_offer_their_records(self, client, hidden):
+        client.force_login(hidden)
+
+        response = client.get(contributor_address(hidden, "measurements"))
+
+        field = response.context["filter"].filters["dataset"].field
+        assert field.owner_pk == hidden.pk
+        assert set(hidden.hidden.values()) <= self.offered_datasets(response, hidden)
+
+    def test_an_organization_shows_none_of_them_even_to_a_member_of_the_dataset(
+        self, client
+    ):
+        organization = OrganizationFactory()
+        private = DatasetFactory(visibility=Visibility.PRIVATE, published=True)
+        RockSampleFactory(dataset=private)
+        credit(organization, private)
+        client.force_login(team_member(private, ContributionLevel.MANAGE))
+
+        response = client.get(contributor_address(organization, "samples"))
+
+        assert response.status_code == 200
+        assert response.context["record_state"] == "empty"
+        assert listed(response) == []
+
+    @pytest.mark.parametrize("kind", ["samples", "measurements"])
+    def test_a_contributor_with_nothing_the_viewer_may_see_is_empty(self, client, kind):
+        person = PersonFactory()
+
+        response = client.get(contributor_address(person, kind))
+
+        assert (
+            response.status_code,
+            response.context["record_state"],
+            response.context["type_entries"],
+        ) == (200, "empty", [])
+
+
+class TestContributorRecordQueries:
+    @staticmethod
+    def count(client, url):
+        client.get(url)  # warm the per-process caches
+        with CaptureQueriesContext(connection) as queries:
+            assert client.get(url).status_code == 200
+        return len(queries)
+
+    @staticmethod
+    def person_of(rows):
+        person = PersonFactory()
+        dataset = released_dataset()
+        credit(person, dataset)
+        for _ in range(rows):
+            sample = RockSampleFactory(dataset=dataset)
+            XRFMeasurementFactory(dataset=dataset, sample=sample)
+        return person
+
+    @pytest.mark.parametrize("kind", ["samples", "measurements"])
+    def test_a_tab_costs_the_same_queries_at_ten_rows_and_at_sixty(self, client, kind):
+        small, large = self.person_of(10), self.person_of(60)
+
+        assert self.count(client, contributor_address(small, kind)) == self.count(
+            client, contributor_address(large, kind)
         )

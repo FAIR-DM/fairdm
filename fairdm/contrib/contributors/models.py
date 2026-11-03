@@ -418,6 +418,31 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         """
         return self.datasets.get_visible()
 
+    def get_associated_records(self, base_model):
+        """List the samples or measurements that belong on this contributor's page.
+
+        The records credited to the contributor directly, those in a dataset credited to
+        them, and those in a dataset of a project credited to them. Nothing is filtered by who
+        is looking, and private datasets are included: the caller narrows the list to what its
+        viewer may see. A record that is associated in several ways is listed once. A subclass
+        that has more records to show overrides it.
+
+        Args:
+            base_model: ``Sample`` or ``Measurement``.
+
+        Returns:
+            The records, as a queryset.
+        """
+        Dataset = apps.get_model("dataset.Dataset")
+        Project = apps.get_model("project.Project")
+        datasets = Dataset.all_objects.filter(contributors__contributor=self)
+        projects = Project.objects.filter(contributors__contributor=self)
+        return base_model.objects.filter(
+            Q(pk__in=self.credited_object_ids(base_model))
+            | Q(dataset__in=datasets.values("pk"))
+            | Q(dataset__project__in=projects.values("pk"))
+        )
+
     @property
     def samples(self):
         """The samples this contributor is credited on, whatever their concrete type."""
@@ -1552,6 +1577,21 @@ class Organization(Contributor):
         return Dataset.objects.filter(
             Q(pk__in=self.datasets.values("pk")) | Q(project__owner=self)
         ).get_visible()
+
+    def get_associated_records(self, base_model):
+        """List the records that belong on the organisation's page, those in its projects too.
+
+        Adds the records of every dataset in a project the organisation owns to what any
+        contributor lists. Its members' records are not included.
+
+        Args:
+            base_model: ``Sample`` or ``Measurement``.
+
+        Returns:
+            The records, as a queryset.
+        """
+        owned = base_model.objects.filter(dataset__project__owner=self)
+        return super().get_associated_records(base_model) | owned
 
     def get_current_memberships(self):
         """List the organisation's verified current members, the people who run it first.

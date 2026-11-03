@@ -1,4 +1,4 @@
-"""The Samples and Measurements tabs of a dataset and of a project.
+"""The Samples and Measurements tabs of a dataset, a project and a contributor.
 
 Each tab lists the samples or the measurements of one registered type at a time, the most
 numerous type unless the address names another.
@@ -21,6 +21,7 @@ from django_tables2.data import TableQuerysetData
 from fairdm import plugins
 from fairdm.contrib.collections.tables import MeasurementTable, SampleTable
 from fairdm.contrib.collections.views import DataTableView
+from fairdm.contrib.contributors.models import Contributor
 from fairdm.contrib.plugins import Plugin, reverse
 from fairdm.contrib.plugins.mixins import PrivateRecordNotFoundMixin
 from fairdm.core.dataset.models import Dataset
@@ -236,29 +237,34 @@ class SampleColumn(tables.Column):
 
 
 def records_are_offered(request: HttpRequest, obj: Model | None) -> bool:
-    """Return whether the request's user is offered the tabs of a dataset or a project.
+    """Return whether the request's user is offered the tabs of a dataset, project or contributor.
 
     A dataset's tabs follow its records (:func:`dataset_records_visible`). A project's follow
     the project's own page: what its datasets hold is decided row by row, so a project whose
-    records the viewer may not see answers ``empty`` rather than 404.
+    records the viewer may not see answers ``empty`` rather than 404. A contributor's follow
+    the contributor's overview, which opens for everyone.
 
     Args:
         request: The current request.
-        obj: The dataset or project, or ``None`` when no record has been resolved.
+        obj: The dataset, project or contributor, or ``None`` when no record has been resolved.
 
     Returns:
         True when the tabs may be shown.
     """
+    if isinstance(obj, Contributor):
+        return True
     if isinstance(obj, Project):
         return project_is_visible(request, obj)
     return dataset_records_visible(request, obj)
 
 
 class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
-    """The samples or the measurements of a dataset or a project, one registered type at a time.
+    """The samples or the measurements of a dataset, project or contributor, one type at a time.
 
     A dataset's tab lists the records in the dataset. A project's lists the records in any of
-    its datasets, each row naming its dataset.
+    its datasets, each row naming its dataset. A contributor's lists the records credited to
+    them or beneath something credited to them (``Contributor.get_associated_records``), each
+    row naming its dataset.
 
     Attributes:
         base_model: ``Sample`` or ``Measurement``.
@@ -307,17 +313,39 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
 
     @property
     def holder(self) -> str:
-        """The kind of record the page belongs to: ``"dataset"`` or ``"project"``."""
+        """The kind of record the page belongs to: ``"dataset"``, ``"project"`` or ``"contributor"``."""
         return self.registered_model._meta.model_name  # type: ignore[union-attr,return-value]
 
     def scope(self) -> QuerySet:
-        """Return every record of this kind in the page's dataset or project, whoever looks."""
+        """Return every record of this kind the page's record is associated with, whoever looks."""
+        if self.holder == "contributor":
+            return self.base_object.get_associated_records(self.base_model)  # type: ignore[union-attr]
         lookup = "dataset__project" if self.holder == "project" else "dataset"
         return self.base_model.objects.filter(**{lookup: self.base_object})  # type: ignore[attr-defined]
 
+    def is_own_page(self) -> bool:
+        """Return whether the page is a person's own and that person is the one looking."""
+        user = self.request.user
+        return (
+            self.holder == "contributor"
+            and user.is_authenticated
+            and user.pk == self.base_object.pk  # type: ignore[union-attr]
+            and not self.base_object.is_organization  # type: ignore[union-attr]
+        )
+
+    def viewer(self):
+        """Return the user whose view of the records decides the list, or ``None`` for released only.
+
+        A contributor's page lists only what is released to everyone, unless a person looks at
+        their own, which also lists what they hold a level on.
+        """
+        if self.holder == "contributor" and not self.is_own_page():
+            return None
+        return self.request.user
+
     def visible_records(self) -> QuerySet:
         """Return the page's records that the viewer may see."""
-        return self.scope().visible_to(self.request.user)
+        return self.scope().visible_to(self.viewer())
 
     # The request ---------------------------------------------------------------------------
 
@@ -418,7 +446,7 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
         extra = []
         # The registration's own order puts a measurement's name last, so the lead is pinned.
         kwargs["exclude"] = [*kwargs["exclude"], "dataset"]
-        if self.holder == "project":
+        if self.holder != "dataset":
             extra.append(("dataset_name", DatasetColumn()))
             lead.append("dataset_name")
         if self.base_model is Measurement:
@@ -442,13 +470,22 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
         """Return the chosen type's filter set, scoped to this tab's rows, or none.
 
         Its choices are the records the listed rows point to that the viewer may see, and
-        it has no dataset filter on a dataset's page, since every row is in that dataset.
+        it has no dataset filter on a dataset's page, since every row is in that dataset. The
+        record filters offer a person's own records on that person's page, and public records
+        on any other contributor's.
         """
         if self.chosen is None:
             return None
+        options: dict[str, Any] = {}
+        if self.holder == "contributor":
+            if self.is_own_page():
+                options["owner"] = self.base_object
+            else:
+                options["scope"] = "public"
         return ScopedChoicesMixin.applied_to(
             self.chosen.config.get_filterset_class(),
             drop=("dataset",) if self.holder == "dataset" else (),
+            **options,
         )
 
     def get_listing_entries(self, models):
@@ -478,9 +515,11 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
         return self.kind_label
 
 
-@plugins.register(Dataset, Project, label=_("Samples"), icon="sample", order=300)
+@plugins.register(
+    Dataset, Project, Contributor, label=_("Samples"), icon="sample", order=300
+)
 class Samples(RecordsTab):
-    """List the samples of a dataset or a project, in the table of each sample type."""
+    """List the samples of a dataset, project or contributor, in the table of each sample type."""
 
     url_path = "samples"
     base_model = Sample
@@ -489,10 +528,15 @@ class Samples(RecordsTab):
 
 
 @plugins.register(
-    Dataset, Project, label=_("Measurements"), icon="measurement", order=400
+    Dataset,
+    Project,
+    Contributor,
+    label=_("Measurements"),
+    icon="measurement",
+    order=400,
 )
 class Measurements(RecordsTab):
-    """List the measurements of a dataset or a project, in the table of each measurement type."""
+    """List the measurements of a dataset, project or contributor, in the table of each type."""
 
     url_path = "measurements"
     base_model = Measurement
