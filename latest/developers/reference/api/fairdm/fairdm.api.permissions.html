@@ -1134,6 +1134,18 @@ sample or measurement the answer is the user’s contribution level
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="fairdm.api.permissions.FairDMObjectPermissions.get_required_object_permissions">
+<span class="sig-name descname"><span class="pre">get_required_object_permissions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_cls</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/fairdm/api/permissions.html#FairDMObjectPermissions.get_required_object_permissions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fairdm.api.permissions.FairDMObjectPermissions.get_required_object_permissions" title="Link to this definition">#</a></dt>
+<dd><p>Ask for the concrete model’s permissions when the model is a proxy.</p>
+<p><code class="docutils literal notranslate"><span class="pre">RecordLevelBackend</span></code> knows no level for a proxy’s own codename.</p>
+<p>Args:
+method: The HTTP method of the request.
+model_cls: The model the view serves, or the class of the object.</p>
+<p>Returns:
+The permissions a user needs on the object.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="fairdm.api.permissions.FairDMObjectPermissions.has_permission">
 <span class="sig-name descname"><span class="pre">has_permission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">rest_framework.request.Request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">view</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">rest_framework.views.APIView</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../../../../_modules/fairdm/api/permissions.html#FairDMObjectPermissions.has_permission"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fairdm.api.permissions.FairDMObjectPermissions.has_permission" title="Link to this definition">#</a></dt>
 <dd><p>Allow reads to anyone and writes to any signed-in user.</p>
@@ -1204,6 +1216,7 @@ sample or measurement the answer is the user’s contribution level
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.api.permissions.FairDMObjectPermissions"><code class="docutils literal notranslate"><span class="pre">FairDMObjectPermissions</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.api.permissions.FairDMObjectPermissions.perms_map"><code class="docutils literal notranslate"><span class="pre">FairDMObjectPermissions.perms_map</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.api.permissions.FairDMObjectPermissions.authenticated_users_only"><code class="docutils literal notranslate"><span class="pre">FairDMObjectPermissions.authenticated_users_only</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.api.permissions.FairDMObjectPermissions.get_required_object_permissions"><code class="docutils literal notranslate"><span class="pre">FairDMObjectPermissions.get_required_object_permissions()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.api.permissions.FairDMObjectPermissions.has_permission"><code class="docutils literal notranslate"><span class="pre">FairDMObjectPermissions.has_permission()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.api.permissions.FairDMObjectPermissions.has_object_permission"><code class="docutils literal notranslate"><span class="pre">FairDMObjectPermissions.has_object_permission()</span></code></a></li>
 </ul>

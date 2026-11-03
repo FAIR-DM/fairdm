@@ -1128,7 +1128,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </tbody>
 </table>
 </div>
-<p>A registered type’s own default permissions, such as <code class="docutils literal notranslate"><span class="pre">plants.view_plantsample</span></code>, are read as the core model’s. A permission that your own record type adds in <code class="docutils literal notranslate"><span class="pre">Meta.permissions</span></code> must be added to <code class="docutils literal notranslate"><span class="pre">REQUIRED_LEVEL</span></code> with the level that carries it, or it is refused.</p>
+<p>A registered type’s own default permissions, such as <code class="docutils literal notranslate"><span class="pre">plants.view_plantsample</span></code>, are read as the core model’s. <code class="docutils literal notranslate"><span class="pre">FairDMObjectPermissions</span></code> asks for the concrete model’s permission when an API viewset serves a proxy of a record type, so a proxy’s reader is answered by the same levels. A permission that your own record type adds in <code class="docutils literal notranslate"><span class="pre">Meta.permissions</span></code> must be added to <code class="docutils literal notranslate"><span class="pre">REQUIRED_LEVEL</span></code> with the level that carries it, or it is refused.</p>
 </section>
 <section id="recordaccess">
 <h2>RecordAccess<a class="headerlink" href="#recordaccess" title="Link to this heading">#</a></h2>

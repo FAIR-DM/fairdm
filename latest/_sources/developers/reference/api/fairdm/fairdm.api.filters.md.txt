@@ -274,7 +274,7 @@ Bases: {py:obj}`django_filters.FilterSet`
 ````{py:attribute} organization
 :canonical: fairdm.api.filters.PersonFilterSet.organization
 :value: >
-   'ModelChoiceFilter(...)'
+   '(...)'
 
 ```{autodoc2-docstring} fairdm.api.filters.PersonFilterSet.organization
 ```

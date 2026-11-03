@@ -824,6 +824,18 @@ longer exist.</p></li>
 <section id="fixed">
 <h3>Fixed<a class="headerlink" href="#fixed" title="Link to this heading">#</a></h3>
 <ul class="simple">
+<li><p><strong>The API’s single-record route reads a proxy of a record type by the concrete type’s rules.</strong>
+<code class="docutils literal notranslate"><span class="pre">FairDMObjectPermissions</span></code> asked for the proxy’s own permission, which no level grants, so a person
+at the view level was refused a record the list showed them. A portal that overrode
+<code class="docutils literal notranslate"><span class="pre">get_required_object_permissions</span></code> for this can remove the override.</p></li>
+<li><p><strong>The API schema types <code class="docutils literal notranslate"><span class="pre">url</span></code> and <code class="docutils literal notranslate"><span class="pre">html_url</span></code> of every record as a URI, and names its enums.</strong> The
+warnings they printed in <code class="docutils literal notranslate"><span class="pre">manage.py</span> <span class="pre">check</span> <span class="pre">--deploy</span></code> are gone. The <code class="docutils literal notranslate"><span class="pre">status</span></code> of a project is now the
+component <code class="docutils literal notranslate"><span class="pre">ProjectStatusEnum</span></code>, not <code class="docutils literal notranslate"><span class="pre">StatusEnum</span></code>. The <code class="docutils literal notranslate"><span class="pre">type</span></code> of an organization and of an
+affiliation are <code class="docutils literal notranslate"><span class="pre">OrganizationTypeEnum</span></code> and <code class="docutils literal notranslate"><span class="pre">AffiliationTypeEnum</span></code>, not names with a generated hash.
+A client generated from the schema sees these names change.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">Contributor.has_contribution_to()</span></code> answers the same whichever class the record was loaded as.</strong>
+It answered <code class="docutils literal notranslate"><span class="pre">False</span></code> for a credited contributor when given a sample or measurement loaded as the
+base class. <code class="docutils literal notranslate"><span class="pre">RecordAccess.key()</span></code> also no longer fails on a record loaded through a proxy.</p></li>
 <li><p><strong>A person who signs up is claimed from the start.</strong> With email or with ORCID, whatever
 <code class="docutils literal notranslate"><span class="pre">ACCOUNT_EMAIL_VERIFICATION</span></code> says. With <code class="docutils literal notranslate"><span class="pre">&quot;optional&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;none&quot;</span></code>, nobody who signed up was ever
 claimed, so their own profile called them unclaimed. Accounts that signed up before this change

@@ -51,6 +51,14 @@ Bases: {py:obj}`rest_framework.permissions.DjangoObjectPermissions`
 
 ````
 
+````{py:method} get_required_object_permissions(method, model_cls) -> list[str]
+:canonical: fairdm.api.permissions.FairDMObjectPermissions.get_required_object_permissions
+
+```{autodoc2-docstring} fairdm.api.permissions.FairDMObjectPermissions.get_required_object_permissions
+```
+
+````
+
 ````{py:method} has_permission(request: rest_framework.request.Request, view: rest_framework.views.APIView) -> bool
 :canonical: fairdm.api.permissions.FairDMObjectPermissions.has_permission
 

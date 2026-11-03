@@ -1190,6 +1190,25 @@ window.runMermaid = runMermaid;</script>
 
     <span class="n">authenticated_users_only</span> <span class="o">=</span> <span class="kc">False</span>
 
+<div class="viewcode-block" id="FairDMObjectPermissions.get_required_object_permissions">
+<a class="viewcode-back" href="../../../developers/reference/api/fairdm/fairdm.api.permissions.html#fairdm.api.permissions.FairDMObjectPermissions.get_required_object_permissions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_required_object_permissions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">model_cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Ask for the concrete model's permissions when the model is a proxy.</span>
+
+<span class="sd">        ``RecordLevelBackend`` knows no level for a proxy's own codename.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            method: The HTTP method of the request.</span>
+<span class="sd">            model_cls: The model the view serves, or the class of the object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The permissions a user needs on the object.</span>
+<span class="sd">        """</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_required_object_permissions</span><span class="p">(</span>
+            <span class="n">method</span><span class="p">,</span> <span class="n">model_cls</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">concrete_model</span>
+        <span class="p">)</span></div>
+
+
 <div class="viewcode-block" id="FairDMObjectPermissions.has_permission">
 <a class="viewcode-back" href="../../../developers/reference/api/fairdm/fairdm.api.permissions.html#fairdm.api.permissions.FairDMObjectPermissions.has_permission">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">has_permission</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">view</span><span class="p">:</span> <span class="n">APIView</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>

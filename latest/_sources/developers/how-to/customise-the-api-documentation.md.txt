@@ -30,7 +30,7 @@ You need to edit the portal's settings module, the one that calls `fairdm.setup(
    SPECTACULAR_SETTINGS["VERSION"] = "2.0.0"
    ```
 
-   Assign items, as above, and never a new dictionary. `SPECTACULAR_SETTINGS` also holds the bundled Swagger assets, the path prefix and the hook that writes the limits into the description, and a new dictionary drops all of them.
+   Assign items, as above, and never a new dictionary. `SPECTACULAR_SETTINGS` also holds the bundled Swagger assets, the path prefix, the enum names and the hook that writes the limits into the description, and a new dictionary drops all of them.
 
 2. Open the registration of each sample or measurement type and describe it with `metadata`.
 

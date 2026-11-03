@@ -24,7 +24,7 @@ This page lists the classes, functions and querysets that turn a contribution le
 | `EDIT` | `add_` and `change_` for each of `project`, `dataset`, `sample` and `measurement`, and `import_data`, `modify_metadata`, `change_project_metadata`, `change_dataset_metadata` |
 | `MANAGE` | `delete_` for each of the four models, and `add_contributor`, `modify_contributor`, `change_project_settings`, `change_dataset_settings`, `can_publish` |
 
-A registered type's own default permissions, such as `plants.view_plantsample`, are read as the core model's. A permission that your own record type adds in `Meta.permissions` must be added to `REQUIRED_LEVEL` with the level that carries it, or it is refused.
+A registered type's own default permissions, such as `plants.view_plantsample`, are read as the core model's. `FairDMObjectPermissions` asks for the concrete model's permission when an API viewset serves a proxy of a record type, so a proxy's reader is answered by the same levels. A permission that your own record type adds in `Meta.permissions` must be added to `REQUIRED_LEVEL` with the level that carries it, or it is refused.
 
 ## RecordAccess
 
