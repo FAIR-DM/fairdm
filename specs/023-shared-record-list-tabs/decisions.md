@@ -130,13 +130,13 @@ not-published state the sketch drew.
 
 **ADR:** none — recorded in spec.md's clarifications and assumptions, which supersede 018 here.
 
-## D3. A plugin's tab is marked on every address it mounts
+## D3. A type's address carries its tab's URL name
 
-The tab strip marked a tab only on its plugin's own view name, so a type's address and a plugin's
-extra pages left no tab marked. The tab item now holds every view name its plugin mounts. This also
-marks the Contributors tab on its add and edit pages, which it did not do before.
+The tab strip marks a tab when the page's URL name is the tab's. A type's address
+(`…/samples/<slug>/`) is mounted under the tab's own name, reversed with a `type` argument, so the
+existing menu marks the Samples tab there with no code of its own.
 
-**ADR:** none — a fix to existing behaviour, recorded in the plugin reference documentation.
+**ADR:** none — local to this feature.
 
 ## D4. A contributor's associated records live on the contributor model
 
@@ -145,19 +145,6 @@ The rule for which records a contributor's tabs list is `Contributor.get_associa
 portal's contributor subclass extends it in one place.
 
 **ADR:** none — follows the existing pattern of `get_public_datasets`.
-
-## D5. Record filters on a tab use the autocomplete scopes specification 032 built
-
-The dataset and sample filters of a registered type are autocomplete fields with no queryset of
-their own: their choices come from the record search at a scope. They cannot be narrowed to the
-page's rows without changing that search, which is outside this feature. They are set to the scope
-that matches who the list is for, which is what FR-007 asks: on a dataset or a project, `view` (the
-records the viewer may see); on a person's own page, that person's profile scope, the setting
-specification 032 provides for lists of one person's records; on anyone else's person page and on
-every organization page, `public`. Filters that hold a queryset are narrowed to the page's rows as
-planned.
-
-**ADR:** none — applies an existing mechanism.
 
 ## D6. A contributor's page keeps the dataset filter at the public scope
 
@@ -174,15 +161,13 @@ this feature does not change (D5).
 
 **ADR:** none — follows decision D5, local to this feature.
 
-## D7. The records tab keeps its scoped filter set class per configuration
+## D5. A tab's filters are the listings' filters, with their record searches set by the page
 
-`ScopedChoicesMixin.applied_to` returns the filter set it is given when the mixin is already in it,
-and what differs between pages (`drop`, `scope`, `owner`) goes through the filter set's constructor.
-The registry builds a type's filter set anew on every call, so wrapping it still makes a class per
-request. The tab therefore keeps the wrapped class per type configuration.
-
-**Why:** a class per request is never released.
-
-**Revisit if:** the registry caches the filter sets it generates, which makes the tab's cache redundant.
+The filter set is scoped as on the portal-wide listings. The tab removes the dataset filter on a
+dataset's own page and sets the dataset and sample searches to what fits who the list is for: the
+records the viewer may see on a dataset or a project, a person's own records on their own page, and
+public records on any other contributor's page. Narrowing every filter to the page's own rows was
+dropped: the dataset and sample filters are searches with no fixed list to narrow.
 
 **ADR:** none — local to this feature.
+

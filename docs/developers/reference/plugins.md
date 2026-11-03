@@ -313,7 +313,7 @@ numerous type unless the address names another:
 | Address | Lists |
 |---|---|
 | `…/samples/` | The most numerous sample type |
-| `…/samples/<slug>/` | The type with that slug. The URL name is `<plugin name>-type`. 404 when the type is not listed |
+| `…/samples/<slug>/` | The type with that slug. It has the tab's own URL name, reversed with a `type` argument, so the tab strip marks the tab there too. 404 when the type is not listed |
 
 Records of a type that is no longer registered are listed under one more entry, `FallbackType`,
 with the slug `other`. It carries `SampleTable` or `MeasurementTable`, `SampleFilter` or
@@ -340,38 +340,15 @@ that `search_fields` builds. The tab then changes four things:
 - `StableOrderData` ends every ordering with the primary key, so a page never repeats a row.
 - Fifty rows are shown to a page.
 
-The choices the filters offer are narrowed by `ScopedChoicesMixin`. `ScopedChoicesMixin.applied_to(filterset_class)`
-puts it in front of a filter set, and returns the filter set itself when it is already there. What
-differs between pages goes through the filter set's constructor as the keyword arguments `drop`
-(default `()`), `scope` (default `"view"`) and `owner` (default `None`):
+The filter set's choices are scoped as on the portal-wide listings, through
+`PublishedChoicesMixin`. `RecordsTab.get_filterset()` then changes two things on the filter set it
+builds:
 
-```python
-filterset_class = ScopedChoicesMixin.applied_to(config.get_filterset_class())
-filterset = filterset_class(
-    data=request.GET or None,
-    queryset=rows,
-    request=request,
-    drop=("dataset",),
-    scope="view",
-)
-```
-
-`RecordsTab.get_filterset_kwargs()` supplies them for a tab. A filter that holds a queryset of records is narrowed to the records the listed rows point to, and
-for datasets and samples to those the viewer may see. The record filters of a registered type,
-which offer what the record search offers, are set to `scope`, or to the records of `owner` for the
-list of one person's records. `drop` takes filters out of the set, such as the dataset filter on a
-dataset's own page, where every row has the same dataset. A project's tab keeps the dataset filter,
-at scope `"view"`, for the registrations whose filter set has one. A contributor's tab keeps it too. On a person's own page the record filters offer the records
-they are credited on (`owner` is that person), and on every other contributor's page they offer
-the public ones (scope `"public"`). The mixin's attributes are
-`dropped`, `record_scope` and `record_owner`.
-
-### The tab mark
-
-`PluginTabItem`, in `fairdm.contrib.plugins.menus`, is the menu item a plugin's tab is drawn with.
-It holds every view name the plugin mounts: its own, each `extra_views` entry and each pattern its
-`get_urls` returns. The tab is marked as the current page on any of them, so the Samples tab stays
-marked on a type's address and the Contributors tab on its add and edit pages.
+- On a dataset's own tab the `dataset` filter is removed, since every row is in that dataset.
+- The dataset and sample filters of a registered type search records through the autocomplete. On a
+  dataset's and a project's tabs they search at scope `"view"`, the records the viewer may see. On
+  a person's own page they search that person's records, and on every other contributor's page the
+  public ones.
 
 ### The overviews
 

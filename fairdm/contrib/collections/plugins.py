@@ -5,7 +5,6 @@ numerous type unless the address names another.
 """
 
 from dataclasses import dataclass
-from functools import partial
 from typing import Any
 
 import django_tables2 as tables
@@ -20,6 +19,7 @@ from django_filters import FilterSet
 from django_tables2.data import TableQuerysetData
 
 from fairdm import plugins
+from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
 from fairdm.contrib.collections.tables import MeasurementTable, SampleTable
 from fairdm.contrib.collections.views import DataTableView
 from fairdm.contrib.contributors.models import Contributor
@@ -35,7 +35,7 @@ from fairdm.core.sample.filters import SampleFilter
 from fairdm.core.sample.models import Sample
 from fairdm.registry import registry
 from fairdm.registry.config import ModelConfiguration
-from fairdm.registry.factories import ScopedChoicesMixin
+from fairdm.registry.factories import PublishedChoicesMixin
 
 FALLBACK_SLUG = "other"
 
@@ -289,7 +289,6 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
     check = staticmethod(records_are_offered)
 
     record_state = "listed"
-    filterset_classes: dict[Any, type[FilterSet]] = {}
     type_entries: list[dict[str, Any]] = []
     chosen: RecordType | None = None
 
@@ -301,7 +300,8 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
             path(
                 f"{cls.get_url_path()}/<slug:type>/",
                 cls.as_view(menu=menu_class, registered_model=model),
-                name=f"{cls.get_name()}-type",
+                # The tab's own name, so the tab strip marks the tab on every type's address.
+                name=cls.get_name(),
             )
         )
         return patterns
@@ -389,7 +389,7 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
             return
         self.model = self.chosen.model
         self.model_config = self.chosen.config
-        name = f"{self.get_name()}-type"
+        name = self.get_name()
         self.type_entries = [
             {
                 "name": entry.name,
@@ -475,47 +475,47 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
         return [name for name in ("q", "status") if name in filterset.base_filters]
 
     def get_filterset_class(self):
-        """Return the chosen type's filter set with this tab's scoping, or none.
+        """Return the chosen type's filter set, its choices scoped as the listings scope them.
 
-        The registry builds a type's filter set anew on each call, so the scoped class is
-        kept per configuration: a request would otherwise leave a new class behind.
+        Returns:
+            The filter set class, or ``None`` when no type is listed.
         """
         if self.chosen is None:
             return None
-        config = self.chosen.config
-        if config not in self.filterset_classes:
-            self.filterset_classes[config] = ScopedChoicesMixin.applied_to(
-                config.get_filterset_class()
-            )
-        return self.filterset_classes[config]
-
-    def get_filterset_kwargs(self) -> dict[str, Any]:
-        """Return what scopes the filter set to this tab's rows, for its constructor.
-
-        Its choices are the records the listed rows point to that the viewer may see, and
-        it has no dataset filter on a dataset's page, since every row is in that dataset. The
-        record filters offer a person's own records on that person's page, and public records
-        on any other contributor's.
-
-        Returns:
-            The ``drop``, ``scope`` and ``owner`` arguments that apply, by name.
-        """
-        kwargs: dict[str, Any] = {}
-        if self.holder == "dataset":
-            kwargs["drop"] = ("dataset",)
-        if self.holder == "contributor":
-            if self.is_own_page():
-                kwargs["owner"] = self.base_object
-            else:
-                kwargs["scope"] = "public"
-        return kwargs
+        return PublishedChoicesMixin.applied_to(
+            self.chosen.config.get_filterset_class()
+        )
 
     def get_filterset(self, filterset_class=None):
-        """Build the filter set with the scoping of :meth:`get_filterset_kwargs`."""
-        filterset_class = filterset_class or self.get_filterset_class()
-        if filterset_class is not None:
-            filterset_class = partial(filterset_class, **self.get_filterset_kwargs())
-        return super().get_filterset(filterset_class)
+        """Build the filter set, with its record searches set to who this list is for.
+
+        A dataset's own tab has no dataset filter, since every row is in that dataset. The
+        dataset and sample searches offer what the viewer may see on a dataset or a project,
+        a person's own records on that person's page, and public records on any other
+        contributor's page.
+
+        Args:
+            filterset_class: The filter set to build, or ``None`` for this tab's.
+
+        Returns:
+            The filter set, or ``None`` when no type is listed.
+        """
+        filterset = super().get_filterset(filterset_class)
+        if filterset is None:
+            return None
+        if self.holder == "dataset":
+            filterset.filters.pop("dataset", None)
+        for filter_ in filterset.filters.values():
+            if not isinstance(filter_, RecordMultipleFilter):
+                continue
+            if self.holder != "contributor":
+                filter_.extra["scope"] = "view"
+            elif self.is_own_page():
+                filter_.extra.pop("scope", None)
+                filter_.extra["owner"] = self.base_object
+            else:
+                filter_.extra["scope"] = "public"
+        return filterset
 
     def get_listing_entries(self, models):
         """Offer no switcher between the portal's listings: this page has its own."""

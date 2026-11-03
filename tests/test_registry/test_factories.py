@@ -3,37 +3,30 @@
 import pytest
 from django.contrib import admin
 from django.contrib.auth.models import AnonymousUser
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import FieldError
 from django.db import models
 from django.forms import ModelForm
 from django.test import RequestFactory
-from django_filters import FilterSet, ModelChoiceFilter
+from django_filters import FilterSet
 from django_tables2 import Table
 
-from demo.factories import RockSampleFactory
 from demo.models import ExampleMeasurement, RockSample
 from fairdm.api.serializers import BaseMeasurementSerializer, BaseSampleSerializer
-from fairdm.contrib.autocomplete.fields import DatasetMultipleChoiceField
 from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
-from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.config import BaseMeasurementConfiguration
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.project.models import Project
 from fairdm.core.sample.models import Sample
 from fairdm.factories import (
-    ContributionFactory,
     DatasetFactory,
     ProjectFactory,
-    UserFactory,
 )
 from fairdm.registry import ModelConfiguration
 from fairdm.registry.factories import (
     AdminFactory,
     FilterFactory,
     FormFactory,
-    ScopedChoicesMixin,
     TableFactory,
 )
 from fairdm.utils.choices import Visibility
@@ -604,8 +597,6 @@ class TestGeneratedRelatedRecordForms:
     def referrer(self, request):
         """A model with a foreign key to one kind of record, and the field class for it."""
         from fairdm.contrib.autocomplete import fields
-        from fairdm.core.dataset.models import Dataset
-        from fairdm.core.project.models import Project
 
         related = {
             "project": Project,
@@ -644,7 +635,6 @@ class TestGeneratedRelatedRecordForms:
 
     def test_the_project_a_dataset_sits_in_is_chosen_at_edit_scope(self):
         from fairdm.contrib.autocomplete.fields import ProjectChoiceField
-        from fairdm.core.dataset.models import Dataset
 
         form = FormFactory(Dataset, fields=["name", "project"]).generate()()
 
@@ -676,8 +666,6 @@ class TestGeneratedRelatedRecordFilters:
     def referrer(self, request):
         """A model with a foreign key to one kind of record, and the field class for it."""
         from fairdm.contrib.autocomplete import fields
-        from fairdm.core.dataset.models import Dataset
-        from fairdm.core.project.models import Project
 
         related = {
             "project": Project,
@@ -838,167 +826,3 @@ class TestSerializerFactory:
         assert "tags" in config.resolve_fields("form")
 
 
-@pytest.mark.django_db
-class TestScopedChoicesMixin:
-    """A filter set narrows what its related-record filters offer to the rows it was given."""
-
-    @pytest.fixture
-    def filterset_class(self):
-        class Rows(FilterSet):
-            dataset = ModelChoiceFilter(queryset=Dataset.all_objects.all())
-            project = ModelChoiceFilter(
-                field_name="dataset__project", queryset=Project.objects.all()
-            )
-            polymorphic_ctype = ModelChoiceFilter(queryset=ContentType.objects.all())
-
-            class Meta:
-                model = RockSample
-                fields = []
-
-        return ScopedChoicesMixin.applied_to(Rows)
-
-    @staticmethod
-    def request_for(user):
-        request = RequestFactory().get("/")
-        request.user = user
-        return request
-
-    def test_a_related_filter_offers_only_the_records_the_rows_point_to(
-        self, filterset_class
-    ):
-        listed_in = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
-        DatasetFactory(visibility=Visibility.PUBLIC, published=True)
-        RockSampleFactory(dataset=listed_in)
-
-        filterset = filterset_class(
-            queryset=RockSample.objects.filter(dataset=listed_in),
-            request=self.request_for(AnonymousUser()),
-        )
-
-        assert set(filterset.filters["dataset"].queryset) == {listed_in}
-        assert {
-            ct.model_class() for ct in filterset.filters["polymorphic_ctype"].queryset
-        } == {RockSample}
-
-    def test_a_filter_on_a_model_the_rows_do_not_point_to_is_left_alone(
-        self, filterset_class
-    ):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
-        ProjectFactory(visibility=Visibility.PUBLIC)
-        RockSampleFactory(dataset=dataset)
-
-        filterset = filterset_class(
-            queryset=RockSample.objects.filter(dataset=dataset),
-            request=self.request_for(AnonymousUser()),
-        )
-
-        assert filterset.filters["project"].queryset.count() == Project.objects.count()
-
-    def test_a_dataset_the_viewer_may_not_see_is_not_offered(self, filterset_class):
-        waiting = DatasetFactory(visibility=Visibility.PRIVATE, published=True)
-        RockSampleFactory(dataset=waiting)
-        team = UserFactory()
-        ContributionFactory(
-            content_object=waiting, contributor=team, level=ContributionLevel.VIEW
-        )
-        rows = RockSample.objects.filter(dataset=waiting)
-
-        visitor = filterset_class(
-            queryset=rows, request=self.request_for(AnonymousUser())
-        )
-        member = filterset_class(queryset=rows, request=self.request_for(team))
-
-        assert set(visitor.filters["dataset"].queryset) == set()
-        assert set(member.filters["dataset"].queryset) == {waiting}
-
-    def test_a_filter_on_a_concept_field_is_narrowed_to_the_concepts_the_rows_use(
-        self,
-    ):
-        from controlled_vocabularies.models import Record
-
-        class Rows(FilterSet):
-            status = ModelChoiceFilter(
-                queryset=Record.objects.all(), to_field_name="slug"
-            )
-
-            class Meta:
-                model = RockSample
-                fields = []
-
-        used = RockSampleFactory()
-        used.refresh_from_db()
-        filterset = ScopedChoicesMixin.applied_to(Rows)(
-            queryset=RockSample.objects.filter(pk=used.pk),
-            request=self.request_for(AnonymousUser()),
-        )
-
-        offered = set(filterset.filters["status"].queryset.values_list("pk", flat=True))
-        assert offered <= set(
-            Record.objects.filter(uri=used.status_id).values_list("pk", flat=True)
-        )
-
-    def test_the_same_filter_set_is_given_the_same_scoped_class(self, filterset_class):
-        assert ScopedChoicesMixin.applied_to(
-            filterset_class
-        ) is ScopedChoicesMixin.applied_to(filterset_class)
-
-    def test_a_filter_named_to_be_dropped_is_removed(self):
-        class Rows(FilterSet):
-            dataset = ModelChoiceFilter(queryset=Dataset.all_objects.all())
-
-            class Meta:
-                model = RockSample
-                fields = []
-
-        filterset = ScopedChoicesMixin.applied_to(Rows)(
-            drop=("dataset",),
-            queryset=RockSample.objects.none(),
-            request=self.request_for(AnonymousUser()),
-        )
-
-        assert "dataset" not in filterset.filters
-
-    @pytest.fixture
-    def record_filterset_class(self):
-        class Rows(FilterSet):
-            dataset = RecordMultipleFilter(
-                DatasetMultipleChoiceField, field_name="dataset"
-            )
-
-            class Meta:
-                model = RockSample
-                fields = []
-
-        return Rows
-
-    def build(self, filterset_class, **options):
-        return ScopedChoicesMixin.applied_to(filterset_class)(
-            queryset=RockSample.objects.none(),
-            **options,
-            request=self.request_for(AnonymousUser()),
-        )
-
-    def test_a_record_filter_is_set_to_the_view_scope_by_default(
-        self, record_filterset_class
-    ):
-        field = self.build(record_filterset_class).filters["dataset"].field
-
-        assert field.scope == "view"
-        assert field.owner_pk is None
-
-    def test_a_record_filter_takes_the_scope_it_is_given(self, record_filterset_class):
-        filterset = self.build(record_filterset_class, scope="public")
-
-        assert filterset.filters["dataset"].field.scope == "public"
-
-    def test_a_record_filter_on_a_persons_own_page_offers_that_persons_records(
-        self, record_filterset_class
-    ):
-        person = UserFactory()
-
-        field = (
-            self.build(record_filterset_class, owner=person.pk).filters["dataset"].field
-        )
-
-        assert field.owner_pk == person.pk
-        assert field.scope == "profile"

@@ -30,9 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Measurements figures and the charts count the datasets and records the viewer may see, so the
   figures equal the tabs' totals and a member of a private dataset counts it. A visitor no longer
   counts the samples of a public dataset that is not published.
-- **A plugin's tab is marked as the current page on every address the plugin mounts,** including its
-  `extra_views` and the patterns its `get_urls` returns. The Contributors tab is now marked on its
-  add and edit pages.
 - **The portal-wide listing of a sample or measurement type no longer replaces the `page` context
   variable.** `page.title` is the type's plural name and `page.breadcrumbs` comes from the view.
 

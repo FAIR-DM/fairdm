@@ -149,3 +149,13 @@ The page around the table, the overview links, records of an unregistered type, 
 - [ ] T031 [US1] The type switcher opens from the keyboard with Enter and Space, and is named for
   assistive technology (FR-020). Test: the trigger is a focusable control with an accessible name and
   the menu it controls; the keyboard behaviour is checked in a browser and recorded.
+
+## Phase 5: changes asked for at the merge gate
+
+- [ ] T032 [US1] The tab strip marks the Samples tab on a type's address through the existing menu:
+  the type address carries the tab's own URL name. The custom tab item is removed, and with it the
+  Contributors tab's mark on its add and edit pages.
+- [ ] T033 [US1] The collections app no longer imports its plugins module at start-up. The
+  reachability test counts the plugin modules that start-up discovery loads.
+- [ ] T034 [US1] The tab's filters are the listings' filters. The tab removes the dataset filter on a
+  dataset's own page and sets the record searches' scope, and the filter-narrowing mixin is removed.

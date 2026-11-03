@@ -46,7 +46,7 @@ def address(dataset, kind, type_model=None):
     if type_model is None:
         return reverse(f"dataset:{kind}", kwargs=kwargs)
     slug = registry.get_for_model(type_model).get_slug()
-    return reverse(f"dataset:{kind}-type", kwargs={**kwargs, "type": slug})
+    return reverse(f"dataset:{kind}", kwargs={**kwargs, "type": slug})
 
 
 def listed(response):
@@ -148,7 +148,7 @@ class TestDatasetRecords:
 
     def test_an_unregistered_slug_is_not_found(self, client, dataset):
         url = reverse(
-            "dataset:samples-type", kwargs={"uuid": dataset.uuid, "type": "no-such"}
+            "dataset:samples", kwargs={"uuid": dataset.uuid, "type": "no-such"}
         )
 
         assert client.get(url).status_code == 404
@@ -553,25 +553,6 @@ class TestRecordChoices:
 
             assert "dataset" not in response.context["filter"].filters
 
-    def test_the_same_type_gets_the_same_filter_set_class_on_every_request(
-        self, client, dataset
-    ):
-        url = address(dataset, "measurements")
-
-        first = type(client.get(url).context["filter"])
-        second = type(client.get(url).context["filter"])
-
-        assert first is second
-
-    def test_the_type_filter_offers_only_the_types_of_the_listed_rows(
-        self, client, dataset
-    ):
-        response = client.get(address(dataset, "measurements"))
-
-        offered = response.context["filter"].filters["polymorphic_ctype"].queryset
-        listed_types = {type(r) for r in listed(response)}
-        assert {ct.model_class() for ct in offered} == listed_types
-
 
 class TestRecordPage:
     @staticmethod
@@ -652,7 +633,7 @@ class TestUnregisteredType:
 
         assert response.status_code == 200
         fallback = reverse(
-            "dataset:samples-type", kwargs={"uuid": dataset.uuid, "type": "other"}
+            "dataset:samples", kwargs={"uuid": dataset.uuid, "type": "other"}
         )
         counts = {e["url"]: e["count"] for e in response.context["type_entries"]}
         assert counts[fallback] == 2
@@ -660,9 +641,7 @@ class TestUnregisteredType:
     def test_the_fallback_entry_lists_only_the_unregistered_records_in_the_base_table(
         self, client, dataset, soils_unregistered
     ):
-        url = reverse(
-            "dataset:samples-type", kwargs={"uuid": dataset.uuid, "type": "other"}
-        )
+        url = reverse("dataset:samples", kwargs={"uuid": dataset.uuid, "type": "other"})
 
         response = client.get(url)
 
@@ -728,7 +707,7 @@ def project_address(project, kind, type_model=None):
     if type_model is None:
         return reverse(f"project:{kind}", kwargs=kwargs)
     slug = registry.get_for_model(type_model).get_slug()
-    return reverse(f"project:{kind}-type", kwargs={**kwargs, "type": slug})
+    return reverse(f"project:{kind}", kwargs={**kwargs, "type": slug})
 
 
 def project_member(project, level=ContributionLevel.VIEW):
@@ -1073,7 +1052,7 @@ def contributor_address(contributor, kind, type_model=None):
     if type_model is None:
         return reverse(f"contributor:{kind}", kwargs=kwargs)
     slug = registry.get_for_model(type_model).get_slug()
-    return reverse(f"contributor:{kind}-type", kwargs={**kwargs, "type": slug})
+    return reverse(f"contributor:{kind}", kwargs={**kwargs, "type": slug})
 
 
 def credit(contributor, record):
