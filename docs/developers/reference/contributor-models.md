@@ -313,6 +313,13 @@ The contributor collection offers, by identifier, `orcid`, `researcher-id`, `ror
 
 Creating an identifier, or changing its value or type, queues a sync with the external provider once the transaction commits. The sync is a Celery task, `sync_contributor_identifier`. Every contributor with an ORCID or ROR identifier is also refreshed weekly: the periodic task "Refresh profiles from ORCID and ROR" runs `refresh_all_contributors` on Mondays at 03:00 in the portal's time zone, and queues a sync for up to 100 contributors not synced in the last seven days. The task is created when the database is migrated, and a portal that changes or disables it keeps its choice. See [How to sync a profile from ORCID or ROR without Celery](../how-to/sync-a-profile-from-orcid-or-ror-without-celery.md).
 
+The task fetches through `fetch_record` in `fairdm.contrib.contributors.services.registries`. A failed request, a timeout and a server error are retried up to three times with a growing delay. A 429 with `Retry-After` is retried after the wait it asks for. Each attempt records its outcome on the contributor with `record_fetch` or `record_failed_fetch`. What a fetched record changes is done by two functions in `fairdm.contrib.contributors.tasks`, neither of which saves:
+
+| Function | What it does |
+|---|---|
+| `apply_orcid_record(data, person)` | Fills a blank name, and the first and last names, from the ORCID record |
+| `apply_ror_record(data, organization)` | Sets the city, country and location from the ROR record's first place, and fills a blank name |
+
 ## Profile helpers
 
 `fairdm.contrib.contributors.profiles` holds the pure functions behind a profile page. None reads the database or a request.

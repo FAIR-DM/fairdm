@@ -56,14 +56,14 @@ def seed_refresh_task(**kwargs):
 
     if PeriodicTask.objects.filter(task=REFRESH_TASK).exists():
         return
-    crontab, created = CrontabSchedule.objects.get_or_create(
+    crontab = CrontabSchedule.objects.get_or_create(
         minute="0",
         hour="3",
         day_of_week="1",
         day_of_month="*",
         month_of_year="*",
         timezone=settings.TIME_ZONE,
-    )
+    )[0]
     PeriodicTask.objects.create(
         name="Refresh profiles from ORCID and ROR",
         task=REFRESH_TASK,

@@ -44,6 +44,8 @@ A transform converts a `Contributor` to and from an external format. FairDM ship
 
    `self.dictget(data, path, default)` reads a nested value by a list of keys and indexes, and gives `default` when the path does not exist.
 
+   When the data is a record fetched from a registry and you keep it, call `instance.record_fetch(data)` before saving. It stores the record in `synced_data`, dates `last_synced` today and marks the fetch as succeeded.
+
 3. Override `validate` when you want to check data before importing it. The base method only checks that the data is a `dict`.
 
    ```python
