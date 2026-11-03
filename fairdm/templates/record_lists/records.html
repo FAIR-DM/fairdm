@@ -60,24 +60,6 @@
     <c-mvp.addons.django-table :table="table" class="flex-1 min-h-0" />
   {% else %}
     <div class="flex-1 flex items-center justify-center px-4">
-      {% if record_state == "unpublished" %}
-        {% if kind == "sample" %}
-          {% translate "These samples are not published yet" as heading %}
-          {% if holder == "dataset" %}
-            {% translate "The dataset's team is still working on it. Its samples will be listed here once the dataset is published." as message %}
-          {% else %}
-            {% translate "The project's datasets are still being prepared. Their samples will be listed here once they are published." as message %}
-          {% endif %}
-        {% else %}
-          {% translate "These measurements are not published yet" as heading %}
-          {% if holder == "dataset" %}
-            {% translate "The dataset's team is still working on it. Its measurements will be listed here once the dataset is published." as message %}
-          {% else %}
-            {% translate "The project's datasets are still being prepared. Their measurements will be listed here once they are published." as message %}
-          {% endif %}
-        {% endif %}
-        <c-mvp.page.list.empty icon="lock" heading="{{ heading }}" message="{{ message }}" />
-      {% else %}
         {% if kind == "sample" %}
           {% if holder == "dataset" %}
             {% translate "This dataset has no samples" as heading %}
@@ -108,7 +90,6 @@
           {% endif %}
         {% endif %}
         <c-mvp.page.list.empty icon="{{ kind }}" heading="{{ heading }}" message="{{ message }}" />
-      {% endif %}
     </div>
   {% endif %}
 {% endblock page.content %}

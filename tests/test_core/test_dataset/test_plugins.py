@@ -942,6 +942,8 @@ class TestRetiredManagementPages:
         assert _entry_view_names(Dataset) == [
             "dataset:overview",
             "dataset:contribution-list",
+            "dataset:samples",
+            "dataset:measurements",
         ]
 
 

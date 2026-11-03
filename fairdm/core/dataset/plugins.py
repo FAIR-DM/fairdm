@@ -68,6 +68,30 @@ def dataset_is_visible(request, obj):
     return has_perm(request, "dataset.view_dataset", obj)
 
 
+def dataset_records_visible(request, obj):
+    """Return whether the request's user is offered a dataset's Samples and Measurements tabs.
+
+    The dataset's overview opens for the viewer and so do its records: the dataset is published
+    and no private project hides it, or the viewer holds a level on the dataset or its project,
+    or a portal-wide right to view datasets. Anyone else is not offered the tabs, and their
+    addresses answer 404.
+
+    Args:
+        request: The current request.
+        obj: The dataset, or ``None`` when no record has been resolved.
+
+    Returns:
+        True when the tabs may be shown.
+    """
+    if obj is None:
+        return True
+    if not dataset_is_visible(request, obj):
+        return False
+    if obj.published and obj.open_to_everyone:
+        return True
+    return has_perm(request, "dataset.view_dataset", obj)
+
+
 @plugins.register(Dataset, label=_("Overview"), icon="view", order=0)
 class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
     """The dataset's own page and the root of its collection.

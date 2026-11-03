@@ -15,7 +15,9 @@ class CollectionsConfig(AppConfig):
     verbose_name = _("Collections")
 
     def ready(self) -> None:
-        """Add the sample and measurement listings to the data menu."""
+        """Register the dataset's Samples and Measurements tabs and add the listings to the data menu."""
+        import fairdm.contrib.collections.plugins  # noqa: F401
+
         self.populate_data_collection_menu()
         return super().ready()
 
