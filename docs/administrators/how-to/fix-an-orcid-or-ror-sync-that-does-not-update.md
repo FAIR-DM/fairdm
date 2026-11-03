@@ -13,7 +13,7 @@ Steps 1 to 3 need only the administration interface. Steps 4 and 5 need someone 
    - For a person, open **Community** → **Users**, then the person. The three are in the first section.
    - For an organization, open **Community** → **Organizations**, then the organization. They are in the **Synchronisation** section, with **Synced data**. An empty **Synced data** means no record has ever been stored.
 
-   **Sync status** says whether the last attempt worked, and **Sync error** says why it did not: the registry has no such record, it could not be reached, it answered in a form the portal cannot read, or it asked for no requests for a while. A blank status means no sync has been tried. **Last synced** is the date of the last attempt that worked, so a sync that ran earlier today looks the same as one that ran a minute ago.
+   **Sync status** says whether the last attempt worked, and **Sync error** says why it did not: the registry has no such record, the request failed or was refused, it answered in a form the portal cannot read, or it asked for no requests for a while. A blank status means no sync has been tried. **Last synced** is the date of the last attempt that worked, so a sync that ran earlier today looks the same as one that ran a minute ago.
 
 2. Check that the record holds the identifier, in the right form.
 

@@ -81,7 +81,7 @@ def sync_contributor_identifier(self, identifier_pk: int) -> bool:
         return False
     except RequestException as error:
         logger.exception(f"Error syncing {registry} {identifier.value}")
-        contributor.record_failed_fetch(f"{registry} could not be reached: {error}")
+        contributor.record_failed_fetch(f"{registry} request failed: {error}")
         raise
 
     if data is None:
