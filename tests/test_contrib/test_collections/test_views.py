@@ -457,6 +457,19 @@ class TestFilterChoicesOnTheRenderedPage:
 
 
 @pytest.mark.django_db
+class TestPageTitle:
+    def test_the_listings_title_is_the_types_plural_name(self, client):
+        for model in (RockSample, XRFMeasurement):
+            config = registry.get_for_model(model)
+
+            response = client.get(reverse(f"{config.get_slug()}-list"))
+
+            assert response.context["page"]["title"] == (
+                config.get_verbose_name_plural()
+            )
+
+
+@pytest.mark.django_db
 class TestSwitcher:
     def _all_listing_urls(self):
         return {
@@ -645,9 +658,19 @@ class TestNothingUnreachable:
             "false premise"
         )
 
+        assert (
+            'autodiscover_modules("plugins")'
+            in Path(importlib.import_module("fairdm.apps").__file__).read_text()
+        ), (
+            "fairdm/apps.py no longer discovers each app's plugins module - the "
+            "reachability graph below would be built on a false premise"
+        )
+
         reachable = {
             f"{self.PACKAGE_MODULE}.apps",
             f"{self.PACKAGE_MODULE}.urls",
+            # Loaded at start-up by fairdm/apps.py's plugin discovery.
+            f"{self.PACKAGE_MODULE}.plugins",
         } | self._external_importers()
         reachable &= modules.keys()
 

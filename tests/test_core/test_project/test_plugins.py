@@ -719,7 +719,7 @@ class TestOverviewFiguresAndChartsCountWhatTheViewerMaySee:
     def test_a_visitor_counts_the_public_datasets_only(self, client, overview_showcase):
         response = _page(client, overview_showcase.project)
 
-        assert _figures(response.page)[:3] == ["2", "3", "2"]
+        assert _figures(response.page)[:3] == ["2", "2", "2"]
 
     def test_the_team_counts_every_dataset(
         self, client, overview_showcase, project_team_member
@@ -764,7 +764,7 @@ class TestOverviewFiguresAndChartsCountWhatTheViewerMaySee:
         response = _page(client, overview_showcase.project)
 
         description = response.page.find(id="project-growth-description")
-        assert "3 samples" in description.get_text()
+        assert "2 samples" in description.get_text()
         assert "2 measurements" in description.get_text()
 
     def test_the_teams_growth_chart_counts_every_record(
@@ -1412,8 +1412,10 @@ class TestOverviewCharts:
             assert response.page.find(id=f"{chart_id}-description").get_text(strip=True)
 
     def test_the_composition_text_lists_every_type_with_its_count(
-        self, client, overview_showcase
+        self, client, overview_showcase, project_team_member
     ):
+        client.force_login(project_team_member)
+
         response = _page(client, overview_showcase.project)
 
         text = response.page.find(id="project-composition-description").get_text()
@@ -1473,8 +1475,9 @@ class TestOverviewFollowsTheActiveLanguage:
         return json.loads(options.string)["xAxis"][0]["data"]
 
     def test_the_growth_charts_month_labels_follow_the_language(
-        self, client, overview_showcase
+        self, client, overview_showcase, project_team_member
     ):
+        client.force_login(project_team_member)
         months = [date(2026, 1, 1), date(2026, 2, 1), date(2026, 3, 1)]
         with translation.override("de"):
             expected = [date_format(month, "YEAR_MONTH_FORMAT") for month in months]
@@ -1487,8 +1490,9 @@ class TestOverviewFollowsTheActiveLanguage:
         )
 
     def test_the_growth_charts_description_names_its_months_in_the_language(
-        self, client, overview_showcase
+        self, client, overview_showcase, project_team_member
     ):
+        client.force_login(project_team_member)
         with translation.override("de"):
             first = date_format(date(2026, 1, 1), "YEAR_MONTH_FORMAT")
             last = date_format(date(2026, 3, 1), "YEAR_MONTH_FORMAT")

@@ -13,10 +13,15 @@ from django_tables2 import Table
 from demo.models import ExampleMeasurement, RockSample
 from fairdm.api.serializers import BaseMeasurementSerializer, BaseSampleSerializer
 from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
+from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.config import BaseMeasurementConfiguration
 from fairdm.core.measurement.models import Measurement
+from fairdm.core.project.models import Project
 from fairdm.core.sample.models import Sample
-from fairdm.factories import DatasetFactory, ProjectFactory
+from fairdm.factories import (
+    DatasetFactory,
+    ProjectFactory,
+)
 from fairdm.registry import ModelConfiguration
 from fairdm.registry.factories import (
     AdminFactory,
@@ -592,8 +597,6 @@ class TestGeneratedRelatedRecordForms:
     def referrer(self, request):
         """A model with a foreign key to one kind of record, and the field class for it."""
         from fairdm.contrib.autocomplete import fields
-        from fairdm.core.dataset.models import Dataset
-        from fairdm.core.project.models import Project
 
         related = {
             "project": Project,
@@ -632,7 +635,6 @@ class TestGeneratedRelatedRecordForms:
 
     def test_the_project_a_dataset_sits_in_is_chosen_at_edit_scope(self):
         from fairdm.contrib.autocomplete.fields import ProjectChoiceField
-        from fairdm.core.dataset.models import Dataset
 
         form = FormFactory(Dataset, fields=["name", "project"]).generate()()
 
@@ -664,8 +666,6 @@ class TestGeneratedRelatedRecordFilters:
     def referrer(self, request):
         """A model with a foreign key to one kind of record, and the field class for it."""
         from fairdm.contrib.autocomplete import fields
-        from fairdm.core.dataset.models import Dataset
-        from fairdm.core.project.models import Project
 
         related = {
             "project": Project,
@@ -824,3 +824,5 @@ class TestSerializerFactory:
 
         assert "options" in config.resolve_fields("form")
         assert "tags" in config.resolve_fields("form")
+
+

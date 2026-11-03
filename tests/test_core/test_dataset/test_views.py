@@ -1223,7 +1223,7 @@ class TestNonCollectionPagesIgnorePublished:
             assertContains(response, "Listed Either Way")
             assertContains(response, dataset.uuid)
 
-    def test_dataset_overview_page_shows_counts_but_no_records_until_published(
+    def test_dataset_overview_page_shows_no_counts_and_no_records_until_published(
         self, client
     ):
         from demo.factories import RockSampleFactory
@@ -1238,9 +1238,16 @@ class TestNonCollectionPagesIgnorePublished:
 
         for response in (unpublished, published):
             assert response.status_code == 200
-            page = BeautifulSoup(response.content, "html.parser")
-            assert page.select(".stat-value")[0].get_text(strip=True) == "1"
             assertNotContains(response, sample.name)
+        titles = [
+            t.get_text(strip=True)
+            for t in BeautifulSoup(unpublished.content, "html.parser").select(
+                ".stat-title"
+            )
+        ]
+        assert "Samples" not in titles
+        page = BeautifulSoup(published.content, "html.parser")
+        assert page.select(".stat-value")[0].get_text(strip=True) == "1"
         assert (
             len(BeautifulSoup(unpublished.content, "html.parser").select(".alert")) == 1
         )

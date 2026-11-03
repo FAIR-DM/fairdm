@@ -97,6 +97,6 @@ The three pages are served at:
 | Add | `/samples/<uuid>/notes/add/` | `sample:notes-note-create` |
 | Edit | `/samples/<uuid>/notes/<pk>/edit/` | `sample:notes-note-edit` |
 
-The sample has one tab, **Notes**, that leads to the list. The additional pages have no tab of their own.
+The sample has one tab, **Notes**, that leads to the list. The additional pages have no tab of their own, and the **Notes** tab is marked as the current page on the list, on Add and on Edit.
 
 Registration is refused, and the portal does not start, when an additional page is not a plugin, is the plugin itself, declares `extra_views` of its own, or claims the same segment as another. The full list is in [Plugins](../reference/plugins.md).

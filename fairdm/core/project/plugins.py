@@ -75,9 +75,10 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
 
     The page is a landing page, read by someone deciding whether the data is usable to them,
     someone who has to cite the project and the team keeping the record complete. Everything on it
-    is derived from the project's own records. A visitor's counts are taken over the project's
-    public datasets only, and the samples and measurements beneath them; a member of the team sees
-    everything, with the private share called out.
+    is derived from the project's own records, counted through ``visible_to``: the datasets, samples
+    and measurements the viewer may see, so the figures always equal the Samples and Measurements
+    tabs. A visitor, a member of a private dataset and the project's team each see their own share,
+    with the private share called out for the team.
 
     Attributes:
         dataset_preview: How many datasets the page lists before it hands over to the Datasets
@@ -96,19 +97,18 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
     def get_context_data(self, **kwargs):
         """Add the project and everything the overview page draws.
 
-        The datasets counted are the project's public ones for a visitor and every one for the
-        team, and the samples and measurements are those beneath them.
+        The datasets, samples and measurements counted are those the viewer may see.
         """
         context = super().get_context_data(**kwargs)
         project = self.base_object
         can_manage = has_perm(self.request, "project.change_project", project)
 
-        datasets = Dataset.all_objects.filter(project=project)
-        if not can_manage:
-            datasets = datasets.filter(visibility=Visibility.PUBLIC)
-        dataset_ids = list(datasets.values_list("pk", flat=True))
-        samples = Sample.objects.filter(dataset_id__in=dataset_ids)
-        measurements = Measurement.objects.filter(dataset_id__in=dataset_ids)
+        user = self.request.user
+        datasets = Dataset.all_objects.filter(project=project).visible_to(user)
+        samples = Sample.objects.filter(dataset__project=project).visible_to(user)
+        measurements = Measurement.objects.filter(dataset__project=project).visible_to(
+            user
+        )
 
         page = {
             "can_manage": can_manage,
@@ -128,6 +128,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             ),
             "urls": {
                 "datasets": safe_reverse("project:dataset-list", uuid=project.uuid),
+                "samples": safe_reverse("project:samples", uuid=project.uuid),
+                "measurements": safe_reverse("project:measurements", uuid=project.uuid),
                 "contributors": safe_reverse(
                     "project:contribution-list", uuid=project.uuid
                 ),

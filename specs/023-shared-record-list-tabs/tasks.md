@@ -1,0 +1,161 @@
+# Tasks: Record list tabs are shared across the pages that need them
+
+**Input**: [spec.md](spec.md), [plan.md](plan.md), [research.md](research.md), [sketch.md](sketch.md)
+
+**Tests first**: in every story the test tasks come first and are seen to fail before the code that
+makes them pass is written. View tests send requests through the test client to the real routes and
+assert on the response and its context. Wording, layout and CSS classes get no tests.
+
+**Format**: `[ID] [Story] Description`.
+
+**Story order**: US1, then US2, then US3, each from the previous story's accepted commit.
+
+## Phase 1: User Story 1, a dataset's samples and measurements can be browsed from its page (P1)
+
+### Group 1
+
+The plugin, its home, the dataset registration, which records it lists and the tab mark.
+
+- [ ] T001 [US1] `tests/test_contrib/test_collections/test_plugins.py`, `TestDatasetRecords`: on a
+  published dataset holding two sample types and two measurement types, the Samples and
+  Measurements tabs answer 200 for a visitor, list only that dataset's records of the most numerous
+  type, offer exactly the types the dataset holds with their counts, and a type's own address shows
+  that type. A type the dataset holds none of, and an unregistered slug, answer 404. A
+  measurement on another dataset's sample is listed on its own dataset's Measurements tab and that
+  sample is not on its Samples tab. A private dataset's tabs answer 404 to a visitor and 200 to its
+  team. Each row's name links to the record's page. A sample's page has no Samples or Measurements tab.
+- [ ] T002 [US1] same file, `TestRecordState`: a public unpublished dataset offers a visitor no
+  Samples or Measurements tab in its tab strip and both addresses answer 404; its team gets both tabs
+  and the rows. A dataset holding nothing gives
+  `empty` to everyone. The tab is present in the tab strip in both states. With no measurement type registered, a dataset's Measurements tab answers 200 with `empty`.
+- [ ] T003 [US1] `tests/test_contrib/test_plugins/test_menus.py`: a plugin's tab is marked as the
+  current page on its own address, on each of its `extra_views` addresses and on an extra pattern
+  its `get_urls` mounts, and is not marked on another plugin's address. Asserted through a rendered tab strip, so the per-request copy is exercised.
+- [ ] T004 [US1] `fairdm/contrib/collections/plugins.py`: move the sketch's module here and
+  register `Samples` and `Measurements` on `Dataset`; scope, viewer, `type_counts`, `resolve_type`
+  and the not-published check per plan D1 to D3. Remove the import from
+  `fairdm/contrib/contributors/plugins/__init__.py` and the view-name rewrite.
+- [ ] T005 [US1] `fairdm/contrib/plugins/menus.py` and `registration.py`: `PluginTabItem` per plan
+  D7.
+
+### Group 2
+
+The table: columns, links, choices, order and query count.
+
+- [ ] T006 [US1] `tests/test_contrib/test_collections/test_plugins.py`, `TestRecordTable`: the
+  first columns are name then, on measurements, sample; there is no dataset column on a dataset's
+  tab. A measurement whose sample the viewer may open links it; one whose sample they may not see
+  shows `—` and the sample's name is nowhere in the response. Search, a filter and a sort narrow and
+  reorder rows within the dataset and never include another dataset's record; sorting by sample
+  puts the hidden samples' rows in one block after the named ones. The table's resolved ordering
+  ends in a unique key, for a generated table and for a declared table with no `order_by`. Fifty rows per page.
+- [ ] T007 [US1] same file, `TestRecordChoices`: a measurement tab's sample filter offers only
+  samples of the listed measurements the viewer may see; a team member's choices include their
+  unpublished samples and a visitor's do not. A dataset's own tab has no dataset filter.
+- [ ] T008 [US1] same file, `TestRecordQueries`: a type table with ten rows and with sixty issues
+  the same number of queries, for samples and for measurements.
+- [ ] T009 [US1] `tests/test_registry/test_factories.py`, `TestScopedChoicesMixin`: it narrows a related filter to the rows given and leaves a filter on
+  an unrelated model alone.
+- [ ] T010 [US1] `fairdm/contrib/collections/plugins.py` and `fairdm/registry/factories.py`: the
+  annotations, `DatasetColumn`, `SampleColumn`, the sequence, `ScopedChoicesMixin` and the dataset
+  filter removal per plan D5 and D6.
+
+### Group 3
+
+The page around the table, the overview links, records of an unregistered type, data and docs.
+
+- [ ] T011 [US1] `tests/test_contrib/test_collections/test_plugins.py`, `TestRecordPage`: the
+  response carries the breadcrumb trail ending in the dataset and the kind. Where more than one type
+  is listed the switcher's entries link to each type's address; where one is listed there is no
+  switcher. The filter panel is absent on an empty tab.
+- [ ] T012 [US1] `tests/test_contrib/test_collections/test_views.py`: the portal-wide listing's
+  `page.title` is still the type's verbose name after plan D8.
+- [ ] T013 [US1] `tests/test_core/test_dataset/` overview test: the Samples and Measurements figures
+  link to the two tabs and equal the tabs' totals for a visitor and for the team. On a public
+  unpublished dataset a visitor gets no Samples or Measurements figure, no composition or growth
+  chart and no spatial coverage drawn from its records; its team gets all of them. Every existing
+  overview test that expected a visitor to see those counts is changed to this rule.
+- [ ] T014 [US1] `tests/test_contrib/test_collections/test_plugins.py`, `TestUnregisteredType`:
+  records of a sample subclass with no registration are listed under the fallback entry with the
+  base table, and the tab does not fail.
+- [ ] T015 [US1] `tests/test_demo/test_management/test_commands/test_seed_record_lists.py`: the
+  command refuses outside development, and run twice creates the same records once. And one test per FR-032 state: each seeded record reaches the state the requirement names.
+- [ ] T016 [US1] `fairdm/contrib/collections/views.py`, `fairdm/contrib/collections/plugins.py`,
+  `fairdm/core/dataset/plugins.py`, the overview plugins and templates: plan D3a, D4, D8, D9 and D10.
+  The template's not-published panel is removed.
+- [ ] T017 [US1] `docs/developers/reference/plugins.md` and a new `docs/users/` page per plan D11,
+  covering the dataset tabs, written so the later stories extend them. Plus the `CHANGELOG.md` entry and the `seed_record_lists` row in `management-commands.md`.
+
+### Fixes found at acceptance
+
+- [ ] T024 [US1] `tests/test_core/test_dataset/test_plugins.py`, `TestOverviewSchemaOrgDescription`:
+  a viewer who may not see a public unpublished dataset's records gets no `variableMeasured` in the
+  page's schema.org description; its team does. `fairdm/core/dataset/plugins.py`: the overview's
+  record types are read through what the viewer may see.
+- [ ] T025 [US1] `fairdm/core/dataset/templates/dataset/dataset_detail.html`: the visitor's notice on
+  an unpublished dataset no longer says they can read what it holds. Wording only, no test.
+
+## Phase 2: User Story 2, a project's samples and measurements can be browsed from its page (P2)
+
+- [ ] T018 [US2] `tests/test_contrib/test_collections/test_plugins.py`, `TestProjectRecords`: a
+  project's tabs list the records of its datasets the viewer may see; a visitor sees nothing from a
+  private dataset in rows, totals, types or choices, and a member of that dataset's team does. Each
+  row names its dataset and links it where the viewer may open it. A project whose only records are
+  unpublished, and one whose records are all in private datasets, give a visitor the same `empty` as
+  one with none. A measurement on another project's sample is listed and that sample
+  is not. A private project's tabs answer 404 to a visitor. The dataset filter offers only datasets the viewer may see
+  (decisions D5).
+- [ ] T019 [US2] same file: the project overview's figures link to the tabs and equal the tabs'
+  totals for a visitor, a member of a private dataset and the project's team, on a project holding a
+  published, an unpublished and a private dataset. Ten and sixty rows issue the same
+  number of queries. A member of a private dataset in a public project gets the same figure and tab total.
+- [ ] T020 [US2] `fairdm/contrib/collections/plugins.py`: register on `Project`; scope and
+  `DatasetColumn` per plan D2 and D5. Docs from T017 extended to the project.
+
+## Phase 3: User Story 3, a contributor's samples and measurements can be browsed from their page (P2)
+
+- [ ] T021 [US3] `tests/test_contrib/test_collections/test_plugins.py`, `TestContributorRecords`: a
+  person credited on a project lists its datasets' released records; on a dataset in another
+  project, that dataset's and not its siblings'; on one sample, that sample and not its siblings.
+  Credit on a sample does not bring in other people's measurements of it. An organization lists the
+  records of a project it owns and not those its members are credited on. A record credited in
+  several ways is listed once. Each row's dataset links to it; a measurement whose own dataset is released and whose sample's dataset is not is listed.
+- [ ] T022 [US3] same file, `TestContributorViewer`: a person credited on a private dataset, an
+  unpublished public dataset and a public dataset in a private project: anyone else sees none of
+  their records in rows, totals, types or choices; the person sees them and their choices include
+  them. An organization credited on a private dataset shows none of it, to a member of its team
+  too. A contributor with nothing the viewer may see gives `empty`. Ten and
+  sixty records issue the same number of queries.
+- [ ] T023 [US3] `fairdm/contrib/collections/plugins.py`: register on `Contributor`; scope and
+  viewer per plan D2. Docs from T017 extended to contributors.
+
+## Phase 4: fixes from the code review
+
+- [ ] T026 [US1] The dataset overview's "Data types" empty card is drawn only for a viewer who may
+  see the dataset's records. Test: a visitor to an empty and to a non-empty public unpublished
+  dataset gets neither the card nor its text; it fails with the guard removed.
+- [ ] T027 [US1] `docs/explanation/how-access-to-a-record-is-decided.md` states the current rule for
+  an unpublished dataset's counts, charts and spatial coverage. Two corrections to
+  `docs/developers/reference/plugins.md`: the dataset check names the portal-wide right, and the
+  contributor row says released records except on a person's own page.
+- [ ] T028 [US3] A person's own empty tab uses the wording addressed to them: `own_page` reaches the
+  template. Wording only, no test.
+- [ ] T029 [US1] Sorting by sample orders only the rows whose sample the viewer may open by name;
+  hidden rows keep the stable tie-break order in both directions. Test: two hidden samples whose
+  names and row keys run opposite ways give the same hidden-block order under both sort directions.
+- [ ] T030 [US1] `ScopedChoicesMixin.applied_to` returns the same class for the same filter set; the
+  dropped filters, the scope and the owner reach it through the filter set's constructor. Test: two
+  calls for one type return the same class.
+- [ ] T031 [US1] The type switcher opens from the keyboard with Enter and Space, and is named for
+  assistive technology (FR-020). Test: the trigger is a focusable control with an accessible name and
+  the menu it controls; the keyboard behaviour is checked in a browser and recorded.
+
+## Phase 5: changes asked for at the merge gate
+
+- [ ] T032 [US1] The tab strip marks the Samples tab on a type's address through the existing menu:
+  the type address carries the tab's own URL name. The custom tab item is removed, and with it the
+  Contributors tab's mark on its add and edit pages.
+- [ ] T033 [US1] The collections app no longer imports its plugins module at start-up. The
+  reachability test counts the plugin modules that start-up discovery loads.
+- [ ] T034 [US1] The tab's filters are the listings' filters. The tab removes the dataset filter on a
+  dataset's own page and sets the record searches' scope, and the filter-narrowing mixin is removed.

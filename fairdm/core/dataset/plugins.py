@@ -68,6 +68,30 @@ def dataset_is_visible(request, obj):
     return has_perm(request, "dataset.view_dataset", obj)
 
 
+def dataset_records_visible(request, obj):
+    """Return whether the request's user is offered a dataset's Samples and Measurements tabs.
+
+    The dataset's overview opens for the viewer and so do its records: the dataset is published
+    and no private project hides it, or the viewer holds a level on the dataset or its project,
+    or a portal-wide right to view datasets. Anyone else is not offered the tabs, and their
+    addresses answer 404.
+
+    Args:
+        request: The current request.
+        obj: The dataset, or ``None`` when no record has been resolved.
+
+    Returns:
+        True when the tabs may be shown.
+    """
+    if obj is None:
+        return True
+    if not dataset_is_visible(request, obj):
+        return False
+    if obj.published and obj.open_to_everyone:
+        return True
+    return has_perm(request, "dataset.view_dataset", obj)
+
+
 @plugins.register(Dataset, label=_("Overview"), icon="view", order=0)
 class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
     """The dataset's own page and the root of its collection.
@@ -79,8 +103,10 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
     what it is, whether its data is published, what it holds and how it grew, when each step of its
     life happened, how to cite it and who made it. Two gates decide what a visitor sees.
     Visibility governs the page and ``published`` governs the records, so a public, unpublished
-    dataset shows its description, its counts and its charts to everyone. The page lists no
-    record. Nothing here is written for a particular portal's types.
+    dataset shows its description to everyone but its counts, charts and spatial coverage only to
+    those who may see its records. Everything drawn from the records is counted through
+    ``visible_to``, so the figures always equal the Samples and Measurements tabs. The page
+    lists no record. Nothing here is written for a particular portal's types.
 
     Attributes:
         bookkeeping_fields: Fields every record carries that say nothing about its data.
@@ -106,9 +132,13 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         context = super().get_context_data(**kwargs)
         dataset = self.base_object
         can_manage = has_perm(self.request, "dataset.change_dataset", dataset)
-        samples = Sample.objects.filter(dataset=dataset)
-        measurements = Measurement.objects.filter(dataset=dataset)
-        data_types = self.get_record_types(samples, measurements)
+        shows_records = dataset_records_visible(self.request, dataset)
+        user = self.request.user
+        all_samples = Sample.objects.filter(dataset=dataset)
+        all_measurements = Measurement.objects.filter(dataset=dataset)
+        samples = all_samples.visible_to(user)
+        measurements = all_measurements.visible_to(user)
+        data_types = self.get_record_types(all_samples, all_measurements)
 
         page = {
             "can_manage": can_manage,
@@ -119,12 +149,21 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             "literature": self.get_literature(),
             "data_types": data_types,
             "counts": self.get_counts(samples, measurements, data_types),
-            "composition_chart": self.get_composition_chart(samples, measurements),
-            "growth_chart": self.get_growth_chart(samples, measurements),
+            "shows_records": shows_records,
+            "composition_chart": (
+                shows_records and self.get_composition_chart(samples, measurements)
+            )
+            or None,
+            "growth_chart": (
+                shows_records and self.get_growth_chart(samples, measurements)
+            )
+            or None,
             "project_info": self.get_project_info(),
             "api_url": safe_reverse("api:dataset-detail", uuid=dataset.uuid),
             "urls": {
                 "update": safe_reverse("dataset:edit", uuid=dataset.uuid),
+                "samples": safe_reverse("dataset:samples", uuid=dataset.uuid),
+                "measurements": safe_reverse("dataset:measurements", uuid=dataset.uuid),
                 "key_dates": safe_reverse("dataset:key-dates", uuid=dataset.uuid),
                 "descriptions": safe_reverse("dataset:descriptions", uuid=dataset.uuid),
                 "keywords": safe_reverse("dataset:keywords", uuid=dataset.uuid),
@@ -541,8 +580,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
     def get_schema_org(self, page):
         """Describe the dataset as schema.org ``Dataset``, the shape harvesters read.
 
-        It names the variables measured and never their values, so it carries nothing a visitor
-        could not read on the page.
+        It names the variables measured and never their values. The variables are those of the
+        records the viewer may see, so a viewer who may not see the records gets none.
 
         Args:
             page: The page context gathered so far.
@@ -597,7 +636,12 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             data["temporalCoverage"] = (
                 f"{start.isoformat()}/{end.isoformat() if end else '..'}"
             )
-        variables = [label for t in page["data_types"] for label in t["fields"]]
+        user = self.request.user
+        visible_types = self.get_record_types(
+            Sample.objects.filter(dataset=dataset).visible_to(user),
+            Measurement.objects.filter(dataset=dataset).visible_to(user),
+        )
+        variables = [label for t in visible_types for label in t["fields"]]
         if variables:
             data["variableMeasured"] = variables
         if page["project_info"]:

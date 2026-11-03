@@ -458,7 +458,8 @@ class PublishedChoicesMixin:
         """Put this mixin in front of a filter set, unless it is already there.
 
         Idempotent, because a listing resolves its filter set on every request and a
-        fresh subclass per request would leak classes.
+        fresh subclass per request would leak classes. What differs between requests
+        goes through the constructor.
 
         Args:
             filterset_class: The filter set to scope.

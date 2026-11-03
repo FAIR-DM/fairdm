@@ -379,7 +379,9 @@ class TestDescriptionsPageOffersOneAreaPerVocabularyType:
         response = client.get(url)
 
         form = response.context["form"]
-        assert list(form.fields) == [concept.uri for concept in DatasetDescription.get_type_concepts()]
+        assert list(form.fields) == [
+            concept.uri for concept in DatasetDescription.get_type_concepts()
+        ]
 
     def test_every_area_starts_empty_for_a_dataset_with_no_descriptions(
         self, client, user_with_change_permission
@@ -942,6 +944,8 @@ class TestRetiredManagementPages:
         assert _entry_view_names(Dataset) == [
             "dataset:overview",
             "dataset:contribution-list",
+            "dataset:samples",
+            "dataset:measurements",
         ]
 
 
@@ -956,6 +960,24 @@ def _page(client, dataset):
 def _figures(page):
     """The values of the four figures, in the order they are drawn."""
     return [figure.get_text(strip=True) for figure in page.select(".stat-value")]
+
+
+def _tab_figures(page, dataset):
+    """Return the Samples and Measurements figures as ``{tab: value}``, found by their link."""
+    figures = {}
+    for kind in ("samples", "measurements"):
+        url = reverse(f"dataset:{kind}", kwargs={"uuid": dataset.uuid})
+        link = page.select_one(f'.stat-title a[href="{url}"]')
+        if link is not None:
+            figure = link.find_parent(class_="stat")
+            figures[kind] = figure.select_one(".stat-value").get_text(strip=True)
+    return figures
+
+
+def _tab_total(client, dataset, kind):
+    """Return how many records the tab lists, added up across its types."""
+    response = client.get(reverse(f"dataset:{kind}", kwargs={"uuid": dataset.uuid}))
+    return sum(entry["count"] for entry in response.context["type_entries"])
 
 
 def _json_ld(page):
@@ -997,14 +1019,24 @@ def holding():
 class TestOverviewWhatAVisitorSeesBeforePublication:
     """US-2 scenarios 1 to 3 and FR-022, FR-024."""
 
-    def test_a_visitor_sees_the_counts_and_both_charts_and_a_notice(
+    def test_the_team_sees_the_counts_and_both_charts_and_a_notice(
         self, client, holding
     ):
+        client.force_login(_team_member(holding))
+
         response = _page(client, holding)
 
         assert _figures(response.page)[:2] == ["2", "2"]
         assert response.page.find(id="dataset-composition") is not None
         assert response.page.find(id="dataset-growth") is not None
+        assert len(response.page.select(".alert")) == 1
+
+    def test_a_visitor_sees_the_notice_and_no_counts_or_charts(self, client, holding):
+        response = _page(client, holding)
+
+        assert _tab_figures(response.page, holding) == {}
+        assert response.page.find(id="dataset-composition") is None
+        assert response.page.find(id="dataset-growth") is None
         assert len(response.page.select(".alert")) == 1
 
     def test_a_visitor_is_shown_the_abstract(self, client, holding):
@@ -1042,6 +1074,26 @@ class TestOverviewWhatAVisitorSeesBeforePublication:
 
         assert response.page.find("progress") is None
         assert response.page.select(".alert") == []
+
+
+class TestOverviewEmptyCardFollowsWhatTheViewerMaySee:
+    """FR-022: an unpublished dataset's overview says nothing of whether it holds records."""
+
+    def test_the_team_sees_the_empty_card_on_an_empty_dataset(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        client.force_login(_team_member(dataset))
+
+        response = _page(client, dataset)
+
+        assert response.page.find(id="dataset-no-records") is not None
+
+    def test_a_visitor_sees_the_card_on_neither_an_empty_nor_a_full_dataset(
+        self, client, holding
+    ):
+        empty = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+
+        assert _page(client, empty).page.find(id="dataset-no-records") is None
+        assert _page(client, holding).page.find(id="dataset-no-records") is None
 
 
 class TestOverviewReadinessChecklist:
@@ -1157,6 +1209,8 @@ class TestOverviewCharts:
     def test_the_composition_text_lists_every_type_with_its_count(
         self, client, holding
     ):
+        client.force_login(_team_member(holding))
+
         response = _page(client, holding)
 
         text = response.page.find(id="dataset-composition-description").get_text()
@@ -1171,6 +1225,7 @@ class TestOverviewCharts:
 
         Sample.objects.update(added=datetime(2026, 1, 15, tzinfo=UTC))
         Measurement.objects.update(added=datetime(2026, 1, 20, tzinfo=UTC))
+        client.force_login(_team_member(holding))
 
         response = _page(client, holding)
 
@@ -1189,12 +1244,66 @@ class TestOverviewCharts:
             if model is not XRFMeasurement
         }
         monkeypatch.setattr(registry, "_registry", held)
+        client.force_login(_team_member(holding))
 
         response = _page(client, holding)
 
         text = response.page.find(id="dataset-composition-description").get_text()
         assert "XRF" not in text
         assert "Rock Samples" in text
+
+
+class TestOverviewFiguresLeadToTheTabs:
+    """The Samples and Measurements figures link to the tabs and agree with them."""
+
+    @pytest.fixture
+    def published(self):
+        from demo.factories import (
+            SoilSampleFactory,
+            XRFMeasurementFactory,
+        )
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        rocks = RockSampleFactory.create_batch(3, dataset=dataset)
+        SoilSampleFactory.create_batch(2, dataset=dataset)
+        XRFMeasurementFactory.create_batch(4, dataset=dataset, sample=rocks[0])
+        return dataset
+
+    def test_a_visitor_and_the_team_get_figures_equal_to_the_tabs_totals(
+        self, client, published
+    ):
+        for user in (None, _team_member(published)):
+            if user is not None:
+                client.force_login(user)
+
+            figures = _tab_figures(_page(client, published).page, published)
+
+            assert figures == {
+                "samples": str(_tab_total(client, published, "samples")),
+                "measurements": str(_tab_total(client, published, "measurements")),
+            }
+            assert figures == {"samples": "5", "measurements": "4"}
+
+    def test_on_a_public_unpublished_dataset_the_team_gets_all_figures_and_charts(
+        self, client, holding
+    ):
+        client.force_login(_team_member(holding))
+
+        page = _page(client, holding).page
+
+        assert _tab_figures(page, holding) == {"samples": "2", "measurements": "2"}
+        assert page.find(id="dataset-composition") is not None
+        assert page.find(id="dataset-growth") is not None
+
+    def test_on_a_public_unpublished_dataset_a_visitor_gets_nothing_from_its_records(
+        self, client, holding
+    ):
+        page = _page(client, holding).page
+
+        assert _tab_figures(page, holding) == {}
+        assert page.find(attrs={"data-mvp-chart": True}) is None
+        assert page.find(id="dataset-composition") is None
+        assert page.find(id="dataset-growth") is None
 
 
 class TestOverviewFirstRun:
@@ -1259,7 +1368,9 @@ class TestOverviewTimeline:
             (f"{DATE_TYPES}/collection-start", "2023-02-01"),
             (f"{DATE_TYPES}/collection-end", "2023-09-30"),
         ):
-            DatasetDateFactory(related=dataset, type_id=type_, value=PartialDate.fromisoformat(value))
+            DatasetDateFactory(
+                related=dataset, type_id=type_, value=PartialDate.fromisoformat(value)
+            )
 
         steps = self._steps(_page(client, dataset).page)
 
@@ -1469,12 +1580,21 @@ class TestOverviewProjectSiblingCount:
 class TestOverviewSchemaOrgDescription:
     """FR-034 and FR-056."""
 
-    def test_a_public_unpublished_dataset_names_its_variables_and_carries_no_values(
+    def test_a_visitor_to_a_public_unpublished_dataset_gets_no_variables(
+        self, client, holding
+    ):
+        data = _json_ld(_page(client, holding).page)
+
+        assert data["@type"] == "Dataset"
+        assert "variableMeasured" not in data
+
+    def test_the_team_of_a_public_unpublished_dataset_names_its_variables_and_carries_no_values(
         self, client, holding
     ):
         from demo.models import XRFMeasurement
         from fairdm.core.sample.models import Sample
 
+        client.force_login(_team_member(holding))
         response = _page(client, holding)
 
         data = _json_ld(response.page)

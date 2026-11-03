@@ -51,4 +51,5 @@ When a search or filter matches nobody, the heading reads **No users match**, wi
 - Open a profile by selecting a name. See [Your profile](../account/your-profile.md) for what a profile shows.
 - Find your own card and edit your profile. See [How to edit your profile](../account/edit-your-profile.md).
 - Take over a profile that was made for you. See [How to claim your profile with ORCID](../account/claim-your-profile-with-orcid.md).
+- Browse the samples and measurements they are credited on. See [Browse samples and measurements](../datasets/browse-samples-and-measurements.md).
 - Credit someone on a record you manage. See [How to add a person or organization](../contributors/add-a-person-or-organization.md).

@@ -49,7 +49,7 @@
         {% if can_manage %}
           {% translate "Anyone can read this description, but the records stay hidden until the dataset is published." %}
         {% else %}
-          {% translate "The data in this dataset hasn't been published yet. You can read what it holds, and the records open to everyone once the dataset is published." %}
+          {% translate "The data in this dataset hasn't been published yet. You can read its description now, and the records open to everyone once the dataset is published." %}
         {% endif %}
       </span>
     </c-alert>
@@ -63,8 +63,10 @@
 
 {% block overview.figures %}
   <c-stats cols="2" lg="4" aria-label="{% translate 'Dataset at a glance' %}">
-    <c-stats.item title="{% translate 'Samples' %}" value="{{ counts.samples|intcomma }}" variant="secondary" icon="sample" />
-    <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" variant="accent" icon="measurement" />
+    {% if shows_records %}
+      <c-stats.item title="{% translate 'Samples' %}" value="{{ counts.samples|intcomma }}" href="{{ urls.samples }}" variant="secondary" icon="sample" />
+      <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" href="{{ urls.measurements }}" variant="accent" icon="measurement" />
+    {% endif %}
     <c-stats.item title="{% translate 'Contributors' %}" value="{{ team.total }}" icon="people" />
     <c-stats.item title="{% translate 'Related publications' %}" value="{{ counts.publications }}" icon="literature" />
   </c-stats>
@@ -85,8 +87,8 @@
   {% endblock overview.about %}
 
   {% block overview.data %}
-    {% if not data_types %}
-      <c-mvp.card title="{% translate 'Data types' %}" class="bg-base-100">
+    {% if shows_records and not data_types %}
+      <c-mvp.card id="dataset-no-records" title="{% translate 'Data types' %}" class="bg-base-100">
         {% if can_manage %}
           <div class="flex flex-col items-start gap-3">
             <p class="text-base-content/70">{% translate "This dataset holds no samples or measurements yet. Import a spreadsheet or add records by hand to start building it." %}</p>
@@ -129,10 +131,12 @@
   {% endblock overview.charts %}
 
   {% block overview.map %}
-    <c-card.placeholder title="{% translate 'Spatial coverage' %}"
-                        icon="map"
-                        wide
-                        message="{% translate 'A map of every sample with a location, and the area the dataset covers.' %}" />
+    {% if shows_records %}
+      <c-card.placeholder title="{% translate 'Spatial coverage' %}"
+                          icon="map"
+                          wide
+                          message="{% translate 'A map of every sample with a location, and the area the dataset covers.' %}" />
+    {% endif %}
   {% endblock overview.map %}
 {% endblock overview.main %}
 
