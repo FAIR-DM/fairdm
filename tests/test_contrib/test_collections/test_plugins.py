@@ -596,6 +596,21 @@ class TestRecordPage:
             address(dataset, "samples", SoilSample),
         }
 
+    def test_the_switchers_trigger_is_a_named_button_controlling_the_menu(
+        self, client, dataset
+    ):
+        response = client.get(address(dataset, "samples"))
+
+        switcher = self.page(response).find(id="type-switcher")
+        trigger = switcher.find(True, recursive=False)
+        assert trigger.name == "button"
+        assert trigger["type"] == "button"
+        assert trigger.get_text(strip=True) != ""
+        assert trigger["aria-haspopup"] == "menu"
+        controlled = switcher.find(id=trigger["aria-controls"])
+        assert controlled.find("a", href=True) is not None
+        assert trigger.find_parent("h1") is not None
+
     def test_one_listed_type_has_no_switcher(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         RockSampleFactory(dataset=dataset)
