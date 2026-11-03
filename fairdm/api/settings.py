@@ -110,6 +110,13 @@ SPECTACULAR_SETTINGS = {
     "SWAGGER_UI_FAVICON_HREF": "SIDECAR",
     "SCHEMA_PATH_PREFIX": r"/api/v[0-9]+",
     "SORT_OPERATIONS": False,
+    # Fields of different records share the names ``status`` and ``type``. Naming their choices
+    # keeps each enum's component name from depending on a hash.
+    "ENUM_NAME_OVERRIDES": {
+        "ProjectStatusEnum": "fairdm.core.choices.ProjectStatus",
+        "OrganizationTypeEnum": "fairdm.contrib.contributors.choices.OrganizationType",
+        "AffiliationTypeEnum": ["member", "admin", "owner"],
+    },
     "POSTPROCESSING_HOOKS": [
         "drf_spectacular.hooks.postprocess_schema_enums",
         "fairdm.api.schema.describe_api",

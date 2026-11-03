@@ -152,6 +152,32 @@ class TestSchemaMatchesRoutes:
 
 
 @pytest.mark.django_db
+class TestSchemaIsFullyResolved:
+    def test_generating_the_schema_warns_of_nothing(self):
+        from drf_spectacular.drainage import GENERATOR_STATS
+        from drf_spectacular.generators import SchemaGenerator
+
+        GENERATOR_STATS.reset()
+        SchemaGenerator().get_schema(request=None, public=True)
+
+        assert list(GENERATOR_STATS._warn_cache) == []
+
+    @pytest.mark.parametrize("name", ["url", "html_url"])
+    def test_the_address_of_a_record_is_a_uri(self, schema, name):
+        components = schema["components"]["schemas"]
+
+        for record in ("Project", "Dataset", "RockSample", "ExampleMeasurement"):
+            assert components[record]["properties"][name]["format"] == "uri"
+
+    def test_enums_with_the_same_field_name_are_named_for_what_they_hold(self, schema):
+        assert {
+            "ProjectStatusEnum",
+            "OrganizationTypeEnum",
+            "AffiliationTypeEnum",
+        } <= set(schema["components"]["schemas"])
+
+
+@pytest.mark.django_db
 class TestSchemaDescribesThePortal:
     def test_the_security_schemes_are_the_token_header_and_the_session(self, schema):
         schemes = list(schema["components"]["securitySchemes"].values())

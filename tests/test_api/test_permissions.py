@@ -2,8 +2,11 @@
 
 import pytest
 from django.urls import reverse
-from rest_framework.test import APIClient
+from rest_framework import serializers
+from rest_framework.test import APIClient, APIRequestFactory, force_authenticate
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
+from fairdm.api.filters import FairDMVisibilityFilter
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.factories import (
     ContributionFactory,
@@ -12,6 +15,8 @@ from fairdm.factories import (
     UserFactory,
 )
 from fairdm.utils.choices import Visibility
+from tests.factories import ConcreteMeasurementFactory, ConcreteSampleFactory
+from tests.registry_models.models import ProxyMeasurement
 from tests.test_api.conftest import make_token_client
 
 
@@ -228,6 +233,93 @@ class TestReadingASampleOrMeasurement:
         response = client.get(private.address)
 
         assert response.status_code == 200
+
+
+class ProxyMeasurementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProxyMeasurement
+        fields = ["uuid"]
+
+
+@pytest.mark.django_db
+class TestReadingAProxyOfARecordType:
+    """A viewset over a proxy reads records saved as the concrete type."""
+
+    @staticmethod
+    def status_of(record, queryset=None, user=None):
+        class ProxyViewSet(ReadOnlyModelViewSet):
+            serializer_class = ProxyMeasurementSerializer
+            lookup_field = "uuid"
+            filter_backends = [FairDMVisibilityFilter]
+
+        ProxyViewSet.queryset = (
+            ProxyMeasurement.objects.all() if queryset is None else queryset
+        )
+        request = APIRequestFactory().get("/")
+        if user is not None:
+            force_authenticate(request, user)
+        view = ProxyViewSet.as_view({"get": "retrieve"})
+        return view(request, uuid=record.uuid).status_code
+
+    @staticmethod
+    def measurement_in(dataset):
+        return ConcreteMeasurementFactory(
+            dataset=dataset, sample=ConcreteSampleFactory(dataset=dataset)
+        )
+
+    @pytest.fixture
+    def private_dataset(self):
+        return DatasetFactory(visibility=Visibility.PRIVATE)
+
+    @pytest.fixture
+    def viewer(self, private_dataset):
+        person = UserFactory()
+        ContributionFactory(
+            content_object=private_dataset,
+            contributor=person,
+            level=ContributionLevel.VIEW,
+        )
+        return person
+
+    def test_a_person_at_the_view_level_receives_the_record(
+        self, private_dataset, viewer
+    ):
+        record = self.measurement_in(private_dataset)
+
+        assert self.status_of(record, user=viewer) == 200
+
+    def test_the_answer_is_the_same_when_records_load_as_the_proxy(
+        self, private_dataset, viewer
+    ):
+        record = self.measurement_in(private_dataset)
+        queryset = ProxyMeasurement.objects.non_polymorphic()
+
+        assert self.status_of(record, queryset, user=viewer) == 200
+
+    def test_a_visitor_receives_a_record_in_a_released_dataset(self, public_dataset):
+        record = self.measurement_in(public_dataset)
+
+        assert self.status_of(record) == 200
+
+    def test_a_visitor_is_refused_a_record_in_a_private_dataset(self, private_dataset):
+        record = self.measurement_in(private_dataset)
+
+        assert self.status_of(record) == 404
+
+    def test_a_person_with_no_level_is_refused(self, private_dataset):
+        record = self.measurement_in(private_dataset)
+
+        assert self.status_of(record, user=UserFactory()) == 404
+
+    def test_a_private_project_hides_a_record_in_its_released_dataset(self):
+        dataset = DatasetFactory(
+            project=ProjectFactory(visibility=Visibility.PRIVATE),
+            visibility=Visibility.PUBLIC,
+            published=True,
+        )
+        record = self.measurement_in(dataset)
+
+        assert self.status_of(record) == 404
 
 
 @pytest.mark.django_db

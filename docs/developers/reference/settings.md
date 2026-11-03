@@ -1257,9 +1257,9 @@ A key of [`REST_FRAMEWORK`](#rest_framework).
 ### `SPECTACULAR_SETTINGS`
 
 - **Type**: `dict`
-- **Default**: `TITLE` from `FAIRDM_API_TITLE`, `DESCRIPTION` from `FAIRDM_API_DESCRIPTION`, `VERSION` `"1.0.0"`, `SERVE_INCLUDE_SCHEMA` `False`, `SWAGGER_UI_DIST` and `SWAGGER_UI_FAVICON_HREF` `"SIDECAR"`, `SCHEMA_PATH_PREFIX` `r"/api/v[0-9]+"`, `SORT_OPERATIONS` `False`, and `POSTPROCESSING_HOOKS` holding `drf_spectacular.hooks.postprocess_schema_enums` and `fairdm.api.schema.describe_api`.
+- **Default**: `TITLE` from `FAIRDM_API_TITLE`, `DESCRIPTION` from `FAIRDM_API_DESCRIPTION`, `VERSION` `"1.0.0"`, `SERVE_INCLUDE_SCHEMA` `False`, `SWAGGER_UI_DIST` and `SWAGGER_UI_FAVICON_HREF` `"SIDECAR"`, `SCHEMA_PATH_PREFIX` `r"/api/v[0-9]+"`, `SORT_OPERATIONS` `False`, `ENUM_NAME_OVERRIDES` naming the project status, organization type and affiliation type enums, and `POSTPROCESSING_HOOKS` holding `drf_spectacular.hooks.postprocess_schema_enums` and `fairdm.api.schema.describe_api`.
 - **What it does**: Configures the OpenAPI schema and the interactive documentation. The bundled Swagger assets let the documentation work without internet access. The `describe_api` hook writes the portal's authentication, limits and paging into the description from the live settings.
-- **Accepts**: drf-spectacular's format. Assign items, such as `SPECTACULAR_SETTINGS["TITLE"] = "My Portal API"`, and never a new dictionary, which drops the Swagger assets, the path prefix and the `describe_api` hook. See [How to customise the API documentation](../how-to/customise-the-api-documentation.md).
+- **Accepts**: drf-spectacular's format. Assign items, such as `SPECTACULAR_SETTINGS["TITLE"] = "My Portal API"`, and never a new dictionary, which drops the Swagger assets, the path prefix, the enum names and the `describe_api` hook. See [How to customise the API documentation](../how-to/customise-the-api-documentation.md).
 
 ## Legal documents
 

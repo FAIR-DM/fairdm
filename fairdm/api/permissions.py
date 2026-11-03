@@ -45,6 +45,22 @@ class FairDMObjectPermissions(DjangoObjectPermissions):
 
     authenticated_users_only = False
 
+    def get_required_object_permissions(self, method, model_cls) -> list[str]:
+        """Ask for the concrete model's permissions when the model is a proxy.
+
+        ``RecordLevelBackend`` knows no level for a proxy's own codename.
+
+        Args:
+            method: The HTTP method of the request.
+            model_cls: The model the view serves, or the class of the object.
+
+        Returns:
+            The permissions a user needs on the object.
+        """
+        return super().get_required_object_permissions(
+            method, model_cls._meta.concrete_model
+        )
+
     def has_permission(self, request: Request, view: APIView) -> bool:
         """Allow reads to anyone and writes to any signed-in user."""
         if request.method in ("GET", "HEAD", "OPTIONS"):
