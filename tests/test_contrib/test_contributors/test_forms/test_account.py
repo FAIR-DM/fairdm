@@ -92,6 +92,42 @@ class TestSocialSignupForm:
         assert response.url == reverse("account_email_verification_sent")
         assert not SocialAccount.objects.exists()
 
+    def test_a_sign_up_does_not_claim_a_deactivated_profile_holding_the_identifier(
+        self, orcid_signup
+    ):
+        existing = PersonFactory(
+            email="old@example.org", is_active=False, is_claimed=False
+        )
+        ContributorIdentifier.objects.create(
+            related=existing, value=ORCID_UID, type_id=ORCID
+        )
+
+        submit_orcid_signup(orcid_signup)
+
+        existing.refresh_from_db()
+        assert existing.is_claimed is False
+
+    @pytest.mark.parametrize("verification", ["none", "optional", "mandatory"])
+    def test_a_person_a_sign_up_creates_is_claimed_from_the_start(
+        self, orcid_signup, settings, rf, verification
+    ):
+        settings.ACCOUNT_EMAIL_VERIFICATION = verification
+        request = rf.get("/")
+        request.session = {}
+        provider = SocialApp.objects.get().get_provider(request)
+        pending = provider.sociallogin_from_response(
+            request, {"orcid-identifier": {"path": ORCID_UID}}
+        )
+        session = orcid_signup.session
+        session["socialaccount_sociallogin"] = pending.serialize()
+        session.save()
+
+        submit_orcid_signup(orcid_signup)
+
+        person = Person.objects.get(email=SHARED_EMAIL)
+        assert person.is_claimed is True
+        assert person.identifiers.get(type_id=ORCID).value == ORCID_UID
+
 
 class TestUserTokenForm:
     def follow_reset_link(self, client, person):

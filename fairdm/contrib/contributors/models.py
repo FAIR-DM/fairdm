@@ -802,9 +802,9 @@ class Person(AbstractUser, Contributor):
 
         A profile nobody has claimed has no password, and a reset would give it one
         without a claim. An account that already has a password is not that case,
-        whether or not it is marked claimed: one made with ``createsuperuser``, or a
-        sign-up waiting on its confirmation. ``has_usable_password`` alone cannot say
-        that: it is also true of the blank password an imported profile is saved with.
+        whether or not it is marked claimed, such as one made with ``createsuperuser``.
+        ``has_usable_password`` alone cannot say that: it is also true of the blank
+        password an imported profile is saved with.
 
         Returns:
             True when ``can_sign_in`` is true or the person has a usable password set.
@@ -1093,14 +1093,13 @@ class Person(AbstractUser, Contributor):
         from .tasks import sync_contributor_identifier
         from .utils.transforms import ORCIDTransform
 
-        person = ORCIDTransform.update_or_create(orcid_id)
+        person, _created = ORCIDTransform.update_or_create(orcid_id)
 
-        if person and person.pk:
-            orcid_identifier = person.identifiers.filter(type_id=ORCID).first()
-            if orcid_identifier:
-                transaction.on_commit(
-                    lambda: sync_contributor_identifier.delay(orcid_identifier.pk)
-                )
+        orcid_identifier = person.identifiers.filter(type_id=ORCID).first()
+        if orcid_identifier:
+            transaction.on_commit(
+                lambda: sync_contributor_identifier.delay(orcid_identifier.pk)
+            )
 
         return person
 

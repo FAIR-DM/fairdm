@@ -4,6 +4,8 @@ import contextlib
 from unittest.mock import MagicMock
 
 import pytest
+from allauth.account.models import EmailAddress
+from allauth.account.signals import email_confirmed
 from allauth.core.exceptions import ImmediateHttpResponse
 from django.core import mail
 from django.urls import reverse
@@ -11,7 +13,11 @@ from django.utils import timezone
 from waffle.testutils import override_switch
 
 from fairdm.contrib.contributors.adapters import AccountAdapter, SocialAccountAdapter
-from fairdm.contrib.contributors.models import ContributorIdentifier, Person
+from fairdm.contrib.contributors.models import (
+    ClaimingAuditLog,
+    ContributorIdentifier,
+    Person,
+)
 from fairdm.core.vocabularies import IDENTIFIER_TYPES
 from fairdm.factories import PersonFactory
 
@@ -207,6 +213,53 @@ class TestSaveUserORCID:
             ).count()
             == 1
         )
+
+
+class TestSignUp:
+    def submit_signup(self, client, email="new.person@example.com"):
+        with override_switch("allow_signup", active=True):
+            return client.post(
+                reverse("account_signup"),
+                {
+                    "email": email,
+                    "password1": "a-new-Passw0rd!",
+                    "password2": "a-new-Passw0rd!",
+                    "first_name": "New",
+                    "last_name": "Person",
+                },
+            )
+
+    @pytest.mark.parametrize("verification", ["none", "optional", "mandatory"])
+    def test_a_person_who_signs_up_is_claimed_from_the_start(
+        self, client, db, settings, verification
+    ):
+        settings.ACCOUNT_EMAIL_VERIFICATION = verification
+
+        self.submit_signup(client)
+
+        assert Person.objects.get(email="new.person@example.com").is_claimed is True
+
+    def test_confirming_a_sign_ups_address_records_no_claim(self, client, db, settings):
+        settings.ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+        self.submit_signup(client)
+        address = EmailAddress.objects.get(email="new.person@example.com")
+
+        email_confirmed.send(sender=None, request=None, email_address=address)
+
+        assert not ClaimingAuditLog.objects.exists()
+
+    def test_signing_up_with_an_invited_address_claims_nothing(
+        self, client, db, settings
+    ):
+        settings.ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+        invited = PersonFactory(email="invited@example.com")
+        people_before = Person.objects.count()
+
+        self.submit_signup(client, email="invited@example.com")
+
+        invited.refresh_from_db()
+        assert invited.is_claimed is False
+        assert Person.objects.count() == people_before
 
 
 class TestIsOpenForSignup:

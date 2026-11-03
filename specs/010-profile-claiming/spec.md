@@ -106,6 +106,7 @@ As a portal administrator reviewing an unclaimed Person profile, I see a list of
 
 - What happens when a user has an ORCID match but also a partial email match to different unclaimed profiles? (Priority: ORCID match)
 - What happens when an ORCID sign-up submits an email address that an existing account holds, active or not, and no profile holds the ORCID identifier? (Normal email conflict check: no account is created, nothing is claimed, and the address's owner is told an account already exists)
+- What happens when someone signs up with an address no profile holds? (A new Person is created and is claimed from the start; confirming the address claims nothing, because email claiming is only for a profile someone else created)
 - How does the system handle email claiming when the user's email provider has a typo in allauth (e.g., "gmial.com")? (Fail verification, no claim)
 - What happens if an admin generates a claim token for an unclaimed profile, then the profile gets claimed via ORCID before the token is used? (Token becomes invalid)
 - How does the system prevent an authenticated user from using someone else's claim token to gain their attribution? (Token is single-use and creates a link to a specific Person; if user already has a Person account, they can't claim another without merge permission)
@@ -137,6 +138,7 @@ As a portal administrator reviewing an unclaimed Person profile, I see a list of
 - **FR-015**: System MUST log all claiming events (method, timestamp, source profile, resulting profile) for audit trail
 - **FR-016**: Each claiming method MUST have comprehensive test coverage including security edge cases
 - **FR-017**: All claiming service functions (ORCID, email, token) MUST reject attempts to claim a `Person` where `is_active=False` (Banned state) by raising an error; the ban is not lifted by claiming — an admin must explicitly re-activate the Person first
+- **FR-018**: A Person created by signing up, with email or with ORCID, MUST be claimed from the start under every `ACCOUNT_EMAIL_VERIFICATION` value; a sign-up MUST NOT claim a profile it did not create
 
 ### Key Entities
 

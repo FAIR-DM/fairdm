@@ -19,6 +19,8 @@ A card headed **Create your account**, with the portal's logo above the heading.
 
 The password must pass the portal's checks, which refuse a password that is too short, too common, all digits or too like your other details. A field that fails shows the reason beside it.
 
+The profile you make by signing up is yours from the start, so it never shows the **Unclaimed profile** badge.
+
 ## The ORCID button
 
 Below the form, after a line reading **or**, is an **ORCID** button. It starts the same ORCID sign-in as on the [Sign in](sign-in.md) screen. When the portal needs more from you after you return from ORCID, it shows a page headed **Sign Up**, with a line saying you are about to use your ORCID account to log in. The page asks you to complete a short form, which includes a **Display name** described as how you would like to be addressed within the portal. Select **Sign Up** to finish.

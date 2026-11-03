@@ -16,7 +16,7 @@ Every person is in exactly one of four states.
 |---|---|
 | Ghost | A profile created for attribution alone. It has no email address and nobody can sign in to it |
 | Invited | A profile that holds an email address and has not been claimed |
-| Claimed | A profile whose owner has claimed it and can sign in |
+| Claimed | A profile whose owner has claimed it, or created it by signing up, and can sign in |
 | Inactive | A deactivated account, whatever its claim status |
 
 The table is in order of precedence. A deactivated profile is always inactive, even one that was claimed before it was deactivated.
@@ -29,7 +29,7 @@ The reason is that a stored state can fall out of step with the facts it summari
 
 ### An account in use is not always marked claimed
 
-A person made with the `createsuperuser` command, or who signed up through the ordinary sign-up form, is active and in use. Nothing marks them as claimed. The portal therefore asks a second question wherever it matters, whether a person can actually sign in, which is true when the account is active and the person has either claimed it or has signed in. Editing rights for a profile depend on this second question, so a Community Manager is never offered a profile that its owner is using.
+A person made with the `createsuperuser` command is active and in use. Nothing marks them as claimed. The portal therefore asks a second question wherever it matters, whether a person can actually sign in, which is true when the account is active and the person has either claimed it or has signed in. Editing rights for a profile depend on this second question, so a Community Manager is never offered a profile that its owner is using.
 
 ### Why "inactive" outranks everything
 

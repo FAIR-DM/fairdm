@@ -1,5 +1,7 @@
 """Tests for the person creation form and the contribution form."""
 
+from unittest.mock import patch
+
 import pytest
 from controlled_vocabularies.models import Record
 from mvp_forms.widgets import TomSelectMultiple
@@ -10,7 +12,7 @@ from fairdm.contrib.contributors.forms.contribution import (
     UpdateContributionForm,
 )
 from fairdm.contrib.contributors.models import Contribution, Person
-from fairdm.core.vocabularies import collection_members
+from fairdm.core.vocabularies import ORCID, collection_members
 from fairdm.factories import (
     ContributionFactory,
     OrganizationFactory,
@@ -59,6 +61,45 @@ class TestPersonCreateForm:
         )
 
         assert form.has_error("affiliations")
+
+
+    def test_the_orcid_action_saves_the_person_from_their_orcid_record(
+        self, registry_network, recorded
+    ):
+        registry_network.answer(
+            "https://pub.orcid.org/v3.0/0000-0002-1825-0097", recorded("orcid-record")
+        )
+        form = PersonCreateForm(
+            {"action": "from_orcid", "from_orcid": "0000-0002-1825-0097"}
+        )
+        assert form.is_valid(), form.errors
+
+        person = form.save()
+
+        assert person == Person.objects.get(
+            identifiers__value="0000-0002-1825-0097", identifiers__type_id=ORCID
+        )
+
+    def test_the_orcid_action_schedules_a_full_sync_after_commit(
+        self, registry_network, recorded, django_capture_on_commit_callbacks
+    ):
+        registry_network.answer(
+            "https://pub.orcid.org/v3.0/0000-0002-1825-0097", recorded("orcid-record")
+        )
+        form = PersonCreateForm(
+            {"action": "from_orcid", "from_orcid": "0000-0002-1825-0097"}
+        )
+        assert form.is_valid(), form.errors
+
+        with (
+            patch(
+                "fairdm.contrib.contributors.tasks.sync_contributor_identifier.delay"
+            ) as delay,
+            django_capture_on_commit_callbacks(execute=True),
+        ):
+            person = form.save()
+
+        delay.assert_called_once_with(person.identifiers.get(type_id=ORCID).pk)
 
 
 @pytest.mark.django_db

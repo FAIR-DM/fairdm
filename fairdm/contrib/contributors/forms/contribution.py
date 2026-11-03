@@ -81,6 +81,9 @@ class PersonCreateForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.action = self.data.get("action") if self.data else None
+        # The ORCID record supplies the name, and ``Person.save`` builds one from the
+        # first and last names when it is left blank.
+        self.fields["name"].required = False
         # A form built outside a request serves no person and accepts every organization.
         self.fields["affiliations"].queryset = Organization.objects.all()
 
@@ -116,7 +119,7 @@ class PersonCreateForm(ModelForm):
         """Create the person from ORCID, or save the entered details and their affiliation."""
         if self.action == "from_orcid":
             orcid_id = self.cleaned_data.get("from_orcid")
-            self.instance, _ = Person.from_orcid(orcid_id)
+            self.instance = Person.from_orcid(orcid_id)
             return self.instance
 
         self.instance = super().save(commit)
