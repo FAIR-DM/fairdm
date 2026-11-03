@@ -831,7 +831,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p>A profile that holds an email address and has not been claimed</p></td>
 </tr>
 <tr class="row-even"><td><p>Claimed</p></td>
-<td><p>A profile whose owner has claimed it and can sign in</p></td>
+<td><p>A profile whose owner has claimed it, or created it by signing up, and can sign in</p></td>
 </tr>
 <tr class="row-odd"><td><p>Inactive</p></td>
 <td><p>A deactivated account, whatever its claim status</p></td>
@@ -847,7 +847,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="an-account-in-use-is-not-always-marked-claimed">
 <h3>An account in use is not always marked claimed<a class="headerlink" href="#an-account-in-use-is-not-always-marked-claimed" title="Link to this heading">#</a></h3>
-<p>A person made with the <code class="docutils literal notranslate"><span class="pre">createsuperuser</span></code> command, or who signed up through the ordinary sign-up form, is active and in use. Nothing marks them as claimed. The portal therefore asks a second question wherever it matters, whether a person can actually sign in, which is true when the account is active and the person has either claimed it or has signed in. Editing rights for a profile depend on this second question, so a Community Manager is never offered a profile that its owner is using.</p>
+<p>A person made with the <code class="docutils literal notranslate"><span class="pre">createsuperuser</span></code> command is active and in use. Nothing marks them as claimed. The portal therefore asks a second question wherever it matters, whether a person can actually sign in, which is true when the account is active and the person has either claimed it or has signed in. Editing rights for a profile depend on this second question, so a Community Manager is never offered a profile that its owner is using.</p>
 </section>
 <section id="why-inactive-outranks-everything">
 <h3>Why “inactive” outranks everything<a class="headerlink" href="#why-inactive-outranks-everything" title="Link to this heading">#</a></h3>

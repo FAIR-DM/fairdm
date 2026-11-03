@@ -1745,9 +1745,9 @@ True when the account is active and the person has claimed it or has signed in.<
 <dd><p>Say whether a password reset may reach this person.</p>
 <p>A profile nobody has claimed has no password, and a reset would give it one
 without a claim. An account that already has a password is not that case,
-whether or not it is marked claimed: one made with <code class="docutils literal notranslate"><span class="pre">createsuperuser</span></code>, or a
-sign-up waiting on its confirmation. <code class="docutils literal notranslate"><span class="pre">has_usable_password</span></code> alone cannot say
-that: it is also true of the blank password an imported profile is saved with.</p>
+whether or not it is marked claimed, such as one made with <code class="docutils literal notranslate"><span class="pre">createsuperuser</span></code>.
+<code class="docutils literal notranslate"><span class="pre">has_usable_password</span></code> alone cannot say that: it is also true of the blank
+password an imported profile is saved with.</p>
 <p>Returns:
 True when <code class="docutils literal notranslate"><span class="pre">can_sign_in</span></code> is true or the person has a usable password set.</p>
 </dd></dl>

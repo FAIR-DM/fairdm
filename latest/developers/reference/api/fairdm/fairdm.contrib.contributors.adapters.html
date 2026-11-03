@@ -1139,6 +1139,18 @@ True when the login’s provider is <code class="docutils literal notranslate"><
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.adapters.AccountAdapter.new_user">
+<span class="sig-name descname"><span class="pre">new_user</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">django.http.HttpRequest</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.adapters.AccountAdapter.new_user" title="Link to this definition">#</a></dt>
+<dd><p>Build the person a sign-up creates, who is claimed from the start.</p>
+<p>A profile adopted during an ORCID sign-up already exists, so it never comes
+through here.</p>
+<p>Args:
+request: The sign-up request.</p>
+<p>Returns:
+The unsaved person.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.adapters.AccountAdapter.get_user_signed_up_signal">
 <span class="sig-name descname"><span class="pre">get_user_signed_up_signal</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.adapters.AccountAdapter.get_user_signed_up_signal" title="Link to this definition">#</a></dt>
 <dd><p>Return allauth’s <code class="docutils literal notranslate"><span class="pre">user_signed_up</span></code> signal.</p>
@@ -1258,6 +1270,7 @@ The profile, or None when no identifier row matches.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.adapters.is_provider"><code class="docutils literal notranslate"><span class="pre">is_provider()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.adapters.AccountAdapter"><code class="docutils literal notranslate"><span class="pre">AccountAdapter</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.adapters.AccountAdapter.is_open_for_signup"><code class="docutils literal notranslate"><span class="pre">AccountAdapter.is_open_for_signup()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.adapters.AccountAdapter.new_user"><code class="docutils literal notranslate"><span class="pre">AccountAdapter.new_user()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.adapters.AccountAdapter.get_user_signed_up_signal"><code class="docutils literal notranslate"><span class="pre">AccountAdapter.get_user_signed_up_signal()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.adapters.AccountAdapter.send_password_reset_mail"><code class="docutils literal notranslate"><span class="pre">AccountAdapter.send_password_reset_mail()</span></code></a></li>
 </ul>

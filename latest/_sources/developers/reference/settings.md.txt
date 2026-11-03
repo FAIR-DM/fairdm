@@ -891,7 +891,7 @@ The Celery settings use the `CELERY_` prefix, which FairDM's Celery application 
 
 - **Type**: `str`
 - **Default**: Production: `"mandatory"`. Development: `"none"`.
-- **What it does**: Whether a person must confirm their email address before signing in. FairDM claims an unclaimed profile when its email is confirmed, and only while this is `"mandatory"`.
+- **What it does**: Whether a person must confirm their email address before signing in. FairDM claims an unclaimed profile when its email is confirmed, and only while this is `"mandatory"`. A person who signs up is claimed from the start under every value.
 - **Accepts**: `"mandatory"`, `"optional"` or `"none"`. Only `"mandatory"` claims profiles by email.
 
 ### `ACCOUNT_FORMS`
@@ -1038,7 +1038,7 @@ The Celery settings use the `CELERY_` prefix, which FairDM's Celery application 
 
 - **Type**: `dict`
 - **Default**: `{"orcid": {"BASE_DOMAIN": "orcid.org", "MEMBER_API": False}}`, where the domain comes from `ORCID_BASE_DOMAIN`
-- **What it does**: The social sign-in providers and their options. FairDM installs the ORCID provider. To offer another provider, add its app to `INSTALLED_APPS` and an entry for it here, and register the provider's client credentials as allauth describes in its [provider documentation](https://docs.allauth.org/en/latest/socialaccount/providers/index.html).
+- **What it does**: The social sign-in providers and their options. FairDM installs the ORCID provider. To offer another provider, add its app to `INSTALLED_APPS` and an entry for it here, and register the provider's client credentials as allauth describes in its [provider documentation](https://docs.allauth.org/en/latest/socialaccount/providers/index.html). Until a portal registers credentials for ORCID, the sign-in page offers no ORCID button and `account-center/orcid/login/` and its `callback/` address answer 404.
 - **Accepts**: allauth's format. Add a provider by assigning an item, such as `SOCIALACCOUNT_PROVIDERS["github"] = {...}`. For development, set `ORCID_BASE_DOMAIN` to `sandbox.orcid.org`.
 
 ## Profiles and claiming

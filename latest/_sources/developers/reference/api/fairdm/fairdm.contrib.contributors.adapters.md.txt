@@ -68,6 +68,14 @@ Bases: {py:obj}`allauth.account.adapter.DefaultAccountAdapter`
 
 ````
 
+````{py:method} new_user(request: django.http.HttpRequest)
+:canonical: fairdm.contrib.contributors.adapters.AccountAdapter.new_user
+
+```{autodoc2-docstring} fairdm.contrib.contributors.adapters.AccountAdapter.new_user
+```
+
+````
+
 ````{py:method} get_user_signed_up_signal()
 :canonical: fairdm.contrib.contributors.adapters.AccountAdapter.get_user_signed_up_signal
 

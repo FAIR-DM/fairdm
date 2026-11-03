@@ -8,6 +8,8 @@ A portal is often filled before its users arrive. Datasets are imported, and the
 
 When the real person turns up, there are two ways it could go wrong. They might register a second, separate account, leaving their past work credited to a profile they cannot reach. Or someone else might take over the profile. Claiming is the rule that joins the two safely. The person proves they are the profile's owner, and the existing profile becomes their account. Their past credits are already on it, so their history is intact and they have one identity instead of two.
 
+Claiming is only for a profile someone else created. A person who signs up creates their own profile, so it is claimed from the start, with email or with ORCID and whichever value `ACCOUNT_EMAIL_VERIFICATION` has. Nothing about that sign-up goes through the routes below or the audit log.
+
 ## What claiming changes
 
 A successful claim marks the profile claimed and active, so the person can sign in to it. It changes nothing else about the profile's credits, affiliations or identifiers. Whichever route is used, the attempt is written to an audit log. The log records the method used, the profile concerned, whether it succeeded and, for a failure, the reason. Entries are never changed or deleted.

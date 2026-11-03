@@ -109,26 +109,6 @@ Bases: {py:obj}`django.forms.ModelForm`
 
 ````
 
-````{py:attribute} labels
-:canonical: fairdm.contrib.contributors.forms.person.SignupExtraForm.Meta.labels
-:value: >
-   None
-
-```{autodoc2-docstring} fairdm.contrib.contributors.forms.person.SignupExtraForm.Meta.labels
-```
-
-````
-
-````{py:attribute} help_texts
-:canonical: fairdm.contrib.contributors.forms.person.SignupExtraForm.Meta.help_texts
-:value: >
-   None
-
-```{autodoc2-docstring} fairdm.contrib.contributors.forms.person.SignupExtraForm.Meta.help_texts
-```
-
-````
-
 `````
 
 ````{py:method} signup(request, user)

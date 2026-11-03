@@ -824,6 +824,17 @@ longer exist.</p></li>
 <section id="fixed">
 <h3>Fixed<a class="headerlink" href="#fixed" title="Link to this heading">#</a></h3>
 <ul class="simple">
+<li><p><strong>A person who signs up is claimed from the start.</strong> With email or with ORCID, whatever
+<code class="docutils literal notranslate"><span class="pre">ACCOUNT_EMAIL_VERIFICATION</span></code> says. With <code class="docutils literal notranslate"><span class="pre">&quot;optional&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;none&quot;</span></code>, nobody who signed up was ever
+claimed, so their own profile called them unclaimed. Accounts that signed up before this change
+keep their state. Confirming an email address still claims a profile someone else created.</p></li>
+<li><p><strong>The ORCID sign-in addresses answer 404 while no ORCID application is configured.</strong>
+<code class="docutils literal notranslate"><span class="pre">account-center/orcid/login/</span></code> and its <code class="docutils literal notranslate"><span class="pre">callback/</span></code> address failed with a server error.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">Person.from_orcid()</span></code> returns the person.</strong> It raised <code class="docutils literal notranslate"><span class="pre">AttributeError</span></code> for every ORCID iD after
+saving the person, and <code class="docutils literal notranslate"><span class="pre">PersonCreateForm</span></code> unpacked the result as a pair. The form’s ORCID action
+also no longer asks for a name, which the ORCID record supplies.</p></li>
+<li><p><strong>The sign-up form’s name fields show their help text and translated labels.</strong> The labels and
+help texts sat in <code class="docutils literal notranslate"><span class="pre">Meta</span></code>, which Django ignores for fields declared on the form.</p></li>
 <li><p><strong>A model-wide permission outside the shipped portal roles gives no right on any record.</strong> A
 person granted <code class="docutils literal notranslate"><span class="pre">dataset.change_dataset</span></code> directly in the administration, or through a group the
 portal made up, could open the editing pages of every dataset they could see and change the

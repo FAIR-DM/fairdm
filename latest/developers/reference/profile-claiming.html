@@ -1102,7 +1102,10 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.signals</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">handle_email_confirmed</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.models</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.views.orcid</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">orcid_login</span></code>, <code class="docutils literal notranslate"><span class="pre">orcid_callback</span></code>, <code class="docutils literal notranslate"><span class="pre">not_found_without_application</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.models</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ClaimMethod</span></code>, <code class="docutils literal notranslate"><span class="pre">ClaimingAuditLog</span></code></p></td>
 </tr>
 </tbody>
@@ -1157,15 +1160,22 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SocialAccountAdapter.is_open_for_signup(request,</span> <span class="pre">sociallogin)</span></code></p></td>
 <td><p>True when the <code class="docutils literal notranslate"><span class="pre">allow_signup</span></code> waffle switch is active and allauth agrees</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">AccountAdapter.is_open_for_signup(request)</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">AccountAdapter.new_user(request)</span></code></p></td>
+<td><p>Builds the person a sign-up creates, with email or with ORCID, marked claimed. A profile adopted during an ORCID sign-up already exists, so it does not pass through here and stays as it was</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">AccountAdapter.is_open_for_signup(request)</span></code></p></td>
 <td><p>False when the <code class="docutils literal notranslate"><span class="pre">allow_signup</span></code> switch is off. True when the session holds a verified email address (<code class="docutils literal notranslate"><span class="pre">account_verified_email</span></code>). Otherwise true unless <code class="docutils literal notranslate"><span class="pre">FAIRDM_INVITATION_ONLY_SIGNUP</span></code> is set</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">handle_email_confirmed(sender,</span> <span class="pre">request=None,</span> <span class="pre">email_address=None,</span> <span class="pre">**kwargs)</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">handle_email_confirmed(sender,</span> <span class="pre">request=None,</span> <span class="pre">email_address=None,</span> <span class="pre">**kwargs)</span></code></p></td>
 <td><p>Connected to allauth’s <code class="docutils literal notranslate"><span class="pre">email_confirmed</span></code> signal. Does nothing unless <code class="docutils literal notranslate"><span class="pre">ACCOUNT_EMAIL_VERIFICATION</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;mandatory&quot;</span></code>. Finds the unclaimed person with the confirmed address and calls <code class="docutils literal notranslate"><span class="pre">claim_via_email</span></code>. A failure is logged and not raised</p></td>
 </tr>
 </tbody>
 </table>
 </div>
+</section>
+<section id="orcid-sign-in-addresses">
+<h2>ORCID sign-in addresses<a class="headerlink" href="#orcid-sign-in-addresses" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">fairdm.conf.urls</span></code> routes <code class="docutils literal notranslate"><span class="pre">account-center/orcid/login/</span></code> to <code class="docutils literal notranslate"><span class="pre">orcid_login</span></code> and <code class="docutils literal notranslate"><span class="pre">account-center/orcid/login/callback/</span></code> to <code class="docutils literal notranslate"><span class="pre">orcid_callback</span></code>, ahead of allauth’s own routes for those addresses. Both are allauth’s views wrapped in <code class="docutils literal notranslate"><span class="pre">not_found_without_application(view)</span></code>, which turns <code class="docutils literal notranslate"><span class="pre">SocialApp.DoesNotExist</span></code> into a 404, so the addresses answer 404 until a portal configures an ORCID application.</p>
 </section>
 <section id="merge-service">
 <h2>Merge service<a class="headerlink" href="#merge-service" title="Link to this heading">#</a></h2>
@@ -1407,6 +1417,7 @@ commentsRunWhenDOMLoaded(addUtterances);
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#claiming-services">Claiming services</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#adapters-and-handlers">Adapters and handlers</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#orcid-sign-in-addresses">ORCID sign-in addresses</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#merge-service">Merge service</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#duplicate-finder">Duplicate finder</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#claimingerror">ClaimingError</a></li>
