@@ -103,7 +103,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.4.1" />
-    <meta name="docbuild:last-update" content="Nov 02, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 03, 2026"/>
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -1245,9 +1245,9 @@ The datasets with no project or a public one.</p>
 <span class="sig-name descname"><span class="pre">visible_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#fairdm.core.dataset.models.DatasetQuerySet" title="fairdm.core.dataset.models.DatasetQuerySet"><span class="pre">fairdm.core.dataset.models.DatasetQuerySet</span></a></span></span><a class="headerlink" href="#fairdm.core.dataset.models.DatasetQuerySet.visible_to" title="Link to this definition">#</a></dt>
 <dd><p>Return the datasets the user may see.</p>
 <p>Those <code class="docutils literal notranslate"><span class="pre">get_visible()</span></code> returns, and those the user holds a level on, on the
-dataset or on its project. A user who holds <code class="docutils literal notranslate"><span class="pre">view_dataset</span></code> for the whole
-portal sees every dataset. Call it on <code class="docutils literal notranslate"><span class="pre">all_objects</span></code>: the default manager
-excludes private datasets.</p>
+dataset or on its project. A user whom <code class="docutils literal notranslate"><span class="pre">view_dataset</span></code> reaches on every record,
+as it does a superuser or a Data Curator, sees every dataset. Call it on
+<code class="docutils literal notranslate"><span class="pre">all_objects</span></code>: the default manager excludes private datasets.</p>
 <p>Args:
 user: The user, or <code class="docutils literal notranslate"><span class="pre">None</span></code>, the default, for a visitor.</p>
 <p>Returns:

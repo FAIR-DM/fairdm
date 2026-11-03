@@ -103,7 +103,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.4.1" />
-    <meta name="docbuild:last-update" content="Nov 02, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 03, 2026"/>
   
     
     <script src="../_static/searchtools.js"></script>
@@ -890,7 +890,10 @@ shipped roles serves the requirement exactly and leaves that guard standing.</p>
 <section id="consequences">
 <h2>Consequences<a class="headerlink" href="#consequences" title="Link to this heading">#</a></h2>
 <p>What a role can do is readable in one place and pinned by a test that asserts each permission set
-exactly rather than by subset, so widening a role is a visible change rather than a quiet one.</p>
+exactly rather than by subset, so widening a role is a visible change rather than a quiet one.
+The one part not spelled out there is the Data Curator’s rights over registered sample and
+measurement types: each portal registers its own, so they are read from the registry when the roles
+are reconciled.</p>
 <p>A portal wanting a different split of rights creates a group of its own. Nothing here narrows what
 an administrator may define; it sets what they start with. The rights on a shipped role belong to
 the framework and are restored on every update, so a local edit to one does not survive.</p>

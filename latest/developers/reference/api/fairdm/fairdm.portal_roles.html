@@ -103,7 +103,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.4.1" />
-    <meta name="docbuild:last-update" content="Nov 02, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 03, 2026"/>
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -1108,7 +1108,9 @@ names a :class:<code class="docutils literal notranslate"><span class="pre">~fai
 <p>Attributes:
 name: The stored name of the role’s group.
 label: The role’s display label.
-permissions: The permissions the role holds, each an explicit <code class="docutils literal notranslate"><span class="pre">app_label.codename</span></code>.</p>
+permissions: The permissions the role holds, each an explicit <code class="docutils literal notranslate"><span class="pre">app_label.codename</span></code>.
+covers_registered_types: Whether the role also holds the permissions of every
+registered sample and measurement type, which differ per portal.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="fairdm.portal_roles.PortalRole.name">
 <span class="sig-name descname"><span class="pre">name</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#fairdm.portal_roles.PortalRole.name" title="Link to this definition">#</a></dt>
@@ -1125,6 +1127,12 @@ permissions: The permissions the role holds, each an explicit <code class="docut
 <dt class="sig sig-object py" id="fairdm.portal_roles.PortalRole.permissions">
 <span class="sig-name descname"><span class="pre">permissions</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#fairdm.portal_roles.PortalRole.permissions" title="Link to this definition">#</a></dt>
 <dd><p>()</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.portal_roles.PortalRole.covers_registered_types">
+<span class="sig-name descname"><span class="pre">covers_registered_types</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#fairdm.portal_roles.PortalRole.covers_registered_types" title="Link to this definition">#</a></dt>
+<dd><p>False</p>
 </dd></dl>
 
 </dd></dl>
@@ -1202,11 +1210,39 @@ The names of the roles with at least one permission.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="fairdm.portal_roles.PortalRoles.reaches_every_record">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">reaches_every_record</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">permission</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#fairdm.portal_roles.PortalRoles.reaches_every_record" title="Link to this definition">#</a></dt>
+<dd><p>Say whether a permission applies to every record for a user, listed on it or not.</p>
+<p>It does for an active superuser, and for someone who holds it through a shipped role. A
+permission granted straight to a person, or held through a group the portal made up
+itself, does not.</p>
+<p>Args:
+user: The user, or an anonymous user for a visitor.
+permission: The permission, as <code class="docutils literal notranslate"><span class="pre">app_label.codename</span></code>.</p>
+<p>Returns:
+True when the permission reaches every record.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.portal_roles.PortalRoles.permissions_of">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">permissions_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">role</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#fairdm.portal_roles.PortalRole" title="fairdm.portal_roles.PortalRole"><span class="pre">fairdm.portal_roles.PortalRole</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#fairdm.portal_roles.PortalRoles.permissions_of" title="Link to this definition">#</a></dt>
+<dd><p>Return every permission a role holds in this portal.</p>
+<p>That is its declaration, and for a role that covers them the permissions of every
+registered sample and measurement type. Those are read from the registry because each
+portal registers its own types, and the polymorphic administration hands a record to
+the admin of its type, which asks for that type’s own permissions.</p>
+<p>Args:
+role: The role.</p>
+<p>Returns:
+The permissions, each an explicit <code class="docutils literal notranslate"><span class="pre">app_label.codename</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="fairdm.portal_roles.PortalRoles.reconcile">
 <span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">reconcile</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#fairdm.portal_roles.PortalRoles.reconcile" title="Link to this definition">#</a></dt>
 <dd><p>Install the four roles into the database.</p>
 <p>Renames the legacy rows first, so their membership carries across, then creates whatever
-role is still missing and sets each role’s permissions to exactly its declaration,
+role is still missing and sets each role’s permissions to exactly <code class="docutils literal notranslate"><span class="pre">permissions_of</span></code>,
 restoring a permission removed by hand and removing one added by hand. Membership is never
 touched, and a group this method did not create or rename is never looked at.</p>
 </dd></dl>
@@ -1271,6 +1307,7 @@ touched, and a group this method did not create or rename is never looked at.</p
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.portal_roles.PortalRole.name"><code class="docutils literal notranslate"><span class="pre">PortalRole.name</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.portal_roles.PortalRole.label"><code class="docutils literal notranslate"><span class="pre">PortalRole.label</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.portal_roles.PortalRole.permissions"><code class="docutils literal notranslate"><span class="pre">PortalRole.permissions</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.portal_roles.PortalRole.covers_registered_types"><code class="docutils literal notranslate"><span class="pre">PortalRole.covers_registered_types</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.portal_roles.PortalRoles"><code class="docutils literal notranslate"><span class="pre">PortalRoles</span></code></a><ul class="nav section-nav flex-column">
@@ -1283,6 +1320,8 @@ touched, and a group this method did not create or rename is never looked at.</p
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.portal_roles.PortalRoles.shipped_names"><code class="docutils literal notranslate"><span class="pre">PortalRoles.shipped_names()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.portal_roles.PortalRoles.is_held_by"><code class="docutils literal notranslate"><span class="pre">PortalRoles.is_held_by()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.portal_roles.PortalRoles.rights_carrying"><code class="docutils literal notranslate"><span class="pre">PortalRoles.rights_carrying()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.portal_roles.PortalRoles.reaches_every_record"><code class="docutils literal notranslate"><span class="pre">PortalRoles.reaches_every_record()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.portal_roles.PortalRoles.permissions_of"><code class="docutils literal notranslate"><span class="pre">PortalRoles.permissions_of()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.portal_roles.PortalRoles.reconcile"><code class="docutils literal notranslate"><span class="pre">PortalRoles.reconcile()</span></code></a></li>
 </ul>
 </li>

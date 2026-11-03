@@ -103,7 +103,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.4.1" />
-    <meta name="docbuild:last-update" content="Nov 02, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 03, 2026"/>
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -1286,11 +1286,14 @@ ValidationError: Attached to <code class="docutils literal notranslate"><span cl
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.access.RecordAccess.can_manage">
 <span class="sig-name descname"><span class="pre">can_manage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.access.RecordAccess.can_manage" title="Link to this definition">#</a></dt>
 <dd><p>Say whether a user may change the record’s contributors.</p>
+<p>Asks <code class="docutils literal notranslate"><span class="pre">delete_&lt;model&gt;</span></code> of the record, the permission the manage level stands for, so
+the answer comes from the record’s levels and from the shipped portal roles.
+<code class="docutils literal notranslate"><span class="pre">change_&lt;model&gt;</span></code> would answer yes to the edit level.</p>
 <p>Args:
 user: The user, or an anonymous user for a visitor.</p>
 <p>Returns:
-True for the manage level on the record or above it, and for anyone holding
-<code class="docutils literal notranslate"><span class="pre">change_&lt;model&gt;</span></code> for the whole portal, which a superuser and a Data Curator do.</p>
+True for the manage level on the record or above it, for a Data Curator and for a
+superuser.</p>
 </dd></dl>
 
 </dd></dl>

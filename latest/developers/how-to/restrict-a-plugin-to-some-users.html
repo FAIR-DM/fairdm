@@ -103,7 +103,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.4.1" />
-    <meta name="docbuild:last-update" content="Nov 02, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 03, 2026"/>
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1107,7 +1107,7 @@ commentsRunWhenDOMLoaded(addUtterances);
     <span class="n">permission</span> <span class="o">=</span> <span class="s2">"sample.change_sample"</span>
 </pre></div>
 </div>
-<p>A permission counts when the user holds it for the whole portal or on this record. Give a list to require all of them.</p>
+<p>A permission counts when the user holds it on this record, which a model-wide permission does only through a shipped portal role. Give a list to require all of them.</p>
 </li>
 <li><p>If the record can be private, write its visibility rule yourself. A plugin reads its record through the model’s <code class="docutils literal notranslate"><span class="pre">all_objects</span></code> manager when the model has one, which skips the filtering of the default manager. A private record therefore reaches the plugin, and the plugin must refuse it. This is the rule FairDM’s project pages use:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fairdm.plugins</span><span class="w"> </span><span class="kn">import</span> <span class="n">has_perm</span>

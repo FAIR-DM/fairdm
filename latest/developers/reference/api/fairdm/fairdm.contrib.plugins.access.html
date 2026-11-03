@@ -103,7 +103,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.4.1" />
-    <meta name="docbuild:last-update" content="Nov 02, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 03, 2026"/>
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -1165,7 +1165,9 @@ request: The current request.
 permission: The permission codename, with app label.
 obj: The record to check against, if any.</p>
 <p>Returns:
-True when the user holds the permission globally or on the record.</p>
+True when the user holds the permission on the record, or with no record, for the
+whole model. On a record, a model-wide grant counts only when it is held through a
+shipped portal role (:mod:<code class="docutils literal notranslate"><span class="pre">fairdm.permissions</span></code>).</p>
 </dd></dl>
 
 <dl class="py data">
@@ -1180,8 +1182,8 @@ True when the user holds the permission globally or on the record.</p>
 <dd><p>Say whether the viewer holds a level on a project, dataset, sample or measurement.</p>
 <p>The level is asked as the permission the record’s own pages are opened with:
 <code class="docutils literal notranslate"><span class="pre">view_&lt;model&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">change_&lt;model&gt;</span></code> or <code class="docutils literal notranslate"><span class="pre">delete_&lt;model&gt;</span></code>, resolved by :func:<code class="docutils literal notranslate"><span class="pre">has_perm</span></code>.
-So a level held on a record above counts, and so does the permission held for the whole
-portal. A visitor holds no level, on a public record as on a private one: the question is
+So a level held on a record above counts, and so does the permission held through a
+shipped portal role. A visitor holds no level, on a public record as on a private one: the question is
 who is on the record’s team, not who may read it.</p>
 <p>Args:
 request: The current request.

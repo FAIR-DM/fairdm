@@ -81,7 +81,7 @@ Do not edit the permissions of a shipped role. `PortalRoles.reconcile()` puts th
 
 A group of your own works the way Django groups work. It does not get what the shipped roles get:
 
-- Its permissions are not carried to individual records. A person who holds `dataset.change_dataset` only through your group is refused on a private dataset, because `PortalRolePermissionBackend` answers only for the four shipped roles. To give a person rights on a record, list them on it with a level. See [How to credit a person on a record](credit-a-person-on-a-record.md).
+- Its permissions are not carried to individual records. A person who holds `dataset.change_dataset` only through your group is refused on every dataset, public or private, because `PortalRolePermissionBackend` answers only for the four shipped roles. To give a person rights on a record, list them on it with a level. See [How to credit a person on a record](credit-a-person-on-a-record.md).
 - It does not open the administration interface. Only the roles in `PortalRoles.rights_carrying()` do.
 - It is not listed on the portal's **Team** page, which reads the four shipped roles.
 

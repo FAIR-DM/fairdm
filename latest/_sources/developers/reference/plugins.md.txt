@@ -191,7 +191,7 @@ Returns a `check(request, obj)` predicate. It passes when `obj` is an instance o
 has_perm(request, permission, obj=None)
 ```
 
-Returns `True` when the request's user holds `permission` for the whole portal or on `obj`. The answer is remembered for the rest of the request.
+Returns `True` when the request's user holds `permission` on `obj`, or for the whole model when `obj` is `None`. On a record, a model-wide permission counts only when it is held through a shipped portal role. The answer is remembered for the rest of the request.
 
 ### `holds_level`
 

@@ -103,7 +103,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.4.1" />
-    <meta name="docbuild:last-update" content="Nov 02, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 03, 2026"/>
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1458,7 +1458,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">has_perm</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">permission</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Returns <code class="docutils literal notranslate"><span class="pre">True</span></code> when the request’s user holds <code class="docutils literal notranslate"><span class="pre">permission</span></code> for the whole portal or on <code class="docutils literal notranslate"><span class="pre">obj</span></code>. The answer is remembered for the rest of the request.</p>
+<p>Returns <code class="docutils literal notranslate"><span class="pre">True</span></code> when the request’s user holds <code class="docutils literal notranslate"><span class="pre">permission</span></code> on <code class="docutils literal notranslate"><span class="pre">obj</span></code>, or for the whole model when <code class="docutils literal notranslate"><span class="pre">obj</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>. On a record, a model-wide permission counts only when it is held through a shipped portal role. The answer is remembered for the rest of the request.</p>
 </section>
 <section id="holds-level">
 <h3><code class="docutils literal notranslate"><span class="pre">holds_level</span></code><a class="headerlink" href="#holds-level" title="Link to this heading">#</a></h3>

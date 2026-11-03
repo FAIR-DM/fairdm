@@ -103,7 +103,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.4.1" />
-    <meta name="docbuild:last-update" content="Nov 02, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 03, 2026"/>
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1279,7 +1279,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </div>
 <ul class="simple">
 <li><p><strong>Arguments</strong>: <code class="docutils literal notranslate"><span class="pre">level</span></code>, one of <code class="docutils literal notranslate"><span class="pre">&quot;view&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;edit&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;manage&quot;</span></code>, and <code class="docutils literal notranslate"><span class="pre">record</span></code>, a project, dataset, sample or measurement.</p></li>
-<li><p><strong>Returns</strong>: <code class="docutils literal notranslate"><span class="pre">True</span></code> when the viewer holds that level on the record or a higher one, through a contribution on the record, on a record above it or for the whole portal. <code class="docutils literal notranslate"><span class="pre">False</span></code> for a visitor who is not signed in, for a record that is none of the four, and when the context holds no <code class="docutils literal notranslate"><span class="pre">request</span></code>.</p></li>
+<li><p><strong>Returns</strong>: <code class="docutils literal notranslate"><span class="pre">True</span></code> when the viewer holds that level on the record or a higher one, through a contribution on the record, on a record above it or through a portal role. <code class="docutils literal notranslate"><span class="pre">False</span></code> for a visitor who is not signed in, for a record that is none of the four, and when the context holds no <code class="docutils literal notranslate"><span class="pre">request</span></code>.</p></li>
 <li><p><strong>Raises</strong>: <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> for any other level.</p></li>
 </ul>
 <p>The answer is the one the record’s own pages are opened with. <a class="reference internal" href="contribution-levels-and-record-access.html"><span class="std std-doc">Contribution levels and record access</span></a> lists what each level allows, and <a class="reference internal" href="../how-to/show-part-of-a-page-to-a-records-team.html"><span class="std std-doc">How to show part of a page to a record’s team</span></a> uses the tag.</p>

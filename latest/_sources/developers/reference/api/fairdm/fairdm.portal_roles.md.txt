@@ -68,6 +68,17 @@ Bases: {py:obj}`typing.NamedTuple`
 
 ````
 
+````{py:attribute} covers_registered_types
+:canonical: fairdm.portal_roles.PortalRole.covers_registered_types
+:type: bool
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.portal_roles.PortalRole.covers_registered_types
+```
+
+````
+
 `````
 
 `````{py:class} PortalRoles
@@ -160,6 +171,24 @@ Bases: {py:obj}`typing.NamedTuple`
 :classmethod:
 
 ```{autodoc2-docstring} fairdm.portal_roles.PortalRoles.rights_carrying
+```
+
+````
+
+````{py:method} reaches_every_record(user, permission: str) -> bool
+:canonical: fairdm.portal_roles.PortalRoles.reaches_every_record
+:classmethod:
+
+```{autodoc2-docstring} fairdm.portal_roles.PortalRoles.reaches_every_record
+```
+
+````
+
+````{py:method} permissions_of(role: fairdm.portal_roles.PortalRole) -> tuple[str, ...]
+:canonical: fairdm.portal_roles.PortalRoles.permissions_of
+:classmethod:
+
+```{autodoc2-docstring} fairdm.portal_roles.PortalRoles.permissions_of
 ```
 
 ````

@@ -103,7 +103,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.4.1" />
-    <meta name="docbuild:last-update" content="Nov 02, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 03, 2026"/>
   
     
     <script src="../_static/searchtools.js"></script>
@@ -921,7 +921,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </div>
 <p>The roles are separate because looking after people is not the same job as looking after records. The person a research group trusts with its sample data is not automatically the person they want reading account records. A small portal can put one volunteer in both roles at no cost. See <a class="reference internal" href="../adr/0019-a-portal-role-is-the-unit-of-portal-wide-rights.html"><span class="std std-doc">ADR 0019</span></a>.</p>
 <p>A role and a level combine by addition. A person who holds both has everything either gives them. A role never changes what a level allows, and a level never gives a right over other records. A Data Curator therefore opens, edits and manages the contributors of any record without being listed on it, and doing so does not add them to the record.</p>
-<p>Portal-wide rights apply to individual records only through these four roles. A permission granted straight to a person, or through a group a portal made up for itself, is not turned into a right over a particular record. A person holding only such a model-wide permission is refused on a private record’s editing pages, because a page that inherited its visibility rule from the model would not be guarded.</p>
+<p>Portal-wide rights apply to individual records only through these four roles. A permission granted straight to a person, or through a group a portal made up for itself, is not turned into a right over a particular record. A person holding only such a model-wide permission is refused on every record’s editing pages and cannot change its contributors, and it shows them no private record. A page that inherited its rule from the model would not be guarded.</p>
 <p>A superuser holds every permission, and is a flag for whoever deploys the portal rather than a role. A superuser cannot be credited on a record.</p>
 <section id="roles-are-protected">
 <h3>Roles are protected<a class="headerlink" href="#roles-are-protected" title="Link to this heading">#</a></h3>

@@ -103,7 +103,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.4.1" />
-    <meta name="docbuild:last-update" content="Nov 02, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 03, 2026"/>
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -1178,9 +1178,9 @@ None for a visitor or an inactive user.</p>
 <span class="sig-name descname"><span class="pre">accessible_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.managers.RecordLevelMixin.accessible_to" title="Link to this definition">#</a></dt>
 <dd><p>Return the records the user holds a level on, and every record for a portal-wide right.</p>
 <p>Choice lists and filters offer the same records the permission backends would let the
-user act on: those the user holds the level on, and all of them for someone the portal
-gives <code class="docutils literal notranslate"><span class="pre">view</span></code> (for the view level) or <code class="docutils literal notranslate"><span class="pre">change</span></code> (for edit and manage) on the whole
-model, as a superuser or a Data Curator has.</p>
+user act on: those the user holds the level on, and all of them for someone <code class="docutils literal notranslate"><span class="pre">view</span></code> (for
+the view level) or <code class="docutils literal notranslate"><span class="pre">change</span></code> (for edit and manage) reaches on every record, as it does
+for a superuser or a Data Curator.</p>
 <p>Args:
 user: The user, or <code class="docutils literal notranslate"><span class="pre">None</span></code> or an anonymous user for a visitor.
 level: The least level wanted, a <code class="docutils literal notranslate"><span class="pre">ContributionLevel</span></code>.</p>
@@ -1224,8 +1224,8 @@ The records whose own dataset has no project or a public one.</p>
 <p>Those whose own dataset is public and published, unless a private project hides that
 dataset, and those the user holds a level on, on the record itself or from its dataset or
 that dataset’s project. Someone listed only on one record sees that record and not its
-siblings. A user who holds <code class="docutils literal notranslate"><span class="pre">view_dataset</span></code> or <code class="docutils literal notranslate"><span class="pre">change_dataset</span></code> for the whole portal
-sees every record.</p>
+siblings. A user whom <code class="docutils literal notranslate"><span class="pre">view_dataset</span></code> or <code class="docutils literal notranslate"><span class="pre">change_dataset</span></code> reaches on every record, as
+it does a superuser or a Data Curator, sees every record.</p>
 <p>Args:
 user: The user, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a visitor.</p>
 <p>Returns:

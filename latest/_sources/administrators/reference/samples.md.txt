@@ -4,7 +4,7 @@ The Samples screens of the administration interface list the samples in the port
 
 You reach the list of every type by opening the administration interface and choosing **Samples** under **Sample**. A portal's registered types, such as rock samples, appear beside it with a list each. The address of the administration interface is described under [Reaching the administration interface](portal-roles.md#reaching-the-administration-interface).
 
-Opening a list needs the permission to view samples, which the Data Curator role holds. Adding or changing a sample of a type needs the permissions of that type, which the four [portal roles](portal-roles.md) do not hold. A superuser does.
+Opening a list needs the permission to view samples, which the Data Curator role holds. Adding or changing a sample of a type needs the permissions of that type, which the [Data Curator role](portal-roles.md#data-curator) holds for every registered type. A superuser does too.
 
 ## The list
 

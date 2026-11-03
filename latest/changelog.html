@@ -102,7 +102,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.4.1" />
-    <meta name="docbuild:last-update" content="Nov 02, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 03, 2026"/>
   
     
     <script src="_static/searchtools.js"></script>
@@ -824,6 +824,19 @@ longer exist.</p></li>
 <section id="fixed">
 <h3>Fixed<a class="headerlink" href="#fixed" title="Link to this heading">#</a></h3>
 <ul class="simple">
+<li><p><strong>A model-wide permission outside the shipped portal roles gives no right on any record.</strong> A
+person granted <code class="docutils literal notranslate"><span class="pre">dataset.change_dataset</span></code> directly in the administration, or through a group the
+portal made up, could open the editing pages of every dataset they could see and change the
+contributors of any record, and a private record could be listed to them. Every check that has a
+record in hand now asks about that record, and lists and choice lists use the new
+<code class="docutils literal notranslate"><span class="pre">PortalRoles.reaches_every_record()</span></code>. A superuser and the shipped roles keep what they had. A
+portal that relied on such a grant should give the person a level on the record or a shipped role.</p></li>
+<li><p><strong>The Data Curator and the Portal Administrator hold what their pages ask for.</strong> The Data Curator
+now holds the permissions of every registered sample and measurement type, read from the registry
+when the roles are reconciled through the new <code class="docutils literal notranslate"><span class="pre">PortalRoles.permissions_of()</span></code>, so the role can open,
+add and delete records in the administration. It also holds the identifier, sample relation and
+literature item permissions. The Portal Administrator holds <code class="docutils literal notranslate"><span class="pre">identity.view_authority</span></code> and
+<code class="docutils literal notranslate"><span class="pre">identity.change_authority</span></code>, so the Authority Management link opens.</p></li>
 <li><p><strong>A password reset no longer reaches a profile nobody has claimed.</strong> An invited profile, one with
 an email address and no account, was sent a reset link that set a password on it, which handed
 the profile to whoever held the address without a claim. The reset page now answers as it does

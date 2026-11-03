@@ -453,7 +453,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.4.1" />
-    <meta name="docbuild:last-update" content="Nov 02, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 03, 2026"/>
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -1200,7 +1200,9 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        obj: The record to check against, if any.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        True when the user holds the permission globally or on the record.</span>
+<span class="sd">        True when the user holds the permission on the record, or with no record, for the</span>
+<span class="sd">        whole model. On a record, a model-wide grant counts only when it is held through a</span>
+<span class="sd">        shipped portal role (:mod:`fairdm.permissions`).</span>
 <span class="sd">    """</span>
     <span class="n">cache</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">_MEMO_ATTR</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">cache</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1214,12 +1216,7 @@ window.runMermaid = runMermaid;</script>
         <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">permission</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">label</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">pk</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cache</span><span class="p">:</span>
-        <span class="n">user</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span>
-        <span class="c1"># With an object, ModelBackend contributes nothing, so a global grant needs its own check.</span>
-        <span class="n">granted</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">has_perm</span><span class="p">(</span><span class="n">permission</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">granted</span> <span class="ow">and</span> <span class="n">obj</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">granted</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">has_perm</span><span class="p">(</span><span class="n">permission</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
-        <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">granted</span>
+        <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">has_perm</span><span class="p">(</span><span class="n">permission</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
 
 
@@ -1235,8 +1232,8 @@ window.runMermaid = runMermaid;</script>
 
 <span class="sd">    The level is asked as the permission the record's own pages are opened with:</span>
 <span class="sd">    ``view_&lt;model&gt;``, ``change_&lt;model&gt;`` or ``delete_&lt;model&gt;``, resolved by :func:`has_perm`.</span>
-<span class="sd">    So a level held on a record above counts, and so does the permission held for the whole</span>
-<span class="sd">    portal. A visitor holds no level, on a public record as on a private one: the question is</span>
+<span class="sd">    So a level held on a record above counts, and so does the permission held through a</span>
+<span class="sd">    shipped portal role. A visitor holds no level, on a public record as on a private one: the question is</span>
 <span class="sd">    who is on the record's team, not who may read it.</span>
 
 <span class="sd">    Args:</span>

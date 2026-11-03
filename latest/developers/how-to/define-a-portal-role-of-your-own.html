@@ -103,7 +103,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.4.1" />
-    <meta name="docbuild:last-update" content="Nov 02, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 03, 2026"/>
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1149,7 +1149,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <h2>What the role does not get<a class="headerlink" href="#what-the-role-does-not-get" title="Link to this heading">#</a></h2>
 <p>A group of your own works the way Django groups work. It does not get what the shipped roles get:</p>
 <ul class="simple">
-<li><p>Its permissions are not carried to individual records. A person who holds <code class="docutils literal notranslate"><span class="pre">dataset.change_dataset</span></code> only through your group is refused on a private dataset, because <code class="docutils literal notranslate"><span class="pre">PortalRolePermissionBackend</span></code> answers only for the four shipped roles. To give a person rights on a record, list them on it with a level. See <a class="reference internal" href="credit-a-person-on-a-record.html"><span class="std std-doc">How to credit a person on a record</span></a>.</p></li>
+<li><p>Its permissions are not carried to individual records. A person who holds <code class="docutils literal notranslate"><span class="pre">dataset.change_dataset</span></code> only through your group is refused on every dataset, public or private, because <code class="docutils literal notranslate"><span class="pre">PortalRolePermissionBackend</span></code> answers only for the four shipped roles. To give a person rights on a record, list them on it with a level. See <a class="reference internal" href="credit-a-person-on-a-record.html"><span class="std std-doc">How to credit a person on a record</span></a>.</p></li>
 <li><p>It does not open the administration interface. Only the roles in <code class="docutils literal notranslate"><span class="pre">PortalRoles.rights_carrying()</span></code> do.</p></li>
 <li><p>It is not listed on the portal’s <strong>Team</strong> page, which reads the four shipped roles.</p></li>
 </ul>

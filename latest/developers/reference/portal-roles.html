@@ -103,7 +103,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.4.1" />
-    <meta name="docbuild:last-update" content="Nov 02, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 03, 2026"/>
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1099,7 +1099,12 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">permissions</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">tuple</span></code> of <code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">()</span></code></p></td>
-<td><p>The permissions the role holds, each as <code class="docutils literal notranslate"><span class="pre">app_label.codename</span></code></p></td>
+<td><p>The permissions the role declares, each as <code class="docutils literal notranslate"><span class="pre">app_label.codename</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">covers_registered_types</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Whether the role also holds the permissions of every registered sample and measurement type. True for the Data Curator</p></td>
 </tr>
 </tbody>
 </table>
@@ -1159,9 +1164,17 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
 <td><p>True when the user is authenticated, active and in the group named <code class="docutils literal notranslate"><span class="pre">role.name</span></code>. False for a visitor, a deactivated account and a user in another role. A superuser in no group does not hold the role. The check reads the group and never a Django permission</p></td>
 </tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">permissions_of(role)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">tuple</span></code> of <code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
+<td><p>Every permission the role holds in this portal: its declaration, and for a role with <code class="docutils literal notranslate"><span class="pre">covers_registered_types</span></code> the default permissions of every sample and measurement type in the registry</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">reaches_every_record(user,</span> <span class="pre">permission)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
+<td><p>True when the permission applies to every record for the user, whether or not they are listed on it: an active superuser, or someone who holds it through a shipped role. False for a permission granted straight to a person or held through a group your portal created. <code class="docutils literal notranslate"><span class="pre">permission</span></code> is <code class="docutils literal notranslate"><span class="pre">app_label.codename</span></code></p></td>
+</tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">reconcile()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
-<td><p>Installs the four roles. Creates each role that is missing and sets each role’s permissions to exactly its declaration. Restores a permission removed by hand and removes one added by hand. Never changes who is in a role</p></td>
+<td><p>Installs the four roles. Creates each role that is missing and sets each role’s permissions to exactly <code class="docutils literal notranslate"><span class="pre">permissions_of(role)</span></code>. Restores a permission removed by hand and removes one added by hand. Never changes who is in a role</p></td>
 </tr>
 </tbody>
 </table>
@@ -1219,12 +1232,10 @@ commentsRunWhenDOMLoaded(addUtterances);
 <p><code class="docutils literal notranslate"><span class="pre">has_perm(user_obj,</span> <span class="pre">perm,</span> <span class="pre">obj=None)</span></code> returns true when all of these hold:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">obj</span></code> is not <code class="docutils literal notranslate"><span class="pre">None</span></code>. The model-level question is never answered here.</p></li>
-<li><p>The user is active.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">perm</span></code> is not <code class="docutils literal notranslate"><span class="pre">contributors.manage_organization</span></code> or <code class="docutils literal notranslate"><span class="pre">manage_organization</span></code>, which is never answered here.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">perm</span></code> has the form <code class="docutils literal notranslate"><span class="pre">app_label.codename</span></code>. A bare codename gives false.</p></li>
-<li><p>The user is in a group named like a shipped role, and that group holds the permission.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PortalRoles.reaches_every_record(user_obj,</span> <span class="pre">perm)</span></code> is true.</p></li>
 </ul>
-<p>A permission granted straight to a person, or through a group your portal created, is not carried to individual records. The answer applies to every instance of the model.</p>
+<p>A permission granted straight to a person, or through a group your portal created, gives no right on any individual record. The answer applies to every instance of the model. Lists and choice lists follow the same rule through <code class="docutils literal notranslate"><span class="pre">reaches_every_record</span></code>.</p>
 </section>
 <section id="administration-interface">
 <h2>Administration interface<a class="headerlink" href="#administration-interface" title="Link to this heading">#</a></h2>
