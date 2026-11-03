@@ -145,3 +145,16 @@ The rule for which records a contributor's tabs list is `Contributor.get_associa
 portal's contributor subclass extends it in one place.
 
 **ADR:** none — follows the existing pattern of `get_public_datasets`.
+
+## D5. Record filters on a tab use the autocomplete scopes specification 032 built
+
+The dataset and sample filters of a registered type are autocomplete fields with no queryset of
+their own: their choices come from the record search at a scope. They cannot be narrowed to the
+page's rows without changing that search, which is outside this feature. They are set to the scope
+that matches who the list is for, which is what FR-007 asks: on a dataset or a project, `view` (the
+records the viewer may see); on a person's own page, that person's profile scope, the setting
+specification 032 provides for lists of one person's records; on anyone else's person page and on
+every organization page, `public`. Filters that hold a queryset are narrowed to the page's rows as
+planned.
+
+**ADR:** none — applies an existing mechanism.
