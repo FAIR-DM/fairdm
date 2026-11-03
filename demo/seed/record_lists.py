@@ -9,8 +9,9 @@ Development only. Signs in through ``regular.user`` and ``staff.user`` at ``exam
   dataset's samples and on a private sample.
 - A private project with a public, published dataset, which a private project hides.
 - A public project whose only dataset is public and unpublished.
-- ``regular.user`` credited on the partner dataset, on one sample of the published dataset, on the
-  unpublished and the private dataset, and on the dataset in the private project.
+- ``regular.user`` credited on the project with nothing published, on the partner dataset, on the
+  unpublished and the private dataset, on the dataset in the private project, and on one sample and
+  one measurement of the published dataset.
 - ``staff.user`` on the team of everything.
 """
 
@@ -45,7 +46,15 @@ ORGANIZATION = "Record List Laboratory"
 
 
 def near(lon, lat):
-    """Return a point a short way from ``lon``, ``lat``, so each sample has a place of its own."""
+    """Return a point a short way from ``lon``, ``lat``, so each sample has a place of its own.
+
+    Args:
+        lon: The longitude to start from.
+        lat: The latitude to start from.
+
+    Returns:
+        A point in WGS 84 within about two kilometres of the start.
+    """
     return Point(
         round(lon + random.uniform(-0.02, 0.02), 5),
         round(lat + random.uniform(-0.02, 0.02), 5),
@@ -54,10 +63,18 @@ def near(lon, lat):
 
 
 class RecordListSeed(BaseCommand):
+    """Create the projects, datasets, records and credits behind every state of the tabs."""
+
     help = "Seed every state of the Samples and Measurements tabs (development only)."
 
     @transaction.atomic
     def handle(self, *args, **options):
+        """Remove what an earlier run created, then create every state and print its address.
+
+        Args:
+            *args: Not used.
+            **options: Not used.
+        """
         random.seed(20261103)
         call_command("seed_licenses", verbosity=0)
         users = example_accounts()
@@ -92,10 +109,12 @@ class RecordListSeed(BaseCommand):
                 name=f"BH-1 pore water {i + 1}",
                 location=near(7.86, 48.93),
             )
-        for rock in rocks[:40]:
+        runs = [
             XRFMeasurementFactory(
                 dataset=published, sample=rock, name=f"XRF {rock.name}"
             )
+            for rock in rocks[:40]
+        ]
         for rock in rocks[:12]:
             ICP_MS_MeasurementFactory(
                 dataset=published, sample=rock, name=f"ICP-MS {rock.name}"
@@ -154,7 +173,15 @@ class RecordListSeed(BaseCommand):
             hidden,
             waiting_dataset,
         )
-        for record in (partner, rocks[0], unpublished, private, hidden):
+        for record in (
+            waiting_project,
+            partner,
+            unpublished,
+            private,
+            hidden,
+            rocks[0],
+            runs[0],
+        ):
             Crediting(record).add(regular)
 
         self.stdout.write(f"Dataset, two types each: {published.get_absolute_url()}")
@@ -172,6 +199,17 @@ class RecordListSeed(BaseCommand):
         self.stdout.write(f"Organization: {lab.get_absolute_url()}")
 
     def project(self, name, visibility, users, owner=None):
+        """Create a project in progress.
+
+        Args:
+            name: The project's name.
+            visibility: ``Visibility.PUBLIC`` or ``Visibility.PRIVATE``.
+            users: The example accounts, from ``example_accounts``.
+            owner: The organization that owns the project, if any.
+
+        Returns:
+            The project.
+        """
         return Project.objects.create(
             name=name,
             status=ProjectStatus.IN_PROGRESS,
@@ -181,6 +219,17 @@ class RecordListSeed(BaseCommand):
         )
 
     def dataset(self, project, name, published=False, visibility=Visibility.PUBLIC):
+        """Create a dataset in a project.
+
+        Args:
+            project: The project the dataset belongs to.
+            name: The dataset's name.
+            published: Whether its records are released.
+            visibility: ``Visibility.PUBLIC`` or ``Visibility.PRIVATE``.
+
+        Returns:
+            The dataset.
+        """
         return Dataset.all_objects.create(
             name=name,
             project=project,
