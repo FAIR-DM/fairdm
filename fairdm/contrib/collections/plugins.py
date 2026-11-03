@@ -381,13 +381,11 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
         context["record_state"] = self.record_state
         context["kind"] = self.base_model.__name__.lower()
         context["holder"] = "dataset"
-        # The table view replaces ``page`` with its own title, which drops the record's trail.
-        context["page"] = {
-            **(context.get("page") or {}),
-            "title": self.kind_label,
-            "breadcrumbs": self.get_breadcrumbs(),
-        }
         return context
+
+    def get_page_title(self):
+        """Return the kind's plural name, which ends the breadcrumb trail."""
+        return self.kind_label
 
 
 @plugins.register(Dataset, label=_("Samples"), icon="sample", order=300)

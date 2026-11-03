@@ -533,6 +533,52 @@ class TestRecordChoices:
         assert {ct.model_class() for ct in offered} == listed_types
 
 
+class TestRecordPage:
+    @staticmethod
+    def page(response):
+        return BeautifulSoup(response.content, "html.parser")
+
+    def test_the_trail_ends_in_the_dataset_and_the_kind(self, client, dataset):
+        for kind, label in (("samples", "Samples"), ("measurements", "Measurements")):
+            response = client.get(address(dataset, kind))
+
+            trail = response.context["page"]["breadcrumbs"]
+            assert [crumb["text"] for crumb in trail[-2:]] == [str(dataset), label]
+            assert trail[-2]["href"] == dataset.get_absolute_url()
+
+    def test_the_switcher_links_each_listed_type_to_its_address(self, client, dataset):
+        response = client.get(address(dataset, "samples"))
+
+        switcher = self.page(response).find(id="type-switcher")
+        links = {a["href"] for a in switcher.find_all("a", href=True)}
+        assert links == {
+            address(dataset, "samples", RockSample),
+            address(dataset, "samples", SoilSample),
+        }
+
+    def test_one_listed_type_has_no_switcher(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        RockSampleFactory(dataset=dataset)
+
+        response = client.get(address(dataset, "samples"))
+
+        assert response.status_code == 200
+        assert self.page(response).find(id="type-switcher") is None
+
+    def test_the_filter_panel_is_drawn_where_records_are_listed(self, client, dataset):
+        response = client.get(address(dataset, "samples"))
+
+        assert self.page(response).find(id="filterForm") is not None
+
+    def test_an_empty_tab_has_no_filter_panel(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+
+        response = client.get(address(dataset, "samples"))
+
+        assert response.status_code == 200
+        assert self.page(response).find(id="filterForm") is None
+
+
 class TestRecordQueries:
     @staticmethod
     def count(client, url):
