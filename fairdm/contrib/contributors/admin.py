@@ -342,6 +342,14 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
         """
         return request.user.has_perm("contributors.change_person")
 
+    def has_import_permission(self, request):
+        """Require the permission to add people, because an import creates them."""
+        return self.has_add_permission(request)
+
+    def has_export_permission(self, request):
+        """Require the permission to view people, because an export lists them."""
+        return self.has_view_permission(request)
+
     def get_actions(self, request):
         """Drop the merge and claim-link actions for users the views would refuse."""
         actions = super().get_actions(request)
@@ -407,7 +415,11 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
 
         dismissed: set = set(request.session.get(self._DISMISSED_KEY, []))
         all_candidates = find_duplicate_candidates(person)
-        candidates = [c for c in all_candidates if c["person"].pk not in dismissed]
+        candidates = [
+            {**candidate, "percent": candidate["score"] * 100}
+            for candidate in all_candidates
+            if candidate["person"].pk not in dismissed
+        ]
         extra_context["fuzzy_candidates"] = candidates
         return super().change_view(request, object_id, form_url, extra_context)
 
@@ -551,6 +563,7 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
                     messages.error(request, str(exc))
         else:
             form = MergePersonForm(exclude_pk=person.pk)
+            form.choose(request.GET.get("merge_into"))
 
         context = {
             **self.admin_site.each_context(request),

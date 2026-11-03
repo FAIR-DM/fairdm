@@ -44,13 +44,13 @@ Choose projects with the boxes, then choose an action and **Go**. Each action ru
 | Action | What it does |
 |---|---|
 | Mark selected projects as Concept | Sets the status to **Concept** |
-| Mark selected projects as Active | Sets the status to **In progress** |
-| Mark selected projects as Completed | Sets the status to **Complete** |
+| Mark selected projects as In progress | Sets the status to **In progress** |
+| Mark selected projects as Complete | Sets the status to **Complete** |
 | Export selected projects as JSON | Downloads `projects_export.json`, in schema.org JSON-LD |
 | Export selected projects as DataCite JSON | Downloads `projects_datacite.json`, in DataCite's form |
 | Delete selected projects | Django's own delete action |
 
-The three status actions change the status only and report a message such as "3 project(s) marked as Active." No action sets **Planning** or **Searching for collaborators**. A project that has public datasets cannot be deleted until those datasets are made private or deleted.
+The three status actions change the status only and report a message such as "3 project(s) marked as In progress." No action sets **Planning** or **Searching for collaborators**. A project that has public datasets cannot be deleted until those datasets are made private or deleted.
 
 ### When the list is empty
 

@@ -12,6 +12,7 @@ from django.shortcuts import redirect, render
 from django.urls import path
 from django.utils.translation import gettext_lazy as _
 
+from fairdm.contrib.identity.models import Identity
 from fairdm.portal_roles import PortalRoles
 
 from .views import FixtureUploadView
@@ -54,7 +55,7 @@ class PortalAdminAuthenticationForm(AdminAuthenticationForm):
 
 
 class CustomAdminSite(admin.AdminSite):
-    """Admin site titled for the portal that admits holders of rights-carrying roles."""
+    """Admin site headed with the portal's name, open to rights-carrying roles."""
 
     site_header = _("Portal Administration")
     site_title = _("Portal Administration")
@@ -65,6 +66,26 @@ class CustomAdminSite(admin.AdminSite):
         """Accept a holder of a rights-carrying role, not only an ``is_staff`` account."""
         user = request.user
         return user.is_active and (user.is_staff or _holds_a_rights_carrying_role(user))
+
+    def each_context(self, request):
+        """Head every page with the saved portal name in the visitor's language.
+
+        The name is read on each render, never stored on the site, because the site
+        is one object per process and the identity is one row per portal.
+
+        Args:
+            request: The current request.
+
+        Returns:
+            The context shared by every page of the site. The site's own header and
+            title stand until a portal name has been saved.
+        """
+        context = super().each_context(request)
+        name = Identity.get_solo().safe_translation_getter("name")
+        if name:
+            context["site_header"] = name
+            context["site_title"] = name
+        return context
 
     def get_urls(self):
         """Add the fixture upload route."""

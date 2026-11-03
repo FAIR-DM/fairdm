@@ -26,7 +26,7 @@ Decide which record survives. Keep the one the person signs in with, because the
 
 6. Select **Confirm Merge**.
 
-To start from a likely duplicate instead, open the person's change form and look for the **Possible Duplicate Persons** panel at the foot. Select **Merge** beside a name to open the same page for the person whose form you are on. You still choose the record to keep in **Merge into**.
+To start from a likely duplicate instead, open the person's change form and look for the **Possible Duplicate Persons** panel at the foot. Select **Merge** beside a name to open the same page for the person whose form you are on, with the name you selected already chosen in **Merge into**. That name is the record to keep, so check it before you confirm.
 
 ## The result
 

@@ -2,7 +2,10 @@
 
 import pytest
 from django.urls import reverse
+from django.utils import translation
 
+from fairdm.contrib.admin.sites import CustomAdminSite
+from fairdm.contrib.identity.models import Identity
 from fairdm.factories import PersonFactory
 from fairdm.portal_roles import PortalRoles
 
@@ -103,3 +106,53 @@ class TestAdministrationAccessForRoleHolders:
         response = client.get(reverse("admin:index"))
 
         assert response.status_code == 302
+
+
+@pytest.mark.django_db
+class TestAdministrationHeader:
+    @pytest.fixture
+    def identity(self, db):
+        identity = Identity.get_solo()
+        identity.set_current_language("en")
+        identity.name = "Rock Portal"
+        identity.description = "A portal"
+        identity.save()
+        return identity
+
+    def _context_in_a_new_process(self, rf, admin_user):
+        """Return the context of a site that never saw the identity being saved."""
+        request = rf.get("/")
+        request.user = admin_user
+        return CustomAdminSite().each_context(request)
+
+    def test_a_process_that_never_saved_the_identity_shows_the_portal_name(
+        self, rf, admin_user, identity
+    ):
+        context = self._context_in_a_new_process(rf, admin_user)
+
+        assert context["site_header"] == "Rock Portal"
+        assert context["site_title"] == "Rock Portal"
+
+    def test_the_name_follows_the_language_of_the_visitor(
+        self, rf, admin_user, identity
+    ):
+        identity.set_current_language("de")
+        identity.name = "Gesteinsportal"
+        identity.description = "Ein Portal"
+        identity.save()
+
+        with translation.override("de"):
+            german = self._context_in_a_new_process(rf, admin_user)
+        with translation.override("en"):
+            english = self._context_in_a_new_process(rf, admin_user)
+
+        assert german["site_header"] == "Gesteinsportal"
+        assert english["site_header"] == "Rock Portal"
+
+    def test_a_portal_with_no_saved_name_keeps_the_default_heading(
+        self, rf, admin_user
+    ):
+        context = self._context_in_a_new_process(rf, admin_user)
+
+        assert context["site_header"] == CustomAdminSite.site_header
+        assert context["site_title"] == CustomAdminSite.site_title
