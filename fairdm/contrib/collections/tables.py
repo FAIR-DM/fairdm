@@ -125,9 +125,12 @@ class BaseTable(tables.Table):
 
     def update_concept_field_render_methods(self):
         """Render concept many-to-many columns as links."""
+        model = self._meta.model
+        if model is None:
+            return
         for c in self.columns.columns.values():
             try:
-                field = self._meta.model._meta.get_field(c.accessor)
+                field = model._meta.get_field(c.accessor)
             except FieldDoesNotExist:
                 continue
             if isinstance(field, MultiConceptField):

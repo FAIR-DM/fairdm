@@ -911,6 +911,32 @@ class TestScopedChoicesMixin:
         assert set(visitor.filters["dataset"].queryset) == set()
         assert set(member.filters["dataset"].queryset) == {waiting}
 
+    def test_a_filter_on_a_concept_field_is_narrowed_to_the_concepts_the_rows_use(
+        self,
+    ):
+        from controlled_vocabularies.models import Record
+
+        class Rows(FilterSet):
+            status = ModelChoiceFilter(
+                queryset=Record.objects.all(), to_field_name="slug"
+            )
+
+            class Meta:
+                model = RockSample
+                fields = []
+
+        used = RockSampleFactory()
+        used.refresh_from_db()
+        filterset = ScopedChoicesMixin.applied_to(Rows)(
+            queryset=RockSample.objects.filter(pk=used.pk),
+            request=self.request_for(AnonymousUser()),
+        )
+
+        offered = set(filterset.filters["status"].queryset.values_list("pk", flat=True))
+        assert offered <= set(
+            Record.objects.filter(uri=used.status_id).values_list("pk", flat=True)
+        )
+
     def test_a_filter_named_to_be_dropped_is_removed(self):
         class Rows(FilterSet):
             dataset = ModelChoiceFilter(queryset=Dataset.all_objects.all())

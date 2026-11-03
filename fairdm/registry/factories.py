@@ -519,7 +519,12 @@ class ScopedChoicesMixin:
                 continue
             if not self.points_to(filter_.field_name, queryset.model):
                 continue
-            narrowed = queryset.filter(pk__in=self.queryset.values(filter_.field_name))
+            target = self.queryset.model._meta.get_field(
+                filter_.field_name
+            ).target_field.name
+            narrowed = queryset.filter(
+                **{f"{target}__in": self.queryset.values(filter_.field_name)}
+            )
             visible = self.visible_records(queryset.model, user)
             if visible is not None:
                 narrowed = narrowed.filter(pk__in=visible.values("pk"))

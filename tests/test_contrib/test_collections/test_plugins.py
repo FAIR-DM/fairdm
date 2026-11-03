@@ -15,6 +15,7 @@ from demo.factories import (
 )
 from demo.models import RockSample, SoilSample, XRFMeasurement
 from fairdm.contrib.collections.plugins import Measurements
+from fairdm.contrib.collections.tables import SampleTable
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.factories import ContributionFactory, DatasetFactory, UserFactory
 from fairdm.registry import registry
@@ -577,6 +578,63 @@ class TestRecordPage:
 
         assert response.status_code == 200
         assert self.page(response).find(id="filterForm") is None
+
+
+class TestUnregisteredType:
+    @pytest.fixture
+    def soils_unregistered(self, monkeypatch):
+        """Take the soil sample type out of the registry, as a portal that dropped it would."""
+        held = {
+            model: config
+            for model, config in registry._registry.items()
+            if model is not SoilSample
+        }
+        monkeypatch.setattr(registry, "_registry", held)
+
+    def test_records_of_an_unregistered_type_are_listed_under_the_fallback_entry(
+        self, client, dataset, soils_unregistered
+    ):
+        response = client.get(address(dataset, "samples"))
+
+        assert response.status_code == 200
+        fallback = reverse(
+            "dataset:samples-type", kwargs={"uuid": dataset.uuid, "type": "other"}
+        )
+        counts = {e["url"]: e["count"] for e in response.context["type_entries"]}
+        assert counts[fallback] == 2
+
+    def test_the_fallback_entry_lists_only_the_unregistered_records_in_the_base_table(
+        self, client, dataset, soils_unregistered
+    ):
+        url = reverse(
+            "dataset:samples-type", kwargs={"uuid": dataset.uuid, "type": "other"}
+        )
+
+        response = client.get(url)
+
+        assert response.status_code == 200
+        assert {type(r) for r in listed(response)} == {SoilSample}
+        assert len(listed(response)) == 2
+        assert type(response.context["table"]) is SampleTable
+
+    def test_a_dataset_holding_only_unregistered_records_answers_200_and_lists_them(
+        self, client, soils_unregistered
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        SoilSampleFactory.create_batch(3, dataset=dataset)
+
+        response = client.get(address(dataset, "samples"))
+
+        assert response.status_code == 200
+        assert len(listed(response)) == 3
+        assert response.context["record_state"] == "listed"
+
+    def test_no_fallback_entry_is_offered_while_every_type_is_registered(
+        self, client, dataset
+    ):
+        response = client.get(address(dataset, "samples"))
+
+        assert all("/other/" not in e["url"] for e in response.context["type_entries"])
 
 
 class TestRecordQueries:

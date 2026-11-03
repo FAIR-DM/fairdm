@@ -15,34 +15,72 @@ from django.urls import path
 from django.utils.html import format_html
 from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
+from django_filters import FilterSet
 from django_tables2.data import TableQuerysetData
 
 from fairdm import plugins
+from fairdm.contrib.collections.tables import MeasurementTable, SampleTable
 from fairdm.contrib.collections.views import DataTableView
 from fairdm.contrib.plugins import Plugin, reverse
 from fairdm.contrib.plugins.mixins import PrivateRecordNotFoundMixin
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.dataset.plugins import dataset_records_visible
+from fairdm.core.measurement.filters import MeasurementFilter
 from fairdm.core.measurement.models import Measurement
+from fairdm.core.sample.filters import SampleFilter
 from fairdm.core.sample.models import Sample
 from fairdm.registry import registry
 from fairdm.registry.config import ModelConfiguration
 from fairdm.registry.factories import ScopedChoicesMixin
 
+FALLBACK_SLUG = "other"
+
+
+@dataclass(frozen=True)
+class FallbackType:
+    """Stands for the records of every type that is no longer registered.
+
+    It answers the questions a tab asks of a registered type's configuration, with the
+    base table and filter set of the kind.
+
+    Attributes:
+        base_model: ``Sample`` or ``Measurement``.
+    """
+
+    base_model: type[Model]
+
+    def get_slug(self) -> str:
+        """Return the slug that names the fallback in the address."""
+        return FALLBACK_SLUG
+
+    def get_verbose_name_plural(self) -> str:
+        """Return the base model's plural name."""
+        return str(self.base_model._meta.verbose_name_plural)
+
+    def get_table_class(self) -> type[tables.Table]:
+        """Return the base table of the kind."""
+        return SampleTable if self.base_model is Sample else MeasurementTable
+
+    def get_filterset_class(self) -> type[FilterSet]:
+        """Return the base filter set of the kind."""
+        return SampleFilter if self.base_model is Sample else MeasurementFilter
+
 
 @dataclass(frozen=True)
 class RecordType:
-    """One registered type that a tab can list, with the number of records it holds.
+    """One type that a tab can list, with the number of records it holds.
 
     Attributes:
-        model: The sample or measurement class.
-        config: The registry configuration of the class.
+        model: The sample or measurement class. The base class for the fallback entry.
+        config: The registry configuration of the class, or the fallback's.
         count: How many records of the type the viewer may see.
+        unregistered: For the fallback entry, the content types whose records it lists.
     """
 
     model: type[Model]
-    config: ModelConfiguration
+    config: ModelConfiguration | FallbackType
     count: int
+    unregistered: tuple[int, ...] = ()
 
     @property
     def name(self) -> str:
@@ -75,7 +113,8 @@ def type_counts(queryset: QuerySet) -> list[RecordType]:
         queryset: Samples or measurements.
 
     Returns:
-        One entry per registered type the queryset holds.
+        One entry per registered type the queryset holds, then one for the records of
+        types no longer registered, when there are any.
     """
     rows = (
         queryset.order_by()
@@ -84,12 +123,24 @@ def type_counts(queryset: QuerySet) -> list[RecordType]:
         .order_by()
     )
     entries = []
+    gone: dict[int, int] = {}
     for row in rows:
         model = ContentType.objects.get_for_id(row["polymorphic_ctype"]).model_class()
         if model is None or not registry.is_registered(model):
+            gone[row["polymorphic_ctype"]] = row["count"]
             continue
         entries.append(RecordType(model, registry.get_for_model(model), row["count"]))
-    return sorted(entries, key=lambda entry: (-entry.count, entry.name))
+    entries.sort(key=lambda entry: (-entry.count, entry.name))
+    if gone:
+        entries.append(
+            RecordType(
+                queryset.model,
+                FallbackType(queryset.model),
+                sum(gone.values()),
+                tuple(gone),
+            )
+        )
+    return entries
 
 
 class NoRecords(tables.Table):
@@ -293,6 +344,8 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
             return self.base_model.objects.none()  # type: ignore[attr-defined]
         user = self.request.user
         queryset = self.model.objects.filter(pk__in=self.visible_records().values("pk"))
+        if self.chosen.unregistered:
+            queryset = queryset.filter(polymorphic_ctype__in=self.chosen.unregistered)
         if hasattr(queryset, "with_related"):
             queryset = queryset.with_related()
         queryset = queryset.select_related("dataset__project").annotate(
