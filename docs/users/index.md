@@ -43,6 +43,7 @@ start with the tutorial.
 - [The dataset page](datasets/dataset.md)
 - [Create a Dataset](datasets/create-dataset.md)
 - [Edit details](datasets/edit-details.md)
+- [Browse samples and measurements](datasets/browse-samples-and-measurements.md)
 - [How to create a dataset](datasets/create-a-dataset.md)
 - [How to delete a dataset](datasets/delete-a-dataset.md)
 - [How to restrict a dataset to specific people](datasets/restrict-a-dataset-to-specific-people.md)
@@ -150,6 +151,7 @@ datasets/datasets
 datasets/dataset
 datasets/create-dataset
 datasets/edit-details
+datasets/browse-samples-and-measurements
 datasets/create-a-dataset
 datasets/delete-a-dataset
 datasets/restrict-a-dataset-to-specific-people

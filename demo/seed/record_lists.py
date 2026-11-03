@@ -45,27 +45,27 @@ WAITING = "Record list examples, nothing published yet"
 ORGANIZATION = "Record List Laboratory"
 
 
-def near(lon, lat):
-    """Return a point a short way from ``lon``, ``lat``, so each sample has a place of its own.
-
-    Args:
-        lon: The longitude to start from.
-        lat: The latitude to start from.
-
-    Returns:
-        A point in WGS 84 within about two kilometres of the start.
-    """
-    return Point(
-        round(lon + random.uniform(-0.02, 0.02), 5),
-        round(lat + random.uniform(-0.02, 0.02), 5),
-        srid=4326,
-    )
-
-
 class RecordListSeed(BaseCommand):
     """Create the projects, datasets, records and credits behind every state of the tabs."""
 
     help = "Seed every state of the Samples and Measurements tabs (development only)."
+
+    @staticmethod
+    def near(lon, lat):
+        """Return a point a short way from ``lon``, ``lat``, so each sample has a place of its own.
+
+        Args:
+            lon: The longitude to start from.
+            lat: The latitude to start from.
+
+        Returns:
+            A point in WGS 84 within about two kilometres of the start.
+        """
+        return Point(
+            round(lon + random.uniform(-0.02, 0.02), 5),
+            round(lat + random.uniform(-0.02, 0.02), 5),
+            srid=4326,
+        )
 
     @transaction.atomic
     def handle(self, *args, **options):
@@ -99,7 +99,7 @@ class RecordListSeed(BaseCommand):
             RockSampleFactory(
                 dataset=published,
                 name=f"BH-1 core, {100 + 12 * i} m",
-                location=near(7.86, 48.93),
+                location=self.near(7.86, 48.93),
             )
             for i in range(60)
         ]
@@ -107,7 +107,7 @@ class RecordListSeed(BaseCommand):
             WaterSampleFactory(
                 dataset=published,
                 name=f"BH-1 pore water {i + 1}",
-                location=near(7.86, 48.93),
+                location=self.near(7.86, 48.93),
             )
         runs = [
             XRFMeasurementFactory(
@@ -123,7 +123,7 @@ class RecordListSeed(BaseCommand):
             RockSampleFactory(
                 dataset=unpublished,
                 name=f"BH-2 core, {200 + 10 * i} m",
-                location=near(7.91, 48.95),
+                location=self.near(7.91, 48.95),
             )
             for i in range(5)
         ]
@@ -133,7 +133,9 @@ class RecordListSeed(BaseCommand):
             )
         soils = [
             SoilSampleFactory(
-                dataset=private, name=f"Pilot soil {i + 1}", location=near(8.1, 49.0)
+                dataset=private,
+                name=f"Pilot soil {i + 1}",
+                location=self.near(8.1, 49.0),
             )
             for i in range(4)
         ]

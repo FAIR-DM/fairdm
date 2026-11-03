@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **A dataset has Samples and Measurements tabs.** Each lists the dataset's records one registered
+  type at a time, in the table of that type, with its filters and search. Records of a type the
+  portal no longer registers are listed under **Other**. A dataset whose records a visitor may not
+  see, such as a public dataset that is not published, offers them no tabs.
+- **`seed_record_lists`** loads development data for every state of the tabs.
+
+### Changed
+
+- **A dataset's overview counts only the records the viewer may see.** Its Samples and Measurements
+  figures link to the tabs and equal their totals. On a public dataset that is not published, a
+  visitor no longer sees those figures, the composition and growth charts or the spatial coverage.
+  Its team sees all of them.
+- **A plugin's tab is marked as the current page on every address the plugin mounts,** including its
+  `extra_views` and the patterns its `get_urls` returns. The Contributors tab is now marked on its
+  add and edit pages.
+- **The portal-wide listing of a sample or measurement type no longer replaces the `page` context
+  variable.** `page.title` is the type's plural name and `page.breadcrumbs` comes from the view.
+
 ## [v0.5.0] - 2026-11-03
 
 ### Added
