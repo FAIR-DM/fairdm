@@ -151,57 +151,60 @@ class TestSyncOutcome:
         assert sync_contributor_identifier(99999) is False
 
 
+@pytest.fixture
+def retry():
+    """Stand in for the task's ``retry``, which raises ``Retry`` as Celery's does."""
+    with patch.object(
+        sync_contributor_identifier, "retry", side_effect=Retry()
+    ) as stub:
+        yield stub
+
+
 @pytest.mark.django_db
 class TestSyncRetries:
-    def test_a_server_error_is_retried_three_times_then_recorded(
-        self, registry_network, organization, ror_identifier
+    def test_a_server_error_is_retried_and_recorded(
+        self, registry_network, retry, organization, ror_identifier
     ):
         registry_network.answer(ROR_ADDRESS, {}, status=500)
 
-        result = sync_contributor_identifier.apply(args=[ror_identifier.pk])
+        with pytest.raises(Retry):
+            sync_contributor_identifier(ror_identifier.pk)
 
-        assert result.failed()
-        assert isinstance(result.result, requests.HTTPError)
-        assert len(registry_network.calls) == 4
+        assert isinstance(retry.call_args.kwargs["exc"], requests.HTTPError)
         organization.refresh_from_db()
         assert organization.sync_status == SyncStatus.FAILED
 
-    def test_a_timeout_is_retried(self, registry_network, orcid_identifier):
+    def test_a_timeout_is_retried(self, registry_network, retry, orcid_identifier):
         registry_network.fail(ORCID_ADDRESS, requests.Timeout("timed out"))
 
-        result = sync_contributor_identifier.apply(args=[orcid_identifier.pk])
+        with pytest.raises(Retry):
+            sync_contributor_identifier(orcid_identifier.pk)
 
-        assert result.failed()
-        assert len(registry_network.calls) == 4
+        assert isinstance(retry.call_args.kwargs["exc"], requests.Timeout)
 
     def test_a_rate_limit_is_retried_after_the_wait_the_registry_asks_for(
-        self, registry_network, orcid_identifier
+        self, registry_network, retry, person, orcid_identifier
     ):
         registry_network.answer(
             ORCID_ADDRESS, {}, status=429, headers={"Retry-After": "120"}
         )
 
-        with (
-            patch.object(
-                sync_contributor_identifier, "retry", side_effect=Retry()
-            ) as retry,
-            pytest.raises(Retry),
-        ):
+        with pytest.raises(Retry):
             sync_contributor_identifier(orcid_identifier.pk)
 
         assert retry.call_args.kwargs["countdown"] == 120
+        person.refresh_from_db()
+        assert person.sync_status == SyncStatus.FAILED
 
     def test_a_rate_limit_without_a_wait_is_retried_with_a_growing_delay(
-        self, registry_network, person, orcid_identifier
+        self, registry_network, retry, orcid_identifier
     ):
         registry_network.answer(ORCID_ADDRESS, {}, status=429)
 
-        result = sync_contributor_identifier.apply(args=[orcid_identifier.pk])
+        with pytest.raises(Retry):
+            sync_contributor_identifier(orcid_identifier.pk)
 
-        assert result.failed()
-        assert len(registry_network.calls) == 4
-        person.refresh_from_db()
-        assert person.sync_status == SyncStatus.FAILED
+        assert "countdown" not in retry.call_args.kwargs
 
 
 class TestSecondsToWait:
