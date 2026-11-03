@@ -86,6 +86,15 @@ The page around the table, the overview links, records of an unregistered type, 
 - [ ] T017 [US1] `docs/developers/reference/plugins.md` and a new `docs/users/` page per plan D11,
   covering the dataset tabs, written so the later stories extend them. Plus the `CHANGELOG.md` entry and the `seed_record_lists` row in `management-commands.md`.
 
+### Fixes found at acceptance
+
+- [ ] T024 [US1] `tests/test_core/test_dataset/test_plugins.py`, `TestOverviewSchemaOrgDescription`:
+  a viewer who may not see a public unpublished dataset's records gets no `variableMeasured` in the
+  page's schema.org description; its team does. `fairdm/core/dataset/plugins.py`: the overview's
+  record types are read through what the viewer may see.
+- [ ] T025 [US1] `fairdm/core/dataset/templates/dataset/dataset_detail.html`: the visitor's notice on
+  an unpublished dataset no longer says they can read what it holds. Wording only, no test.
+
 ## Phase 2: User Story 2, a project's samples and measurements can be browsed from its page (P2)
 
 - [ ] T018 [US2] `tests/test_contrib/test_collections/test_plugins.py`, `TestProjectRecords`: a
