@@ -87,8 +87,8 @@
   {% endblock overview.about %}
 
   {% block overview.data %}
-    {% if not data_types %}
-      <c-mvp.card title="{% translate 'Data types' %}" class="bg-base-100">
+    {% if shows_records and not data_types %}
+      <c-mvp.card id="dataset-no-records" title="{% translate 'Data types' %}" class="bg-base-100">
         {% if can_manage %}
           <div class="flex flex-col items-start gap-3">
             <p class="text-base-content/70">{% translate "This dataset holds no samples or measurements yet. Import a spreadsheet or add records by hand to start building it." %}</p>

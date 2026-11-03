@@ -1076,6 +1076,26 @@ class TestOverviewWhatAVisitorSeesBeforePublication:
         assert response.page.select(".alert") == []
 
 
+class TestOverviewEmptyCardFollowsWhatTheViewerMaySee:
+    """FR-022: an unpublished dataset's overview says nothing of whether it holds records."""
+
+    def test_the_team_sees_the_empty_card_on_an_empty_dataset(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        client.force_login(_team_member(dataset))
+
+        response = _page(client, dataset)
+
+        assert response.page.find(id="dataset-no-records") is not None
+
+    def test_a_visitor_sees_the_card_on_neither_an_empty_nor_a_full_dataset(
+        self, client, holding
+    ):
+        empty = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+
+        assert _page(client, empty).page.find(id="dataset-no-records") is None
+        assert _page(client, holding).page.find(id="dataset-no-records") is None
+
+
 class TestOverviewReadinessChecklist:
     """FR-033: seven required items and three recommended ones."""
 
