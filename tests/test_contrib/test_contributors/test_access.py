@@ -6,6 +6,7 @@ record above it. Nothing here goes through a permission backend.
 
 import pytest
 from django.contrib.auth.models import AnonymousUser, Group, Permission
+from django.db.models import QuerySet
 
 from fairdm.contrib.contributors.access import REQUIRED_LEVEL, RecordAccess
 from fairdm.contrib.contributors.choices import ContributionLevel
@@ -19,6 +20,8 @@ from fairdm.factories import (
     PersonFactory,
 )
 from fairdm.portal_roles import PortalRoles
+from tests.factories import ConcreteMeasurementFactory, ConcreteSampleFactory
+from tests.registry_models.models import PlainProxyMeasurement
 
 VIEW, EDIT, MANAGE = (
     ContributionLevel.VIEW,
@@ -31,6 +34,37 @@ VIEW, EDIT, MANAGE = (
 def signed_in():
     """A person who can sign in."""
     return PersonFactory(is_active=True, is_claimed=True, password="x")
+
+
+@pytest.mark.django_db
+class TestARecordLoadedAsAnotherClass:
+    @pytest.mark.parametrize(
+        ("factory", "load"),
+        [
+            (ConcreteSampleFactory, lambda: Sample.objects.non_polymorphic()),
+            (
+                ConcreteMeasurementFactory,
+                lambda: Measurement.objects.non_polymorphic(),
+            ),
+            (
+                ConcreteMeasurementFactory,
+                lambda: QuerySet(model=PlainProxyMeasurement),
+            ),
+        ],
+        ids=["base-sample", "base-measurement", "proxy-measurement"],
+    )
+    def test_its_credit_is_found(self, factory, load):
+        dataset = DatasetFactory()
+        extra = (
+            {"sample": ConcreteSampleFactory(dataset=dataset)}
+            if factory is ConcreteMeasurementFactory
+            else {}
+        )
+        record = factory(dataset=dataset, **extra)
+        person = PersonFactory()
+        person.add_to(record)
+
+        assert person.has_contribution_to(load().get(pk=record.pk)) is True
 
 
 @pytest.mark.django_db

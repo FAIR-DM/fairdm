@@ -53,7 +53,7 @@ Every class below is imported from `fairdm.contrib.contributors.models` unless a
 | `get_role_counts(contributions=None)` | `Counter` | The number of credits each contribution role is held on, keyed by label. Counts every credit when `contributions` is omitted |
 | `get_recent_contributions(limit=5)` | Queryset slice | The newest credits |
 | `get_contributions_by_type(model_name)` | Queryset | The credits on one model, such as `"project"` |
-| `has_contribution_to(obj)` | `bool` | Whether the contributor is credited on `obj` |
+| `has_contribution_to(obj)` | `bool` | Whether the contributor is credited on `obj`, whichever class `obj` was loaded as |
 | `get_collaborators(limit=None, contributions=None)` | Queryset | The other contributors credited on the same records, most frequent first and ties by name. Each carries `collaboration_count` |
 | `add_to(obj, roles=None)` | `Contribution` | Credits the contributor on `obj`, adding `roles` (addresses of contributor roles) to any credit already there. A person credited for the first time starts at the view level. An organization has no level |
 | `get_links_display()` | `list` of `{"url", "host"}` | One entry for each `http` or `https` link, in the order recorded. Other links are left out |

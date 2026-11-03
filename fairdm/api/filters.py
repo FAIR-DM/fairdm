@@ -14,6 +14,8 @@ from django.utils.translation import gettext_lazy as _
 from django_filters.constants import EMPTY_VALUES
 from django_filters.filters import QuerySetRequestMixin
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema_field
 from rest_framework.filters import BaseFilterBackend
 
 from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
@@ -330,13 +332,16 @@ class PersonFilterSet(django_filters.FilterSet):
     verified affiliation to it that has not ended, and refuses a database number.
     """
 
-    organization = django_filters.ModelChoiceFilter(
-        method="narrow_to_members",
-        to_field_name="uuid",
-        queryset=Organization.objects.all(),
-        help_text=_(
-            "Only people with a verified affiliation to this organization that has not ended."
-        ),
+    organization = extend_schema_field(OpenApiTypes.STR)(
+        django_filters.ModelChoiceFilter(
+            method="narrow_to_members",
+            to_field_name="uuid",
+            queryset=Organization.objects.all(),
+            help_text=_(
+                "Only people with a verified affiliation to this organization that has "
+                "not ended."
+            ),
+        )
     )
     identifier = IdentifierFilter(
         help_text=_(

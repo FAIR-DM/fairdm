@@ -16,6 +16,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The API's single-record route reads a proxy of a record type by the concrete type's rules.**
+  `FairDMObjectPermissions` asked for the proxy's own permission, which no level grants, so a person
+  at the view level was refused a record the list showed them. A portal that overrode
+  `get_required_object_permissions` for this can remove the override.
+- **The API schema types `url` and `html_url` of every record as a URI, and names its enums.** The
+  warnings they printed in `manage.py check --deploy` are gone. The `status` of a project is now the
+  component `ProjectStatusEnum`, not `StatusEnum`. The `type` of an organization and of an
+  affiliation are `OrganizationTypeEnum` and `AffiliationTypeEnum`, not names with a generated hash.
+  A client generated from the schema sees these names change.
+- **`Contributor.has_contribution_to()` answers the same whichever class the record was loaded as.**
+  It answered `False` for a credited contributor when given a sample or measurement loaded as the
+  base class. `RecordAccess.key()` also no longer fails on a record loaded through a proxy.
 - **A person who signs up is claimed from the start.** With email or with ORCID, whatever
   `ACCOUNT_EMAIL_VERIFICATION` says. With `"optional"` or `"none"`, nobody who signed up was ever
   claimed, so their own profile called them unclaimed. Accounts that signed up before this change

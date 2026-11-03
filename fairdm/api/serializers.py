@@ -327,6 +327,7 @@ class RecordReferenceField(serializers.SlugRelatedField):
         return {record.uuid: self.display_value(record) for record in queryset}
 
 
+@extend_schema_field({"type": "string", "format": "uri"})
 class RecordURLField(serializers.HyperlinkedIdentityField):
     """The address of a record in the API, whatever type the record is."""
 
@@ -349,6 +350,7 @@ class RecordURLField(serializers.HyperlinkedIdentityField):
         )
 
 
+@extend_schema_field({"type": "string", "format": "uri"})
 class PortalPageField(serializers.ReadOnlyField):
     """The address of a record's own page on the portal's website.
 

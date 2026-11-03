@@ -612,7 +612,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         """Check whether this contributor is credited on an object.
 
         Args:
-            obj: A Project, Dataset, Sample or Measurement instance.
+            obj: A Project, Dataset, Sample or Measurement instance, loaded as any class.
 
         Returns:
             True when the contributor is credited on the object.
@@ -621,9 +621,11 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
             >>> person.has_contribution_to(my_project)
             True
         """
-        content_type = ContentType.objects.get_for_model(obj)
+        from .access import RecordAccess
+
+        content_type_id, object_id = RecordAccess.key(obj)
         return self.contributions.filter(
-            content_type=content_type, object_id=obj.pk
+            content_type_id=content_type_id, object_id=object_id
         ).exists()
 
     def get_collaborators(self, limit: int | None = None, contributions=None):

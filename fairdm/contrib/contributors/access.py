@@ -110,9 +110,10 @@ class RecordAccess:
         Returns:
             The content type id and the object id, as stored on a contribution.
         """
-        if hasattr(record, "get_real_instance"):
-            record = record.get_real_instance()
-        return ContentType.objects.get_for_model(record).pk, str(record.pk)
+        model = type(record)
+        if hasattr(record, "get_real_instance_class"):
+            model = record.get_real_instance_class()
+        return ContentType.objects.get_for_model(model).pk, str(record.pk)
 
     def required_level(self, perm):
         """Return the level a permission needs on the record.
