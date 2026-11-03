@@ -1207,12 +1207,13 @@ alternative_names: Other names by which the contributor is known.
 profile: Free-text description.
 links: URLs of related online resources.
 lang: ISO 639-1 language codes.
-last_synced: When the contributor was last synced with an external provider.
+last_synced: When a record was last fetched from an external provider.
 synced_data: Raw data from the external provider.
+sync_status: Whether the last fetch from the external provider succeeded.
+sync_error: Why the last fetch failed, or blank.
 config: General-purpose configuration data.
 added: When the record was created.
 modified: When the record was last modified.
-tracker: Tracks field changes, used to stamp <code class="docutils literal notranslate"><span class="pre">last_synced</span></code>.
 is_organization: Whether the concrete type is :class:<code class="docutils literal notranslate"><span class="pre">Organization</span></code>.</p>
 <p class="rubric">Initialization</p>
 <dl class="py attribute">
@@ -1276,6 +1277,18 @@ is_organization: Whether the concrete type is :class:<code class="docutils liter
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.models.Contributor.sync_status">
+<span class="sig-name descname"><span class="pre">sync_status</span></span><a class="headerlink" href="#fairdm.contrib.contributors.models.Contributor.sync_status" title="Link to this definition">#</a></dt>
+<dd><p>‘CharField(…)’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.models.Contributor.sync_error">
+<span class="sig-name descname"><span class="pre">sync_error</span></span><a class="headerlink" href="#fairdm.contrib.contributors.models.Contributor.sync_error" title="Link to this definition">#</a></dt>
+<dd><p>‘TextField(…)’</p>
+</dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.models.Contributor.config">
 <span class="sig-name descname"><span class="pre">config</span></span><a class="headerlink" href="#fairdm.contrib.contributors.models.Contributor.config" title="Link to this definition">#</a></dt>
 <dd><p>‘JSONField(…)’</p>
@@ -1291,12 +1304,6 @@ is_organization: Whether the concrete type is :class:<code class="docutils liter
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.models.Contributor.modified">
 <span class="sig-name descname"><span class="pre">modified</span></span><a class="headerlink" href="#fairdm.contrib.contributors.models.Contributor.modified" title="Link to this definition">#</a></dt>
 <dd><p>‘DateTimeField(…)’</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.contrib.contributors.models.Contributor.tracker">
-<span class="sig-name descname"><span class="pre">tracker</span></span><a class="headerlink" href="#fairdm.contrib.contributors.models.Contributor.tracker" title="Link to this definition">#</a></dt>
-<dd><p>‘FieldTracker(…)’</p>
 </dd></dl>
 
 <dl class="py class">
@@ -1329,9 +1336,20 @@ is_organization: Whether the concrete type is :class:<code class="docutils liter
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.contributors.models.Contributor.save">
-<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.models.Contributor.save" title="Link to this definition">#</a></dt>
-<dd><p>Stamp <code class="docutils literal notranslate"><span class="pre">last_synced</span></code> when <code class="docutils literal notranslate"><span class="pre">synced_data</span></code> has changed, then save.</p>
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.models.Contributor.record_fetch">
+<span class="sig-name descname"><span class="pre">record_fetch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.models.Contributor.record_fetch" title="Link to this definition">#</a></dt>
+<dd><p>Hold a record fetched from the external provider, dated today, without saving.</p>
+<p>Args:
+data: The record the provider answered with.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.models.Contributor.record_failed_fetch">
+<span class="sig-name descname"><span class="pre">record_failed_fetch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reason</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.models.Contributor.record_failed_fetch" title="Link to this definition">#</a></dt>
+<dd><p>Store that a fetch from the external provider failed, and why.</p>
+<p>The two fields are written alone, so nothing else held on the instance is saved.</p>
+<p>Args:
+reason: Why the fetch failed, as a sentence.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1898,7 +1916,8 @@ person.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.models.Person.from_orcid">
 <span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_orcid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orcid_id</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.models.Person.from_orcid" title="Link to this definition">#</a></dt>
-<dd><p>Create or update a person from ORCID data and schedule a full sync after commit.</p>
+<dd><p>Create or update a person from ORCID data.</p>
+<p>A new ORCID identifier queues its own sync once the transaction commits.</p>
 <p>Args:
 orcid_id: The ORCID iD, such as <code class="docutils literal notranslate"><span class="pre">0000-0002-1825-0097</span></code>.</p>
 <p>Returns:
@@ -2215,11 +2234,11 @@ location: The point where the organisation is, in WGS 84.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.models.Organization.from_ror">
-<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_ror</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ror</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.models.Organization.from_ror" title="Link to this definition">#</a></dt>
-<dd><p>Create or update an organisation from a ROR record and, when committing, schedule a full sync after commit.</p>
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">from_ror</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ror</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.models.Organization.from_ror" title="Link to this definition">#</a></dt>
+<dd><p>Create or update an organisation from a ROR record.</p>
+<p>A new ROR identifier queues its own sync once the transaction commits.</p>
 <p>Args:
-ror: The ROR identifier, such as <code class="docutils literal notranslate"><span class="pre">https://ror.org/04aj4c181</span></code>.
-commit: Whether to schedule the full sync. The organisation is saved either way.</p>
+ror: The ROR identifier, such as <code class="docutils literal notranslate"><span class="pre">https://ror.org/04aj4c181</span></code>.</p>
 <p>Returns:
 The created or updated organisation.</p>
 </dd></dl>
@@ -2555,7 +2574,7 @@ True when the contributor is a <code class="docutils literal notranslate"><span 
 <dl class="py class">
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.models.ContributorIdentifier">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ContributorIdentifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.models.ContributorIdentifier" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="fairdm.core.abstract.html#fairdm.core.abstract.AbstractIdentifier" title="fairdm.core.abstract.AbstractIdentifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.core.abstract.AbstractIdentifier</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">django_lifecycle.mixins.LifecycleModelMixin</span></code></p>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django_lifecycle.mixins.LifecycleModelMixin</span></code>, <a class="reference internal" href="fairdm.core.abstract.html#fairdm.core.abstract.AbstractIdentifier" title="fairdm.core.abstract.AbstractIdentifier"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.core.abstract.AbstractIdentifier</span></code></a></p>
 <p>An external identifier of a contributor, such as an ORCID iD or a ROR id.</p>
 <p>Types are drawn from the contributor identifier collection, so a person cannot hold a
 specimen identifier such as an IGSN.</p>
@@ -2590,7 +2609,7 @@ related: The contributor the identifier belongs to.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.models.ContributorIdentifier.dispatch_sync_task">
 <span class="sig-name descname"><span class="pre">dispatch_sync_task</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.models.ContributorIdentifier.dispatch_sync_task" title="Link to this definition">#</a></dt>
-<dd><p>Queue a sync with the external provider once the transaction commits.</p>
+<dd><p>Queue a sync once the transaction commits, for a new or changed identifier.</p>
 </dd></dl>
 
 </dd></dl>
@@ -2863,10 +2882,11 @@ details: Extra structured details.</p>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.lang"><code class="docutils literal notranslate"><span class="pre">Contributor.lang</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.last_synced"><code class="docutils literal notranslate"><span class="pre">Contributor.last_synced</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.synced_data"><code class="docutils literal notranslate"><span class="pre">Contributor.synced_data</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.sync_status"><code class="docutils literal notranslate"><span class="pre">Contributor.sync_status</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.sync_error"><code class="docutils literal notranslate"><span class="pre">Contributor.sync_error</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.config"><code class="docutils literal notranslate"><span class="pre">Contributor.config</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.added"><code class="docutils literal notranslate"><span class="pre">Contributor.added</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.modified"><code class="docutils literal notranslate"><span class="pre">Contributor.modified</span></code></a></li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.tracker"><code class="docutils literal notranslate"><span class="pre">Contributor.tracker</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.Meta"><code class="docutils literal notranslate"><span class="pre">Contributor.Meta</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.Meta.ordering"><code class="docutils literal notranslate"><span class="pre">Contributor.Meta.ordering</span></code></a></li>
 <li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.Meta.verbose_name"><code class="docutils literal notranslate"><span class="pre">Contributor.Meta.verbose_name</span></code></a></li>
@@ -2874,7 +2894,8 @@ details: Extra structured details.</p>
 <li class="toc-h6 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.Meta.default_related_name"><code class="docutils literal notranslate"><span class="pre">Contributor.Meta.default_related_name</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.save"><code class="docutils literal notranslate"><span class="pre">Contributor.save()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.record_fetch"><code class="docutils literal notranslate"><span class="pre">Contributor.record_fetch()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.record_failed_fetch"><code class="docutils literal notranslate"><span class="pre">Contributor.record_failed_fetch()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.base_class"><code class="docutils literal notranslate"><span class="pre">Contributor.base_class()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.get_absolute_url"><code class="docutils literal notranslate"><span class="pre">Contributor.get_absolute_url()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.get_update_url"><code class="docutils literal notranslate"><span class="pre">Contributor.get_update_url()</span></code></a></li>

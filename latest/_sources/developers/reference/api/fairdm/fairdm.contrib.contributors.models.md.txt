@@ -250,6 +250,26 @@ Bases: {py:obj}`fairdm.utils.models.PolymorphicMixin`, {py:obj}`fairdm.db.models
 
 ````
 
+````{py:attribute} sync_status
+:canonical: fairdm.contrib.contributors.models.Contributor.sync_status
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.models.Contributor.sync_status
+```
+
+````
+
+````{py:attribute} sync_error
+:canonical: fairdm.contrib.contributors.models.Contributor.sync_error
+:value: >
+   'TextField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.models.Contributor.sync_error
+```
+
+````
+
 ````{py:attribute} config
 :canonical: fairdm.contrib.contributors.models.Contributor.config
 :value: >
@@ -276,16 +296,6 @@ Bases: {py:obj}`fairdm.utils.models.PolymorphicMixin`, {py:obj}`fairdm.db.models
    'DateTimeField(...)'
 
 ```{autodoc2-docstring} fairdm.contrib.contributors.models.Contributor.modified
-```
-
-````
-
-````{py:attribute} tracker
-:canonical: fairdm.contrib.contributors.models.Contributor.tracker
-:value: >
-   'FieldTracker(...)'
-
-```{autodoc2-docstring} fairdm.contrib.contributors.models.Contributor.tracker
 ```
 
 ````
@@ -338,10 +348,18 @@ Bases: {py:obj}`fairdm.utils.models.PolymorphicMixin`, {py:obj}`fairdm.db.models
 
 `````
 
-````{py:method} save(*args, **kwargs)
-:canonical: fairdm.contrib.contributors.models.Contributor.save
+````{py:method} record_fetch(data)
+:canonical: fairdm.contrib.contributors.models.Contributor.record_fetch
 
-```{autodoc2-docstring} fairdm.contrib.contributors.models.Contributor.save
+```{autodoc2-docstring} fairdm.contrib.contributors.models.Contributor.record_fetch
+```
+
+````
+
+````{py:method} record_failed_fetch(reason)
+:canonical: fairdm.contrib.contributors.models.Contributor.record_failed_fetch
+
+```{autodoc2-docstring} fairdm.contrib.contributors.models.Contributor.record_failed_fetch
 ```
 
 ````
@@ -1359,7 +1377,7 @@ Bases: {py:obj}`fairdm.contrib.contributors.models.Contributor`
 
 ````
 
-````{py:method} from_ror(ror, commit=True)
+````{py:method} from_ror(ror)
 :canonical: fairdm.contrib.contributors.models.Organization.from_ror
 :classmethod:
 
@@ -1731,7 +1749,7 @@ Bases: {py:obj}`django_lifecycle.mixins.LifecycleModelMixin`, {py:obj}`ordered_m
 `````{py:class} ContributorIdentifier(*args, **kwargs)
 :canonical: fairdm.contrib.contributors.models.ContributorIdentifier
 
-Bases: {py:obj}`fairdm.core.abstract.AbstractIdentifier`, {py:obj}`django_lifecycle.mixins.LifecycleModelMixin`
+Bases: {py:obj}`django_lifecycle.mixins.LifecycleModelMixin`, {py:obj}`fairdm.core.abstract.AbstractIdentifier`
 
 ```{autodoc2-docstring} fairdm.contrib.contributors.models.ContributorIdentifier
 ```

@@ -723,7 +723,7 @@ Bases: {py:obj}`django.contrib.auth.admin.UserAdmin`, {py:obj}`hijack.contrib.ad
 ````{py:attribute} readonly_fields
 :canonical: fairdm.contrib.contributors.admin.UserAdmin.readonly_fields
 :value: >
-   ['synced_data', 'last_synced', 'uuid', 'added', 'modified']
+   ['synced_data', 'last_synced', 'sync_status', 'sync_error', 'uuid', 'added', 'modified']
 
 ```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.readonly_fields
 ```
@@ -999,7 +999,7 @@ Bases: {py:obj}`django.contrib.admin.ModelAdmin`
 ````{py:attribute} readonly_fields
 :canonical: fairdm.contrib.contributors.admin.OrganizationAdmin.readonly_fields
 :value: >
-   ['synced_data', 'last_synced', 'uuid', 'added', 'modified']
+   ['synced_data', 'last_synced', 'sync_status', 'sync_error', 'uuid', 'added', 'modified']
 
 ```{autodoc2-docstring} fairdm.contrib.contributors.admin.OrganizationAdmin.readonly_fields
 ```

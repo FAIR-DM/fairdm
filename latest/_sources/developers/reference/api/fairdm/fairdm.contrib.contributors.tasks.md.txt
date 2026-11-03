@@ -19,6 +19,14 @@
   - ```{autodoc2-docstring} fairdm.contrib.contributors.tasks.sync_contributor_identifier
     :summary:
     ```
+* - {py:obj}`apply_orcid_record <fairdm.contrib.contributors.tasks.apply_orcid_record>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.tasks.apply_orcid_record
+    :summary:
+    ```
+* - {py:obj}`apply_ror_record <fairdm.contrib.contributors.tasks.apply_ror_record>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.tasks.apply_ror_record
+    :summary:
+    ```
 * - {py:obj}`refresh_all_contributors <fairdm.contrib.contributors.tasks.refresh_all_contributors>`
   - ```{autodoc2-docstring} fairdm.contrib.contributors.tasks.refresh_all_contributors
     :summary:
@@ -53,10 +61,24 @@
 
 ````
 
-````{py:function} sync_contributor_identifier(identifier_pk: int) -> bool
+````{py:function} sync_contributor_identifier(self, identifier_pk: int) -> bool
 :canonical: fairdm.contrib.contributors.tasks.sync_contributor_identifier
 
 ```{autodoc2-docstring} fairdm.contrib.contributors.tasks.sync_contributor_identifier
+```
+````
+
+````{py:function} apply_orcid_record(data, person)
+:canonical: fairdm.contrib.contributors.tasks.apply_orcid_record
+
+```{autodoc2-docstring} fairdm.contrib.contributors.tasks.apply_orcid_record
+```
+````
+
+````{py:function} apply_ror_record(data, organization)
+:canonical: fairdm.contrib.contributors.tasks.apply_ror_record
+
+```{autodoc2-docstring} fairdm.contrib.contributors.tasks.apply_ror_record
 ```
 ````
 

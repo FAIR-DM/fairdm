@@ -23,6 +23,22 @@
   - ```{autodoc2-docstring} fairdm.contrib.contributors.receivers.refuse_shipped_role_rename
     :summary:
     ```
+* - {py:obj}`seed_refresh_task <fairdm.contrib.contributors.receivers.seed_refresh_task>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.receivers.seed_refresh_task
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`REFRESH_TASK <fairdm.contrib.contributors.receivers.REFRESH_TASK>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.receivers.REFRESH_TASK
+    :summary:
+    ```
 ````
 
 ### API
@@ -38,5 +54,22 @@
 :canonical: fairdm.contrib.contributors.receivers.refuse_shipped_role_rename
 
 ```{autodoc2-docstring} fairdm.contrib.contributors.receivers.refuse_shipped_role_rename
+```
+````
+
+````{py:data} REFRESH_TASK
+:canonical: fairdm.contrib.contributors.receivers.REFRESH_TASK
+:value: >
+   'fairdm.contrib.contributors.tasks.refresh_all_contributors'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.receivers.REFRESH_TASK
+```
+
+````
+
+````{py:function} seed_refresh_task(**kwargs)
+:canonical: fairdm.contrib.contributors.receivers.seed_refresh_task
+
+```{autodoc2-docstring} fairdm.contrib.contributors.receivers.seed_refresh_task
 ```
 ````

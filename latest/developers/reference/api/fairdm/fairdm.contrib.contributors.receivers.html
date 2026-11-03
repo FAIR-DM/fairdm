@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="developers/reference/api/fairdm/fairdm.contrib.contributors.receivers.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="Signal receivers that keep the shipped portal roles in place. Module Contents: Functions:,, refuse_shipped_role_deletion, Refuse to delete a shipped portal role, including through a queryset delete..." />
-<meta name="description" content="Signal receivers that keep the shipped portal roles in place. Module Contents: Functions:,, refuse_shipped_role_deletion, Refuse to delete a shipped portal role, including through a queryset delete..." />
+<meta property="og:description" content="Signal receivers that keep the shipped portal roles in place and schedule the profile refresh. Module Contents: Functions:,, refuse_shipped_role_deletion, Refuse to delete a shipped portal role, in..." />
+<meta name="description" content="Signal receivers that keep the shipped portal roles in place and schedule the profile refresh. Module Contents: Functions:,, refuse_shipped_role_deletion, Refuse to delete a shipped portal role, in..." />
 
     <title>fairdm.contrib.contributors.receivers &#8212; fairdm 0.4.1 documentation</title>
   
@@ -1085,7 +1085,7 @@ commentsRunWhenDOMLoaded(addUtterances);
                   
   <section id="module-fairdm.contrib.contributors.receivers">
 <span id="fairdm-contrib-contributors-receivers"></span><h1><a class="reference internal" href="#module-fairdm.contrib.contributors.receivers" title="fairdm.contrib.contributors.receivers"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.receivers</span></code></a><a class="headerlink" href="#module-fairdm.contrib.contributors.receivers" title="Link to this heading">#</a></h1>
-<p>Signal receivers that keep the shipped portal roles in place.</p>
+<p>Signal receivers that keep the shipped portal roles in place and schedule the profile refresh.</p>
 <section id="module-contents">
 <h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
 <section id="functions">
@@ -1097,6 +1097,20 @@ commentsRunWhenDOMLoaded(addUtterances);
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.receivers.refuse_shipped_role_rename" title="fairdm.contrib.contributors.receivers.refuse_shipped_role_rename"><code class="xref py py-obj docutils literal notranslate"><span class="pre">refuse_shipped_role_rename</span></code></a></p></td>
 <td><p>Refuse to rename a shipped portal role.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.receivers.seed_refresh_task" title="fairdm.contrib.contributors.receivers.seed_refresh_task"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seed_refresh_task</span></code></a></p></td>
+<td><p>Create the weekly refresh of profiles from ORCID and ROR, Monday at 03:00, if missing.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="data">
+<h3>Data<a class="headerlink" href="#data" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table table-left">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.receivers.REFRESH_TASK" title="fairdm.contrib.contributors.receivers.REFRESH_TASK"><code class="xref py py-obj docutils literal notranslate"><span class="pre">REFRESH_TASK</span></code></a></p></td>
+<td><p>The task path of the weekly refresh of profiles from ORCID and ROR.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1114,6 +1128,23 @@ commentsRunWhenDOMLoaded(addUtterances);
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.receivers.refuse_shipped_role_rename">
 <span class="sig-name descname"><span class="pre">refuse_shipped_role_rename</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sender</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/fairdm/contrib/contributors/receivers.html#refuse_shipped_role_rename"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fairdm.contrib.contributors.receivers.refuse_shipped_role_rename" title="Link to this definition">#</a></dt>
 <dd><p>Refuse to rename a shipped portal role.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.receivers.REFRESH_TASK">
+<span class="sig-name descname"><span class="pre">REFRESH_TASK</span></span><a class="headerlink" href="#fairdm.contrib.contributors.receivers.REFRESH_TASK" title="Link to this definition">#</a></dt>
+<dd><p>‘fairdm.contrib.contributors.tasks.refresh_all_contributors’</p>
+<p>The task path of the weekly refresh of profiles from ORCID and ROR.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.receivers.seed_refresh_task">
+<span class="sig-name descname"><span class="pre">seed_refresh_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/fairdm/contrib/contributors/receivers.html#seed_refresh_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fairdm.contrib.contributors.receivers.seed_refresh_task" title="Link to this definition">#</a></dt>
+<dd><p>Create the weekly refresh of profiles from ORCID and ROR, Monday at 03:00, if missing.</p>
+<p>A refresh task that exists is never touched, so a portal that changed its schedule,
+switched it off or renamed it keeps its choice. The task is found by its task path.</p>
+<p>Args:
+**kwargs: The signal’s arguments, unused.</p>
 </dd></dl>
 
 </section>
@@ -1169,9 +1200,12 @@ commentsRunWhenDOMLoaded(addUtterances);
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#data">Data</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#api">API</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.receivers.refuse_shipped_role_deletion"><code class="docutils literal notranslate"><span class="pre">refuse_shipped_role_deletion()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.receivers.refuse_shipped_role_rename"><code class="docutils literal notranslate"><span class="pre">refuse_shipped_role_rename()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.receivers.REFRESH_TASK"><code class="docutils literal notranslate"><span class="pre">REFRESH_TASK</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.receivers.seed_refresh_task"><code class="docutils literal notranslate"><span class="pre">seed_refresh_task()</span></code></a></li>
 </ul>
 </li>
 </ul>

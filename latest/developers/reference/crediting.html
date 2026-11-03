@@ -1409,15 +1409,31 @@ commentsRunWhenDOMLoaded(addUtterances);
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ask(address,</span> <span class="pre">parse,</span> <span class="pre">*,</span> <span class="pre">params=None,</span> <span class="pre">headers=None,</span> <span class="pre">missing_ok=False)</span></code></p></td>
 <td><p>Function</p></td>
-<td><p>The one function that makes a request. <code class="docutils literal notranslate"><span class="pre">parse</span></code> turns the decoded answer into what the caller wants. Both classes use it, and a third registry can pass its own address and <code class="docutils literal notranslate"><span class="pre">parse</span></code></p></td>
+<td><p>The one function the searches and lookups make a request through. <code class="docutils literal notranslate"><span class="pre">parse</span></code> turns the decoded answer into what the caller wants. Both classes use it, and a third registry can pass its own address and <code class="docutils literal notranslate"><span class="pre">parse</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">RESULTS_SHOWN</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fetch_record(address,</span> <span class="pre">headers=None)</span></code></p></td>
+<td><p>Function</p></td>
+<td><p>The one function the sync and the transforms’ <code class="docutils literal notranslate"><span class="pre">fetch_from_api()</span></code> fetch a record to store through. Uncached. Returns the decoded record, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a 404. Raises <code class="docutils literal notranslate"><span class="pre">RegistryRateLimited</span></code> for a 429, <code class="docutils literal notranslate"><span class="pre">requests.RequestException</span></code> for any other failure and <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> for an answer that is not JSON. It never retries: the sync task does</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">RegistryRateLimited</span></code></p></td>
+<td><p>Exception, a <code class="docutils literal notranslate"><span class="pre">requests.RequestException</span></code></p></td>
+<td><p>Raised by <code class="docutils literal notranslate"><span class="pre">fetch_record</span></code> for a 429. <code class="docutils literal notranslate"><span class="pre">retry_after</span></code> holds the seconds the registry asked to wait, or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">seconds_to_wait(retry_after)</span></code></p></td>
+<td><p>Function</p></td>
+<td><p>Reads a <code class="docutils literal notranslate"><span class="pre">Retry-After</span></code> value, seconds or an HTTP date, into whole seconds. <code class="docutils literal notranslate"><span class="pre">None</span></code> when the value says nothing</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">RESULTS_SHOWN</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">10</span></code></p></td>
 <td><p>The most matches a search returns</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">TIMEOUT</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">TIMEOUT</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">5</span></code></p></td>
-<td><p>The seconds a registry has to answer</p></td>
+<td><p>The seconds a registry has to answer a search or lookup</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FETCH_TIMEOUT</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">10</span></code></p></td>
+<td><p>The seconds a registry has to answer <code class="docutils literal notranslate"><span class="pre">fetch_record</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">KEPT</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">300</span></code></p></td>

@@ -1133,13 +1133,25 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">last_synced</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">DateField</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
-<td><p>The date <code class="docutils literal notranslate"><span class="pre">synced_data</span></code> last changed. Set on save. Not editable</p></td>
+<td><p>The date a record was last fetched from the external provider. Not editable</p></td>
 <td><p>Not set by hand</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">synced_data</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">JSONField</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{}</span></code></p></td>
 <td><p>The raw record from the external provider. Not editable</p></td>
+<td><p>Not set by hand</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">sync_status</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CharField</span></code>, choices <code class="docutils literal notranslate"><span class="pre">SyncStatus</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code></p></td>
+<td><p>Whether the last fetch succeeded (<code class="docutils literal notranslate"><span class="pre">succeeded</span></code>) or failed (<code class="docutils literal notranslate"><span class="pre">failed</span></code>). Blank until one is tried. Not editable</p></td>
+<td><p>Not set by hand</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sync_error</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">TextField</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code></p></td>
+<td><p>Why the last fetch failed. Blank after a success. Not editable</p></td>
 <td><p>Not set by hand</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">config</span></code></p></td>
@@ -1202,6 +1214,14 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">is_editable_by(user)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
 <td><p>Whether <code class="docutils literal notranslate"><span class="pre">user</span></code> may edit the profile. <code class="docutils literal notranslate"><span class="pre">False</span></code> on <code class="docutils literal notranslate"><span class="pre">Contributor</span></code>, overridden by <code class="docutils literal notranslate"><span class="pre">Person</span></code> and <code class="docutils literal notranslate"><span class="pre">Organization</span></code>. See <a class="reference internal" href="#who-may-edit-a-profile">Who may edit a profile</a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">record_fetch(data)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Holds a record fetched from the external provider: sets <code class="docutils literal notranslate"><span class="pre">synced_data</span></code>, dates <code class="docutils literal notranslate"><span class="pre">last_synced</span></code> today, sets <code class="docutils literal notranslate"><span class="pre">sync_status</span></code> to <code class="docutils literal notranslate"><span class="pre">succeeded</span></code> and clears <code class="docutils literal notranslate"><span class="pre">sync_error</span></code>. Does not save</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">record_failed_fetch(reason)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+<td><p>Saves <code class="docutils literal notranslate"><span class="pre">sync_status</span></code> as <code class="docutils literal notranslate"><span class="pre">failed</span></code> and <code class="docutils literal notranslate"><span class="pre">sync_error</span></code> as <code class="docutils literal notranslate"><span class="pre">reason</span></code>, and nothing else on the instance</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_default_identifier()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">ContributorIdentifier</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
@@ -1613,9 +1633,9 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p>Properties</p></td>
 <td><p>The latitude and longitude of <code class="docutils literal notranslate"><span class="pre">location</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">from_ror(ror,</span> <span class="pre">commit=True)</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">from_ror(ror)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Organization</span></code></p></td>
-<td><p>Creates or updates an organization from a ROR record through <code class="docutils literal notranslate"><span class="pre">RORTransform.update_or_create</span></code>. With <code class="docutils literal notranslate"><span class="pre">commit</span></code>, it also queues a sync after the transaction commits</p></td>
+<td><p>Creates or updates an organization from a ROR record through <code class="docutils literal notranslate"><span class="pre">RORTransform.update_or_create</span></code>. A new ROR identifier queues its own sync after the transaction commits</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_memberships()</span></code></p></td>
 <td><p>Queryset</p></td>
@@ -2000,7 +2020,24 @@ commentsRunWhenDOMLoaded(addUtterances);
 </div>
 <p>The contributor collection offers, by identifier, <code class="docutils literal notranslate"><span class="pre">orcid</span></code>, <code class="docutils literal notranslate"><span class="pre">researcher-id</span></code>, <code class="docutils literal notranslate"><span class="pre">ror</span></code>, <code class="docutils literal notranslate"><span class="pre">wikidata</span></code>, <code class="docutils literal notranslate"><span class="pre">isni</span></code> and <code class="docutils literal notranslate"><span class="pre">crossref-funder-id</span></code>. A contributor holds at most one identifier of each type. A second is refused at the database and by <code class="docutils literal notranslate"><span class="pre">clean()</span></code>, with a message naming the type.</p>
 <p><code class="docutils literal notranslate"><span class="pre">resolver_url</span></code> is the address the identifier resolves to, or <code class="docutils literal notranslate"><span class="pre">None</span></code> for a type with no resolver. ORCID, ROR, Wikidata, ISNI and Crossref Funder ID identifiers have one. A ResearcherID has none.</p>
-<p>Creating an identifier queues a sync with the external provider once the transaction commits. The sync is a Celery task, <code class="docutils literal notranslate"><span class="pre">sync_contributor_identifier</span></code>. See <a class="reference internal" href="../how-to/sync-a-profile-from-orcid-or-ror-without-celery.html"><span class="std std-doc">How to sync a profile from ORCID or ROR without Celery</span></a>.</p>
+<p>Creating an identifier, or changing its value or type, queues a sync with the external provider once the transaction commits. The sync is a Celery task, <code class="docutils literal notranslate"><span class="pre">sync_contributor_identifier</span></code>. Every contributor with an ORCID or ROR identifier is also refreshed weekly: the periodic task “Refresh profiles from ORCID and ROR” runs <code class="docutils literal notranslate"><span class="pre">refresh_all_contributors</span></code> on Mondays at 03:00 in the portal’s time zone, and queues a sync for up to 100 contributors not synced in the last seven days. The task is created when the database is migrated, and a portal that changes or disables it keeps its choice. See <a class="reference internal" href="../how-to/sync-a-profile-from-orcid-or-ror-without-celery.html"><span class="std std-doc">How to sync a profile from ORCID or ROR without Celery</span></a>.</p>
+<p>The task fetches through <code class="docutils literal notranslate"><span class="pre">fetch_record</span></code> in <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.services.registries</span></code>. A failed request, a timeout and a server error are retried up to three times with a growing delay. A 429 with <code class="docutils literal notranslate"><span class="pre">Retry-After</span></code> is retried after the wait it asks for. Each attempt records its outcome on the contributor with <code class="docutils literal notranslate"><span class="pre">record_fetch</span></code> or <code class="docutils literal notranslate"><span class="pre">record_failed_fetch</span></code>. What a fetched record changes is done by two functions in <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.tasks</span></code>, neither of which saves:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Function</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">apply_orcid_record(data,</span> <span class="pre">person)</span></code></p></td>
+<td><p>Fills a blank name, and the first and last names, from the ORCID record</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">apply_ror_record(data,</span> <span class="pre">organization)</span></code></p></td>
+<td><p>Sets the city, country and location from the ROR record’s first place, and fills a blank name</p></td>
+</tr>
+</tbody>
+</table>
+</div>
 </section>
 <section id="profile-helpers">
 <h2>Profile helpers<a class="headerlink" href="#profile-helpers" title="Link to this heading">#</a></h2>
@@ -2286,7 +2323,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fetch_from_api(identifier)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
-<td><p>Fetches the public record with a 30 second timeout. Raises <code class="docutils literal notranslate"><span class="pre">requests.RequestException</span></code> on failure</p></td>
+<td><p>Fetches the public record with a 10 second timeout. Raises <code class="docutils literal notranslate"><span class="pre">requests.RequestException</span></code> on failure, including a missing record</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">update_or_create(identifier,</span> <span class="pre">force=False,</span> <span class="pre">**kwargs)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">(contributor,</span> <span class="pre">created)</span></code></p></td>

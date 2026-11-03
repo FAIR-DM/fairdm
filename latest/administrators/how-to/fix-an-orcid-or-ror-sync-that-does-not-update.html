@@ -864,12 +864,12 @@ commentsRunWhenDOMLoaded(addUtterances);
 <section id="steps">
 <h2>Steps<a class="headerlink" href="#steps" title="Link to this heading">#</a></h2>
 <ol class="arabic">
-<li><p>Open the record and read <strong>Last synced</strong>.</p>
+<li><p>Open the record and read <strong>Last synced</strong>, <strong>Sync status</strong> and <strong>Sync error</strong>.</p>
 <ul class="simple">
-<li><p>For a person, open <strong>Community</strong> → <strong>Users</strong>, then the person. <strong>Last synced</strong> is in the first section.</p></li>
-<li><p>For an organization, open <strong>Community</strong> → <strong>Organizations</strong>, then the organization. <strong>Last synced</strong> and <strong>Synced data</strong> are in the <strong>Synchronisation</strong> section. An empty <strong>Synced data</strong> means no record has ever been stored.</p></li>
+<li><p>For a person, open <strong>Community</strong> → <strong>Users</strong>, then the person. The three are in the first section.</p></li>
+<li><p>For an organization, open <strong>Community</strong> → <strong>Organizations</strong>, then the organization. They are in the <strong>Synchronisation</strong> section, with <strong>Synced data</strong>. An empty <strong>Synced data</strong> means no record has ever been stored.</p></li>
 </ul>
-<p><strong>Last synced</strong> is a date, so a sync that ran earlier today looks the same as one that ran a minute ago.</p>
+<p><strong>Sync status</strong> says whether the last attempt worked, and <strong>Sync error</strong> says why it did not: the registry has no such record, the request failed or was refused, it answered in a form the portal cannot read, or it asked for no requests for a while. A blank status means no sync has been tried. <strong>Last synced</strong> is the date of the last attempt that worked, so a sync that ran earlier today looks the same as one that ran a minute ago.</p>
 </li>
 <li><p>Check that the record holds the identifier, in the right form.</p>
 <ul class="simple">
@@ -878,17 +878,19 @@ commentsRunWhenDOMLoaded(addUtterances);
 </ul>
 <p>The organization form has no identifiers section. An organization without a ROR identifier is skipped by <strong>Sync from ROR</strong>. Add the organization again from the <strong>Contributors</strong> tab of a record, choosing it from the ROR search, so that the identifier is stored. See <a class="reference internal" href="../../users/contributors/add-a-person-or-organization.html"><span class="std std-doc">How to add a person or organization</span></a>.</p>
 </li>
-<li><p>For an organization, tick it in the list, choose <strong>Sync from ROR</strong> in the <strong>Action</strong> menu and select <strong>Go</strong>. The message “Triggered ROR sync for 1 organization(s)” means the sync was queued, not that it finished. If the message says no organizations with ROR identifiers were found, return to step 2. People have no such action. Saving a new identifier queues their sync.</p></li>
+<li><p>For an organization, tick it in the list, choose <strong>Sync from ROR</strong> in the <strong>Action</strong> menu and select <strong>Go</strong>. The message “Triggered ROR sync for 1 organization(s)” means the sync was queued, not that it finished. If the message says no organizations with ROR identifiers were found, return to step 2. People have no such action. Saving a new identifier, or correcting the value of one, queues their sync.</p></li>
 <li><p>Ask whoever runs the server to check that a background worker is running and that the broker, the Redis instance named by <code class="docutils literal notranslate"><span class="pre">REDIS_URL</span></code>, is reachable. A queued sync waits for a worker. Run the checks with <code class="docutils literal notranslate"><span class="pre">--deploy</span></code> and look for <code class="docutils literal notranslate"><span class="pre">fairdm.E300</span></code> and <code class="docutils literal notranslate"><span class="pre">fairdm.E301</span></code>. See <a class="reference internal" href="run-the-configuration-checks.html"><span class="std std-doc">How to run the configuration checks</span></a>.</p></li>
-<li><p>Ask for the worker’s log. A sync that gives up logs “not found (404)” for an iD or ID the registry does not hold, or a timeout after ten seconds. A failed request is retried up to three times with growing delays. The sync task is limited to ten runs a minute for each worker, so a large batch takes a while.</p></li>
+<li><p>Ask for the worker’s log. A sync that gives up logs “not found (404)” for an iD or ID the registry does not hold. A request that fails or takes more than ten seconds is retried up to three times with growing delays. When the registry asks for no requests for a while, the retry waits as long as it asks. The sync task is limited to ten runs a minute for each worker, so a large batch takes a while.</p>
+<p>Every profile with an ORCID or ROR identifier is also refreshed once a week, on Mondays at 03:00, by the periodic task <strong>Refresh profiles from ORCID and ROR</strong>. It needs the beat scheduler running beside the worker. The task is under <strong>Periodic tasks</strong> in the administration interface, where it can be rescheduled or switched off.</p>
+</li>
 </ol>
 </section>
 <section id="the-result">
 <h2>The result<a class="headerlink" href="#the-result" title="Link to this heading">#</a></h2>
-<p><strong>Last synced</strong> shows today’s date, and an organization’s <strong>Synced data</strong> holds the registry’s record.</p>
+<p><strong>Last synced</strong> shows today’s date, <strong>Sync status</strong> reads <strong>Succeeded</strong>, and an organization’s <strong>Synced data</strong> holds the registry’s record.</p>
 <p>A completed sync does less than you may expect:</p>
 <ul class="simple">
-<li><p>It stores the registry’s record and sets <strong>Last synced</strong>.</p></li>
+<li><p>It stores the registry’s record, sets <strong>Last synced</strong> and clears <strong>Sync error</strong>.</p></li>
 <li><p>It fills in a person’s name only when the name is blank.</p></li>
 <li><p>For an organization it also sets the city, country and location from the record’s first place, and fills a blank name.</p></li>
 <li><p>It does not change a person’s biography, links or alternative names.</p></li>

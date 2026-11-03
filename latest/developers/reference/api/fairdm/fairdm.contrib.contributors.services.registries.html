@@ -1109,6 +1109,12 @@ commentsRunWhenDOMLoaded(addUtterances);
 <h3>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table table-left">
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.services.registries.seconds_to_wait" title="fairdm.contrib.contributors.services.registries.seconds_to_wait"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seconds_to_wait</span></code></a></p></td>
+<td><p>Read a <code class="docutils literal notranslate"><span class="pre">Retry-After</span></code> header, which is a number of seconds or an HTTP date.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.services.registries.fetch_record" title="fairdm.contrib.contributors.services.registries.fetch_record"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fetch_record</span></code></a></p></td>
+<td><p>Fetch one registry record for a profile, uncached, as the sync and the transforms do.</p></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.services.registries.ask" title="fairdm.contrib.contributors.services.registries.ask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ask</span></code></a></p></td>
 <td><p>Request an address from a registry and read its answer, unless it is kept.</p></td>
 </tr>
@@ -1131,6 +1137,9 @@ commentsRunWhenDOMLoaded(addUtterances);
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.services.registries.JSON" title="fairdm.contrib.contributors.services.registries.JSON"><code class="xref py py-obj docutils literal notranslate"><span class="pre">JSON</span></code></a></p></td>
 <td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.services.registries.FETCH_TIMEOUT" title="fairdm.contrib.contributors.services.registries.FETCH_TIMEOUT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FETCH_TIMEOUT</span></code></a></p></td>
+<td><p>The seconds a registry has to answer a fetch of one record for a profile.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1163,6 +1172,52 @@ commentsRunWhenDOMLoaded(addUtterances);
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.JSON">
 <span class="sig-name descname"><span class="pre">JSON</span></span><a class="headerlink" href="#fairdm.contrib.contributors.services.registries.JSON" title="Link to this definition">#</a></dt>
 <dd><p>None</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.FETCH_TIMEOUT">
+<span class="sig-name descname"><span class="pre">FETCH_TIMEOUT</span></span><a class="headerlink" href="#fairdm.contrib.contributors.services.registries.FETCH_TIMEOUT" title="Link to this definition">#</a></dt>
+<dd><p>10</p>
+<p>The seconds a registry has to answer a fetch of one record for a profile.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.RegistryRateLimited">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">RegistryRateLimited</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">retry_after</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.services.registries.RegistryRateLimited" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">requests.RequestException</span></code></p>
+<p>Signal that a registry answered 429 and asked for no requests for a while.</p>
+<p>Attributes:
+retry_after: The seconds the registry asked to wait, or None when it did not say.</p>
+<p class="rubric">Initialization</p>
+<p>Initialize RequestException with <code class="docutils literal notranslate"><span class="pre">request</span></code> and <code class="docutils literal notranslate"><span class="pre">response</span></code> objects.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.seconds_to_wait">
+<span class="sig-name descname"><span class="pre">seconds_to_wait</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">retry_after</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.services.registries.seconds_to_wait" title="Link to this definition">#</a></dt>
+<dd><p>Read a <code class="docutils literal notranslate"><span class="pre">Retry-After</span></code> header, which is a number of seconds or an HTTP date.</p>
+<p>Args:
+retry_after: The header’s value, or None when it was not sent.</p>
+<p>Returns:
+The whole seconds to wait, never negative, or None when the value says nothing.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.services.registries.fetch_record">
+<span class="sig-name descname"><span class="pre">fetch_record</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.services.registries.fetch_record" title="Link to this definition">#</a></dt>
+<dd><p>Fetch one registry record for a profile, uncached, as the sync and the transforms do.</p>
+<p>Every fetch of a record to store on a profile goes through here, so all of them share one
+timeout and one reading of a refusal. Retrying is the caller’s: the sync task retries with
+a growing delay, or after the wait a 429 asks for.</p>
+<p>Args:
+address: The record’s address.
+headers: Request headers.</p>
+<p>Returns:
+The decoded record, or None when the registry answers 404.</p>
+<p>Raises:
+RegistryRateLimited: The registry answered 429.
+requests.RequestException: The request failed or the answer was another error.
+ValueError: The answer was not JSON.</p>
 </dd></dl>
 
 <dl class="py exception">
@@ -1481,6 +1536,10 @@ The organization.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.services.registries.TIMEOUT"><code class="docutils literal notranslate"><span class="pre">TIMEOUT</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.services.registries.KEPT"><code class="docutils literal notranslate"><span class="pre">KEPT</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.services.registries.JSON"><code class="docutils literal notranslate"><span class="pre">JSON</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.services.registries.FETCH_TIMEOUT"><code class="docutils literal notranslate"><span class="pre">FETCH_TIMEOUT</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.services.registries.RegistryRateLimited"><code class="docutils literal notranslate"><span class="pre">RegistryRateLimited</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.services.registries.seconds_to_wait"><code class="docutils literal notranslate"><span class="pre">seconds_to_wait()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.services.registries.fetch_record"><code class="docutils literal notranslate"><span class="pre">fetch_record()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.services.registries.RegistryUnavailable"><code class="docutils literal notranslate"><span class="pre">RegistryUnavailable</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.services.registries.ask"><code class="docutils literal notranslate"><span class="pre">ask()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.services.registries.Orcid"><code class="docutils literal notranslate"><span class="pre">Orcid</span></code></a><ul class="nav section-nav flex-column">

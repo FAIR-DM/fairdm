@@ -19,6 +19,10 @@
   - ```{autodoc2-docstring} fairdm.contrib.contributors.choices.OrganizationType
     :summary:
     ```
+* - {py:obj}`SyncStatus <fairdm.contrib.contributors.choices.SyncStatus>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.choices.SyncStatus
+    :summary:
+    ```
 * - {py:obj}`ContributionLevel <fairdm.contrib.contributors.choices.ContributionLevel>`
   - ```{autodoc2-docstring} fairdm.contrib.contributors.choices.ContributionLevel
     :summary:
@@ -143,6 +147,42 @@ Bases: {py:obj}`django.db.models.TextChoices`
    ('other',)
 
 ```{autodoc2-docstring} fairdm.contrib.contributors.choices.OrganizationType.OTHER
+```
+
+````
+
+`````
+
+`````{py:class} SyncStatus(*args, **kwds)
+:canonical: fairdm.contrib.contributors.choices.SyncStatus
+
+Bases: {py:obj}`django.db.models.TextChoices`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.SyncStatus
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.SyncStatus.__init__
+```
+
+````{py:attribute} SUCCEEDED
+:canonical: fairdm.contrib.contributors.choices.SyncStatus.SUCCEEDED
+:value: >
+   ('succeeded',)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.SyncStatus.SUCCEEDED
+```
+
+````
+
+````{py:attribute} FAILED
+:canonical: fairdm.contrib.contributors.choices.SyncStatus.FAILED
+:value: >
+   ('failed',)
+
+```{autodoc2-docstring} fairdm.contrib.contributors.choices.SyncStatus.FAILED
 ```
 
 ````

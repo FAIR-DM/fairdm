@@ -1113,6 +1113,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">self.dictget(data,</span> <span class="pre">path,</span> <span class="pre">default)</span></code> reads a nested value by a list of keys and indexes, and gives <code class="docutils literal notranslate"><span class="pre">default</span></code> when the path does not exist.</p>
+<p>When the data is a record fetched from a registry and you keep it, call <code class="docutils literal notranslate"><span class="pre">instance.record_fetch(data)</span></code> before saving. It stores the record in <code class="docutils literal notranslate"><span class="pre">synced_data</span></code>, dates <code class="docutils literal notranslate"><span class="pre">last_synced</span></code> today and marks the fetch as succeeded.</p>
 </li>
 <li><p>Override <code class="docutils literal notranslate"><span class="pre">validate</span></code> when you want to check data before importing it. The base method only checks that the data is a <code class="docutils literal notranslate"><span class="pre">dict</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="k">def</span><span class="w"> </span><span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>

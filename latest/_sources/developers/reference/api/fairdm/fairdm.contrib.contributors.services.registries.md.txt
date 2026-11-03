@@ -31,6 +31,14 @@
 :class: autosummary longtable
 :align: left
 
+* - {py:obj}`seconds_to_wait <fairdm.contrib.contributors.services.registries.seconds_to_wait>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.seconds_to_wait
+    :summary:
+    ```
+* - {py:obj}`fetch_record <fairdm.contrib.contributors.services.registries.fetch_record>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.fetch_record
+    :summary:
+    ```
 * - {py:obj}`ask <fairdm.contrib.contributors.services.registries.ask>`
   - ```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.ask
     :summary:
@@ -57,6 +65,10 @@
     ```
 * - {py:obj}`JSON <fairdm.contrib.contributors.services.registries.JSON>`
   - ```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.JSON
+    :summary:
+    ```
+* - {py:obj}`FETCH_TIMEOUT <fairdm.contrib.contributors.services.registries.FETCH_TIMEOUT>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.FETCH_TIMEOUT
     :summary:
     ```
 ````
@@ -101,6 +113,46 @@
 ```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.JSON
 ```
 
+````
+
+````{py:data} FETCH_TIMEOUT
+:canonical: fairdm.contrib.contributors.services.registries.FETCH_TIMEOUT
+:value: >
+   10
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.FETCH_TIMEOUT
+```
+
+````
+
+````{py:exception} RegistryRateLimited(message, retry_after=None)
+:canonical: fairdm.contrib.contributors.services.registries.RegistryRateLimited
+
+Bases: {py:obj}`requests.RequestException`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.RegistryRateLimited
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.RegistryRateLimited.__init__
+```
+
+````
+
+````{py:function} seconds_to_wait(retry_after)
+:canonical: fairdm.contrib.contributors.services.registries.seconds_to_wait
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.seconds_to_wait
+```
+````
+
+````{py:function} fetch_record(address, headers=None)
+:canonical: fairdm.contrib.contributors.services.registries.fetch_record
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.registries.fetch_record
+```
 ````
 
 ````{py:exception} RegistryUnavailable()

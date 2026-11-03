@@ -1141,7 +1141,7 @@ window.runMermaid = runMermaid;</script>
                 <article class="bd-article">
                   
   <h1>Source code for fairdm.contrib.contributors.receivers</h1><div class="highlight"><pre>
-<span></span><span class="sd">"""Signal receivers that keep the shipped portal roles in place."""</span>
+<span></span><span class="sd">"""Signal receivers that keep the shipped portal roles in place and schedule the profile refresh."""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">ValidationError</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.translation</span><span class="w"> </span><span class="kn">import</span> <span class="n">gettext_lazy</span> <span class="k">as</span> <span class="n">_</span>
@@ -1184,6 +1184,43 @@ window.runMermaid = runMermaid;</script>
             <span class="n">_</span><span class="p">(</span><span class="s1">'FairDM requires the "</span><span class="si">%(name)s</span><span class="s1">" role and refuses to rename it.'</span><span class="p">)</span>
             <span class="o">%</span> <span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="n">stored_name</span><span class="p">}</span>
         <span class="p">)</span></div>
+
+
+
+<span class="n">REFRESH_TASK</span> <span class="o">=</span> <span class="s2">"fairdm.contrib.contributors.tasks.refresh_all_contributors"</span>
+<span class="sd">"""The task path of the weekly refresh of profiles from ORCID and ROR."""</span>
+
+
+<div class="viewcode-block" id="seed_refresh_task">
+<a class="viewcode-back" href="../../../../developers/reference/api/fairdm/fairdm.contrib.contributors.receivers.html#fairdm.contrib.contributors.receivers.seed_refresh_task">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">seed_refresh_task</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Create the weekly refresh of profiles from ORCID and ROR, Monday at 03:00, if missing.</span>
+
+<span class="sd">    A refresh task that exists is never touched, so a portal that changed its schedule,</span>
+<span class="sd">    switched it off or renamed it keeps its choice. The task is found by its task path.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        **kwargs: The signal's arguments, unused.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">django.conf</span><span class="w"> </span><span class="kn">import</span> <span class="n">settings</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">django_celery_beat.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">CrontabSchedule</span><span class="p">,</span> <span class="n">PeriodicTask</span>
+
+    <span class="k">if</span> <span class="n">PeriodicTask</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">task</span><span class="o">=</span><span class="n">REFRESH_TASK</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">return</span>
+    <span class="n">crontab</span> <span class="o">=</span> <span class="n">CrontabSchedule</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span>
+        <span class="n">minute</span><span class="o">=</span><span class="s2">"0"</span><span class="p">,</span>
+        <span class="n">hour</span><span class="o">=</span><span class="s2">"3"</span><span class="p">,</span>
+        <span class="n">day_of_week</span><span class="o">=</span><span class="s2">"1"</span><span class="p">,</span>
+        <span class="n">day_of_month</span><span class="o">=</span><span class="s2">"*"</span><span class="p">,</span>
+        <span class="n">month_of_year</span><span class="o">=</span><span class="s2">"*"</span><span class="p">,</span>
+        <span class="n">timezone</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">TIME_ZONE</span><span class="p">,</span>
+    <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">PeriodicTask</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">"Refresh profiles from ORCID and ROR"</span><span class="p">,</span>
+        <span class="n">task</span><span class="o">=</span><span class="n">REFRESH_TASK</span><span class="p">,</span>
+        <span class="n">crontab</span><span class="o">=</span><span class="n">crontab</span><span class="p">,</span>
+        <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span></div>
 
 </pre></div>
 

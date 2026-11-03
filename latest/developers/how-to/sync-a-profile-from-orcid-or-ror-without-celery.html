@@ -1109,7 +1109,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </li>
 <li><p>Check the profile.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">profile</span> <span class="o">=</span> <span class="n">identifier</span><span class="o">.</span><span class="n">related</span><span class="o">.</span><span class="n">get_real_instance</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">profile</span><span class="o">.</span><span class="n">last_synced</span><span class="p">,</span> <span class="nb">bool</span><span class="p">(</span><span class="n">profile</span><span class="o">.</span><span class="n">synced_data</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">profile</span><span class="o">.</span><span class="n">last_synced</span><span class="p">,</span> <span class="n">profile</span><span class="o">.</span><span class="n">sync_status</span><span class="p">,</span> <span class="n">profile</span><span class="o">.</span><span class="n">sync_error</span><span class="p">)</span>
 </pre></div>
 </div>
 </li>
@@ -1117,7 +1117,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="the-result">
 <h2>The result<a class="headerlink" href="#the-result" title="Link to this heading">#</a></h2>
-<p>The profile’s <code class="docutils literal notranslate"><span class="pre">synced_data</span></code> holds the registry’s record and <code class="docutils literal notranslate"><span class="pre">last_synced</span></code> is today’s date. A blank name is filled from the record. An organization also takes its city, country and location from the record’s first place. Nothing else on the profile changes.</p>
+<p>The profile’s <code class="docutils literal notranslate"><span class="pre">synced_data</span></code> holds the registry’s record, <code class="docutils literal notranslate"><span class="pre">last_synced</span></code> is today’s date and <code class="docutils literal notranslate"><span class="pre">sync_status</span></code> is <code class="docutils literal notranslate"><span class="pre">succeeded</span></code>. A sync that failed leaves both as they were, sets <code class="docutils literal notranslate"><span class="pre">sync_status</span></code> to <code class="docutils literal notranslate"><span class="pre">failed</span></code> and says why in <code class="docutils literal notranslate"><span class="pre">sync_error</span></code>. A blank name is filled from the record. An organization also takes its city, country and location from the record’s first place. Nothing else on the profile changes.</p>
 </section>
 <section id="rewrite-the-whole-profile">
 <h2>Rewrite the whole profile<a class="headerlink" href="#rewrite-the-whole-profile" title="Link to this heading">#</a></h2>
