@@ -1,6 +1,6 @@
 # Browse samples and measurements
 
-A dataset's page and a project's page each have a **Samples** tab and a **Measurements** tab. Each lists the records in a table, one type at a time. Use them to see what a dataset or a project holds and to find one record in it.
+A dataset's page, a project's page and a person's or organization's page each have a **Samples** tab and a **Measurements** tab. Each lists the records in a table, one type at a time. Use them to see what a dataset, a project or a contributor holds and to find one record in it.
 
 ## Browse a dataset's samples and measurements
 
@@ -23,6 +23,25 @@ A project's **Measurements** tab lists the measurements made in the project's da
 
 A project's tabs are open to everyone who may open the project. If you may see no record in any of its datasets, because they are not published or are private, the tab says there is nothing to list, as it does for a project with no records.
 
+## Browse a person's or an organization's samples and measurements
+
+1. Open the person's or organization's page.
+2. Open **Samples** or **Measurements** in the row of tabs under the header.
+3. Choose a type, search, filter and sort as on a dataset's tab. The column after the name gives each record's dataset, a link when you may open it.
+
+The tabs list a record in these cases:
+
+- The person or organization is credited on the record itself.
+- They are credited on the record's dataset.
+- They are credited on the project the record's dataset is in.
+- For an organization, the project that holds the record's dataset is owned by the organization.
+
+Credit does not spread any further. Being credited on a sample does not list other people's measurements of it, and an organization does not list the records its members are credited on. A record that qualifies in several ways is listed once.
+
+Everyone sees the records that are published and public. A person who opens their own page also sees the records they hold a level on, such as those in a private dataset or an unpublished one, and the filters offer their own records. An organization's page lists only published public records, even for the members of its team. A person or organization with nothing you may see gets the same message as one with no records.
+
+A **Measurements** tab can list a measurement made in a published dataset on a sample whose own dataset is not published. The **Sample** column then shows a dash.
+
 ## Find records of a type the portal no longer registers
 
 When a dataset holds records of a type the portal has stopped registering, the heading menu has one more entry, **Other**. It lists them in a basic table with the columns every sample, or every measurement, has.
@@ -36,6 +55,8 @@ A tab is shown only to people who may see the dataset's records.
 - A dataset in a private project is closed to anyone without a level on the project or the dataset.
 - A private project is closed to strangers, with all its tabs.
 
+A person's or organization's page always has both tabs. They list only what you may see.
+
 A dataset that holds no samples still has the tab. It says that the dataset has none.
 
 ## Why the figures and the tabs agree
@@ -46,4 +67,5 @@ The figures on the **Overview** of a dataset or a project, its charts and the ta
 
 - [The dataset page](dataset.md)
 - [The project page](../projects/project.md)
+- [People](../community/people.md) and [Organizations](../community/organizations.md)
 - [Samples](../samples/samples.md) and [Measurements](../measurements/measurements.md) for the portal-wide tables of one type

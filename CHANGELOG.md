@@ -9,9 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **A dataset and a project have Samples and Measurements tabs.** Each lists the records one
+- **A dataset, a project and a contributor have Samples and Measurements tabs.** Each lists the records one
   registered type at a time, in the table of that type, with its filters and search. A project's
   tabs list the records of all its datasets that the viewer may see, each row naming its dataset.
+  A person's or organization's tabs list the records credited to them or beneath a dataset or
+  project credited to them (`Contributor.get_associated_records`), released records only unless a
+  person looks at their own page.
   Records of a type the portal no longer registers are listed under **Other**. A dataset whose
   records a visitor may not see, such as a public dataset that is not published, offers them no tabs.
 - **`seed_record_lists`** loads development data for every state of the tabs.

@@ -275,11 +275,13 @@ of the record whose page it is on, one registered type at a time.
 |---|---|---|
 | Dataset | Yes | The samples or measurements of the dataset that the viewer may see |
 | Project | Yes | The samples or measurements of any of the project's datasets that the viewer may see |
+| Contributor | Yes | The samples or measurements credited to the contributor, or beneath a dataset or project credited to them, that the viewer may see. One registration covers `Person` and `Organization` |
 
 `RecordsTab.scope()` returns every record of the kind that belongs to the page's record, and
-`visible_records()` narrows it with `visible_to(request.user)`. `holder` names the kind of page,
-`"dataset"` or `"project"`, from the model the mount was registered for, and `scope()` follows it.
-A page that gains the tabs registers the plugins for its model and extends `scope()`. A
+`visible_records()` narrows it with `visible_to(viewer)`, where `viewer()` is the request's user. `holder` names the kind of page,
+`"dataset"`, `"project"` or `"contributor"`, from the model the mount was registered for, and
+`scope()` follows it. A contributor's scope is `Contributor.get_associated_records(base_model)`,
+described in [Contributor models](contributor-models.md). A page that gains the tabs registers the plugins for its model and extends `scope()`. A
 measurement belongs to its own dataset, which can differ from its sample's dataset: a project's
 Measurements tab lists a measurement made on a sample of another project, and that sample is not on
 the project's Samples tab.
@@ -289,6 +291,13 @@ The check is `records_are_offered`, which hands a dataset to `dataset_records_vi
 dataset's check holds when the dataset's overview opens for the viewer and so do its records: the
 dataset is published and no private project hides it, or the viewer holds a level on the dataset or
 its project. For anyone else the tab is not offered and its address answers 404.
+
+A contributor's tabs are offered to everyone, as the contributor's overview is. `viewer()` returns
+`None` on a contributor's page, so only records released to everyone are listed, unless a person
+looks at their own page (`is_own_page()`). Then it returns that person, who also sees the records
+they hold a level on. An organization's page always lists released records only, even for a member
+of a dataset's team. An organization is never "the viewer", so what it is credited on in a private
+dataset is not listed.
 
 A project's tabs are offered to anyone who may open the project, and a private project answers 404
 to everyone else. What a project's datasets hold is decided row by row, so a viewer who may see none
@@ -327,7 +336,7 @@ that `search_fields` builds. The tab then changes four things:
   only where the viewer may open it and shows a dash otherwise, and it orders the samples the viewer
   may not open as one block after the named ones.
 - `DatasetColumn` names a record's dataset and links it where the viewer may open it. A project's
-  tabs add it right after the name, as `dataset_name`. A dataset's own tab does not.
+  and a contributor's tabs add it right after the name, as `dataset_name`. A dataset's own tab does not.
 - `StableOrderData` ends every ordering with the primary key, so a page never repeats a row.
 - Fifty rows are shown to a page.
 
@@ -347,7 +356,9 @@ for datasets and samples to those the viewer may see. The record filters of a re
 which offer what the record search offers, are set to `scope`, or to the records of `owner` for the
 list of one person's records. `drop` takes filters out of the set, such as the dataset filter on a
 dataset's own page, where every row has the same dataset. A project's tab keeps the dataset filter,
-at scope `"view"`, for the registrations whose filter set has one. The mixin's attributes are
+at scope `"view"`, for the registrations whose filter set has one. A contributor's tab keeps it too. On a person's own page the record filters offer the records
+they are credited on (`owner` is that person), and on every other contributor's page they offer
+the public ones (scope `"public"`). The mixin's attributes are
 `dropped`, `record_scope` and `record_owner`.
 
 ### The tab mark
