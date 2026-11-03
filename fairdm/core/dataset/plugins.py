@@ -580,8 +580,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
     def get_schema_org(self, page):
         """Describe the dataset as schema.org ``Dataset``, the shape harvesters read.
 
-        It names the variables measured and never their values, so it carries nothing a visitor
-        could not read on the page.
+        It names the variables measured and never their values. The variables are those of the
+        records the viewer may see, so a viewer who may not see the records gets none.
 
         Args:
             page: The page context gathered so far.
@@ -636,7 +636,12 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             data["temporalCoverage"] = (
                 f"{start.isoformat()}/{end.isoformat() if end else '..'}"
             )
-        variables = [label for t in page["data_types"] for label in t["fields"]]
+        user = self.request.user
+        visible_types = self.get_record_types(
+            Sample.objects.filter(dataset=dataset).visible_to(user),
+            Measurement.objects.filter(dataset=dataset).visible_to(user),
+        )
+        variables = [label for t in visible_types for label in t["fields"]]
         if variables:
             data["variableMeasured"] = variables
         if page["project_info"]:

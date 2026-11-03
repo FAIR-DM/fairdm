@@ -1560,12 +1560,21 @@ class TestOverviewProjectSiblingCount:
 class TestOverviewSchemaOrgDescription:
     """FR-034 and FR-056."""
 
-    def test_a_public_unpublished_dataset_names_its_variables_and_carries_no_values(
+    def test_a_visitor_to_a_public_unpublished_dataset_gets_no_variables(
+        self, client, holding
+    ):
+        data = _json_ld(_page(client, holding).page)
+
+        assert data["@type"] == "Dataset"
+        assert "variableMeasured" not in data
+
+    def test_the_team_of_a_public_unpublished_dataset_names_its_variables_and_carries_no_values(
         self, client, holding
     ):
         from demo.models import XRFMeasurement
         from fairdm.core.sample.models import Sample
 
+        client.force_login(_team_member(holding))
         response = _page(client, holding)
 
         data = _json_ld(response.page)
