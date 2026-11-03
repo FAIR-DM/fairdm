@@ -23,13 +23,13 @@ The plugin, its home, the dataset registration, which records it lists and the t
   that type. A type the dataset holds none of, and an unregistered slug, answer 404. A
   measurement on another dataset's sample is listed on its own dataset's Measurements tab and that
   sample is not on its Samples tab. A private dataset's tabs answer 404 to a visitor and 200 to its
-  team.
+  team. Each row's name links to the record's page. A sample's page has no Samples or Measurements tab.
 - [ ] T002 [US1] same file, `TestRecordState`: a public unpublished dataset gives a visitor
   `record_state` `unpublished` and no rows, and its team the rows. A dataset holding nothing gives
-  `empty` to everyone. The tab is present in the tab strip in both states.
+  `empty` to everyone. The tab is present in the tab strip in both states. With no measurement type registered, a dataset's Measurements tab answers 200 with `empty`.
 - [ ] T003 [US1] `tests/test_contrib/test_plugins/test_menus.py`: a plugin's tab is marked as the
   current page on its own address, on each of its `extra_views` addresses and on an extra pattern
-  its `get_urls` mounts, and is not marked on another plugin's address.
+  its `get_urls` mounts, and is not marked on another plugin's address. Asserted through a rendered tab strip, so the per-request copy is exercised.
 - [ ] T004 [US1] `fairdm/contrib/collections/plugins.py`: move the sketch's module here and
   register `Samples` and `Measurements` on `Dataset`; scope, viewer, `type_counts`, `resolve_type`
   and the not-published check per plan D1 to D3. Remove the import from
@@ -45,15 +45,15 @@ The table: columns, links, choices, order and query count.
   first columns are name then, on measurements, sample; there is no dataset column on a dataset's
   tab. A measurement whose sample the viewer may open links it; one whose sample they may not see
   shows `—` and the sample's name is nowhere in the response. Search, a filter and a sort narrow and
-  reorder rows within the dataset and never include another dataset's record. With no sort the
-  order is the same on two requests. Fifty rows per page.
+  reorder rows within the dataset and never include another dataset's record; sorting by sample
+  puts the hidden samples' rows in one block after the named ones. The table's resolved ordering
+  ends in a unique key, for a generated table and for a declared table with no `order_by`. Fifty rows per page.
 - [ ] T007 [US1] same file, `TestRecordChoices`: a measurement tab's sample filter offers only
   samples of the listed measurements the viewer may see; a team member's choices include their
   unpublished samples and a visitor's do not. A dataset's own tab has no dataset filter.
 - [ ] T008 [US1] same file, `TestRecordQueries`: a type table with ten rows and with sixty issues
   the same number of queries, for samples and for measurements.
-- [ ] T009 [US1] `tests/test_registry/test_factories.py`, `TestScopedChoicesMixin`: applied twice
-  it returns the same class; it narrows a related filter to the rows given and leaves a filter on
+- [ ] T009 [US1] `tests/test_registry/test_factories.py`, `TestScopedChoicesMixin`: it narrows a related filter to the rows given and leaves a filter on
   an unrelated model alone.
 - [ ] T010 [US1] `fairdm/contrib/collections/plugins.py` and `fairdm/registry/factories.py`: the
   annotations, `DatasetColumn`, `SampleColumn`, the sequence, `ScopedChoicesMixin` and the dataset
@@ -75,11 +75,11 @@ The page around the table, the overview links, records of an unregistered type, 
   records of a sample subclass with no registration are listed under the fallback entry with the
   base table, and the tab does not fail.
 - [ ] T015 [US1] `tests/test_demo/test_management/test_commands/test_seed_record_lists.py`: the
-  command refuses outside development, and run twice creates the same records once.
+  command refuses outside development, and run twice creates the same records once. And one test per FR-032 state: each seeded record reaches the state the requirement names.
 - [ ] T016 [US1] `fairdm/contrib/collections/views.py`, `fairdm/contrib/collections/plugins.py`,
   the overview plugins and templates: plan D4, D8, D9 and D10.
 - [ ] T017 [US1] `docs/developers/reference/plugins.md` and a new `docs/users/` page per plan D11,
-  covering the dataset tabs, written so the later stories extend them.
+  covering the dataset tabs, written so the later stories extend them. Plus the `CHANGELOG.md` entry and the `seed_record_lists` row in `management-commands.md`.
 
 ## Phase 2: User Story 2, a project's samples and measurements can be browsed from its page (P2)
 
@@ -93,7 +93,7 @@ The page around the table, the overview links, records of an unregistered type, 
   project's datasets with visible rows.
 - [ ] T019 [US2] same file: the project overview's figures link to the tabs, and on a project with
   only published datasets the tab's totals equal the figures. Ten and sixty rows issue the same
-  number of queries.
+  number of queries. A member of a private dataset in a public project gets the same figure and tab total.
 - [ ] T020 [US2] `fairdm/contrib/collections/plugins.py`: register on `Project`; scope and
   `DatasetColumn` per plan D2 and D5. Docs from T017 extended to the project.
 
@@ -104,7 +104,7 @@ The page around the table, the overview links, records of an unregistered type, 
   project, that dataset's and not its siblings'; on one sample, that sample and not its siblings.
   Credit on a sample does not bring in other people's measurements of it. An organization lists the
   records of a project it owns and not those its members are credited on. A record credited in
-  several ways is listed once.
+  several ways is listed once. Each row's dataset links to it; a measurement whose own dataset is released and whose sample's dataset is not is listed.
 - [ ] T022 [US3] same file, `TestContributorViewer`: a person credited on a private dataset, an
   unpublished public dataset and a public dataset in a private project: anyone else sees none of
   their records in rows, totals, types or choices; the person sees them and their choices include

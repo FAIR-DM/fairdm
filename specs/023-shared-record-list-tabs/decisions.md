@@ -126,13 +126,13 @@ test-first, and every item the sketch listed as faked is a task in `tasks.md`.
 
 **ADR:** none — local to this feature, nothing downstream inherits it.
 
-## D2. Overview counts and the tabs agree where every counted record is visible
+## D2. Overview counts and the tabs
 
-Specification 018 counts a public, unpublished dataset's samples and measurements for a visitor and
-lists none of them. FR-025 asks the tab to list as many records as the overview counts for the same
-viewer. Both hold where the viewer may see every counted record, and a test pins that. Where some
-counted records are not published, the overview keeps 018's counts and the tab lists what the
-viewer may see, with the not-published state where that is nothing.
+**Pending the maintainer's ruling.** On a public dataset that is not published, specification 018
+shows a visitor its sample and measurement counts and FR-022 shows no records, so FR-025's "the tab
+lists as many records as the overview counts" cannot hold there. The reading proposed: FR-025
+applies where the viewer may see every record the overview counts, and the overview keeps 018's
+counts. A project member of a private dataset is fixed in the plan (D10) and needs no ruling.
 
 **ADR:** none — local to this feature, nothing downstream inherits it.
 
@@ -143,3 +143,11 @@ extra pages left no tab marked. The tab item now holds every view name its plugi
 marks the Contributors tab on its add and edit pages, which it did not do before.
 
 **ADR:** none — a fix to existing behaviour, recorded in the plugin reference documentation.
+
+## D4. A contributor's associated records live on the contributor model
+
+The rule for which records a contributor's tabs list is `Contributor.get_associated_records`, with
+`Organization` adding the projects it owns, beside the existing `get_public_*` methods, so a
+portal's contributor subclass extends it in one place.
+
+**ADR:** none — follows the existing pattern of `get_public_datasets`.

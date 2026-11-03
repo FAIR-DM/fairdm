@@ -34,24 +34,30 @@ contributors plugin package is removed.
 
 ### D2. Scope and viewer
 
-`RecordsTab.scope()` returns the unfiltered association for the page's record (research R1).
-`RecordsTab.viewer()` returns the request user, or `None` on a contributor's page not viewed by
-that person. `visible_records()` is `scope().visible_to(viewer())`. Organizations always use
-`None`. Kept from the sketch, with the contributor branch reading `Dataset.all_objects` and
-`Project.objects`.
+`RecordsTab.scope()` returns the unfiltered association for the page's record (research R1): a
+dataset's and a project's are one-line filters; a contributor's comes from a new
+`Contributor.get_associated_records(base_model)`, which returns the records credited directly and
+those beneath a credited dataset or project, reading `Dataset.all_objects` and `Project.objects`.
+`Organization` overrides it to add `dataset__project__owner=self`, as it already does for
+`get_public_datasets`. `RecordsTab.viewer()` returns the request user, or `None` on a contributor's
+page not viewed by that person; an organization always gives `None`. `visible_records()` is
+`scope().visible_to(viewer())`.
 
 ### D3. Types, the address and not-published
 
-`type_counts(queryset)` groups by `polymorphic_ctype`, keeps registered types, most numerous
-first, ties broken by verbose name so the order is stable. `resolve_type()` picks the type from
-the `type` URL keyword (the registry slug), 404 for a type not listed, and sets `record_state` to
-`listed`, `unpublished` or `empty` (research R2). An address naming a type on an empty tab is 404.
+`type_counts(queryset)` groups by `polymorphic_ctype`, most numerous first, ties broken by verbose
+name. Each entry carries its own table class, filter set, plural name and slug, so nothing later
+reads the registry or `model_config` for the chosen type. `resolve_type()` picks the entry from the
+`type` URL keyword, 404 for one not listed, and sets `record_state` to `listed`, `unpublished` or
+`empty` (research R2). **A tab whose state is not `listed` builds no table and no filter set and
+borrows no registered type**, so a portal with no measurement type registered still answers 200 on
+every Measurements tab. An address naming a type on an empty tab is 404.
 
 ### D4. Records of a type that is no longer registered
 
-`type_counts` currently drops them. They are listed under a fallback entry using the base model's
-table (`SampleTable` or `MeasurementTable` from `fairdm/contrib/collections/tables.py`) and the
-base model's filter set, with slug `other`. Only offered when such records exist.
+They are listed under a fallback entry, slug `other`, carrying `SampleTable` or `MeasurementTable`
+(`fairdm/contrib/collections/tables.py`), `SampleFilter` or `MeasurementFilter`, and the base
+model's plural name. Offered only when such records exist.
 
 ### D5. The table
 
@@ -62,24 +68,28 @@ base model's filter set, with slug `other`. Only offered when such records exist
 `get_table_kwargs()` adds `DatasetColumn` on a project and a contributor, replaces the base
 table's `sample` column with `SampleColumn` on measurements, drops the dataset icon column
 everywhere, and pins the lead sequence `name`, dataset, sample. Both columns render from the
-annotation, never from a per-row query. Ordering by name is stable with `id` as the tie-break the
-base tables already declare.
+annotation, never from a per-row query. `SampleColumn` orders by `("-sample_open",
+"sample__name")`, so hidden samples sort as one block after the named ones and reveal no position.
+
+The default order is the table's `Meta.order_by` (`added`, `id` on the base tables). Whatever order
+applies, `get_queryset` appends `pk`, so a registration's own table with no `order_by` still pages
+stably.
 
 ### D6. Filter choices
 
 `ScopedChoicesMixin` in `fairdm/registry/factories.py`, beside `PublishedChoicesMixin`, applied by
-the tab's `get_filterset_class()` and given the visible rows through `get_filterset_kwargs()`. In
-`__init__`, after the chain, each related-record filter's queryset is narrowed to
-`queryset.filter(pk__in=rows.values(filter.field_name))`, and for samples and datasets also
-intersected with what the request user may see. On a dataset's own tab the `dataset` filter is
-removed (approved by eye). `applied_to` is idempotent per class, as its sibling is.
+the tab's `get_filterset_class()`. In `__init__`, after the chain, each related-record filter's
+queryset is narrowed to `queryset.filter(pk__in=self.queryset.values(filter.field_name))`, and for
+samples and datasets also intersected with what the request user may see. On a dataset's own tab
+`__init__` pops `dataset` from `self.filters` (approved by eye).
 
 ### D7. The tab mark
 
-`PluginTabItem(MenuItem)` in `fairdm/contrib/plugins/menus.py`, built by `configure_tab`, holds
-the set of view names the plugin mounts: its own, every `extra_views` entry, and any extra pattern
-its `get_urls` adds (read from the patterns it returns). `match_url` marks the tab when the
-resolved view name is in the set. This also marks the Contributors tab on its add and edit pages.
+`PluginTabItem(MenuItem)` in `fairdm/contrib/plugins/menus.py`, built by `configure_tab`, carries
+the set of view names the plugin mounts (its own, every `extra_views` entry, and every pattern its
+`get_urls` returns) in `extra_context`, which flex_menu copies onto each per-request item, and
+`match_url` marks the tab when the resolved view name is in that set. This also marks the
+Contributors tab on its add and edit pages.
 
 ### D8. The breadcrumb trail
 
@@ -95,8 +105,11 @@ filter panel and the toolbar panel drawn only when records are listed.
 
 ### D10. Overview counts
 
-The dataset and project overview figures link to the tabs (kept from the sketch). Their counts are
-unchanged (research R9).
+The dataset and project overview figures link to the tabs (kept from the sketch). The project
+overview counts over `Dataset.all_objects.filter(project=project).visible_to(request.user)` in
+place of its public-only filter for non-managers, so a member of a private dataset in a public
+project sees the same figure and tab total. Whether the figures and the tabs must also agree on a
+public, unpublished dataset is FR-025 against FR-022, put to the maintainer (decisions D2).
 
 ### D11. Development data and documentation
 
@@ -104,7 +117,9 @@ unchanged (research R9).
 run twice. Documentation: `docs/developers/reference/plugins.md` gains a section naming the two
 plugins, their pages, which records each page lists, and where columns, filters and search come
 from. A user guide page `docs/users/` describes browsing a dataset's, a project's and a
-contributor's samples and measurements, linked from the user guide's index.
+contributor's samples and measurements, linked from the user guide's index. `CHANGELOG.md`
+[Unreleased] names the two tabs, the tab mark on a plugin's other addresses and the listings' page
+context; `docs/developers/reference/management-commands.md` gains `seed_record_lists`.
 
 ## Story order
 
