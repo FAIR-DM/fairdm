@@ -14,6 +14,7 @@ from django_tables2 import Table
 from demo.factories import RockSampleFactory
 from demo.models import ExampleMeasurement, RockSample
 from fairdm.api.serializers import BaseMeasurementSerializer, BaseSampleSerializer
+from fairdm.contrib.autocomplete.fields import DatasetMultipleChoiceField
 from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.dataset.models import Dataset
@@ -924,3 +925,47 @@ class TestScopedChoicesMixin:
         )
 
         assert "dataset" not in filterset.filters
+
+    @pytest.fixture
+    def record_filterset_class(self):
+        class Rows(FilterSet):
+            dataset = RecordMultipleFilter(
+                DatasetMultipleChoiceField, field_name="dataset"
+            )
+
+            class Meta:
+                model = RockSample
+                fields = []
+
+        return Rows
+
+    def build(self, filterset_class, **options):
+        return ScopedChoicesMixin.applied_to(filterset_class, **options)(
+            queryset=RockSample.objects.none(),
+            request=self.request_for(AnonymousUser()),
+        )
+
+    def test_a_record_filter_is_set_to_the_view_scope_by_default(
+        self, record_filterset_class
+    ):
+        field = self.build(record_filterset_class).filters["dataset"].field
+
+        assert field.scope == "view"
+        assert field.owner_pk is None
+
+    def test_a_record_filter_takes_the_scope_it_is_given(self, record_filterset_class):
+        filterset = self.build(record_filterset_class, scope="public")
+
+        assert filterset.filters["dataset"].field.scope == "public"
+
+    def test_a_record_filter_on_a_persons_own_page_offers_that_persons_records(
+        self, record_filterset_class
+    ):
+        person = UserFactory()
+
+        field = (
+            self.build(record_filterset_class, owner=person.pk).filters["dataset"].field
+        )
+
+        assert field.owner_pk == person.pk
+        assert field.scope == "profile"

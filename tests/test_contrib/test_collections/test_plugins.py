@@ -482,6 +482,41 @@ class TestRecordColumns:
 
 
 class TestRecordChoices:
+    @staticmethod
+    def offered_samples(response, user):
+        """Return the samples the page's sample filter offers the request's user."""
+        field = response.context["filter"].filters["sample"].field
+        view = field.view_class.for_scope(field.scope)()
+        return set(view.offered(user))
+
+    def test_a_team_members_sample_filter_offers_their_unpublished_samples(
+        self, client
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        sample = RockSampleFactory(dataset=dataset)
+        XRFMeasurementFactory(dataset=dataset, sample=sample)
+        member = team_member(dataset)
+        client.force_login(member)
+
+        response = client.get(address(dataset, "measurements"))
+
+        field = response.context["filter"].filters["sample"].field
+        assert field.scope == "view"
+        assert sample in self.offered_samples(response, member)
+
+    def test_a_visitors_sample_filter_offers_no_unpublished_sample(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        shown = RockSampleFactory(dataset=dataset)
+        XRFMeasurementFactory(dataset=dataset, sample=shown)
+        waiting_dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        waiting = RockSampleFactory(dataset=waiting_dataset)
+
+        response = client.get(address(dataset, "measurements"))
+
+        offered = self.offered_samples(response, response.wsgi_request.user)
+        assert waiting not in offered
+        assert shown in offered
+
     def test_a_datasets_own_tab_has_no_dataset_filter(self, client, dataset):
         for kind in ("samples", "measurements"):
             response = client.get(address(dataset, kind))

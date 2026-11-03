@@ -486,12 +486,22 @@ class ScopedChoicesMixin:
     the request's user may see as well. A filter on a model the rows do not point to is left
     as it is. It is placed first in the bases, as :class:`PublishedChoicesMixin` is.
 
+    The dataset and sample filters of a registered type are record fields with no queryset
+    of their own: they offer what the record search offers at a scope. Those are set to the
+    scope that fits who the list is for.
+
     Attributes:
         dropped: The names of filters to take out of the filter set, such as the dataset
             filter on a dataset's own page, where every row has the same dataset.
+        record_scope: The scope the record filters offer at: ``"view"`` for the records the
+            viewer may see, ``"public"`` for the public ones.
+        record_owner: A person whose records the record filters offer, as a person or a
+            primary key, for a list of that person's records. Replaces ``record_scope``.
     """
 
     dropped: tuple[str, ...] = ()
+    record_scope: str = "view"
+    record_owner: Any = None
     queryset: Any
     filters: dict[str, Any]
 
@@ -501,6 +511,9 @@ class ScopedChoicesMixin:
             self.filters.pop(name, None)
         user = getattr(getattr(self, "request", None), "user", None)
         for filter_ in self.filters.values():
+            if isinstance(filter_, RecordMultipleFilter):
+                self.scope_record_filter(filter_)
+                continue
             queryset = getattr(filter_, "queryset", None)
             if queryset is None or not hasattr(queryset, "model"):
                 continue
@@ -511,6 +524,19 @@ class ScopedChoicesMixin:
             if visible is not None:
                 narrowed = narrowed.filter(pk__in=visible.values("pk"))
             filter_.queryset = narrowed
+
+    def scope_record_filter(self, filter_: RecordMultipleFilter) -> None:
+        """Set what a record filter offers: one person's records, or a scope.
+
+        Args:
+            filter_: A filter drawing a record field.
+        """
+        if self.record_owner is not None:
+            filter_.extra.pop("scope", None)
+            filter_.extra["owner"] = self.record_owner
+        else:
+            filter_.extra.pop("owner", None)
+            filter_.extra["scope"] = self.record_scope
 
     def points_to(self, field_name: str, model: type[models.Model]) -> bool:
         """Return whether the rows have a relation named ``field_name`` to ``model``."""
@@ -542,12 +568,20 @@ class ScopedChoicesMixin:
         return None
 
     @classmethod
-    def applied_to(cls, filterset_class: type, drop: tuple[str, ...] = ()) -> type:
+    def applied_to(
+        cls,
+        filterset_class: type,
+        drop: tuple[str, ...] = (),
+        scope: str = "view",
+        owner: Any = None,
+    ) -> type:
         """Put this mixin in front of a filter set.
 
         Args:
             filterset_class: The filter set to scope.
             drop: The names of filters to take out of it.
+            scope: The scope the record filters offer at.
+            owner: A person whose records the record filters offer, in place of ``scope``.
 
         Returns:
             A subclass of ``filterset_class`` with the mixin first.
@@ -555,7 +589,7 @@ class ScopedChoicesMixin:
         return type(
             f"Scoped{filterset_class.__name__}",
             (cls, filterset_class),
-            {"dropped": tuple(drop)},
+            {"dropped": tuple(drop), "record_scope": scope, "record_owner": owner},
         )
 
 
