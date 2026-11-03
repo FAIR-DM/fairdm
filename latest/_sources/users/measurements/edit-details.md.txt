@@ -4,7 +4,7 @@ The Edit details screen changes a measurement's own fields, such as its name, it
 
 ## How to reach it
 
-Open the measurement's page, choose **Manage**, then **Edit details**. The address is `/measurement/` followed by the measurement's portal ID and `/edit/`.
+Open the measurement's page, choose **Manage**, then **Edit details**. The address is `/measurements/` followed by the measurement's portal ID and `/edit/`.
 
 You see the entry when you may change the measurement. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md) for who that is, and for what you are told when you ask for the screen without that right.
 

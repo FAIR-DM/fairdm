@@ -1109,7 +1109,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </tr>
 <tr class="row-odd"><td><p>Measurement</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">fairdm.core.measurement.models.Measurement</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">/measurement/&lt;uuid&gt;/</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">/measurements/&lt;uuid&gt;/</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">measurement</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Contributor</p></td>
@@ -1120,6 +1120,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </tbody>
 </table>
 </div>
+<p>A measurement’s pages used to sit under <code class="docutils literal notranslate"><span class="pre">/measurement/&lt;uuid&gt;/</span></code>. <code class="docutils literal notranslate"><span class="pre">fairdm.core.measurement.views.FormerAddressRedirect</span></code> answers those addresses with a permanent redirect to the same page under <code class="docutils literal notranslate"><span class="pre">/measurements/&lt;uuid&gt;/</span></code>, keeping the query string.</p>
 <p>A sample or measurement type that your portal defines shares the namespace of its base type. Register a plugin against <code class="docutils literal notranslate"><span class="pre">Sample</span></code> or <code class="docutils literal notranslate"><span class="pre">Measurement</span></code> and narrow it to your type with <a class="reference internal" href="#is-instance-of"><code class="docutils literal notranslate"><span class="pre">is_instance_of</span></code></a>.</p>
 </section>
 <section id="registration">

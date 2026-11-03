@@ -11,7 +11,7 @@ Open the record's page, choose **Manage**, then **Delete**. It is the last entry
 | Project | `/projects/<portal ID>/delete/` |
 | Dataset | `/datasets/<portal ID>/delete/` |
 | Sample | `/samples/<portal ID>/delete/` |
-| Measurement | `/measurement/<portal ID>/delete/` |
+| Measurement | `/measurements/<portal ID>/delete/` |
 
 You see the entry when you may delete the record, which needs more than the right to change it. Someone who can only edit the record sees the other **Manage** entries and no **Delete**. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md) for who may delete, and for what you are told when you ask for the screen without that right.
 

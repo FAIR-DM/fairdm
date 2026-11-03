@@ -15,6 +15,7 @@
 
 fairdm.core.measurement.config
 fairdm.core.measurement.admin
+fairdm.core.measurement.views
 fairdm.core.measurement.managers
 fairdm.core.measurement.models
 fairdm.core.measurement.urls

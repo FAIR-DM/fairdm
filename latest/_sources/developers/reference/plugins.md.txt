@@ -20,8 +20,10 @@ FairDM mounts the plugin addresses of five record types. A plugin registered aga
 | Project | `fairdm.core.project.models.Project` | `/projects/<uuid>/` | `project` |
 | Dataset | `fairdm.core.dataset.models.Dataset` | `/datasets/<uuid>/` | `dataset` |
 | Sample | `fairdm.core.sample.models.Sample` | `/samples/<uuid>/` | `sample` |
-| Measurement | `fairdm.core.measurement.models.Measurement` | `/measurement/<uuid>/` | `measurement` |
+| Measurement | `fairdm.core.measurement.models.Measurement` | `/measurements/<uuid>/` | `measurement` |
 | Contributor | `fairdm.contrib.contributors.models.Contributor` | `/contributor/<uuid>/` | `contributor` |
+
+A measurement's pages used to sit under `/measurement/<uuid>/`. `fairdm.core.measurement.views.FormerAddressRedirect` answers those addresses with a permanent redirect to the same page under `/measurements/<uuid>/`, keeping the query string.
 
 A sample or measurement type that your portal defines shares the namespace of its base type. Register a plugin against `Sample` or `Measurement` and narrow it to your type with [`is_instance_of`](#is_instance_of).
 
