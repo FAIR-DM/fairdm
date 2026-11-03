@@ -516,7 +516,7 @@ class TestOrganizationCreationAndValidation:
 
     @pytest.mark.django_db
     def test_organization_default_identifier_is_ror(self):
-        assert f"{IDENTIFIER_TYPES}/ror" == Organization.DEFAULT_IDENTIFIER
+        assert Organization.DEFAULT_IDENTIFIER == f"{IDENTIFIER_TYPES}/ror"
 
 
 class TestOrganizationTypeValidation:
@@ -1240,7 +1240,7 @@ class TestContributorIdentifierUniqueness:
 
     @pytest.mark.django_db
     def test_person_default_identifier_is_orcid(self):
-        assert f"{IDENTIFIER_TYPES}/orcid" == Person.DEFAULT_IDENTIFIER
+        assert Person.DEFAULT_IDENTIFIER == f"{IDENTIFIER_TYPES}/orcid"
 
 
 class TestIdentifierUniquePerType:
