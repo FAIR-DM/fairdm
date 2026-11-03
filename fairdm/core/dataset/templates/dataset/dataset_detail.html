@@ -63,8 +63,10 @@
 
 {% block overview.figures %}
   <c-stats cols="2" lg="4" aria-label="{% translate 'Dataset at a glance' %}">
-    <c-stats.item title="{% translate 'Samples' %}" value="{{ counts.samples|intcomma }}" href="{{ urls.samples }}" variant="secondary" icon="sample" />
-    <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" href="{{ urls.measurements }}" variant="accent" icon="measurement" />
+    {% if shows_records %}
+      <c-stats.item title="{% translate 'Samples' %}" value="{{ counts.samples|intcomma }}" href="{{ urls.samples }}" variant="secondary" icon="sample" />
+      <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" href="{{ urls.measurements }}" variant="accent" icon="measurement" />
+    {% endif %}
     <c-stats.item title="{% translate 'Contributors' %}" value="{{ team.total }}" icon="people" />
     <c-stats.item title="{% translate 'Related publications' %}" value="{{ counts.publications }}" icon="literature" />
   </c-stats>
@@ -129,10 +131,12 @@
   {% endblock overview.charts %}
 
   {% block overview.map %}
-    <c-card.placeholder title="{% translate 'Spatial coverage' %}"
-                        icon="map"
-                        wide
-                        message="{% translate 'A map of every sample with a location, and the area the dataset covers.' %}" />
+    {% if shows_records %}
+      <c-card.placeholder title="{% translate 'Spatial coverage' %}"
+                          icon="map"
+                          wide
+                          message="{% translate 'A map of every sample with a location, and the area the dataset covers.' %}" />
+    {% endif %}
   {% endblock overview.map %}
 {% endblock overview.main %}
 

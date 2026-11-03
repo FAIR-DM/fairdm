@@ -103,8 +103,10 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
     what it is, whether its data is published, what it holds and how it grew, when each step of its
     life happened, how to cite it and who made it. Two gates decide what a visitor sees.
     Visibility governs the page and ``published`` governs the records, so a public, unpublished
-    dataset shows its description, its counts and its charts to everyone. The page lists no
-    record. Nothing here is written for a particular portal's types.
+    dataset shows its description to everyone but its counts, charts and spatial coverage only to
+    those who may see its records. Everything drawn from the records is counted through
+    ``visible_to``, so the figures always equal the Samples and Measurements tabs. The page
+    lists no record. Nothing here is written for a particular portal's types.
 
     Attributes:
         bookkeeping_fields: Fields every record carries that say nothing about its data.
@@ -130,9 +132,13 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         context = super().get_context_data(**kwargs)
         dataset = self.base_object
         can_manage = has_perm(self.request, "dataset.change_dataset", dataset)
-        samples = Sample.objects.filter(dataset=dataset)
-        measurements = Measurement.objects.filter(dataset=dataset)
-        data_types = self.get_record_types(samples, measurements)
+        shows_records = dataset_records_visible(self.request, dataset)
+        user = self.request.user
+        all_samples = Sample.objects.filter(dataset=dataset)
+        all_measurements = Measurement.objects.filter(dataset=dataset)
+        samples = all_samples.visible_to(user)
+        measurements = all_measurements.visible_to(user)
+        data_types = self.get_record_types(all_samples, all_measurements)
 
         page = {
             "can_manage": can_manage,
@@ -143,8 +149,15 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             "literature": self.get_literature(),
             "data_types": data_types,
             "counts": self.get_counts(samples, measurements, data_types),
-            "composition_chart": self.get_composition_chart(samples, measurements),
-            "growth_chart": self.get_growth_chart(samples, measurements),
+            "shows_records": shows_records,
+            "composition_chart": (
+                shows_records and self.get_composition_chart(samples, measurements)
+            )
+            or None,
+            "growth_chart": (
+                shows_records and self.get_growth_chart(samples, measurements)
+            )
+            or None,
             "project_info": self.get_project_info(),
             "api_url": safe_reverse("api:dataset-detail", uuid=dataset.uuid),
             "urls": {
