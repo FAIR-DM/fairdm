@@ -10,7 +10,7 @@ assert on the response and its context. Wording, layout and CSS classes get no t
 
 **Story order**: US1, then US2, then US3, each from the previous story's accepted commit.
 
-## Phase 1: US-1, a dataset's samples and measurements can be browsed from its page (P1)
+## Phase 1: User Story 1, a dataset's samples and measurements can be browsed from its page (P1)
 
 ### Group 1
 
@@ -81,7 +81,7 @@ The page around the table, the overview links, records of an unregistered type, 
 - [ ] T017 [US1] `docs/developers/reference/plugins.md` and a new `docs/users/` page per plan D11,
   covering the dataset tabs, written so the later stories extend them.
 
-## Phase 2: US-2, a project's samples and measurements can be browsed from its page (P2)
+## Phase 2: User Story 2, a project's samples and measurements can be browsed from its page (P2)
 
 - [ ] T018 [US2] `tests/test_contrib/test_collections/test_plugins.py`, `TestProjectRecords`: a
   project's tabs list the records of its datasets the viewer may see; a visitor sees nothing from a
@@ -97,7 +97,7 @@ The page around the table, the overview links, records of an unregistered type, 
 - [ ] T020 [US2] `fairdm/contrib/collections/plugins.py`: register on `Project`; scope and
   `DatasetColumn` per plan D2 and D5. Docs from T017 extended to the project.
 
-## Phase 3: US-3, a contributor's samples and measurements can be browsed from their page (P2)
+## Phase 3: User Story 3, a contributor's samples and measurements can be browsed from their page (P2)
 
 - [ ] T021 [US3] `tests/test_contrib/test_collections/test_plugins.py`, `TestContributorRecords`: a
   person credited on a project lists its datasets' released records; on a dataset in another
