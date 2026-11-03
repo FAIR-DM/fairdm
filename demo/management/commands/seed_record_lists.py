@@ -1,6 +1,6 @@
 """Development data for the Samples and Measurements tabs (specification 023).
 
-    DJANGO_ENV=development python manage.py seed_record_lists
+DJANGO_ENV=development python manage.py seed_record_lists
 """
 
 from django.apps import apps

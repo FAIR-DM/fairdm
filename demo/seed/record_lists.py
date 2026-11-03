@@ -16,7 +16,6 @@ Development only. Signs in through ``regular.user`` and ``staff.user`` at ``exam
 
 import random
 
-
 from django.contrib.gis.geos import Point
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
@@ -67,7 +66,9 @@ class RecordListSeed(BaseCommand):
         self.licence = License.objects.first()
         regular, staff = users["regular.user"], users["staff.user"]
 
-        lab = OrganizationFactory(name=ORGANIZATION, location=Point(13.06, 52.38, srid=4326))
+        lab = OrganizationFactory(
+            name=ORGANIZATION, location=Point(13.06, 52.38, srid=4326)
+        )
         main = self.project(MAIN, Visibility.PUBLIC, users, owner=lab)
         published = self.dataset(main, "Borehole cores, published", published=True)
         unpublished = self.dataset(main, "Borehole cores, 2026 (not published yet)")
@@ -92,7 +93,9 @@ class RecordListSeed(BaseCommand):
                 location=near(7.86, 48.93),
             )
         for rock in rocks[:40]:
-            XRFMeasurementFactory(dataset=published, sample=rock, name=f"XRF {rock.name}")
+            XRFMeasurementFactory(
+                dataset=published, sample=rock, name=f"XRF {rock.name}"
+            )
         for rock in rocks[:12]:
             ICP_MS_MeasurementFactory(
                 dataset=published, sample=rock, name=f"ICP-MS {rock.name}"
@@ -106,11 +109,14 @@ class RecordListSeed(BaseCommand):
             for i in range(5)
         ]
         for rock in waiting:
-            XRFMeasurementFactory(dataset=unpublished, sample=rock, name=f"XRF {rock.name}")
+            XRFMeasurementFactory(
+                dataset=unpublished, sample=rock, name=f"XRF {rock.name}"
+            )
         soils = [
             SoilSampleFactory(
                 dataset=private, name=f"Pilot soil {i + 1}", location=near(8.1, 49.0)
-            ) for i in range(4)
+            )
+            for i in range(4)
         ]
         for rock in rocks[:6]:
             ICP_MS_MeasurementFactory(
@@ -127,9 +133,13 @@ class RecordListSeed(BaseCommand):
             RockSampleFactory(dataset=hidden, name=f"Hidden core {i + 1}")
 
         waiting_project = self.project(WAITING, Visibility.PUBLIC, users)
-        waiting_dataset = self.dataset(waiting_project, "First campaign (not published yet)")
+        waiting_dataset = self.dataset(
+            waiting_project, "First campaign (not published yet)"
+        )
         for i in range(3):
-            RockSampleFactory(dataset=waiting_dataset, name=f"First campaign core {i + 1}")
+            RockSampleFactory(
+                dataset=waiting_dataset, name=f"First campaign core {i + 1}"
+            )
 
         grant_team_rights(
             staff,
@@ -151,9 +161,13 @@ class RecordListSeed(BaseCommand):
         self.stdout.write(f"Dataset, not published: {unpublished.get_absolute_url()}")
         self.stdout.write(f"Dataset, private: {private.get_absolute_url()}")
         self.stdout.write(f"Dataset, empty: {empty.get_absolute_url()}")
-        self.stdout.write(f"Dataset, other team's samples: {partner.get_absolute_url()}")
+        self.stdout.write(
+            f"Dataset, other team's samples: {partner.get_absolute_url()}"
+        )
         self.stdout.write(f"Project, mixed: {main.get_absolute_url()}")
-        self.stdout.write(f"Project, nothing published: {waiting_project.get_absolute_url()}")
+        self.stdout.write(
+            f"Project, nothing published: {waiting_project.get_absolute_url()}"
+        )
         self.stdout.write(f"Person: {regular.get_absolute_url()}")
         self.stdout.write(f"Organization: {lab.get_absolute_url()}")
 

@@ -11,8 +11,8 @@ from fairdm import plugins
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.plugins import Plugin
 from fairdm.core.sample.models import Sample
-from fairdm.registry import registry
 from fairdm.factories import ContributionFactory, DatasetFactory, UserFactory
+from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
 
 
