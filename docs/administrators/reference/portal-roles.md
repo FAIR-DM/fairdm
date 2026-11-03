@@ -48,7 +48,7 @@ The role holds the permissions below for every project, dataset, sample and meas
 
 The permissions of the registered types are worked out from what the portal registers each time its database is brought up to date, so a new type is covered without a change here.
 
-Because the role can change a record, it can open the record's **Contributors** tab and change who is credited on it, without being listed. Doing so does not add the holder to the record or mark the change as theirs. See [How to give a record a manager when its only manager has left](../how-to/give-a-record-a-manager-again.md).
+The role can open any record's **Contributors** tab and change who is credited on it, without being listed. Doing so does not add the holder to the record or mark the change as theirs. See [How to give a record a manager when its only manager has left](../how-to/give-a-record-a-manager-again.md).
 
 ## Community Manager
 
