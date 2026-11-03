@@ -14,6 +14,5 @@ urlpatterns = [
     re_path(
         r"^measurement/(?P<uuid>[^/]+)/(?P<rest>.*)$",
         FormerAddressRedirect.as_view(),
-        name="former-address",
     ),
 ]
