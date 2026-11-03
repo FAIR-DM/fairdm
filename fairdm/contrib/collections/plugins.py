@@ -9,12 +9,13 @@ from typing import Any
 
 import django_tables2 as tables
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count, Model, QuerySet
+from django.db.models import Count, Exists, Model, OuterRef, QuerySet
 from django.http import Http404
 from django.urls import path
 from django.utils.html import format_html
 from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
+from django_tables2.data import TableQuerysetData
 
 from fairdm import plugins
 from fairdm.contrib.collections.views import DataTableView
@@ -26,7 +27,7 @@ from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
 from fairdm.registry import registry
 from fairdm.registry.config import ModelConfiguration
-from fairdm.registry.factories import PublishedChoicesMixin
+from fairdm.registry.factories import ScopedChoicesMixin
 
 
 @dataclass(frozen=True)
@@ -95,20 +96,83 @@ class NoRecords(tables.Table):
     """The table of a tab with nothing to list. It has no columns and takes no rows."""
 
 
-class SampleColumn(tables.Column):
-    """A measurement's sample, named and linked only where the viewer may open it."""
+class StableOrderData(TableQuerysetData):
+    """Table rows whose order always ends in the primary key, so paging never repeats a row.
 
-    def __init__(self, openable: set[int], **kwargs: Any) -> None:
-        self.openable = openable
+    The order a table applies, by its ``Meta.order_by`` or by a column the reader chose,
+    replaces the queryset's own, and a column that holds equal values leaves ties in no
+    fixed order. Appending ``pk`` after every ordering makes each page the same on every
+    request.
+    """
+
+    def __init__(self, data: QuerySet) -> None:
+        super().__init__(self.tie_break(data))
+
+    def order_by(self, aliases) -> None:
+        """Order the rows as the table asks, then by primary key."""
+        super().order_by(aliases)
+        self.data = self.tie_break(self.data)
+
+    @staticmethod
+    def tie_break(queryset: QuerySet) -> QuerySet:
+        """Return the queryset with ``pk`` last in its order, unless a unique key already is.
+
+        Args:
+            queryset: The rows to order.
+
+        Returns:
+            The queryset, ordered.
+        """
+        ordering = list(queryset.query.order_by or queryset.model._meta.ordering)
+        last = ordering[-1] if ordering else None
+        if isinstance(last, str) and last.lstrip("-") in ("pk", "id"):
+            return queryset.order_by(*ordering)
+        return queryset.order_by(*ordering, "pk")
+
+
+class DatasetColumn(tables.Column):
+    """A record's dataset, linked only where the viewer may open it, otherwise only named.
+
+    It reads the ``dataset_open`` annotation the tab puts on every row, never the database.
+    """
+
+    def __init__(self, **kwargs: Any) -> None:
+        kwargs.setdefault("verbose_name", _("Dataset"))
+        kwargs.setdefault("order_by", ("dataset__name",))
+        super().__init__(accessor="dataset", **kwargs)
+
+    def render(self, record: Model, value: Dataset) -> str:
+        """Link the dataset where the viewer may open it, else give its name."""
+        if record.dataset_open:  # type: ignore[attr-defined]
+            return format_html('<a href="{}">{}</a>', value.get_absolute_url(), value)
+        return str(value)
+
+
+class SampleColumn(tables.Column):
+    """A measurement's sample, named and linked only where the viewer may open it.
+
+    It reads the ``sample_open`` annotation the tab puts on every row, never the database.
+    The sample's name is never drawn for a viewer who may not open it.
+    """
+
+    def __init__(self, **kwargs: Any) -> None:
         kwargs.setdefault("verbose_name", _("Sample"))
-        kwargs.setdefault("order_by", ("sample__name",))
         super().__init__(accessor="sample", **kwargs)
 
-    def render(self, value: Sample) -> str:
-        """Name the sample and link it, or give a dash where the viewer may not open it."""
-        if value.dataset_id in self.openable:
+    def render(self, record: Model, value: Sample) -> str:
+        """Link the sample where the viewer may open it, else give a dash."""
+        if record.sample_open:  # type: ignore[attr-defined]
             return format_html('<a href="{}">{}</a>', value.get_absolute_url(), value)
         return "—"
+
+    def order(self, queryset: QuerySet, is_descending: bool) -> tuple[QuerySet, bool]:
+        """Order by the sample's name, with the samples the viewer may not open last.
+
+        The rows with an unopenable sample sort as one block after the named ones in
+        either direction, so the order reveals nothing about where a hidden name would fall.
+        """
+        name = "-sample__name" if is_descending else "sample__name"
+        return queryset.order_by("-sample_open", name), True
 
 
 class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
@@ -213,18 +277,37 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
         ]
 
     def get_queryset(self):
-        """Limit to the chosen type's records in this dataset that the viewer may see."""
+        """Limit to the chosen type's records in this dataset that the viewer may see.
+
+        Every row carries ``dataset_open`` and, on measurements, ``sample_open``: whether
+        the request's user may open the row's dataset and sample.
+        """
         if self.chosen is None:
             return self.base_model.objects.none()  # type: ignore[attr-defined]
+        user = self.request.user
         queryset = self.model.objects.filter(pk__in=self.visible_records().values("pk"))
         if hasattr(queryset, "with_related"):
             queryset = queryset.with_related()
-        queryset = queryset.select_related("dataset__project")
+        queryset = queryset.select_related("dataset__project").annotate(
+            dataset_open=Exists(
+                Dataset.all_objects.visible_to(user).filter(pk=OuterRef("dataset_id"))
+            )
+        )
         if self.base_model is Measurement:
-            queryset = queryset.select_related(
-                "sample__dataset__project"
-            ).with_effective_location(self.request.user)
+            queryset = (
+                queryset.select_related("sample__dataset__project")
+                .annotate(
+                    sample_open=Exists(
+                        Sample.objects.visible_to(user).filter(pk=OuterRef("sample_id"))
+                    )
+                )
+                .with_effective_location(user)
+            )
         return queryset
+
+    def get_table_data(self):
+        """Return the rows with their order ending in the primary key."""
+        return StableOrderData(super().get_table_data())
 
     def get_table_class(self):
         """Return the chosen type's table, or a table with no columns where nothing is listed."""
@@ -233,24 +316,22 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
         return self.chosen.config.get_table_class()
 
     def get_table_kwargs(self):
-        """Lead with the record's name, and with the sample on a measurement."""
+        """Lead with the record's name, and with the sample on a measurement.
+
+        The dataset icon column is dropped: every row is in the page's dataset.
+        """
         kwargs = super().get_table_kwargs()
         if self.chosen is None:
             return kwargs
         lead = ["name"]
+        # The registration's own order puts a measurement's name last, so the lead is pinned.
+        kwargs["exclude"] = [*kwargs["exclude"], "dataset"]
         if self.base_model is Measurement:
-            # Sketch: decided per dataset, which misses a sample opened by a credit on itself.
-            seen = set(
-                Sample.objects.visible_to(self.request.user)
-                .values_list("dataset_id", flat=True)
-                .distinct()
-            )
-            kwargs["extra_columns"] = [("sample_name", SampleColumn(seen))]
+            # The base table renders ``sample`` with its own method, which a column cannot override.
+            kwargs["extra_columns"] = [("sample_name", SampleColumn())]
             kwargs["exclude"] = [*kwargs["exclude"], "sample"]
             lead.append("sample_name")
-        # The registration's own order puts a measurement's name last, so the lead is pinned.
         kwargs["sequence"] = (*lead, "...")
-        kwargs["exclude"] = [*kwargs["exclude"], "dataset"]
         return kwargs
 
     @property
@@ -262,20 +343,16 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
         return [name for name in ("q", "status") if name in filterset.base_filters]
 
     def get_filterset_class(self):
-        """Return the chosen type's filter set without the dataset filter, or none."""
+        """Return the chosen type's filter set, scoped to this tab's rows, or none.
+
+        Its choices are the records the listed rows point to that the viewer may see, and
+        it has no dataset filter, since every row is in the page's dataset.
+        """
         if self.chosen is None:
             return None
-        filterset = PublishedChoicesMixin.applied_to(
-            self.chosen.config.get_filterset_class()
+        return ScopedChoicesMixin.applied_to(
+            self.chosen.config.get_filterset_class(), drop=("dataset",)
         )
-        if "dataset" not in filterset.base_filters:
-            return filterset
-        narrowed = type(filterset.__name__, (filterset,), {})
-        # Set after the class exists: the filter set's metaclass rebuilds ``base_filters``.
-        narrowed.base_filters = {
-            name: f for name, f in filterset.base_filters.items() if name != "dataset"
-        }
-        return narrowed
 
     def get_listing_entries(self, models):
         """Offer no switcher between the portal's listings: this page has its own."""

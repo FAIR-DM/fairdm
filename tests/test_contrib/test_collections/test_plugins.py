@@ -1,7 +1,10 @@
 """The Samples and Measurements tabs of a dataset."""
 
+import django_tables2 as tables
 import pytest
 from bs4 import BeautifulSoup
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
 from demo.factories import (
@@ -11,6 +14,7 @@ from demo.factories import (
     XRFMeasurementFactory,
 )
 from demo.models import RockSample, SoilSample, XRFMeasurement
+from fairdm.contrib.collections.plugins import Measurements
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.factories import ContributionFactory, DatasetFactory, UserFactory
 from fairdm.registry import registry
@@ -256,3 +260,270 @@ class TestRecordState:
 
         assert response.status_code == 200
         assert response.context["record_state"] == "empty"
+
+
+def table_of(response):
+    """Return the table the response drew."""
+    return response.context["table"]
+
+
+def cell(response, record, column):
+    """Return what the table drew in a record's cell of a column."""
+    row = next(
+        r for r in table_of(response).page.object_list if r.record.pk == record.pk
+    )
+    return str(row.get_cell(column))
+
+
+@pytest.fixture
+def sample_dataset():
+    """A published dataset and a hidden-sample measurement, an openable one and a foreign one.
+
+    The hidden sample belongs to a dataset that is not published, so a visitor may not
+    open it. The foreign measurement belongs to another dataset and shares a name with an
+    own one.
+    """
+    dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+    other = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+    shown = RockSampleFactory(dataset=dataset, name="Granite-shown")
+    hidden = RockSampleFactory(dataset=other, name="Zq-hidden-sample")
+    also_hidden = RockSampleFactory(dataset=other, name="Zq-also-hidden")
+    own = XRFMeasurementFactory(dataset=dataset, sample=shown, name="needle own")
+    behind = XRFMeasurementFactory(dataset=dataset, sample=hidden, name="needle behind")
+    behind_too = XRFMeasurementFactory(dataset=dataset, sample=also_hidden)
+    foreign_dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+    foreign = XRFMeasurementFactory(
+        dataset=foreign_dataset,
+        sample=RockSampleFactory(dataset=foreign_dataset),
+        name="needle foreign",
+    )
+    dataset.other = other
+    dataset.records = {
+        "shown": shown,
+        "hidden": hidden,
+        "also_hidden": also_hidden,
+        "own": own,
+        "behind": behind,
+        "behind_too": behind_too,
+        "foreign": foreign,
+    }
+    return dataset
+
+
+class TestRecordTable:
+    def test_measurements_lead_with_name_then_sample_and_have_no_dataset(
+        self, client, sample_dataset
+    ):
+        response = client.get(address(sample_dataset, "measurements"))
+
+        names = [column.name for column in table_of(response).columns]
+        assert names[:2] == ["name", "sample_name"]
+        assert "dataset" not in names
+        assert "sample" not in names
+
+    def test_samples_lead_with_name_and_have_no_dataset(self, client, dataset):
+        response = client.get(address(dataset, "samples"))
+
+        names = [column.name for column in table_of(response).columns]
+        assert names[0] == "name"
+        assert "dataset" not in names
+
+    def test_a_sample_the_viewer_may_open_is_linked(self, client, sample_dataset):
+        shown = sample_dataset.records["shown"]
+        response = client.get(address(sample_dataset, "measurements"))
+
+        drawn = cell(response, sample_dataset.records["own"], "sample_name")
+
+        assert f'href="{shown.get_absolute_url()}"' in drawn
+
+    def test_a_sample_the_viewer_may_not_see_is_a_dash_and_never_named(
+        self, client, sample_dataset
+    ):
+        response = client.get(address(sample_dataset, "measurements"))
+
+        assert cell(response, sample_dataset.records["behind"], "sample_name") == "—"
+        assert "Zq-hidden-sample" not in response.content.decode()
+        assert "Zq-also-hidden" not in response.content.decode()
+
+    def test_the_sample_is_opened_by_the_viewers_own_credit_on_that_sample_alone(
+        self, client, sample_dataset
+    ):
+        hidden = sample_dataset.records["hidden"]
+        user = UserFactory()
+        ContributionFactory(
+            content_object=hidden, contributor=user, level=ContributionLevel.VIEW
+        )
+        client.force_login(user)
+
+        response = client.get(address(sample_dataset, "measurements"))
+
+        opened = cell(response, sample_dataset.records["behind"], "sample_name")
+        assert f'href="{hidden.get_absolute_url()}"' in opened
+        assert (
+            cell(response, sample_dataset.records["behind_too"], "sample_name") == "—"
+        )
+
+    def test_the_team_of_the_samples_dataset_may_open_the_sample(
+        self, client, sample_dataset
+    ):
+        client.force_login(team_member(sample_dataset.other))
+
+        response = client.get(address(sample_dataset, "measurements"))
+
+        opened = cell(response, sample_dataset.records["behind"], "sample_name")
+        assert "href=" in opened
+
+    def test_search_filter_and_sort_stay_within_the_dataset(
+        self, client, sample_dataset
+    ):
+        url = address(sample_dataset, "measurements")
+        own = {r.pk for r in XRFMeasurement.objects.filter(dataset=sample_dataset)}
+
+        searched = listed(client.get(url, {"q": "needle"}))
+        sorted_up = listed(client.get(url, {"sort": "name"}))
+        sorted_down = listed(client.get(url, {"sort": "-name"}))
+
+        assert {r.name for r in searched} == {"needle own", "needle behind"}
+        assert {r.pk for r in sorted_up} == {r.pk for r in sorted_down} == own
+        assert [r.name for r in sorted_up] == sorted(r.name for r in sorted_up)
+        assert [r.name for r in sorted_down] == [r.name for r in sorted_up][::-1]
+
+    def test_a_filter_narrows_within_the_dataset(self, client, sample_dataset):
+        url = address(sample_dataset, "measurements")
+        sample_dataset.records["foreign"].__class__.objects.filter(
+            pk=sample_dataset.records["foreign"].pk
+        ).update(element="Fe")
+        XRFMeasurement.objects.filter(dataset=sample_dataset).update(element="Si")
+        XRFMeasurement.objects.filter(pk=sample_dataset.records["own"].pk).update(
+            element="Fe"
+        )
+
+        rows = listed(client.get(url, {"element": "Fe"}))
+
+        assert [r.pk for r in rows] == [sample_dataset.records["own"].pk]
+
+    @pytest.mark.parametrize("sort", ["sample_name", "-sample_name"])
+    def test_sorting_by_sample_puts_the_hidden_samples_in_one_block_after_the_named(
+        self, client, sample_dataset, sort
+    ):
+        response = client.get(address(sample_dataset, "measurements"), {"sort": sort})
+
+        rows = listed(response)
+        hidden_flags = [bool(r.sample_open) for r in rows]
+        assert hidden_flags == sorted(hidden_flags, reverse=True)
+        assert hidden_flags.count(False) == 2
+        named = [r.sample.name for r in rows if r.sample_open]
+        assert named == sorted(named, reverse=sort.startswith("-"))
+
+    def test_the_order_of_a_generated_table_ends_in_a_unique_key(
+        self, client, sample_dataset
+    ):
+        url = address(sample_dataset, "measurements")
+
+        for params in ({}, {"sort": "name"}, {"sort": "-sample_name"}):
+            ordering = table_of(client.get(url, params)).data.data.query.order_by
+            assert str(ordering[-1]).lstrip("-") in ("pk", "id")
+
+    def test_the_order_of_a_declared_table_with_no_order_by_ends_in_a_unique_key(
+        self, client, sample_dataset, monkeypatch
+    ):
+        class Plain(tables.Table):
+            name = tables.Column()
+
+            class Meta:
+                model = XRFMeasurement
+                fields = ("name",)
+
+        monkeypatch.setattr(Measurements, "get_table_class", lambda self: Plain)
+
+        response = client.get(address(sample_dataset, "measurements"))
+
+        ordering = table_of(response).data.data.query.order_by
+        assert str(ordering[-1]).lstrip("-") in ("pk", "id")
+
+    def test_a_page_holds_fifty_rows(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        RockSampleFactory.create_batch(51, dataset=dataset)
+        url = address(dataset, "samples")
+
+        first = client.get(url)
+        second = client.get(url, {"page": 2})
+
+        assert len(listed(first)) == 50
+        assert len(listed(second)) == 1
+
+
+class TestRecordColumns:
+    def test_a_dataset_the_viewer_may_open_is_linked_and_otherwise_only_named(
+        self, dataset
+    ):
+        from types import SimpleNamespace
+
+        from fairdm.contrib.collections.plugins import DatasetColumn
+
+        column = DatasetColumn()
+
+        opened = column.render(SimpleNamespace(dataset_open=True), dataset)
+        closed = column.render(SimpleNamespace(dataset_open=False), dataset)
+
+        assert f'href="{dataset.get_absolute_url()}"' in opened
+        assert "href" not in closed
+        assert dataset.name in closed
+
+    def test_the_tab_marks_each_row_with_whether_its_dataset_and_sample_open(
+        self, client, sample_dataset
+    ):
+        rows = listed(client.get(address(sample_dataset, "measurements")))
+
+        assert {r.dataset_open for r in rows} == {True}
+        by_pk = {r.pk: r.sample_open for r in rows}
+        assert by_pk[sample_dataset.records["own"].pk] is True
+        assert by_pk[sample_dataset.records["behind"].pk] is False
+
+
+class TestRecordChoices:
+    def test_a_datasets_own_tab_has_no_dataset_filter(self, client, dataset):
+        for kind in ("samples", "measurements"):
+            response = client.get(address(dataset, kind))
+
+            assert "dataset" not in response.context["filter"].filters
+
+    def test_the_type_filter_offers_only_the_types_of_the_listed_rows(
+        self, client, dataset
+    ):
+        response = client.get(address(dataset, "measurements"))
+
+        offered = response.context["filter"].filters["polymorphic_ctype"].queryset
+        listed_types = {type(r) for r in listed(response)}
+        assert {ct.model_class() for ct in offered} == listed_types
+
+
+class TestRecordQueries:
+    @staticmethod
+    def count(client, url):
+        client.get(url)  # warm the per-process caches
+        with CaptureQueriesContext(connection) as queries:
+            assert client.get(url).status_code == 200
+        return len(queries)
+
+    def test_samples_cost_the_same_queries_at_ten_rows_and_at_sixty(self, client):
+        small = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        large = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        RockSampleFactory.create_batch(10, dataset=small)
+        RockSampleFactory.create_batch(60, dataset=large)
+
+        assert self.count(client, address(small, "samples")) == self.count(
+            client, address(large, "samples")
+        )
+
+    def test_measurements_cost_the_same_queries_at_ten_rows_and_at_sixty(self, client):
+        small = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        large = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        for dataset, rows in ((small, 10), (large, 60)):
+            for _ in range(rows):
+                sample = RockSampleFactory(dataset=dataset)
+                XRFMeasurementFactory(dataset=dataset, sample=sample)
+
+        assert self.count(client, address(small, "measurements")) == self.count(
+            client, address(large, "measurements")
+        )
