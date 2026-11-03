@@ -31,6 +31,13 @@ class OrganizationType(models.TextChoices):
     OTHER = "other", _("Other")
 
 
+class SyncStatus(models.TextChoices):
+    """How the last fetch of a contributor's record from ORCID or ROR ended."""
+
+    SUCCEEDED = "succeeded", _("Succeeded")
+    FAILED = "failed", _("Failed")
+
+
 class ContributionLevel(models.IntegerChoices):
     """What a person may do on one record, each level including the ones before it.
 

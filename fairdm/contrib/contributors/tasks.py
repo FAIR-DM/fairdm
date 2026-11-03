@@ -3,7 +3,6 @@
 import logging
 from datetime import timedelta
 
-import requests
 from celery import shared_task
 from django.utils import timezone
 from requests.exceptions import RequestException
@@ -14,23 +13,30 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task(
+    bind=True,
     autoretry_for=(RequestException,),
     retry_backoff=True,
     max_retries=3,
     rate_limit="10/m",
 )
-def sync_contributor_identifier(identifier_pk: int) -> bool:
-    """Fetch external data for a contributor identifier and store it on the contributor.
+def sync_contributor_identifier(self, identifier_pk: int) -> bool:
+    """Fetch a contributor's record from ORCID or ROR and store it on the contributor.
 
-    The ORCID or ROR API is chosen from the identifier's type.
+    The registry is chosen from the identifier's type. Every fetch records its outcome on the
+    contributor: a success stores the record and dates it, a failure stores why. A request
+    that fails is retried with a growing delay, and a 429 after the wait the registry asks for.
 
     Args:
         identifier_pk: Primary key of the ``ContributorIdentifier``.
 
     Returns:
         True when the sync succeeded, False otherwise.
+
+    Raises:
+        requests.RequestException: The request failed, so Celery retries it.
     """
     from .models import ContributorIdentifier
+    from .services.registries import RegistryRateLimited, fetch_record
 
     try:
         identifier = ContributorIdentifier.objects.select_related("related").get(
@@ -40,138 +46,89 @@ def sync_contributor_identifier(identifier_pk: int) -> bool:
         logger.exception(f"ContributorIdentifier {identifier_pk} does not exist")
         return False
 
-    contributor = identifier.related
-
     if identifier.type_id == ORCID:
-        return _sync_orcid(identifier, contributor)
+        registry, address, headers = (
+            "ORCID",
+            f"https://pub.orcid.org/v3.0/{identifier.value}",
+            {"Accept": "application/json"},
+        )
     elif identifier.type_id == ROR:
-        return _sync_ror(identifier, contributor)
+        ror_id = identifier.value.split("ror.org/")[-1]
+        registry, address, headers = (
+            "ROR",
+            f"https://api.ror.org/v2/organizations/{ror_id}",
+            None,
+        )
     else:
         logger.warning(f"Unknown identifier type: {identifier.type}")
         return False
 
-
-def _sync_orcid(identifier, contributor):
-    """Sync ORCID data for a person.
-
-    Args:
-        identifier: The ORCID identifier.
-        contributor: The person it belongs to.
-
-    Returns:
-        True when the sync succeeded, False otherwise.
-
-    Raises:
-        requests.RequestException: The API request failed, so Celery retries it.
-    """
-    orcid_id = identifier.value
-    url = f"https://pub.orcid.org/v3.0/{orcid_id}"
-
+    contributor = identifier.related.get_real_instance()
     try:
-        response = requests.get(
-            url,
-            headers={"Accept": "application/json"},
-            timeout=10,
+        data = fetch_record(address, headers=headers)
+    except RegistryRateLimited as error:
+        contributor.record_failed_fetch(
+            f"{registry} asked for no requests for a while."
         )
-
-        if response.status_code == 404:
-            logger.warning(f"ORCID {orcid_id} not found (404)")
-            return False
-
-        response.raise_for_status()
-        data = response.json()
-
-        contributor.synced_data = data
-        contributor.last_synced = timezone.now().date()
-
-        person_data = data.get("person", {})
-        if person_data.get("name"):
-            name_data = person_data["name"]
-            given = name_data.get("given-names", {}).get("value", "")
-            family = name_data.get("family-name", {}).get("value", "")
-            if given and family and not contributor.name:
-                contributor.name = f"{given} {family}"
-                if hasattr(contributor, "first_name"):
-                    contributor.first_name = given
-                    contributor.last_name = family
-
-        contributor.save()
-        logger.info(f"Successfully synced ORCID {orcid_id}")
-
-    except requests.Timeout:
-        logger.exception(f"Timeout syncing ORCID {orcid_id}")
-        return False
-    except requests.RequestException:
-        logger.exception(f"Error syncing ORCID {orcid_id}")
-        raise
+        if error.retry_after is None:
+            raise
+        raise self.retry(exc=error, countdown=error.retry_after) from error
     except ValueError:
-        logger.exception(f"Invalid JSON from ORCID API for {orcid_id}")
+        logger.exception(f"Invalid JSON from {registry} for {identifier.value}")
+        contributor.record_failed_fetch(
+            f"{registry} answered in a form not understood."
+        )
         return False
-    except Exception:
-        logger.exception(f"Unexpected error syncing ORCID {orcid_id}")
+    except RequestException as error:
+        logger.exception(f"Error syncing {registry} {identifier.value}")
+        contributor.record_failed_fetch(f"{registry} request failed: {error}")
+        raise
+
+    if data is None:
+        logger.warning(f"{registry} {identifier.value} not found (404)")
+        contributor.record_failed_fetch(f"{registry} has no record {identifier.value}.")
         return False
+
+    if registry == "ORCID":
+        apply_orcid_record(data, contributor)
     else:
-        return True
+        apply_ror_record(data, contributor)
+    contributor.record_fetch(data)
+    contributor.save()
+    logger.info(f"Successfully synced {registry} {identifier.value}")
+    return True
 
 
-def _sync_ror(identifier, contributor):
-    """Sync ROR data for an organization.
+def apply_orcid_record(data, person):
+    """Fill a blank name of a person from their ORCID record, without saving.
 
     Args:
-        identifier: The ROR identifier, as a bare id or a ``ror.org`` URL.
-        contributor: The organization it belongs to.
+        data: The ORCID record.
+        person: The person it belongs to.
+    """
+    name_data = data.get("person", {}).get("name") or {}
+    given = name_data.get("given-names", {}).get("value", "")
+    family = name_data.get("family-name", {}).get("value", "")
+    if given and family and not person.name:
+        person.name = f"{given} {family}"
+        if hasattr(person, "first_name"):
+            person.first_name = given
+            person.last_name = family
 
-    Returns:
-        True when the sync succeeded, False otherwise.
 
-    Raises:
-        requests.RequestException: The API request failed, so Celery retries it.
+def apply_ror_record(data, organization):
+    """Set an organization's place from its ROR record, and a blank name, without saving.
+
+    Args:
+        data: The ROR record.
+        organization: The organization it belongs to.
     """
     from .utils.transforms import RORTransform
 
-    ror_id = identifier.value
-    if "ror.org/" in ror_id:
-        ror_id = ror_id.split("ror.org/")[-1]
-
-    url = f"https://api.ror.org/v2/organizations/{ror_id}"
-
-    try:
-        response = requests.get(url, timeout=10)
-
-        if response.status_code == 404:
-            logger.warning(f"ROR {ror_id} not found (404)")
-            return False
-
-        response.raise_for_status()
-        data = response.json()
-
-        contributor = contributor.get_real_instance()
-        contributor.synced_data = data
-        contributor.last_synced = timezone.now().date()
-
-        transform = RORTransform()
-        transform.import_location(data, contributor)
-
-        if not contributor.name:
-            contributor.name = transform.display_name(data)
-
-        contributor.save()
-        logger.info(f"Successfully synced ROR {ror_id}")
-
-    except requests.Timeout:
-        logger.exception(f"Timeout syncing ROR {ror_id}")
-        return False
-    except requests.RequestException:
-        logger.exception(f"Error syncing ROR {ror_id}")
-        raise
-    except ValueError:
-        logger.exception(f"Invalid JSON from ROR API for {ror_id}")
-        return False
-    except Exception:
-        logger.exception(f"Unexpected error syncing ROR {ror_id}")
-        return False
-    else:
-        return True
+    transform = RORTransform()
+    transform.import_location(data, organization)
+    if not organization.name:
+        organization.name = transform.display_name(data)
 
 
 @shared_task

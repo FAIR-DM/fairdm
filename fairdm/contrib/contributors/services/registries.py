@@ -2,10 +2,12 @@
 
 import hashlib
 import re
+from email.utils import parsedate_to_datetime
 
 import requests
 from django.core.cache import cache
 from django.db import transaction
+from django.utils import timezone
 from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 from django_countries import countries
@@ -32,6 +34,73 @@ KEPT = 300
 """The seconds an answer is kept, so that a repeated lookup asks the registry once."""
 
 JSON = {"Accept": "application/json"}
+
+
+FETCH_TIMEOUT = 10
+"""The seconds a registry has to answer a fetch of one record for a profile."""
+
+
+class RegistryRateLimited(requests.RequestException):
+    """Signal that a registry answered 429 and asked for no requests for a while.
+
+    Attributes:
+        retry_after: The seconds the registry asked to wait, or None when it did not say.
+    """
+
+    def __init__(self, message, retry_after=None):
+        super().__init__(message)
+        self.retry_after = retry_after
+
+
+def seconds_to_wait(retry_after):
+    """Read a ``Retry-After`` header, which is a number of seconds or an HTTP date.
+
+    Args:
+        retry_after: The header's value, or None when it was not sent.
+
+    Returns:
+        The whole seconds to wait, never negative, or None when the value says nothing.
+    """
+    if not retry_after:
+        return None
+    if retry_after.strip().isdigit():
+        return int(retry_after)
+    try:
+        until = parsedate_to_datetime(retry_after)
+    except (TypeError, ValueError):
+        return None
+    return max(0, int((until - timezone.now()).total_seconds()))
+
+
+def fetch_record(address, headers=None):
+    """Fetch one registry record for a profile, uncached, as the sync and the transforms do.
+
+    Every fetch of a record to store on a profile goes through here, so all of them share one
+    timeout and one reading of a refusal. Retrying is the caller's: the sync task retries with
+    a growing delay, or after the wait a 429 asks for.
+
+    Args:
+        address: The record's address.
+        headers: Request headers.
+
+    Returns:
+        The decoded record, or None when the registry answers 404.
+
+    Raises:
+        RegistryRateLimited: The registry answered 429.
+        requests.RequestException: The request failed or the answer was another error.
+        ValueError: The answer was not JSON.
+    """
+    response = requests.get(address, headers=headers, timeout=FETCH_TIMEOUT)
+    if response.status_code == 404:
+        return None
+    if response.status_code == 429:
+        raise RegistryRateLimited(
+            f"{address} answered 429",
+            retry_after=seconds_to_wait(response.headers.get("Retry-After")),
+        )
+    response.raise_for_status()
+    return response.json()
 
 
 class RegistryUnavailable(Exception):

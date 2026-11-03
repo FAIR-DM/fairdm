@@ -21,7 +21,7 @@ from django.utils.encoding import force_str
 from django.utils.functional import classproperty
 from django.utils.translation import gettext_lazy as _
 from django_countries.fields import CountryField
-from django_lifecycle import AFTER_CREATE, hook
+from django_lifecycle import AFTER_CREATE, AFTER_UPDATE, hook
 from django_lifecycle.mixins import LifecycleModelMixin
 from easy_icons import icon
 from easy_thumbnails.fields import ThumbnailerImageField
@@ -41,7 +41,7 @@ from fairdm.utils.location.db import geography_index
 from fairdm.utils.models import PolymorphicMixin
 from fairdm.utils.utils import default_image_path
 
-from .choices import AccountState, ContributionLevel, OrganizationType
+from .choices import AccountState, ContributionLevel, OrganizationType, SyncStatus
 from .managers import (
     AffiliationManager,
     ContributionManager,
@@ -85,12 +85,13 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         profile: Free-text description.
         links: URLs of related online resources.
         lang: ISO 639-1 language codes.
-        last_synced: When the contributor was last synced with an external provider.
+        last_synced: When a record was last fetched from an external provider.
         synced_data: Raw data from the external provider.
+        sync_status: Whether the last fetch from the external provider succeeded.
+        sync_error: Why the last fetch failed, or blank.
         config: General-purpose configuration data.
         added: When the record was created.
         modified: When the record was last modified.
-        tracker: Tracks field changes, used to stamp ``last_synced``.
         is_organization: Whether the concrete type is :class:`Organization`.
     """
 
@@ -159,7 +160,8 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
     last_synced = models.DateField(
         verbose_name=_("last synced"),
         help_text=_(
-            "The last time the contributor was synced with the external provider (e.g. ORCID, ROR)."
+            "The last time a record was fetched from the external provider (e.g. ORCID, "
+            "ROR)."
         ),
         editable=False,
         null=True,
@@ -176,6 +178,27 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         null=True,
         blank=True,
         default=dict,
+    )
+
+    sync_status = models.CharField(
+        max_length=16,
+        choices=SyncStatus,
+        verbose_name=_("sync status"),
+        help_text=_(
+            "Whether the last fetch from the external provider succeeded. Blank until "
+            "one is tried."
+        ),
+        editable=False,
+        blank=True,
+        default="",
+    )
+
+    sync_error = models.TextField(
+        verbose_name=_("sync error"),
+        help_text=_("Why the last fetch from the external provider failed."),
+        editable=False,
+        blank=True,
+        default="",
     )
 
     config = models.JSONField(
@@ -200,19 +223,36 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         help_text=_("The date and time this record was last modified."),
     )
 
-    tracker = FieldTracker()
-
     class Meta:  # type: ignore[no-redef]
         ordering = ["name"]
         verbose_name = _("contributor")
         verbose_name_plural = _("contributors")
         default_related_name = "contributors"
 
-    def save(self, *args, **kwargs):
-        """Stamp ``last_synced`` when ``synced_data`` has changed, then save."""
-        if self.tracker.has_changed("synced_data"):
-            self.last_synced = timezone.now().date()
-        super().save(*args, **kwargs)
+    def record_fetch(self, data):
+        """Hold a record fetched from the external provider, dated today, without saving.
+
+        Args:
+            data: The record the provider answered with.
+        """
+        self.synced_data = data
+        self.last_synced = timezone.now().date()
+        self.sync_status = SyncStatus.SUCCEEDED
+        self.sync_error = ""
+
+    def record_failed_fetch(self, reason):
+        """Store that a fetch from the external provider failed, and why.
+
+        The two fields are written alone, so nothing else held on the instance is saved.
+
+        Args:
+            reason: Why the fetch failed, as a sentence.
+        """
+        self.sync_status = SyncStatus.FAILED
+        self.sync_error = reason
+        Contributor.objects.filter(pk=self.pk).update(
+            sync_status=self.sync_status, sync_error=self.sync_error
+        )
 
     @staticmethod
     def base_class():
@@ -1082,7 +1122,9 @@ class Person(AbstractUser, Contributor):
 
     @classmethod
     def from_orcid(cls, orcid_id):
-        """Create or update a person from ORCID data and schedule a full sync after commit.
+        """Create or update a person from ORCID data.
+
+        A new ORCID identifier queues its own sync once the transaction commits.
 
         Args:
             orcid_id: The ORCID iD, such as ``0000-0002-1825-0097``.
@@ -1090,19 +1132,9 @@ class Person(AbstractUser, Contributor):
         Returns:
             The created or updated person.
         """
-        from django.db import transaction
-
-        from .tasks import sync_contributor_identifier
         from .utils.transforms import ORCIDTransform
 
         person, _created = ORCIDTransform.update_or_create(orcid_id)
-
-        orcid_identifier = person.identifiers.filter(type_id=ORCID).first()
-        if orcid_identifier:
-            transaction.on_commit(
-                lambda: sync_contributor_identifier.delay(orcid_identifier.pk)
-            )
-
         return person
 
     def as_geojson(self):
@@ -1464,30 +1496,20 @@ class Organization(Contributor):
                 self.identifiers.get_or_create(type_id=ROR, defaults={"value": ror})
 
     @classmethod
-    def from_ror(cls, ror, commit=True):
-        """Create or update an organisation from a ROR record and, when committing, schedule a full sync after commit.
+    def from_ror(cls, ror):
+        """Create or update an organisation from a ROR record.
+
+        A new ROR identifier queues its own sync once the transaction commits.
 
         Args:
             ror: The ROR identifier, such as ``https://ror.org/04aj4c181``.
-            commit: Whether to schedule the full sync. The organisation is saved either way.
 
         Returns:
             The created or updated organisation.
         """
-        from django.db import transaction
-
-        from .tasks import sync_contributor_identifier
         from .utils.transforms import RORTransform
 
         org, _created = RORTransform.update_or_create(ror)
-
-        if commit:
-            ror_identifier = org.identifiers.filter(type_id=ROR).first()
-            if ror_identifier:
-                transaction.on_commit(
-                    lambda: sync_contributor_identifier.delay(ror_identifier.pk)
-                )
-
         return org
 
     def icon(self):
@@ -1988,7 +2010,7 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         )
 
 
-class ContributorIdentifier(AbstractIdentifier, LifecycleModelMixin):
+class ContributorIdentifier(LifecycleModelMixin, AbstractIdentifier):
     """An external identifier of a contributor, such as an ORCID iD or a ROR id.
 
     Types are drawn from the contributor identifier collection, so a person cannot hold a
@@ -2041,11 +2063,12 @@ class ContributorIdentifier(AbstractIdentifier, LifecycleModelMixin):
                 )
 
     @hook(AFTER_CREATE)
+    @hook(AFTER_UPDATE, when_any=["value", "type"], has_changed=True)
     def dispatch_sync_task(self):
-        """Queue a sync with the external provider once the transaction commits."""
+        """Queue a sync once the transaction commits, for a new or changed identifier."""
         from django.db import transaction
 
-        def _dispatch():
+        def dispatch():
             try:
                 from .tasks import sync_contributor_identifier
 
@@ -2055,7 +2078,7 @@ class ContributorIdentifier(AbstractIdentifier, LifecycleModelMixin):
                     f"Failed to dispatch sync task for identifier {self.pk}: {e}"
                 )
 
-        transaction.on_commit(_dispatch)
+        transaction.on_commit(dispatch)
 
 
 class ClaimMethod(models.TextChoices):

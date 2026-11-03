@@ -42,12 +42,12 @@ On a development portal with `REDIS_URL` unset, FairDM already runs tasks in the
 
    ```python
    profile = identifier.related.get_real_instance()
-   print(profile.last_synced, bool(profile.synced_data))
+   print(profile.last_synced, profile.sync_status, profile.sync_error)
    ```
 
 ## The result
 
-The profile's `synced_data` holds the registry's record and `last_synced` is today's date. A blank name is filled from the record. An organization also takes its city, country and location from the record's first place. Nothing else on the profile changes.
+The profile's `synced_data` holds the registry's record, `last_synced` is today's date and `sync_status` is `succeeded`. A sync that failed leaves both as they were, sets `sync_status` to `failed` and says why in `sync_error`. A blank name is filled from the record. An organization also takes its city, country and location from the record's first place. Nothing else on the profile changes.
 
 ## Rewrite the whole profile
 

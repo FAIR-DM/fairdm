@@ -7,7 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Contributor profiles refresh from ORCID and ROR every week.** Migrating the portal creates
+  the periodic task "Refresh profiles from ORCID and ROR", on Mondays at 03:00 in the portal's
+  time zone. It needs the beat scheduler running. A schedule you change, or a task you switch
+  off, stays as you left it.
+- **Every contributor records how its last ORCID or ROR fetch ended.** `sync_status` is
+  `succeeded` or `failed` and `sync_error` says why a fetch failed. Both show in the
+  administration interface beside **Last synced**, which is now the date of the last fetch
+  that worked. The fields come with migration `contributors.0026`.
+
 ### Changed
+
+- **`Organization.from_ror()` no longer takes `commit`.** A new ROR identifier queues its own
+  sync, so the argument had nothing left to decide. Drop it from calls.
 
 - **A measurement's pages sit under `/measurements/<uuid>/`,** the plural form projects, datasets
   and samples already use. Every former address under `/measurement/<uuid>/` redirects to the same
@@ -22,6 +36,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   longer exist.
 
 ### Fixed
+
+- **Saving an ORCID or ROR identifier queues a sync, and so does correcting one.** The hook
+  that queues the sync never ran, because `ContributorIdentifier` named the lifecycle mixin
+  after its model base. Profiles synced only through the ORCID and ROR add pages and the
+  **Sync from ROR** action.
+- **A sync retries after the wait ORCID or ROR asks for** when the registry answers 429 with
+  `Retry-After`. A timeout is now retried like any other failed request rather than given up.
+  The sync and the transforms' `fetch_from_api()` share one request path with a ten second
+  timeout, which was thirty for the transforms.
 
 - **Importing people needs the permission to add them, and exporting them the permission to view
   them.** The Import and Export pages of the People administration were open to anyone admitted to

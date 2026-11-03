@@ -126,9 +126,13 @@ The module also holds:
 | Name | Type | What it is |
 |---|---|---|
 | `RegistryUnavailable` | Exception | Raised for a network error, a timeout, an answer that is not a 200 (a 404 on `fetch` is an answer) and an answer in a form the registry does not document |
-| `ask(address, parse, *, params=None, headers=None, missing_ok=False)` | Function | The one function that makes a request. `parse` turns the decoded answer into what the caller wants. Both classes use it, and a third registry can pass its own address and `parse` |
+| `ask(address, parse, *, params=None, headers=None, missing_ok=False)` | Function | The one function the searches and lookups make a request through. `parse` turns the decoded answer into what the caller wants. Both classes use it, and a third registry can pass its own address and `parse` |
+| `fetch_record(address, headers=None)` | Function | The one function the sync and the transforms' `fetch_from_api()` fetch a record to store through. Uncached. Returns the decoded record, or `None` for a 404. Raises `RegistryRateLimited` for a 429, `requests.RequestException` for any other failure and `ValueError` for an answer that is not JSON. It never retries: the sync task does |
+| `RegistryRateLimited` | Exception, a `requests.RequestException` | Raised by `fetch_record` for a 429. `retry_after` holds the seconds the registry asked to wait, or `None` |
+| `seconds_to_wait(retry_after)` | Function | Reads a `Retry-After` value, seconds or an HTTP date, into whole seconds. `None` when the value says nothing |
 | `RESULTS_SHOWN` | `10` | The most matches a search returns |
-| `TIMEOUT` | `5` | The seconds a registry has to answer |
+| `TIMEOUT` | `5` | The seconds a registry has to answer a search or lookup |
+| `FETCH_TIMEOUT` | `10` | The seconds a registry has to answer `fetch_record` |
 | `KEPT` | `300` | The seconds an answer is kept in the default cache, by address, parameters and active language. An answer of "no such record" is kept. A failure is not |
 
 Search terms go in the request's parameters and never into the address. No identifier reaches an address unless it matches `ORCID_PATTERN` or `ROR_PATTERN`, both in `fairdm.contrib.contributors.models`. Saving the identifier queues the sync that every `ContributorIdentifier` queues, so a worker fills in the rest of the profile later.

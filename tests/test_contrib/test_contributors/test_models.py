@@ -516,7 +516,7 @@ class TestOrganizationCreationAndValidation:
 
     @pytest.mark.django_db
     def test_organization_default_identifier_is_ror(self):
-        assert Organization.DEFAULT_IDENTIFIER == f"{IDENTIFIER_TYPES}/ror"
+        assert f"{IDENTIFIER_TYPES}/ror" == Organization.DEFAULT_IDENTIFIER
 
 
 class TestOrganizationTypeValidation:
@@ -611,7 +611,7 @@ class TestOrganizationFromRor:
             == "04z8jg394"
         )
 
-    def test_schedules_a_full_sync_after_commit(
+    def test_a_new_ror_identifier_schedules_a_sync_after_commit(
         self, registry_network, recorded, django_capture_on_commit_callbacks
     ):
         registry_network.answer(
@@ -629,23 +629,6 @@ class TestOrganizationFromRor:
         delay.assert_called_once_with(
             organization.identifiers.get(type_id=f"{IDENTIFIER_TYPES}/ror").pk
         )
-
-    def test_without_commit_schedules_no_sync(
-        self, registry_network, recorded, django_capture_on_commit_callbacks
-    ):
-        registry_network.answer(
-            "https://api.ror.org/v2/organizations/04z8jg394", recorded("ror-record")
-        )
-
-        with (
-            patch(
-                "fairdm.contrib.contributors.tasks.sync_contributor_identifier.delay"
-            ) as delay,
-            django_capture_on_commit_callbacks(execute=True),
-        ):
-            Organization.from_ror("04z8jg394", commit=False)
-
-        delay.assert_not_called()
 
 
 class TestOwnershipTransfer:
@@ -1240,7 +1223,7 @@ class TestContributorIdentifierUniqueness:
 
     @pytest.mark.django_db
     def test_person_default_identifier_is_orcid(self):
-        assert Person.DEFAULT_IDENTIFIER == f"{IDENTIFIER_TYPES}/orcid"
+        assert f"{IDENTIFIER_TYPES}/orcid" == Person.DEFAULT_IDENTIFIER
 
 
 class TestIdentifierUniquePerType:

@@ -434,9 +434,10 @@ def grant():
 class FakeResponse:
     """The part of ``requests.Response`` the registries and the sync tasks read."""
 
-    def __init__(self, status_code, body):
+    def __init__(self, status_code, body, headers=None):
         self.status_code = status_code
         self.body = body
+        self.headers = headers or {}
 
     def raise_for_status(self):
         if self.status_code >= 400:
@@ -458,9 +459,9 @@ class RegistryNetwork:
         self.answers = {}
         self.calls = []
 
-    def answer(self, address, body, status=200):
-        """Answer a request to the address with a status and a decoded body."""
-        self.answers[address] = FakeResponse(status, body)
+    def answer(self, address, body, status=200, headers=None):
+        """Answer a request to the address with a status, a decoded body and headers."""
+        self.answers[address] = FakeResponse(status, body, headers)
 
     def fail(self, address, error):
         """Raise the error when the address is requested, as a dead network would."""

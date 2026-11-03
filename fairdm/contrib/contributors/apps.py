@@ -1,6 +1,6 @@
 """App configuration for contributors."""
 
-from django.apps import AppConfig
+from django.apps import AppConfig, apps
 from django.utils.translation import gettext_lazy as _
 
 
@@ -13,12 +13,16 @@ class ContributorsConfig(AppConfig):
     verbose_name = _("Community")
 
     def ready(self):
-        """Connect the signal receivers for claiming and for protecting the shipped portal roles."""
+        """Connect the receivers for claiming, the shipped portal roles and the weekly refresh."""
         from allauth.account.signals import email_confirmed
         from django.contrib.auth.models import Group
-        from django.db.models.signals import pre_delete, pre_save
+        from django.db.models.signals import post_migrate, pre_delete, pre_save
 
-        from .receivers import refuse_shipped_role_deletion, refuse_shipped_role_rename
+        from .receivers import (
+            refuse_shipped_role_deletion,
+            refuse_shipped_role_rename,
+            seed_refresh_task,
+        )
         from .signals import handle_email_confirmed
 
         email_confirmed.connect(handle_email_confirmed)
@@ -31,4 +35,9 @@ class ContributorsConfig(AppConfig):
             refuse_shipped_role_rename,
             sender=Group,
             dispatch_uid="contributors.refuse_shipped_role_rename",
+        )
+        post_migrate.connect(
+            seed_refresh_task,
+            sender=apps.get_app_config("django_celery_beat"),
+            dispatch_uid="contributors.seed_refresh_task",
         )
