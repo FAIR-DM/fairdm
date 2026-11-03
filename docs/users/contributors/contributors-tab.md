@@ -11,7 +11,7 @@ Open the record's page and choose its **Contributors** tab, or choose **See all*
 | Project | `/projects/<portal ID>/contributors/` |
 | Dataset | `/datasets/<portal ID>/contributors/` |
 | Sample | `/samples/<portal ID>/contributors/` |
-| Measurement | `/measurement/<portal ID>/contributors/` |
+| Measurement | `/measurements/<portal ID>/contributors/` |
 
 The tab opens for exactly the people who may open the record's own page, and answers everyone else as if the record did not exist. Only people who manage the record are offered the controls for changing it. Everyone else who may open the record sees the two lists and nothing more. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md).
 

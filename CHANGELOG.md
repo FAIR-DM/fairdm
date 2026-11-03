@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **A measurement's pages sit under `/measurements/<uuid>/`,** the plural form projects, datasets
+  and samples already use. Every former address under `/measurement/<uuid>/` redirects to the same
+  page at the new one, so existing links keep working. Code that reverses `measurement:` names
+  needs no change.
+
 ### Removed
 
 - **`Sample.get_template_name()` and `Measurement.get_template_name()`.** They named card templates

@@ -11,7 +11,7 @@ Open the record's page, choose **Manage**, then **Edit descriptions**. The addre
 | Project | `/projects/<portal ID>/descriptions/` |
 | Dataset | `/datasets/<portal ID>/descriptions/` |
 | Sample | `/samples/<portal ID>/descriptions/` |
-| Measurement | `/measurement/<portal ID>/descriptions/` |
+| Measurement | `/measurements/<portal ID>/descriptions/` |
 
 You see the entry when you may change the record. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md) for who that is, and for what you are told when you ask for the screen without that right.
 

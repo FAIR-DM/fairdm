@@ -571,7 +571,7 @@ class TestMeasurementURLPattern:
     def test_get_absolute_url_returns_measurement_detail_pattern(self, xrf_measurement):
         url = xrf_measurement.get_absolute_url()
 
-        assert url.startswith("/measurement/")
+        assert url.startswith("/measurements/")
         assert str(xrf_measurement.uuid) in url
         assert url.endswith("/")
 
@@ -824,8 +824,7 @@ class TestMeasurementModel:
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())
         url = measurement.get_absolute_url()
 
-        assert url == f"/measurement/{measurement.uuid}/"
-        assert "measurement:overview" in url or "/measurement/" in url
+        assert url == f"/measurements/{measurement.uuid}/"
 
     def test_measurement_descriptions_relationship(self):
         measurement = ExampleMeasurementFactory(sample=RockSampleFactory())

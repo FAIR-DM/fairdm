@@ -11,7 +11,7 @@ Open the record's page, choose **Manage**, then **Identifiers**. The address is 
 | Project | `/projects/<portal ID>/identifiers/` |
 | Dataset | `/datasets/<portal ID>/identifiers/` |
 | Sample | `/samples/<portal ID>/identifiers/` |
-| Measurement | `/measurement/<portal ID>/identifiers/` |
+| Measurement | `/measurements/<portal ID>/identifiers/` |
 
 You see the entry when you may change the record. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md) for who that is, and for what you are told when you ask for the screen without that right.
 
