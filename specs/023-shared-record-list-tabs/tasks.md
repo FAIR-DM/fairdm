@@ -24,8 +24,9 @@ The plugin, its home, the dataset registration, which records it lists and the t
   measurement on another dataset's sample is listed on its own dataset's Measurements tab and that
   sample is not on its Samples tab. A private dataset's tabs answer 404 to a visitor and 200 to its
   team. Each row's name links to the record's page. A sample's page has no Samples or Measurements tab.
-- [ ] T002 [US1] same file, `TestRecordState`: a public unpublished dataset gives a visitor
-  `record_state` `unpublished` and no rows, and its team the rows. A dataset holding nothing gives
+- [ ] T002 [US1] same file, `TestRecordState`: a public unpublished dataset offers a visitor no
+  Samples or Measurements tab in its tab strip and both addresses answer 404; its team gets both tabs
+  and the rows. A dataset holding nothing gives
   `empty` to everyone. The tab is present in the tab strip in both states. With no measurement type registered, a dataset's Measurements tab answers 200 with `empty`.
 - [ ] T003 [US1] `tests/test_contrib/test_plugins/test_menus.py`: a plugin's tab is marked as the
   current page on its own address, on each of its `extra_views` addresses and on an extra pattern
@@ -66,18 +67,22 @@ The page around the table, the overview links, records of an unregistered type, 
 - [ ] T011 [US1] `tests/test_contrib/test_collections/test_plugins.py`, `TestRecordPage`: the
   response carries the breadcrumb trail ending in the dataset and the kind. Where more than one type
   is listed the switcher's entries link to each type's address; where one is listed there is no
-  switcher. The filter panel is absent on an empty and an unpublished tab.
+  switcher. The filter panel is absent on an empty tab.
 - [ ] T012 [US1] `tests/test_contrib/test_collections/test_views.py`: the portal-wide listing's
   `page.title` is still the type's verbose name after plan D8.
 - [ ] T013 [US1] `tests/test_core/test_dataset/` overview test: the Samples and Measurements figures
-  link to the two tabs, and on a published dataset the tab's total equals the figure.
+  link to the two tabs and equal the tabs' totals for a visitor and for the team. On a public
+  unpublished dataset a visitor gets no Samples or Measurements figure, no composition or growth
+  chart and no spatial coverage drawn from its records; its team gets all of them. Every existing
+  overview test that expected a visitor to see those counts is changed to this rule.
 - [ ] T014 [US1] `tests/test_contrib/test_collections/test_plugins.py`, `TestUnregisteredType`:
   records of a sample subclass with no registration are listed under the fallback entry with the
   base table, and the tab does not fail.
 - [ ] T015 [US1] `tests/test_demo/test_management/test_commands/test_seed_record_lists.py`: the
   command refuses outside development, and run twice creates the same records once. And one test per FR-032 state: each seeded record reaches the state the requirement names.
 - [ ] T016 [US1] `fairdm/contrib/collections/views.py`, `fairdm/contrib/collections/plugins.py`,
-  the overview plugins and templates: plan D4, D8, D9 and D10.
+  `fairdm/core/dataset/plugins.py`, the overview plugins and templates: plan D3a, D4, D8, D9 and D10.
+  The template's not-published panel is removed.
 - [ ] T017 [US1] `docs/developers/reference/plugins.md` and a new `docs/users/` page per plan D11,
   covering the dataset tabs, written so the later stories extend them. Plus the `CHANGELOG.md` entry and the `seed_record_lists` row in `management-commands.md`.
 
@@ -87,12 +92,13 @@ The page around the table, the overview links, records of an unregistered type, 
   project's tabs list the records of its datasets the viewer may see; a visitor sees nothing from a
   private dataset in rows, totals, types or choices, and a member of that dataset's team does. Each
   row names its dataset and links it where the viewer may open it. A project whose only records are
-  unpublished gives a visitor `unpublished`; one whose records are all in private datasets gives the
-  same `empty` as one with none. A measurement on another project's sample is listed and that sample
+  unpublished, and one whose records are all in private datasets, give a visitor the same `empty` as
+  one with none. A measurement on another project's sample is listed and that sample
   is not. A private project's tabs answer 404 to a visitor. The dataset filter offers only the
   project's datasets with visible rows.
-- [ ] T019 [US2] same file: the project overview's figures link to the tabs, and on a project with
-  only published datasets the tab's totals equal the figures. Ten and sixty rows issue the same
+- [ ] T019 [US2] same file: the project overview's figures link to the tabs and equal the tabs'
+  totals for a visitor, a member of a private dataset and the project's team, on a project holding a
+  published, an unpublished and a private dataset. Ten and sixty rows issue the same
   number of queries. A member of a private dataset in a public project gets the same figure and tab total.
 - [ ] T020 [US2] `fairdm/contrib/collections/plugins.py`: register on `Project`; scope and
   `DatasetColumn` per plan D2 and D5. Docs from T017 extended to the project.
@@ -109,7 +115,7 @@ The page around the table, the overview links, records of an unregistered type, 
   unpublished public dataset and a public dataset in a private project: anyone else sees none of
   their records in rows, totals, types or choices; the person sees them and their choices include
   them. An organization credited on a private dataset shows none of it, to a member of its team
-  too. A contributor with nothing the viewer may see gives `empty`, never `unpublished`. Ten and
+  too. A contributor with nothing the viewer may see gives `empty`. Ten and
   sixty records issue the same number of queries.
 - [ ] T023 [US3] `fairdm/contrib/collections/plugins.py`: register on `Contributor`; scope and
   viewer per plan D2. Docs from T017 extended to contributors.

@@ -48,10 +48,20 @@ page not viewed by that person; an organization always gives `None`. `visible_re
 `type_counts(queryset)` groups by `polymorphic_ctype`, most numerous first, ties broken by verbose
 name. Each entry carries its own table class, filter set, plural name and slug, so nothing later
 reads the registry or `model_config` for the chosen type. `resolve_type()` picks the entry from the
-`type` URL keyword, 404 for one not listed, and sets `record_state` to `listed`, `unpublished` or
-`empty` (research R2). **A tab whose state is not `listed` builds no table and no filter set and
+`type` URL keyword, 404 for one not listed, and sets `record_state` to `listed` or `empty`. There is
+no not-published state (research R2). **A tab whose state is not `listed` builds no table and no filter set and
 borrows no registered type**, so a portal with no measurement type registered still answers 200 on
 every Measurements tab. An address naming a type on an empty tab is 404.
+
+### D3a. Who is offered a dataset's tabs
+
+The two plugins' `check` on a dataset is `dataset_records_visible(request, dataset)`, a new function
+beside `dataset_is_visible` in `fairdm/core/dataset/plugins.py`: the dataset's overview opens for the
+viewer **and** the viewer may see its records, which holds when the dataset is published and no
+private project hides it, or the viewer holds a level on it or its project, or a portal-wide view
+right. The tab strip reads the same `check`, so the tab is not offered to anyone else and its
+address answers 404 through `PrivateRecordNotFoundMixin`'s rule for a record the viewer cannot
+reach. On a project and a contributor the check is the overview's own.
 
 ### D4. Records of a type that is no longer registered
 
@@ -105,11 +115,12 @@ filter panel and the toolbar panel drawn only when records are listed.
 
 ### D10. Overview counts
 
-The dataset and project overview figures link to the tabs (kept from the sketch). The project
-overview counts over `Dataset.all_objects.filter(project=project).visible_to(request.user)` in
-place of its public-only filter for non-managers, so a member of a private dataset in a public
-project sees the same figure and tab total. Whether the figures and the tabs must also agree on a
-public, unpublished dataset is FR-025 against FR-022, put to the maintainer (decisions D2).
+The dataset and project overview figures link to the tabs (kept from the sketch). Both overviews
+count through `visible_to(request.user)`, so the figures, the charts and the spatial coverage are
+drawn only from records the viewer may see and always agree with the tabs. On a dataset whose
+records the viewer may not see (D3a), the Samples and Measurements figures are left out of the
+strip rather than shown as zero. This replaces specification 018's rule that a visitor sees a
+public, unpublished dataset's counts and charts (spec FR-022, FR-024).
 
 ### D11. Development data and documentation
 

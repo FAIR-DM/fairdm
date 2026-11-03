@@ -62,13 +62,6 @@ sample is not listed among this dataset's samples. Where the viewer may not open
 measurement's row does not name it, following FR-023 of specification 018. The same rule applies to
 a project's records and a contributor's.
 
-## An unpublished public dataset says so
-
-Specification 018 shows a visitor the sample and measurement counts of a public dataset that is not
-published, and none of its records. A tab that then says "no samples" would contradict the count on
-the overview. The tab says the data is not published. The specification requires the two states to
-differ and does not fix the words.
-
 ## One type at a time
 
 Types have different columns, so they cannot share a table. One table at a time, with the chosen
@@ -126,15 +119,16 @@ test-first, and every item the sketch listed as faked is a task in `tasks.md`.
 
 **ADR:** none — local to this feature, nothing downstream inherits it.
 
-## D2. Overview counts and the tabs
+## D2. No access means no access
 
-**Pending the maintainer's ruling.** On a public dataset that is not published, specification 018
-shows a visitor its sample and measurement counts and FR-022 shows no records, so FR-025's "the tab
-lists as many records as the overview counts" cannot hold there. The reading proposed: FR-025
-applies where the viewer may see every record the overview counts, and the overview keeps 018's
-counts. A project member of a private dataset is fixed in the plan (D10) and needs no ruling.
+The maintainer's ruling, 2026-11-03: a viewer who may not see a public, unpublished dataset's
+records is not offered its Samples and Measurements tabs, their addresses answer "not found", and
+the dataset's overview shows them no sample or measurement counts and nothing drawn from its
+records. Both overviews count only what the viewer may see, so the figures and the tabs always
+agree. This replaces specification 018's rule that a visitor sees those counts and charts, and the
+not-published state the sketch drew.
 
-**ADR:** none — local to this feature, nothing downstream inherits it.
+**ADR:** none — recorded in spec.md's clarifications and assumptions, which supersede 018 here.
 
 ## D3. A plugin's tab is marked on every address it mounts
 

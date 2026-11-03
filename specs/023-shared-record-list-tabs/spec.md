@@ -40,6 +40,12 @@ Settled by the maintainer in conversation.
   belong to a dataset, those in a project's datasets, and those a person or an organization is
   credited on.
 
+- Q: What does a viewer who may not see a public, unpublished dataset's records find? → A: No
+  access means no access. The dataset's Samples and Measurements tabs are not offered to them and
+  their addresses answer "not found", and its overview shows them no sample or measurement counts
+  and no chart drawn from its records. This replaces specification 018's rule that a visitor sees
+  those counts and charts.
+
 ### Session 2026-11-03, settled while writing
 
 Settled while writing the specification. The reasoning for each is in `decisions.md`.
@@ -64,9 +70,6 @@ Settled while writing the specification. The reasoning for each is in `decisions
   not listed among this dataset's samples.
 - Q: Which records count as a project's? → A: The ones that belong to the project's datasets, by the
   same rule.
-- Q: What does a visitor find on the tabs of a public dataset that is not published? → A: No
-  records, and a statement that the data is not published yet, which is a different state from a
-  dataset that holds nothing.
 - Q: A page holds several sample types. How does one tab show them? → A: One type's table at a
   time, with a way to move between the types present. Types with no records there are not offered.
 - Q: On a page whose records come from several datasets, how does a reader tell them apart? → A:
@@ -84,8 +87,8 @@ A reader opens a dataset and wants to see what is in it. Beside the overview are
 the dataset's samples and one for its measurements. Each shows a table of the records of one
 registered type, with the columns, filters and search that type's registration produces. A dataset
 that holds more than one type offers a way to move between them. A row leads to the record's page.
-A visitor sees the records once the dataset is published, and the dataset's team sees them at any
-time.
+A visitor sees the tabs, and the records, once the dataset is published. Until then only the
+dataset's team does.
 
 **Why this priority**: The dataset is the unit a reader cites and reuses. Its overview shows how
 many samples and measurements it holds, and no page lists them. This story also puts in place the
@@ -118,11 +121,11 @@ FR-001 to FR-020.
 8. **Given** a measurement in the dataset whose sample belongs to a dataset the viewer may not
    open, **When** the Measurements tab is opened, **Then** the measurement is listed and its sample
    is neither named nor linked.
-9. **Given** a public dataset that is not published, **When** a visitor opens either tab, **Then**
-   no record is listed and the page tells the visitor the data is not published, which it does not
-   do for a dataset that holds no records.
-10. **Given** the same dataset, **When** a member of its team opens either tab, **Then** its records
-    are listed.
+9. **Given** a public dataset that is not published, **When** a visitor opens it, **Then** it
+   has no Samples or Measurements tab, either tab's address answers "not found", and its overview
+   shows no sample or measurement count and no chart drawn from its records.
+10. **Given** the same dataset, **When** a member of its team opens it, **Then** both tabs are
+    there, its records are listed, and the overview shows the counts.
 11. **Given** a private dataset, **When** a visitor requests either tab's address, **Then** the
     answer is the same "not found" the dataset's overview gives.
 12. **Given** a dataset with no samples, **When** anyone who may open it opens the Samples tab,
@@ -161,18 +164,16 @@ private datasets, and of a project with no datasets. Compare against FR-021 to F
    of that dataset's records are listed, counted or offered as filter choices.
 3. **Given** the same project, **When** a member of the private dataset's team opens either tab,
    **Then** that dataset's records are listed along with the public ones.
-4. **Given** a project with a public dataset that is not published and no other datasets, **When**
-   a visitor opens either tab, **Then** the tab tells them the data is not published.
-5. **Given** a project whose datasets hold no records the viewer may see, and a project with no
-   datasets, **When** a visitor opens either tab on each, **Then** both say there are no records in
+4. **Given** a project whose only dataset is public and not published, a project whose datasets
+   hold no records the viewer may see, and a project with no datasets, **When** a visitor opens either tab on each, **Then** both say there are no records in
    the same way, so the reply does not reveal that hidden records exist.
-6. **Given** a measurement in one of the project's datasets made on a sample in another project,
+5. **Given** a measurement in one of the project's datasets made on a sample in another project,
    **When** the Measurements tab is opened, **Then** the measurement is listed and the sample is not
    listed on the Samples tab.
-7. **Given** a project's overview that counts its samples and measurements, **When** the reader
+6. **Given** a project's overview that counts its samples and measurements, **When** the reader
    follows a count, **Then** they arrive at the matching tab, and the records listed there for the
    same viewer number the same as the count.
-8. **Given** a project the viewer may not open, **When** either tab's address is requested,
+7. **Given** a project the viewer may not open, **When** either tab's address is requested,
    **Then** the answer is the same "not found" the project's overview gives.
 
 ---
@@ -236,8 +237,8 @@ against FR-026 to FR-030.
   The answer is "not found".
 - A filter on a table draws its choices from related records. It offers no value that would reveal
   a record the viewer may not see, for a visitor and for a team member alike.
-- A dataset is published while a visitor has its Samples tab open. The next request lists the
-  records.
+- A dataset is published. On the next request a visitor finds its Samples and Measurements tabs,
+  the records and the counts.
 - A contributor is credited on a very large dataset. Their tab pages its results like any other,
   and the number of queries it issues does not grow with them.
 - A dataset is moved to another project. The next request lists its records under the new project
@@ -256,7 +257,7 @@ against FR-026 to FR-030.
 - **FR-003**: A tab MUST have the same address segment, beneath the record's own address, on every
   page that carries it.
 - **FR-004**: A tab MUST be present on its page whatever it holds, and an empty list MUST say that
-  it is empty.
+  it is empty. The one exception is FR-022.
 - **FR-005**: The two tabs MUST come in the order samples, measurements, after any Projects or
   Datasets tab the page already has.
 - **FR-006**: A tab MUST open for exactly the viewers the record's overview opens for. Anyone else
@@ -295,18 +296,19 @@ against FR-026 to FR-030.
 
 - **FR-021**: The tabs MUST list the samples and the measurements that belong to the dataset. A
   record that belongs to another dataset MUST NOT appear, however it is related to this one.
-- **FR-022**: A visitor MUST be shown the records only once the dataset is published. The dataset's
-  team MUST be shown them at any time. Where the viewer may open the dataset and may not yet see its
-  records, the tab MUST tell them the data is not published, and MUST NOT present that state as a
-  dataset that holds nothing.
+- **FR-022**: A viewer who may not see the dataset's records, such as a visitor to a public
+  dataset that is not published, MUST NOT be offered its Samples or Measurements tab, and either
+  tab's address MUST answer them "not found". The dataset's overview MUST NOT show them a sample or
+  measurement count or a chart drawn from its records. Once the dataset is published, or for its
+  team at any time, the tabs and the counts are shown.
 
 **On a project**
 
 - **FR-023**: The tabs MUST list the samples and measurements that belong to the project's
   datasets and that the viewer may see, by the rule that applies to each record's own dataset.
-- **FR-024**: Where every record the project holds is in a public dataset that is not published,
-  the tab MUST tell a viewer who may not see them that the data is not published. A project whose
-  only records are in datasets the viewer may not open MUST say the same as a project with none.
+- **FR-024**: A project whose records the viewer may not see, because their datasets are private
+  or not published, MUST say the same as a project with none. The project's overview MUST count
+  only the samples and measurements the viewer may see.
 - **FR-025**: Where a dataset's or a project's overview counts its samples or measurements, the
   count MUST lead to the matching tab, and the tab MUST list as many records as the overview counts
   for the same viewer.
@@ -386,7 +388,10 @@ each later story meets them on its own pages. Each later story also extends the 
 
 - Access to projects, datasets, samples and measurements follows the rules FairDM already enforces
   and specification 018 states: a sample follows its dataset, and a measurement follows its own
-  dataset, not its sample's. This feature applies those rules to lists and does not change them.
+  dataset, not its sample's. This feature applies those rules to lists. It changes one rule of
+  specification 018: a viewer who may not see a public, unpublished dataset's records is no longer
+  shown its sample and measurement counts or the charts drawn from them (FR-022), and a project's
+  figures count only what the viewer may see (FR-024).
 - Contributor pages keep the rule specification 019 set for them: they show the same public records
   to every viewer.
 - The type tables, their filters and their search are the ones specification 015 delivered for the

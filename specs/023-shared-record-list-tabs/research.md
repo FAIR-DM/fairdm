@@ -26,12 +26,11 @@ visibility logic of its own.
 `visible_records() = scope().visible_to(viewer)`. The sketch's code already has this shape and is
 kept.
 
-## R2. Not published yet, and empty
+## R2. Empty, and no access
 
-The sketch decides "not published yet" by whether the scope holds records in a public, unpublished
-dataset that the viewer cannot see. That matches FR-022 and FR-024 and never reveals private
-records, since the check is on public datasets only. A contributor's tabs never show it: their
-hidden records are hidden for many reasons, and naming one would reveal it.
+There is no not-published state (decisions D2). A dataset's tabs are offered only to a viewer who
+may see its records; anyone else finds no tab and a 404. A project or a contributor whose records
+the viewer may not see is simply empty, the same as one with none.
 
 ## R3. Filter choices scoped to the viewer and the page
 
@@ -100,14 +99,10 @@ changes for the boost. Kept as approved.
 
 ## R9. Overview counts and the tabs
 
-FS-018 counts a public, unpublished dataset's samples and measurements on its overview and on its
-project's overview for a visitor, and shows none of its records. FR-025 asks the tab to list as many
-records as the overview counts for the same viewer.
-
-**Decision**: the counts lead to the tabs. Where the viewer may see every counted record, the two
-agree, and a test pins that. Where some counted records are unpublished, the tab lists the records
-the viewer may see and the not-published state covers a tab with none; the overview keeps FS-018's
-counts. Recorded as D2 in `decisions.md`.
+Both overviews count through `visible_to(request.user)`, so their figures always equal the tabs'
+totals (decisions D2). The dataset overview's charts and spatial coverage read the same querysets,
+so on a dataset whose records the viewer may not see they draw nothing; the two figures are left
+out of the strip.
 
 ## R10. Query counts
 

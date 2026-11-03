@@ -59,6 +59,8 @@
   measurement's sample, then the type's own columns.
 - A dataset's own tab has no Dataset filter.
 - The two tabs come after the Projects and Datasets tabs, samples first.
-- An empty tab and an unpublished one each show the list's empty-state panel, with a lock for "not
-  published yet" and the kind's icon for "no records". A person on their own page is addressed as
-  "you".
+- An empty tab shows the list's empty-state panel with the kind's icon. A person on their own page
+  is addressed as "you".
+- Ruled after the sketch (maintainer, 2026-11-03): there is no "not published yet" panel. A viewer
+  who may not see a dataset's records is not offered its tabs at all, and its overview shows them no
+  sample or measurement counts.
