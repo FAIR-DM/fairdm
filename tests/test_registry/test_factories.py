@@ -3,25 +3,36 @@
 import pytest
 from django.contrib import admin
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import FieldError
 from django.db import models
 from django.forms import ModelForm
 from django.test import RequestFactory
-from django_filters import FilterSet
+from django_filters import FilterSet, ModelChoiceFilter
 from django_tables2 import Table
 
+from demo.factories import RockSampleFactory
 from demo.models import ExampleMeasurement, RockSample
 from fairdm.api.serializers import BaseMeasurementSerializer, BaseSampleSerializer
 from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
 from fairdm.core.measurement.config import BaseMeasurementConfiguration
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
-from fairdm.factories import DatasetFactory, ProjectFactory
+from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.core.dataset.models import Dataset
+from fairdm.core.project.models import Project
+from fairdm.factories import (
+    ContributionFactory,
+    DatasetFactory,
+    ProjectFactory,
+    UserFactory,
+)
 from fairdm.registry import ModelConfiguration
 from fairdm.registry.factories import (
     AdminFactory,
     FilterFactory,
     FormFactory,
+    ScopedChoicesMixin,
     TableFactory,
 )
 from fairdm.utils.choices import Visibility
@@ -824,3 +835,92 @@ class TestSerializerFactory:
 
         assert "options" in config.resolve_fields("form")
         assert "tags" in config.resolve_fields("form")
+
+
+@pytest.mark.django_db
+class TestScopedChoicesMixin:
+    """A filter set narrows what its related-record filters offer to the rows it was given."""
+
+    @pytest.fixture
+    def filterset_class(self):
+        class Rows(FilterSet):
+            dataset = ModelChoiceFilter(queryset=Dataset.all_objects.all())
+            project = ModelChoiceFilter(
+                field_name="dataset__project", queryset=Project.objects.all()
+            )
+            polymorphic_ctype = ModelChoiceFilter(queryset=ContentType.objects.all())
+
+            class Meta:
+                model = RockSample
+                fields = []
+
+        return ScopedChoicesMixin.applied_to(Rows)
+
+    @staticmethod
+    def request_for(user):
+        request = RequestFactory().get("/")
+        request.user = user
+        return request
+
+    def test_a_related_filter_offers_only_the_records_the_rows_point_to(
+        self, filterset_class
+    ):
+        listed_in = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        RockSampleFactory(dataset=listed_in)
+
+        filterset = filterset_class(
+            queryset=RockSample.objects.filter(dataset=listed_in),
+            request=self.request_for(AnonymousUser()),
+        )
+
+        assert set(filterset.filters["dataset"].queryset) == {listed_in}
+        assert {
+            ct.model_class() for ct in filterset.filters["polymorphic_ctype"].queryset
+        } == {RockSample}
+
+    def test_a_filter_on_a_model_the_rows_do_not_point_to_is_left_alone(
+        self, filterset_class
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        ProjectFactory(visibility=Visibility.PUBLIC)
+        RockSampleFactory(dataset=dataset)
+
+        filterset = filterset_class(
+            queryset=RockSample.objects.filter(dataset=dataset),
+            request=self.request_for(AnonymousUser()),
+        )
+
+        assert filterset.filters["project"].queryset.count() == Project.objects.count()
+
+    def test_a_dataset_the_viewer_may_not_see_is_not_offered(self, filterset_class):
+        waiting = DatasetFactory(visibility=Visibility.PRIVATE, published=True)
+        RockSampleFactory(dataset=waiting)
+        team = UserFactory()
+        ContributionFactory(
+            content_object=waiting, contributor=team, level=ContributionLevel.VIEW
+        )
+        rows = RockSample.objects.filter(dataset=waiting)
+
+        visitor = filterset_class(
+            queryset=rows, request=self.request_for(AnonymousUser())
+        )
+        member = filterset_class(queryset=rows, request=self.request_for(team))
+
+        assert set(visitor.filters["dataset"].queryset) == set()
+        assert set(member.filters["dataset"].queryset) == {waiting}
+
+    def test_a_filter_named_to_be_dropped_is_removed(self):
+        class Rows(FilterSet):
+            dataset = ModelChoiceFilter(queryset=Dataset.all_objects.all())
+
+            class Meta:
+                model = RockSample
+                fields = []
+
+        filterset = ScopedChoicesMixin.applied_to(Rows, drop=("dataset",))(
+            queryset=RockSample.objects.none(),
+            request=self.request_for(AnonymousUser()),
+        )
+
+        assert "dataset" not in filterset.filters

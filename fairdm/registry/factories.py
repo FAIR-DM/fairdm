@@ -476,6 +476,89 @@ class PublishedChoicesMixin:
         )
 
 
+class ScopedChoicesMixin:
+    """Narrow every related-record filter to the records of the rows the filter set was given.
+
+    A tab that lists a fixed set of rows must not offer a choice that no row has, nor one
+    that would reveal a record the viewer may not see. In ``__init__``, after the chain has
+    built its filters, each filter that holds a queryset of the records the rows point to is
+    narrowed to those the rows point to by its field, and for datasets and samples to those
+    the request's user may see as well. A filter on a model the rows do not point to is left
+    as it is. It is placed first in the bases, as :class:`PublishedChoicesMixin` is.
+
+    Attributes:
+        dropped: The names of filters to take out of the filter set, such as the dataset
+            filter on a dataset's own page, where every row has the same dataset.
+    """
+
+    dropped: tuple[str, ...] = ()
+    queryset: Any
+    filters: dict[str, Any]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name in self.dropped:
+            self.filters.pop(name, None)
+        user = getattr(getattr(self, "request", None), "user", None)
+        for filter_ in self.filters.values():
+            queryset = getattr(filter_, "queryset", None)
+            if queryset is None or not hasattr(queryset, "model"):
+                continue
+            if not self.points_to(filter_.field_name, queryset.model):
+                continue
+            narrowed = queryset.filter(pk__in=self.queryset.values(filter_.field_name))
+            visible = self.visible_records(queryset.model, user)
+            if visible is not None:
+                narrowed = narrowed.filter(pk__in=visible.values("pk"))
+            filter_.queryset = narrowed
+
+    def points_to(self, field_name: str, model: type[models.Model]) -> bool:
+        """Return whether the rows have a relation named ``field_name`` to ``model``."""
+        try:
+            field = self.queryset.model._meta.get_field(field_name)
+        except FieldDoesNotExist:
+            return False
+        related = field.related_model if field.is_relation else None
+        return isinstance(related, type) and issubclass(model, related)
+
+    @staticmethod
+    def visible_records(model: type[models.Model], user: Any) -> Any:
+        """Return the records of ``model`` the user may see, or ``None`` when that is not asked.
+
+        Args:
+            model: The model whose records a filter offers.
+            user: The request's user, or ``None`` outside a request.
+
+        Returns:
+            The visible datasets or samples, otherwise ``None``.
+        """
+        from fairdm.core.dataset.models import Dataset
+        from fairdm.core.sample.models import Sample
+
+        if issubclass(model, Dataset):
+            return Dataset.all_objects.visible_to(user)
+        if issubclass(model, Sample):
+            return Sample.objects.visible_to(user)
+        return None
+
+    @classmethod
+    def applied_to(cls, filterset_class: type, drop: tuple[str, ...] = ()) -> type:
+        """Put this mixin in front of a filter set.
+
+        Args:
+            filterset_class: The filter set to scope.
+            drop: The names of filters to take out of it.
+
+        Returns:
+            A subclass of ``filterset_class`` with the mixin first.
+        """
+        return type(
+            f"Scoped{filterset_class.__name__}",
+            (cls, filterset_class),
+            {"dropped": tuple(drop)},
+        )
+
+
 class FilterFactory(ComponentFactory):
     """Factory for generating FilterSet classes with smart filter types.
 
