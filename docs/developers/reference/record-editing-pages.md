@@ -26,7 +26,7 @@ A page's address is the record's own address followed by the plugin name and a s
 | Project | `/projects/<uuid>/edit/` |
 | Dataset | `/datasets/<uuid>/edit/` |
 | Sample | `/samples/<uuid>/edit/` |
-| Measurement | `/measurement/<uuid>/edit/` |
+| Measurement | `/measurements/<uuid>/edit/` |
 
 The other pages replace `edit/` with `descriptions/`, `keywords/`, `key-dates/`, `identifiers/` or `delete/`.
 

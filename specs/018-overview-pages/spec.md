@@ -492,7 +492,7 @@ member of its dataset's team, including the one recorded in a different dataset 
 - **FR-040**: The measurement page MUST read only the base `Measurement` model and what the registry
   says about the measurement's type.
 - **FR-041**: The measurement page MUST stay at the measurement's permanent address,
-  `/measurement/<uuid>/`.
+  `/measurements/<uuid>/`.
 - **FR-042**: Where the type declares a value, the page MUST show the result, with its uncertainty
   where there is one, in the figures strip's place.
 - **FR-043**: Its header MUST carry the type as a badge. Where the registry describes the type, the

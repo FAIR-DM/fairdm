@@ -40,7 +40,7 @@ def _dataset(*, public=True, published=True):
 
 def _page(client, measurement):
     """Open the measurement at its permanent address and return the response with its parsed HTML."""
-    response = client.get(f"/measurement/{measurement.uuid}/")
+    response = client.get(f"/measurements/{measurement.uuid}/")
     assert response.status_code == 200
     response.page = BeautifulSoup(response.content, "html.parser")
     return response
@@ -71,8 +71,8 @@ class TestOverviewAddress:
     """US-4 scenario 1 and FR-040."""
 
     def test_the_page_opens_at_the_measurements_permanent_address(self, client, xrf):
-        assert xrf.get_absolute_url() == f"/measurement/{xrf.uuid}/"
-        assert client.get(f"/measurement/{xrf.uuid}/").status_code == 200
+        assert xrf.get_absolute_url() == f"/measurements/{xrf.uuid}/"
+        assert client.get(f"/measurements/{xrf.uuid}/").status_code == 200
 
     def test_the_overview_is_the_first_tab_of_the_tabbed_detail_view(self, client, xrf):
         assert _page(client, xrf).context["record"] == xrf

@@ -1,6 +1,6 @@
 """Plugin pages for measurements.
 
-A measurement has its own page at its permanent address, ``/measurement/<uuid>/``, in the same
+A measurement has its own page at its permanent address, ``/measurements/<uuid>/``, in the same
 tabbed detail view as projects, datasets and samples. The overview is its first tab, and a portal
 adds further tabs by registering plugins against ``Measurement`` here or in its own app.
 """
