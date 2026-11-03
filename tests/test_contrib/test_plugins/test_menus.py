@@ -181,10 +181,15 @@ class TestTheCurrentTabIsMarked:
         The strip is the list that holds the Overview and Contributors tabs.
         """
         page = BeautifulSoup(response.content, "html.parser")
-        anchors = {dataset.get_absolute_url(), self.address("contribution-list", dataset)}
-        strips = [ul for ul in page.find_all("ul") if anchors <= {
-            a["href"] for a in ul.find_all("a", href=True)
-        }]
+        anchors = {
+            dataset.get_absolute_url(),
+            self.address("contribution-list", dataset),
+        }
+        strips = [
+            ul
+            for ul in page.find_all("ul")
+            if anchors <= {a["href"] for a in ul.find_all("a", href=True)}
+        ]
         strip = min(strips, key=lambda ul: len(ul.find_all("a")))
         return {
             a["href"]

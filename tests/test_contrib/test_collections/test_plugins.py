@@ -42,8 +42,7 @@ def tab_links(response, dataset):
     page = BeautifulSoup(response.content, "html.parser")
     anchors = {dataset.get_absolute_url(), address(dataset, "contribution-list")}
     strips = [
-        [a["href"] for a in ul.find_all("a", href=True)]
-        for ul in page.find_all("ul")
+        [a["href"] for a in ul.find_all("a", href=True)] for ul in page.find_all("ul")
     ]
     strip = min((hrefs for hrefs in strips if anchors <= set(hrefs)), key=len)
     wanted = {address(dataset, "samples"), address(dataset, "measurements")}
