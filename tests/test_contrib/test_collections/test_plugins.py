@@ -1,4 +1,4 @@
-"""The Samples and Measurements tabs of a dataset."""
+"""The Samples and Measurements tabs of a dataset and of a project."""
 
 import django_tables2 as tables
 import pytest
@@ -11,13 +11,25 @@ from demo.factories import (
     ICP_MS_MeasurementFactory,
     RockSampleFactory,
     SoilSampleFactory,
+    WaterSampleFactory,
     XRFMeasurementFactory,
 )
-from demo.models import RockSample, SoilSample, XRFMeasurement
+from demo.models import (
+    ICP_MS_Measurement,
+    RockSample,
+    SoilSample,
+    XRFMeasurement,
+)
+from fairdm.core.sample.models import Sample
 from fairdm.contrib.collections.plugins import Measurements
 from fairdm.contrib.collections.tables import SampleTable
 from fairdm.contrib.contributors.choices import ContributionLevel
-from fairdm.factories import ContributionFactory, DatasetFactory, UserFactory
+from fairdm.factories import (
+    ContributionFactory,
+    DatasetFactory,
+    ProjectFactory,
+    UserFactory,
+)
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
 
@@ -665,4 +677,349 @@ class TestRecordQueries:
 
         assert self.count(client, address(small, "measurements")) == self.count(
             client, address(large, "measurements")
+        )
+
+
+def project_address(project, kind, type_model=None):
+    """Return the address of a project's tab, or of one type beneath it."""
+    kwargs = {"uuid": project.uuid}
+    if type_model is None:
+        return reverse(f"project:{kind}", kwargs=kwargs)
+    slug = registry.get_for_model(type_model).get_slug()
+    return reverse(f"project:{kind}-type", kwargs={**kwargs, "type": slug})
+
+
+def project_member(project, level=ContributionLevel.VIEW):
+    """Return a user listed on the project at the given level."""
+    user = UserFactory()
+    ContributionFactory(content_object=project, contributor=user, level=level)
+    return user
+
+
+def tab_total(client, project, kind):
+    """Return how many records a project's tab lists, added up across its types."""
+    response = client.get(project_address(project, kind))
+    return sum(entry["count"] for entry in response.context["type_entries"])
+
+
+@pytest.fixture
+def project():
+    """A public project with a published, an unpublished and a private dataset.
+
+    The published dataset holds two rocks and, as measurements, two XRF runs on the first rock
+    and one on a rock of another project's dataset. The unpublished dataset holds two waters
+    and the private one three soils and an ICP-MS run on the first soil.
+    """
+    project = ProjectFactory(visibility=Visibility.PUBLIC)
+    published = DatasetFactory(
+        project=project, visibility=Visibility.PUBLIC, published=True
+    )
+    unpublished = DatasetFactory(
+        project=project, visibility=Visibility.PUBLIC, published=False
+    )
+    private = DatasetFactory(
+        project=project, visibility=Visibility.PRIVATE, published=False
+    )
+    rocks = RockSampleFactory.create_batch(2, dataset=published)
+    XRFMeasurementFactory.create_batch(2, dataset=published, sample=rocks[0])
+    elsewhere = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+    foreign_rock = RockSampleFactory(dataset=elsewhere)
+    borrowing = XRFMeasurementFactory(dataset=published, sample=foreign_rock)
+    WaterSampleFactory.create_batch(2, dataset=unpublished)
+    soils = SoilSampleFactory.create_batch(3, dataset=private)
+    ICP_MS_MeasurementFactory(dataset=private, sample=soils[0])
+    project.published, project.unpublished, project.private = (
+        published,
+        unpublished,
+        private,
+    )
+    project.rocks, project.foreign_rock, project.borrowing = (
+        rocks,
+        foreign_rock,
+        borrowing,
+    )
+    return project
+
+
+class TestProjectRecords:
+    def test_a_visitor_is_listed_the_published_datasets_records_and_nothing_else(
+        self, client, project
+    ):
+        samples = client.get(project_address(project, "samples"))
+        measurements = client.get(project_address(project, "measurements"))
+
+        assert samples.status_code == measurements.status_code == 200
+        assert {r.pk for r in listed(samples)} == {r.pk for r in project.rocks}
+        assert [e["count"] for e in samples.context["type_entries"]] == [2]
+        assert [e["count"] for e in measurements.context["type_entries"]] == [3]
+        everything = samples.content.decode() + measurements.content.decode()
+        assert project.private.name not in everything
+        assert project.unpublished.name not in everything
+
+    def test_a_member_of_the_private_dataset_is_listed_its_records_too(
+        self, client, project
+    ):
+        client.force_login(team_member(project.private))
+
+        samples = client.get(project_address(project, "samples"))
+        measurements = client.get(project_address(project, "measurements"))
+
+        assert [e["count"] for e in samples.context["type_entries"]] == [3, 2]
+        assert [e["count"] for e in measurements.context["type_entries"]] == [3, 1]
+        assert {type(r) for r in listed(samples)} == {SoilSample}
+        assert project.unpublished.name not in samples.content.decode()
+
+    def test_the_projects_team_is_listed_every_record(self, client, project):
+        client.force_login(project_member(project, ContributionLevel.EDIT))
+
+        assert tab_total(client, project, "samples") == 7
+        assert tab_total(client, project, "measurements") == 4
+
+    def test_each_row_names_its_dataset_after_its_own_name_and_links_it_where_it_opens(
+        self, client, project
+    ):
+        client.force_login(team_member(project.private))
+
+        samples = client.get(project_address(project, "samples", SoilSample))
+        rocks = client.get(project_address(project, "samples", RockSample))
+
+        names = [column.name for column in table_of(samples).columns]
+        assert names[:2] == ["name", "dataset_name"]
+        assert "dataset" not in names
+        soil = listed(samples)[0]
+        assert f'href="{project.private.get_absolute_url()}"' in cell(
+            samples, soil, "dataset_name"
+        )
+        rock = listed(rocks)[0]
+        assert f'href="{project.published.get_absolute_url()}"' in cell(
+            rocks, rock, "dataset_name"
+        )
+
+    def test_a_measurement_on_another_projects_sample_is_listed_and_the_sample_is_not(
+        self, client, project
+    ):
+        measurements = client.get(project_address(project, "measurements"))
+        samples = client.get(project_address(project, "samples"))
+
+        assert project.borrowing.pk in {r.pk for r in listed(measurements)}
+        assert project.foreign_rock.pk not in {r.pk for r in listed(samples)}
+
+    def test_a_type_only_a_private_dataset_holds_is_not_found_to_a_visitor(
+        self, client, project
+    ):
+        assert (
+            client.get(project_address(project, "samples", SoilSample)).status_code
+            == 404
+        )
+        assert (
+            client.get(
+                project_address(project, "measurements", ICP_MS_Measurement)
+            ).status_code
+            == 404
+        )
+
+    @pytest.mark.parametrize("kind", ["samples", "measurements"])
+    def test_no_visible_record_is_the_same_empty_as_no_record_at_all(
+        self, client, kind
+    ):
+        none = ProjectFactory(visibility=Visibility.PUBLIC)
+        waiting = ProjectFactory(visibility=Visibility.PUBLIC)
+        waiting_dataset = DatasetFactory(
+            project=waiting, visibility=Visibility.PUBLIC, published=False
+        )
+        hidden = ProjectFactory(visibility=Visibility.PUBLIC)
+        hidden_dataset = DatasetFactory(
+            project=hidden, visibility=Visibility.PRIVATE, published=True
+        )
+        for dataset in (waiting_dataset, hidden_dataset):
+            sample = RockSampleFactory(dataset=dataset)
+            XRFMeasurementFactory(dataset=dataset, sample=sample)
+
+        answers = []
+        for each in (none, waiting, hidden):
+            response = client.get(project_address(each, kind))
+            answers.append(
+                (
+                    response.status_code,
+                    response.context["record_state"],
+                    response.context["type_entries"],
+                    len(listed(response)),
+                )
+            )
+
+        assert answers == [(200, "empty", [], 0)] * 3
+
+    def test_a_private_project_is_not_found_to_a_visitor_and_open_to_its_team(
+        self, client
+    ):
+        private = ProjectFactory(visibility=Visibility.PRIVATE)
+        dataset = DatasetFactory(
+            project=private, visibility=Visibility.PUBLIC, published=True
+        )
+        RockSampleFactory(dataset=dataset)
+
+        assert client.get(project_address(private, "samples")).status_code == 404
+        assert client.get(project_address(private, "measurements")).status_code == 404
+
+        client.force_login(project_member(private))
+        assert client.get(project_address(private, "samples")).status_code == 200
+        assert client.get(project_address(private, "measurements")).status_code == 200
+
+    def test_the_tabs_are_offered_on_the_projects_page(self, client, project):
+        response = client.get(project.get_absolute_url())
+
+        links = {
+            a["href"]
+            for a in BeautifulSoup(response.content, "html.parser").find_all(
+                "a", href=True
+            )
+        }
+        assert project_address(project, "samples") in links
+        assert project_address(project, "measurements") in links
+
+    def test_the_trail_ends_in_the_project_and_the_kind(self, client, project):
+        response = client.get(project_address(project, "samples"))
+
+        trail = response.context["page"]["breadcrumbs"]
+        assert trail[-2]["href"] == project.get_absolute_url()
+        assert response.context["holder"] == "project"
+
+
+class TestProjectRecordChoices:
+    @staticmethod
+    def offered_datasets(response, user):
+        """Return the datasets the page's dataset filter offers the request's user."""
+        field = response.context["filter"].filters["dataset"].field
+        view = field.view_class.for_scope(field.scope)()
+        return set(view.offered(user))
+
+    def test_the_dataset_filter_stays_and_offers_the_viewer_what_they_may_see(
+        self, client, project
+    ):
+        response = client.get(project_address(project, "measurements"))
+
+        field = response.context["filter"].filters["dataset"].field
+        assert field.scope == "view"
+        offered = self.offered_datasets(response, response.wsgi_request.user)
+        assert project.published in offered
+        assert project.private not in offered
+
+    def test_a_member_of_the_private_dataset_is_offered_it(self, client, project):
+        member = team_member(project.private)
+        client.force_login(member)
+
+        response = client.get(project_address(project, "measurements"))
+
+        assert project.private in self.offered_datasets(response, member)
+
+    def test_the_sample_filter_offers_no_sample_the_viewer_may_not_see(
+        self, client, project
+    ):
+        response = client.get(project_address(project, "measurements"))
+
+        field = response.context["filter"].filters["sample"].field
+        view = field.view_class.for_scope(field.scope)()
+        offered = set(view.offered(response.wsgi_request.user))
+        assert set(project.rocks) <= offered
+        assert not offered & set(Sample.objects.filter(dataset=project.private))
+
+
+def project_figures(page, project):
+    """Return the Samples and Measurements figures as ``{tab: value}``, found by their link."""
+    figures = {}
+    for kind in ("samples", "measurements"):
+        link = page.select_one(
+            f'.stat-title a[href="{project_address(project, kind)}"]'
+        )
+        if link is not None:
+            figure = link.find_parent(class_="stat")
+            figures[kind] = figure.select_one(".stat-value").get_text(strip=True)
+    return figures
+
+
+class TestProjectOverviewFigures:
+    @staticmethod
+    def figures(client, project):
+        response = client.get(project.get_absolute_url())
+        return project_figures(BeautifulSoup(response.content, "html.parser"), project)
+
+    def test_the_figures_link_to_the_tabs_and_equal_their_totals_for_every_viewer(
+        self, client, project
+    ):
+        viewers = {
+            "visitor": (None, {"samples": "2", "measurements": "3"}),
+            "private member": (
+                team_member(project.private),
+                {"samples": "5", "measurements": "4"},
+            ),
+            "team": (
+                project_member(project, ContributionLevel.EDIT),
+                {"samples": "7", "measurements": "4"},
+            ),
+        }
+        for viewer, expected in viewers.values():
+            client.logout()
+            if viewer is not None:
+                client.force_login(viewer)
+
+            figures = self.figures(client, project)
+
+            assert figures == {
+                "samples": str(tab_total(client, project, "samples")),
+                "measurements": str(tab_total(client, project, "measurements")),
+            }
+            assert figures == expected
+
+    def test_a_private_datasets_member_gets_the_same_figure_and_total_in_a_public_project(
+        self, client, project
+    ):
+        client.force_login(team_member(project.private))
+
+        figures = self.figures(client, project)
+
+        assert figures["samples"] == str(tab_total(client, project, "samples")) == "5"
+
+    def test_the_datasets_figure_counts_the_datasets_the_viewer_may_see(
+        self, client, project
+    ):
+        response = client.get(project.get_absolute_url())
+
+        assert response.context["counts"]["datasets"] == 2
+        client.force_login(team_member(project.private))
+        response = client.get(project.get_absolute_url())
+        assert response.context["counts"]["datasets"] == 3
+
+
+class TestProjectRecordQueries:
+    @staticmethod
+    def count(client, url):
+        client.get(url)  # warm the per-process caches
+        with CaptureQueriesContext(connection) as queries:
+            assert client.get(url).status_code == 200
+        return len(queries)
+
+    @staticmethod
+    def project_of(rows):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
+        for _ in range(rows):
+            sample = RockSampleFactory(dataset=dataset)
+            XRFMeasurementFactory(dataset=dataset, sample=sample)
+        return project
+
+    @pytest.mark.parametrize("kind", ["samples", "measurements"])
+    def test_a_tab_costs_the_same_queries_at_ten_rows_and_at_sixty(self, client, kind):
+        small, large = self.project_of(10), self.project_of(60)
+
+        assert self.count(client, project_address(small, kind)) == self.count(
+            client, project_address(large, kind)
+        )
+
+    def test_the_overview_costs_the_same_queries_at_ten_rows_and_at_sixty(self, client):
+        small, large = self.project_of(10), self.project_of(60)
+
+        assert self.count(client, small.get_absolute_url()) == self.count(
+            client, large.get_absolute_url()
         )

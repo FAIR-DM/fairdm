@@ -1,4 +1,4 @@
-"""The Samples and Measurements tabs of a dataset.
+"""The Samples and Measurements tabs of a dataset and of a project.
 
 Each tab lists the samples or the measurements of one registered type at a time, the most
 numerous type unless the address names another.
@@ -10,7 +10,7 @@ from typing import Any
 import django_tables2 as tables
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, Exists, Model, OuterRef, QuerySet
-from django.http import Http404
+from django.http import Http404, HttpRequest
 from django.urls import path
 from django.utils.html import format_html
 from django.utils.text import capfirst
@@ -27,6 +27,8 @@ from fairdm.core.dataset.models import Dataset
 from fairdm.core.dataset.plugins import dataset_records_visible
 from fairdm.core.measurement.filters import MeasurementFilter
 from fairdm.core.measurement.models import Measurement
+from fairdm.core.project.models import Project
+from fairdm.core.project.plugins import project_is_visible
 from fairdm.core.sample.filters import SampleFilter
 from fairdm.core.sample.models import Sample
 from fairdm.registry import registry
@@ -233,8 +235,30 @@ class SampleColumn(tables.Column):
         return queryset.order_by("-sample_open", name), True
 
 
+def records_are_offered(request: HttpRequest, obj: Model | None) -> bool:
+    """Return whether the request's user is offered the tabs of a dataset or a project.
+
+    A dataset's tabs follow its records (:func:`dataset_records_visible`). A project's follow
+    the project's own page: what its datasets hold is decided row by row, so a project whose
+    records the viewer may not see answers ``empty`` rather than 404.
+
+    Args:
+        request: The current request.
+        obj: The dataset or project, or ``None`` when no record has been resolved.
+
+    Returns:
+        True when the tabs may be shown.
+    """
+    if isinstance(obj, Project):
+        return project_is_visible(request, obj)
+    return dataset_records_visible(request, obj)
+
+
 class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
-    """The samples or the measurements of a dataset, one registered type at a time.
+    """The samples or the measurements of a dataset or a project, one registered type at a time.
+
+    A dataset's tab lists the records in the dataset. A project's lists the records in any of
+    its datasets, each row naming its dataset.
 
     Attributes:
         base_model: ``Sample`` or ``Measurement``.
@@ -249,7 +273,7 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
     kind_label = ""
     template_name = "record_lists/records.html"
     paginate_by = 50
-    check = staticmethod(dataset_records_visible)
+    check = staticmethod(records_are_offered)
 
     record_state = "listed"
     type_entries: list[dict[str, Any]] = []
@@ -281,12 +305,18 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
 
     # Which records each page lists ---------------------------------------------------------
 
+    @property
+    def holder(self) -> str:
+        """The kind of record the page belongs to: ``"dataset"`` or ``"project"``."""
+        return self.registered_model._meta.model_name  # type: ignore[union-attr,return-value]
+
     def scope(self) -> QuerySet:
-        """Return every record of this kind in the page's dataset, whoever looks."""
-        return self.base_model.objects.filter(dataset=self.base_object)  # type: ignore[attr-defined]
+        """Return every record of this kind in the page's dataset or project, whoever looks."""
+        lookup = "dataset__project" if self.holder == "project" else "dataset"
+        return self.base_model.objects.filter(**{lookup: self.base_object})  # type: ignore[attr-defined]
 
     def visible_records(self) -> QuerySet:
-        """Return the dataset's records that the viewer may see."""
+        """Return the page's records that the viewer may see."""
         return self.scope().visible_to(self.request.user)
 
     # The request ---------------------------------------------------------------------------
@@ -335,7 +365,7 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
         ]
 
     def get_queryset(self):
-        """Limit to the chosen type's records in this dataset that the viewer may see.
+        """Limit to the chosen type's records on this page that the viewer may see.
 
         Every row carries ``dataset_open`` and, on measurements, ``sample_open``: whether
         the request's user may open the row's dataset and sample.
@@ -376,21 +406,27 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
         return self.chosen.config.get_table_class()
 
     def get_table_kwargs(self):
-        """Lead with the record's name, and with the sample on a measurement.
+        """Lead with the record's name, then its dataset on a project, then its sample.
 
-        The dataset icon column is dropped: every row is in the page's dataset.
+        The dataset icon column is dropped: a dataset's rows are all in the page's dataset, and
+        a project's name theirs in a column of its own.
         """
         kwargs = super().get_table_kwargs()
         if self.chosen is None:
             return kwargs
         lead = ["name"]
+        extra = []
         # The registration's own order puts a measurement's name last, so the lead is pinned.
         kwargs["exclude"] = [*kwargs["exclude"], "dataset"]
+        if self.holder == "project":
+            extra.append(("dataset_name", DatasetColumn()))
+            lead.append("dataset_name")
         if self.base_model is Measurement:
             # The base table renders ``sample`` with its own method, which a column cannot override.
-            kwargs["extra_columns"] = [("sample_name", SampleColumn())]
+            extra.append(("sample_name", SampleColumn()))
             kwargs["exclude"] = [*kwargs["exclude"], "sample"]
             lead.append("sample_name")
+        kwargs["extra_columns"] = extra
         kwargs["sequence"] = (*lead, "...")
         return kwargs
 
@@ -406,12 +442,13 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
         """Return the chosen type's filter set, scoped to this tab's rows, or none.
 
         Its choices are the records the listed rows point to that the viewer may see, and
-        it has no dataset filter, since every row is in the page's dataset.
+        it has no dataset filter on a dataset's page, since every row is in that dataset.
         """
         if self.chosen is None:
             return None
         return ScopedChoicesMixin.applied_to(
-            self.chosen.config.get_filterset_class(), drop=("dataset",)
+            self.chosen.config.get_filterset_class(),
+            drop=("dataset",) if self.holder == "dataset" else (),
         )
 
     def get_listing_entries(self, models):
@@ -433,7 +470,7 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
         )
         context["record_state"] = self.record_state
         context["kind"] = self.base_model.__name__.lower()
-        context["holder"] = "dataset"
+        context["holder"] = self.holder
         return context
 
     def get_page_title(self):
@@ -441,9 +478,9 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
         return self.kind_label
 
 
-@plugins.register(Dataset, label=_("Samples"), icon="sample", order=300)
+@plugins.register(Dataset, Project, label=_("Samples"), icon="sample", order=300)
 class Samples(RecordsTab):
-    """List the samples of a dataset, in the table of each sample type."""
+    """List the samples of a dataset or a project, in the table of each sample type."""
 
     url_path = "samples"
     base_model = Sample
@@ -451,9 +488,11 @@ class Samples(RecordsTab):
     page_title = _("Samples")
 
 
-@plugins.register(Dataset, label=_("Measurements"), icon="measurement", order=400)
+@plugins.register(
+    Dataset, Project, label=_("Measurements"), icon="measurement", order=400
+)
 class Measurements(RecordsTab):
-    """List the measurements of a dataset, in the table of each measurement type."""
+    """List the measurements of a dataset or a project, in the table of each measurement type."""
 
     url_path = "measurements"
     base_model = Measurement
