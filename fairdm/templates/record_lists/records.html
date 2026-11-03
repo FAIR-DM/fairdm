@@ -2,22 +2,28 @@
 {% load i18n humanize %}
 {% comment %}
   The Samples and Measurements tabs of a dataset, a project, a person and an organization: one
-  registered type's table at a time. The type switcher is the portal-wide listing's dropdown, at
-  the same trailing edge of the toolbar, holding only the types listed here, each with its count.
-  Where one type is listed it is named and no choice is offered.
+  registered type's table at a time. The heading names the type shown and, where several are listed,
+  is the switcher between them.
 {% endcomment %}
 {% block page.title %}
-  <h1 class="text-xl font-semibold leading-tight truncate">{{ page.title }}</h1>
-{% endblock page.title %}
-
-{% block page.summary %}
-  {% if record_state == "listed" %}{{ block.super }}{% endif %}
-{% endblock page.summary %}
-
-{% block page.actions %}
+  {% comment %}
+    The heading names the type shown. Where several are listed, the heading is the switcher: a
+    dropdown in the title's place, with a caret, listing each type with its count.
+  {% endcomment %}
   {% if type_entries|length > 1 %}
-    <div id="type-switcher">
-      <c-mvp.dropdown text="{{ current_type.name }}" size="sm">
+    <c-mvp.dropdown id="type-switcher" class="min-w-0">
+        <c-slot name="button">
+          <h1 class="text-xl font-semibold leading-tight">
+          <div tabindex="0"
+               role="button"
+               aria-haspopup="menu"
+               class="inline-flex items-center gap-1 px-2 py-1 rounded-box cursor-pointer hover:bg-base-200 focus-visible:outline-2 focus-visible:outline-offset-2"
+               style="margin-inline: -0.5rem">
+            <span class="truncate">{{ current_type.name }}</span>
+            <c-icon name="chevron-down" class="text-base text-base-content/60" aria-hidden="true" />
+          </div>
+          </h1>
+        </c-slot>
         <c-menu class="w-full"
                 aria-label="{% if kind == 'sample' %}{% translate 'Sample types' %}{% else %}{% translate 'Measurement types' %}{% endif %}">
           {% for entry in type_entries %}
@@ -27,9 +33,16 @@
           {% endfor %}
         </c-menu>
       </c-mvp.dropdown>
-    </div>
+  {% elif current_type %}
+    <h1 class="text-xl font-semibold leading-tight truncate">{{ current_type.name }}</h1>
+  {% else %}
+    <h1 class="text-xl font-semibold leading-tight truncate">{{ page.title }}</h1>
   {% endif %}
-{% endblock page.actions %}
+{% endblock page.title %}
+
+{% block page.summary %}
+  {% if record_state == "listed" %}{{ block.super }}{% endif %}
+{% endblock page.summary %}
 
 {% block page.side %}
   {% if record_state == "listed" %}{{ block.super }}{% endif %}
