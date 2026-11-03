@@ -144,6 +144,8 @@ urlpatterns = [
 
 The namespace is the lowercase model name. `get_urls_for_model` also builds the record type's navigation menu, so register the plugins before the URL configuration is imported.
 
+A plugin's tab is marked as the current page on every address the plugin mounts: its own, each additional view's, and any extra pattern its `get_urls` adds.
+
 ## The registry
 
 ```python
