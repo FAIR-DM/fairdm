@@ -1,0 +1,77 @@
+# {py:mod}`fairdm.views.mixins`
+
+```{py:module} fairdm.views.mixins
+```
+
+```{autodoc2-docstring} fairdm.views.mixins
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`RelatedObjectMixin <fairdm.views.mixins.RelatedObjectMixin>`
+  - ```{autodoc2-docstring} fairdm.views.mixins.RelatedObjectMixin
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} RelatedObjectMixin
+:canonical: fairdm.views.mixins.RelatedObjectMixin
+
+```{autodoc2-docstring} fairdm.views.mixins.RelatedObjectMixin
+```
+
+````{py:attribute} base_model
+:canonical: fairdm.views.mixins.RelatedObjectMixin.base_model
+:type: django.db.models.Model | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.views.mixins.RelatedObjectMixin.base_model
+```
+
+````
+
+````{py:attribute} base_object_url_kwarg
+:canonical: fairdm.views.mixins.RelatedObjectMixin.base_object_url_kwarg
+:value: >
+   'uuid'
+
+```{autodoc2-docstring} fairdm.views.mixins.RelatedObjectMixin.base_object_url_kwarg
+```
+
+````
+
+````{py:method} get_related_model()
+:canonical: fairdm.views.mixins.RelatedObjectMixin.get_related_model
+
+```{autodoc2-docstring} fairdm.views.mixins.RelatedObjectMixin.get_related_model
+```
+
+````
+
+````{py:method} base_object()
+:canonical: fairdm.views.mixins.RelatedObjectMixin.base_object
+
+```{autodoc2-docstring} fairdm.views.mixins.RelatedObjectMixin.base_object
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.views.mixins.RelatedObjectMixin.get_context_data
+
+```{autodoc2-docstring} fairdm.views.mixins.RelatedObjectMixin.get_context_data
+```
+
+````
+
+`````

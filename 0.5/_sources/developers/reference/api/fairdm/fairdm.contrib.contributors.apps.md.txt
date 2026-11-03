@@ -1,0 +1,88 @@
+# {py:mod}`fairdm.contrib.contributors.apps`
+
+```{py:module} fairdm.contrib.contributors.apps
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.apps
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ContributorsConfig <fairdm.contrib.contributors.apps.ContributorsConfig>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.apps.ContributorsConfig
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} ContributorsConfig(app_name, app_module)
+:canonical: fairdm.contrib.contributors.apps.ContributorsConfig
+
+Bases: {py:obj}`django.apps.AppConfig`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.apps.ContributorsConfig
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.apps.ContributorsConfig.__init__
+```
+
+````{py:attribute} default_auto_field
+:canonical: fairdm.contrib.contributors.apps.ContributorsConfig.default_auto_field
+:value: >
+   'django.db.models.BigAutoField'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.apps.ContributorsConfig.default_auto_field
+```
+
+````
+
+````{py:attribute} name
+:canonical: fairdm.contrib.contributors.apps.ContributorsConfig.name
+:value: >
+   'fairdm.contrib.contributors'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.apps.ContributorsConfig.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.contrib.contributors.apps.ContributorsConfig.label
+:value: >
+   'contributors'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.apps.ContributorsConfig.label
+```
+
+````
+
+````{py:attribute} verbose_name
+:canonical: fairdm.contrib.contributors.apps.ContributorsConfig.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.apps.ContributorsConfig.verbose_name
+```
+
+````
+
+````{py:method} ready()
+:canonical: fairdm.contrib.contributors.apps.ContributorsConfig.ready
+
+```{autodoc2-docstring} fairdm.contrib.contributors.apps.ContributorsConfig.ready
+```
+
+````
+
+`````

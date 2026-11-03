@@ -1,0 +1,42 @@
+# {py:mod}`fairdm.permissions`
+
+```{py:module} fairdm.permissions
+```
+
+```{autodoc2-docstring} fairdm.permissions
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`PortalRolePermissionBackend <fairdm.permissions.PortalRolePermissionBackend>`
+  - ```{autodoc2-docstring} fairdm.permissions.PortalRolePermissionBackend
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} PortalRolePermissionBackend
+:canonical: fairdm.permissions.PortalRolePermissionBackend
+
+Bases: {py:obj}`django.contrib.auth.backends.BaseBackend`
+
+```{autodoc2-docstring} fairdm.permissions.PortalRolePermissionBackend
+```
+
+````{py:method} has_perm(user_obj, perm, obj=None)
+:canonical: fairdm.permissions.PortalRolePermissionBackend.has_perm
+
+```{autodoc2-docstring} fairdm.permissions.PortalRolePermissionBackend.has_perm
+```
+
+````
+
+`````

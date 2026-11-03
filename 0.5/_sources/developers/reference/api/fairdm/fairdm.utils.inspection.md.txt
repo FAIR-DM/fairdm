@@ -1,0 +1,266 @@
+# {py:mod}`fairdm.utils.inspection`
+
+```{py:module} fairdm.utils.inspection
+```
+
+```{autodoc2-docstring} fairdm.utils.inspection
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FieldInspector <fairdm.utils.inspection.FieldInspector>`
+  - ```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} FieldInspector(model: type[django.db.models.Model])
+:canonical: fairdm.utils.inspection.FieldInspector
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.__init__
+```
+
+````{py:attribute} ALWAYS_EXCLUDE
+:canonical: fairdm.utils.inspection.FieldInspector.ALWAYS_EXCLUDE
+:value: >
+   ['id', 'polymorphic_ctype', 'polymorphic_ctype_id']
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.ALWAYS_EXCLUDE
+```
+
+````
+
+````{py:attribute} EXCLUDE_SUFFIXES
+:canonical: fairdm.utils.inspection.FieldInspector.EXCLUDE_SUFFIXES
+:value: >
+   ('_ptr', '_ptr_id')
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.EXCLUDE_SUFFIXES
+```
+
+````
+
+````{py:attribute} NEVER_DEFAULT
+:canonical: fairdm.utils.inspection.FieldInspector.NEVER_DEFAULT
+:value: >
+   ('password',)
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.NEVER_DEFAULT
+```
+
+````
+
+````{py:attribute} DATE_PATTERNS
+:canonical: fairdm.utils.inspection.FieldInspector.DATE_PATTERNS
+:value: >
+   ['_at', '_date', 'date_', 'created', 'modified', 'updated']
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.DATE_PATTERNS
+```
+
+````
+
+````{py:attribute} STATUS_PATTERNS
+:canonical: fairdm.utils.inspection.FieldInspector.STATUS_PATTERNS
+:value: >
+   ['status', 'state', 'published', 'active', 'enabled']
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.STATUS_PATTERNS
+```
+
+````
+
+````{py:attribute} RELATION_TYPES
+:canonical: fairdm.utils.inspection.FieldInspector.RELATION_TYPES
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.RELATION_TYPES
+```
+
+````
+
+````{py:method} get_field(field_name: str) -> django.db.models.Field | None
+:canonical: fairdm.utils.inspection.FieldInspector.get_field
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.get_field
+```
+
+````
+
+````{py:method} has_field(field_name: str) -> bool
+:canonical: fairdm.utils.inspection.FieldInspector.has_field
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.has_field
+```
+
+````
+
+````{py:method} should_exclude_field(field_name: str) -> bool
+:canonical: fairdm.utils.inspection.FieldInspector.should_exclude_field
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.should_exclude_field
+```
+
+````
+
+````{py:method} get_default_fields(exclude: list[str] | None = None) -> list[str]
+:canonical: fairdm.utils.inspection.FieldInspector.get_default_fields
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.get_default_fields
+```
+
+````
+
+````{py:method} get_safe_fields(exclude: list[str] | None = None) -> list[str]
+:canonical: fairdm.utils.inspection.FieldInspector.get_safe_fields
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.get_safe_fields
+```
+
+````
+
+````{py:method} resolve_path(path: str) -> tuple[bool, str | None]
+:canonical: fairdm.utils.inspection.FieldInspector.resolve_path
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.resolve_path
+```
+
+````
+
+````{py:method} close_matches(name: str, limit: int = 3) -> list[str]
+:canonical: fairdm.utils.inspection.FieldInspector.close_matches
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.close_matches
+```
+
+````
+
+````{py:method} get_all_field_names() -> list[str]
+:canonical: fairdm.utils.inspection.FieldInspector.get_all_field_names
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.get_all_field_names
+```
+
+````
+
+````{py:method} get_date_fields() -> list[str]
+:canonical: fairdm.utils.inspection.FieldInspector.get_date_fields
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.get_date_fields
+```
+
+````
+
+````{py:method} get_choice_fields() -> list[str]
+:canonical: fairdm.utils.inspection.FieldInspector.get_choice_fields
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.get_choice_fields
+```
+
+````
+
+````{py:method} get_relation_fields() -> list[str]
+:canonical: fairdm.utils.inspection.FieldInspector.get_relation_fields
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.get_relation_fields
+```
+
+````
+
+````{py:method} get_text_fields() -> list[str]
+:canonical: fairdm.utils.inspection.FieldInspector.get_text_fields
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.get_text_fields
+```
+
+````
+
+````{py:method} get_boolean_fields() -> list[str]
+:canonical: fairdm.utils.inspection.FieldInspector.get_boolean_fields
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.get_boolean_fields
+```
+
+````
+
+````{py:method} get_numeric_fields() -> list[str]
+:canonical: fairdm.utils.inspection.FieldInspector.get_numeric_fields
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.get_numeric_fields
+```
+
+````
+
+````{py:method} get_file_fields() -> list[str]
+:canonical: fairdm.utils.inspection.FieldInspector.get_file_fields
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.get_file_fields
+```
+
+````
+
+````{py:method} suggest_widget(field_name: str) -> str | None
+:canonical: fairdm.utils.inspection.FieldInspector.suggest_widget
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.suggest_widget
+```
+
+````
+
+````{py:method} suggest_filter_type(field_name: str) -> str | None
+:canonical: fairdm.utils.inspection.FieldInspector.suggest_filter_type
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.suggest_filter_type
+```
+
+````
+
+````{py:method} get_default_list_fields() -> list[str]
+:canonical: fairdm.utils.inspection.FieldInspector.get_default_list_fields
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.get_default_list_fields
+```
+
+````
+
+````{py:method} get_default_filter_fields() -> list[str]
+:canonical: fairdm.utils.inspection.FieldInspector.get_default_filter_fields
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.get_default_filter_fields
+```
+
+````
+
+````{py:method} group_fields_for_admin() -> dict[str, list[str]]
+:canonical: fairdm.utils.inspection.FieldInspector.group_fields_for_admin
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.group_fields_for_admin
+```
+
+````
+
+````{py:method} get_field_info(field_name: str) -> dict[str, typing.Any]
+:canonical: fairdm.utils.inspection.FieldInspector.get_field_info
+
+```{autodoc2-docstring} fairdm.utils.inspection.FieldInspector.get_field_info
+```
+
+````
+
+`````

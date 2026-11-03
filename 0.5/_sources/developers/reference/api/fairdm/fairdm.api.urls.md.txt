@@ -1,0 +1,48 @@
+# {py:mod}`fairdm.api.urls`
+
+```{py:module} fairdm.api.urls
+```
+
+```{autodoc2-docstring} fairdm.api.urls
+:allowtitles:
+```
+
+## Module Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`app_name <fairdm.api.urls.app_name>`
+  - ```{autodoc2-docstring} fairdm.api.urls.app_name
+    :summary:
+    ```
+* - {py:obj}`urlpatterns <fairdm.api.urls.urlpatterns>`
+  - ```{autodoc2-docstring} fairdm.api.urls.urlpatterns
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} app_name
+:canonical: fairdm.api.urls.app_name
+:value: >
+   'api'
+
+```{autodoc2-docstring} fairdm.api.urls.app_name
+```
+
+````
+
+````{py:data} urlpatterns
+:canonical: fairdm.api.urls.urlpatterns
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.urls.urlpatterns
+```
+
+````

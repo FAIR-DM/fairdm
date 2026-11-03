@@ -1,0 +1,113 @@
+# {py:mod}`fairdm.contrib.plugins.checks`
+
+```{py:module} fairdm.contrib.plugins.checks
+```
+
+```{autodoc2-docstring} fairdm.contrib.plugins.checks
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`validate_models <fairdm.contrib.plugins.checks.validate_models>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.checks.validate_models
+    :summary:
+    ```
+* - {py:obj}`validate_check <fairdm.contrib.plugins.checks.validate_check>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.checks.validate_check
+    :summary:
+    ```
+* - {py:obj}`validate_segment <fairdm.contrib.plugins.checks.validate_segment>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.checks.validate_segment
+    :summary:
+    ```
+* - {py:obj}`validate_extra_views <fairdm.contrib.plugins.checks.validate_extra_views>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.checks.validate_extra_views
+    :summary:
+    ```
+* - {py:obj}`url_names_for <fairdm.contrib.plugins.checks.url_names_for>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.checks.url_names_for
+    :summary:
+    ```
+* - {py:obj}`validate_against_existing <fairdm.contrib.plugins.checks.validate_against_existing>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.checks.validate_against_existing
+    :summary:
+    ```
+* - {py:obj}`validate_registration <fairdm.contrib.plugins.checks.validate_registration>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.checks.validate_registration
+    :summary:
+    ```
+````
+
+### API
+
+````{py:exception} PluginRegistrationError()
+:canonical: fairdm.contrib.plugins.checks.PluginRegistrationError
+
+Bases: {py:obj}`django.core.exceptions.ImproperlyConfigured`
+
+```{autodoc2-docstring} fairdm.contrib.plugins.checks.PluginRegistrationError
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.plugins.checks.PluginRegistrationError.__init__
+```
+
+````
+
+````{py:function} validate_models(plugin_class: type[fairdm.contrib.plugins.base.Plugin], models: tuple[typing.Any, ...]) -> None
+:canonical: fairdm.contrib.plugins.checks.validate_models
+
+```{autodoc2-docstring} fairdm.contrib.plugins.checks.validate_models
+```
+````
+
+````{py:function} validate_check(plugin_class: type[fairdm.contrib.plugins.base.Plugin], model: typing.Any) -> None
+:canonical: fairdm.contrib.plugins.checks.validate_check
+
+```{autodoc2-docstring} fairdm.contrib.plugins.checks.validate_check
+```
+````
+
+````{py:function} validate_segment(plugin_class: type[fairdm.contrib.plugins.base.Plugin], model: typing.Any, segment: str) -> None
+:canonical: fairdm.contrib.plugins.checks.validate_segment
+
+```{autodoc2-docstring} fairdm.contrib.plugins.checks.validate_segment
+```
+````
+
+````{py:function} validate_extra_views(plugin_class: type[fairdm.contrib.plugins.base.Plugin], model: typing.Any) -> None
+:canonical: fairdm.contrib.plugins.checks.validate_extra_views
+
+```{autodoc2-docstring} fairdm.contrib.plugins.checks.validate_extra_views
+```
+````
+
+````{py:function} url_names_for(plugin_class: type[fairdm.contrib.plugins.base.Plugin]) -> list[str]
+:canonical: fairdm.contrib.plugins.checks.url_names_for
+
+```{autodoc2-docstring} fairdm.contrib.plugins.checks.url_names_for
+```
+````
+
+````{py:function} validate_against_existing(plugin_class: type[fairdm.contrib.plugins.base.Plugin], model: typing.Any, existing: list[tuple[type[fairdm.contrib.plugins.base.Plugin], dict]]) -> None
+:canonical: fairdm.contrib.plugins.checks.validate_against_existing
+
+```{autodoc2-docstring} fairdm.contrib.plugins.checks.validate_against_existing
+```
+````
+
+````{py:function} validate_registration(plugin_class: type[fairdm.contrib.plugins.base.Plugin], model: typing.Any, existing: list[tuple[type[fairdm.contrib.plugins.base.Plugin], dict]]) -> None
+:canonical: fairdm.contrib.plugins.checks.validate_registration
+
+```{autodoc2-docstring} fairdm.contrib.plugins.checks.validate_registration
+```
+````

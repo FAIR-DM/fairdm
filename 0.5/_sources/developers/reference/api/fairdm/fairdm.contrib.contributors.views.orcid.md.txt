@@ -1,0 +1,67 @@
+# {py:mod}`fairdm.contrib.contributors.views.orcid`
+
+```{py:module} fairdm.contrib.contributors.views.orcid
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.orcid
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`not_found_without_application <fairdm.contrib.contributors.views.orcid.not_found_without_application>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.views.orcid.not_found_without_application
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`orcid_login <fairdm.contrib.contributors.views.orcid.orcid_login>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.views.orcid.orcid_login
+    :summary:
+    ```
+* - {py:obj}`orcid_callback <fairdm.contrib.contributors.views.orcid.orcid_callback>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.views.orcid.orcid_callback
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} not_found_without_application(view)
+:canonical: fairdm.contrib.contributors.views.orcid.not_found_without_application
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.orcid.not_found_without_application
+```
+````
+
+````{py:data} orcid_login
+:canonical: fairdm.contrib.contributors.views.orcid.orcid_login
+:value: >
+   'not_found_without_application(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.orcid.orcid_login
+```
+
+````
+
+````{py:data} orcid_callback
+:canonical: fairdm.contrib.contributors.views.orcid.orcid_callback
+:value: >
+   'not_found_without_application(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.orcid.orcid_callback
+```
+
+````

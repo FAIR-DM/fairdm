@@ -5,6 +5,11 @@
     "url": "https://docs.fairdm.org/latest/"
   },
   {
+    "name": "0.5",
+    "version": "0.5",
+    "url": "https://docs.fairdm.org/0.5/"
+  },
+  {
     "name": "0.4",
     "version": "0.4",
     "url": "https://docs.fairdm.org/0.4/"

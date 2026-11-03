@@ -1,0 +1,153 @@
+# {py:mod}`fairdm.factories.utils`
+
+```{py:module} fairdm.factories.utils
+```
+
+```{autodoc2-docstring} fairdm.factories.utils
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FairDMProvider <fairdm.factories.utils.FairDMProvider>`
+  - ```{autodoc2-docstring} fairdm.factories.utils.FairDMProvider
+    :summary:
+    ```
+* - {py:obj}`ConceptFieldFactory <fairdm.factories.utils.ConceptFieldFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.utils.ConceptFieldFactory
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`randint <fairdm.factories.utils.randint>`
+  - ```{autodoc2-docstring} fairdm.factories.utils.randint
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`logger <fairdm.factories.utils.logger>`
+  - ```{autodoc2-docstring} fairdm.factories.utils.logger
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} logger
+:canonical: fairdm.factories.utils.logger
+:value: >
+   'getLogger(...)'
+
+```{autodoc2-docstring} fairdm.factories.utils.logger
+```
+
+````
+
+````{py:function} randint(min_value, max_value)
+:canonical: fairdm.factories.utils.randint
+
+```{autodoc2-docstring} fairdm.factories.utils.randint
+```
+````
+
+`````{py:class} FairDMProvider(generator: typing.Any)
+:canonical: fairdm.factories.utils.FairDMProvider
+
+Bases: {py:obj}`faker.providers.BaseProvider`
+
+```{autodoc2-docstring} fairdm.factories.utils.FairDMProvider
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.factories.utils.FairDMProvider.__init__
+```
+
+````{py:method} geo_point(**kwargs)
+:canonical: fairdm.factories.utils.FairDMProvider.geo_point
+
+```{autodoc2-docstring} fairdm.factories.utils.FairDMProvider.geo_point
+```
+
+````
+
+````{py:method} html_paragraphs(nb=5, **kwargs)
+:canonical: fairdm.factories.utils.FairDMProvider.html_paragraphs
+
+```{autodoc2-docstring} fairdm.factories.utils.FairDMProvider.html_paragraphs
+```
+
+````
+
+````{py:method} multiline_text(nb=5, **kwargs)
+:canonical: fairdm.factories.utils.FairDMProvider.multiline_text
+
+```{autodoc2-docstring} fairdm.factories.utils.FairDMProvider.multiline_text
+```
+
+````
+
+````{py:method} partial_date(**kwargs)
+:canonical: fairdm.factories.utils.FairDMProvider.partial_date
+
+```{autodoc2-docstring} fairdm.factories.utils.FairDMProvider.partial_date
+```
+
+````
+
+````{py:method} random_instance(model=None, queryset=None)
+:canonical: fairdm.factories.utils.FairDMProvider.random_instance
+
+```{autodoc2-docstring} fairdm.factories.utils.FairDMProvider.random_instance
+```
+
+````
+
+`````
+
+``````{py:class} ConceptFieldFactory
+:canonical: fairdm.factories.utils.ConceptFieldFactory
+
+Bases: {py:obj}`factory.django.DjangoModelFactory`
+
+```{autodoc2-docstring} fairdm.factories.utils.ConceptFieldFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.utils.ConceptFieldFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.utils.ConceptFieldFactory.Meta
+```
+
+````{py:attribute} abstract
+:canonical: fairdm.factories.utils.ConceptFieldFactory.Meta.abstract
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.factories.utils.ConceptFieldFactory.Meta.abstract
+```
+
+````
+
+`````
+
+``````

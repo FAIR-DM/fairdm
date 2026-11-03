@@ -1,0 +1,669 @@
+# {py:mod}`fairdm.registry.config`
+
+```{py:module} fairdm.registry.config
+```
+
+```{autodoc2-docstring} fairdm.registry.config
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Authority <fairdm.registry.config.Authority>`
+  - ```{autodoc2-docstring} fairdm.registry.config.Authority
+    :summary:
+    ```
+* - {py:obj}`Citation <fairdm.registry.config.Citation>`
+  - ```{autodoc2-docstring} fairdm.registry.config.Citation
+    :summary:
+    ```
+* - {py:obj}`ModelMetadata <fairdm.registry.config.ModelMetadata>`
+  - ```{autodoc2-docstring} fairdm.registry.config.ModelMetadata
+    :summary:
+    ```
+* - {py:obj}`Component <fairdm.registry.config.Component>`
+  - ```{autodoc2-docstring} fairdm.registry.config.Component
+    :summary:
+    ```
+* - {py:obj}`ModelConfiguration <fairdm.registry.config.ModelConfiguration>`
+  - ```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration
+    :summary:
+    ```
+* - {py:obj}`SampleConfig <fairdm.registry.config.SampleConfig>`
+  - ```{autodoc2-docstring} fairdm.registry.config.SampleConfig
+    :summary:
+    ```
+* - {py:obj}`MeasurementConfig <fairdm.registry.config.MeasurementConfig>`
+  - ```{autodoc2-docstring} fairdm.registry.config.MeasurementConfig
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`flatten_fields <fairdm.registry.config.flatten_fields>`
+  - ```{autodoc2-docstring} fairdm.registry.config.flatten_fields
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`COMPONENTS <fairdm.registry.config.COMPONENTS>`
+  - ```{autodoc2-docstring} fairdm.registry.config.COMPONENTS
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} Authority
+:canonical: fairdm.registry.config.Authority
+
+```{autodoc2-docstring} fairdm.registry.config.Authority
+```
+
+````{py:attribute} name
+:canonical: fairdm.registry.config.Authority.name
+:type: str | django.utils.functional.Promise
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.registry.config.Authority.name
+```
+
+````
+
+````{py:attribute} short_name
+:canonical: fairdm.registry.config.Authority.short_name
+:type: str
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.registry.config.Authority.short_name
+```
+
+````
+
+````{py:attribute} website
+:canonical: fairdm.registry.config.Authority.website
+:type: str
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.registry.config.Authority.website
+```
+
+````
+
+`````
+
+`````{py:class} Citation
+:canonical: fairdm.registry.config.Citation
+
+```{autodoc2-docstring} fairdm.registry.config.Citation
+```
+
+````{py:attribute} text
+:canonical: fairdm.registry.config.Citation.text
+:type: str
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.registry.config.Citation.text
+```
+
+````
+
+````{py:attribute} doi
+:canonical: fairdm.registry.config.Citation.doi
+:type: str
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.registry.config.Citation.doi
+```
+
+````
+
+`````
+
+`````{py:class} ModelMetadata
+:canonical: fairdm.registry.config.ModelMetadata
+
+```{autodoc2-docstring} fairdm.registry.config.ModelMetadata
+```
+
+````{py:attribute} description
+:canonical: fairdm.registry.config.ModelMetadata.description
+:type: str
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.registry.config.ModelMetadata.description
+```
+
+````
+
+````{py:attribute} authority
+:canonical: fairdm.registry.config.ModelMetadata.authority
+:type: fairdm.registry.config.Authority | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.registry.config.ModelMetadata.authority
+```
+
+````
+
+````{py:attribute} keywords
+:canonical: fairdm.registry.config.ModelMetadata.keywords
+:type: list[str]
+:value: >
+   'field(...)'
+
+```{autodoc2-docstring} fairdm.registry.config.ModelMetadata.keywords
+```
+
+````
+
+````{py:attribute} repository_url
+:canonical: fairdm.registry.config.ModelMetadata.repository_url
+:type: str
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.registry.config.ModelMetadata.repository_url
+```
+
+````
+
+````{py:attribute} citation
+:canonical: fairdm.registry.config.ModelMetadata.citation
+:type: fairdm.registry.config.Citation | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.registry.config.ModelMetadata.citation
+```
+
+````
+
+````{py:attribute} maintainer
+:canonical: fairdm.registry.config.ModelMetadata.maintainer
+:type: str
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.registry.config.ModelMetadata.maintainer
+```
+
+````
+
+````{py:attribute} maintainer_email
+:canonical: fairdm.registry.config.ModelMetadata.maintainer_email
+:type: str
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.registry.config.ModelMetadata.maintainer_email
+```
+
+````
+
+`````
+
+`````{py:class} Component
+:canonical: fairdm.registry.config.Component
+
+Bases: {py:obj}`typing.NamedTuple`
+
+```{autodoc2-docstring} fairdm.registry.config.Component
+```
+
+````{py:attribute} fields_attr
+:canonical: fairdm.registry.config.Component.fields_attr
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.registry.config.Component.fields_attr
+```
+
+````
+
+````{py:attribute} class_attr
+:canonical: fairdm.registry.config.Component.class_attr
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.registry.config.Component.class_attr
+```
+
+````
+
+````{py:attribute} base
+:canonical: fairdm.registry.config.Component.base
+:type: type | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.registry.config.Component.base
+```
+
+````
+
+````{py:attribute} factory
+:canonical: fairdm.registry.config.Component.factory
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.registry.config.Component.factory
+```
+
+````
+
+````{py:attribute} default_exclude
+:canonical: fairdm.registry.config.Component.default_exclude
+:type: tuple[str, ...]
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.registry.config.Component.default_exclude
+```
+
+````
+
+`````
+
+````{py:data} COMPONENTS
+:canonical: fairdm.registry.config.COMPONENTS
+:type: dict[str, fairdm.registry.config.Component]
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.registry.config.COMPONENTS
+```
+
+````
+
+````{py:function} flatten_fields(fields: collections.abc.Sequence[typing.Any] | None) -> list[str]
+:canonical: fairdm.registry.config.flatten_fields
+
+```{autodoc2-docstring} fairdm.registry.config.flatten_fields
+```
+````
+
+`````{py:class} ModelConfiguration(model: type[models.Model] | None = None, **overrides: typing.Any)
+:canonical: fairdm.registry.config.ModelConfiguration
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.registry.config.ModelConfiguration.model
+:type: type[models.Model]
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.model
+```
+
+````
+
+````{py:attribute} metadata
+:canonical: fairdm.registry.config.ModelConfiguration.metadata
+:type: fairdm.registry.config.ModelMetadata | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.metadata
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.registry.config.ModelConfiguration.fields
+:type: list[typing.Any]
+:value: >
+   []
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.fields
+```
+
+````
+
+````{py:attribute} exclude
+:canonical: fairdm.registry.config.ModelConfiguration.exclude
+:type: list[str]
+:value: >
+   []
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.exclude
+```
+
+````
+
+````{py:attribute} search_fields
+:canonical: fairdm.registry.config.ModelConfiguration.search_fields
+:type: list[str] | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.search_fields
+```
+
+````
+
+````{py:attribute} form_fields
+:canonical: fairdm.registry.config.ModelConfiguration.form_fields
+:type: list[typing.Any] | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.form_fields
+```
+
+````
+
+````{py:attribute} table_fields
+:canonical: fairdm.registry.config.ModelConfiguration.table_fields
+:type: list[typing.Any] | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.table_fields
+```
+
+````
+
+````{py:attribute} filterset_fields
+:canonical: fairdm.registry.config.ModelConfiguration.filterset_fields
+:type: list[typing.Any] | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.filterset_fields
+```
+
+````
+
+````{py:attribute} serializer_fields
+:canonical: fairdm.registry.config.ModelConfiguration.serializer_fields
+:type: list[typing.Any] | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.serializer_fields
+```
+
+````
+
+````{py:attribute} resource_fields
+:canonical: fairdm.registry.config.ModelConfiguration.resource_fields
+:type: list[typing.Any] | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.resource_fields
+```
+
+````
+
+````{py:attribute} admin_list_display
+:canonical: fairdm.registry.config.ModelConfiguration.admin_list_display
+:type: list[typing.Any] | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.admin_list_display
+```
+
+````
+
+````{py:attribute} form_class
+:canonical: fairdm.registry.config.ModelConfiguration.form_class
+:type: type[django.forms.ModelForm] | str | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.form_class
+```
+
+````
+
+````{py:attribute} table_class
+:canonical: fairdm.registry.config.ModelConfiguration.table_class
+:type: type[django_tables2.Table] | str | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.table_class
+```
+
+````
+
+````{py:attribute} filterset_class
+:canonical: fairdm.registry.config.ModelConfiguration.filterset_class
+:type: type[django_filters.FilterSet] | str | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.filterset_class
+```
+
+````
+
+````{py:attribute} serializer_class
+:canonical: fairdm.registry.config.ModelConfiguration.serializer_class
+:type: type[ModelSerializer] | str | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.serializer_class
+```
+
+````
+
+````{py:attribute} resource_class
+:canonical: fairdm.registry.config.ModelConfiguration.resource_class
+:type: type[import_export.resources.ModelResource] | str | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.resource_class
+```
+
+````
+
+````{py:attribute} admin_class
+:canonical: fairdm.registry.config.ModelConfiguration.admin_class
+:type: type[ModelAdmin] | str | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.admin_class
+```
+
+````
+
+````{py:attribute} display_name
+:canonical: fairdm.registry.config.ModelConfiguration.display_name
+:type: str
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.display_name
+```
+
+````
+
+````{py:attribute} description
+:canonical: fairdm.registry.config.ModelConfiguration.description
+:type: str
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.description
+```
+
+````
+
+````{py:method} get_default_fields(model: type[models.Model]) -> list[str]
+:canonical: fairdm.registry.config.ModelConfiguration.get_default_fields
+:classmethod:
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.get_default_fields
+```
+
+````
+
+````{py:method} resolve_fields(component: str) -> list[str]
+:canonical: fairdm.registry.config.ModelConfiguration.resolve_fields
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.resolve_fields
+```
+
+````
+
+````{py:method} get_search_fields() -> list[str]
+:canonical: fairdm.registry.config.ModelConfiguration.get_search_fields
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.get_search_fields
+```
+
+````
+
+````{py:method} get_form_class() -> type[django.forms.ModelForm]
+:canonical: fairdm.registry.config.ModelConfiguration.get_form_class
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.get_form_class
+```
+
+````
+
+````{py:method} get_table_class() -> type[django_tables2.Table]
+:canonical: fairdm.registry.config.ModelConfiguration.get_table_class
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.get_table_class
+```
+
+````
+
+````{py:method} get_filterset_class() -> type[django_filters.FilterSet]
+:canonical: fairdm.registry.config.ModelConfiguration.get_filterset_class
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.get_filterset_class
+```
+
+````
+
+````{py:method} get_serializer_class() -> type[ModelSerializer]
+:canonical: fairdm.registry.config.ModelConfiguration.get_serializer_class
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.get_serializer_class
+```
+
+````
+
+````{py:method} get_resource_class() -> type[import_export.resources.ModelResource]
+:canonical: fairdm.registry.config.ModelConfiguration.get_resource_class
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.get_resource_class
+```
+
+````
+
+````{py:method} get_admin_class() -> type[ModelAdmin]
+:canonical: fairdm.registry.config.ModelConfiguration.get_admin_class
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.get_admin_class
+```
+
+````
+
+````{py:method} get_display_name() -> str
+:canonical: fairdm.registry.config.ModelConfiguration.get_display_name
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.get_display_name
+```
+
+````
+
+````{py:method} get_description() -> str
+:canonical: fairdm.registry.config.ModelConfiguration.get_description
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.get_description
+```
+
+````
+
+````{py:method} get_slug() -> str
+:canonical: fairdm.registry.config.ModelConfiguration.get_slug
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.get_slug
+```
+
+````
+
+````{py:method} get_verbose_name() -> str
+:canonical: fairdm.registry.config.ModelConfiguration.get_verbose_name
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.get_verbose_name
+```
+
+````
+
+````{py:method} get_verbose_name_plural() -> str
+:canonical: fairdm.registry.config.ModelConfiguration.get_verbose_name_plural
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.get_verbose_name_plural
+```
+
+````
+
+`````
+
+````{py:class} SampleConfig(model: type[models.Model] | None = None, **overrides: typing.Any)
+:canonical: fairdm.registry.config.SampleConfig
+
+Bases: {py:obj}`fairdm.registry.config.ModelConfiguration`
+
+```{autodoc2-docstring} fairdm.registry.config.SampleConfig
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.registry.config.SampleConfig.__init__
+```
+
+````
+
+````{py:class} MeasurementConfig(model: type[models.Model] | None = None, **overrides: typing.Any)
+:canonical: fairdm.registry.config.MeasurementConfig
+
+Bases: {py:obj}`fairdm.registry.config.ModelConfiguration`
+
+```{autodoc2-docstring} fairdm.registry.config.MeasurementConfig
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.registry.config.MeasurementConfig.__init__
+```
+
+````

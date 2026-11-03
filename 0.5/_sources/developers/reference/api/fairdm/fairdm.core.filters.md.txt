@@ -1,0 +1,138 @@
+# {py:mod}`fairdm.core.filters`
+
+```{py:module} fairdm.core.filters
+```
+
+```{autodoc2-docstring} fairdm.core.filters
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`BaseListFilter <fairdm.core.filters.BaseListFilter>`
+  - ```{autodoc2-docstring} fairdm.core.filters.BaseListFilter
+    :summary:
+    ```
+* - {py:obj}`RecordTypeChoiceField <fairdm.core.filters.RecordTypeChoiceField>`
+  - ```{autodoc2-docstring} fairdm.core.filters.RecordTypeChoiceField
+    :summary:
+    ```
+* - {py:obj}`RecordTypeFilter <fairdm.core.filters.RecordTypeFilter>`
+  - ```{autodoc2-docstring} fairdm.core.filters.RecordTypeFilter
+    :summary:
+    ```
+* - {py:obj}`ConceptTypeFilter <fairdm.core.filters.ConceptTypeFilter>`
+  - ```{autodoc2-docstring} fairdm.core.filters.ConceptTypeFilter
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} BaseListFilter(data=None, queryset=None, *, request=None, prefix=None)
+:canonical: fairdm.core.filters.BaseListFilter
+
+Bases: {py:obj}`django_filters.rest_framework.FilterSet`
+
+```{autodoc2-docstring} fairdm.core.filters.BaseListFilter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.filters.BaseListFilter.__init__
+```
+
+````{py:attribute} image
+:canonical: fairdm.core.filters.BaseListFilter.image
+:value: >
+   'BooleanFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.filters.BaseListFilter.image
+```
+
+````
+
+`````
+
+`````{py:class} RecordTypeChoiceField(*args, **kwargs)
+:canonical: fairdm.core.filters.RecordTypeChoiceField
+
+Bases: {py:obj}`django_filters.fields.ModelChoiceField`
+
+```{autodoc2-docstring} fairdm.core.filters.RecordTypeChoiceField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.filters.RecordTypeChoiceField.__init__
+```
+
+````{py:method} label_from_instance(obj)
+:canonical: fairdm.core.filters.RecordTypeChoiceField.label_from_instance
+
+```{autodoc2-docstring} fairdm.core.filters.RecordTypeChoiceField.label_from_instance
+```
+
+````
+
+`````
+
+`````{py:class} RecordTypeFilter(*args, **kwargs)
+:canonical: fairdm.core.filters.RecordTypeFilter
+
+Bases: {py:obj}`django_filters.ModelChoiceFilter`
+
+```{autodoc2-docstring} fairdm.core.filters.RecordTypeFilter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.filters.RecordTypeFilter.__init__
+```
+
+````{py:attribute} field_class
+:canonical: fairdm.core.filters.RecordTypeFilter.field_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.filters.RecordTypeFilter.field_class
+```
+
+````
+
+`````
+
+`````{py:class} ConceptTypeFilter(*args, row_model, **kwargs)
+:canonical: fairdm.core.filters.ConceptTypeFilter
+
+Bases: {py:obj}`django_filters.ModelChoiceFilter`
+
+```{autodoc2-docstring} fairdm.core.filters.ConceptTypeFilter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.filters.ConceptTypeFilter.__init__
+```
+
+````{py:attribute} field_class
+:canonical: fairdm.core.filters.ConceptTypeFilter.field_class
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.filters.ConceptTypeFilter.field_class
+```
+
+````
+
+`````

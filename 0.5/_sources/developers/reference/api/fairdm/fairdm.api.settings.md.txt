@@ -1,0 +1,146 @@
+# {py:mod}`fairdm.api.settings`
+
+```{py:module} fairdm.api.settings
+```
+
+```{autodoc2-docstring} fairdm.api.settings
+:allowtitles:
+```
+
+## Module Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FAIRDM_API_TITLE <fairdm.api.settings.FAIRDM_API_TITLE>`
+  - ```{autodoc2-docstring} fairdm.api.settings.FAIRDM_API_TITLE
+    :summary:
+    ```
+* - {py:obj}`FAIRDM_API_DESCRIPTION <fairdm.api.settings.FAIRDM_API_DESCRIPTION>`
+  - ```{autodoc2-docstring} fairdm.api.settings.FAIRDM_API_DESCRIPTION
+    :summary:
+    ```
+* - {py:obj}`FAIRDM_API_MAX_PAGE_SIZE <fairdm.api.settings.FAIRDM_API_MAX_PAGE_SIZE>`
+  - ```{autodoc2-docstring} fairdm.api.settings.FAIRDM_API_MAX_PAGE_SIZE
+    :summary:
+    ```
+* - {py:obj}`REST_FRAMEWORK <fairdm.api.settings.REST_FRAMEWORK>`
+  - ```{autodoc2-docstring} fairdm.api.settings.REST_FRAMEWORK
+    :summary:
+    ```
+* - {py:obj}`SPECTACULAR_SETTINGS <fairdm.api.settings.SPECTACULAR_SETTINGS>`
+  - ```{autodoc2-docstring} fairdm.api.settings.SPECTACULAR_SETTINGS
+    :summary:
+    ```
+* - {py:obj}`CORS_ALLOW_ALL_ORIGINS <fairdm.api.settings.CORS_ALLOW_ALL_ORIGINS>`
+  - ```{autodoc2-docstring} fairdm.api.settings.CORS_ALLOW_ALL_ORIGINS
+    :summary:
+    ```
+* - {py:obj}`CORS_ALLOWED_ORIGINS <fairdm.api.settings.CORS_ALLOWED_ORIGINS>`
+  - ```{autodoc2-docstring} fairdm.api.settings.CORS_ALLOWED_ORIGINS
+    :summary:
+    ```
+* - {py:obj}`CORS_URLS_REGEX <fairdm.api.settings.CORS_URLS_REGEX>`
+  - ```{autodoc2-docstring} fairdm.api.settings.CORS_URLS_REGEX
+    :summary:
+    ```
+* - {py:obj}`REST_KNOX <fairdm.api.settings.REST_KNOX>`
+  - ```{autodoc2-docstring} fairdm.api.settings.REST_KNOX
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} FAIRDM_API_TITLE
+:canonical: fairdm.api.settings.FAIRDM_API_TITLE
+:value: >
+   'FairDM Portal API'
+
+```{autodoc2-docstring} fairdm.api.settings.FAIRDM_API_TITLE
+```
+
+````
+
+````{py:data} FAIRDM_API_DESCRIPTION
+:canonical: fairdm.api.settings.FAIRDM_API_DESCRIPTION
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.api.settings.FAIRDM_API_DESCRIPTION
+```
+
+````
+
+````{py:data} FAIRDM_API_MAX_PAGE_SIZE
+:canonical: fairdm.api.settings.FAIRDM_API_MAX_PAGE_SIZE
+:value: >
+   1000
+
+```{autodoc2-docstring} fairdm.api.settings.FAIRDM_API_MAX_PAGE_SIZE
+```
+
+````
+
+````{py:data} REST_FRAMEWORK
+:canonical: fairdm.api.settings.REST_FRAMEWORK
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.settings.REST_FRAMEWORK
+```
+
+````
+
+````{py:data} SPECTACULAR_SETTINGS
+:canonical: fairdm.api.settings.SPECTACULAR_SETTINGS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.settings.SPECTACULAR_SETTINGS
+```
+
+````
+
+````{py:data} CORS_ALLOW_ALL_ORIGINS
+:canonical: fairdm.api.settings.CORS_ALLOW_ALL_ORIGINS
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.api.settings.CORS_ALLOW_ALL_ORIGINS
+```
+
+````
+
+````{py:data} CORS_ALLOWED_ORIGINS
+:canonical: fairdm.api.settings.CORS_ALLOWED_ORIGINS
+:type: list[str]
+:value: >
+   []
+
+```{autodoc2-docstring} fairdm.api.settings.CORS_ALLOWED_ORIGINS
+```
+
+````
+
+````{py:data} CORS_URLS_REGEX
+:canonical: fairdm.api.settings.CORS_URLS_REGEX
+:value: >
+   '^/api/.*$'
+
+```{autodoc2-docstring} fairdm.api.settings.CORS_URLS_REGEX
+```
+
+````
+
+````{py:data} REST_KNOX
+:canonical: fairdm.api.settings.REST_KNOX
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.api.settings.REST_KNOX
+```
+
+````

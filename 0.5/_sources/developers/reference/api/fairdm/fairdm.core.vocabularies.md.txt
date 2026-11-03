@@ -1,0 +1,358 @@
+# {py:mod}`fairdm.core.vocabularies`
+
+```{py:module} fairdm.core.vocabularies
+```
+
+```{autodoc2-docstring} fairdm.core.vocabularies
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`collection_members <fairdm.core.vocabularies.collection_members>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.collection_members
+    :summary:
+    ```
+* - {py:obj}`notation <fairdm.core.vocabularies.notation>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.notation
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`BASE_URI <fairdm.core.vocabularies.BASE_URI>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.BASE_URI
+    :summary:
+    ```
+* - {py:obj}`SAMPLE_STATUS <fairdm.core.vocabularies.SAMPLE_STATUS>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.SAMPLE_STATUS
+    :summary:
+    ```
+* - {py:obj}`DESCRIPTION_TYPES <fairdm.core.vocabularies.DESCRIPTION_TYPES>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.DESCRIPTION_TYPES
+    :summary:
+    ```
+* - {py:obj}`DATE_TYPES <fairdm.core.vocabularies.DATE_TYPES>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.DATE_TYPES
+    :summary:
+    ```
+* - {py:obj}`IDENTIFIER_TYPES <fairdm.core.vocabularies.IDENTIFIER_TYPES>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.IDENTIFIER_TYPES
+    :summary:
+    ```
+* - {py:obj}`CONTRIBUTOR_ROLES <fairdm.core.vocabularies.CONTRIBUTOR_ROLES>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.CONTRIBUTOR_ROLES
+    :summary:
+    ```
+* - {py:obj}`SAMPLE_STATUS_DESTROYED <fairdm.core.vocabularies.SAMPLE_STATUS_DESTROYED>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.SAMPLE_STATUS_DESTROYED
+    :summary:
+    ```
+* - {py:obj}`SAMPLE_STATUS_UNKNOWN <fairdm.core.vocabularies.SAMPLE_STATUS_UNKNOWN>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.SAMPLE_STATUS_UNKNOWN
+    :summary:
+    ```
+* - {py:obj}`ABSTRACT <fairdm.core.vocabularies.ABSTRACT>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.ABSTRACT
+    :summary:
+    ```
+* - {py:obj}`PROJECT_START <fairdm.core.vocabularies.PROJECT_START>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.PROJECT_START
+    :summary:
+    ```
+* - {py:obj}`PROJECT_END <fairdm.core.vocabularies.PROJECT_END>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.PROJECT_END
+    :summary:
+    ```
+* - {py:obj}`DOI <fairdm.core.vocabularies.DOI>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.DOI
+    :summary:
+    ```
+* - {py:obj}`IGSN <fairdm.core.vocabularies.IGSN>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.IGSN
+    :summary:
+    ```
+* - {py:obj}`ISNI <fairdm.core.vocabularies.ISNI>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.ISNI
+    :summary:
+    ```
+* - {py:obj}`ORCID <fairdm.core.vocabularies.ORCID>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.ORCID
+    :summary:
+    ```
+* - {py:obj}`ROR <fairdm.core.vocabularies.ROR>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.ROR
+    :summary:
+    ```
+* - {py:obj}`WIKIDATA <fairdm.core.vocabularies.WIKIDATA>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.WIKIDATA
+    :summary:
+    ```
+* - {py:obj}`CROSSREF_FUNDER_ID <fairdm.core.vocabularies.CROSSREF_FUNDER_ID>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.CROSSREF_FUNDER_ID
+    :summary:
+    ```
+* - {py:obj}`CREATOR <fairdm.core.vocabularies.CREATOR>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.CREATOR
+    :summary:
+    ```
+* - {py:obj}`CONTACT_PERSON <fairdm.core.vocabularies.CONTACT_PERSON>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.CONTACT_PERSON
+    :summary:
+    ```
+* - {py:obj}`PROJECT_LEADER <fairdm.core.vocabularies.PROJECT_LEADER>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.PROJECT_LEADER
+    :summary:
+    ```
+* - {py:obj}`PROJECT_MEMBER <fairdm.core.vocabularies.PROJECT_MEMBER>`
+  - ```{autodoc2-docstring} fairdm.core.vocabularies.PROJECT_MEMBER
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} BASE_URI
+:canonical: fairdm.core.vocabularies.BASE_URI
+:value: >
+   'https://w3id.org/fairdm/vocabularies'
+
+```{autodoc2-docstring} fairdm.core.vocabularies.BASE_URI
+```
+
+````
+
+````{py:data} SAMPLE_STATUS
+:canonical: fairdm.core.vocabularies.SAMPLE_STATUS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.vocabularies.SAMPLE_STATUS
+```
+
+````
+
+````{py:data} DESCRIPTION_TYPES
+:canonical: fairdm.core.vocabularies.DESCRIPTION_TYPES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.vocabularies.DESCRIPTION_TYPES
+```
+
+````
+
+````{py:data} DATE_TYPES
+:canonical: fairdm.core.vocabularies.DATE_TYPES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.vocabularies.DATE_TYPES
+```
+
+````
+
+````{py:data} IDENTIFIER_TYPES
+:canonical: fairdm.core.vocabularies.IDENTIFIER_TYPES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.vocabularies.IDENTIFIER_TYPES
+```
+
+````
+
+````{py:data} CONTRIBUTOR_ROLES
+:canonical: fairdm.core.vocabularies.CONTRIBUTOR_ROLES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.vocabularies.CONTRIBUTOR_ROLES
+```
+
+````
+
+````{py:data} SAMPLE_STATUS_DESTROYED
+:canonical: fairdm.core.vocabularies.SAMPLE_STATUS_DESTROYED
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.vocabularies.SAMPLE_STATUS_DESTROYED
+```
+
+````
+
+````{py:data} SAMPLE_STATUS_UNKNOWN
+:canonical: fairdm.core.vocabularies.SAMPLE_STATUS_UNKNOWN
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.vocabularies.SAMPLE_STATUS_UNKNOWN
+```
+
+````
+
+````{py:data} ABSTRACT
+:canonical: fairdm.core.vocabularies.ABSTRACT
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.vocabularies.ABSTRACT
+```
+
+````
+
+````{py:data} PROJECT_START
+:canonical: fairdm.core.vocabularies.PROJECT_START
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.vocabularies.PROJECT_START
+```
+
+````
+
+````{py:data} PROJECT_END
+:canonical: fairdm.core.vocabularies.PROJECT_END
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.vocabularies.PROJECT_END
+```
+
+````
+
+````{py:data} DOI
+:canonical: fairdm.core.vocabularies.DOI
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.vocabularies.DOI
+```
+
+````
+
+````{py:data} IGSN
+:canonical: fairdm.core.vocabularies.IGSN
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.vocabularies.IGSN
+```
+
+````
+
+````{py:data} ISNI
+:canonical: fairdm.core.vocabularies.ISNI
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.vocabularies.ISNI
+```
+
+````
+
+````{py:data} ORCID
+:canonical: fairdm.core.vocabularies.ORCID
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.vocabularies.ORCID
+```
+
+````
+
+````{py:data} ROR
+:canonical: fairdm.core.vocabularies.ROR
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.vocabularies.ROR
+```
+
+````
+
+````{py:data} WIKIDATA
+:canonical: fairdm.core.vocabularies.WIKIDATA
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.vocabularies.WIKIDATA
+```
+
+````
+
+````{py:data} CROSSREF_FUNDER_ID
+:canonical: fairdm.core.vocabularies.CROSSREF_FUNDER_ID
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.vocabularies.CROSSREF_FUNDER_ID
+```
+
+````
+
+````{py:data} CREATOR
+:canonical: fairdm.core.vocabularies.CREATOR
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.vocabularies.CREATOR
+```
+
+````
+
+````{py:data} CONTACT_PERSON
+:canonical: fairdm.core.vocabularies.CONTACT_PERSON
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.vocabularies.CONTACT_PERSON
+```
+
+````
+
+````{py:data} PROJECT_LEADER
+:canonical: fairdm.core.vocabularies.PROJECT_LEADER
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.vocabularies.PROJECT_LEADER
+```
+
+````
+
+````{py:data} PROJECT_MEMBER
+:canonical: fairdm.core.vocabularies.PROJECT_MEMBER
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.vocabularies.PROJECT_MEMBER
+```
+
+````
+
+````{py:function} collection_members(uri)
+:canonical: fairdm.core.vocabularies.collection_members
+
+```{autodoc2-docstring} fairdm.core.vocabularies.collection_members
+```
+````
+
+````{py:function} notation(concept) -> str
+:canonical: fairdm.core.vocabularies.notation
+
+```{autodoc2-docstring} fairdm.core.vocabularies.notation
+```
+````

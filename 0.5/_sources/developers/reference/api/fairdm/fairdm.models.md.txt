@@ -1,0 +1,61 @@
+# {py:mod}`fairdm.models`
+
+```{py:module} fairdm.models
+```
+
+```{autodoc2-docstring} fairdm.models
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`TaggedItem <fairdm.models.TaggedItem>`
+  - ```{autodoc2-docstring} fairdm.models.TaggedItem
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} TaggedItem(*args, **kwargs)
+:canonical: fairdm.models.TaggedItem
+
+Bases: {py:obj}`taggit.models.CommonGenericTaggedItemBase`, {py:obj}`taggit.models.TaggedItemBase`
+
+```{autodoc2-docstring} fairdm.models.TaggedItem
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.models.TaggedItem.__init__
+```
+
+````{py:attribute} object_id
+:canonical: fairdm.models.TaggedItem.object_id
+:type: str
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.models.TaggedItem.object_id
+```
+
+````
+
+````{py:attribute} natural_key_fields
+:canonical: fairdm.models.TaggedItem.natural_key_fields
+:value: >
+   ['object_id']
+
+```{autodoc2-docstring} fairdm.models.TaggedItem.natural_key_fields
+```
+
+````
+
+`````

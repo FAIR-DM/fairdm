@@ -1,0 +1,161 @@
+# {py:mod}`fairdm.utils.location.resources`
+
+```{py:module} fairdm.utils.location.resources
+```
+
+```{autodoc2-docstring} fairdm.utils.location.resources
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`MeasureWidget <fairdm.utils.location.resources.MeasureWidget>`
+  - ```{autodoc2-docstring} fairdm.utils.location.resources.MeasureWidget
+    :summary:
+    ```
+* - {py:obj}`CoordinateField <fairdm.utils.location.resources.CoordinateField>`
+  - ```{autodoc2-docstring} fairdm.utils.location.resources.CoordinateField
+    :summary:
+    ```
+* - {py:obj}`LocatedResourceMixin <fairdm.utils.location.resources.LocatedResourceMixin>`
+  - ```{autodoc2-docstring} fairdm.utils.location.resources.LocatedResourceMixin
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`location_fields <fairdm.utils.location.resources.location_fields>`
+  - ```{autodoc2-docstring} fairdm.utils.location.resources.location_fields
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} MeasureWidget()
+:canonical: fairdm.utils.location.resources.MeasureWidget
+
+Bases: {py:obj}`import_export.widgets.FloatWidget`
+
+```{autodoc2-docstring} fairdm.utils.location.resources.MeasureWidget
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.utils.location.resources.MeasureWidget.__init__
+```
+
+````{py:method} clean(value, row=None, **kwargs)
+:canonical: fairdm.utils.location.resources.MeasureWidget.clean
+
+```{autodoc2-docstring} fairdm.utils.location.resources.MeasureWidget.clean
+```
+
+````
+
+````{py:method} render(value, obj=None, **kwargs)
+:canonical: fairdm.utils.location.resources.MeasureWidget.render
+
+```{autodoc2-docstring} fairdm.utils.location.resources.MeasureWidget.render
+```
+
+````
+
+`````
+
+`````{py:class} CoordinateField(axis)
+:canonical: fairdm.utils.location.resources.CoordinateField
+
+Bases: {py:obj}`import_export.fields.Field`
+
+```{autodoc2-docstring} fairdm.utils.location.resources.CoordinateField
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.utils.location.resources.CoordinateField.__init__
+```
+
+````{py:method} get_value(instance)
+:canonical: fairdm.utils.location.resources.CoordinateField.get_value
+
+```{autodoc2-docstring} fairdm.utils.location.resources.CoordinateField.get_value
+```
+
+````
+
+`````
+
+````{py:function} location_fields()
+:canonical: fairdm.utils.location.resources.location_fields
+
+```{autodoc2-docstring} fairdm.utils.location.resources.location_fields
+```
+````
+
+`````{py:class} LocatedResourceMixin(*args, **kwargs)
+:canonical: fairdm.utils.location.resources.LocatedResourceMixin
+
+```{autodoc2-docstring} fairdm.utils.location.resources.LocatedResourceMixin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.utils.location.resources.LocatedResourceMixin.__init__
+```
+
+````{py:method} expand_order(order)
+:canonical: fairdm.utils.location.resources.LocatedResourceMixin.expand_order
+
+```{autodoc2-docstring} fairdm.utils.location.resources.LocatedResourceMixin.expand_order
+```
+
+````
+
+````{py:method} get_export_order()
+:canonical: fairdm.utils.location.resources.LocatedResourceMixin.get_export_order
+
+```{autodoc2-docstring} fairdm.utils.location.resources.LocatedResourceMixin.get_export_order
+```
+
+````
+
+````{py:method} get_import_order()
+:canonical: fairdm.utils.location.resources.LocatedResourceMixin.get_import_order
+
+```{autodoc2-docstring} fairdm.utils.location.resources.LocatedResourceMixin.get_import_order
+```
+
+````
+
+````{py:method} import_instance(instance, row, **kwargs)
+:canonical: fairdm.utils.location.resources.LocatedResourceMixin.import_instance
+
+```{autodoc2-docstring} fairdm.utils.location.resources.LocatedResourceMixin.import_instance
+```
+
+````
+
+````{py:method} set_location(instance, row)
+:canonical: fairdm.utils.location.resources.LocatedResourceMixin.set_location
+
+```{autodoc2-docstring} fairdm.utils.location.resources.LocatedResourceMixin.set_location
+```
+
+````
+
+`````

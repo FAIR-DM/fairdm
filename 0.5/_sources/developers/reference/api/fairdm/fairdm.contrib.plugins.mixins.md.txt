@@ -1,0 +1,60 @@
+# {py:mod}`fairdm.contrib.plugins.mixins`
+
+```{py:module} fairdm.contrib.plugins.mixins
+```
+
+```{autodoc2-docstring} fairdm.contrib.plugins.mixins
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`PrivateRecordNotFoundMixin <fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin
+    :summary:
+    ```
+* - {py:obj}`RecordOwnPageBackFallbackMixin <fairdm.contrib.plugins.mixins.RecordOwnPageBackFallbackMixin>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.mixins.RecordOwnPageBackFallbackMixin
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} PrivateRecordNotFoundMixin
+:canonical: fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin
+
+```{autodoc2-docstring} fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin
+```
+
+````{py:method} handle_no_permission()
+:canonical: fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin.handle_no_permission
+
+```{autodoc2-docstring} fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin.handle_no_permission
+```
+
+````
+
+`````
+
+`````{py:class} RecordOwnPageBackFallbackMixin
+:canonical: fairdm.contrib.plugins.mixins.RecordOwnPageBackFallbackMixin
+
+```{autodoc2-docstring} fairdm.contrib.plugins.mixins.RecordOwnPageBackFallbackMixin
+```
+
+````{py:method} get_back_url_fallback() -> str
+:canonical: fairdm.contrib.plugins.mixins.RecordOwnPageBackFallbackMixin.get_back_url_fallback
+
+```{autodoc2-docstring} fairdm.contrib.plugins.mixins.RecordOwnPageBackFallbackMixin.get_back_url_fallback
+```
+
+````
+
+`````

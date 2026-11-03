@@ -1,0 +1,80 @@
+# {py:mod}`fairdm.management.commands.seed_licenses`
+
+```{py:module} fairdm.management.commands.seed_licenses
+```
+
+```{autodoc2-docstring} fairdm.management.commands.seed_licenses
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Command <fairdm.management.commands.seed_licenses.Command>`
+  - ```{autodoc2-docstring} fairdm.management.commands.seed_licenses.Command
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`RECOMMENDED_LICENSE_NAMES <fairdm.management.commands.seed_licenses.RECOMMENDED_LICENSE_NAMES>`
+  - ```{autodoc2-docstring} fairdm.management.commands.seed_licenses.RECOMMENDED_LICENSE_NAMES
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} RECOMMENDED_LICENSE_NAMES
+:canonical: fairdm.management.commands.seed_licenses.RECOMMENDED_LICENSE_NAMES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.management.commands.seed_licenses.RECOMMENDED_LICENSE_NAMES
+```
+
+````
+
+`````{py:class} Command(stdout=None, stderr=None, no_color=False, force_color=False)
+:canonical: fairdm.management.commands.seed_licenses.Command
+
+Bases: {py:obj}`django.core.management.base.BaseCommand`
+
+```{autodoc2-docstring} fairdm.management.commands.seed_licenses.Command
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.management.commands.seed_licenses.Command.__init__
+```
+
+````{py:attribute} help
+:canonical: fairdm.management.commands.seed_licenses.Command.help
+:value: >
+   'Create the licences FairDM recommends (CC0 1.0, CC BY 4.0, CC BY-SA 4.0).'
+
+```{autodoc2-docstring} fairdm.management.commands.seed_licenses.Command.help
+```
+
+````
+
+````{py:method} handle(*args, **options)
+:canonical: fairdm.management.commands.seed_licenses.Command.handle
+
+```{autodoc2-docstring} fairdm.management.commands.seed_licenses.Command.handle
+```
+
+````
+
+`````

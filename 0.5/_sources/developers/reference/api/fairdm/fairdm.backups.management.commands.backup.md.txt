@@ -1,0 +1,66 @@
+# {py:mod}`fairdm.backups.management.commands.backup`
+
+```{py:module} fairdm.backups.management.commands.backup
+```
+
+```{autodoc2-docstring} fairdm.backups.management.commands.backup
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Command <fairdm.backups.management.commands.backup.Command>`
+  - ```{autodoc2-docstring} fairdm.backups.management.commands.backup.Command
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} Command(stdout=None, stderr=None, no_color=False, force_color=False)
+:canonical: fairdm.backups.management.commands.backup.Command
+
+Bases: {py:obj}`django.core.management.base.BaseCommand`
+
+```{autodoc2-docstring} fairdm.backups.management.commands.backup.Command
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.backups.management.commands.backup.Command.__init__
+```
+
+````{py:attribute} help
+:canonical: fairdm.backups.management.commands.backup.Command.help
+:value: >
+   'Back up the database and the media now.'
+
+```{autodoc2-docstring} fairdm.backups.management.commands.backup.Command.help
+```
+
+````
+
+````{py:method} add_arguments(parser)
+:canonical: fairdm.backups.management.commands.backup.Command.add_arguments
+
+```{autodoc2-docstring} fairdm.backups.management.commands.backup.Command.add_arguments
+```
+
+````
+
+````{py:method} handle(*args, **options)
+:canonical: fairdm.backups.management.commands.backup.Command.handle
+
+```{autodoc2-docstring} fairdm.backups.management.commands.backup.Command.handle
+```
+
+````
+
+`````

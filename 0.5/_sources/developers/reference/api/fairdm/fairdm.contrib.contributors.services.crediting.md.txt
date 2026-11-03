@@ -1,0 +1,148 @@
+# {py:mod}`fairdm.contrib.contributors.services.crediting`
+
+```{py:module} fairdm.contrib.contributors.services.crediting
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.crediting
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Crediting <fairdm.contrib.contributors.services.crediting.Crediting>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.services.crediting.Crediting
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`UNCHANGED <fairdm.contrib.contributors.services.crediting.UNCHANGED>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.services.crediting.UNCHANGED
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} UNCHANGED
+:canonical: fairdm.contrib.contributors.services.crediting.UNCHANGED
+:value: >
+   'object(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.crediting.UNCHANGED
+```
+
+````
+
+`````{py:class} Crediting(record)
+:canonical: fairdm.contrib.contributors.services.crediting.Crediting
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.crediting.Crediting
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.crediting.Crediting.__init__
+```
+
+````{py:method} locked()
+:canonical: fairdm.contrib.contributors.services.crediting.Crediting.locked
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.crediting.Crediting.locked
+```
+
+````
+
+````{py:method} would_leave_no_manager(contribution, level=None)
+:canonical: fairdm.contrib.contributors.services.crediting.Crediting.would_leave_no_manager
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.crediting.Crediting.would_leave_no_manager
+```
+
+````
+
+````{py:method} last_manager_refusal(contribution)
+:canonical: fairdm.contrib.contributors.services.crediting.Crediting.last_manager_refusal
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.crediting.Crediting.last_manager_refusal
+```
+
+````
+
+````{py:method} offered_roles()
+:canonical: fairdm.contrib.contributors.services.crediting.Crediting.offered_roles
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.crediting.Crediting.offered_roles
+```
+
+````
+
+````{py:method} add(contributor, *, organization=None)
+:canonical: fairdm.contrib.contributors.services.crediting.Crediting.add
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.crediting.Crediting.add
+```
+
+````
+
+````{py:method} list_organization(organization)
+:canonical: fairdm.contrib.contributors.services.crediting.Crediting.list_organization
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.crediting.Crediting.list_organization
+```
+
+````
+
+````{py:method} update(contribution, *, roles, level=None, organization=UNCHANGED)
+:canonical: fairdm.contrib.contributors.services.crediting.Crediting.update
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.crediting.Crediting.update
+```
+
+````
+
+````{py:method} remove(contribution)
+:canonical: fairdm.contrib.contributors.services.crediting.Crediting.remove
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.crediting.Crediting.remove
+```
+
+````
+
+````{py:method} move(contribution, direction)
+:canonical: fairdm.contrib.contributors.services.crediting.Crediting.move
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.crediting.Crediting.move
+```
+
+````
+
+````{py:method} make_creator(user, *, roles=())
+:canonical: fairdm.contrib.contributors.services.crediting.Crediting.make_creator
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.crediting.Crediting.make_creator
+```
+
+````
+
+````{py:method} credited_from()
+:canonical: fairdm.contrib.contributors.services.crediting.Crediting.credited_from
+
+```{autodoc2-docstring} fairdm.contrib.contributors.services.crediting.Crediting.credited_from
+```
+
+````
+
+`````

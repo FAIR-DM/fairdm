@@ -1,0 +1,64 @@
+# {py:mod}`fairdm.backups.tasks`
+
+```{py:module} fairdm.backups.tasks
+```
+
+```{autodoc2-docstring} fairdm.backups.tasks
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`backup_database <fairdm.backups.tasks.backup_database>`
+  - ```{autodoc2-docstring} fairdm.backups.tasks.backup_database
+    :summary:
+    ```
+* - {py:obj}`backup_media <fairdm.backups.tasks.backup_media>`
+  - ```{autodoc2-docstring} fairdm.backups.tasks.backup_media
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`BACKUP_LIMITS <fairdm.backups.tasks.BACKUP_LIMITS>`
+  - ```{autodoc2-docstring} fairdm.backups.tasks.BACKUP_LIMITS
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} BACKUP_LIMITS
+:canonical: fairdm.backups.tasks.BACKUP_LIMITS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.backups.tasks.BACKUP_LIMITS
+```
+
+````
+
+````{py:function} backup_database() -> None
+:canonical: fairdm.backups.tasks.backup_database
+
+```{autodoc2-docstring} fairdm.backups.tasks.backup_database
+```
+````
+
+````{py:function} backup_media() -> None
+:canonical: fairdm.backups.tasks.backup_media
+
+```{autodoc2-docstring} fairdm.backups.tasks.backup_media
+```
+````

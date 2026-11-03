@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="297mm"
+   height="210mm"
+   viewBox="0 0 297 210"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
+   sodipodi:docname="layout.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="0.73139029"
+     inkscape:cx="551.0054"
+     inkscape:cy="471.02074"
+     inkscape:window-width="1272"
+     inkscape:window-height="1623"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <text
+       xml:space="preserve"
+       style="font-size:4.44267px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';text-align:center;text-anchor:middle;fill:#000000;stroke:none;stroke-width:0.516438;stroke-linecap:square;stroke-linejoin:bevel;stop-color:#000000"
+       x="105.63216"
+       y="8.8629723"
+       id="text479"><tspan
+         sodipodi:role="line"
+         id="tspan477"
+         style="stroke-width:0.516438;fill:#000000;stroke:none"></tspan></text>
+    <rect
+       style="fill:none;stroke:#000000;stroke-width:0.516438;stroke-linecap:square;stroke-linejoin:bevel;stop-color:#000000"
+       id="rect241"
+       width="296.74179"
+       height="209.74178"
+       x="0"
+       y="0" />
+    <text
+       xml:space="preserve"
+       style="font-size:11.4435px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';text-align:center;text-anchor:middle;fill:#000000;stroke:none;stroke-width:0.51644;stroke-linecap:square;stroke-linejoin:bevel;stop-color:#000000"
+       x="192.14227"
+       y="207.15544"
+       id="text692-1-4-3-2"><tspan
+         sodipodi:role="line"
+         id="tspan690-9-4-6-4"
+         style="stroke-width:0.51644"
+         x="192.14227"
+         y="207.15544">Footer</tspan></text>
+    <rect
+       style="fill:none;stroke:#000000;stroke-width:0.516438;stroke-linecap:square;stroke-linejoin:bevel;stop-color:#000000"
+       id="rect411"
+       width="297"
+       height="22.50712"
+       x="0"
+       y="0" />
+    <rect
+       style="fill:none;stroke:#000000;stroke-width:0.516438;stroke-linecap:square;stroke-linejoin:bevel;stop-color:#000000"
+       id="rect419"
+       width="88.267967"
+       height="187.23465"
+       x="0"
+       y="22.50712"
+       rx="0"
+       ry="0" />
+    <rect
+       style="fill:none;stroke:#000000;stroke-width:0.516438;stroke-linecap:square;stroke-linejoin:bevel;stop-color:#000000"
+       id="rect421"
+       width="208.73203"
+       height="13.757577"
+       x="88.267967"
+       y="22.50712" />
+    <rect
+       style="fill:none;stroke:#000000;stroke-width:0.516438;stroke-linecap:square;stroke-linejoin:bevel;stop-color:#000000"
+       id="rect421-9"
+       width="208.73203"
+       height="13.051259"
+       x="88.267967"
+       y="196.69052" />
+    <rect
+       style="fill:none;stroke:#000000;stroke-width:0.516438;stroke-linecap:square;stroke-linejoin:bevel;stop-color:#000000"
+       id="rect423"
+       width="60.516457"
+       height="160.42583"
+       x="236.22534"
+       y="36.264698" />
+    <text
+       xml:space="preserve"
+       style="font-size:11.4435px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';text-align:center;text-anchor:middle;fill:#000000;stroke:none;stroke-width:0.51644;stroke-linecap:square;stroke-linejoin:bevel;stop-color:#000000"
+       x="148.00829"
+       y="15.421945"
+       id="text692"><tspan
+         sodipodi:role="line"
+         id="tspan690"
+         style="stroke-width:0.51644"
+         x="148.00829"
+         y="15.421945">Navbar</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:11.4435px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';text-align:center;text-anchor:middle;fill:#000000;stroke:none;stroke-width:0.51644;stroke-linecap:square;stroke-linejoin:bevel;stop-color:#000000"
+       x="43.761009"
+       y="100.24275"
+       id="text692-1"><tspan
+         sodipodi:role="line"
+         id="tspan690-9"
+         style="stroke-width:0.51644"
+         x="43.761009"
+         y="100.24275">Primary</tspan><tspan
+         sodipodi:role="line"
+         style="stroke-width:0.51644"
+         x="43.761009"
+         y="114.54713"
+         id="tspan777">Sidebar</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:11.4435px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';text-align:center;text-anchor:middle;fill:#000000;stroke:none;stroke-width:0.51644;stroke-linecap:square;stroke-linejoin:bevel;stop-color:#000000"
+       x="267.71286"
+       y="101.81508"
+       id="text692-1-5"><tspan
+         sodipodi:role="line"
+         id="tspan690-9-5"
+         style="stroke-width:0.51644"
+         x="267.71286"
+         y="101.81508">Secondary </tspan><tspan
+         sodipodi:role="line"
+         style="stroke-width:0.51644"
+         x="267.71286"
+         y="116.11945"
+         id="tspan748">Sidebar</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:11.4435px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';text-align:center;text-anchor:middle;fill:#000000;stroke:none;stroke-width:0.51644;stroke-linecap:square;stroke-linejoin:bevel;stop-color:#000000"
+       x="162.12093"
+       y="104.66478"
+       id="text692-1-4"><tspan
+         sodipodi:role="line"
+         id="tspan690-9-4"
+         style="stroke-width:0.51644"
+         x="162.12093"
+         y="104.66478">Main</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:11.4435px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';text-align:center;text-anchor:middle;fill:#000000;stroke:none;stroke-width:0.51644;stroke-linecap:square;stroke-linejoin:bevel;stop-color:#000000"
+       x="199.91998"
+       y="33.554295"
+       id="text692-1-4-3"><tspan
+         sodipodi:role="line"
+         id="tspan690-9-4-6"
+         style="stroke-width:0.51644"
+         x="199.91998"
+         y="33.554295">Header</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:4.44267px;font-family:'Segoe UI';-inkscape-font-specification:'Segoe UI, Normal';text-align:center;text-anchor:middle;fill:#000000;stroke:none;stroke-width:0.516438;stroke-linecap:square;stroke-linejoin:bevel;stop-color:#000000"
+       x="39.431179"
+       y="127.33739"
+       id="text1473"><tspan
+         sodipodi:role="line"
+         id="tspan1471"
+         style="font-weight:bold;stroke-width:0.516438"
+         x="39.431179"
+         y="127.33739">Config:</tspan><tspan
+         sodipodi:role="line"
+         style="stroke-width:0.516438"
+         x="39.431179"
+         y="132.89073"
+         id="tspan1485">title</tspan><tspan
+         sodipodi:role="line"
+         style="stroke-width:0.516438"
+         x="39.431179"
+         y="138.44406"
+         id="tspan1481">hide_title</tspan><tspan
+         sodipodi:role="line"
+         style="stroke-width:0.516438"
+         x="39.431179"
+         y="143.99741"
+         id="tspan1475">hide_below</tspan><tspan
+         sodipodi:role="line"
+         style="stroke-width:0.516438"
+         x="39.431179"
+         y="149.55074"
+         id="tspan1483">visible</tspan><tspan
+         sodipodi:role="line"
+         style="stroke-width:0.516438"
+         x="39.431179"
+         y="155.10408"
+         id="tspan1479">class</tspan><tspan
+         sodipodi:role="line"
+         style="stroke-width:0.516438"
+         x="39.431179"
+         y="160.65741"
+         id="tspan1477" /></text>
+  </g>
+</svg>

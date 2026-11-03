@@ -1,0 +1,60 @@
+# {py:mod}`fairdm.contrib.import_export.formats`
+
+```{py:module} fairdm.contrib.import_export.formats
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.formats
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`LaTex <fairdm.contrib.import_export.formats.LaTex>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.formats.LaTex
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} LaTex(encoding=None)
+:canonical: fairdm.contrib.import_export.formats.LaTex
+
+Bases: {py:obj}`import_export.formats.base_formats.TextFormat`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.formats.LaTex
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.formats.LaTex.__init__
+```
+
+````{py:attribute} TABLIB_MODULE
+:canonical: fairdm.contrib.import_export.formats.LaTex.TABLIB_MODULE
+:value: >
+   'tablib.formats._latex'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.formats.LaTex.TABLIB_MODULE
+```
+
+````
+
+````{py:attribute} CONTENT_TYPE
+:canonical: fairdm.contrib.import_export.formats.LaTex.CONTENT_TYPE
+:value: >
+   'application/x-tex'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.formats.LaTex.CONTENT_TYPE
+```
+
+````
+
+`````

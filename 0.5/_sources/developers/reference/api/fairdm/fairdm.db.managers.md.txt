@@ -1,0 +1,8 @@
+# {py:mod}`fairdm.db.managers`
+
+```{py:module} fairdm.db.managers
+```
+
+```{autodoc2-docstring} fairdm.db.managers
+:allowtitles:
+```

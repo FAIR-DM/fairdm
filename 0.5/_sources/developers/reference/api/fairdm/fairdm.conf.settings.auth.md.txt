@@ -1,0 +1,398 @@
+# {py:mod}`fairdm.conf.settings.auth`
+
+```{py:module} fairdm.conf.settings.auth
+```
+
+```{autodoc2-docstring} fairdm.conf.settings.auth
+:allowtitles:
+```
+
+## Module Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`env <fairdm.conf.settings.auth.env>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.env
+    :summary:
+    ```
+* - {py:obj}`AUTH_USER_MODEL <fairdm.conf.settings.auth.AUTH_USER_MODEL>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.AUTH_USER_MODEL
+    :summary:
+    ```
+* - {py:obj}`LOGIN_REDIRECT_URL <fairdm.conf.settings.auth.LOGIN_REDIRECT_URL>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.LOGIN_REDIRECT_URL
+    :summary:
+    ```
+* - {py:obj}`LOGIN_URL <fairdm.conf.settings.auth.LOGIN_URL>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.LOGIN_URL
+    :summary:
+    ```
+* - {py:obj}`PASSWORD_HASHERS <fairdm.conf.settings.auth.PASSWORD_HASHERS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.PASSWORD_HASHERS
+    :summary:
+    ```
+* - {py:obj}`AUTH_PASSWORD_VALIDATORS <fairdm.conf.settings.auth.AUTH_PASSWORD_VALIDATORS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.AUTH_PASSWORD_VALIDATORS
+    :summary:
+    ```
+* - {py:obj}`AUTHENTICATION_BACKENDS <fairdm.conf.settings.auth.AUTHENTICATION_BACKENDS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.AUTHENTICATION_BACKENDS
+    :summary:
+    ```
+* - {py:obj}`SILENCED_SYSTEM_CHECKS <fairdm.conf.settings.auth.SILENCED_SYSTEM_CHECKS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.SILENCED_SYSTEM_CHECKS
+    :summary:
+    ```
+* - {py:obj}`ACCOUNT_ADAPTER <fairdm.conf.settings.auth.ACCOUNT_ADAPTER>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_ADAPTER
+    :summary:
+    ```
+* - {py:obj}`ACCOUNT_ALLOW_REGISTRATION <fairdm.conf.settings.auth.ACCOUNT_ALLOW_REGISTRATION>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_ALLOW_REGISTRATION
+    :summary:
+    ```
+* - {py:obj}`ACCOUNT_CONFIRM_EMAIL_ON_GET <fairdm.conf.settings.auth.ACCOUNT_CONFIRM_EMAIL_ON_GET>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_CONFIRM_EMAIL_ON_GET
+    :summary:
+    ```
+* - {py:obj}`ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS <fairdm.conf.settings.auth.ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS
+    :summary:
+    ```
+* - {py:obj}`ACCOUNT_EMAIL_VERIFICATION <fairdm.conf.settings.auth.ACCOUNT_EMAIL_VERIFICATION>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_EMAIL_VERIFICATION
+    :summary:
+    ```
+* - {py:obj}`ACCOUNT_LOGIN_METHODS <fairdm.conf.settings.auth.ACCOUNT_LOGIN_METHODS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_LOGIN_METHODS
+    :summary:
+    ```
+* - {py:obj}`ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION <fairdm.conf.settings.auth.ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION
+    :summary:
+    ```
+* - {py:obj}`ACCOUNT_LOGOUT_ON_GET <fairdm.conf.settings.auth.ACCOUNT_LOGOUT_ON_GET>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_LOGOUT_ON_GET
+    :summary:
+    ```
+* - {py:obj}`ACCOUNT_MAX_EMAIL_ADDRESSES <fairdm.conf.settings.auth.ACCOUNT_MAX_EMAIL_ADDRESSES>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_MAX_EMAIL_ADDRESSES
+    :summary:
+    ```
+* - {py:obj}`ACCOUNT_SIGNUP_FIELDS <fairdm.conf.settings.auth.ACCOUNT_SIGNUP_FIELDS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_SIGNUP_FIELDS
+    :summary:
+    ```
+* - {py:obj}`ACCOUNT_SIGNUP_FORM_CLASS <fairdm.conf.settings.auth.ACCOUNT_SIGNUP_FORM_CLASS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_SIGNUP_FORM_CLASS
+    :summary:
+    ```
+* - {py:obj}`ACCOUNT_USER_MODEL_USERNAME_FIELD <fairdm.conf.settings.auth.ACCOUNT_USER_MODEL_USERNAME_FIELD>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_USER_MODEL_USERNAME_FIELD
+    :summary:
+    ```
+* - {py:obj}`SOCIALACCOUNT_AUTO_SIGNUP <fairdm.conf.settings.auth.SOCIALACCOUNT_AUTO_SIGNUP>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.SOCIALACCOUNT_AUTO_SIGNUP
+    :summary:
+    ```
+* - {py:obj}`SOCIALACCOUNT_PROVIDERS <fairdm.conf.settings.auth.SOCIALACCOUNT_PROVIDERS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.SOCIALACCOUNT_PROVIDERS
+    :summary:
+    ```
+* - {py:obj}`SOCIALACCOUNT_ADAPTER <fairdm.conf.settings.auth.SOCIALACCOUNT_ADAPTER>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.SOCIALACCOUNT_ADAPTER
+    :summary:
+    ```
+* - {py:obj}`FAIRDM_INVITATION_ONLY_SIGNUP <fairdm.conf.settings.auth.FAIRDM_INVITATION_ONLY_SIGNUP>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.FAIRDM_INVITATION_ONLY_SIGNUP
+    :summary:
+    ```
+* - {py:obj}`ACCOUNT_FORMS <fairdm.conf.settings.auth.ACCOUNT_FORMS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_FORMS
+    :summary:
+    ```
+* - {py:obj}`SOCIALACCOUNT_FORMS <fairdm.conf.settings.auth.SOCIALACCOUNT_FORMS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.SOCIALACCOUNT_FORMS
+    :summary:
+    ```
+* - {py:obj}`FAIRDM_PROFILE_FORMS <fairdm.conf.settings.auth.FAIRDM_PROFILE_FORMS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.auth.FAIRDM_PROFILE_FORMS
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} env
+:canonical: fairdm.conf.settings.auth.env
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.env
+```
+
+````
+
+````{py:data} AUTH_USER_MODEL
+:canonical: fairdm.conf.settings.auth.AUTH_USER_MODEL
+:value: >
+   'contributors.Person'
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.AUTH_USER_MODEL
+```
+
+````
+
+````{py:data} LOGIN_REDIRECT_URL
+:canonical: fairdm.conf.settings.auth.LOGIN_REDIRECT_URL
+:value: >
+   '/'
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.LOGIN_REDIRECT_URL
+```
+
+````
+
+````{py:data} LOGIN_URL
+:canonical: fairdm.conf.settings.auth.LOGIN_URL
+:value: >
+   'account_login'
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.LOGIN_URL
+```
+
+````
+
+````{py:data} PASSWORD_HASHERS
+:canonical: fairdm.conf.settings.auth.PASSWORD_HASHERS
+:value: >
+   ['django.contrib.auth.hashers.Argon2PasswordHasher', 'django.contrib.auth.hashers.PBKDF2PasswordHash...
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.PASSWORD_HASHERS
+```
+
+````
+
+````{py:data} AUTH_PASSWORD_VALIDATORS
+:canonical: fairdm.conf.settings.auth.AUTH_PASSWORD_VALIDATORS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.AUTH_PASSWORD_VALIDATORS
+```
+
+````
+
+````{py:data} AUTHENTICATION_BACKENDS
+:canonical: fairdm.conf.settings.auth.AUTHENTICATION_BACKENDS
+:value: >
+   ['django.contrib.auth.backends.ModelBackend', 'allauth.account.auth_backends.AuthenticationBackend',...
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.AUTHENTICATION_BACKENDS
+```
+
+````
+
+````{py:data} SILENCED_SYSTEM_CHECKS
+:canonical: fairdm.conf.settings.auth.SILENCED_SYSTEM_CHECKS
+:value: >
+   ['guardian.W001']
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.SILENCED_SYSTEM_CHECKS
+```
+
+````
+
+````{py:data} ACCOUNT_ADAPTER
+:canonical: fairdm.conf.settings.auth.ACCOUNT_ADAPTER
+:value: >
+   'fairdm.contrib.contributors.adapters.AccountAdapter'
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_ADAPTER
+```
+
+````
+
+````{py:data} ACCOUNT_ALLOW_REGISTRATION
+:canonical: fairdm.conf.settings.auth.ACCOUNT_ALLOW_REGISTRATION
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_ALLOW_REGISTRATION
+```
+
+````
+
+````{py:data} ACCOUNT_CONFIRM_EMAIL_ON_GET
+:canonical: fairdm.conf.settings.auth.ACCOUNT_CONFIRM_EMAIL_ON_GET
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_CONFIRM_EMAIL_ON_GET
+```
+
+````
+
+````{py:data} ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS
+:canonical: fairdm.conf.settings.auth.ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS
+:value: >
+   3
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS
+```
+
+````
+
+````{py:data} ACCOUNT_EMAIL_VERIFICATION
+:canonical: fairdm.conf.settings.auth.ACCOUNT_EMAIL_VERIFICATION
+:value: >
+   'mandatory'
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_EMAIL_VERIFICATION
+```
+
+````
+
+````{py:data} ACCOUNT_LOGIN_METHODS
+:canonical: fairdm.conf.settings.auth.ACCOUNT_LOGIN_METHODS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_LOGIN_METHODS
+```
+
+````
+
+````{py:data} ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION
+:canonical: fairdm.conf.settings.auth.ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION
+```
+
+````
+
+````{py:data} ACCOUNT_LOGOUT_ON_GET
+:canonical: fairdm.conf.settings.auth.ACCOUNT_LOGOUT_ON_GET
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_LOGOUT_ON_GET
+```
+
+````
+
+````{py:data} ACCOUNT_MAX_EMAIL_ADDRESSES
+:canonical: fairdm.conf.settings.auth.ACCOUNT_MAX_EMAIL_ADDRESSES
+:value: >
+   4
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_MAX_EMAIL_ADDRESSES
+```
+
+````
+
+````{py:data} ACCOUNT_SIGNUP_FIELDS
+:canonical: fairdm.conf.settings.auth.ACCOUNT_SIGNUP_FIELDS
+:value: >
+   ['email*', 'password1*', 'password2*']
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_SIGNUP_FIELDS
+```
+
+````
+
+````{py:data} ACCOUNT_SIGNUP_FORM_CLASS
+:canonical: fairdm.conf.settings.auth.ACCOUNT_SIGNUP_FORM_CLASS
+:value: >
+   'fairdm.contrib.contributors.forms.person.SignupExtraForm'
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_SIGNUP_FORM_CLASS
+```
+
+````
+
+````{py:data} ACCOUNT_USER_MODEL_USERNAME_FIELD
+:canonical: fairdm.conf.settings.auth.ACCOUNT_USER_MODEL_USERNAME_FIELD
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_USER_MODEL_USERNAME_FIELD
+```
+
+````
+
+````{py:data} SOCIALACCOUNT_AUTO_SIGNUP
+:canonical: fairdm.conf.settings.auth.SOCIALACCOUNT_AUTO_SIGNUP
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.SOCIALACCOUNT_AUTO_SIGNUP
+```
+
+````
+
+````{py:data} SOCIALACCOUNT_PROVIDERS
+:canonical: fairdm.conf.settings.auth.SOCIALACCOUNT_PROVIDERS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.SOCIALACCOUNT_PROVIDERS
+```
+
+````
+
+````{py:data} SOCIALACCOUNT_ADAPTER
+:canonical: fairdm.conf.settings.auth.SOCIALACCOUNT_ADAPTER
+:value: >
+   'fairdm.contrib.contributors.adapters.SocialAccountAdapter'
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.SOCIALACCOUNT_ADAPTER
+```
+
+````
+
+````{py:data} FAIRDM_INVITATION_ONLY_SIGNUP
+:canonical: fairdm.conf.settings.auth.FAIRDM_INVITATION_ONLY_SIGNUP
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.FAIRDM_INVITATION_ONLY_SIGNUP
+```
+
+````
+
+````{py:data} ACCOUNT_FORMS
+:canonical: fairdm.conf.settings.auth.ACCOUNT_FORMS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.ACCOUNT_FORMS
+```
+
+````
+
+````{py:data} SOCIALACCOUNT_FORMS
+:canonical: fairdm.conf.settings.auth.SOCIALACCOUNT_FORMS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.SOCIALACCOUNT_FORMS
+```
+
+````
+
+````{py:data} FAIRDM_PROFILE_FORMS
+:canonical: fairdm.conf.settings.auth.FAIRDM_PROFILE_FORMS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.auth.FAIRDM_PROFILE_FORMS
+```
+
+````

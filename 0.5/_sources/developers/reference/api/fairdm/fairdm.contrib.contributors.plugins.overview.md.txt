@@ -1,0 +1,154 @@
+# {py:mod}`fairdm.contrib.contributors.plugins.overview`
+
+```{py:module} fairdm.contrib.contributors.plugins.overview
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.overview
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Overview <fairdm.contrib.contributors.plugins.overview.Overview>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.overview.Overview
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} Overview(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.overview.Overview
+
+Bases: {py:obj}`fairdm.core.plugins.OverviewPlugin`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.overview.Overview
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.overview.Overview.__init__
+```
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.contributors.plugins.overview.Overview.url_path
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.overview.Overview.url_path
+```
+
+````
+
+````{py:attribute} extra_views
+:canonical: fairdm.contrib.contributors.plugins.overview.Overview.extra_views
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.overview.Overview.extra_views
+```
+
+````
+
+````{py:attribute} collaborators_shown
+:canonical: fairdm.contrib.contributors.plugins.overview.Overview.collaborators_shown
+:value: >
+   18
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.overview.Overview.collaborators_shown
+```
+
+````
+
+````{py:attribute} records_shown
+:canonical: fairdm.contrib.contributors.plugins.overview.Overview.records_shown
+:value: >
+   5
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.overview.Overview.records_shown
+```
+
+````
+
+````{py:attribute} member_slots
+:canonical: fairdm.contrib.contributors.plugins.overview.Overview.member_slots
+:value: >
+   10
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.overview.Overview.member_slots
+```
+
+````
+
+````{py:method} get_template_names()
+:canonical: fairdm.contrib.contributors.plugins.overview.Overview.get_template_names
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.overview.Overview.get_template_names
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.overview.Overview.get_context_data
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.overview.Overview.get_context_data
+```
+
+````
+
+````{py:method} get_breadcrumbs()
+:canonical: fairdm.contrib.contributors.plugins.overview.Overview.get_breadcrumbs
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.overview.Overview.get_breadcrumbs
+```
+
+````
+
+````{py:method} get_record_card(entries, active=None)
+:canonical: fairdm.contrib.contributors.plugins.overview.Overview.get_record_card
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.overview.Overview.get_record_card
+```
+
+````
+
+````{py:method} get_readiness(items, title, about, badge)
+:canonical: fairdm.contrib.contributors.plugins.overview.Overview.get_readiness
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.overview.Overview.get_readiness
+```
+
+````
+
+````{py:method} get_shared_context()
+:canonical: fairdm.contrib.contributors.plugins.overview.Overview.get_shared_context
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.overview.Overview.get_shared_context
+```
+
+````
+
+````{py:method} get_person_context()
+:canonical: fairdm.contrib.contributors.plugins.overview.Overview.get_person_context
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.overview.Overview.get_person_context
+```
+
+````
+
+````{py:method} get_organization_context()
+:canonical: fairdm.contrib.contributors.plugins.overview.Overview.get_organization_context
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.overview.Overview.get_organization_context
+```
+
+````
+
+`````

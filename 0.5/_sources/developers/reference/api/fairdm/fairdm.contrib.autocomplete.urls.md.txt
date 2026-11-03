@@ -1,0 +1,76 @@
+# {py:mod}`fairdm.contrib.autocomplete.urls`
+
+```{py:module} fairdm.contrib.autocomplete.urls
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.urls
+:allowtitles:
+```
+
+## Module Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`app_name <fairdm.contrib.autocomplete.urls.app_name>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.urls.app_name
+    :summary:
+    ```
+* - {py:obj}`urlpatterns <fairdm.contrib.autocomplete.urls.urlpatterns>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.urls.urlpatterns
+    :summary:
+    ```
+* - {py:obj}`RECORD_VIEWS <fairdm.contrib.autocomplete.urls.RECORD_VIEWS>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.urls.RECORD_VIEWS
+    :summary:
+    ```
+* - {py:obj}`CONTRIBUTOR_VIEWS <fairdm.contrib.autocomplete.urls.CONTRIBUTOR_VIEWS>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.urls.CONTRIBUTOR_VIEWS
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} app_name
+:canonical: fairdm.contrib.autocomplete.urls.app_name
+:value: >
+   'autocomplete'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.urls.app_name
+```
+
+````
+
+````{py:data} urlpatterns
+:canonical: fairdm.contrib.autocomplete.urls.urlpatterns
+:value: >
+   []
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.urls.urlpatterns
+```
+
+````
+
+````{py:data} RECORD_VIEWS
+:canonical: fairdm.contrib.autocomplete.urls.RECORD_VIEWS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.urls.RECORD_VIEWS
+```
+
+````
+
+````{py:data} CONTRIBUTOR_VIEWS
+:canonical: fairdm.contrib.autocomplete.urls.CONTRIBUTOR_VIEWS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.urls.CONTRIBUTOR_VIEWS
+```
+
+````

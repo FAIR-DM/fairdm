@@ -1,0 +1,150 @@
+# {py:mod}`fairdm.management.commands.create_dev_accounts`
+
+```{py:module} fairdm.management.commands.create_dev_accounts
+```
+
+```{autodoc2-docstring} fairdm.management.commands.create_dev_accounts
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Command <fairdm.management.commands.create_dev_accounts.Command>`
+  - ```{autodoc2-docstring} fairdm.management.commands.create_dev_accounts.Command
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`DEV_ACCOUNT_PASSWORD <fairdm.management.commands.create_dev_accounts.DEV_ACCOUNT_PASSWORD>`
+  - ```{autodoc2-docstring} fairdm.management.commands.create_dev_accounts.DEV_ACCOUNT_PASSWORD
+    :summary:
+    ```
+* - {py:obj}`DEV_ACCOUNTS <fairdm.management.commands.create_dev_accounts.DEV_ACCOUNTS>`
+  - ```{autodoc2-docstring} fairdm.management.commands.create_dev_accounts.DEV_ACCOUNTS
+    :summary:
+    ```
+* - {py:obj}`DEV_ACCOUNT_EMAILS <fairdm.management.commands.create_dev_accounts.DEV_ACCOUNT_EMAILS>`
+  - ```{autodoc2-docstring} fairdm.management.commands.create_dev_accounts.DEV_ACCOUNT_EMAILS
+    :summary:
+    ```
+* - {py:obj}`EXAMPLE_ACCOUNTS <fairdm.management.commands.create_dev_accounts.EXAMPLE_ACCOUNTS>`
+  - ```{autodoc2-docstring} fairdm.management.commands.create_dev_accounts.EXAMPLE_ACCOUNTS
+    :summary:
+    ```
+* - {py:obj}`PROFILE_ACCOUNTS <fairdm.management.commands.create_dev_accounts.PROFILE_ACCOUNTS>`
+  - ```{autodoc2-docstring} fairdm.management.commands.create_dev_accounts.PROFILE_ACCOUNTS
+    :summary:
+    ```
+* - {py:obj}`EXAMPLE_ACCOUNT_EMAILS <fairdm.management.commands.create_dev_accounts.EXAMPLE_ACCOUNT_EMAILS>`
+  - ```{autodoc2-docstring} fairdm.management.commands.create_dev_accounts.EXAMPLE_ACCOUNT_EMAILS
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} DEV_ACCOUNT_PASSWORD
+:canonical: fairdm.management.commands.create_dev_accounts.DEV_ACCOUNT_PASSWORD
+:value: >
+   'password'
+
+```{autodoc2-docstring} fairdm.management.commands.create_dev_accounts.DEV_ACCOUNT_PASSWORD
+```
+
+````
+
+````{py:data} DEV_ACCOUNTS
+:canonical: fairdm.management.commands.create_dev_accounts.DEV_ACCOUNTS
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.management.commands.create_dev_accounts.DEV_ACCOUNTS
+```
+
+````
+
+````{py:data} DEV_ACCOUNT_EMAILS
+:canonical: fairdm.management.commands.create_dev_accounts.DEV_ACCOUNT_EMAILS
+:value: >
+   'frozenset(...)'
+
+```{autodoc2-docstring} fairdm.management.commands.create_dev_accounts.DEV_ACCOUNT_EMAILS
+```
+
+````
+
+````{py:data} EXAMPLE_ACCOUNTS
+:canonical: fairdm.management.commands.create_dev_accounts.EXAMPLE_ACCOUNTS
+:value: >
+   (('regular.user@example.com', 'Regular', 'User', False, False), ('staff.user@example.com', 'Staff', ...
+
+```{autodoc2-docstring} fairdm.management.commands.create_dev_accounts.EXAMPLE_ACCOUNTS
+```
+
+````
+
+````{py:data} PROFILE_ACCOUNTS
+:canonical: fairdm.management.commands.create_dev_accounts.PROFILE_ACCOUNTS
+:value: >
+   (('admin.user@example.com', 'Admin', 'User', False, False), ('member.user@example.com', 'Member', 'U...
+
+```{autodoc2-docstring} fairdm.management.commands.create_dev_accounts.PROFILE_ACCOUNTS
+```
+
+````
+
+````{py:data} EXAMPLE_ACCOUNT_EMAILS
+:canonical: fairdm.management.commands.create_dev_accounts.EXAMPLE_ACCOUNT_EMAILS
+:value: >
+   'frozenset(...)'
+
+```{autodoc2-docstring} fairdm.management.commands.create_dev_accounts.EXAMPLE_ACCOUNT_EMAILS
+```
+
+````
+
+`````{py:class} Command(stdout=None, stderr=None, no_color=False, force_color=False)
+:canonical: fairdm.management.commands.create_dev_accounts.Command
+
+Bases: {py:obj}`django.core.management.base.BaseCommand`
+
+```{autodoc2-docstring} fairdm.management.commands.create_dev_accounts.Command
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.management.commands.create_dev_accounts.Command.__init__
+```
+
+````{py:attribute} help
+:canonical: fairdm.management.commands.create_dev_accounts.Command.help
+:value: >
+   'Create the five development accounts (one per portal role, one holding none) so anyone building a po...'
+
+```{autodoc2-docstring} fairdm.management.commands.create_dev_accounts.Command.help
+```
+
+````
+
+````{py:method} handle(*args, **options)
+:canonical: fairdm.management.commands.create_dev_accounts.Command.handle
+
+```{autodoc2-docstring} fairdm.management.commands.create_dev_accounts.Command.handle
+```
+
+````
+
+`````

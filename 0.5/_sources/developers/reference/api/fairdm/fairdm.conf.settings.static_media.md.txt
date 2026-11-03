@@ -1,0 +1,328 @@
+# {py:mod}`fairdm.conf.settings.static_media`
+
+```{py:module} fairdm.conf.settings.static_media
+```
+
+```{autodoc2-docstring} fairdm.conf.settings.static_media
+:allowtitles:
+```
+
+## Module Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`env <fairdm.conf.settings.static_media.env>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.static_media.env
+    :summary:
+    ```
+* - {py:obj}`BASE_DIR <fairdm.conf.settings.static_media.BASE_DIR>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.static_media.BASE_DIR
+    :summary:
+    ```
+* - {py:obj}`SITE_DOMAIN <fairdm.conf.settings.static_media.SITE_DOMAIN>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.static_media.SITE_DOMAIN
+    :summary:
+    ```
+* - {py:obj}`logger <fairdm.conf.settings.static_media.logger>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.static_media.logger
+    :summary:
+    ```
+* - {py:obj}`STATIC_ROOT <fairdm.conf.settings.static_media.STATIC_ROOT>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.static_media.STATIC_ROOT
+    :summary:
+    ```
+* - {py:obj}`STATIC_URL <fairdm.conf.settings.static_media.STATIC_URL>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.static_media.STATIC_URL
+    :summary:
+    ```
+* - {py:obj}`STATICFILES_FINDERS <fairdm.conf.settings.static_media.STATICFILES_FINDERS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.static_media.STATICFILES_FINDERS
+    :summary:
+    ```
+* - {py:obj}`MEDIA_ROOT <fairdm.conf.settings.static_media.MEDIA_ROOT>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.static_media.MEDIA_ROOT
+    :summary:
+    ```
+* - {py:obj}`MEDIA_URL <fairdm.conf.settings.static_media.MEDIA_URL>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.static_media.MEDIA_URL
+    :summary:
+    ```
+* - {py:obj}`WHITENOISE_MANIFEST_STRICT <fairdm.conf.settings.static_media.WHITENOISE_MANIFEST_STRICT>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.static_media.WHITENOISE_MANIFEST_STRICT
+    :summary:
+    ```
+* - {py:obj}`STORAGES <fairdm.conf.settings.static_media.STORAGES>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.static_media.STORAGES
+    :summary:
+    ```
+* - {py:obj}`AWS_ACCESS_KEY_ID <fairdm.conf.settings.static_media.AWS_ACCESS_KEY_ID>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.static_media.AWS_ACCESS_KEY_ID
+    :summary:
+    ```
+* - {py:obj}`AWS_SECRET_ACCESS_KEY <fairdm.conf.settings.static_media.AWS_SECRET_ACCESS_KEY>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.static_media.AWS_SECRET_ACCESS_KEY
+    :summary:
+    ```
+* - {py:obj}`AWS_STORAGE_BUCKET_NAME <fairdm.conf.settings.static_media.AWS_STORAGE_BUCKET_NAME>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.static_media.AWS_STORAGE_BUCKET_NAME
+    :summary:
+    ```
+* - {py:obj}`AWS_S3_REGION_NAME <fairdm.conf.settings.static_media.AWS_S3_REGION_NAME>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.static_media.AWS_S3_REGION_NAME
+    :summary:
+    ```
+* - {py:obj}`DATA_UPLOAD_MAX_MEMORY_SIZE <fairdm.conf.settings.static_media.DATA_UPLOAD_MAX_MEMORY_SIZE>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.static_media.DATA_UPLOAD_MAX_MEMORY_SIZE
+    :summary:
+    ```
+* - {py:obj}`THUMBNAIL_CACHE_DIMENSIONS <fairdm.conf.settings.static_media.THUMBNAIL_CACHE_DIMENSIONS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.static_media.THUMBNAIL_CACHE_DIMENSIONS
+    :summary:
+    ```
+* - {py:obj}`THUMBNAIL_SUBDIR <fairdm.conf.settings.static_media.THUMBNAIL_SUBDIR>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.static_media.THUMBNAIL_SUBDIR
+    :summary:
+    ```
+* - {py:obj}`THUMBNAIL_DEBUG <fairdm.conf.settings.static_media.THUMBNAIL_DEBUG>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.static_media.THUMBNAIL_DEBUG
+    :summary:
+    ```
+* - {py:obj}`THUMBNAIL_ALIASES <fairdm.conf.settings.static_media.THUMBNAIL_ALIASES>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.static_media.THUMBNAIL_ALIASES
+    :summary:
+    ```
+* - {py:obj}`THUMBNAIL_PROCESSORS <fairdm.conf.settings.static_media.THUMBNAIL_PROCESSORS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.static_media.THUMBNAIL_PROCESSORS
+    :summary:
+    ```
+* - {py:obj}`THUMBNAIL_WIDGET_OPTIONS <fairdm.conf.settings.static_media.THUMBNAIL_WIDGET_OPTIONS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.static_media.THUMBNAIL_WIDGET_OPTIONS
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} env
+:canonical: fairdm.conf.settings.static_media.env
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.static_media.env
+```
+
+````
+
+````{py:data} BASE_DIR
+:canonical: fairdm.conf.settings.static_media.BASE_DIR
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.static_media.BASE_DIR
+```
+
+````
+
+````{py:data} SITE_DOMAIN
+:canonical: fairdm.conf.settings.static_media.SITE_DOMAIN
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.static_media.SITE_DOMAIN
+```
+
+````
+
+````{py:data} logger
+:canonical: fairdm.conf.settings.static_media.logger
+:value: >
+   'getLogger(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.static_media.logger
+```
+
+````
+
+````{py:data} STATIC_ROOT
+:canonical: fairdm.conf.settings.static_media.STATIC_ROOT
+:value: >
+   'str(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.static_media.STATIC_ROOT
+```
+
+````
+
+````{py:data} STATIC_URL
+:canonical: fairdm.conf.settings.static_media.STATIC_URL
+:value: >
+   '/static/'
+
+```{autodoc2-docstring} fairdm.conf.settings.static_media.STATIC_URL
+```
+
+````
+
+````{py:data} STATICFILES_FINDERS
+:canonical: fairdm.conf.settings.static_media.STATICFILES_FINDERS
+:value: >
+   ['django.contrib.staticfiles.finders.FileSystemFinder', 'django.contrib.staticfiles.finders.AppDirec...
+
+```{autodoc2-docstring} fairdm.conf.settings.static_media.STATICFILES_FINDERS
+```
+
+````
+
+````{py:data} MEDIA_ROOT
+:canonical: fairdm.conf.settings.static_media.MEDIA_ROOT
+:value: >
+   'str(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.static_media.MEDIA_ROOT
+```
+
+````
+
+````{py:data} MEDIA_URL
+:canonical: fairdm.conf.settings.static_media.MEDIA_URL
+:value: >
+   '/media/'
+
+```{autodoc2-docstring} fairdm.conf.settings.static_media.MEDIA_URL
+```
+
+````
+
+````{py:data} WHITENOISE_MANIFEST_STRICT
+:canonical: fairdm.conf.settings.static_media.WHITENOISE_MANIFEST_STRICT
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.conf.settings.static_media.WHITENOISE_MANIFEST_STRICT
+```
+
+````
+
+````{py:data} STORAGES
+:canonical: fairdm.conf.settings.static_media.STORAGES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.static_media.STORAGES
+```
+
+````
+
+````{py:data} AWS_ACCESS_KEY_ID
+:canonical: fairdm.conf.settings.static_media.AWS_ACCESS_KEY_ID
+:value: >
+   'env(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.static_media.AWS_ACCESS_KEY_ID
+```
+
+````
+
+````{py:data} AWS_SECRET_ACCESS_KEY
+:canonical: fairdm.conf.settings.static_media.AWS_SECRET_ACCESS_KEY
+:value: >
+   'env(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.static_media.AWS_SECRET_ACCESS_KEY
+```
+
+````
+
+````{py:data} AWS_STORAGE_BUCKET_NAME
+:canonical: fairdm.conf.settings.static_media.AWS_STORAGE_BUCKET_NAME
+:value: >
+   'env(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.static_media.AWS_STORAGE_BUCKET_NAME
+```
+
+````
+
+````{py:data} AWS_S3_REGION_NAME
+:canonical: fairdm.conf.settings.static_media.AWS_S3_REGION_NAME
+:value: >
+   'env(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.static_media.AWS_S3_REGION_NAME
+```
+
+````
+
+````{py:data} DATA_UPLOAD_MAX_MEMORY_SIZE
+:canonical: fairdm.conf.settings.static_media.DATA_UPLOAD_MAX_MEMORY_SIZE
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.static_media.DATA_UPLOAD_MAX_MEMORY_SIZE
+```
+
+````
+
+````{py:data} THUMBNAIL_CACHE_DIMENSIONS
+:canonical: fairdm.conf.settings.static_media.THUMBNAIL_CACHE_DIMENSIONS
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.static_media.THUMBNAIL_CACHE_DIMENSIONS
+```
+
+````
+
+````{py:data} THUMBNAIL_SUBDIR
+:canonical: fairdm.conf.settings.static_media.THUMBNAIL_SUBDIR
+:value: >
+   'thumbs'
+
+```{autodoc2-docstring} fairdm.conf.settings.static_media.THUMBNAIL_SUBDIR
+```
+
+````
+
+````{py:data} THUMBNAIL_DEBUG
+:canonical: fairdm.conf.settings.static_media.THUMBNAIL_DEBUG
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.conf.settings.static_media.THUMBNAIL_DEBUG
+```
+
+````
+
+````{py:data} THUMBNAIL_ALIASES
+:canonical: fairdm.conf.settings.static_media.THUMBNAIL_ALIASES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.static_media.THUMBNAIL_ALIASES
+```
+
+````
+
+````{py:data} THUMBNAIL_PROCESSORS
+:canonical: fairdm.conf.settings.static_media.THUMBNAIL_PROCESSORS
+:value: >
+   ['easy_thumbnails.processors.colorspace', 'easy_thumbnails.processors.autocrop', 'easy_thumbnails.pr...
+
+```{autodoc2-docstring} fairdm.conf.settings.static_media.THUMBNAIL_PROCESSORS
+```
+
+````
+
+````{py:data} THUMBNAIL_WIDGET_OPTIONS
+:canonical: fairdm.conf.settings.static_media.THUMBNAIL_WIDGET_OPTIONS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.static_media.THUMBNAIL_WIDGET_OPTIONS
+```
+
+````

@@ -1,0 +1,164 @@
+# {py:mod}`fairdm.contrib.contributors.resources`
+
+```{py:module} fairdm.contrib.contributors.resources
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.resources
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`PersonResource <fairdm.contrib.contributors.resources.PersonResource>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.resources.PersonResource
+    :summary:
+    ```
+````
+
+### API
+
+``````{py:class} PersonResource(**kwargs)
+:canonical: fairdm.contrib.contributors.resources.PersonResource
+
+Bases: {py:obj}`import_export.resources.ModelResource`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.resources.PersonResource
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.resources.PersonResource.__init__
+```
+
+````{py:attribute} orcid
+:canonical: fairdm.contrib.contributors.resources.PersonResource.orcid
+:value: >
+   'Field(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.resources.PersonResource.orcid
+```
+
+````
+
+````{py:attribute} ror_id
+:canonical: fairdm.contrib.contributors.resources.PersonResource.ror_id
+:value: >
+   'Field(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.resources.PersonResource.ror_id
+```
+
+````
+
+````{py:attribute} affiliation
+:canonical: fairdm.contrib.contributors.resources.PersonResource.affiliation
+:value: >
+   'Field(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.resources.PersonResource.affiliation
+```
+
+````
+
+````{py:attribute} uuid
+:canonical: fairdm.contrib.contributors.resources.PersonResource.uuid
+:value: >
+   'Field(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.resources.PersonResource.uuid
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.contrib.contributors.resources.PersonResource.Meta
+
+```{autodoc2-docstring} fairdm.contrib.contributors.resources.PersonResource.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.contributors.resources.PersonResource.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.resources.PersonResource.Meta.model
+```
+
+````
+
+````{py:attribute} import_id_fields
+:canonical: fairdm.contrib.contributors.resources.PersonResource.Meta.import_id_fields
+:value: >
+   ['uuid']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.resources.PersonResource.Meta.import_id_fields
+```
+
+````
+
+````{py:attribute} skip_unchanged
+:canonical: fairdm.contrib.contributors.resources.PersonResource.Meta.skip_unchanged
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.contrib.contributors.resources.PersonResource.Meta.skip_unchanged
+```
+
+````
+
+````{py:attribute} use_transactions
+:canonical: fairdm.contrib.contributors.resources.PersonResource.Meta.use_transactions
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.contrib.contributors.resources.PersonResource.Meta.use_transactions
+```
+
+````
+
+````{py:attribute} skip_admin_log
+:canonical: fairdm.contrib.contributors.resources.PersonResource.Meta.skip_admin_log
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.contrib.contributors.resources.PersonResource.Meta.skip_admin_log
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.contrib.contributors.resources.PersonResource.Meta.fields
+:value: >
+   ('uuid', 'name', 'first_name', 'last_name', 'orcid', 'ror_id', 'affiliation')
+
+```{autodoc2-docstring} fairdm.contrib.contributors.resources.PersonResource.Meta.fields
+```
+
+````
+
+`````
+
+````{py:method} after_save_instance(instance, row, **kwargs)
+:canonical: fairdm.contrib.contributors.resources.PersonResource.after_save_instance
+
+```{autodoc2-docstring} fairdm.contrib.contributors.resources.PersonResource.after_save_instance
+```
+
+````
+
+````{py:method} get_instance(instance_loader, row)
+:canonical: fairdm.contrib.contributors.resources.PersonResource.get_instance
+
+```{autodoc2-docstring} fairdm.contrib.contributors.resources.PersonResource.get_instance
+```
+
+````
+
+``````

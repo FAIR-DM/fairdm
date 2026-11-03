@@ -1,0 +1,53 @@
+# {py:mod}`fairdm.conf.setup`
+
+```{py:module} fairdm.conf.setup
+```
+
+```{autodoc2-docstring} fairdm.conf.setup
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`setup <fairdm.conf.setup.setup>`
+  - ```{autodoc2-docstring} fairdm.conf.setup.setup
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`logger <fairdm.conf.setup.logger>`
+  - ```{autodoc2-docstring} fairdm.conf.setup.logger
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} logger
+:canonical: fairdm.conf.setup.logger
+:value: >
+   'getLogger(...)'
+
+```{autodoc2-docstring} fairdm.conf.setup.logger
+```
+
+````
+
+````{py:function} setup(apps: list[str] | None = None, addons: list[str] | None = None, base_dir: pathlib.Path | None = None, env_file: str | None = None) -> None
+:canonical: fairdm.conf.setup.setup
+
+```{autodoc2-docstring} fairdm.conf.setup.setup
+```
+````

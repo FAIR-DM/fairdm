@@ -1,0 +1,31 @@
+# {py:mod}`fairdm.contrib.contributors.utils.audit`
+
+```{py:module} fairdm.contrib.contributors.utils.audit
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.audit
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`log_claiming_event <fairdm.contrib.contributors.utils.audit.log_claiming_event>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.audit.log_claiming_event
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} log_claiming_event(method: str, source: fairdm.contrib.contributors.models.Person | None, target: fairdm.contrib.contributors.models.Person | None, initiated_by: fairdm.contrib.contributors.models.Person | None = None, ip_address: str | None = None, success: bool = True, failure_reason: str = '', details: dict[str, typing.Any] | None = None)
+:canonical: fairdm.contrib.contributors.utils.audit.log_claiming_event
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.audit.log_claiming_event
+```
+````

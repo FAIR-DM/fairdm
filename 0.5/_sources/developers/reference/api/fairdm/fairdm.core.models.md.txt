@@ -1,0 +1,8 @@
+# {py:mod}`fairdm.core.models`
+
+```{py:module} fairdm.core.models
+```
+
+```{autodoc2-docstring} fairdm.core.models
+:allowtitles:
+```
