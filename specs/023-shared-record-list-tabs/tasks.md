@@ -128,3 +128,24 @@ The page around the table, the overview links, records of an unregistered type, 
   sixty records issue the same number of queries.
 - [ ] T023 [US3] `fairdm/contrib/collections/plugins.py`: register on `Contributor`; scope and
   viewer per plan D2. Docs from T017 extended to contributors.
+
+## Phase 4: fixes from the code review
+
+- [ ] T026 [US1] The dataset overview's "Data types" empty card is drawn only for a viewer who may
+  see the dataset's records. Test: a visitor to an empty and to a non-empty public unpublished
+  dataset gets neither the card nor its text; it fails with the guard removed.
+- [ ] T027 [US1] `docs/explanation/how-access-to-a-record-is-decided.md` states the current rule for
+  an unpublished dataset's counts, charts and spatial coverage. Two corrections to
+  `docs/developers/reference/plugins.md`: the dataset check names the portal-wide right, and the
+  contributor row says released records except on a person's own page.
+- [ ] T028 [US3] A person's own empty tab uses the wording addressed to them: `own_page` reaches the
+  template. Wording only, no test.
+- [ ] T029 [US1] Sorting by sample orders only the rows whose sample the viewer may open by name;
+  hidden rows keep the stable tie-break order in both directions. Test: two hidden samples whose
+  names and row keys run opposite ways give the same hidden-block order under both sort directions.
+- [ ] T030 [US1] `ScopedChoicesMixin.applied_to` returns the same class for the same filter set; the
+  dropped filters, the scope and the owner reach it through the filter set's constructor. Test: two
+  calls for one type return the same class.
+- [ ] T031 [US1] The type switcher opens from the keyboard with Enter and Space, and is named for
+  assistive technology (FR-020). Test: the trigger is a focusable control with an accessible name and
+  the menu it controls; the keyboard behaviour is checked in a browser and recorded.
