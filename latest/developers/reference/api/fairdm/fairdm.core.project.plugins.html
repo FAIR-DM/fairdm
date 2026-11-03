@@ -1144,9 +1144,10 @@ menu.</p>
 403 or a sign-in redirect would confirm the record exists.</p>
 <p>The page is a landing page, read by someone deciding whether the data is usable to them,
 someone who has to cite the project and the team keeping the record complete. Everything on it
-is derived from the project’s own records. A visitor’s counts are taken over the project’s
-public datasets only, and the samples and measurements beneath them; a member of the team sees
-everything, with the private share called out.</p>
+is derived from the project’s own records, counted through <code class="docutils literal notranslate"><span class="pre">visible_to</span></code>: the datasets, samples
+and measurements the viewer may see, so the figures always equal the Samples and Measurements
+tabs. A visitor, a member of a private dataset and the project’s team each see their own share,
+with the private share called out for the team.</p>
 <p>Attributes:
 dataset_preview: How many datasets the page lists before it hands over to the Datasets
 page.
@@ -1195,8 +1196,7 @@ keyword arguments, and other things.</p>
 <dt class="sig sig-object py" id="fairdm.core.project.plugins.Overview.get_context_data">
 <span class="sig-name descname"><span class="pre">get_context_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.project.plugins.Overview.get_context_data" title="Link to this definition">#</a></dt>
 <dd><p>Add the project and everything the overview page draws.</p>
-<p>The datasets counted are the project’s public ones for a visitor and every one for the
-team, and the samples and measurements are those beneath them.</p>
+<p>The datasets, samples and measurements counted are those the viewer may see.</p>
 </dd></dl>
 
 <dl class="py method">

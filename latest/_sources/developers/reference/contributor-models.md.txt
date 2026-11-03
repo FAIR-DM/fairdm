@@ -51,6 +51,7 @@ Every class below is imported from `fairdm.contrib.contributors.models` unless a
 | `credited_object_ids(base_model)` | A values queryset of ids | The ids of the contributor's credits on `base_model` or one of its subclasses |
 | `get_public_projects()` | Queryset | The public projects the contributor is credited on. `Organization` adds the ones it owns |
 | `get_public_datasets()` | Queryset | The public datasets the contributor is credited on, outside private projects. `Organization` adds the ones in its projects |
+| `get_associated_records(base_model)` | Queryset | The samples or measurements that belong on the contributor's page: those credited to it, those in a dataset credited to it and those in a dataset of a project credited to it, none twice. Private datasets are included, so the caller narrows the list with `visible_to`. `Organization` adds the records of datasets in the projects it owns, and not its members' records |
 | `get_credit_totals()` | `list` of `dict` | The number of credits for each credited model, each with the model's `singular` and `plural` verbose names and the `count` |
 | `get_credit_counts()` | `dict` | The number of credits for each credited model, keyed by the model's plural verbose name |
 | `get_visible_contributions(user)` | `list` of `Contribution` | The credits a profile may name, newest first. A project or dataset counts when it is one of the two public lists above. A sample or measurement counts when `visible_to(user)` lets the user see it and its dataset's project, if it has one, is public. Each credit carries `kind` (`project`, `dataset`, `sample` or `measurement`). Projects and datasets also carry `record` |
@@ -186,6 +187,7 @@ An anonymous visitor, a superuser and the holder of any other portal role get no
 | `get_hierarchy()` | `dict` | `parent` (or `None`), `siblings` (the parent's sub-organizations by name, this one included, empty without a parent) and `children` (the direct sub-organizations by name) |
 | `get_public_projects()` | Queryset | The public projects the organization owns or is credited on, none twice |
 | `get_public_datasets()` | Queryset | The public datasets the organization is credited on or that sit in its projects, none twice. A dataset in a private project is left out |
+| `get_associated_records(base_model)` | Queryset | The records of `Contributor.get_associated_records` and those of every dataset in a project the organization owns |
 | `get_record_completeness()` | `dict` | A flag for each of `ror`, `image`, `type`, `location` (needs a city and a country), `profile` and `links` |
 | `get_location_display()` | `str` or `None` | The city and country |
 | `summary` | `str` property | The type and place joined by a middle dot, or `""` |

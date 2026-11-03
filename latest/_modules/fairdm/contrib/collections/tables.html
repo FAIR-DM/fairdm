@@ -1284,9 +1284,12 @@ window.runMermaid = runMermaid;</script>
 <a class="viewcode-back" href="../../../../developers/reference/api/fairdm/fairdm.contrib.collections.tables.html#fairdm.contrib.collections.tables.BaseTable.update_concept_field_render_methods">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update_concept_field_render_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Render concept many-to-many columns as links."""</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">model</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
         <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">field</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">accessor</span><span class="p">)</span>
+                <span class="n">field</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">accessor</span><span class="p">)</span>
             <span class="k">except</span> <span class="n">FieldDoesNotExist</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">MultiConceptField</span><span class="p">):</span>

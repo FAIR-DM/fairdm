@@ -1383,6 +1383,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </pre></div>
 </div>
 <p>The namespace is the lowercase model name. <code class="docutils literal notranslate"><span class="pre">get_urls_for_model</span></code> also builds the record type’s navigation menu, so register the plugins before the URL configuration is imported.</p>
+<p>A plugin’s tab is marked as the current page on every address the plugin mounts: its own, each additional view’s, and any extra pattern its <code class="docutils literal notranslate"><span class="pre">get_urls</span></code> adds.</p>
 </section>
 </section>
 <section id="the-registry">
@@ -1533,6 +1534,131 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><p>two <code class="docutils literal notranslate"><span class="pre">extra_views</span></code> entries claim the same segment</p></li>
 </ul>
 </section>
+<section id="samples-and-measurements-tabs">
+<h2>Samples and Measurements tabs<a class="headerlink" href="#samples-and-measurements-tabs" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">fairdm.contrib.collections.plugins</span></code> registers two plugins, <code class="docutils literal notranslate"><span class="pre">Samples</span></code> and <code class="docutils literal notranslate"><span class="pre">Measurements</span></code>. Both
+subclass <code class="docutils literal notranslate"><span class="pre">RecordsTab</span></code>, a <code class="docutils literal notranslate"><span class="pre">Plugin</span></code> that is also a table view, and have the <code class="docutils literal notranslate"><span class="pre">url_path</span></code> values
+<code class="docutils literal notranslate"><span class="pre">samples</span></code> and <code class="docutils literal notranslate"><span class="pre">measurements</span></code> at orders 300 and 400. Each lists the samples or the measurements
+of the record whose page it is on, one registered type at a time.</p>
+<section id="pages-and-records">
+<h3>Pages and records<a class="headerlink" href="#pages-and-records" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Page</p></th>
+<th class="head"><p>Registered</p></th>
+<th class="head"><p>Records the tab lists</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Dataset</p></td>
+<td><p>Yes</p></td>
+<td><p>The samples or measurements of the dataset that the viewer may see</p></td>
+</tr>
+<tr class="row-odd"><td><p>Project</p></td>
+<td><p>Yes</p></td>
+<td><p>The samples or measurements of any of the project’s datasets that the viewer may see</p></td>
+</tr>
+<tr class="row-even"><td><p>Contributor</p></td>
+<td><p>Yes</p></td>
+<td><p>The samples or measurements credited to the contributor, or beneath a dataset or project credited to them: the released ones, unless it is the person’s own page, where the viewer sees what they hold a level on as well. One registration covers <code class="docutils literal notranslate"><span class="pre">Person</span></code> and <code class="docutils literal notranslate"><span class="pre">Organization</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">RecordsTab.scope()</span></code> returns every record of the kind that belongs to the page’s record, and
+<code class="docutils literal notranslate"><span class="pre">visible_records()</span></code> narrows it with <code class="docutils literal notranslate"><span class="pre">visible_to(viewer)</span></code>, where <code class="docutils literal notranslate"><span class="pre">viewer()</span></code> is the request’s user. <code class="docutils literal notranslate"><span class="pre">holder</span></code> names the kind of page,
+<code class="docutils literal notranslate"><span class="pre">&quot;dataset&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;project&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;contributor&quot;</span></code>, from the model the mount was registered for, and
+<code class="docutils literal notranslate"><span class="pre">scope()</span></code> follows it. A contributor’s scope is <code class="docutils literal notranslate"><span class="pre">Contributor.get_associated_records(base_model)</span></code>,
+described in <a class="reference internal" href="contributor-models.html"><span class="std std-doc">Contributor models</span></a>. A page that gains the tabs registers the plugins for its model and extends <code class="docutils literal notranslate"><span class="pre">scope()</span></code>. A
+measurement belongs to its own dataset, which can differ from its sample’s dataset: a project’s
+Measurements tab lists a measurement made on a sample of another project, and that sample is not on
+the project’s Samples tab.</p>
+<p>The check is <code class="docutils literal notranslate"><span class="pre">records_are_offered</span></code>, which hands a dataset to <code class="docutils literal notranslate"><span class="pre">dataset_records_visible</span></code>, beside
+<code class="docutils literal notranslate"><span class="pre">dataset_is_visible</span></code> in <code class="docutils literal notranslate"><span class="pre">fairdm.core.dataset.plugins</span></code>, and a project to <code class="docutils literal notranslate"><span class="pre">project_is_visible</span></code>. A
+dataset’s check holds when the dataset’s overview opens for the viewer and so do its records: the
+dataset is published and no private project hides it, or the viewer holds a level on the dataset or
+its project, or the portal-wide right to view datasets (<code class="docutils literal notranslate"><span class="pre">dataset.view_dataset</span></code>). For anyone else the tab is not offered and its address answers 404.</p>
+<p>A contributor’s tabs are offered to everyone, as the contributor’s overview is. <code class="docutils literal notranslate"><span class="pre">viewer()</span></code> returns
+<code class="docutils literal notranslate"><span class="pre">None</span></code> on a contributor’s page, so only records released to everyone are listed, unless a person
+looks at their own page (<code class="docutils literal notranslate"><span class="pre">is_own_page()</span></code>). Then it returns that person, who also sees the records
+they hold a level on. An organization’s page always lists released records only, even for a member
+of a dataset’s team. An organization is never “the viewer”, so what it is credited on in a private
+dataset is not listed.</p>
+<p>A project’s tabs are offered to anyone who may open the project, and a private project answers 404
+to everyone else. What a project’s datasets hold is decided row by row, so a viewer who may see none
+of them gets the same <code class="docutils literal notranslate"><span class="pre">&quot;empty&quot;</span></code> page as a project with no records.</p>
+</section>
+<section id="types-and-the-address">
+<h3>Types and the address<a class="headerlink" href="#types-and-the-address" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">type_counts(queryset)</span></code> counts a queryset’s records per registered type, most numerous first, and
+returns a list of <code class="docutils literal notranslate"><span class="pre">RecordType</span></code> entries. Each carries the model, its registry configuration, the
+count the viewer may see and the slug that names it in the address. The tab lists the most
+numerous type unless the address names another:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Address</p></th>
+<th class="head"><p>Lists</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">…/samples/</span></code></p></td>
+<td><p>The most numerous sample type</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">…/samples/&lt;slug&gt;/</span></code></p></td>
+<td><p>The type with that slug. It has the tab’s own URL name, reversed with a <code class="docutils literal notranslate"><span class="pre">type</span></code> argument, so the tab strip marks the tab there too. 404 when the type is not listed</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Records of a type that is no longer registered are listed under one more entry, <code class="docutils literal notranslate"><span class="pre">FallbackType</span></code>,
+with the slug <code class="docutils literal notranslate"><span class="pre">other</span></code>. It carries <code class="docutils literal notranslate"><span class="pre">SampleTable</span></code> or <code class="docutils literal notranslate"><span class="pre">MeasurementTable</span></code>, <code class="docutils literal notranslate"><span class="pre">SampleFilter</span></code> or
+<code class="docutils literal notranslate"><span class="pre">MeasurementFilter</span></code> and the plural name of the base model, and is offered only when such records
+exist.</p>
+<p>A tab with nothing to list builds no table and no filter set. Its table is <code class="docutils literal notranslate"><span class="pre">NoRecords</span></code>, which has
+no columns, and <code class="docutils literal notranslate"><span class="pre">KindName</span></code> stands in for the registry configuration so the page can still name the
+kind. The page answers 200 and <code class="docutils literal notranslate"><span class="pre">record_state</span></code> is <code class="docutils literal notranslate"><span class="pre">&quot;empty&quot;</span></code> in its context. The context also holds
+<code class="docutils literal notranslate"><span class="pre">type_entries</span></code>, one dict per listed type with its name, address and count, <code class="docutils literal notranslate"><span class="pre">kind</span></code> and <code class="docutils literal notranslate"><span class="pre">holder</span></code>.</p>
+</section>
+<section id="columns-filters-and-search">
+<h3>Columns, filters and search<a class="headerlink" href="#columns-filters-and-search" title="Link to this heading">#</a></h3>
+<p>The table is the one generated for the type’s registration, so the tab and the portal-wide listing
+of that type show the same columns. The filter set and the search come from the registration in the
+same way: <code class="docutils literal notranslate"><span class="pre">ModelConfiguration.get_table_class()</span></code> and <code class="docutils literal notranslate"><span class="pre">get_filterset_class()</span></code>, and the <code class="docutils literal notranslate"><span class="pre">q</span></code> filter
+that <code class="docutils literal notranslate"><span class="pre">search_fields</span></code> builds. The tab then changes four things:</p>
+<ul class="simple">
+<li><p>The first columns are the record’s name and, on measurements, <code class="docutils literal notranslate"><span class="pre">SampleColumn</span></code>. It links a sample
+only where the viewer may open it and shows a dash otherwise, and it orders the samples the viewer
+may not open as one block after the named ones.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DatasetColumn</span></code> names a record’s dataset and links it where the viewer may open it. A project’s
+and a contributor’s tabs add it right after the name, as <code class="docutils literal notranslate"><span class="pre">dataset_name</span></code>. A dataset’s own tab does not.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">StableOrderData</span></code> ends every ordering with the primary key, so a page never repeats a row.</p></li>
+<li><p>Fifty rows are shown to a page.</p></li>
+</ul>
+<p>The filter set’s choices are scoped as on the portal-wide listings, through
+<code class="docutils literal notranslate"><span class="pre">PublishedChoicesMixin</span></code>. <code class="docutils literal notranslate"><span class="pre">RecordsTab.get_filterset()</span></code> then changes two things on the filter set it
+builds:</p>
+<ul class="simple">
+<li><p>On a dataset’s own tab the <code class="docutils literal notranslate"><span class="pre">dataset</span></code> filter is removed, since every row is in that dataset.</p></li>
+<li><p>The dataset and sample filters of a registered type search records through the autocomplete. On a
+dataset’s and a project’s tabs they search at scope <code class="docutils literal notranslate"><span class="pre">&quot;view&quot;</span></code>, the records the viewer may see. On
+a person’s own page they search that person’s records, and on every other contributor’s page the
+public ones.</p></li>
+</ul>
+</section>
+<section id="the-overviews">
+<h3>The overviews<a class="headerlink" href="#the-overviews" title="Link to this heading">#</a></h3>
+<p>The dataset’s and the project’s overviews count their records with <code class="docutils literal notranslate"><span class="pre">visible_to</span></code>, so their Samples
+and Measurements figures, which link to the tabs, always equal the tabs’ totals. A project’s
+Datasets figure counts the datasets the viewer may see, so a member of a private dataset counts it
+and a visitor does not. On a dataset whose records the viewer may not see, the figures, the
+composition and growth charts and the spatial coverage are left out of the page.</p>
+</section>
+<section id="development-data">
+<h3>Development data<a class="headerlink" href="#development-data" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">RecordListSeed</span></code> creates the data behind every state of the tabs. Run <code class="docutils literal notranslate"><span class="pre">seed_record_lists</span></code>, which
+<a class="reference internal" href="management-commands.html"><span class="std std-doc">Management commands</span></a> describes.</p>
+</section>
+</section>
 <section id="subclassing">
 <h2>Subclassing<a class="headerlink" href="#subclassing" title="Link to this heading">#</a></h2>
 <p>A plugin is an ordinary class. A package can ship a plugin without registering it, and a portal registers a subclass:</p>
@@ -1549,6 +1675,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><p><a class="reference internal" href="../how-to/restrict-a-plugin-to-some-users.html"><span class="std std-doc">How to restrict a plugin to some users</span></a></p></li>
 <li><p><a class="reference internal" href="../how-to/add-pages-to-a-plugin.html"><span class="std std-doc">How to add pages to a plugin</span></a></p></li>
 <li><p><a class="reference internal" href="overview-plugins.html"><span class="std std-doc">Overview plugins</span></a> for the plugins that draw the record pages</p></li>
+<li><p><a class="reference internal" href="../../users/datasets/browse-samples-and-measurements.html"><span class="std std-doc">Browse samples and measurements</span></a> for the pages as a visitor sees them</p></li>
 <li><p><a class="reference internal" href="record-editing-pages.html"><span class="std std-doc">Record editing pages</span></a> for the shared pages that edit and delete a record</p></li>
 </ul>
 </section>
@@ -1629,6 +1756,14 @@ commentsRunWhenDOMLoaded(addUtterances);
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#mixins">Mixins</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pluginregistrationerror"><code class="docutils literal notranslate"><span class="pre">PluginRegistrationError</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#samples-and-measurements-tabs">Samples and Measurements tabs</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pages-and-records">Pages and records</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#types-and-the-address">Types and the address</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#columns-filters-and-search">Columns, filters and search</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-overviews">The overviews</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#development-data">Development data</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#subclassing">Subclassing</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#related-pages">Related pages</a></li>
 </ul>

@@ -31,6 +31,10 @@
   - ```{autodoc2-docstring} fairdm.core.dataset.plugins.dataset_is_visible
     :summary:
     ```
+* - {py:obj}`dataset_records_visible <fairdm.core.dataset.plugins.dataset_records_visible>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.plugins.dataset_records_visible
+    :summary:
+    ```
 ````
 
 ### Data
@@ -61,6 +65,13 @@
 :canonical: fairdm.core.dataset.plugins.dataset_is_visible
 
 ```{autodoc2-docstring} fairdm.core.dataset.plugins.dataset_is_visible
+```
+````
+
+````{py:function} dataset_records_visible(request, obj)
+:canonical: fairdm.core.dataset.plugins.dataset_records_visible
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.dataset_records_visible
 ```
 ````
 

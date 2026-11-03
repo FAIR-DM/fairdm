@@ -1271,59 +1271,63 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p>Queryset</p></td>
 <td><p>The public datasets the contributor is credited on, outside private projects. <code class="docutils literal notranslate"><span class="pre">Organization</span></code> adds the ones in its projects</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_credit_totals()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_associated_records(base_model)</span></code></p></td>
+<td><p>Queryset</p></td>
+<td><p>The samples or measurements that belong on the contributor’s page: those credited to it, those in a dataset credited to it and those in a dataset of a project credited to it, none twice. Private datasets are included, so the caller narrows the list with <code class="docutils literal notranslate"><span class="pre">visible_to</span></code>. <code class="docutils literal notranslate"><span class="pre">Organization</span></code> adds the records of datasets in the projects it owns, and not its members’ records</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_credit_totals()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">list</span></code> of <code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
 <td><p>The number of credits for each credited model, each with the model’s <code class="docutils literal notranslate"><span class="pre">singular</span></code> and <code class="docutils literal notranslate"><span class="pre">plural</span></code> verbose names and the <code class="docutils literal notranslate"><span class="pre">count</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_credit_counts()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_credit_counts()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
 <td><p>The number of credits for each credited model, keyed by the model’s plural verbose name</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_visible_contributions(user)</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_visible_contributions(user)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">list</span></code> of <code class="docutils literal notranslate"><span class="pre">Contribution</span></code></p></td>
 <td><p>The credits a profile may name, newest first. A project or dataset counts when it is one of the two public lists above. A sample or measurement counts when <code class="docutils literal notranslate"><span class="pre">visible_to(user)</span></code> lets the user see it and its dataset’s project, if it has one, is public. Each credit carries <code class="docutils literal notranslate"><span class="pre">kind</span></code> (<code class="docutils literal notranslate"><span class="pre">project</span></code>, <code class="docutils literal notranslate"><span class="pre">dataset</span></code>, <code class="docutils literal notranslate"><span class="pre">sample</span></code> or <code class="docutils literal notranslate"><span class="pre">measurement</span></code>). Projects and datasets also carry <code class="docutils literal notranslate"><span class="pre">record</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_role_counts(contributions=None)</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_role_counts(contributions=None)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Counter</span></code></p></td>
 <td><p>The number of credits each contribution role is held on, keyed by label. Counts every credit when <code class="docutils literal notranslate"><span class="pre">contributions</span></code> is omitted</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_recent_contributions(limit=5)</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_recent_contributions(limit=5)</span></code></p></td>
 <td><p>Queryset slice</p></td>
 <td><p>The newest credits</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_contributions_by_type(model_name)</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_contributions_by_type(model_name)</span></code></p></td>
 <td><p>Queryset</p></td>
 <td><p>The credits on one model, such as <code class="docutils literal notranslate"><span class="pre">&quot;project&quot;</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">has_contribution_to(obj)</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">has_contribution_to(obj)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></td>
 <td><p>Whether the contributor is credited on <code class="docutils literal notranslate"><span class="pre">obj</span></code>, whichever class <code class="docutils literal notranslate"><span class="pre">obj</span></code> was loaded as</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_collaborators(limit=None,</span> <span class="pre">contributions=None)</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_collaborators(limit=None,</span> <span class="pre">contributions=None)</span></code></p></td>
 <td><p>Queryset</p></td>
 <td><p>The other contributors credited on the same records, most frequent first and ties by name. Each carries <code class="docutils literal notranslate"><span class="pre">collaboration_count</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">add_to(obj,</span> <span class="pre">roles=None)</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">add_to(obj,</span> <span class="pre">roles=None)</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">Contribution</span></code></p></td>
 <td><p>Credits the contributor on <code class="docutils literal notranslate"><span class="pre">obj</span></code>, adding <code class="docutils literal notranslate"><span class="pre">roles</span></code> (addresses of contributor roles) to any credit already there. A person credited for the first time starts at the view level. An organization has no level</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_links_display()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_links_display()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">list</span></code> of <code class="docutils literal notranslate"><span class="pre">{&quot;url&quot;,</span> <span class="pre">&quot;host&quot;}</span></code></p></td>
 <td><p>One entry for each <code class="docutils literal notranslate"><span class="pre">http</span></code> or <code class="docutils literal notranslate"><span class="pre">https</span></code> link, in the order recorded. Other links are left out</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_language_names()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_language_names()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">list</span></code> of <code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
 <td><p>The names of the recorded languages in the active language. An unknown code is kept as written</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">to_datacite()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">to_datacite()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
 <td><p>The contributor as a DataCite creator or contributor object</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">to_schema_org()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">to_schema_org()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
 <td><p>The contributor as a Schema.org <code class="docutils literal notranslate"><span class="pre">Person</span></code> or <code class="docutils literal notranslate"><span class="pre">Organization</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">to_public_schema_org()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">to_public_schema_org()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">to_schema_org()</span></code> without the email address</p></td>
 </tr>
@@ -1681,27 +1685,31 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p>Queryset</p></td>
 <td><p>The public datasets the organization is credited on or that sit in its projects, none twice. A dataset in a private project is left out</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_record_completeness()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_associated_records(base_model)</span></code></p></td>
+<td><p>Queryset</p></td>
+<td><p>The records of <code class="docutils literal notranslate"><span class="pre">Contributor.get_associated_records</span></code> and those of every dataset in a project the organization owns</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_record_completeness()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">dict</span></code></p></td>
 <td><p>A flag for each of <code class="docutils literal notranslate"><span class="pre">ror</span></code>, <code class="docutils literal notranslate"><span class="pre">image</span></code>, <code class="docutils literal notranslate"><span class="pre">type</span></code>, <code class="docutils literal notranslate"><span class="pre">location</span></code> (needs a city and a country), <code class="docutils literal notranslate"><span class="pre">profile</span></code> and <code class="docutils literal notranslate"><span class="pre">links</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_location_display()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_location_display()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">str</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
 <td><p>The city and country</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">summary</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">summary</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">str</span></code> property</p></td>
 <td><p>The type and place joined by a middle dot, or <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_initials()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_initials()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
 <td><p>The leading acronym when the name starts with one (<code class="docutils literal notranslate"><span class="pre">&quot;GFZ</span> <span class="pre">Helmholtz</span> <span class="pre">Centre&quot;</span></code> gives <code class="docutils literal notranslate"><span class="pre">&quot;GFZ&quot;</span></code>), else up to two capital letters</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">as_geojson()</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">as_geojson()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">str</span></code> or <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
 <td><p>A GeoJSON feature for <code class="docutils literal notranslate"><span class="pre">location</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">icon()</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">icon()</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&quot;organization&quot;</span></code></p></td>
 </tr>

@@ -1271,7 +1271,7 @@ uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </sp
 <section id="demo-project-commands">
 <h2>Demo project commands<a class="headerlink" href="#demo-project-commands" title="Link to this heading">#</a></h2>
 <p>The commands below belong to the demo project in the FairDM repository, in <code class="docutils literal notranslate"><span class="pre">demo/management/commands/</span></code>. A portal built on FairDM does not have them. They load development data for the demo’s screens.</p>
-<p>All four refuse to run, and create nothing, when the resolved environment is not <code class="docutils literal notranslate"><span class="pre">development</span></code>. They sign in through accounts whose password is published, which is why.</p>
+<p>All five refuse to run, and create nothing, when the resolved environment is not <code class="docutils literal notranslate"><span class="pre">development</span></code>. They sign in through accounts whose password is published, which is why.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Command</p></th>
@@ -1292,7 +1292,11 @@ uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </sp
 <td><p><code class="docutils literal notranslate"><span class="pre">--keep-records</span></code></p></td>
 <td><p>Seeds every state of a record’s Contributors tab on a project, a dataset, a sample and a measurement</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">seed_record_search</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">seed_record_lists</span></code></p></td>
+<td><p>None</p></td>
+<td><p>Seeds a dataset with several sample and measurement types, one that is public but not published, a private one and an empty one, a measurement on another dataset’s sample, a project that owns them all, a private project, and credits on a project, a dataset, a sample and a measurement for <code class="docutils literal notranslate"><span class="pre">regular.user</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">seed_record_search</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">--large</span></code></p></td>
 <td><p>Seeds the records the record search fields are tried against. <code class="docutils literal notranslate"><span class="pre">--large</span></code> adds a public dataset of 100,000 samples</p></td>
 </tr>

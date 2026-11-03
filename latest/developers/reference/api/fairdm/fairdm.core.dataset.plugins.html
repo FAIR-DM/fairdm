@@ -1106,6 +1106,9 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.core.dataset.plugins.dataset_is_visible" title="fairdm.core.dataset.plugins.dataset_is_visible"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataset_is_visible</span></code></a></p></td>
 <td><p>Return whether the request’s user may view a dataset.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.core.dataset.plugins.dataset_records_visible" title="fairdm.core.dataset.plugins.dataset_records_visible"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dataset_records_visible</span></code></a></p></td>
+<td><p>Return whether the request’s user is offered a dataset’s Samples and Measurements tabs.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1144,6 +1147,21 @@ obj: The dataset, or <code class="docutils literal notranslate"><span class="pre
 True when the page may be shown.</p>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="fairdm.core.dataset.plugins.dataset_records_visible">
+<span class="sig-name descname"><span class="pre">dataset_records_visible</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.dataset.plugins.dataset_records_visible" title="Link to this definition">#</a></dt>
+<dd><p>Return whether the request’s user is offered a dataset’s Samples and Measurements tabs.</p>
+<p>The dataset’s overview opens for the viewer and so do its records: the dataset is published
+and no private project hides it, or the viewer holds a level on the dataset or its project,
+or a portal-wide right to view datasets. Anyone else is not offered the tabs, and their
+addresses answer 404.</p>
+<p>Args:
+request: The current request.
+obj: The dataset, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when no record has been resolved.</p>
+<p>Returns:
+True when the tabs may be shown.</p>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="fairdm.core.dataset.plugins.Overview">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Overview</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.dataset.plugins.Overview" title="Link to this definition">#</a></dt>
@@ -1155,8 +1173,10 @@ menu.</p>
 what it is, whether its data is published, what it holds and how it grew, when each step of its
 life happened, how to cite it and who made it. Two gates decide what a visitor sees.
 Visibility governs the page and <code class="docutils literal notranslate"><span class="pre">published</span></code> governs the records, so a public, unpublished
-dataset shows its description, its counts and its charts to everyone. The page lists no
-record. Nothing here is written for a particular portal’s types.</p>
+dataset shows its description to everyone but its counts, charts and spatial coverage only to
+those who may see its records. Everything drawn from the records is counted through
+<code class="docutils literal notranslate"><span class="pre">visible_to</span></code>, so the figures always equal the Samples and Measurements tabs. The page
+lists no record. Nothing here is written for a particular portal’s types.</p>
 <p>Attributes:
 bookkeeping_fields: Fields every record carries that say nothing about its data.</p>
 <p class="rubric">Initialization</p>
@@ -1327,8 +1347,8 @@ how many <code class="docutils literal notranslate"><span class="pre">creators</
 <dt class="sig sig-object py" id="fairdm.core.dataset.plugins.Overview.get_schema_org">
 <span class="sig-name descname"><span class="pre">get_schema_org</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.dataset.plugins.Overview.get_schema_org" title="Link to this definition">#</a></dt>
 <dd><p>Describe the dataset as schema.org <code class="docutils literal notranslate"><span class="pre">Dataset</span></code>, the shape harvesters read.</p>
-<p>It names the variables measured and never their values, so it carries nothing a visitor
-could not read on the page.</p>
+<p>It names the variables measured and never their values. The variables are those of the
+records the viewer may see, so a viewer who may not see the records gets none.</p>
 <p>Args:
 page: The page context gathered so far.</p>
 <p>Returns:
@@ -1409,6 +1429,7 @@ many required ones are missing.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#api">API</a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.plugins.DATASET_SETTINGS"><code class="docutils literal notranslate"><span class="pre">DATASET_SETTINGS</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.plugins.dataset_is_visible"><code class="docutils literal notranslate"><span class="pre">dataset_is_visible()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.plugins.dataset_records_visible"><code class="docutils literal notranslate"><span class="pre">dataset_records_visible()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.plugins.Overview"><code class="docutils literal notranslate"><span class="pre">Overview</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.plugins.Overview.url_path"><code class="docutils literal notranslate"><span class="pre">Overview.url_path</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.plugins.Overview.model"><code class="docutils literal notranslate"><span class="pre">Overview.model</span></code></a></li>

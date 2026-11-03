@@ -1285,7 +1285,8 @@ builds a filter on those two core mixins keeps their behaviour.</p>
 <span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">applied_to</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filterset_class</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="fairdm.api.filters.html#fairdm.api.filters.OrganizationFilterSet.type" title="fairdm.api.filters.OrganizationFilterSet.type"><span class="pre">type</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="fairdm.api.filters.html#fairdm.api.filters.OrganizationFilterSet.type" title="fairdm.api.filters.OrganizationFilterSet.type"><span class="pre">type</span></a></span></span><a class="headerlink" href="#fairdm.registry.factories.PublishedChoicesMixin.applied_to" title="Link to this definition">#</a></dt>
 <dd><p>Put this mixin in front of a filter set, unless it is already there.</p>
 <p>Idempotent, because a listing resolves its filter set on every request and a
-fresh subclass per request would leak classes.</p>
+fresh subclass per request would leak classes. What differs between requests
+goes through the constructor.</p>
 <p>Args:
 filterset_class: The filter set to scope.</p>
 <p>Returns:

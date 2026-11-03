@@ -144,6 +144,8 @@ urlpatterns = [
 
 The namespace is the lowercase model name. `get_urls_for_model` also builds the record type's navigation menu, so register the plugins before the URL configuration is imported.
 
+A plugin's tab is marked as the current page on every address the plugin mounts: its own, each additional view's, and any extra pattern its `get_urls` adds.
+
 ## The registry
 
 ```python
@@ -260,6 +262,107 @@ A registration is refused when:
 - an `extra_views` entry has `url_path = None`
 - two `extra_views` entries claim the same segment
 
+## Samples and Measurements tabs
+
+`fairdm.contrib.collections.plugins` registers two plugins, `Samples` and `Measurements`. Both
+subclass `RecordsTab`, a `Plugin` that is also a table view, and have the `url_path` values
+`samples` and `measurements` at orders 300 and 400. Each lists the samples or the measurements
+of the record whose page it is on, one registered type at a time.
+
+### Pages and records
+
+| Page | Registered | Records the tab lists |
+|---|---|---|
+| Dataset | Yes | The samples or measurements of the dataset that the viewer may see |
+| Project | Yes | The samples or measurements of any of the project's datasets that the viewer may see |
+| Contributor | Yes | The samples or measurements credited to the contributor, or beneath a dataset or project credited to them: the released ones, unless it is the person's own page, where the viewer sees what they hold a level on as well. One registration covers `Person` and `Organization` |
+
+`RecordsTab.scope()` returns every record of the kind that belongs to the page's record, and
+`visible_records()` narrows it with `visible_to(viewer)`, where `viewer()` is the request's user. `holder` names the kind of page,
+`"dataset"`, `"project"` or `"contributor"`, from the model the mount was registered for, and
+`scope()` follows it. A contributor's scope is `Contributor.get_associated_records(base_model)`,
+described in [Contributor models](contributor-models.md). A page that gains the tabs registers the plugins for its model and extends `scope()`. A
+measurement belongs to its own dataset, which can differ from its sample's dataset: a project's
+Measurements tab lists a measurement made on a sample of another project, and that sample is not on
+the project's Samples tab.
+
+The check is `records_are_offered`, which hands a dataset to `dataset_records_visible`, beside
+`dataset_is_visible` in `fairdm.core.dataset.plugins`, and a project to `project_is_visible`. A
+dataset's check holds when the dataset's overview opens for the viewer and so do its records: the
+dataset is published and no private project hides it, or the viewer holds a level on the dataset or
+its project, or the portal-wide right to view datasets (`dataset.view_dataset`). For anyone else the tab is not offered and its address answers 404.
+
+A contributor's tabs are offered to everyone, as the contributor's overview is. `viewer()` returns
+`None` on a contributor's page, so only records released to everyone are listed, unless a person
+looks at their own page (`is_own_page()`). Then it returns that person, who also sees the records
+they hold a level on. An organization's page always lists released records only, even for a member
+of a dataset's team. An organization is never "the viewer", so what it is credited on in a private
+dataset is not listed.
+
+A project's tabs are offered to anyone who may open the project, and a private project answers 404
+to everyone else. What a project's datasets hold is decided row by row, so a viewer who may see none
+of them gets the same `"empty"` page as a project with no records.
+
+### Types and the address
+
+`type_counts(queryset)` counts a queryset's records per registered type, most numerous first, and
+returns a list of `RecordType` entries. Each carries the model, its registry configuration, the
+count the viewer may see and the slug that names it in the address. The tab lists the most
+numerous type unless the address names another:
+
+| Address | Lists |
+|---|---|
+| `…/samples/` | The most numerous sample type |
+| `…/samples/<slug>/` | The type with that slug. It has the tab's own URL name, reversed with a `type` argument, so the tab strip marks the tab there too. 404 when the type is not listed |
+
+Records of a type that is no longer registered are listed under one more entry, `FallbackType`,
+with the slug `other`. It carries `SampleTable` or `MeasurementTable`, `SampleFilter` or
+`MeasurementFilter` and the plural name of the base model, and is offered only when such records
+exist.
+
+A tab with nothing to list builds no table and no filter set. Its table is `NoRecords`, which has
+no columns, and `KindName` stands in for the registry configuration so the page can still name the
+kind. The page answers 200 and `record_state` is `"empty"` in its context. The context also holds
+`type_entries`, one dict per listed type with its name, address and count, `kind` and `holder`.
+
+### Columns, filters and search
+
+The table is the one generated for the type's registration, so the tab and the portal-wide listing
+of that type show the same columns. The filter set and the search come from the registration in the
+same way: `ModelConfiguration.get_table_class()` and `get_filterset_class()`, and the `q` filter
+that `search_fields` builds. The tab then changes four things:
+
+- The first columns are the record's name and, on measurements, `SampleColumn`. It links a sample
+  only where the viewer may open it and shows a dash otherwise, and it orders the samples the viewer
+  may not open as one block after the named ones.
+- `DatasetColumn` names a record's dataset and links it where the viewer may open it. A project's
+  and a contributor's tabs add it right after the name, as `dataset_name`. A dataset's own tab does not.
+- `StableOrderData` ends every ordering with the primary key, so a page never repeats a row.
+- Fifty rows are shown to a page.
+
+The filter set's choices are scoped as on the portal-wide listings, through
+`PublishedChoicesMixin`. `RecordsTab.get_filterset()` then changes two things on the filter set it
+builds:
+
+- On a dataset's own tab the `dataset` filter is removed, since every row is in that dataset.
+- The dataset and sample filters of a registered type search records through the autocomplete. On a
+  dataset's and a project's tabs they search at scope `"view"`, the records the viewer may see. On
+  a person's own page they search that person's records, and on every other contributor's page the
+  public ones.
+
+### The overviews
+
+The dataset's and the project's overviews count their records with `visible_to`, so their Samples
+and Measurements figures, which link to the tabs, always equal the tabs' totals. A project's
+Datasets figure counts the datasets the viewer may see, so a member of a private dataset counts it
+and a visitor does not. On a dataset whose records the viewer may not see, the figures, the
+composition and growth charts and the spatial coverage are left out of the page.
+
+### Development data
+
+`RecordListSeed` creates the data behind every state of the tabs. Run `seed_record_lists`, which
+[Management commands](management-commands.md) describes.
+
 ## Subclassing
 
 A plugin is an ordinary class. A package can ship a plugin without registering it, and a portal registers a subclass:
@@ -276,4 +379,5 @@ class Citations(CitationsPlugin):
 - [How to restrict a plugin to some users](../how-to/restrict-a-plugin-to-some-users.md)
 - [How to add pages to a plugin](../how-to/add-pages-to-a-plugin.md)
 - [Overview plugins](overview-plugins.md) for the plugins that draw the record pages
+- [Browse samples and measurements](../../users/datasets/browse-samples-and-measurements.md) for the pages as a visitor sees them
 - [Record editing pages](record-editing-pages.md) for the shared pages that edit and delete a record

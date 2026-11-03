@@ -1487,6 +1487,21 @@ A subclass that has more datasets to show overrides it.</p>
 The datasets, as a queryset.</p>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.models.Contributor.get_associated_records">
+<span class="sig-name descname"><span class="pre">get_associated_records</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.models.Contributor.get_associated_records" title="Link to this definition">#</a></dt>
+<dd><p>List the samples or measurements that belong on this contributor’s page.</p>
+<p>The records credited to the contributor directly, those in a dataset credited to
+them, and those in a dataset of a project credited to them. Nothing is filtered by who
+is looking, and private datasets are included: the caller narrows the list to what its
+viewer may see. A record that is associated in several ways is listed once. A subclass
+that has more records to show overrides it.</p>
+<p>Args:
+base_model: <code class="docutils literal notranslate"><span class="pre">Sample</span></code> or <code class="docutils literal notranslate"><span class="pre">Measurement</span></code>.</p>
+<p>Returns:
+The records, as a queryset.</p>
+</dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.models.Contributor.samples">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">samples</span></span><a class="headerlink" href="#fairdm.contrib.contributors.models.Contributor.samples" title="Link to this definition">#</a></dt>
@@ -2278,6 +2293,18 @@ The datasets, as a queryset.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.models.Organization.get_associated_records">
+<span class="sig-name descname"><span class="pre">get_associated_records</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_model</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.models.Organization.get_associated_records" title="Link to this definition">#</a></dt>
+<dd><p>List the records that belong on the organisation’s page, those in its projects too.</p>
+<p>Adds the records of every dataset in a project the organisation owns to what any
+contributor lists. Its members’ records are not included.</p>
+<p>Args:
+base_model: <code class="docutils literal notranslate"><span class="pre">Sample</span></code> or <code class="docutils literal notranslate"><span class="pre">Measurement</span></code>.</p>
+<p>Returns:
+The records, as a queryset.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.models.Organization.get_current_memberships">
 <span class="sig-name descname"><span class="pre">get_current_memberships</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.models.Organization.get_current_memberships" title="Link to this definition">#</a></dt>
 <dd><p>List the organisation’s verified current members, the people who run it first.</p>
@@ -2913,6 +2940,7 @@ details: Extra structured details.</p>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.datasets"><code class="docutils literal notranslate"><span class="pre">Contributor.datasets</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.get_public_projects"><code class="docutils literal notranslate"><span class="pre">Contributor.get_public_projects()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.get_public_datasets"><code class="docutils literal notranslate"><span class="pre">Contributor.get_public_datasets()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.get_associated_records"><code class="docutils literal notranslate"><span class="pre">Contributor.get_associated_records()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.samples"><code class="docutils literal notranslate"><span class="pre">Contributor.samples</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.measurements"><code class="docutils literal notranslate"><span class="pre">Contributor.measurements</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Contributor.get_credit_totals"><code class="docutils literal notranslate"><span class="pre">Contributor.get_credit_totals()</span></code></a></li>
@@ -3027,6 +3055,7 @@ details: Extra structured details.</p>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Organization.get_memberships"><code class="docutils literal notranslate"><span class="pre">Organization.get_memberships()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Organization.get_public_projects"><code class="docutils literal notranslate"><span class="pre">Organization.get_public_projects()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Organization.get_public_datasets"><code class="docutils literal notranslate"><span class="pre">Organization.get_public_datasets()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Organization.get_associated_records"><code class="docutils literal notranslate"><span class="pre">Organization.get_associated_records()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Organization.get_current_memberships"><code class="docutils literal notranslate"><span class="pre">Organization.get_current_memberships()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Organization.has_member"><code class="docutils literal notranslate"><span class="pre">Organization.has_member()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.models.Organization.is_managed_by"><code class="docutils literal notranslate"><span class="pre">Organization.is_managed_by()</span></code></a></li>

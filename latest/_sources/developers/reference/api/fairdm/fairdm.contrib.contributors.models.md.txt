@@ -501,6 +501,14 @@ Bases: {py:obj}`fairdm.utils.models.PolymorphicMixin`, {py:obj}`fairdm.db.models
 
 ````
 
+````{py:method} get_associated_records(base_model)
+:canonical: fairdm.contrib.contributors.models.Contributor.get_associated_records
+
+```{autodoc2-docstring} fairdm.contrib.contributors.models.Contributor.get_associated_records
+```
+
+````
+
 ````{py:property} samples
 :canonical: fairdm.contrib.contributors.models.Contributor.samples
 
@@ -1414,6 +1422,14 @@ Bases: {py:obj}`fairdm.contrib.contributors.models.Contributor`
 :canonical: fairdm.contrib.contributors.models.Organization.get_public_datasets
 
 ```{autodoc2-docstring} fairdm.contrib.contributors.models.Organization.get_public_datasets
+```
+
+````
+
+````{py:method} get_associated_records(base_model)
+:canonical: fairdm.contrib.contributors.models.Organization.get_associated_records
+
+```{autodoc2-docstring} fairdm.contrib.contributors.models.Organization.get_associated_records
 ```
 
 ````

@@ -1,0 +1,738 @@
+# {py:mod}`fairdm.contrib.collections.plugins`
+
+```{py:module} fairdm.contrib.collections.plugins
+```
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FallbackType <fairdm.contrib.collections.plugins.FallbackType>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.plugins.FallbackType
+    :summary:
+    ```
+* - {py:obj}`RecordType <fairdm.contrib.collections.plugins.RecordType>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordType
+    :summary:
+    ```
+* - {py:obj}`KindName <fairdm.contrib.collections.plugins.KindName>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.plugins.KindName
+    :summary:
+    ```
+* - {py:obj}`NoRecords <fairdm.contrib.collections.plugins.NoRecords>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.plugins.NoRecords
+    :summary:
+    ```
+* - {py:obj}`StableOrderData <fairdm.contrib.collections.plugins.StableOrderData>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.plugins.StableOrderData
+    :summary:
+    ```
+* - {py:obj}`DatasetColumn <fairdm.contrib.collections.plugins.DatasetColumn>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.plugins.DatasetColumn
+    :summary:
+    ```
+* - {py:obj}`SampleColumn <fairdm.contrib.collections.plugins.SampleColumn>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.plugins.SampleColumn
+    :summary:
+    ```
+* - {py:obj}`RecordsTab <fairdm.contrib.collections.plugins.RecordsTab>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab
+    :summary:
+    ```
+* - {py:obj}`Samples <fairdm.contrib.collections.plugins.Samples>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.plugins.Samples
+    :summary:
+    ```
+* - {py:obj}`Measurements <fairdm.contrib.collections.plugins.Measurements>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.plugins.Measurements
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`type_counts <fairdm.contrib.collections.plugins.type_counts>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.plugins.type_counts
+    :summary:
+    ```
+* - {py:obj}`records_are_offered <fairdm.contrib.collections.plugins.records_are_offered>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.plugins.records_are_offered
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FALLBACK_SLUG <fairdm.contrib.collections.plugins.FALLBACK_SLUG>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.plugins.FALLBACK_SLUG
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} FALLBACK_SLUG
+:canonical: fairdm.contrib.collections.plugins.FALLBACK_SLUG
+:value: >
+   'other'
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.FALLBACK_SLUG
+```
+
+````
+
+`````{py:class} FallbackType
+:canonical: fairdm.contrib.collections.plugins.FallbackType
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.FallbackType
+```
+
+````{py:attribute} base_model
+:canonical: fairdm.contrib.collections.plugins.FallbackType.base_model
+:type: type[django.db.models.Model]
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.FallbackType.base_model
+```
+
+````
+
+````{py:method} get_slug() -> str
+:canonical: fairdm.contrib.collections.plugins.FallbackType.get_slug
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.FallbackType.get_slug
+```
+
+````
+
+````{py:method} get_verbose_name_plural() -> str
+:canonical: fairdm.contrib.collections.plugins.FallbackType.get_verbose_name_plural
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.FallbackType.get_verbose_name_plural
+```
+
+````
+
+````{py:method} get_table_class() -> type[django_tables2.Table]
+:canonical: fairdm.contrib.collections.plugins.FallbackType.get_table_class
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.FallbackType.get_table_class
+```
+
+````
+
+````{py:method} get_filterset_class() -> type[django_filters.FilterSet]
+:canonical: fairdm.contrib.collections.plugins.FallbackType.get_filterset_class
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.FallbackType.get_filterset_class
+```
+
+````
+
+`````
+
+`````{py:class} RecordType
+:canonical: fairdm.contrib.collections.plugins.RecordType
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordType
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.collections.plugins.RecordType.model
+:type: type[django.db.models.Model]
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordType.model
+```
+
+````
+
+````{py:attribute} config
+:canonical: fairdm.contrib.collections.plugins.RecordType.config
+:type: fairdm.registry.config.ModelConfiguration | fairdm.contrib.collections.plugins.FallbackType
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordType.config
+```
+
+````
+
+````{py:attribute} count
+:canonical: fairdm.contrib.collections.plugins.RecordType.count
+:type: int
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordType.count
+```
+
+````
+
+````{py:attribute} unregistered
+:canonical: fairdm.contrib.collections.plugins.RecordType.unregistered
+:type: tuple[int, ...]
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordType.unregistered
+```
+
+````
+
+````{py:property} name
+:canonical: fairdm.contrib.collections.plugins.RecordType.name
+:type: str
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordType.name
+```
+
+````
+
+````{py:property} slug
+:canonical: fairdm.contrib.collections.plugins.RecordType.slug
+:type: str
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordType.slug
+```
+
+````
+
+`````
+
+`````{py:class} KindName
+:canonical: fairdm.contrib.collections.plugins.KindName
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.KindName
+```
+
+````{py:attribute} label
+:canonical: fairdm.contrib.collections.plugins.KindName.label
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.KindName.label
+```
+
+````
+
+````{py:method} get_verbose_name_plural() -> str
+:canonical: fairdm.contrib.collections.plugins.KindName.get_verbose_name_plural
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.KindName.get_verbose_name_plural
+```
+
+````
+
+`````
+
+````{py:function} type_counts(queryset: django.db.models.QuerySet) -> list[fairdm.contrib.collections.plugins.RecordType]
+:canonical: fairdm.contrib.collections.plugins.type_counts
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.type_counts
+```
+````
+
+````{py:class} NoRecords(data=None, order_by=None, orderable=None, empty_text=None, exclude=None, attrs=None, row_attrs=None, pinned_row_attrs=None, sequence=None, prefix=None, order_by_field=None, page_field=None, per_page_field=None, template_name=None, default=None, request=None, show_header=None, show_footer=True, extra_columns=None)
+:canonical: fairdm.contrib.collections.plugins.NoRecords
+
+Bases: {py:obj}`django_tables2.Table`
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.NoRecords
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.NoRecords.__init__
+```
+
+````
+
+`````{py:class} StableOrderData(data: django.db.models.QuerySet)
+:canonical: fairdm.contrib.collections.plugins.StableOrderData
+
+Bases: {py:obj}`django_tables2.data.TableQuerysetData`
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.StableOrderData
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.StableOrderData.__init__
+```
+
+````{py:method} order_by(aliases) -> None
+:canonical: fairdm.contrib.collections.plugins.StableOrderData.order_by
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.StableOrderData.order_by
+```
+
+````
+
+````{py:method} tie_break(queryset: django.db.models.QuerySet) -> django.db.models.QuerySet
+:canonical: fairdm.contrib.collections.plugins.StableOrderData.tie_break
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.StableOrderData.tie_break
+```
+
+````
+
+`````
+
+`````{py:class} DatasetColumn(**kwargs: typing.Any)
+:canonical: fairdm.contrib.collections.plugins.DatasetColumn
+
+Bases: {py:obj}`django_tables2.Column`
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.DatasetColumn
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.DatasetColumn.__init__
+```
+
+````{py:method} render(record: django.db.models.Model, value: fairdm.core.dataset.models.Dataset) -> str
+:canonical: fairdm.contrib.collections.plugins.DatasetColumn.render
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.DatasetColumn.render
+```
+
+````
+
+`````
+
+`````{py:class} SampleColumn(**kwargs: typing.Any)
+:canonical: fairdm.contrib.collections.plugins.SampleColumn
+
+Bases: {py:obj}`django_tables2.Column`
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.SampleColumn
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.SampleColumn.__init__
+```
+
+````{py:method} render(record: django.db.models.Model, value: fairdm.core.sample.models.Sample) -> str
+:canonical: fairdm.contrib.collections.plugins.SampleColumn.render
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.SampleColumn.render
+```
+
+````
+
+````{py:method} order(queryset: django.db.models.QuerySet, is_descending: bool) -> tuple[django.db.models.QuerySet, bool]
+:canonical: fairdm.contrib.collections.plugins.SampleColumn.order
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.SampleColumn.order
+```
+
+````
+
+`````
+
+````{py:function} records_are_offered(request: django.http.HttpRequest, obj: django.db.models.Model | None) -> bool
+:canonical: fairdm.contrib.collections.plugins.records_are_offered
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.records_are_offered
+```
+````
+
+`````{py:class} RecordsTab(**kwargs)
+:canonical: fairdm.contrib.collections.plugins.RecordsTab
+
+Bases: {py:obj}`fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin`, {py:obj}`fairdm.contrib.plugins.Plugin`, {py:obj}`fairdm.contrib.collections.views.DataTableView`
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.__init__
+```
+
+````{py:attribute} base_model
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.base_model
+:type: type[django.db.models.Model]
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.base_model
+```
+
+````
+
+````{py:attribute} kind_label
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.kind_label
+:value: <Multiline-String>
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.kind_label
+```
+
+````
+
+````{py:attribute} template_name
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.template_name
+:value: >
+   'record_lists/records.html'
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.template_name
+```
+
+````
+
+````{py:attribute} paginate_by
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.paginate_by
+:value: >
+   50
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.paginate_by
+```
+
+````
+
+````{py:attribute} check
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.check
+:value: >
+   'staticmethod(...)'
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.check
+```
+
+````
+
+````{py:attribute} record_state
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.record_state
+:value: >
+   'listed'
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.record_state
+```
+
+````
+
+````{py:attribute} type_entries
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.type_entries
+:type: list[dict[str, typing.Any]]
+:value: >
+   []
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.type_entries
+```
+
+````
+
+````{py:attribute} chosen
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.chosen
+:type: fairdm.contrib.collections.plugins.RecordType | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.chosen
+```
+
+````
+
+````{py:method} get_urls(menu_class=None, model=None)
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.get_urls
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.get_urls
+```
+
+````
+
+````{py:method} handle_no_permission()
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.handle_no_permission
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.handle_no_permission
+```
+
+````
+
+````{py:property} holder
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.holder
+:type: str
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.holder
+```
+
+````
+
+````{py:method} scope() -> django.db.models.QuerySet
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.scope
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.scope
+```
+
+````
+
+````{py:method} is_own_page() -> bool
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.is_own_page
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.is_own_page
+```
+
+````
+
+````{py:method} viewer()
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.viewer
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.viewer
+```
+
+````
+
+````{py:method} visible_records() -> django.db.models.QuerySet
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.visible_records
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.visible_records
+```
+
+````
+
+````{py:method} get(request, *args, **kwargs)
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.get
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.get
+```
+
+````
+
+````{py:method} resolve_type() -> None
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.resolve_type
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.resolve_type
+```
+
+````
+
+````{py:method} get_queryset()
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.get_queryset
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.get_queryset
+```
+
+````
+
+````{py:method} get_table_data()
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.get_table_data
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.get_table_data
+```
+
+````
+
+````{py:method} get_table_class()
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.get_table_class
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.get_table_class
+```
+
+````
+
+````{py:method} get_table_kwargs()
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.get_table_kwargs
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.get_table_kwargs
+```
+
+````
+
+````{py:property} toolbar_filters
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.toolbar_filters
+:type: list[str]
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.toolbar_filters
+```
+
+````
+
+````{py:method} get_filterset_class()
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.get_filterset_class
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.get_filterset_class
+```
+
+````
+
+````{py:method} get_filterset(filterset_class=None)
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.get_filterset
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.get_filterset
+```
+
+````
+
+````{py:method} get_listing_entries(models)
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.get_listing_entries
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.get_listing_entries
+```
+
+````
+
+````{py:method} get_empty_state_heading()
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.get_empty_state_heading
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.get_empty_state_heading
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.get_context_data
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.get_context_data
+```
+
+````
+
+````{py:method} get_page_title()
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.get_page_title
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.get_page_title
+```
+
+````
+
+`````
+
+`````{py:class} Samples(**kwargs)
+:canonical: fairdm.contrib.collections.plugins.Samples
+
+Bases: {py:obj}`fairdm.contrib.collections.plugins.RecordsTab`
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.Samples
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.Samples.__init__
+```
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.collections.plugins.Samples.url_path
+:value: >
+   'samples'
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.Samples.url_path
+```
+
+````
+
+````{py:attribute} base_model
+:canonical: fairdm.contrib.collections.plugins.Samples.base_model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.Samples.base_model
+```
+
+````
+
+````{py:attribute} kind_label
+:canonical: fairdm.contrib.collections.plugins.Samples.kind_label
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.Samples.kind_label
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.contrib.collections.plugins.Samples.page_title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.Samples.page_title
+```
+
+````
+
+`````
+
+`````{py:class} Measurements(**kwargs)
+:canonical: fairdm.contrib.collections.plugins.Measurements
+
+Bases: {py:obj}`fairdm.contrib.collections.plugins.RecordsTab`
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.Measurements
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.Measurements.__init__
+```
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.collections.plugins.Measurements.url_path
+:value: >
+   'measurements'
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.Measurements.url_path
+```
+
+````
+
+````{py:attribute} base_model
+:canonical: fairdm.contrib.collections.plugins.Measurements.base_model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.Measurements.base_model
+```
+
+````
+
+````{py:attribute} kind_label
+:canonical: fairdm.contrib.collections.plugins.Measurements.kind_label
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.Measurements.kind_label
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.contrib.collections.plugins.Measurements.page_title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.Measurements.page_title
+```
+
+````
+
+`````

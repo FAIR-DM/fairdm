@@ -100,6 +100,14 @@ Bases: {py:obj}`fairdm.views.FairDMTableView`
 
 ````
 
+````{py:method} get_page_title()
+:canonical: fairdm.contrib.collections.views.DataTableView.get_page_title
+
+```{autodoc2-docstring} fairdm.contrib.collections.views.DataTableView.get_page_title
+```
+
+````
+
 ````{py:method} get_listing_entries(models)
 :canonical: fairdm.contrib.collections.views.DataTableView.get_listing_entries
 

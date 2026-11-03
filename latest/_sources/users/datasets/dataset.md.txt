@@ -2,7 +2,7 @@
 
 A dataset's page is where you land when you open a dataset. Its heading is the dataset's name. The page says what the dataset is, whether its data is published, under which licence, what it holds, when each step of its life happened, how to cite it and who made it. It is also where the people who work on the dataset reach every other dataset screen. Open it from a card on [Datasets](datasets.md), from a project's page, from a link on a person's or organization's page, or by saving a new dataset.
 
-Who may open the page depends on the dataset's visibility and the level you hold on it. A private dataset answers a stranger as though it did not exist. A dataset in a private project is closed the same way, whatever its own visibility. Any other public dataset opens for everyone, but its samples and measurements stay hidden until the dataset is published. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md) and [Dataset publication, DOIs and DataCite metadata](../../explanation/dataset-publication-dois-and-datacite-metadata.md).
+Who may open the page depends on the dataset's visibility and the level you hold on it. A private dataset answers a stranger as though it did not exist. A dataset in a private project is closed the same way, whatever its own visibility. Any other public dataset opens for everyone, but its samples and measurements stay hidden from everyone but its team until the dataset is published. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md) and [Dataset publication, DOIs and DataCite metadata](../../explanation/dataset-publication-dois-and-datacite-metadata.md).
 
 ## The tabs
 
@@ -10,6 +10,7 @@ The dataset has these tabs:
 
 - **Overview** is the page described here.
 - **Contributors** lists the people and organizations credited on the dataset. See [Contributors](../contributors/contributors-tab.md).
+- **Samples** and **Measurements** list the dataset's records. They are shown only to people who may see the records. See [Browse samples and measurements](browse-samples-and-measurements.md).
 
 ## The header
 
@@ -45,7 +46,7 @@ Notices appear above the header.
 
 ## The figures
 
-A strip of four figures sits under the header: **Samples**, **Measurements**, **Contributors** and **Related publications**. Under the sample and measurement counts the page gives the number of types, or **None yet**. The page never lists a sample or measurement itself.
+A strip of four figures sits under the header: **Samples**, **Measurements**, **Contributors** and **Related publications**. Under the sample and measurement counts the page gives the number of types, or **None yet**. The sample and measurement figures link to the **Samples** and **Measurements** tabs and count the records you may see. If you may not see the dataset's records, the page leaves those two figures out. The page never lists a sample or measurement itself.
 
 ## The content column
 
@@ -53,7 +54,7 @@ The wide column holds these cards, from the top:
 
 - **Descriptions.** With several descriptions, the card has a tab for each type. With one, the card is titled with that type. With none, the card is titled **About**. It tells people who may change the dataset that nobody has described it yet and offers a **Write a description** button. It tells everyone else "No description has been added yet."
 - **Data types.** This card appears only while the dataset holds no samples or measurements. It says so. Once the dataset holds records, the card gives way to the charts.
-- **Data types** and **Progress** charts. A bar chart of the records by sample and measurement type, and a line chart of the running total of samples and measurements by month. Each has a text description. A chart is left out when there is nothing to draw, and the line chart needs records from at least two months.
+- **Data types** and **Progress** charts. A bar chart of the records by sample and measurement type, and a line chart of the running total of samples and measurements by month. Each has a text description. A chart is left out when there is nothing to draw, and the line chart needs records from at least two months. Both charts are left out when you may not see the dataset's records.
 
 ## The side column
 

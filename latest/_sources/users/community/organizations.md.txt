@@ -43,4 +43,5 @@ When a search or filter matches nothing, the heading reads **No organizations ma
 
 - Open an organization by selecting its name. See [Organization](../account/organization.md) for what its page shows.
 - Change an organization's details when you keep its record. See [How to edit an organization's profile](../account/edit-an-organizations-profile.md).
+- Browse the samples and measurements they are credited on. See [Browse samples and measurements](../datasets/browse-samples-and-measurements.md).
 - Credit an organization on a record you manage. See [How to add a person or organization](../contributors/add-a-person-or-organization.md).
