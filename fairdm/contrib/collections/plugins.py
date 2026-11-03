@@ -496,6 +496,9 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
         it has no dataset filter on a dataset's page, since every row is in that dataset. The
         record filters offer a person's own records on that person's page, and public records
         on any other contributor's.
+
+        Returns:
+            The ``drop``, ``scope`` and ``owner`` arguments that apply, by name.
         """
         kwargs: dict[str, Any] = {}
         if self.holder == "dataset":
