@@ -62,7 +62,6 @@ class TestPersonCreateForm:
 
         assert form.has_error("affiliations")
 
-
     def test_the_orcid_action_saves_the_person_from_their_orcid_record(
         self, registry_network, recorded
     ):

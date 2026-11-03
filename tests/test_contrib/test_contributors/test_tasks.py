@@ -1,69 +1,46 @@
 """Tests for the contributor Celery tasks."""
 
-from unittest.mock import MagicMock, patch
+from datetime import date, timedelta
+from email.utils import format_datetime
+from unittest.mock import patch
 
 import pytest
+import requests
+from celery.exceptions import Retry
+from django.conf import settings
+from django.utils import timezone
+from django_celery_beat.models import CrontabSchedule, PeriodicTask
 
-from fairdm.contrib.contributors.models import (
-    ContributorIdentifier,
+from fairdm.contrib.contributors.choices import SyncStatus
+from fairdm.contrib.contributors.models import ContributorIdentifier
+from fairdm.contrib.contributors.receivers import REFRESH_TASK, seed_refresh_task
+from fairdm.contrib.contributors.services.registries import seconds_to_wait
+from fairdm.contrib.contributors.tasks import (
+    refresh_all_contributors,
+    sync_contributor_identifier,
 )
 from fairdm.core.vocabularies import IDENTIFIER_TYPES
+
+ORCID_ADDRESS = "https://pub.orcid.org/v3.0/0000-0001-2345-6789"
+ROR_ADDRESS = "https://api.ror.org/v2/organizations/02nr0ka47"
 
 
 @pytest.mark.django_db
 class TestORCIDSyncTask:
-    @patch("fairdm.contrib.contributors.tasks.requests.get")
-    def test_orcid_sync_task_success(self, mock_get, person, orcid_identifier):
-        from fairdm.contrib.contributors.tasks import sync_contributor_identifier
-
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {
-            "person": {
-                "name": {
-                    "given-names": {"value": "Jane"},
-                    "family-name": {"value": "Researcher"},
-                },
-                "emails": {"email": [{"email": "jane@orcid.org"}]},
-            }
-        }
-        mock_get.return_value = mock_response
+    def test_orcid_sync_task_success(
+        self, registry_network, recorded, person, orcid_identifier
+    ):
+        registry_network.answer(ORCID_ADDRESS, recorded("orcid-record"))
 
         result = sync_contributor_identifier(orcid_identifier.pk)
 
-        mock_get.assert_called_once()
-        assert "0000-0001-2345-6789" in mock_get.call_args[0][0]
-
-        orcid_identifier.refresh_from_db()
-        assert orcid_identifier.related.synced_data is not None
         assert result is True
-
-    @patch("fairdm.contrib.contributors.tasks.requests.get")
-    def test_orcid_sync_task_updates_person_name(self, mock_get, person):
-        from fairdm.contrib.contributors.tasks import sync_contributor_identifier
-
-        identifier = ContributorIdentifier.objects.create(
-            related=person,
-            type_id=f"{IDENTIFIER_TYPES}/orcid",
-            value="0000-0002-1234-5678",
-        )
-
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = {
-            "person": {
-                "name": {
-                    "given-names": {"value": "Updated"},
-                    "family-name": {"value": "Name"},
-                }
-            }
-        }
-        mock_get.return_value = mock_response
-
-        sync_contributor_identifier(identifier.pk)
-
+        assert [call.url for call in registry_network.calls] == [ORCID_ADDRESS]
         person.refresh_from_db()
-        assert person.synced_data is not None
+        assert person.synced_data == recorded("orcid-record")
+        assert person.last_synced == timezone.now().date()
+        assert person.sync_status == SyncStatus.SUCCEEDED
+        assert person.sync_error == ""
 
 
 @pytest.mark.django_db
@@ -71,26 +48,20 @@ class TestRORSyncTask:
     def test_ror_sync_task_success(
         self, registry_network, recorded, organization, ror_identifier
     ):
-        from fairdm.contrib.contributors.tasks import sync_contributor_identifier
-
-        address = "https://api.ror.org/v2/organizations/02nr0ka47"
-        registry_network.answer(address, recorded("ror-record"))
+        registry_network.answer(ROR_ADDRESS, recorded("ror-record"))
 
         result = sync_contributor_identifier(ror_identifier.pk)
 
         assert result is True
-        assert [call.url for call in registry_network.calls] == [address]
+        assert [call.url for call in registry_network.calls] == [ROR_ADDRESS]
         organization.refresh_from_db()
         assert organization.synced_data == recorded("ror-record")
+        assert organization.sync_status == SyncStatus.SUCCEEDED
 
     def test_ror_sync_task_updates_organization_location(
         self, registry_network, recorded, organization, ror_identifier
     ):
-        from fairdm.contrib.contributors.tasks import sync_contributor_identifier
-
-        registry_network.answer(
-            "https://api.ror.org/v2/organizations/02nr0ka47", recorded("ror-record")
-        )
+        registry_network.answer(ROR_ADDRESS, recorded("ror-record"))
 
         sync_contributor_identifier(ror_identifier.pk)
 
@@ -103,11 +74,7 @@ class TestRORSyncTask:
     def test_ror_sync_task_keeps_the_portal_name(
         self, registry_network, recorded, organization, ror_identifier
     ):
-        from fairdm.contrib.contributors.tasks import sync_contributor_identifier
-
-        registry_network.answer(
-            "https://api.ror.org/v2/organizations/02nr0ka47", recorded("ror-record")
-        )
+        registry_network.answer(ROR_ADDRESS, recorded("ror-record"))
 
         sync_contributor_identifier(ror_identifier.pk)
 
@@ -117,13 +84,9 @@ class TestRORSyncTask:
     def test_ror_sync_task_names_an_organization_that_has_no_name(
         self, registry_network, recorded, organization, ror_identifier
     ):
-        from fairdm.contrib.contributors.tasks import sync_contributor_identifier
-
         organization.name = ""
         organization.save()
-        registry_network.answer(
-            "https://api.ror.org/v2/organizations/02nr0ka47", recorded("ror-record")
-        )
+        registry_network.answer(ROR_ADDRESS, recorded("ror-record"))
 
         sync_contributor_identifier(ror_identifier.pk)
 
@@ -132,87 +95,207 @@ class TestRORSyncTask:
 
 
 @pytest.mark.django_db
+class TestSyncOutcome:
+    def test_a_missing_record_is_recorded_as_a_failure(
+        self, registry_network, person, orcid_identifier
+    ):
+        registry_network.answer(ORCID_ADDRESS, {}, status=404)
+
+        result = sync_contributor_identifier(orcid_identifier.pk)
+
+        assert result is False
+        person.refresh_from_db()
+        assert person.sync_status == SyncStatus.FAILED
+        assert person.sync_error
+        assert person.last_synced is None
+
+    def test_a_failure_keeps_the_record_and_date_of_the_last_success(
+        self, registry_network, person, orcid_identifier
+    ):
+        person.record_fetch({"person": {}})
+        person.last_synced = date(2026, 1, 5)
+        person.save()
+        registry_network.answer(ORCID_ADDRESS, {}, status=404)
+
+        sync_contributor_identifier(orcid_identifier.pk)
+
+        person.refresh_from_db()
+        assert person.sync_status == SyncStatus.FAILED
+        assert person.synced_data == {"person": {}}
+        assert person.last_synced == date(2026, 1, 5)
+
+    def test_a_success_clears_the_last_failure(
+        self, registry_network, recorded, person, orcid_identifier
+    ):
+        person.record_failed_fetch("ORCID could not be reached.")
+        registry_network.answer(ORCID_ADDRESS, recorded("orcid-record"))
+
+        sync_contributor_identifier(orcid_identifier.pk)
+
+        person.refresh_from_db()
+        assert person.sync_status == SyncStatus.SUCCEEDED
+        assert person.sync_error == ""
+
+    def test_an_unreadable_answer_is_recorded_as_a_failure(
+        self, registry_network, person, orcid_identifier
+    ):
+        registry_network.answer(ORCID_ADDRESS, ValueError("Invalid JSON"))
+
+        result = sync_contributor_identifier(orcid_identifier.pk)
+
+        assert result is False
+        person.refresh_from_db()
+        assert person.sync_status == SyncStatus.FAILED
+
+    def test_sync_handles_nonexistent_identifier(self):
+        assert sync_contributor_identifier(99999) is False
+
+
+@pytest.mark.django_db
+class TestSyncRetries:
+    def test_a_server_error_is_retried_three_times_then_recorded(
+        self, registry_network, organization, ror_identifier
+    ):
+        registry_network.answer(ROR_ADDRESS, {}, status=500)
+
+        result = sync_contributor_identifier.apply(args=[ror_identifier.pk])
+
+        assert result.failed()
+        assert isinstance(result.result, requests.HTTPError)
+        assert len(registry_network.calls) == 4
+        organization.refresh_from_db()
+        assert organization.sync_status == SyncStatus.FAILED
+
+    def test_a_timeout_is_retried(self, registry_network, orcid_identifier):
+        registry_network.fail(ORCID_ADDRESS, requests.Timeout("timed out"))
+
+        result = sync_contributor_identifier.apply(args=[orcid_identifier.pk])
+
+        assert result.failed()
+        assert len(registry_network.calls) == 4
+
+    def test_a_rate_limit_is_retried_after_the_wait_the_registry_asks_for(
+        self, registry_network, orcid_identifier
+    ):
+        registry_network.answer(
+            ORCID_ADDRESS, {}, status=429, headers={"Retry-After": "120"}
+        )
+
+        with (
+            patch.object(
+                sync_contributor_identifier, "retry", side_effect=Retry()
+            ) as retry,
+            pytest.raises(Retry),
+        ):
+            sync_contributor_identifier(orcid_identifier.pk)
+
+        assert retry.call_args.kwargs["countdown"] == 120
+
+    def test_a_rate_limit_without_a_wait_is_retried_with_a_growing_delay(
+        self, registry_network, person, orcid_identifier
+    ):
+        registry_network.answer(ORCID_ADDRESS, {}, status=429)
+
+        result = sync_contributor_identifier.apply(args=[orcid_identifier.pk])
+
+        assert result.failed()
+        assert len(registry_network.calls) == 4
+        person.refresh_from_db()
+        assert person.sync_status == SyncStatus.FAILED
+
+
+class TestSecondsToWait:
+    def test_reads_a_number_of_seconds(self):
+        assert seconds_to_wait("120") == 120
+
+    def test_reads_an_http_date(self):
+        until = timezone.now() + timedelta(seconds=120)
+
+        assert 118 <= seconds_to_wait(format_datetime(until, usegmt=True)) <= 120
+
+    @pytest.mark.parametrize("value", [None, "", "soon"])
+    def test_a_value_that_says_nothing_is_none(self, value):
+        assert seconds_to_wait(value) is None
+
+
+@pytest.mark.django_db
+class TestIdentifierChangeSync:
+    def test_a_changed_value_queues_a_sync(
+        self, orcid_identifier, django_capture_on_commit_callbacks
+    ):
+        orcid_identifier.value = "0000-0002-1825-0097"
+
+        with (
+            patch(
+                "fairdm.contrib.contributors.tasks.sync_contributor_identifier.delay"
+            ) as delay,
+            django_capture_on_commit_callbacks(execute=True),
+        ):
+            orcid_identifier.save()
+
+        delay.assert_called_once_with(orcid_identifier.pk)
+
+    def test_a_save_that_changes_nothing_queues_no_sync(
+        self, orcid_identifier, django_capture_on_commit_callbacks
+    ):
+        with (
+            patch(
+                "fairdm.contrib.contributors.tasks.sync_contributor_identifier.delay"
+            ) as delay,
+            django_capture_on_commit_callbacks(execute=True),
+        ):
+            orcid_identifier.save()
+
+        delay.assert_not_called()
+
+
+@pytest.mark.django_db
 class TestPeriodicRefresh:
     @patch("fairdm.contrib.contributors.tasks.sync_contributor_identifier.delay")
     def test_refresh_all_contributors(
         self, mock_sync_task, orcid_identifier, ror_identifier
     ):
-        from fairdm.contrib.contributors.tasks import refresh_all_contributors
-
-        orcid_identifier.related.last_synced = None
-        orcid_identifier.related.save()
-        ror_identifier.related.last_synced = None
-        ror_identifier.related.save()
-
         result = refresh_all_contributors()
 
         assert mock_sync_task.call_count == 2
-        assert result >= 2
+        assert result == 2
 
     @patch("fairdm.contrib.contributors.tasks.sync_contributor_identifier.delay")
     def test_refresh_all_only_syncs_identifiers_with_data(self, mock_sync_task, person):
-        from fairdm.contrib.contributors.tasks import refresh_all_contributors
-
         ContributorIdentifier.objects.create(
             related=person,
             type_id=f"{IDENTIFIER_TYPES}/researcher-id",
             value="custom-id-123",
         )
 
-        result = refresh_all_contributors()
+        assert refresh_all_contributors() == 0
+        mock_sync_task.assert_not_called()
 
-        assert isinstance(result, int)
+    def test_the_refresh_exists_once_and_is_enabled(self):
+        periodic_tasks = PeriodicTask.objects.filter(task=REFRESH_TASK)
 
+        assert periodic_tasks.count() == 1
+        assert periodic_tasks.get().enabled is True
 
-@pytest.mark.django_db
-class TestSyncErrorHandling:
-    @patch("fairdm.contrib.contributors.tasks.requests.get")
-    def test_orcid_sync_handles_404(self, mock_get, orcid_identifier):
-        from fairdm.contrib.contributors.tasks import sync_contributor_identifier
+    def test_the_refresh_runs_weekly_on_monday_at_three(self):
+        crontab = PeriodicTask.objects.get(task=REFRESH_TASK).crontab
 
-        mock_response = MagicMock()
-        mock_response.status_code = 404
-        mock_get.return_value = mock_response
+        assert (crontab.minute, crontab.hour, crontab.day_of_week) == ("0", "3", "1")
+        assert (crontab.day_of_month, crontab.month_of_year) == ("*", "*")
+        assert str(crontab.timezone) == settings.TIME_ZONE
 
-        result = sync_contributor_identifier(orcid_identifier.pk)
-        assert result is False or result is None
+    def test_seeding_again_leaves_a_changed_refresh_unchanged(self):
+        periodic_task = PeriodicTask.objects.get(task=REFRESH_TASK)
+        monthly = CrontabSchedule.objects.create(
+            minute="30", hour="1", day_of_month="1", timezone=settings.TIME_ZONE
+        )
+        PeriodicTask.objects.filter(pk=periodic_task.pk).update(
+            crontab=monthly, enabled=False
+        )
 
-    @patch("fairdm.contrib.contributors.tasks.requests.get")
-    def test_orcid_sync_handles_timeout(self, mock_get, orcid_identifier):
-        import requests
+        seed_refresh_task()
 
-        from fairdm.contrib.contributors.tasks import sync_contributor_identifier
-
-        mock_get.side_effect = requests.Timeout("Connection timeout")
-
-        result = sync_contributor_identifier(orcid_identifier.pk)
-        assert result is False or result is None
-
-    @patch("fairdm.contrib.contributors.tasks.requests.get")
-    def test_ror_sync_handles_500_error(self, mock_get, ror_identifier):
-        from fairdm.contrib.contributors.tasks import sync_contributor_identifier
-
-        mock_response = MagicMock()
-        mock_response.status_code = 500
-        mock_get.return_value = mock_response
-
-        result = sync_contributor_identifier(ror_identifier.pk)
-        assert result is False or result is None
-
-    @patch("fairdm.contrib.contributors.tasks.requests.get")
-    def test_sync_handles_invalid_json(self, mock_get, orcid_identifier):
-        from fairdm.contrib.contributors.tasks import sync_contributor_identifier
-
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.json.side_effect = ValueError("Invalid JSON")
-        mock_get.return_value = mock_response
-
-        result = sync_contributor_identifier(orcid_identifier.pk)
-        assert result is False or result is None
-
-    def test_sync_handles_nonexistent_identifier(self):
-        from fairdm.contrib.contributors.tasks import sync_contributor_identifier
-
-        result = sync_contributor_identifier(99999)
-        assert result is False or result is None
+        periodic_task.refresh_from_db()
+        assert periodic_task.crontab == monthly
+        assert periodic_task.enabled is False
+        assert PeriodicTask.objects.filter(task=REFRESH_TASK).count() == 1

@@ -247,7 +247,15 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
     )
     exclude = ("username",)
     autocomplete_fields = ["groups"]
-    readonly_fields = ["synced_data", "last_synced", "uuid", "added", "modified"]
+    readonly_fields = [
+        "synced_data",
+        "last_synced",
+        "sync_status",
+        "sync_error",
+        "uuid",
+        "added",
+        "modified",
+    ]
     fieldsets = (
         (
             "Basic info",
@@ -260,6 +268,8 @@ class UserAdmin(BaseUserAdmin, HijackUserAdminMixin, ImportExportModelAdmin):
                     "profile",
                     "uuid",
                     "last_synced",
+                    "sync_status",
+                    "sync_error",
                     ("added", "modified"),
                 )
             },
@@ -602,7 +612,15 @@ class OrganizationAdmin(admin.ModelAdmin):
     list_display = ["name", "city", "country", "lat", "lon"]
     list_filter = ["country"]
     search_fields = ["name"]
-    readonly_fields = ["synced_data", "last_synced", "uuid", "added", "modified"]
+    readonly_fields = [
+        "synced_data",
+        "last_synced",
+        "sync_status",
+        "sync_error",
+        "uuid",
+        "added",
+        "modified",
+    ]
     # `alternative_names`, `links` and `lang` are JSON arrays that break the widget, so they are left out.
     fieldsets = (
         (
@@ -615,7 +633,15 @@ class OrganizationAdmin(admin.ModelAdmin):
         ),
         (
             _("Synchronisation"),
-            {"fields": ("last_synced", "synced_data", ("added", "modified"))},
+            {
+                "fields": (
+                    "last_synced",
+                    "sync_status",
+                    "sync_error",
+                    "synced_data",
+                    ("added", "modified"),
+                )
+            },
         ),
     )
     actions = [

@@ -453,29 +453,17 @@ class ORCIDTransform(BaseTransform):
         Example:
             data = ORCIDTransform.fetch_from_api("0000-0002-1825-0097")
         """
-        import warnings
-
         import requests
 
-        orcid_api = f"https://pub.orcid.org/v3.0/{orcid_id}"
-        headers = {"Accept": "application/json"}
-        try:
-            response = requests.get(orcid_api, headers=headers, timeout=30)
-            if response.status_code == 429:
-                retry_after = response.headers.get("Retry-After", "unknown")
-                warnings.warn(
-                    f"Rate limited by ORCID API (429). Retry after {retry_after} seconds.",
-                    stacklevel=2,
-                )
-            elif 500 <= response.status_code < 600:
-                warnings.warn(
-                    f"Server error {response.status_code} from ORCID API.", stacklevel=2
-                )
-            response.raise_for_status()
-            return response.json()
-        except requests.RequestException as e:
-            msg = f"Failed to fetch ORCID {orcid_id}: {e}"
-            raise requests.RequestException(msg) from e
+        from ..services.registries import fetch_record
+
+        data = fetch_record(
+            f"https://pub.orcid.org/v3.0/{orcid_id}",
+            headers={"Accept": "application/json"},
+        )
+        if data is None:
+            raise requests.HTTPError(f"ORCID has no record {orcid_id}")
+        return data
 
     def export(self, contributor: Contributor) -> dict:
         """Export Person to ORCID API format.
@@ -557,7 +545,7 @@ class ORCIDTransform(BaseTransform):
         orcid = self.dictget(data, ["orcid-identifier", "path"])
 
         person = instance or Person()
-        person.synced_data = data
+        person.record_fetch(data)
 
         person.name = self.dictget(data, ["person", "name", "credit-name", "value"])
         person.first_name = self.dictget(
@@ -705,30 +693,15 @@ class RORTransform(BaseTransform):
         Example:
             data = RORTransform.fetch_from_api("https://ror.org/00x0x0x")
         """
-        import warnings
-
         import requests
 
-        clean_id = RORTransform.clean_ror_id(ror_id)
-        ror_api = f"https://api.ror.org/v2/organizations/{clean_id}"
+        from ..services.registries import fetch_record
 
-        try:
-            response = requests.get(ror_api, timeout=30)
-            if response.status_code == 429:
-                retry_after = response.headers.get("Retry-After", "unknown")
-                warnings.warn(
-                    f"Rate limited by ROR API (429). Retry after {retry_after} seconds.",
-                    stacklevel=2,
-                )
-            elif 500 <= response.status_code < 600:
-                warnings.warn(
-                    f"Server error {response.status_code} from ROR API.", stacklevel=2
-                )
-            response.raise_for_status()
-            return response.json()
-        except requests.RequestException as e:
-            msg = f"Failed to fetch ROR ID {ror_id}: {e}"
-            raise requests.RequestException(msg) from e
+        clean_id = RORTransform.clean_ror_id(ror_id)
+        data = fetch_record(f"https://api.ror.org/v2/organizations/{clean_id}")
+        if data is None:
+            raise requests.HTTPError(f"ROR has no record {ror_id}")
+        return data
 
     def export(self, contributor: Contributor) -> dict:
         """Export Organization to ROR API format.
@@ -809,7 +782,7 @@ class RORTransform(BaseTransform):
         )
 
         org = instance or Organization()
-        org.synced_data = data
+        org.record_fetch(data)
         org.name = self.display_name(data)
         names = self.dictget(data, ["names"], [])
         org.alternative_names = [

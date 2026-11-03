@@ -1,4 +1,4 @@
-"""Signal receivers that keep the shipped portal roles in place."""
+"""Signal receivers that keep the shipped portal roles in place and schedule the profile refresh."""
 
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
@@ -36,3 +36,37 @@ def refuse_shipped_role_rename(sender, instance, **kwargs):
             _('FairDM requires the "%(name)s" role and refuses to rename it.')
             % {"name": stored_name}
         )
+
+
+REFRESH_TASK = "fairdm.contrib.contributors.tasks.refresh_all_contributors"
+"""The task path of the weekly refresh of profiles from ORCID and ROR."""
+
+
+def seed_refresh_task(**kwargs):
+    """Create the weekly refresh of profiles from ORCID and ROR, Monday at 03:00, if missing.
+
+    A refresh task that exists is never touched, so a portal that changed its schedule,
+    switched it off or renamed it keeps its choice. The task is found by its task path.
+
+    Args:
+        **kwargs: The signal's arguments, unused.
+    """
+    from django.conf import settings
+    from django_celery_beat.models import CrontabSchedule, PeriodicTask
+
+    if PeriodicTask.objects.filter(task=REFRESH_TASK).exists():
+        return
+    crontab, created = CrontabSchedule.objects.get_or_create(
+        minute="0",
+        hour="3",
+        day_of_week="1",
+        day_of_month="*",
+        month_of_year="*",
+        timezone=settings.TIME_ZONE,
+    )
+    PeriodicTask.objects.create(
+        name="Refresh profiles from ORCID and ROR",
+        task=REFRESH_TASK,
+        crontab=crontab,
+        enabled=True,
+    )
