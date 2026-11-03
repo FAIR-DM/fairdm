@@ -10,7 +10,6 @@ from django.urls import URLPattern
 from flex_menu import Menu, MenuItem, root
 
 from .access import menu_check
-from .menus import PluginTabItem
 
 if TYPE_CHECKING:
     from .base import Plugin
@@ -200,9 +199,8 @@ class PluginRegistry:
         """
         label = kwargs.get("label") or plugin_class.get_name().replace("-", " ").title()
         name = plugin_class.get_name()
-        model_name = model._meta.model_name.lower()
-        view_name = f"{model_name}:{name}"
-        item = PluginTabItem(
+        view_name = f"{model._meta.model_name.lower()}:{name}"
+        item = MenuItem(
             label,
             view_name=view_name,
             # Never the author's predicate: flex_menu calls check(request, **kwargs) and catches nothing.
@@ -210,12 +208,6 @@ class PluginRegistry:
             extra_context={
                 "label": label,
                 "icon": kwargs.get("icon", "circle"),
-                # Every address the plugin mounts: its own, each extra view and each pattern
-                # its `get_urls` adds.
-                "view_names": frozenset(
-                    f"{model_name}:{pattern.name}"
-                    for pattern in plugin_class.get_urls(model=model)
-                ),
             },
         )
         # flex_menu has no ordering of its own, so `sort_menu` applies this once all entries exist.

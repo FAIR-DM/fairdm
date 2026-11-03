@@ -8,10 +8,9 @@ from django.views.generic import TemplateView
 from demo.factories import RockSampleFactory
 from demo.models import RockSample
 from fairdm import plugins
-from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.plugins import Plugin
 from fairdm.core.sample.models import Sample
-from fairdm.factories import ContributionFactory, DatasetFactory, UserFactory
+from fairdm.factories import DatasetFactory
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
 
@@ -167,7 +166,7 @@ class TestNavigationRenders:
 
 @pytest.mark.django_db
 class TestTheCurrentTabIsMarked:
-    """The tab strip marks a plugin's tab on every address the plugin mounts."""
+    """The tab strip marks the Samples tab on its own address and on each type's address."""
 
     @pytest.fixture
     def dataset(self):
@@ -205,12 +204,10 @@ class TestTheCurrentTabIsMarked:
 
         assert self.marked(response, dataset) == {self.address("samples", dataset)}
 
-    def test_a_tab_is_marked_on_an_extra_pattern_its_get_urls_mounts(
-        self, client, dataset
-    ):
+    def test_a_tab_is_marked_on_a_types_address(self, client, dataset):
         rock = registry.get_for_model(RockSample).get_slug()
 
-        response = client.get(self.address("samples-type", dataset, type=rock))
+        response = client.get(self.address("samples", dataset, type=rock))
 
         assert response.status_code == 200
         assert self.marked(response, dataset) == {self.address("samples", dataset)}
@@ -219,26 +216,3 @@ class TestTheCurrentTabIsMarked:
         response = client.get(self.address("measurements", dataset))
 
         assert self.marked(response, dataset) == {self.address("measurements", dataset)}
-
-    def test_a_tab_is_marked_on_each_of_its_extra_views(self, client, dataset):
-        from fairdm.contrib.contributors.plugins.shared import ContributionList
-
-        user = UserFactory()
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-        extras = ContributionList.get_extra_views()
-        assert extras
-        checked = 0
-        for extra in extras:
-            if "<int:pk>" in (extra.get_url_path() or ""):
-                continue  # these name one credit and have no page without it
-            name = f"contribution-list-{extra.get_name()}"
-            response = client.get(self.address(name, dataset))
-            assert response.status_code == 200
-            assert self.marked(response, dataset) == {
-                self.address("contribution-list", dataset)
-            }
-            checked += 1
-        assert checked
