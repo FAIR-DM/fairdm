@@ -229,9 +229,7 @@ class TestEditPageForAModelLevelChangePermission:
 
         assert response.status_code == 404
 
-    def test_a_user_holding_change_permission_at_the_model_level_is_admitted_once_visible(
-        self, client
-    ):
+    def test_a_model_level_grant_adds_nothing_to_a_view_level(self, client):
         from django.contrib.auth.models import Permission
 
         from fairdm.factories import (
@@ -254,7 +252,7 @@ class TestEditPageForAModelLevelChangePermission:
         url = reverse("project:edit", kwargs={"uuid": project.uuid})
         response = client.get(url)
 
-        assert response.status_code == 200
+        assert response.status_code == 403
 
 
 @pytest.mark.django_db

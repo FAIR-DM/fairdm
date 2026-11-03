@@ -25,6 +25,7 @@ A person can hold more than one role and has everything the roles hold together.
 | View people | Open the **Users** list and a person's page |
 | Change people | Edit a person, including the roles in **Groups** |
 | Change identity | Edit the portal's name, branding and metadata |
+| View and change authority | Open and edit the governing authority linked from the portal identity page |
 
 The role holds no right to change a group, because a person who could edit groups could rewrite what every role, their own included, is allowed to do. A role is assigned on the person's own page.
 
@@ -37,13 +38,17 @@ The role holds the permissions below for every project, dataset, sample and meas
 | View, add, change and delete | Projects, datasets, samples and measurements |
 | View, add, change and delete | The descriptions of each of those four |
 | View, add, change and delete | The dates of each of those four |
+| View, add, change and delete | The identifiers of each of those four |
+| View, add, change and delete | Every sample and measurement type the portal registers |
+| View, add, change and delete | Relations between samples |
+| View, add, change and delete | Literature items |
 | View, add, change and delete | Contributions, the credits that carry a level |
 | Import data | Datasets |
 | Publish | Datasets |
 
-The permissions are those of the base sample and measurement records. The role holds no permission of any registered sample or measurement type.
+The permissions of the registered types are worked out from what the portal registers each time its database is brought up to date, so a new type is covered without a change here.
 
-Because the role can change a record, it can open the record's **Contributors** tab and change who is credited on it, without being listed. Doing so does not add the holder to the record or mark the change as theirs. See [How to give a record a manager when its only manager has left](../how-to/give-a-record-a-manager-again.md).
+The role can open any record's **Contributors** tab and change who is credited on it, without being listed. Doing so does not add the holder to the record or mark the change as theirs. See [How to give a record a manager when its only manager has left](../how-to/give-a-record-a-manager-again.md).
 
 ## Community Manager
 

@@ -10,7 +10,8 @@ This page lists the classes, functions and signal receivers that declare, instal
 |---|---|---|---|
 | `name` | `str` | None, required | The stored name of the role's `auth.Group` |
 | `label` | `str` or lazy string | None, required | The display label, translated |
-| `permissions` | `tuple` of `str` | `()` | The permissions the role holds, each as `app_label.codename` |
+| `permissions` | `tuple` of `str` | `()` | The permissions the role declares, each as `app_label.codename` |
+| `covers_registered_types` | `bool` | `False` | Whether the role also holds the permissions of every registered sample and measurement type. True for the Data Curator |
 
 ## PortalRoles
 
@@ -29,7 +30,9 @@ This page lists the classes, functions and signal receivers that declare, instal
 | `shipped_names()` | `list` of `str` | The stored names of the four roles, in declaration order |
 | `rights_carrying()` | `list` of `str` | The names of the roles that hold at least one permission. Holding any of these gives access to the administration interface. Holding only `Developer` does not |
 | `is_held_by(user, role)` | `bool` | True when the user is authenticated, active and in the group named `role.name`. False for a visitor, a deactivated account and a user in another role. A superuser in no group does not hold the role. The check reads the group and never a Django permission |
-| `reconcile()` | `None` | Installs the four roles. Creates each role that is missing and sets each role's permissions to exactly its declaration. Restores a permission removed by hand and removes one added by hand. Never changes who is in a role |
+| `permissions_of(role)` | `tuple` of `str` | Every permission the role holds in this portal: its declaration, and for a role with `covers_registered_types` the default permissions of every sample and measurement type in the registry |
+| `reaches_every_record(user, permission)` | `bool` | True when the permission applies to every record for the user, whether or not they are listed on it: an active superuser, or someone who holds it through a shipped role. False for a permission granted straight to a person or held through a group your portal created. `permission` is `app_label.codename` |
+| `reconcile()` | `None` | Installs the four roles. Creates each role that is missing and sets each role's permissions to exactly `permissions_of(role)`. Restores a permission removed by hand and removes one added by hand. Never changes who is in a role |
 
 `reconcile()` skips a declared permission that has no database row yet, because the apps that define it may not have migrated. A later run picks it up.
 
@@ -74,12 +77,10 @@ person.has_perm("dataset.change_dataset", dataset)
 `has_perm(user_obj, perm, obj=None)` returns true when all of these hold:
 
 - `obj` is not `None`. The model-level question is never answered here.
-- The user is active.
 - `perm` is not `contributors.manage_organization` or `manage_organization`, which is never answered here.
-- `perm` has the form `app_label.codename`. A bare codename gives false.
-- The user is in a group named like a shipped role, and that group holds the permission.
+- `PortalRoles.reaches_every_record(user_obj, perm)` is true.
 
-A permission granted straight to a person, or through a group your portal created, is not carried to individual records. The answer applies to every instance of the model.
+A permission granted straight to a person, or through a group your portal created, gives no right on any individual record. The answer applies to every instance of the model. Lists and choice lists follow the same rule through `reaches_every_record`.
 
 ## Administration interface
 

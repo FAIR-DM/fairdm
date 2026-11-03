@@ -124,9 +124,9 @@ class RecordLevelMixin:
         """Return the records the user holds a level on, and every record for a portal-wide right.
 
         Choice lists and filters offer the same records the permission backends would let the
-        user act on: those the user holds the level on, and all of them for someone the portal
-        gives ``view`` (for the view level) or ``change`` (for edit and manage) on the whole
-        model, as a superuser or a Data Curator has.
+        user act on: those the user holds the level on, and all of them for someone ``view`` (for
+        the view level) or ``change`` (for edit and manage) reaches on every record, as it does
+        for a superuser or a Data Curator.
 
         Args:
             user: The user, or ``None`` or an anonymous user for a visitor.
@@ -136,12 +136,14 @@ class RecordLevelMixin:
             The records the user may act on at that level.
         """
         from fairdm.contrib.contributors.choices import ContributionLevel
+        from fairdm.portal_roles import PortalRoles
 
         if user is None or not (user.is_authenticated and user.is_active):
             return self.none()
         meta = self.model._meta
         action = "view" if level == ContributionLevel.VIEW else "change"
-        if user.has_perm(f"{meta.app_label}.{action}_{meta.model_name}"):
+        permission = f"{meta.app_label}.{action}_{meta.model_name}"
+        if PortalRoles.reaches_every_record(user, permission):
             return self.all()
         return self.with_level(user, level)
 
@@ -180,8 +182,8 @@ class RecordVisibilityMixin(RecordLevelMixin):
         Those whose own dataset is public and published, unless a private project hides that
         dataset, and those the user holds a level on, on the record itself or from its dataset or
         that dataset's project. Someone listed only on one record sees that record and not its
-        siblings. A user who holds ``view_dataset`` or ``change_dataset`` for the whole portal
-        sees every record.
+        siblings. A user whom ``view_dataset`` or ``change_dataset`` reaches on every record, as
+        it does a superuser or a Data Curator, sees every record.
 
         Args:
             user: The user, or ``None`` for a visitor.
@@ -190,12 +192,14 @@ class RecordVisibilityMixin(RecordLevelMixin):
             The records the user may see.
         """
         from fairdm.contrib.contributors.choices import ContributionLevel
+        from fairdm.portal_roles import PortalRoles
 
         released = released_to_everyone()
         if user is None or not user.is_authenticated:
             return self.filter(released)
-        if user.has_perm("dataset.view_dataset") or user.has_perm(
-            "dataset.change_dataset"
+        if any(
+            PortalRoles.reaches_every_record(user, permission)
+            for permission in ("dataset.view_dataset", "dataset.change_dataset")
         ):
             return self
         held = self.with_level(user, ContributionLevel.VIEW).values("pk")

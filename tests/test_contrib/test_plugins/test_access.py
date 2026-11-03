@@ -1,6 +1,7 @@
 """One access decision, reached identically by navigation and by dispatch."""
 
 import pytest
+from django.contrib.auth.models import Group, Permission
 from django.urls import reverse
 from django.views.generic import TemplateView
 
@@ -23,6 +24,8 @@ from fairdm.factories import (
     DatasetFactory,
     UserFactory,
 )
+from fairdm.portal_roles import PortalRoles
+from fairdm.utils.choices import Visibility
 
 
 class TestResolveCheck:
@@ -93,10 +96,27 @@ class TestCheckIsValid:
 
 @pytest.mark.django_db
 class TestPermissionResolution:
-    def test_model_level_permission_alone_passes(
+    def test_a_model_wide_grant_outside_the_shipped_roles_gives_no_right_on_a_record(
         self, as_user, model_perm_user, sample
     ):
         request = as_user(model_perm_user)
+        assert has_perm(request, "sample.change_sample", sample) is False
+
+    def test_a_model_wide_grant_still_answers_when_no_record_is_asked_about(
+        self, as_user, model_perm_user
+    ):
+        request = as_user(model_perm_user)
+        assert has_perm(request, "sample.change_sample") is True
+
+    def test_a_right_held_through_a_shipped_role_reaches_the_record(
+        self, as_user, plain_user, sample
+    ):
+        plain_user.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+        request = as_user(plain_user)
+        assert has_perm(request, "sample.change_sample", sample) is True
+
+    def test_a_superuser_passes_on_any_record(self, as_user, admin_user, sample):
+        request = as_user(admin_user)
         assert has_perm(request, "sample.change_sample", sample) is True
 
     def test_object_level_permission_alone_passes(
@@ -229,10 +249,15 @@ class TestHoldsLevel:
 
         assert holds_level(as_user(plain_user), "manage", sample) is True
 
-    def test_a_right_over_the_whole_portal_counts_as_the_level(
+    def test_a_portal_role_counts_as_the_level(self, as_user, plain_user, sample):
+        plain_user.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+
+        assert holds_level(as_user(plain_user), "manage", sample) is True
+
+    def test_a_model_wide_grant_outside_the_shipped_roles_is_no_level(
         self, as_user, model_perm_user, sample
     ):
-        assert holds_level(as_user(model_perm_user), "edit", sample) is True
+        assert holds_level(as_user(model_perm_user), "edit", sample) is False
 
     def test_someone_with_no_level_holds_none(self, as_user, plain_user, sample):
         assert holds_level(as_user(plain_user), "view", sample) is False
@@ -338,6 +363,44 @@ class TestRecordPageAccess:
         response = client.get(
             reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
         )
+        assert response.status_code == 200
+
+    def test_a_direct_model_wide_grant_does_not_open_the_editing_page(self, client):
+        dataset = DatasetFactory(
+            project=None, visibility=Visibility.PUBLIC, published=True
+        )
+        user = UserFactory()
+        user.user_permissions.add(
+            Permission.objects.get(codename="change_dataset"),
+        )
+        client.force_login(user)
+
+        response = client.get(reverse("dataset:edit", kwargs={"uuid": dataset.uuid}))
+
+        assert response.status_code == 403
+
+    def test_a_direct_model_wide_grant_does_not_open_a_private_overview(self, client):
+        dataset = DatasetFactory(project=None, visibility=Visibility.PRIVATE)
+        user = UserFactory()
+        user.user_permissions.add(Permission.objects.get(codename="view_dataset"))
+        client.force_login(user)
+
+        response = client.get(
+            reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
+        )
+
+        assert response.status_code == 404
+
+    def test_a_data_curator_opens_the_editing_page_of_a_record_they_are_not_on(
+        self, client
+    ):
+        dataset = DatasetFactory(project=None, visibility=Visibility.PRIVATE)
+        user = UserFactory()
+        user.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
+        client.force_login(user)
+
+        response = client.get(reverse("dataset:edit", kwargs={"uuid": dataset.uuid}))
+
         assert response.status_code == 200
 
     def test_dataset_plugin_page_is_closed_to_a_visitor(self, client):

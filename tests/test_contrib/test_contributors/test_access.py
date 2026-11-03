@@ -5,7 +5,7 @@ record above it. Nothing here goes through a permission backend.
 """
 
 import pytest
-from django.contrib.auth.models import AnonymousUser, Permission
+from django.contrib.auth.models import AnonymousUser, Group, Permission
 
 from fairdm.contrib.contributors.access import REQUIRED_LEVEL, RecordAccess
 from fairdm.contrib.contributors.choices import ContributionLevel
@@ -18,6 +18,7 @@ from fairdm.factories import (
     OrganizationFactory,
     PersonFactory,
 )
+from fairdm.portal_roles import PortalRoles
 
 VIEW, EDIT, MANAGE = (
     ContributionLevel.VIEW,
@@ -335,25 +336,31 @@ class TestCanManage:
 
         assert RecordAccess(record_chain.dataset).can_manage(signed_in) is False
 
-    def test_a_person_holding_change_for_the_whole_portal_may(
-        self, record_chain, signed_in
-    ):
-        signed_in.user_permissions.add(
-            Permission.objects.get(codename="change_dataset")
-        )
-        signed_in = type(signed_in).objects.get(pk=signed_in.pk)
+    def test_a_data_curator_may(self, record_chain, signed_in):
+        signed_in.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
 
         assert RecordAccess(record_chain.dataset).can_manage(signed_in) is True
+        assert RecordAccess(record_chain.sample).can_manage(signed_in) is True
 
-    def test_change_for_datasets_does_not_reach_a_project(
+    def test_a_model_wide_grant_made_directly_gives_no_right(
         self, record_chain, signed_in
     ):
         signed_in.user_permissions.add(
-            Permission.objects.get(codename="change_dataset")
+            Permission.objects.get(codename="change_dataset"),
+            Permission.objects.get(codename="delete_dataset"),
         )
         signed_in = type(signed_in).objects.get(pk=signed_in.pk)
 
-        assert RecordAccess(record_chain.project).can_manage(signed_in) is False
+        assert RecordAccess(record_chain.dataset).can_manage(signed_in) is False
+
+    def test_a_model_wide_grant_through_a_portals_own_group_gives_no_right(
+        self, record_chain, signed_in
+    ):
+        group = Group.objects.create(name="A Group The Portal Made Up")
+        group.permissions.add(Permission.objects.get(codename="change_dataset"))
+        signed_in.groups.add(group)
+
+        assert RecordAccess(record_chain.dataset).can_manage(signed_in) is False
 
     def test_a_superuser_may(self, record_chain):
         superuser = PersonFactory(is_active=True, is_superuser=True, password="x")

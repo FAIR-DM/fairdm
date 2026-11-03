@@ -52,7 +52,9 @@ def has_perm(request: HttpRequest, permission: str, obj: Model | None = None) ->
         obj: The record to check against, if any.
 
     Returns:
-        True when the user holds the permission globally or on the record.
+        True when the user holds the permission on the record, or with no record, for the
+        whole model. On a record, a model-wide grant counts only when it is held through a
+        shipped portal role (:mod:`fairdm.permissions`).
     """
     cache: dict[tuple[Any, ...], bool] = getattr(request, _MEMO_ATTR, None)
     if cache is None:
@@ -66,12 +68,7 @@ def has_perm(request: HttpRequest, permission: str, obj: Model | None = None) ->
         key = (permission, obj._meta.label, obj.pk)
 
     if key not in cache:
-        user = request.user
-        # With an object, ModelBackend contributes nothing, so a global grant needs its own check.
-        granted = user.has_perm(permission)
-        if not granted and obj is not None:
-            granted = user.has_perm(permission, obj)
-        cache[key] = granted
+        cache[key] = request.user.has_perm(permission, obj)
     return cache[key]
 
 
@@ -84,8 +81,8 @@ def holds_level(request: HttpRequest, level: str, obj: Model | None) -> bool:
 
     The level is asked as the permission the record's own pages are opened with:
     ``view_<model>``, ``change_<model>`` or ``delete_<model>``, resolved by :func:`has_perm`.
-    So a level held on a record above counts, and so does the permission held for the whole
-    portal. A visitor holds no level, on a public record as on a private one: the question is
+    So a level held on a record above counts, and so does the permission held through a
+    shipped portal role. A visitor holds no level, on a public record as on a private one: the question is
     who is on the record's team, not who may read it.
 
     Args:

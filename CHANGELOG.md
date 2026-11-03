@@ -16,6 +16,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A model-wide permission outside the shipped portal roles gives no right on any record.** A
+  person granted `dataset.change_dataset` directly in the administration, or through a group the
+  portal made up, could open the editing pages of every dataset they could see and change the
+  contributors of any record, and a private record could be listed to them. Every check that has a
+  record in hand now asks about that record, and lists and choice lists use the new
+  `PortalRoles.reaches_every_record()`. A superuser and the shipped roles keep what they had. A
+  portal that relied on such a grant should give the person a level on the record or a shipped role.
+- **The Data Curator and the Portal Administrator hold what their pages ask for.** The Data Curator
+  now holds the permissions of every registered sample and measurement type, read from the registry
+  when the roles are reconciled through the new `PortalRoles.permissions_of()`, so the role can open,
+  add and delete records in the administration. It also holds the identifier, sample relation and
+  literature item permissions. The Portal Administrator holds `identity.view_authority` and
+  `identity.change_authority`, so the Authority Management link opens.
 - **A password reset no longer reaches a profile nobody has claimed.** An invited profile, one with
   an email address and no account, was sent a reset link that set a password on it, which handed
   the profile to whoever held the address without a claim. The reset page now answers as it does

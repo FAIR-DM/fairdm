@@ -7,8 +7,8 @@ fact change a dataset until something derives the object-level answer from it. T
 is that derivation, and it is deliberately narrow: only a permission held through membership
 of one of the four shipped portal roles confers the object-level answer. A permission granted
 straight to a person, or held through a group the portal made up itself, answers as before.
-Update, Delete and Descriptions stay refused to a person holding only a model-level grant on
-a private record, because a page that relies on inheriting a visibility rule is not guarded.
+A model-level grant outside those roles gives no right on any record, public or private, so
+every check that has a record in hand asks the object-level question.
 """
 
 from django.contrib.auth.backends import BaseBackend
@@ -35,21 +35,6 @@ class PortalRolePermissionBackend(BaseBackend):
 
     def has_perm(self, user_obj, perm, obj=None):
         """Answer object-level questions for permissions held through a shipped portal role."""
-        # The model-level question (`obj is None`) is never answered here; asking it of
-        # `user_obj` would recurse back into this backend.
-        if obj is None:
+        if obj is None or perm in _EXCLUDED_PERMISSIONS:
             return False
-        if not user_obj.is_active:
-            return False
-        if perm in _EXCLUDED_PERMISSIONS:
-            return False
-        # Roles declare `app_label.codename`; a bare codename (guardian's convention) can
-        # never match one, so answer False rather than fail on the split below.
-        if "." not in perm:
-            return False
-        app_label, codename = perm.split(".", 1)
-        return user_obj.groups.filter(
-            name__in=PortalRoles.shipped_names(),
-            permissions__content_type__app_label=app_label,
-            permissions__codename=codename,
-        ).exists()
+        return PortalRoles.reaches_every_record(user_obj, perm)

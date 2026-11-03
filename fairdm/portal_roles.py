@@ -19,11 +19,14 @@ class PortalRole(NamedTuple):
         name: The stored name of the role's group.
         label: The role's display label.
         permissions: The permissions the role holds, each an explicit ``app_label.codename``.
+        covers_registered_types: Whether the role also holds the permissions of every
+            registered sample and measurement type, which differ per portal.
     """
 
     name: str
     label: str | Promise
     permissions: tuple[str, ...] = ()
+    covers_registered_types: bool = False
 
 
 class PortalRoles:
@@ -37,6 +40,8 @@ class PortalRoles:
             "contributors.view_person",
             "contributors.change_person",
             "identity.change_identity",
+            "identity.view_authority",
+            "identity.change_authority",
         ),
     )
 
@@ -56,6 +61,10 @@ class PortalRoles:
             "project.add_projectdate",
             "project.change_projectdate",
             "project.delete_projectdate",
+            "project.view_projectidentifier",
+            "project.add_projectidentifier",
+            "project.change_projectidentifier",
+            "project.delete_projectidentifier",
             "dataset.view_dataset",
             "dataset.add_dataset",
             "dataset.change_dataset",
@@ -68,6 +77,10 @@ class PortalRoles:
             "dataset.add_datasetdate",
             "dataset.change_datasetdate",
             "dataset.delete_datasetdate",
+            "dataset.view_datasetidentifier",
+            "dataset.add_datasetidentifier",
+            "dataset.change_datasetidentifier",
+            "dataset.delete_datasetidentifier",
             "dataset.import_data",
             "dataset.can_publish",
             "sample.view_sample",
@@ -82,6 +95,14 @@ class PortalRoles:
             "sample.add_sampledate",
             "sample.change_sampledate",
             "sample.delete_sampledate",
+            "sample.view_sampleidentifier",
+            "sample.add_sampleidentifier",
+            "sample.change_sampleidentifier",
+            "sample.delete_sampleidentifier",
+            "sample.view_samplerelation",
+            "sample.add_samplerelation",
+            "sample.change_samplerelation",
+            "sample.delete_samplerelation",
             "measurement.view_measurement",
             "measurement.add_measurement",
             "measurement.change_measurement",
@@ -94,11 +115,20 @@ class PortalRoles:
             "measurement.add_measurementdate",
             "measurement.change_measurementdate",
             "measurement.delete_measurementdate",
+            "measurement.view_measurementidentifier",
+            "measurement.add_measurementidentifier",
+            "measurement.change_measurementidentifier",
+            "measurement.delete_measurementidentifier",
             "contributors.view_contribution",
             "contributors.add_contribution",
             "contributors.change_contribution",
             "contributors.delete_contribution",
+            "literature.view_item",
+            "literature.add_item",
+            "literature.change_item",
+            "literature.delete_item",
         ),
+        covers_registered_types=True,
     )
 
     COMMUNITY_MANAGER = PortalRole(
@@ -175,6 +205,59 @@ class PortalRoles:
         return [role.name for role in cls.ROLES if role.permissions]
 
     @classmethod
+    def reaches_every_record(cls, user, permission: str) -> bool:
+        """Say whether a permission applies to every record for a user, listed on it or not.
+
+        It does for an active superuser, and for someone who holds it through a shipped role. A
+        permission granted straight to a person, or held through a group the portal made up
+        itself, does not.
+
+        Args:
+            user: The user, or an anonymous user for a visitor.
+            permission: The permission, as ``app_label.codename``.
+
+        Returns:
+            True when the permission reaches every record.
+        """
+        if not user.has_perm(permission):
+            return False
+        if user.is_superuser:
+            return True
+        app_label, codename = permission.split(".", 1)
+        return bool(
+            user.groups.filter(
+                name__in=cls.shipped_names(),
+                permissions__content_type__app_label=app_label,
+                permissions__codename=codename,
+            ).exists()
+        )
+
+    @classmethod
+    def permissions_of(cls, role: PortalRole) -> tuple[str, ...]:
+        """Return every permission a role holds in this portal.
+
+        That is its declaration, and for a role that covers them the permissions of every
+        registered sample and measurement type. Those are read from the registry because each
+        portal registers its own types, and the polymorphic administration hands a record to
+        the admin of its type, which asks for that type's own permissions.
+
+        Args:
+            role: The role.
+
+        Returns:
+            The permissions, each an explicit ``app_label.codename``.
+        """
+        if not role.covers_registered_types:
+            return role.permissions
+        from fairdm.registry import registry
+
+        return role.permissions + tuple(
+            f"{model._meta.app_label}.{action}_{model._meta.model_name}"
+            for model in (*registry.samples, *registry.measurements)
+            for action in model._meta.default_permissions
+        )
+
+    @classmethod
     def _rename_legacy_groups(cls) -> None:
         """Rename a legacy group row in place, and only when its target name is free.
 
@@ -207,10 +290,11 @@ class PortalRoles:
         Returns:
             The existing permissions the role declares.
         """
-        if not role.permissions:
+        permissions = cls.permissions_of(role)
+        if not permissions:
             return []
         query = Q()
-        for permission_name in role.permissions:
+        for permission_name in permissions:
             app_label, codename = permission_name.split(".", 1)
             query |= Q(content_type__app_label=app_label, codename=codename)
         return list(Permission.objects.filter(query))
@@ -220,7 +304,7 @@ class PortalRoles:
         """Install the four roles into the database.
 
         Renames the legacy rows first, so their membership carries across, then creates whatever
-        role is still missing and sets each role's permissions to exactly its declaration,
+        role is still missing and sets each role's permissions to exactly ``permissions_of``,
         restoring a permission removed by hand and removing one added by hand. Membership is never
         touched, and a group this method did not create or rename is never looked at.
         """

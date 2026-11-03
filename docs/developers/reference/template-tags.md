@@ -185,7 +185,7 @@ The Python function behind it is `fairdm.contrib.plugins.utils.reverse`, on [Plu
 ```
 
 - **Arguments**: `level`, one of `"view"`, `"edit"` or `"manage"`, and `record`, a project, dataset, sample or measurement.
-- **Returns**: `True` when the viewer holds that level on the record or a higher one, through a contribution on the record, on a record above it or for the whole portal. `False` for a visitor who is not signed in, for a record that is none of the four, and when the context holds no `request`.
+- **Returns**: `True` when the viewer holds that level on the record or a higher one, through a contribution on the record, on a record above it or through a portal role. `False` for a visitor who is not signed in, for a record that is none of the four, and when the context holds no `request`.
 - **Raises**: `ValueError` for any other level.
 
 The answer is the one the record's own pages are opened with. [Contribution levels and record access](contribution-levels-and-record-access.md) lists what each level allows, and [How to show part of a page to a record's team](../how-to/show-part-of-a-page-to-a-records-team.md) uses the tag.

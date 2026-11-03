@@ -42,6 +42,9 @@ shipped roles serves the requirement exactly and leaves that guard standing.
 
 What a role can do is readable in one place and pinned by a test that asserts each permission set
 exactly rather than by subset, so widening a role is a visible change rather than a quiet one.
+The one part not spelled out there is the Data Curator's rights over registered sample and
+measurement types: each portal registers its own, so they are read from the registry when the roles
+are reconciled.
 
 A portal wanting a different split of rights creates a group of its own. Nothing here narrows what
 an administrator may define; it sets what they start with. The rights on a shipped role belong to

@@ -151,9 +151,9 @@ class DatasetQuerySet(RecordLevelMixin, QuerySet):
         """Return the datasets the user may see.
 
         Those ``get_visible()`` returns, and those the user holds a level on, on the
-        dataset or on its project. A user who holds ``view_dataset`` for the whole
-        portal sees every dataset. Call it on ``all_objects``: the default manager
-        excludes private datasets.
+        dataset or on its project. A user whom ``view_dataset`` reaches on every record,
+        as it does a superuser or a Data Curator, sees every dataset. Call it on
+        ``all_objects``: the default manager excludes private datasets.
 
         Args:
             user: The user, or ``None``, the default, for a visitor.
