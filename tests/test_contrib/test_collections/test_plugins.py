@@ -553,6 +553,16 @@ class TestRecordChoices:
 
             assert "dataset" not in response.context["filter"].filters
 
+    def test_the_same_type_gets_the_same_filter_set_class_on_every_request(
+        self, client, dataset
+    ):
+        url = address(dataset, "measurements")
+
+        first = type(client.get(url).context["filter"])
+        second = type(client.get(url).context["filter"])
+
+        assert first is second
+
     def test_the_type_filter_offers_only_the_types_of_the_listed_rows(
         self, client, dataset
     ):

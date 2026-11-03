@@ -458,7 +458,8 @@ class PublishedChoicesMixin:
         """Put this mixin in front of a filter set, unless it is already there.
 
         Idempotent, because a listing resolves its filter set on every request and a
-        fresh subclass per request would leak classes.
+        fresh subclass per request would leak classes. What differs between requests
+        goes through the constructor.
 
         Args:
             filterset_class: The filter set to scope.
@@ -490,22 +491,25 @@ class ScopedChoicesMixin:
     of their own: they offer what the record search offers at a scope. Those are set to the
     scope that fits who the list is for.
 
-    Attributes:
-        dropped: The names of filters to take out of the filter set, such as the dataset
+    The filter set's constructor takes three further keyword arguments, so one class serves
+    every request, as :class:`PublishedChoicesMixin` does:
+
+    Args:
+        drop: The names of filters to take out of the filter set, such as the dataset
             filter on a dataset's own page, where every row has the same dataset.
-        record_scope: The scope the record filters offer at: ``"view"`` for the records the
+        scope: The scope the record filters offer at: ``"view"`` for the records the
             viewer may see, ``"public"`` for the public ones.
-        record_owner: A person whose records the record filters offer, as a person or a
-            primary key, for a list of that person's records. Replaces ``record_scope``.
+        owner: A person whose records the record filters offer, as a person or a
+            primary key, for a list of that person's records. Replaces ``scope``.
     """
 
-    dropped: tuple[str, ...] = ()
-    record_scope: str = "view"
-    record_owner: Any = None
     queryset: Any
     filters: dict[str, Any]
 
     def __init__(self, *args, **kwargs):
+        self.dropped: tuple[str, ...] = tuple(kwargs.pop("drop", ()))
+        self.record_scope: str = kwargs.pop("scope", "view")
+        self.record_owner: Any = kwargs.pop("owner", None)
         super().__init__(*args, **kwargs)
         for name in self.dropped:
             self.filters.pop(name, None)
@@ -573,29 +577,23 @@ class ScopedChoicesMixin:
         return None
 
     @classmethod
-    def applied_to(
-        cls,
-        filterset_class: type,
-        drop: tuple[str, ...] = (),
-        scope: str = "view",
-        owner: Any = None,
-    ) -> type:
-        """Put this mixin in front of a filter set.
+    def applied_to(cls, filterset_class: type) -> type:
+        """Put this mixin in front of a filter set, unless it is already there.
+
+        Idempotent, because a listing resolves its filter set on every request and a
+        fresh subclass per request would leak classes. What differs between requests
+        goes through the constructor.
 
         Args:
             filterset_class: The filter set to scope.
-            drop: The names of filters to take out of it.
-            scope: The scope the record filters offer at.
-            owner: A person whose records the record filters offer, in place of ``scope``.
 
         Returns:
-            A subclass of ``filterset_class`` with the mixin first.
+            ``filterset_class`` itself if it already has the mixin, otherwise a
+            subclass with the mixin first.
         """
-        return type(
-            f"Scoped{filterset_class.__name__}",
-            (cls, filterset_class),
-            {"dropped": tuple(drop), "record_scope": scope, "record_owner": owner},
-        )
+        if issubclass(filterset_class, cls):
+            return filterset_class
+        return type(f"Scoped{filterset_class.__name__}", (cls, filterset_class), {})
 
 
 class FilterFactory(ComponentFactory):

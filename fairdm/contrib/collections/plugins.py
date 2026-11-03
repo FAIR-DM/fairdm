@@ -5,6 +5,7 @@ numerous type unless the address names another.
 """
 
 from dataclasses import dataclass
+from functools import partial
 from typing import Any
 
 import django_tables2 as tables
@@ -288,6 +289,7 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
     check = staticmethod(records_are_offered)
 
     record_state = "listed"
+    filterset_classes: dict[Any, type[FilterSet]] = {}
     type_entries: list[dict[str, Any]] = []
     chosen: RecordType | None = None
 
@@ -473,26 +475,44 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
         return [name for name in ("q", "status") if name in filterset.base_filters]
 
     def get_filterset_class(self):
-        """Return the chosen type's filter set, scoped to this tab's rows, or none.
+        """Return the chosen type's filter set with this tab's scoping, or none.
+
+        The registry builds a type's filter set anew on each call, so the scoped class is
+        kept per configuration: a request would otherwise leave a new class behind.
+        """
+        if self.chosen is None:
+            return None
+        config = self.chosen.config
+        if config not in self.filterset_classes:
+            self.filterset_classes[config] = ScopedChoicesMixin.applied_to(
+                config.get_filterset_class()
+            )
+        return self.filterset_classes[config]
+
+    def get_filterset_kwargs(self) -> dict[str, Any]:
+        """Return what scopes the filter set to this tab's rows, for its constructor.
 
         Its choices are the records the listed rows point to that the viewer may see, and
         it has no dataset filter on a dataset's page, since every row is in that dataset. The
         record filters offer a person's own records on that person's page, and public records
         on any other contributor's.
         """
-        if self.chosen is None:
-            return None
-        options: dict[str, Any] = {}
+        kwargs: dict[str, Any] = {}
+        if self.holder == "dataset":
+            kwargs["drop"] = ("dataset",)
         if self.holder == "contributor":
             if self.is_own_page():
-                options["owner"] = self.base_object
+                kwargs["owner"] = self.base_object
             else:
-                options["scope"] = "public"
-        return ScopedChoicesMixin.applied_to(
-            self.chosen.config.get_filterset_class(),
-            drop=("dataset",) if self.holder == "dataset" else (),
-            **options,
-        )
+                kwargs["scope"] = "public"
+        return kwargs
+
+    def get_filterset(self, filterset_class=None):
+        """Build the filter set with the scoping of :meth:`get_filterset_kwargs`."""
+        filterset_class = filterset_class or self.get_filterset_class()
+        if filterset_class is not None:
+            filterset_class = partial(filterset_class, **self.get_filterset_kwargs())
+        return super().get_filterset(filterset_class)
 
     def get_listing_entries(self, models):
         """Offer no switcher between the portal's listings: this page has its own."""

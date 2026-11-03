@@ -937,6 +937,11 @@ class TestScopedChoicesMixin:
             Record.objects.filter(uri=used.status_id).values_list("pk", flat=True)
         )
 
+    def test_the_same_filter_set_is_given_the_same_scoped_class(self, filterset_class):
+        assert ScopedChoicesMixin.applied_to(
+            filterset_class
+        ) is ScopedChoicesMixin.applied_to(filterset_class)
+
     def test_a_filter_named_to_be_dropped_is_removed(self):
         class Rows(FilterSet):
             dataset = ModelChoiceFilter(queryset=Dataset.all_objects.all())
@@ -945,7 +950,8 @@ class TestScopedChoicesMixin:
                 model = RockSample
                 fields = []
 
-        filterset = ScopedChoicesMixin.applied_to(Rows, drop=("dataset",))(
+        filterset = ScopedChoicesMixin.applied_to(Rows)(
+            drop=("dataset",),
             queryset=RockSample.objects.none(),
             request=self.request_for(AnonymousUser()),
         )
@@ -966,8 +972,9 @@ class TestScopedChoicesMixin:
         return Rows
 
     def build(self, filterset_class, **options):
-        return ScopedChoicesMixin.applied_to(filterset_class, **options)(
+        return ScopedChoicesMixin.applied_to(filterset_class)(
             queryset=RockSample.objects.none(),
+            **options,
             request=self.request_for(AnonymousUser()),
         )
 
