@@ -796,6 +796,22 @@ Bases: {py:obj}`django.contrib.auth.admin.UserAdmin`, {py:obj}`hijack.contrib.ad
 
 ````
 
+````{py:method} has_import_permission(request)
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.has_import_permission
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.has_import_permission
+```
+
+````
+
+````{py:method} has_export_permission(request)
+:canonical: fairdm.contrib.contributors.admin.UserAdmin.has_export_permission
+
+```{autodoc2-docstring} fairdm.contrib.contributors.admin.UserAdmin.has_export_permission
+```
+
+````
+
 ````{py:method} get_actions(request)
 :canonical: fairdm.contrib.contributors.admin.UserAdmin.get_actions
 

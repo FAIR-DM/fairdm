@@ -45,8 +45,8 @@ The filters are on the right of the list.
 ### Buttons above the list
 
 - **Add user** opens the add form.
-- **Import** loads people from a spreadsheet. Every row is applied without a confirmation step.
-- **Export** downloads people as a file.
+- **Import** loads people from a spreadsheet. Every row is applied without a confirmation step. It appears only to someone who holds the permission to add people, `contributors.add_person`. The four shipped portal roles do not hold it, so by default only a superuser sees it.
+- **Export** downloads people as a file. It appears to anyone who can view people.
 
 The import reads these columns: `uuid`, `name`, `first_name`, `last_name`, `orcid`, `ror_id` and `affiliation`. A row with an `orcid` finds or creates the person from ORCID. A row naming an affiliation links the person to that organization as a **Member** and creates the organization when it does not exist, using the `ror_id` when given. A row that matches a claimed person is refused, so an import cannot overwrite an account in use. The import pauses 1.5 seconds after each row to stay under the registries' limits. The `uuid` identifies a row and is never written.
 
@@ -99,9 +99,9 @@ Each inline starts with no empty row. Use its **Add another** link. Adding an id
 
 ### Possible Duplicate Persons
 
-A panel at the foot of the form lists other people whose display name scores 85 percent or more against this person's, ignoring the order of the words. It appears only when there are such people. Each row shows the name, the email address, the similarity and two buttons.
+A panel at the foot of the form lists other people whose display name scores 85 percent or more against this person's, ignoring the order of the words. It appears only when there are such people. Each row shows the name, the email address, the similarity as a percentage and two buttons.
 
-- **Merge** opens the merge page for the person whose form you are on.
+- **Merge** opens the merge page for the person whose form you are on, with this row's person already chosen in **Merge into**.
 - **Dismiss** hides that suggestion for the rest of your session.
 
 The panel only suggests. Nothing is merged or claimed because two names look alike.

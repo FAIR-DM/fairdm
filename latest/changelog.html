@@ -824,6 +824,20 @@ longer exist.</p></li>
 <section id="fixed">
 <h3>Fixed<a class="headerlink" href="#fixed" title="Link to this heading">#</a></h3>
 <ul class="simple">
+<li><p><strong>Importing people needs the permission to add them, and exporting them the permission to view
+them.</strong> The Import and Export pages of the People administration were open to anyone admitted to
+the administration, including the Portal Administrator, Community Manager and Data Curator roles.
+None of the shipped roles holds <code class="docutils literal notranslate"><span class="pre">contributors.add_person</span></code>, so by default only a superuser can
+import people. A portal that relied on a role importing people grants it that permission.</p></li>
+<li><p><strong>The possible-duplicates panel shows the similarity as a percentage.</strong> Every match showed as 1%.</p></li>
+<li><p><strong>The panel’s Merge button chooses the person to merge into.</strong> The merge page opened with nothing
+chosen, whichever row the button was on.</p></li>
+<li><p><strong>The administration’s header and title show the portal’s name in every process, after every
+restart, and in the visitor’s language.</strong> They were set on the admin site object of the one
+process that saved the portal identity. <code class="docutils literal notranslate"><span class="pre">Identity.save()</span></code> no longer touches the admin site, and
+the admin site reads the name when it renders.</p></li>
+<li><p><strong>The project administration’s bulk actions and their messages use the status labels.</strong> “Mark
+selected projects as Active” and “as Completed” are now “as In progress” and “as Complete”.</p></li>
 <li><p><strong>The API’s single-record route reads a proxy of a record type by the concrete type’s rules.</strong>
 <code class="docutils literal notranslate"><span class="pre">FairDMObjectPermissions</span></code> asked for the proxy’s own permission, which no level grants, so a person
 at the view level was refused a record the list showed them. A portal that overrode

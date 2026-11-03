@@ -1099,7 +1099,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p>Admin login form that accepts a holder of a rights-carrying role, not only staff.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.admin.sites.CustomAdminSite" title="fairdm.contrib.admin.sites.CustomAdminSite"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CustomAdminSite</span></code></a></p></td>
-<td><p>Admin site titled for the portal that admits holders of rights-carrying roles.</p></td>
+<td><p>Admin site headed with the portal’s name, open to rights-carrying roles.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1141,7 +1141,7 @@ The form data comes in via the standard ‘data’ kwarg.</p>
 <dt class="sig sig-object py" id="fairdm.contrib.admin.sites.CustomAdminSite">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">CustomAdminSite</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'admin'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.admin.sites.CustomAdminSite" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.contrib.admin.AdminSite</span></code></p>
-<p>Admin site titled for the portal that admits holders of rights-carrying roles.</p>
+<p>Admin site headed with the portal’s name, open to rights-carrying roles.</p>
 <p class="rubric">Initialization</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="fairdm.contrib.admin.sites.CustomAdminSite.site_header">
@@ -1171,6 +1171,19 @@ The form data comes in via the standard ‘data’ kwarg.</p>
 <dt class="sig sig-object py" id="fairdm.contrib.admin.sites.CustomAdminSite.has_permission">
 <span class="sig-name descname"><span class="pre">has_permission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.admin.sites.CustomAdminSite.has_permission" title="Link to this definition">#</a></dt>
 <dd><p>Accept a holder of a rights-carrying role, not only an <code class="docutils literal notranslate"><span class="pre">is_staff</span></code> account.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.admin.sites.CustomAdminSite.each_context">
+<span class="sig-name descname"><span class="pre">each_context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.admin.sites.CustomAdminSite.each_context" title="Link to this definition">#</a></dt>
+<dd><p>Head every page with the saved portal name in the visitor’s language.</p>
+<p>The name is read on each render, never stored on the site, because the site
+is one object per process and the identity is one row per portal.</p>
+<p>Args:
+request: The current request.</p>
+<p>Returns:
+The context shared by every page of the site. The site’s own header and
+title stand until a portal name has been saved.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1259,6 +1272,7 @@ A redirect to the admin index after a valid upload, otherwise the upload form.</
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.admin.sites.CustomAdminSite.index_title"><code class="docutils literal notranslate"><span class="pre">CustomAdminSite.index_title</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.admin.sites.CustomAdminSite.login_form"><code class="docutils literal notranslate"><span class="pre">CustomAdminSite.login_form</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.admin.sites.CustomAdminSite.has_permission"><code class="docutils literal notranslate"><span class="pre">CustomAdminSite.has_permission()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.admin.sites.CustomAdminSite.each_context"><code class="docutils literal notranslate"><span class="pre">CustomAdminSite.each_context()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.admin.sites.CustomAdminSite.get_urls"><code class="docutils literal notranslate"><span class="pre">CustomAdminSite.get_urls()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.admin.sites.CustomAdminSite.upload_fixture_view"><code class="docutils literal notranslate"><span class="pre">CustomAdminSite.upload_fixture_view()</span></code></a></li>
 </ul>

@@ -1192,6 +1192,15 @@ merge_into: The person that survives.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.forms.person.MergePersonForm.choose">
+<span class="sig-name descname"><span class="pre">choose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.forms.person.MergePersonForm.choose" title="Link to this definition">#</a></dt>
+<dd><p>Start the form on a person, when submitting that person would be accepted.</p>
+<p>Args:
+value: The primary key of the person, from outside the form. Anything the
+field would refuse, or the person being merged, chooses nothing.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.forms.person.MergePersonForm.clean_merge_into">
 <span class="sig-name descname"><span class="pre">clean_merge_into</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.forms.person.MergePersonForm.clean_merge_into" title="Link to this definition">#</a></dt>
 <dd><p>Refuse the person being merged as the person that survives.</p>
@@ -1268,6 +1277,7 @@ merge_into: The person that survives.</p>
 </li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.forms.person.MergePersonForm"><code class="docutils literal notranslate"><span class="pre">MergePersonForm</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.forms.person.MergePersonForm.merge_into"><code class="docutils literal notranslate"><span class="pre">MergePersonForm.merge_into</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.forms.person.MergePersonForm.choose"><code class="docutils literal notranslate"><span class="pre">MergePersonForm.choose()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.forms.person.MergePersonForm.clean_merge_into"><code class="docutils literal notranslate"><span class="pre">MergePersonForm.clean_merge_into()</span></code></a></li>
 </ul>
 </li>

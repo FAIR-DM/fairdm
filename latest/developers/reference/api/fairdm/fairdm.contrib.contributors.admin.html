@@ -1589,6 +1589,18 @@ membership grants a role’s rights.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.has_import_permission">
+<span class="sig-name descname"><span class="pre">has_import_permission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.admin.UserAdmin.has_import_permission" title="Link to this definition">#</a></dt>
+<dd><p>Require the permission to add people, because an import creates them.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.has_export_permission">
+<span class="sig-name descname"><span class="pre">has_export_permission</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.admin.UserAdmin.has_export_permission" title="Link to this definition">#</a></dt>
+<dd><p>Require the permission to view people, because an export lists them.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="fairdm.contrib.contributors.admin.UserAdmin.get_actions">
 <span class="sig-name descname"><span class="pre">get_actions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.admin.UserAdmin.get_actions" title="Link to this definition">#</a></dt>
 <dd><p>Drop the merge and claim-link actions for users the views would refuse.</p>
@@ -2030,6 +2042,8 @@ new_owner: The person to become owner.</p>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.admin.UserAdmin.actions"><code class="docutils literal notranslate"><span class="pre">UserAdmin.actions</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.admin.UserAdmin.get_fieldsets"><code class="docutils literal notranslate"><span class="pre">UserAdmin.get_fieldsets()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.admin.UserAdmin.get_form"><code class="docutils literal notranslate"><span class="pre">UserAdmin.get_form()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.admin.UserAdmin.has_import_permission"><code class="docutils literal notranslate"><span class="pre">UserAdmin.has_import_permission()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.admin.UserAdmin.has_export_permission"><code class="docutils literal notranslate"><span class="pre">UserAdmin.has_export_permission()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.admin.UserAdmin.get_actions"><code class="docutils literal notranslate"><span class="pre">UserAdmin.get_actions()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.admin.UserAdmin.account_state"><code class="docutils literal notranslate"><span class="pre">UserAdmin.account_state()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.admin.UserAdmin.merge_person_action"><code class="docutils literal notranslate"><span class="pre">UserAdmin.merge_person_action()</span></code></a></li>

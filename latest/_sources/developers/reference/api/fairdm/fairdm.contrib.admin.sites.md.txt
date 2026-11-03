@@ -143,6 +143,14 @@ Bases: {py:obj}`django.contrib.admin.AdminSite`
 
 ````
 
+````{py:method} each_context(request)
+:canonical: fairdm.contrib.admin.sites.CustomAdminSite.each_context
+
+```{autodoc2-docstring} fairdm.contrib.admin.sites.CustomAdminSite.each_context
+```
+
+````
+
 ````{py:method} get_urls()
 :canonical: fairdm.contrib.admin.sites.CustomAdminSite.get_urls
 

@@ -250,12 +250,4 @@ Bases: {py:obj}`fairdm.contrib.identity.models.BrandAssets`, {py:obj}`solo.model
 
 `````
 
-````{py:method} save(*args, **kwargs)
-:canonical: fairdm.contrib.identity.models.Identity.save
-
-```{autodoc2-docstring} fairdm.contrib.identity.models.Identity.save
-```
-
-````
-
 ``````

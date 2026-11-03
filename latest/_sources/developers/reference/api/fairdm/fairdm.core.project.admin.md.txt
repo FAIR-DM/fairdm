@@ -33,6 +33,18 @@
     ```
 ````
 
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`status_action_description <fairdm.core.project.admin.status_action_description>`
+  - ```{autodoc2-docstring} fairdm.core.project.admin.status_action_description
+    :summary:
+    ```
+````
+
 ### Data
 
 ````{list-table}
@@ -46,6 +58,13 @@
 ````
 
 ### API
+
+````{py:function} status_action_description(status)
+:canonical: fairdm.core.project.admin.status_action_description
+
+```{autodoc2-docstring} fairdm.core.project.admin.status_action_description
+```
+````
 
 `````{py:class} DescriptionInline(parent_model, admin_site)
 :canonical: fairdm.core.project.admin.DescriptionInline
@@ -309,6 +328,14 @@ Bases: {py:obj}`django.contrib.admin.ModelAdmin`
    ['make_concept', 'make_active', 'make_completed', 'export_json', 'export_datacite']
 
 ```{autodoc2-docstring} fairdm.core.project.admin.ProjectAdmin.actions
+```
+
+````
+
+````{py:method} set_status(request, queryset, status)
+:canonical: fairdm.core.project.admin.ProjectAdmin.set_status
+
+```{autodoc2-docstring} fairdm.core.project.admin.ProjectAdmin.set_status
 ```
 
 ````

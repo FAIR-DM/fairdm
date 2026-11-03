@@ -937,8 +937,8 @@ commentsRunWhenDOMLoaded(addUtterances);
 <h3>Buttons above the list<a class="headerlink" href="#buttons-above-the-list" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><strong>Add user</strong> opens the add form.</p></li>
-<li><p><strong>Import</strong> loads people from a spreadsheet. Every row is applied without a confirmation step.</p></li>
-<li><p><strong>Export</strong> downloads people as a file.</p></li>
+<li><p><strong>Import</strong> loads people from a spreadsheet. Every row is applied without a confirmation step. It appears only to someone who holds the permission to add people, <code class="docutils literal notranslate"><span class="pre">contributors.add_person</span></code>. The four shipped portal roles do not hold it, so by default only a superuser sees it.</p></li>
+<li><p><strong>Export</strong> downloads people as a file. It appears to anyone who can view people.</p></li>
 </ul>
 <p>The import reads these columns: <code class="docutils literal notranslate"><span class="pre">uuid</span></code>, <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">first_name</span></code>, <code class="docutils literal notranslate"><span class="pre">last_name</span></code>, <code class="docutils literal notranslate"><span class="pre">orcid</span></code>, <code class="docutils literal notranslate"><span class="pre">ror_id</span></code> and <code class="docutils literal notranslate"><span class="pre">affiliation</span></code>. A row with an <code class="docutils literal notranslate"><span class="pre">orcid</span></code> finds or creates the person from ORCID. A row naming an affiliation links the person to that organization as a <strong>Member</strong> and creates the organization when it does not exist, using the <code class="docutils literal notranslate"><span class="pre">ror_id</span></code> when given. A row that matches a claimed person is refused, so an import cannot overwrite an account in use. The import pauses 1.5 seconds after each row to stay under the registries’ limits. The <code class="docutils literal notranslate"><span class="pre">uuid</span></code> identifies a row and is never written.</p>
 </section>
@@ -1041,9 +1041,9 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="possible-duplicate-persons">
 <h3>Possible Duplicate Persons<a class="headerlink" href="#possible-duplicate-persons" title="Link to this heading">#</a></h3>
-<p>A panel at the foot of the form lists other people whose display name scores 85 percent or more against this person’s, ignoring the order of the words. It appears only when there are such people. Each row shows the name, the email address, the similarity and two buttons.</p>
+<p>A panel at the foot of the form lists other people whose display name scores 85 percent or more against this person’s, ignoring the order of the words. It appears only when there are such people. Each row shows the name, the email address, the similarity as a percentage and two buttons.</p>
 <ul class="simple">
-<li><p><strong>Merge</strong> opens the merge page for the person whose form you are on.</p></li>
+<li><p><strong>Merge</strong> opens the merge page for the person whose form you are on, with this row’s person already chosen in <strong>Merge into</strong>.</p></li>
 <li><p><strong>Dismiss</strong> hides that suggestion for the rest of your session.</p></li>
 </ul>
 <p>The panel only suggests. Nothing is merged or claimed because two names look alike.</p>

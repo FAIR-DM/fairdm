@@ -1108,6 +1108,17 @@ commentsRunWhenDOMLoaded(addUtterances);
 </table>
 </div>
 </section>
+<section id="functions">
+<h3>Functions<a class="headerlink" href="#functions" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table table-left">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.core.project.admin.status_action_description" title="fairdm.core.project.admin.status_action_description"><code class="xref py py-obj docutils literal notranslate"><span class="pre">status_action_description</span></code></a></p></td>
+<td><p>Return the description of the bulk action that sets a status, in the status’s words.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <section id="data">
 <h3>Data<a class="headerlink" href="#data" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table table-left">
@@ -1121,6 +1132,16 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="api">
 <h3>API<a class="headerlink" href="#api" title="Link to this heading">#</a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="fairdm.core.project.admin.status_action_description">
+<span class="sig-name descname"><span class="pre">status_action_description</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">status</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.project.admin.status_action_description" title="Link to this definition">#</a></dt>
+<dd><p>Return the description of the bulk action that sets a status, in the status’s words.</p>
+<p>Args:
+status: The status the action sets.</p>
+<p>Returns:
+A lazily translated description.</p>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="fairdm.core.project.admin.DescriptionInline">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">DescriptionInline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">admin_site</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.project.admin.DescriptionInline" title="Link to this definition">#</a></dt>
@@ -1278,21 +1299,31 @@ commentsRunWhenDOMLoaded(addUtterances);
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.project.admin.ProjectAdmin.set_status">
+<span class="sig-name descname"><span class="pre">set_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queryset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.project.admin.ProjectAdmin.set_status" title="Link to this definition">#</a></dt>
+<dd><p>Set the selected projects to a status and report how many changed.</p>
+<p>Args:
+request: The current request.
+queryset: The selected projects.
+status: The status to set.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="fairdm.core.project.admin.ProjectAdmin.make_concept">
 <span class="sig-name descname"><span class="pre">make_concept</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queryset</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.project.admin.ProjectAdmin.make_concept" title="Link to this definition">#</a></dt>
-<dd><p>Set the selected projects to Concept status.</p>
+<dd><p>Set the selected projects to Concept.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="fairdm.core.project.admin.ProjectAdmin.make_active">
 <span class="sig-name descname"><span class="pre">make_active</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queryset</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.project.admin.ProjectAdmin.make_active" title="Link to this definition">#</a></dt>
-<dd><p>Set the selected projects to In progress, which the admin labels Active.</p>
+<dd><p>Set the selected projects to In progress.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="fairdm.core.project.admin.ProjectAdmin.make_completed">
 <span class="sig-name descname"><span class="pre">make_completed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queryset</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.project.admin.ProjectAdmin.make_completed" title="Link to this definition">#</a></dt>
-<dd><p>Set the selected projects to Complete status.</p>
+<dd><p>Set the selected projects to Complete.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1362,8 +1393,10 @@ commentsRunWhenDOMLoaded(addUtterances);
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#functions">Functions</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#data">Data</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#api">API</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.project.admin.status_action_description"><code class="docutils literal notranslate"><span class="pre">status_action_description()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.project.admin.DescriptionInline"><code class="docutils literal notranslate"><span class="pre">DescriptionInline</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.project.admin.DescriptionInline.model"><code class="docutils literal notranslate"><span class="pre">DescriptionInline.model</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.project.admin.DescriptionInline.extra"><code class="docutils literal notranslate"><span class="pre">DescriptionInline.extra</span></code></a></li>
@@ -1395,6 +1428,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.project.admin.ProjectAdmin.has_start_date"><code class="docutils literal notranslate"><span class="pre">ProjectAdmin.has_start_date()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.project.admin.ProjectAdmin.fieldsets"><code class="docutils literal notranslate"><span class="pre">ProjectAdmin.fieldsets</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.project.admin.ProjectAdmin.actions"><code class="docutils literal notranslate"><span class="pre">ProjectAdmin.actions</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.project.admin.ProjectAdmin.set_status"><code class="docutils literal notranslate"><span class="pre">ProjectAdmin.set_status()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.project.admin.ProjectAdmin.make_concept"><code class="docutils literal notranslate"><span class="pre">ProjectAdmin.make_concept()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.project.admin.ProjectAdmin.make_active"><code class="docutils literal notranslate"><span class="pre">ProjectAdmin.make_active()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.project.admin.ProjectAdmin.make_completed"><code class="docutils literal notranslate"><span class="pre">ProjectAdmin.make_completed()</span></code></a></li>

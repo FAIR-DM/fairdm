@@ -145,6 +145,14 @@ Bases: {py:obj}`django.forms.Form`
 
 ````
 
+````{py:method} choose(value)
+:canonical: fairdm.contrib.contributors.forms.person.MergePersonForm.choose
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.person.MergePersonForm.choose
+```
+
+````
+
 ````{py:method} clean_merge_into()
 :canonical: fairdm.contrib.contributors.forms.person.MergePersonForm.clean_merge_into
 
