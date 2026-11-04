@@ -26,7 +26,7 @@
 {% endcomment %}
 
 {% block overview.badges %}
-  {% include "overview/includes/type_badge.html" with label=measurement_type info=type_info id="about-measurement-type" %}
+  {% include "overview/includes/type_badge.html" with kind="measurement" label=measurement_type info=type_info id="about-measurement-type" %}
 {% endblock overview.badges %}
 
 {% block overview.notices %}

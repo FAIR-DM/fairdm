@@ -32,6 +32,16 @@
   --record-tint: var(--color-entity-dataset-tint, color-mix(in oklch, var(--color-success) 12%, transparent));
 }
 
+.record-card--sample {
+  --record-accent: var(--color-entity-sample, var(--color-secondary));
+  --record-tint: var(--color-entity-sample-tint, color-mix(in oklch, var(--color-secondary) 12%, transparent));
+}
+
+.record-card--measurement {
+  --record-accent: var(--color-entity-measurement, var(--color-accent));
+  --record-tint: var(--color-entity-measurement-tint, color-mix(in oklch, var(--color-accent) 12%, transparent));
+}
+
 .record-card__layout {
   display: flex;
   flex-direction: column;
@@ -405,4 +415,98 @@
   width: 100%;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+/* ---------------------------------------------------------------------------
+ * Record types
+ * ------------------------------------------------------------------------- */
+
+/* The four core records each have a colour, so a page says what kind of record it holds before
+ * the heading is read. A `record-<type>` class on any element sets --record and --record-tint for
+ * everything inside it, and the rules below draw them. The colour is only ever a line or a
+ * surface: the words stay in the text colour, and the record type is always named beside it.
+ * Only FairDM's own themes define the entity colours. On any other theme the four fall back to
+ * `info`, `success`, `secondary` and `accent`. */
+.record-project {
+  --record: var(--color-entity-project, var(--color-info));
+  --record-tint: var(--color-entity-project-tint, color-mix(in oklch, var(--color-info) 12%, transparent));
+}
+
+.record-dataset {
+  --record: var(--color-entity-dataset, var(--color-success));
+  --record-tint: var(--color-entity-dataset-tint, color-mix(in oklch, var(--color-success) 12%, transparent));
+}
+
+.record-sample {
+  --record: var(--color-entity-sample, var(--color-secondary));
+  --record-tint: var(--color-entity-sample-tint, color-mix(in oklch, var(--color-secondary) 12%, transparent));
+}
+
+.record-measurement {
+  --record: var(--color-entity-measurement, var(--color-accent));
+  --record-tint: var(--color-entity-measurement-tint, color-mix(in oklch, var(--color-accent) 12%, transparent));
+}
+
+/* The record type as a label: tinted, with a line on its leading edge, its icon and its name. */
+.record-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.125rem 0.5rem;
+  border-inline-start: 3px solid var(--record);
+  border-radius: var(--radius-selector, 0.25rem);
+  background-color: var(--record-tint);
+  color: var(--color-base-content);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+  white-space: nowrap;
+}
+
+button.record-tag {
+  cursor: pointer;
+}
+
+button.record-tag:hover {
+  background-color: color-mix(in oklch, var(--record) 22%, var(--record-tint));
+}
+
+button.record-tag:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* An overview page's header card takes the line along its top, as the record's card does in a
+ * listing, so the page and the card that led to it read as the same thing. */
+.record-header:is(.record-project, .record-dataset, .record-sample, .record-measurement) {
+  border-block-start: 3px solid var(--record);
+}
+
+/* A page title for records of one type, underlined in the type's colour. The line runs the
+ * length of the words, not the width of the page. */
+.record-title {
+  display: inline-block;
+  padding-block-end: 0.25rem;
+  border-block-end: 3px solid var(--record);
+}
+
+/* A record in the breadcrumb trail: a small square of its colour before the name. */
+.record-crumb > :is(a, span)::before {
+  content: "";
+  display: inline-block;
+  flex: none;
+  width: 0.625rem;
+  height: 0.625rem;
+  margin-inline-end: 0.375rem;
+  border-radius: 0.125rem;
+  background-color: var(--record);
+}
+
+/* The icon tile on a figure or a list entry, for a record type: the tint as its surface, the
+ * line on its leading edge, and the icon in the text colour, since a yellow icon on a yellow
+ * tint would not be seen. */
+.stat-icon:is(.record-project, .record-dataset, .record-sample, .record-measurement) {
+  color: var(--color-base-content);
+  background-color: var(--record-tint);
+  box-shadow: inset 3px 0 0 var(--record);
 }

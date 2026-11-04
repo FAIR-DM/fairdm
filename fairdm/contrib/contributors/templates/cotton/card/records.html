@@ -7,12 +7,11 @@
     title    – the card's title
     records  – {shown: [{record, owned}], more: int, total: int}
     kind     – "project" or "dataset", which picks the icon and what each row says
-    variant  – the theme colour of the record type
     all_url  – where the full list lives, shown as "View all" and on the count
     empty    – what to say when there are none
     class    – extra classes on the card
 {% endcomment %}
-<c-vars title records kind variant all_url empty class />
+<c-vars title records kind all_url empty class />
 <c-mvp.card title="{{ title }}" class="bg-base-100 min-w-0 {{ class }}" data-card="{{ kind }}s" only>
   <c-slot name="badges">
     {% if records.total %}<span class="badge badge-ghost badge-sm">{{ records.total }}</span>{% endif %}
@@ -26,7 +25,7 @@
     <ul class="list">
       {% for entry in records.shown %}
         <li class="list-row px-0">
-          <span class="stat-icon stat-icon-sm" style="--stat-color: var(--color-{{ variant }})" aria-hidden="true"><c-icon name="{{ kind }}" only /></span>
+          <span class="stat-icon stat-icon-sm record-{{ kind }}" aria-hidden="true"><c-icon name="{{ kind }}" only /></span>
           <div class="list-col-grow min-w-0 flex flex-col gap-1">
             <a href="{{ entry.record.get_absolute_url }}" class="link link-hover font-medium break-words">{{ entry.record.name }}</a>
             <span class="text-xs text-base-content/70 flex flex-wrap items-center gap-x-2 gap-y-1">

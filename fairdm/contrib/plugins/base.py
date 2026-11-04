@@ -234,6 +234,7 @@ class Plugin(PermissionRequiredMixin, View):
         from django.urls import reverse as django_reverse
 
         breadcrumbs: list[dict[str, Any]] = []
+        record_class = record_crumb_class(self.registered_model)
 
         if self.registered_model:
             meta = self.registered_model._meta
@@ -253,6 +254,8 @@ class Plugin(PermissionRequiredMixin, View):
             # Not cut short here: the trail truncates with an ellipsis only when it runs out of
             # room in the header.
             entry = {"text": str(obj)}
+            if record_class:
+                entry["class"] = record_class
             get_absolute_url = getattr(obj, "get_absolute_url", None)
             if callable(get_absolute_url):
                 with contextlib.suppress(Exception):
@@ -263,3 +266,31 @@ class Plugin(PermissionRequiredMixin, View):
             breadcrumbs.append({"text": self.page_title})
 
         return breadcrumbs
+
+
+def record_crumb_class(model: type[Model] | None) -> str:
+    """Return the classes that mark a core record's breadcrumb with its record type's colour.
+
+    Args:
+        model: The model a plugin serves.
+
+    Returns:
+        ``"record-crumb record-<type>"`` for a project, dataset, sample or measurement, of any
+        registered type, and an empty string for anything else.
+    """
+    from fairdm.core.dataset.models import Dataset
+    from fairdm.core.measurement.models import Measurement
+    from fairdm.core.project.models import Project
+    from fairdm.core.sample.models import Sample
+
+    if model is None:
+        return ""
+    for kind, base in (
+        ("project", Project),
+        ("dataset", Dataset),
+        ("sample", Sample),
+        ("measurement", Measurement),
+    ):
+        if issubclass(model, base):
+            return f"record-crumb record-{kind}"
+    return ""

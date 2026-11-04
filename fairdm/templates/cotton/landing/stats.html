@@ -5,7 +5,10 @@
   <c-stats.band size="sm" class="bg-base-100" id="landing-stats">
     {# Not `figure`: the stat underneath has a slot of that name and would draw the loop variable in it. #}
     {% for item in counts %}
-      <c-stats.count title="{{ item.title }}" :to="item.value" icon="{{ item.icon }}" />
+      {# The icon in a tile, so a record type's figure carries its colour and the others a neutral tile. #}
+      <c-stats.count title="{{ item.title }}" :to="item.value">
+        <c-slot name="figure"><span class="stat-icon record-{{ item.icon }}" aria-hidden="true"><c-icon name="{{ item.icon }}" only /></span></c-slot>
+      </c-stats.count>
     {% endfor %}
   </c-stats.band>
 {% endif %}

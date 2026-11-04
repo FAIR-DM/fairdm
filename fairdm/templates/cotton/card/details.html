@@ -24,7 +24,8 @@
       <c-card.details.entry label="{{ row.label }}" icon="{{ row.icon }}">
         <span class="{% if row.warning %}text-warning{% endif %}">
           {% if row.record %}
-            <a href="{{ row.record.get_absolute_url }}" class="link link-hover">{{ row.record }}</a>
+            {# The record's colour as a square before its name, as in the breadcrumb trail. #}
+            <span class="record-crumb record-{{ row.icon }}"><a href="{{ row.record.get_absolute_url }}" class="link link-hover">{{ row.record }}</a></span>
           {% elif row.badge %}
             <span class="badge badge-soft badge-{{ row.badge_variant|default:'neutral' }} badge-sm">{{ row.badge }}</span>
           {% elif row.date %}
