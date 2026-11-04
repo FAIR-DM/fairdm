@@ -92,7 +92,7 @@ The narrow column holds these cards, from the top:
 - **People**, a grid of faces with the name on hover, each linked to the person's page. A **See all** button opens the Contributors tab, and a line counts those not shown. With nobody credited it says "No one is credited yet."
 - **Identifiers**, a table of the project's identifiers by type, with a DOI linked to doi.org, and the **Portal ID** with a button that copies it.
 - **Funding**, the awards recorded for the project with the funder, the award title and number. With none it says "No funding has been recorded." People who may change the project see a longer note. None of the editing screens changes funding.
-- **Citation**, the citation written as Creators (Year). Title. Publisher. Identifier. The year is the start year, or the year the project was added when it has no start date. The identifier is the DOI link, or the address of the page. When there is no DOI, a note says the citation points at the page. A **Copy** button copies the text.
+- **Citation**, the citation written as Creators (Year). Title. Publisher. Identifier. The year is the start year, or the year the project was added when it has no start date. The identifier is the DOI link, or the project's permalink. When there is no DOI, a note says the citation points at the page. A **Copy** button copies the text.
 
 ## What you can do here
 
