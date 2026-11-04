@@ -173,6 +173,21 @@ class TestAddonUrlMounting:
 
         assert match.url_name == "routed-addon-page"
 
+    def test_an_addon_address_shaped_like_a_portal_id_wins_over_the_permalink(
+        self, production_env, settings_module, root_urls
+    ):
+        os.environ["DJANGO_ENV"] = "development"
+
+        settings_module(
+            setup_call="fairdm.setup(addons=['tests.test_conf.routed_addon'])"
+        )
+        importlib.reload(root_urls)
+        clear_url_caches()
+
+        match = resolve("/p" + "2" * 22 + "/", urlconf=root_urls)
+
+        assert match.url_name == "routed-addon-portal-id-page"
+
 
 class TestAddonPosition:
     def test_addon_setting_beats_fairdm_environment_override(
