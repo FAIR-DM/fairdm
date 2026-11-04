@@ -274,7 +274,7 @@ class TestPersonOverview:
 
         figure = page.select(".stat")[-1]
         assert unclaimed_person.member_since is None
-        assert figure.select_one(".stat-value").get_text(strip=True) == "–"
+        assert figure.select_one(".stat-value").get_text(strip=True) == "–"  # noqa: RUF001
         assert figure.select_one(".stat-desc") is not None
 
     def test_a_claimed_profile_has_no_notice_and_shows_the_year_of_its_account(
@@ -365,7 +365,7 @@ class TestPersonOverview:
             type=AffiliationFactory._meta.model.MembershipType.PENDING,
         )
 
-        response, page = get_page(claimed_person.get_absolute_url())
+        response, _ = get_page(claimed_person.get_absolute_url())
 
         content = response.content.decode()
         assert "PENDING-ORG-MARKER" not in content
@@ -646,7 +646,7 @@ class TestPersonOverview:
 
 
 def _members(page):
-    """The places of the members card, as the person each links to or None for a count."""
+    """The places of the members card, as the address each links to."""
     places = []
     for place in _card(page, "members").select("ul > li"):
         link = place.select_one("a[href]")
@@ -680,9 +680,9 @@ def _management_menu(page):
     ]
 
 
-def _join(organization, name, type=Affiliation.MembershipType.MEMBER, **kwargs):
+def _join(organization, name, kind=Affiliation.MembershipType.MEMBER, **kwargs):
     person = PersonFactory(name=name, is_active=True, is_claimed=True, password="x")
-    AffiliationFactory(organization=organization, person=person, type=type, **kwargs)
+    AffiliationFactory(organization=organization, person=person, type=kind, **kwargs)
     return person
 
 
@@ -884,7 +884,9 @@ class TestOrganizationOverview:
         places = _members(page)
         assert len(places) == 10
         assert places[:9] == [p.get_absolute_url() for p in people[:9]]
-        assert places[9] is None
+        assert places[9] == reverse(
+            "contributor:organization-members", kwargs={"uuid": organization.uuid}
+        )
         assert "+4" in _card(page, "members").select("ul > li")[9].get_text()
         assert (
             page.select(".stat")[-1].select_one(".stat-value").get_text(strip=True)
@@ -1001,13 +1003,13 @@ class TestOrganizationOverview:
         assert _management_menu(page) == []
 
     @pytest.mark.parametrize(
-        "type", [Affiliation.MembershipType.ADMIN, Affiliation.MembershipType.OWNER]
+        "kind", [Affiliation.MembershipType.ADMIN, Affiliation.MembershipType.OWNER]
     )
     def test_those_who_keep_the_record_get_the_management_menu_and_the_checklist(
-        self, get_page, db, type
+        self, get_page, db, kind
     ):
         organization = OrganizationFactory()
-        manager = _join(organization, "Manager", type)
+        manager = _join(organization, "Manager", kind)
 
         _, page = get_page(organization.get_absolute_url(), viewer=manager)
 
@@ -1634,14 +1636,14 @@ class TestCommunityManagerOverview:
 
     # Edge case: one edit action, not two
     @pytest.mark.parametrize(
-        "type", [Affiliation.MembershipType.OWNER, Affiliation.MembershipType.ADMIN]
+        "kind", [Affiliation.MembershipType.OWNER, Affiliation.MembershipType.ADMIN]
     )
     def test_an_administrator_who_is_also_a_community_manager_sees_one_edit_action(
-        self, get_page, community_manager, type
+        self, get_page, community_manager, kind
     ):
         organization = OrganizationFactory()
         AffiliationFactory(
-            person=community_manager, organization=organization, type=type
+            person=community_manager, organization=organization, type=kind
         )
 
         _, page = get_page(organization.get_absolute_url(), viewer=community_manager)

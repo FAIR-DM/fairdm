@@ -165,7 +165,7 @@ One plugin serves the person page and the organization page and chooses the temp
 |---|---|---|
 | `collaborators_shown` | `18` | Faces in the Frequent collaborators card. |
 | `records_shown` | `5` | Projects, and datasets, listed in each record card. |
-| `member_slots` | `10` | Places in the Members card, the "+n" entry included. |
+| `member_slots` | `10` | Places in the Members card, the "+n" entry included. The "+n" entry links to the organization's Members tab, `OrganizationMembers` in [Plugins](plugins.md#members-tab). |
 
 | Method | Returns |
 |---|---|
@@ -177,7 +177,7 @@ One plugin serves the person page and the organization page and chooses the temp
 
 Person context entries: `person`, `is_self`, `can_edit`, `update_url`, `is_unclaimed`, `is_inactive`, `affiliations`, `primary_organization`, `location_text`, `orcid_verified`, `portal_roles`, `people`, `counts` (with `project` and `dataset`), `projects`, `datasets`, `roles`, `member_since`, and, for the person themselves, `readiness`.
 
-Organization context entries: `organization`, `can_manage`, `can_edit`, `update_url`, `is_member`, `members`, `projects`, `datasets`, `org_counts`, `hierarchy`, `location_text`, `has_map`, and, for the people who keep the record, `readiness`.
+Organization context entries: `organization`, `can_manage`, `can_edit`, `update_url`, `is_member`, `members`, `projects`, `datasets`, `org_counts`, `hierarchy`, `location_text`, `has_map`, and, for the people who keep the record, `readiness`. On the organization page `urls` also carries `members`, the address of the Members tab.
 
 Models supply the data: `Person.get_affiliation_history()`, `Person.get_profile_completeness()`, `Organization.get_current_memberships()`, `Organization.get_hierarchy()`, `Organization.get_public_projects()`, `Organization.get_public_datasets()`, `Organization.get_record_completeness()`, `Organization.is_managed_by(user)` and `Organization.is_editable_by(user)`.
 

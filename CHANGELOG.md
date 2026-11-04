@@ -22,6 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   viewer may see, whichever dataset it belongs to, each type in its own table and every type on the
   one page. Each row names its dataset, and each table pages on its own. The sample's Measurements
   figure and card, and a measurement's list of other measurements on its sample, lead to it.
+- **An organization has a Members tab.** It lists the organization's current, verified members on
+  the People page's cards, the owner first, then administrators, then other members. Pending and
+  former members are not listed. The overview's "+n other members" entry and its Members figure
+  link to it. `seed_profiles` adds a pending member to the organization with the longest member
+  list.
 
 ### Changed
 
