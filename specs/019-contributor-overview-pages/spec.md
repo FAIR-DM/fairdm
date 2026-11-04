@@ -256,9 +256,11 @@ the list with the organization's affiliations.
 4. **Given** any organization, **When** its page is opened, **Then** the Members tab comes right
    after the overview.
 5. **Given** a person, **When** their page is opened, **Then** there is no Members tab.
-6. **Given** an organization with no current members, **When** its page is opened, **Then** the
+6. **Given** a person, **When** anyone opens the Members address under the person's page, signed
+   in or not, **Then** it answers "not found".
+7. **Given** an organization with no current members, **When** its page is opened, **Then** the
    Members tab is still offered, and opening it says that nobody is listed.
-7. **Given** an organization with more members than the overview's Members card has places,
+8. **Given** an organization with more members than the overview's Members card has places,
    **When** its page is opened, **Then** the card's last place links to the Members tab, and the
    Members figure links there too and equals the number of people the tab lists.
 
@@ -420,7 +422,7 @@ the list with the organization's affiliations.
 **The Members tab**
 
 - **FR-034**: An organization's tabbed detail view MUST have a Members tab, right after the
-  overview. A person's MUST NOT.
+  overview. A person's MUST NOT, and its Members address MUST answer "not found" for every viewer.
 - **FR-035**: The Members tab MUST list the members FR-028 lists, all of them, in the same order,
   on the cards the portal's People page uses. Pending and former members MUST NOT be listed, for
   any viewer.

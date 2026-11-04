@@ -396,7 +396,8 @@ the viewer may open the sample.
 `Contributor` at order 50, right after the overview, with the `url_path` `members` and the URL name
 `contributor:organization-members`. Its check is `is_instance_of(Organization)`, so the tab is
 offered on an organization's page only, to everyone the overview opens for, and a person's page has
-none.
+none. `get_base_object()` raises `Http404` for a person, so a person's `members/` address answers
+404 for every viewer, signed in or not.
 
 It subclasses `PersonListView` from `fairdm.contrib.contributors.views.person`, so it draws the
 People page's cards, search and filters. `get_queryset()` narrows the people to the organization's

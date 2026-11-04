@@ -94,14 +94,20 @@ class TestOrganizationMembers:
         person = PersonFactory(is_active=True, is_claimed=True, password="x")
 
         _, page = get_page(person.get_absolute_url(), viewer=person)
-        signed_in, _ = get_page(_members_url(person), viewer=person)
-        visitor, _ = get_page(_members_url(person))
 
         assert _members_url(person) not in _tabs(page, person)
-        assert signed_in.status_code == 403
-        assert visitor.status_code != 200
 
     # User Story 4, scenario 6
+    def test_a_persons_members_address_is_not_found_for_every_viewer(self, get_page):
+        person = PersonFactory(is_active=True, is_claimed=True, password="x")
+        other = PersonFactory(is_active=True, is_claimed=True, password="x")
+
+        for viewer in (None, person, other):
+            response, _ = get_page(_members_url(person), viewer=viewer)
+
+            assert response.status_code == 404
+
+    # User Story 4, scenario 7
     def test_an_organization_without_members_gets_the_tab_saying_it_has_none(
         self, get_page
     ):
@@ -116,7 +122,7 @@ class TestOrganizationMembers:
         assert list(tab.context["object_list"]) == []
         assert tab.context["empty_state"]["heading"]
 
-    # User Story 4, scenario 7
+    # User Story 4, scenario 8
     def test_the_overviews_count_of_members_not_shown_links_to_the_tab(self, get_page):
         organization = OrganizationFactory()
         for n in range(13):

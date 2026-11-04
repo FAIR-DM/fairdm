@@ -58,7 +58,7 @@ A **Map** card is in the main column and **Recent activity** sits in the column 
 
 The **Members** tab lists everyone with a current affiliation to the organization, on the same cards and with the same toolbar as the [People](../community/people.md) screen. The owner comes first, then the administrators, then the other members, each group in name order. People who have asked to join and not yet been accepted, and people who have left, are not listed.
 
-Anyone can open the tab, signed in or not. When nobody is affiliated, it says **Nobody has listed this organization as an affiliation yet.** A person's page has no Members tab.
+Anyone can open the tab, signed in or not. When nobody is affiliated, it says **Nobody has listed this organization as an affiliation yet.** A person's page has no Members tab, and its address answers "not found".
 
 ## What you can do here
 

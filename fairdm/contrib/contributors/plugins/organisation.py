@@ -1,6 +1,7 @@
 """Plugins for organisation pages: the list of an organisation's members."""
 
 from django.db.models import Exists, F, OuterRef, Subquery
+from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 
 from fairdm import plugins
@@ -28,6 +29,17 @@ class OrganizationMembers(Plugin, PersonListView):
     empty_state_heading = _(
         "Nobody has listed this organization as an affiliation yet."
     )
+
+    def get_base_object(self):
+        """Fetch the organisation, answering "not found" for a person.
+
+        Raises:
+            Http404: The contributor is a person, whose page has no Members tab.
+        """
+        contributor = super().get_base_object()
+        if not contributor.is_organization:
+            raise Http404
+        return contributor
 
     def get_queryset(self):
         """Limit the people to the organisation's members, the people who run it first."""
