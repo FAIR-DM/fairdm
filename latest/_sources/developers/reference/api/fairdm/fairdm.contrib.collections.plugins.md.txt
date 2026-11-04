@@ -55,6 +55,10 @@
   - ```{autodoc2-docstring} fairdm.contrib.collections.plugins.Measurements
     :summary:
     ```
+* - {py:obj}`SampleMeasurements <fairdm.contrib.collections.plugins.SampleMeasurements>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.plugins.SampleMeasurements
+    :summary:
+    ```
 ````
 
 ### Functions
@@ -69,6 +73,10 @@
     ```
 * - {py:obj}`records_are_offered <fairdm.contrib.collections.plugins.records_are_offered>`
   - ```{autodoc2-docstring} fairdm.contrib.collections.plugins.records_are_offered
+    :summary:
+    ```
+* - {py:obj}`type_rows <fairdm.contrib.collections.plugins.type_rows>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.plugins.type_rows
     :summary:
     ```
 ````
@@ -361,6 +369,13 @@ Bases: {py:obj}`django_tables2.Column`
 :canonical: fairdm.contrib.collections.plugins.records_are_offered
 
 ```{autodoc2-docstring} fairdm.contrib.collections.plugins.records_are_offered
+```
+````
+
+````{py:function} type_rows(entry: fairdm.contrib.collections.plugins.RecordType, records: django.db.models.QuerySet, user) -> django.db.models.QuerySet
+:canonical: fairdm.contrib.collections.plugins.type_rows
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.type_rows
 ```
 ````
 
@@ -731,6 +746,117 @@ Bases: {py:obj}`fairdm.contrib.collections.plugins.RecordsTab`
    '_(...)'
 
 ```{autodoc2-docstring} fairdm.contrib.collections.plugins.Measurements.page_title
+```
+
+````
+
+`````
+
+`````{py:class} SampleMeasurements(**kwargs)
+:canonical: fairdm.contrib.collections.plugins.SampleMeasurements
+
+Bases: {py:obj}`fairdm.contrib.plugins.Plugin`, {py:obj}`django_tables2.views.MultiTableMixin`, {py:obj}`fairdm.views.FairDMTemplateView`
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.SampleMeasurements
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.SampleMeasurements.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.contrib.collections.plugins.SampleMeasurements.name
+:value: >
+   'measurements'
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.SampleMeasurements.name
+```
+
+````
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.collections.plugins.SampleMeasurements.url_path
+:value: >
+   'measurements'
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.SampleMeasurements.url_path
+```
+
+````
+
+````{py:attribute} template_name
+:canonical: fairdm.contrib.collections.plugins.SampleMeasurements.template_name
+:value: >
+   'record_lists/sample_measurements.html'
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.SampleMeasurements.template_name
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.contrib.collections.plugins.SampleMeasurements.page_title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.SampleMeasurements.page_title
+```
+
+````
+
+````{py:attribute} paginate_by
+:canonical: fairdm.contrib.collections.plugins.SampleMeasurements.paginate_by
+:value: >
+   50
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.SampleMeasurements.paginate_by
+```
+
+````
+
+````{py:attribute} check
+:canonical: fairdm.contrib.collections.plugins.SampleMeasurements.check
+:value: >
+   'staticmethod(...)'
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.SampleMeasurements.check
+```
+
+````
+
+````{py:attribute} sections
+:canonical: fairdm.contrib.collections.plugins.SampleMeasurements.sections
+:type: list[dict[str, typing.Any]]
+:value: >
+   []
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.SampleMeasurements.sections
+```
+
+````
+
+````{py:method} handle_no_permission()
+:canonical: fairdm.contrib.collections.plugins.SampleMeasurements.handle_no_permission
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.SampleMeasurements.handle_no_permission
+```
+
+````
+
+````{py:method} get_tables()
+:canonical: fairdm.contrib.collections.plugins.SampleMeasurements.get_tables
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.SampleMeasurements.get_tables
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.contrib.collections.plugins.SampleMeasurements.get_context_data
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.SampleMeasurements.get_context_data
 ```
 
 ````

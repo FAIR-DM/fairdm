@@ -6,7 +6,7 @@ A sample's page gathers what the portal holds about one sample: its custody stat
 
 Choose a sample's name in a [samples table](samples.md), in the **Measured on** card of a [measurement's page](../measurements/measurement.md), or in the **Related** card of another sample's page.
 
-The address is `/samples/` followed by the sample's portal ID. An older link that ends in `/overview/` leads to the same page. A sample has two tabs: **Overview**, which this page describes, and **Contributors**, described on [Contributors](../contributors/contributors-tab.md).
+The address is `/samples/` followed by the sample's portal ID. An older link that ends in `/overview/` leads to the same page. A sample has three tabs: **Overview**, which this page describes, **Contributors**, described on [Contributors](../contributors/contributors-tab.md), and **Measurements**, described in [Browse samples and measurements](../datasets/browse-samples-and-measurements.md#browse-a-samples-measurements).
 
 Who may open the page is explained in [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md).
 
@@ -34,7 +34,7 @@ The header shows:
 
 ## Sample at a glance
 
-Three figures: **Measurements**, **Related samples** and **People credited**. Each is a count, and shows 0 when there is nothing to count.
+Three figures: **Measurements**, **Related samples** and **People credited**. Each is a count, and shows 0 when there is nothing to count. **Measurements** opens the sample's **Measurements** tab.
 
 ## Notes
 
@@ -60,7 +60,7 @@ When nothing is recorded, a person who may change the dataset reads "Nothing is 
 
 ## Measurements
 
-A card headed **Measurements** lists the measurements made on the sample, newest first, with a count in the card's corner. Each row has the measurement's name, a badge for its type, the date it was added and, when the measurement belongs to a different dataset from the sample, the dataset's name. The card lists the first ten and says "and" followed by a count and "more" for the rest. You see only measurements whose own dataset you may see.
+A card headed **Measurements** lists the measurements made on the sample, newest first, with a count in the card's corner. Each row has the measurement's name, a badge for its type, the date it was added and, when the measurement belongs to a different dataset from the sample, the dataset's name. The card lists the first ten and says "and" followed by a count and "more" for the rest. **See all** opens the sample's **Measurements** tab, which lists every one. You see only measurements whose own dataset you may see.
 
 With none, it reads "No measurements have been made on this sample yet."
 

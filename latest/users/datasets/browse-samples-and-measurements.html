@@ -778,7 +778,6 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l1"><a class="reference internal" href="../projects/project.html">The project page</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../projects/create-project.html">Create a project</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../projects/edit-details.html">Edit details</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../projects/export.html">Export Project Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../projects/create-a-project.html">How to create a project</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../projects/delete-a-project.html">How to delete a project</a></li>
 </ul>
@@ -906,7 +905,7 @@ commentsRunWhenDOMLoaded(addUtterances);
                   
   <section id="browse-samples-and-measurements">
 <h1>Browse samples and measurements<a class="headerlink" href="#browse-samples-and-measurements" title="Link to this heading">#</a></h1>
-<p>A dataset’s page, a project’s page and a person’s or organization’s page each have a <strong>Samples</strong> tab and a <strong>Measurements</strong> tab. Each lists the records in a table, one type at a time. Use them to see what a dataset, a project or a contributor holds and to find one record in it.</p>
+<p>A dataset’s page, a project’s page and a person’s or organization’s page each have a <strong>Samples</strong> tab and a <strong>Measurements</strong> tab. Each lists the records in a table, one type at a time. Use them to see what a dataset, a project or a contributor holds and to find one record in it. A sample’s page has a <strong>Measurements</strong> tab too, which shows every type at once.</p>
 <section id="browse-a-datasets-samples-and-measurements">
 <h2>Browse a dataset’s samples and measurements<a class="headerlink" href="#browse-a-datasets-samples-and-measurements" title="Link to this heading">#</a></h2>
 <ol class="arabic simple">
@@ -947,9 +946,20 @@ commentsRunWhenDOMLoaded(addUtterances);
 <p>Everyone sees the records that are published and public. A person who opens their own page also sees the records they hold a level on, such as those in a private dataset or an unpublished one, and the filters offer their own records. An organization’s page lists only published public records, even for the members of its team. A person or organization with nothing you may see gets the same message as one with no records.</p>
 <p>A <strong>Measurements</strong> tab can list a measurement made in a published dataset on a sample whose own dataset is not published. The <strong>Sample</strong> column then shows a dash.</p>
 </section>
+<section id="browse-a-samples-measurements">
+<h2>Browse a sample’s measurements<a class="headerlink" href="#browse-a-samples-measurements" title="Link to this heading">#</a></h2>
+<ol class="arabic simple">
+<li><p>Open the sample’s page. See <a class="reference internal" href="../samples/sample.html"><span class="std std-doc">The sample page</span></a>.</p></li>
+<li><p>Open <strong>Measurements</strong> in the row of tabs under the header, or select the <strong>Measurements</strong> figure or <strong>See all</strong> on the <strong>Overview</strong> tab.</p></li>
+<li><p>Each measurement type made on the sample has its own table, with a heading naming the type and the number of its measurements. The most numerous type comes first, and the tables follow one another on the page, so you can read the results of different methods together.</p></li>
+<li><p>The column after the name gives each measurement’s dataset. It is a link when you may open the dataset. A measurement can belong to a different dataset from its sample.</p></li>
+<li><p>Select a column heading to sort that table. A table with more than fifty measurements has its own pager, and moving through one table leaves the others where they are.</p></li>
+</ol>
+<p>The tab lists the measurements whose own dataset you may see. Being on the team of the sample’s dataset does not show you a measurement in another team’s unpublished or private dataset. The tab has no search and no filters. A sample with no measurements you may see still has the tab, and it says there are none. The tab opens for the people who may open the sample, and its address answers “not found” to anyone else.</p>
+</section>
 <section id="find-records-of-a-type-the-portal-no-longer-registers">
 <h2>Find records of a type the portal no longer registers<a class="headerlink" href="#find-records-of-a-type-the-portal-no-longer-registers" title="Link to this heading">#</a></h2>
-<p>When a dataset holds records of a type the portal has stopped registering, the heading menu has one more entry, <strong>Other</strong>. It lists them in a basic table with the columns every sample, or every measurement, has.</p>
+<p>When a dataset holds records of a type the portal has stopped registering, the heading menu has one more entry, <strong>Other</strong>. It lists them in a basic table with the columns every sample, or every measurement, has. On a sample’s <strong>Measurements</strong> tab they come last, in a table headed <strong>Measurements</strong>.</p>
 </section>
 <section id="when-a-tab-is-missing">
 <h2>When a tab is missing<a class="headerlink" href="#when-a-tab-is-missing" title="Link to this heading">#</a></h2>
@@ -972,6 +982,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <ul class="simple">
 <li><p><a class="reference internal" href="dataset.html"><span class="std std-doc">The dataset page</span></a></p></li>
 <li><p><a class="reference internal" href="../projects/project.html"><span class="std std-doc">The project page</span></a></p></li>
+<li><p><a class="reference internal" href="../samples/sample.html"><span class="std std-doc">The sample page</span></a></p></li>
 <li><p><a class="reference internal" href="../community/people.html"><span class="std std-doc">People</span></a> and <a class="reference internal" href="../community/organizations.html"><span class="std std-doc">Organizations</span></a></p></li>
 <li><p><a class="reference internal" href="../samples/samples.html"><span class="std std-doc">Samples</span></a> and <a class="reference internal" href="../measurements/measurements.html"><span class="std std-doc">Measurements</span></a> for the portal-wide tables of one type</p></li>
 </ul>
@@ -1028,6 +1039,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#browse-a-datasets-samples-and-measurements">Browse a dataset’s samples and measurements</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#browse-a-projects-samples-and-measurements">Browse a project’s samples and measurements</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#browse-a-persons-or-an-organizations-samples-and-measurements">Browse a person’s or an organization’s samples and measurements</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#browse-a-samples-measurements">Browse a sample’s measurements</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#find-records-of-a-type-the-portal-no-longer-registers">Find records of a type the portal no longer registers</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#when-a-tab-is-missing">When a tab is missing</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why-the-figures-and-the-tabs-agree">Why the figures and the tabs agree</a></li>

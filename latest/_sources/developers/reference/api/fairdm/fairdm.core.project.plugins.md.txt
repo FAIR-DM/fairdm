@@ -23,10 +23,6 @@
   - ```{autodoc2-docstring} fairdm.core.project.plugins.DatasetList
     :summary:
     ```
-* - {py:obj}`ProjectExportView <fairdm.core.project.plugins.ProjectExportView>`
-  - ```{autodoc2-docstring} fairdm.core.project.plugins.ProjectExportView
-    :summary:
-    ```
 ````
 
 ### Functions
@@ -260,52 +256,6 @@ Bases: {py:obj}`fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin`, {py:o
 :canonical: fairdm.core.project.plugins.DatasetList.get_lookup_kwargs
 
 ```{autodoc2-docstring} fairdm.core.project.plugins.DatasetList.get_lookup_kwargs
-```
-
-````
-
-`````
-
-`````{py:class} ProjectExportView(**kwargs)
-:canonical: fairdm.core.project.plugins.ProjectExportView
-
-Bases: {py:obj}`fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin`, {py:obj}`fairdm.contrib.plugins.Plugin`, {py:obj}`fairdm.views.FairDMTemplateView`
-
-```{autodoc2-docstring} fairdm.core.project.plugins.ProjectExportView
-```
-
-```{rubric} Initialization
-```
-
-```{autodoc2-docstring} fairdm.core.project.plugins.ProjectExportView.__init__
-```
-
-````{py:attribute} page_title
-:canonical: fairdm.core.project.plugins.ProjectExportView.page_title
-:value: >
-   '_(...)'
-
-```{autodoc2-docstring} fairdm.core.project.plugins.ProjectExportView.page_title
-```
-
-````
-
-````{py:attribute} check
-:canonical: fairdm.core.project.plugins.ProjectExportView.check
-:value: >
-   'staticmethod(...)'
-
-```{autodoc2-docstring} fairdm.core.project.plugins.ProjectExportView.check
-```
-
-````
-
-````{py:attribute} page_icon
-:canonical: fairdm.core.project.plugins.ProjectExportView.page_icon
-:value: >
-   'export'
-
-```{autodoc2-docstring} fairdm.core.project.plugins.ProjectExportView.page_icon
 ```
 
 ````

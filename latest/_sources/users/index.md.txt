@@ -33,7 +33,6 @@ start with the tutorial.
 - [The project page](projects/project.md)
 - [Create a project](projects/create-project.md)
 - [Edit details](projects/edit-details.md)
-- [Export Project Data](projects/export.md)
 - [How to create a project](projects/create-a-project.md)
 - [How to delete a project](projects/delete-a-project.md)
 
@@ -138,7 +137,6 @@ projects/projects
 projects/project
 projects/create-project
 projects/edit-details
-projects/export
 projects/create-a-project
 projects/delete-a-project
 ```

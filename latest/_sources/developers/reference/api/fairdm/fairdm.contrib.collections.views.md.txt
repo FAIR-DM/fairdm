@@ -21,7 +21,29 @@
     ```
 ````
 
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`BOOKKEEPING_COLUMNS <fairdm.contrib.collections.views.BOOKKEEPING_COLUMNS>`
+  - ```{autodoc2-docstring} fairdm.contrib.collections.views.BOOKKEEPING_COLUMNS
+    :summary:
+    ```
+````
+
 ### API
+
+````{py:data} BOOKKEEPING_COLUMNS
+:canonical: fairdm.contrib.collections.views.BOOKKEEPING_COLUMNS
+:value: >
+   ('polymorphic_ctype', 'measurement_ptr', 'sample_ptr', 'options', 'image', 'created', 'modified')
+
+```{autodoc2-docstring} fairdm.contrib.collections.views.BOOKKEEPING_COLUMNS
+```
+
+````
 
 `````{py:class} DataTableView(**kwargs)
 :canonical: fairdm.contrib.collections.views.DataTableView

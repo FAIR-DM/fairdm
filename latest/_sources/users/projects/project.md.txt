@@ -12,7 +12,6 @@ The project has these tabs:
 - **Dataset List** lists the project's datasets as cards, with the same search, sort and filters as [Datasets](../datasets/datasets.md).
 - **Contributors** lists the people and organizations credited on the project. See [Contributors](../contributors/contributors-tab.md).
 - **Samples** and **Measurements** list the records of all the project's datasets that you may see. See [Browse samples and measurements](../datasets/browse-samples-and-measurements.md).
-- **Export** opens [Export Project Data](export.md).
 
 ## The header
 
