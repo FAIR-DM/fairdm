@@ -1,9 +1,19 @@
 """Tests for the shared overview page skeleton, ``overview/page.html``."""
 
-import pytest
+from urllib.parse import quote
 
+import pytest
+from bs4 import BeautifulSoup
+
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.core.vocabularies import IDENTIFIER_TYPES
-from fairdm.factories import PersonFactory, ProjectFactory
+from fairdm.factories import (
+    DatasetFactory,
+    OrganizationFactory,
+    PersonFactory,
+    ProjectFactory,
+)
+from fairdm.utils.choices import Visibility
 
 SIDE_COLUMN_MARKERS = [
     "READINESS-MARKER",
@@ -224,3 +234,63 @@ class TestChartLibrary:
 
         assert "/own/echarts.js" in html
         assert "echarts@" not in html
+
+
+def _public_dataset():
+    return DatasetFactory(
+        project=ProjectFactory(visibility=Visibility.PUBLIC),
+        visibility=Visibility.PUBLIC,
+        published=True,
+    )
+
+
+def _public_sample():
+    return RockSampleFactory(dataset=_public_dataset())
+
+
+def _public_measurement():
+    dataset = _public_dataset()
+    return ExampleMeasurementFactory(
+        dataset=dataset, sample=RockSampleFactory(dataset=dataset)
+    )
+
+
+RECORDS = {
+    "project": lambda: ProjectFactory(visibility=Visibility.PUBLIC),
+    "dataset": _public_dataset,
+    "sample": _public_sample,
+    "measurement": _public_measurement,
+    "person": lambda: PersonFactory(is_active=True, is_claimed=True),
+    "organization": OrganizationFactory,
+}
+
+
+@pytest.mark.django_db
+class TestPermalinkOnEveryOverviewPage:
+    @pytest.fixture(params=RECORDS)
+    def shown(self, request, client):
+        """A record of one kind, its absolute permalink and its overview page."""
+        record = RECORDS[request.param]()
+        response = client.get(record.get_absolute_url())
+        assert response.status_code == 200
+        permalink = f"http://testserver/{record.uuid}/"
+        return permalink, BeautifulSoup(response.content, "html.parser")
+
+    def test_the_identifiers_card_lists_the_permalink_and_copies_it(self, shown):
+        permalink, page = shown
+
+        card = page.select_one("[data-card=identifiers]")
+
+        assert card.select_one(f"a[href='{permalink}']") is not None
+        assert any(permalink in b["onclick"] for b in card.select("button[onclick]"))
+
+    def test_every_choice_in_the_share_menu_carries_the_permalink(self, shown):
+        permalink, page = shown
+
+        copy_link = page.select_one("a[onclick*=clipboard]")
+        choices = copy_link.find_parent("ul").select("a")
+
+        assert len(choices) > 1
+        for choice in choices:
+            address = choice.get("href", "") + choice.get("onclick", "")
+            assert permalink in address or quote(permalink) in address
