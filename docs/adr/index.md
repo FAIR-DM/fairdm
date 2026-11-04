@@ -48,4 +48,5 @@ do not restate earlier ones, only build past them.
 0039-autocomplete-addresses-are-limited-per-caller
 0040-backup-schedules-are-periodic-tasks
 0041-backups-are-encrypted-to-a-public-key
+0042-a-records-permalink-is-its-portal-id-at-the-root
 ```
