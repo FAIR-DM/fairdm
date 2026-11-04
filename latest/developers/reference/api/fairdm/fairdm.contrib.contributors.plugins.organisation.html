@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.organisation.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="Plugins for organisation pages." />
-<meta name="description" content="Plugins for organisation pages." />
+<meta property="og:description" content="Plugins for organisation pages: the list of an organisation’s members. Module Contents: Classes:,, OrganizationMembers, List an organisation’s current, verified members on the People page’s cards.,..." />
+<meta name="description" content="Plugins for organisation pages: the list of an organisation’s members. Module Contents: Classes:,, OrganizationMembers, List an organisation’s current, verified members on the People page’s cards.,..." />
 
     <title>fairdm.contrib.contributors.plugins.organisation &#8212; fairdm 0.5.0 documentation</title>
   
@@ -464,6 +464,10 @@ commentsRunWhenDOMLoaded(addUtterances);
     </div>
   
 
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
   
 </div>
 
@@ -1084,7 +1088,83 @@ commentsRunWhenDOMLoaded(addUtterances);
                   
   <section id="module-fairdm.contrib.contributors.plugins.organisation">
 <span id="fairdm-contrib-contributors-plugins-organisation"></span><h1><a class="reference internal" href="#module-fairdm.contrib.contributors.plugins.organisation" title="fairdm.contrib.contributors.plugins.organisation"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.plugins.organisation</span></code></a><a class="headerlink" href="#module-fairdm.contrib.contributors.plugins.organisation" title="Link to this heading">#</a></h1>
-<p>Plugins for organisation pages.</p>
+<p>Plugins for organisation pages: the list of an organisation’s members.</p>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
+<section id="classes">
+<h3>Classes<a class="headerlink" href="#classes" title="Link to this heading">#</a></h3>
+<div class="pst-scrollable-table-container"><table class="autosummary longtable table table-left">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.contributors.plugins.organisation.OrganizationMembers" title="fairdm.contrib.contributors.plugins.organisation.OrganizationMembers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OrganizationMembers</span></code></a></p></td>
+<td><p>List an organisation’s current, verified members on the People page’s cards.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="api">
+<h3>API<a class="headerlink" href="#api" title="Link to this heading">#</a></h3>
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.plugins.organisation.OrganizationMembers">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">OrganizationMembers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.plugins.organisation.OrganizationMembers" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.contrib.plugins.Plugin</span></code>, <a class="reference internal" href="fairdm.contrib.contributors.views.person.html#fairdm.contrib.contributors.views.person.PersonListView" title="fairdm.contrib.contributors.views.person.PersonListView"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.contrib.contributors.views.person.PersonListView</span></code></a></p>
+<p>List an organisation’s current, verified members on the People page’s cards.</p>
+<p>The members are those the overview’s Members card counts: the owner first, then the
+administrators, then the other members, each group by name. Pending and former members are
+left out. Unlike the People page, superusers who are members are listed, so the card’s count
+and the tab agree. The tab is offered on an organisation’s page only, to everyone the overview
+opens for.</p>
+<p class="rubric">Initialization</p>
+<p>Constructor. Called in the URLconf; can contain helpful extra
+keyword arguments, and other things.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.url_path">
+<span class="sig-name descname"><span class="pre">url_path</span></span><a class="headerlink" href="#fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.url_path" title="Link to this definition">#</a></dt>
+<dd><p>‘members’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.page_title">
+<span class="sig-name descname"><span class="pre">page_title</span></span><a class="headerlink" href="#fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.page_title" title="Link to this definition">#</a></dt>
+<dd><p>‘_(…)’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.queryset">
+<span class="sig-name descname"><span class="pre">queryset</span></span><a class="headerlink" href="#fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.queryset" title="Link to this definition">#</a></dt>
+<dd><p>‘all(…)’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.check">
+<span class="sig-name descname"><span class="pre">check</span></span><a class="headerlink" href="#fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.check" title="Link to this definition">#</a></dt>
+<dd><p>‘staticmethod(…)’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.empty_state_heading">
+<span class="sig-name descname"><span class="pre">empty_state_heading</span></span><a class="headerlink" href="#fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.empty_state_heading" title="Link to this definition">#</a></dt>
+<dd><p>‘_(…)’</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.get_base_object">
+<span class="sig-name descname"><span class="pre">get_base_object</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.get_base_object" title="Link to this definition">#</a></dt>
+<dd><p>Fetch the organisation, answering “not found” for a person.</p>
+<p>Raises:
+Http404: The contributor is a person, whose page has no Members tab.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.get_queryset">
+<span class="sig-name descname"><span class="pre">get_queryset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.get_queryset" title="Link to this definition">#</a></dt>
+<dd><p>Limit the people to the organisation’s members, the people who run it first.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
 </section>
 
 
@@ -1121,6 +1201,40 @@ commentsRunWhenDOMLoaded(addUtterances);
             </div>
             
             
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#classes">Classes</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#api">API</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.plugins.organisation.OrganizationMembers"><code class="docutils literal notranslate"><span class="pre">OrganizationMembers</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.url_path"><code class="docutils literal notranslate"><span class="pre">OrganizationMembers.url_path</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.page_title"><code class="docutils literal notranslate"><span class="pre">OrganizationMembers.page_title</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.queryset"><code class="docutils literal notranslate"><span class="pre">OrganizationMembers.queryset</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.check"><code class="docutils literal notranslate"><span class="pre">OrganizationMembers.check</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.empty_state_heading"><code class="docutils literal notranslate"><span class="pre">OrganizationMembers.empty_state_heading</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.get_base_object"><code class="docutils literal notranslate"><span class="pre">OrganizationMembers.get_base_object()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.get_queryset"><code class="docutils literal notranslate"><span class="pre">OrganizationMembers.get_queryset()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+</div></div>
               
             
           </div>

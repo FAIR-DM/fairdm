@@ -6,3 +6,101 @@
 ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.organisation
 :allowtitles:
 ```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`OrganizationMembers <fairdm.contrib.contributors.plugins.organisation.OrganizationMembers>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.plugins.organisation.OrganizationMembers
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} OrganizationMembers(**kwargs)
+:canonical: fairdm.contrib.contributors.plugins.organisation.OrganizationMembers
+
+Bases: {py:obj}`fairdm.contrib.plugins.Plugin`, {py:obj}`fairdm.contrib.contributors.views.person.PersonListView`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.organisation.OrganizationMembers
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.__init__
+```
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.url_path
+:value: >
+   'members'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.url_path
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.page_title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.page_title
+```
+
+````
+
+````{py:attribute} queryset
+:canonical: fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.queryset
+:value: >
+   'all(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.queryset
+```
+
+````
+
+````{py:attribute} check
+:canonical: fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.check
+:value: >
+   'staticmethod(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.check
+```
+
+````
+
+````{py:attribute} empty_state_heading
+:canonical: fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.empty_state_heading
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.empty_state_heading
+```
+
+````
+
+````{py:method} get_base_object()
+:canonical: fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.get_base_object
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.get_base_object
+```
+
+````
+
+````{py:method} get_queryset()
+:canonical: fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.get_queryset
+
+```{autodoc2-docstring} fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.get_queryset
+```
+
+````
+
+`````

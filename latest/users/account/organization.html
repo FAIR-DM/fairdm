@@ -907,7 +907,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <h1>Organization<a class="headerlink" href="#organization" title="Link to this heading">#</a></h1>
 <p>An organization page is the public page of one institution, funder, facility or company. It is what opens when someone selects an organization’s name on a record, in a list or on a person’s profile. Everyone sees the same page, apart from the controls and the checklist described below, which are for the people who keep the organization’s record.</p>
 <p>You reach it by selecting the organization’s name on the <a class="reference internal" href="../community/organizations.html"><span class="std std-doc">Organizations</span></a> screen, or wherever it is named on a record or a profile. The address is <code class="docutils literal notranslate"><span class="pre">contributor/</span></code> followed by the organization’s portal ID. Anyone can open it, signed in or not. The heading is the organization’s name.</p>
-<p>A strip of page links near the top has <strong>Overview</strong>, <strong>Projects</strong> and <strong>Datasets</strong>. This page describes <strong>Overview</strong>. <strong>Projects</strong> and <strong>Datasets</strong> list the public projects and datasets the organization owns or is credited on.</p>
+<p>A strip of page links near the top has <strong>Overview</strong>, <strong>Members</strong>, <strong>Projects</strong> and <strong>Datasets</strong>. This page describes <strong>Overview</strong> and <strong>Members</strong>. <strong>Projects</strong> and <strong>Datasets</strong> list the public projects and datasets the organization owns or is credited on.</p>
 <section id="the-header">
 <h2>The header<a class="headerlink" href="#the-header" title="Link to this heading">#</a></h2>
 <p>The header shows:</p>
@@ -929,7 +929,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="the-figures">
 <h2>The figures<a class="headerlink" href="#the-figures" title="Link to this heading">#</a></h2>
-<p>Three counts: <strong>Projects</strong> and <strong>Datasets</strong>, which link to the two tabs, and <strong>Members</strong>. They cover public records only.</p>
+<p>Three counts, each linking to its tab: <strong>Projects</strong>, <strong>Datasets</strong> and <strong>Members</strong>. The project and dataset counts cover public records only.</p>
 </section>
 <section id="about">
 <h2>About<a class="headerlink" href="#about" title="Link to this heading">#</a></h2>
@@ -937,7 +937,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="members">
 <h2>Members<a class="headerlink" href="#members" title="Link to this heading">#</a></h2>
-<p>A card headed <strong>Members</strong>, with a count. It lists the people with a current affiliation, ten at most. Each row shows the person’s photo and name, <code class="docutils literal notranslate"><span class="pre">Since</span></code> and the year they joined, and an <strong>Owner</strong> or <strong>Administrator</strong> badge where it applies. When there are more, the last row reads <code class="docutils literal notranslate"><span class="pre">+</span></code> a number <strong>other members</strong>. When nobody is affiliated, the card says <strong>Nobody has listed this organization as an affiliation yet.</strong></p>
+<p>A card headed <strong>Members</strong>, with a count. It lists the people with a current affiliation, ten at most. Each row shows the person’s photo and name, <code class="docutils literal notranslate"><span class="pre">Since</span></code> and the year they joined, and an <strong>Owner</strong> or <strong>Administrator</strong> badge where it applies. When there are more, the last row reads <code class="docutils literal notranslate"><span class="pre">+</span></code> a number <strong>other members</strong> and opens the <a class="reference internal" href="#the-members-tab">Members tab</a>. When nobody is affiliated, the card says <strong>Nobody has listed this organization as an affiliation yet.</strong></p>
 </section>
 <section id="projects-and-datasets">
 <h2>Projects and Datasets<a class="headerlink" href="#projects-and-datasets" title="Link to this heading">#</a></h2>
@@ -957,6 +957,11 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><p>A map of where the organization is based, when it has coordinates.</p></li>
 <li><p><strong>Organization hierarchy</strong>, which shows the organization it is part of, its siblings and its own sub-organizations. Without any, it says <strong>No parent organization and no institutes, departments or groups are recorded for this organization.</strong></p></li>
 </ul>
+</section>
+<section id="the-members-tab">
+<h2>The Members tab<a class="headerlink" href="#the-members-tab" title="Link to this heading">#</a></h2>
+<p>The <strong>Members</strong> tab lists everyone with a current affiliation to the organization, on the same cards and with the same toolbar as the <a class="reference internal" href="../community/people.html"><span class="std std-doc">People</span></a> screen. The owner comes first, then the administrators, then the other members, each group in name order. People who have asked to join and not yet been accepted, and people who have left, are not listed.</p>
+<p>Anyone can open the tab, signed in or not. When nobody is affiliated, it says <strong>Nobody has listed this organization as an affiliation yet.</strong> A person’s page has no Members tab, and its address answers “not found”.</p>
 </section>
 <section id="what-you-can-do-here">
 <h2>What you can do here<a class="headerlink" href="#what-you-can-do-here" title="Link to this heading">#</a></h2>
@@ -1022,6 +1027,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#projects-and-datasets">Projects and Datasets</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cards-without-content">Cards without content</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-column-on-the-right">The column on the right</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-members-tab">The Members tab</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-you-can-do-here">What you can do here</a></li>
 </ul>
   </nav></div>
