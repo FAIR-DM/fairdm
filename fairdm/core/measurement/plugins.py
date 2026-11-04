@@ -18,7 +18,7 @@ from fairdm.core.vocabularies import (
     DESCRIPTION_TYPES,
     DOI,
 )
-from fairdm.views.links import record_link
+from fairdm.views.permalink import get_permalink
 
 from .models import Measurement
 
@@ -248,7 +248,7 @@ class Overview(TypedOverviewPlugin):
                 title=title,
                 link=doi["link"]
                 if doi
-                else self.request.build_absolute_uri(record_link(measurement)),
+                else get_permalink(measurement, self.request),
             ),
         }
         if not doi:

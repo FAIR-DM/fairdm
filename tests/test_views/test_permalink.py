@@ -24,7 +24,17 @@ pytestmark = pytest.mark.django_db
 def public_dataset():
     """Build a public dataset in a public project."""
     project = ProjectFactory(visibility=Visibility.PUBLIC)
-    return DatasetFactory(project=project, visibility=Visibility.PUBLIC)
+    return DatasetFactory(
+        project=project, visibility=Visibility.PUBLIC, published=True
+    )
+
+
+def measurement():
+    """Build a measurement of a sample in a public dataset."""
+    dataset = public_dataset()
+    return ExampleMeasurementFactory(
+        dataset=dataset, sample=RockSampleFactory(dataset=dataset)
+    )
 
 
 def unknown_id(letter):
@@ -44,12 +54,11 @@ def steps(response, portal_id):
 def public_records():
     """Build one public record of every kind the permalink opens."""
     dataset = public_dataset()
-    sample = RockSampleFactory(dataset=dataset)
     return {
         "project": ProjectFactory(visibility=Visibility.PUBLIC),
         "dataset": dataset,
-        "sample": sample,
-        "measurement": ExampleMeasurementFactory(dataset=dataset, sample=sample),
+        "sample": RockSampleFactory(dataset=dataset),
+        "measurement": measurement(),
         "person": PersonFactory(),
         "unclaimed person": PersonFactory(is_claimed=False),
         "deactivated person": PersonFactory(is_active=False),
@@ -180,7 +189,7 @@ class TestPermalinkAddress:
             ProjectFactory,
             DatasetFactory,
             RockSampleFactory,
-            ExampleMeasurementFactory,
+            measurement,
             PersonFactory,
             OrganizationFactory,
         ],

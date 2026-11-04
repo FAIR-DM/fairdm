@@ -35,7 +35,7 @@ from fairdm.core.vocabularies import (
 )
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
-from fairdm.views.links import record_link
+from fairdm.views.permalink import get_permalink
 
 from .models import (
     Dataset,
@@ -566,7 +566,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         link = (
             f"https://doi.org/{doi}"
             if doi
-            else self.request.build_absolute_uri(record_link(dataset))
+            else get_permalink(dataset, self.request)
         )
         return {
             "text": self.get_citation(
