@@ -73,3 +73,7 @@ Copy link assertion passes only once T011 is in.
   covers the Permalink row, and the record page docs say the citation and the Share menu use the
   permalink where they describe them. The developer reference names the `permalink` tag and the
   card's `permalink` attribute.
+- [ ] T012 [US2] `tests/test_core/test_project/test_plugins.py`: a project with no DOI is cited by its
+  absolute permalink (AS 4, FR-008). `fairdm/core/project/plugins.py` uses
+  `get_permalink(project, request)`, and the project page docs say so. Found at story acceptance:
+  the plan named the dataset, sample and measurement citations and missed the project's.
