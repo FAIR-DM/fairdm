@@ -35,6 +35,7 @@ After this feature:
 
 - `<portal>/<portal ID>/` opens the record with that ID, for all six kinds of record.
 - The identifiers card offers that link, and copying it copies the whole link.
+- The Share menu on a record's page shares that link.
 - A citation with no DOI or IGSN to point at, and a dataset's DataCite export, give that link.
 
 ## Boundary
@@ -69,7 +70,8 @@ putting it to him again. The longer reasoning is in [decisions.md](decisions.md)
   really is: a sample's page for its own sample type, a measurement's for its own measurement type,
   a person's page for a person and an organization's for an organization.
 - Q: Where does the link appear? → A: On the record's page, in its identifiers card, and wherever
-  the portal cites a record that has no DOI or IGSN, including a dataset's DataCite export.
+  the portal cites a record that has no DOI or IGSN, including a dataset's DataCite export, and in
+  the Share menu on the record's page.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -111,15 +113,15 @@ lands, then open the link of a record that does not exist.
 ### User Story 2 - A visitor shares or cites a record by its permanent link (Priority: P2)
 
 A visitor reading a record's page wants a link to it that will keep working: to print on a label,
-put in a paper or send to someone. They take it from the record's identifiers, and the portal's
-own citations use it too.
+put in a paper or send to someone. They take it from the record's identifiers or its Share menu,
+and the portal's own citations use it too.
 
 **Why this priority**: the link only lasts if it is the one people pass on. Until the portal hands
 it out, people go on sharing page addresses.
 
-**Independent Test**: open a record's page, copy its link from the identifiers card and open it;
-read a citation for a dataset with no DOI and a sample with no IGSN; export a dataset's DataCite
-record.
+**Independent Test**: open a record's page, copy its link from the identifiers card and open it,
+and read what each choice in its Share menu would share. Read a citation for a dataset with no DOI
+and a sample with no IGSN. Export a dataset's DataCite record.
 
 **Acceptance Scenarios**:
 
@@ -127,11 +129,13 @@ record.
    is there, and opening it reaches the record.
 2. **Given** a record's page, **When** a visitor copies the link from its identifiers, **Then**
    what they copied is the whole link, which opens the record when pasted into a browser.
-3. **Given** a dataset with no DOI, a sample with no IGSN, or a measurement, **When** the portal
-   writes its citation, **Then** the citation points at the record's link.
-4. **Given** a dataset with a DOI, or a sample with an IGSN, **When** the portal writes its
+3. **Given** a record's page, **When** a visitor shares it from the Share menu, by any of its
+   choices, **Then** what is shared is the record's link.
+4. **Given** a dataset with no DOI, a sample with no IGSN, or a measurement with no DOI, **When**
+   the portal writes its citation, **Then** the citation points at the record's link.
+5. **Given** a dataset with a DOI, or a sample with an IGSN, **When** the portal writes its
    citation, **Then** the citation points at the DOI or IGSN as it does today.
-5. **Given** a dataset, **When** its DataCite record is exported, **Then** the web address it gives
+6. **Given** a dataset, **When** its DataCite record is exported, **Then** the web address it gives
    for the dataset is the dataset's link.
 
 ---
@@ -164,7 +168,7 @@ record.
 - **FR-006**: A link MUST be followed afresh each time, so that a change to where records' pages
   live reaches every visitor, including those who opened the link before. (US1)
 - **FR-007**: A record's identifiers MUST include its link, and copying it MUST copy the whole
-  link. (US2)
+  link. The Share menu on a record's page MUST share the record's link. (US2)
 - **FR-008**: A citation the portal writes for a record with no DOI or IGSN MUST point at the
   record's link. A citation for a record with a DOI or IGSN MUST point at that identifier as
   before. (US2)

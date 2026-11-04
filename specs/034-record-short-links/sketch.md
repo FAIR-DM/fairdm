@@ -11,6 +11,8 @@
 - The identifiers card (`cotton/card/identifiers.html`) shows the portal ID with a button that
   copied the bare ID. Every overview page uses it: projects, datasets, samples and measurements
   through `overview/page.html`, people and organizations through their own templates.
+- The Share menu on every overview page is django-mvp's `<c-mvp.addons.share-dropdown>`. It
+  shares the current page's address unless it is given a `url`.
 - Citations of a dataset with no DOI, a sample with no IGSN and a measurement with no DOI linked
   to the record's page, and so did the `IsVariantFormOf` URL in a dataset's DataCite export.
 
@@ -20,6 +22,8 @@
   page that passes `portal_id` gets the link with no change of its own.
 - The copy button needs the absolute link, with scheme and host, not the path.
 - Each citation with no DOI or IGSN needs the record's absolute permanent link.
+- The Share menu needs the record's absolute permanent link as its `url`, on the overview page of
+  every kind of record.
 
 ## What the sketch faked
 
@@ -28,6 +32,8 @@
   rewrites them test-first.
 - The copy button reads the link's address from the anchor beside it with inline script, as the
   card's old button did. Whether that stays is the build's call.
+- The Share menu's absolute link is put together in the template from `request.scheme`,
+  `request.get_host` and the link's path, in three templates.
 - No documentation has been written.
 
 ## What was ruled by eye
