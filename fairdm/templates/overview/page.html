@@ -112,7 +112,7 @@
         <div class="flex flex-wrap gap-2 md:justify-end shrink-0">
           {% block overview.actions %}
             <c-button href="#cite" text="{% translate 'Cite' %}" icon="cite" size="sm" />
-            {% url "record-link" portal_id=record.uuid as permanent_link %}
+            {% url "permalink" portal_id=record.uuid as permanent_link %}
             <c-mvp.addons.share-dropdown size="sm" url="{{ request.scheme }}://{{ request.get_host }}{{ permanent_link }}" />
             {% block overview.manage %}
               <c-actions.manage :entries="manage_menu" />

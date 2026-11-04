@@ -30,7 +30,7 @@
         </tr>
       {% endif %}
       {% if portal_id %}
-        {% url "record-link" portal_id=portal_id as portal_link %}
+        {% url "permalink" portal_id=portal_id as portal_link %}
         <tr>
           <th scope="row" class="ps-0 font-normal text-base-content/70 whitespace-nowrap align-top">{% translate "Portal ID" %}</th>
           <td class="pe-0 font-mono break-all">
