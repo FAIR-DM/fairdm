@@ -49,7 +49,7 @@ A **Map** card is in the main column and **Recent activity** sits in the column 
 ## The column on the right
 
 - **Organization record**, a checklist only the people who keep the record see, marked **Only admin can see this**. It counts how many items are in place, such as `4 of 6 in place`. Items still missing come first, each with a **Fix** link where the portal can take you to the field. The items are **A ROR identifier**, **A logo** (recommended), **The type of organization**, **City and country**, **A description** and **A website** (recommended).
-- **Identifiers**, a table of the organization's identifiers, such as its ROR identifier, and its **Portal ID** with a copy button.
+- **Identifiers**, a table of the organization's identifiers, such as its ROR identifier, and its **Portal ID** with a copy button. A **Permalink** row beneath it shows the organization's permanent link with a button that copies the whole link.
 - **Links**, the organization's web pages, each named by its site. Without any, it says **No links have been added.**
 - A map of where the organization is based, when it has coordinates.
 - **Organization hierarchy**, which shows the organization it is part of, its siblings and its own sub-organizations. Without any, it says **No parent organization and no institutes, departments or groups are recorded for this organization.**

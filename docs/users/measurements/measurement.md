@@ -92,7 +92,7 @@ A card headed **People** shows the faces of everyone credited, up to 18, with th
 
 ## Identifiers
 
-A card headed **Identifiers** lists each identifier the measurement carries with its type. A DOI that starts with `10.` links to doi.org. Below them are the measurement's **Local ID**, when it has one, and its **Portal ID**, with a button that copies it.
+A card headed **Identifiers** lists each identifier the measurement carries with its type. A DOI that starts with `10.` links to doi.org. Below them are the measurement's **Local ID**, when it has one, and its **Portal ID**, with a button that copies it. A **Permalink** row beneath the Portal ID shows the measurement's permanent link with a button that copies the whole link.
 
 ## Citation
 
