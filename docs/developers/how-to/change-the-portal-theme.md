@@ -41,7 +41,15 @@ You need the portal's settings module, the one that calls `fairdm.setup()`. The 
 
 Every page uses the theme. A visitor's choice is remembered in their browser. If you remove a theme from `choices`, a visitor who had chosen it is moved to the default.
 
-The colours that mark a record type, used on the project and dataset cards, exist only in FairDM's two themes. On any other theme a project card draws `info` and a dataset card draws `success`.
+Each of the four core records has a colour, so a page says what kind of record it holds before its heading is read. It marks the record's card in a listing, the top of its overview page, its badge, its figures, its breadcrumb and the title of its Samples or Measurements tab. The colour is only ever a line or a surface, never the colour of text, and the record type is always named beside it.
+
+The colours exist only in FairDM's two themes, as `--color-entity-project`, `--color-entity-dataset`, `--color-entity-sample` and `--color-entity-measurement`, each with a `-tint`. On any other theme a project draws `info`, a dataset `success`, a sample `secondary` and a measurement `accent`. To give a theme of your own the record colours, set the eight properties in its `[data-theme]` block.
+
+To mark something in your own templates, put `record-project`, `record-dataset`, `record-sample` or `record-measurement` on it, and `record-tag` on a badge that names the record type:
+
+```django
+<span class="record-tag record-sample"><c-icon name="sample" aria-hidden="true" />{{ sample.verbose_name|capfirst }}</span>
+```
 
 To replace the logo, add your own `brand/logo.svg`, `brand/logo_dark.svg`, `brand/icon.svg`, `brand/icon_dark.svg` and `brand/favicon.svg` to the portal's static files.
 

@@ -57,7 +57,6 @@ class TestRecordsCard:
             "title": "Records",
             "records": records,
             "kind": kind,
-            "variant": "info",
             "all_url": ALL_URL,
             "empty": "EMPTY-MARKER",
             **overrides,

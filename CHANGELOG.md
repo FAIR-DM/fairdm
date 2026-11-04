@@ -21,6 +21,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Every place that shows a core record type draws it in that type's colour.** Project is the
+  brand blue, Dataset violet, Sample yellow and Measurement deep green. The colour now marks the
+  top of each overview page, the record's badge in its header, the figures on overview pages,
+  profiles and the home page, a profile's Projects and Datasets cards, the lists on a sample's
+  page, the breadcrumb and the Details card's parent records, the title of each Samples and
+  Measurements tab, and the sample card. Before, only the project and dataset cards used these colours, and the figures took
+  other theme colours, so Project and Measurement looked the same.
+- **`c-stats.item` takes `record`** for a figure that counts a record type. `c-card.records` no
+  longer takes `variant`: its `kind` picks the colour.
 - **A dataset's overview counts only the records the viewer may see.** Its Samples and Measurements
   figures link to the tabs and equal their totals. On a public dataset that is not published, a
   visitor no longer sees those figures, the composition and growth charts or the spatial coverage.

@@ -325,10 +325,10 @@
   aspect-ratio: 16 / 9;
 }
 
-/* The icon on a figure in a stats strip: a rounded tile tinted with the record type's colour,
- * so the strip reads by colour and shape before the numbers are read. The colour comes from
- * the stat's `variant` through --stat-color; without one the tile stays neutral. django-mvp's
- * build ships no tinted-background utilities, which is why this is a rule here. */
+/* The icon on a figure in a stats strip: a rounded tile, so the strip reads by colour and shape
+ * before the numbers are read. A record type's tile is drawn under "Record types" below; a
+ * stat's `variant` colours any other through --stat-color, and without either it stays neutral.
+ * django-mvp's build ships no tinted-background utilities, which is why this is a rule here. */
 .stat-icon {
   --stat-color: var(--color-base-content);
   display: grid;
