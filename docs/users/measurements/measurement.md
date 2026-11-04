@@ -6,7 +6,7 @@ A measurement's page gathers what the portal holds about one measurement: its re
 
 Choose a measurement's name in a [measurements table](measurements.md), in the **Measurements** card of a [sample's page](../samples/sample.md), or in the **Other measurements on this sample** card of another measurement's page.
 
-The address is `/measurements/` followed by the measurement's portal ID. A measurement has two tabs: **Overview**, which this page describes, and **Contributors**, described on [Contributors](../contributors/contributors-tab.md).
+The address is `/measurements/` followed by the measurement's portal ID. The portal ID alone, after the portal's address, also opens it: `/` followed by the portal ID is the measurement's permalink. A measurement has two tabs: **Overview**, which this page describes, and **Contributors**, described on [Contributors](../contributors/contributors-tab.md).
 
 Who may open the page is explained in [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md).
 

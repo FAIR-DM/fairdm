@@ -2,7 +2,7 @@
 
 A profile is the public page of one person. It is what opens when someone selects your name on a record, in a list or on the team page. This page describes the profile screen as you see it on your own profile. Everyone else sees the same screen without the parts that are for you alone, which are marked below.
 
-You reach your profile by finding your card on the [People](../community/people.md) screen and selecting your name, or by selecting your name wherever you are credited on a record. The address is `contributor/` followed by your portal ID. Anyone can open a profile, signed in or not. The heading is the person's name. The portal has no menu entry that goes straight to your own profile.
+You reach your profile by finding your card on the [People](../community/people.md) screen and selecting your name, or by selecting your name wherever you are credited on a record. The address is `contributor/` followed by your portal ID. Your portal ID alone, after the portal's address, also opens it: `/` followed by the portal ID is your permalink. Anyone can open a profile, signed in or not. The heading is the person's name. The portal has no menu entry that goes straight to your own profile.
 
 A strip of page links near the top has **Overview**, **Projects** and **Datasets**. This page describes **Overview**. **Projects** and **Datasets** list the public projects and datasets the person is credited on. On your own profile they are headed **My Projects** and **My Datasets**.
 

@@ -2,7 +2,7 @@
 
 An organization page is the public page of one institution, funder, facility or company. It is what opens when someone selects an organization's name on a record, in a list or on a person's profile. Everyone sees the same page, apart from the controls and the checklist described below, which are for the people who keep the organization's record.
 
-You reach it by selecting the organization's name on the [Organizations](../community/organizations.md) screen, or wherever it is named on a record or a profile. The address is `contributor/` followed by the organization's portal ID. Anyone can open it, signed in or not. The heading is the organization's name.
+You reach it by selecting the organization's name on the [Organizations](../community/organizations.md) screen, or wherever it is named on a record or a profile. The address is `contributor/` followed by the organization's portal ID. The portal ID alone, after the portal's address, also opens it: `/` followed by the portal ID is the organization's permalink. Anyone can open it, signed in or not. The heading is the organization's name.
 
 A strip of page links near the top has **Overview**, **Members**, **Projects** and **Datasets**. This page describes **Overview** and **Members**. **Projects** and **Datasets** list the public projects and datasets the organization owns or is credited on.
 

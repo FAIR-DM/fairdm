@@ -1,6 +1,6 @@
 # The project page
 
-A project's page is where you land when you open a project. Its heading is the project's name. The page says what the project is, who leads it, how far it has got and what it holds, and it is where the people who work on the project reach every other project screen. Open it from a card on [Projects](projects.md), from a link on a person's or organization's page, or by saving a new project.
+A project's page is where you land when you open a project. Its heading is the project's name. The page says what the project is, who leads it, how far it has got and what it holds, and it is where the people who work on the project reach every other project screen. Open it from a card on [Projects](projects.md), from a link on a person's or organization's page, or by saving a new project. The project's portal ID, written after the portal's address, also opens it: `/` followed by the portal ID takes you to the page.
 
 Who may open the page depends on the project's visibility and the level you hold on it. A private project answers a stranger as though it did not exist. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md).
 

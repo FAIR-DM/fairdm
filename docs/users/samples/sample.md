@@ -6,7 +6,7 @@ A sample's page gathers what the portal holds about one sample: its custody stat
 
 Choose a sample's name in a [samples table](samples.md), in the **Measured on** card of a [measurement's page](../measurements/measurement.md), or in the **Related** card of another sample's page.
 
-The address is `/samples/` followed by the sample's portal ID. An older link that ends in `/overview/` leads to the same page. A sample has three tabs: **Overview**, which this page describes, **Contributors**, described on [Contributors](../contributors/contributors-tab.md), and **Measurements**, described in [Browse samples and measurements](../datasets/browse-samples-and-measurements.md#browse-a-samples-measurements).
+The address is `/samples/` followed by the sample's portal ID. The portal ID alone, after the portal's address, also opens it: `/` followed by the portal ID is the sample's permalink. An older link that ends in `/overview/` leads to the same page. A sample has three tabs: **Overview**, which this page describes, **Contributors**, described on [Contributors](../contributors/contributors-tab.md), and **Measurements**, described in [Browse samples and measurements](../datasets/browse-samples-and-measurements.md#browse-a-samples-measurements).
 
 Who may open the page is explained in [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md).
 

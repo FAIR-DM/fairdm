@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **A record's portal ID opens the record.** A project, dataset, sample, measurement, person or
+  organization opens at the portal's root followed by its portal ID, for example `/p3xK…Wq/`. The
+  link redirects temporarily to the record's page and the page decides who may open it, so a private
+  record answers a visitor who may not open it as it answers an ID that belongs to no record. A page
+  that a portal or an addon declares at the root always wins over the link. `get_permalink(record,
+  request=None)` in `fairdm.views.permalink` returns the link, and the `permalink` URL name reverses
+  it. See [Permalinks](developers/reference/permalinks.md).
 - **A dataset, a project and a contributor have Samples and Measurements tabs.** Each lists the records one
   registered type at a time, in the table of that type, with its filters and search. A project's
   tabs list the records of all its datasets that the viewer may see, each row naming its dataset.
