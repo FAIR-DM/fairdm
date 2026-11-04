@@ -9,12 +9,12 @@ Done against main at `89385154`, after the sketch was approved.
 **Adopted, in the record's page rather than the link.** The link itself looks nothing up: a lookup
 there would answer a private record differently from an ID that belongs to no record, and reveal that
 the private record exists (design review). The link goes to the overview address for the ID's
-letter, and the overview page does the lookup on the base table. `Sample.objects` and `Measurement.objects` are `PolymorphicManager`s, and
+letter, and the overview page does the lookup on the base table. `Sample.objects` and
+`Measurement.objects` are `PolymorphicManager`s, and
 `Contributor.objects` is one too, so `Sample.objects.get(uuid=...)` returns a `SoilSample` or a
 `WaterSample` and `get_absolute_url()` gives that subtype's page. The sketch confirmed it on the
 development data: a water sample and an ICP-MS measurement each reached their own type's page, and
-a person and an organization reached theirs. One query per link, on the base table's unique `uuid`
-index.
+a person and an organization reached theirs. The link itself runs no query.
 
 ## What the screens need, and what the sketch faked
 
@@ -25,7 +25,7 @@ index.
 | Every citation with no DOI or IGSN uses the absolute permalink | `get_permalink(record, request)` in the dataset, sample and measurement plugins |
 | The Share menu shares the absolute permalink | The same template tag gives `url` to `<c-mvp.addons.share-dropdown>` on the three overview templates |
 | The DataCite export gives the permalink | `get_permalink(dataset, request)` in `datacite_xml` |
-| The redirect, converter and citation changes have no tests | Rebuilt test-first in the stories below |
+| The redirect, URL pattern and citation changes have no tests | Rebuilt test-first in the stories below |
 | The absolute link is put together from `request.scheme` and `request.get_host` in three templates | One `permalink` simple tag that calls `request.build_absolute_uri`, which also honours `SECURE_PROXY_SSL_HEADER` and `USE_X_FORWARDED_HOST`, which the hand-built string did not |
 | No documentation | User docs on each record page and identifiers, developer reference for the URL, and the glossary |
 
@@ -33,8 +33,8 @@ index.
 
 - **The letters and the alphabet come from the fields, never a second copy.** Each model's `uuid`
   field carries its `prefix` and `length`, and `alphabet=None` means shortuuid's default alphabet,
-  `shortuuid.get_alphabet()`. The converter's regular expression is built from those at import,
-  so a portal ID's shape is defined in exactly one place.
+  read as `ShortUUID(alphabet=field.alphabet).get_alphabet()`, the way the field itself generates.
+  The pattern is built from those at import, so a portal ID's shape is defined in exactly one place.
 - **Ordering decides precedence.** Django resolves patterns in order, so the permalink pattern
   appended after every other root pattern, addon routes included, can never shadow a declared page.
   `tests/test_conf/routed_addon` is an addon with a root route that the test can reuse.
