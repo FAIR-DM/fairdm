@@ -5,7 +5,8 @@
 
   Attributes:
     identifiers  – [{type, value, link}]; `link` is set for DOIs and IGSNs
-    portal_id    – the record's portal ID, with a copy button
+    portal_id    – the record's portal ID, linked to the record's permanent link, with a
+                   button that copies the link
     local_id     – the team's own ID for the record, if it has one
     class        – extra classes on the card
 {% endcomment %}
@@ -29,13 +30,15 @@
         </tr>
       {% endif %}
       {% if portal_id %}
+        {% url "record-link" portal_id=portal_id as portal_link %}
         <tr>
           <th scope="row" class="ps-0 font-normal text-base-content/70 whitespace-nowrap align-top">{% translate "Portal ID" %}</th>
           <td class="pe-0 font-mono break-all">
-            {{ portal_id }}
+            <a href="{{ portal_link }}" class="link link-primary"
+               title="{% translate 'Permanent link to this record' %}">{{ portal_id }}</a>
             <button type="button" class="btn btn-ghost btn-xs"
-                    aria-label="{% translate 'Copy portal ID' %}" title="{% translate 'Copy portal ID' %}"
-                    onclick="navigator.clipboard.writeText('{{ portal_id|escapejs }}')">
+                    aria-label="{% translate 'Copy permanent link' %}" title="{% translate 'Copy permanent link' %}"
+                    onclick="navigator.clipboard.writeText(this.previousElementSibling.href)">
               <c-icon name="copy" aria-hidden="true" only />
             </button>
           </td>

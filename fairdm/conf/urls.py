@@ -2,15 +2,18 @@
 
 from django.conf import settings
 from django.conf.urls.static import static
-from django.urls import include, path
+from django.urls import include, path, register_converter
 from django.views import defaults as default_views
 from django.views.i18n import JavaScriptCatalog
 from mvp.views.account import AccountCenterView
 
 from fairdm.contrib.contributors.views.orcid import orcid_callback, orcid_login
 from fairdm.views.generic import FairDMHomeView
+from fairdm.views.links import PortalIDConverter, RecordLinkView
 
 from .setup import addon_urls
+
+register_converter(PortalIDConverter, "portal_id")
 
 urlpatterns = [
     path("", include("fairdm.contrib.admin.urls")),
@@ -46,6 +49,11 @@ if addon_urls:
         urlpatterns += [
             path("", include(addon_url)),
         ]
+
+# Last, so that every page the portal or an addon declares wins over a permanent link.
+urlpatterns += [
+    path("<portal_id:portal_id>/", RecordLinkView.as_view(), name="record-link"),
+]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

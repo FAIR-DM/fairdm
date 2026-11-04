@@ -21,6 +21,7 @@ from fairdm.core.vocabularies import (
     SAMPLE_STATUS_DESTROYED,
     SAMPLE_STATUS_UNKNOWN,
 )
+from fairdm.views.links import record_link
 
 from .models import Sample, SampleRelation
 
@@ -252,7 +253,7 @@ class Overview(TypedOverviewPlugin):
             title=f"{sample.name} [{type(sample)._meta.verbose_name}]",
             link=igsn["link"]
             if igsn
-            else self.request.build_absolute_uri(sample.get_absolute_url()),
+            else self.request.build_absolute_uri(record_link(sample)),
         )
         citation = {"title": gettext("Citation"), "text": text}
         if not igsn:

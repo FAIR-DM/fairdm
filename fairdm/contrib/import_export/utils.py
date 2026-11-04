@@ -11,6 +11,7 @@ from import_export.formats.base_formats import DEFAULT_FORMATS
 
 from fairdm.core.dataset.models import DatasetDate
 from fairdm.core.vocabularies import DATE_TYPES
+from fairdm.views.links import record_link
 
 DATACITE_DATE_TYPES = {
     f"{DATE_TYPES}/available": "Available",
@@ -98,7 +99,7 @@ def build_metadata(dataset, request):
         The pretty-printed XML.
     """
     template_name = "publishing/datacite44.xml"
-    uri = request.build_absolute_uri(dataset.get_absolute_url())
+    uri = request.build_absolute_uri(record_link(dataset))
     license_url = dataset.license.canonical_url if dataset.license else None
     context = {
         "dataset": dataset,
