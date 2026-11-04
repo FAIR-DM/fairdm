@@ -45,7 +45,7 @@ class TestTypeBadge:
     def _render(self, render_template, info=INFO):
         return render_template(
             "overview/includes/type_badge.html",
-            {"label": "rock sample", "info": info, "id": "type-info"},
+            {"kind": "sample", "label": "rock sample", "info": info, "id": "type-info"},
         )
 
     def test_a_described_type_opens_its_description_in_a_dialog(
@@ -94,4 +94,4 @@ class TestTypeBadge:
 
         assert page.find("button") is None
         assert page.find("dialog") is None
-        assert page.find(class_="badge").get_text(strip=True) == "Rock sample"
+        assert page.find(class_="record-tag").get_text(strip=True) == "Rock sample"
