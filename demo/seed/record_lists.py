@@ -1,4 +1,4 @@
-"""Seed every state of the Samples and Measurements tabs of specification 023.
+"""Seed every state of the record tabs of specification 023, a sample's included.
 
 Development only. Signs in through ``regular.user`` and ``staff.user`` at ``example.com``, password
 ``password``. Safe to run twice: it removes what it created before creating it again.
@@ -7,6 +7,9 @@ Development only. Signs in through ``regular.user`` and ``staff.user`` at ``exam
   and two measurement types (enough rows to page), an unpublished public dataset, a private
   dataset, an empty dataset, and a partner dataset whose measurements were made on the first
   dataset's samples and on a private sample.
+- The first core of the published dataset, measured by XRF often enough to page its
+  table, by ICP-MS, by the partner laboratory, and in the unpublished and the private
+  datasets, which a visitor may not open.
 - A private project with a public, published dataset, which a private project hides.
 - A public project whose only dataset is public and unpublished.
 - ``regular.user`` credited on the project with nothing published, on the partner dataset, on the
@@ -143,6 +146,17 @@ class RecordListSeed(BaseCommand):
             ICP_MS_MeasurementFactory(
                 dataset=partner, sample=rock, name=f"Partner ICP-MS {rock.name}"
             )
+        core = rocks[0]
+        for i in range(55):
+            XRFMeasurementFactory(
+                dataset=published, sample=core, name=f"XRF {core.name}, repeat {i + 1}"
+            )
+        XRFMeasurementFactory(
+            dataset=unpublished, sample=core, name=f"XRF {core.name}, 2026 rerun"
+        )
+        ICP_MS_MeasurementFactory(
+            dataset=private, sample=core, name=f"ICP-MS {core.name}, pilot"
+        )
         for i, soil in enumerate(soils[:2]):
             ICP_MS_MeasurementFactory(
                 dataset=partner, sample=soil, name=f"Partner ICP-MS run {i + 1}"
@@ -192,6 +206,9 @@ class RecordListSeed(BaseCommand):
         self.stdout.write(f"Dataset, empty: {empty.get_absolute_url()}")
         self.stdout.write(
             f"Dataset, other team's samples: {partner.get_absolute_url()}"
+        )
+        self.stdout.write(
+            f"Sample, measured several ways: {core.get_absolute_url()}measurements/"
         )
         self.stdout.write(f"Project, mixed: {main.get_absolute_url()}")
         self.stdout.write(

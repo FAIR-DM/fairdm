@@ -64,7 +64,7 @@ When the sample is in a different dataset from the measurement, a notice adds "T
 
 ## Other measurements on this sample
 
-A card with this heading lists the other measurements made on the same sample, newest first, with a count in the corner. Each row has the measurement's name, its type, the dataset when it differs from this one, and the date it was added. The card lists the first eight and says "and" followed by a count and "more" for the rest. You see only measurements whose own dataset you may see. The card is left out when there are none.
+A card with this heading lists the other measurements made on the same sample, newest first, with a count in the corner. Each row has the measurement's name, its type, the dataset when it differs from this one, and the date it was added. The card lists the first eight and says "and" followed by a count and "more" for the rest. When you may open the sample, **See all** opens the sample's **Measurements** tab, which lists every one. You see only measurements whose own dataset you may see. The card is left out when there are none.
 
 ## Location
 

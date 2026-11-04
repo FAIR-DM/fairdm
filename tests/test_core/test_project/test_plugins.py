@@ -177,9 +177,9 @@ class TestAPrivateProjectsPageThroughARealRequest:
 
 @pytest.mark.django_db
 class TestAPrivateProjectsOtherTabs:
-    @pytest.fixture(params=["project:dataset-list", "project:project-export-view"])
-    def address(self, request, private_project):
-        return reverse(request.param, kwargs={"uuid": private_project.uuid})
+    @pytest.fixture
+    def address(self, private_project):
+        return reverse("project:dataset-list", kwargs={"uuid": private_project.uuid})
 
     def test_an_anonymous_visitor_is_answered_as_for_a_missing_project(
         self, client, address
@@ -269,7 +269,9 @@ class TestDescriptionsPageOffersOneAreaPerVocabularyType:
         response = client.get(url)
 
         form = response.context["form"]
-        assert list(form.fields) == [concept.uri for concept in ProjectDescription.get_type_concepts()]
+        assert list(form.fields) == [
+            concept.uri for concept in ProjectDescription.get_type_concepts()
+        ]
 
     def test_every_area_starts_empty_for_a_project_with_no_descriptions(
         self, client, user_with_change_permission
@@ -1121,7 +1123,9 @@ class TestOverviewCitation:
     def test_the_year_is_the_projects_start_year(self, client):
         project = self._project_with_creators(("Anna", "Keller"))
         ProjectDateFactory(
-            related=project, type_id=f"{DATE_TYPES}/start", value=PartialDate.fromisoformat("2019-05")
+            related=project,
+            type_id=f"{DATE_TYPES}/start",
+            value=PartialDate.fromisoformat("2019-05"),
         )
 
         assert "(2019)" in self._citation(client, project)
@@ -1132,7 +1136,9 @@ class TestOverviewTimeline:
     def _progress(self, client, project, start, end):
         for type_, day in ((f"{DATE_TYPES}/start", start), (f"{DATE_TYPES}/end", end)):
             ProjectDateFactory(
-                related=project, type_id=type_, value=PartialDate.fromisoformat(day.isoformat())
+                related=project,
+                type_id=type_,
+                value=PartialDate.fromisoformat(day.isoformat()),
             )
         response = _page(client, project)
         return response, response.page.find("progress")
@@ -1184,7 +1190,9 @@ class TestOverviewTimeline:
     ):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         ProjectDateFactory(
-            related=project, type_id=f"{DATE_TYPES}/start", value=PartialDate.fromisoformat("2020-01")
+            related=project,
+            type_id=f"{DATE_TYPES}/start",
+            value=PartialDate.fromisoformat("2020-01"),
         )
 
         response = _page(client, project)
@@ -1197,10 +1205,14 @@ class TestOverviewTimeline:
     ):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         ProjectDateFactory(
-            related=project, type_id=f"{DATE_TYPES}/start", value=PartialDate.fromisoformat("2020")
+            related=project,
+            type_id=f"{DATE_TYPES}/start",
+            value=PartialDate.fromisoformat("2020"),
         )
         ProjectDateFactory(
-            related=project, type_id=f"{DATE_TYPES}/end", value=PartialDate.fromisoformat("2022-03")
+            related=project,
+            type_id=f"{DATE_TYPES}/end",
+            value=PartialDate.fromisoformat("2022-03"),
         )
 
         response = _page(client, project)

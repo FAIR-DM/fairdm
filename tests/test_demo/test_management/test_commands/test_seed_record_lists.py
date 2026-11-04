@@ -119,6 +119,19 @@ class TestSeedRecordListsStates:
             if measurement.dataset.project and measurement.dataset.project.name == MAIN
         )
 
+    def test_a_sample_is_measured_in_datasets_a_visitor_may_and_may_not_open(
+        self, main
+    ):
+        core = Sample.objects.get(dataset__project=main, name="BH-1 core, 100 m")
+        measurements = Measurement.objects.filter(sample=core)
+        datasets = Dataset.all_objects.filter(measurements__in=measurements).distinct()
+
+        assert measurements.values("polymorphic_ctype").distinct().count() >= 2
+        assert datasets.exclude(pk=core.dataset_id).filter(published=True).exists()
+        assert datasets.filter(published=False).exists()
+        assert datasets.filter(visibility=Visibility.PRIVATE).exists()
+        assert measurements.filter(dataset=core.dataset).count() > 50
+
     def test_a_project_has_public_unpublished_and_private_datasets(self, main):
         datasets = Dataset.all_objects.filter(project=main)
 

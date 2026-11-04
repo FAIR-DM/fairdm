@@ -260,7 +260,7 @@ its dataset's team. Open a rock sample and a sample type with no template of its
 6. **Given** a sample with measurements recorded in another team's unpublished dataset, **When** a
    visitor opens it, **Then** those measurements are not listed.
 7. **Given** a sample with more measurements than the list shows, **When** it is opened, **Then**
-   the list shows the most recent and counts the rest.
+   the list shows the most recent, counts the rest and leads to the sample's Measurements tab.
 8. **Given** a sample with parent samples and subsamples, some in unpublished datasets, **When** a
    visitor opens it, **Then** the visible ones are listed together, each saying how it relates to
    this sample, and the hidden ones are counted without being named or linked.
@@ -322,7 +322,8 @@ member of its dataset's team, including the one recorded in a different dataset 
    **Then** a dialog shows the type's description, keywords, the schema's maintainer and the
    protocol citation, whichever of those the registry has.
 9. **Given** a measurement with other measurements on the same sample, some in unpublished datasets,
-   **When** a visitor opens it, **Then** only the published ones are listed.
+   **When** a visitor opens it, **Then** only the published ones are listed, and where the visitor
+   may open the sample the list leads to the sample's Measurements tab.
 10. **Given** any measurement, **When** it is opened, **Then** the breadcrumbs lead from the list of
     measurements to this measurement, as a sample's lead from the list of samples.
 
@@ -409,8 +410,11 @@ member of its dataset's team, including the one recorded in a different dataset 
 **Capabilities that are not available yet**
 
 - **FR-016**: The pages MUST ship with these capabilities shown as not yet available: the map of a
-  project's or dataset's samples, recent activity, publishing a dataset, importing data, the full
-  list of a sample's measurements, exporting a citation, and metadata downloads.
+  project's or dataset's samples, recent activity, publishing a dataset, importing data, exporting a
+  citation, and metadata downloads. The full list of a sample's measurements is the sample's
+  Measurements tab (specification 023, US-4). A sample's Measurements figure and card MUST lead to
+  it, and so MUST a measurement's list of other measurements on the same sample, wherever the
+  viewer may open that sample.
 - **FR-017**: Each item in FR-016 MUST share one treatment across all four pages. It MUST say that
   the capability is not available yet, and it MUST NOT look or behave as if it works. A button
   standing in for a missing action MUST be disabled and say why.

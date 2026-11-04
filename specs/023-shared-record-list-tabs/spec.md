@@ -79,6 +79,21 @@ Settled while writing the specification. The reasoning for each is in `decisions
 - Q: Where a dataset's or a project's overview counts its samples and measurements, does the count
   lead anywhere? → A: Yes, to the matching tab.
 
+### Session 2026-11-04
+
+Settled by the maintainer in conversation and recorded on #644.
+
+- Q: Does a sample get a list of its measurements? → A: Yes, a Measurements tab on the sample. It
+  is a separate plugin from the Measurements tab of a dataset, a project and a contributor, and
+  shares that tab's code.
+- Q: Which measurements does it list? → A: Every measurement made on the sample that the viewer may
+  see, whichever dataset it belongs to. Each is listed or left out by its own dataset.
+- Q: How are several measurement types shown? → A: Each type in its own table, all on one page, one
+  after another, so that results from different methods are read together. Each table pages on its
+  own. There is no search and no filter.
+- Q: Is the project's Export tab kept? → A: No. A dataset is the unit of distribution, and the tab
+  is removed with nothing in its place.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A dataset's samples and measurements can be browsed from its page (Priority: P1)
@@ -227,6 +242,45 @@ against FR-026 to FR-030.
 
 ---
 
+### User Story 4 - A sample's measurements can be browsed from its page (Priority: P2)
+
+A reader opens a sample and wants to compare what has been measured on it. The sample's
+Measurements tab lists every measurement made on the sample that the reader may see, whichever
+dataset it belongs to. Each measurement type has its own table, with the columns its registration
+produces, and every type is on the one page, one table after another, so that results from
+different methods are read side by side. Each row names the dataset the measurement belongs to.
+
+**Why this priority**: A sample is where the results of several methods meet. Its overview lists
+the most recent measurements and counts the rest, and no page lists them all.
+
+**Independent Test**: Load development data. As a visitor and as a member of the sample's dataset,
+open the Measurements tab of a sample measured by several methods in its own dataset, in another
+published dataset and in a dataset the visitor may not open, and of a sample with no measurements.
+Compare against FR-034 to FR-040.
+
+**Acceptance Scenarios**:
+
+1. **Given** a sample with measurements of two registered types, **When** a reader opens its
+   Measurements tab, **Then** both types' tables are on the page, the most numerous type first,
+   each with that type's columns.
+2. **Given** a measurement of the sample that belongs to another dataset the reader may open,
+   **When** the tab is opened, **Then** it is listed, and its row names and links that dataset.
+3. **Given** a measurement of the sample that belongs to a dataset the reader may not open, **When**
+   the tab is opened, **Then** it is not listed or counted, even when the reader is on the team of
+   the sample's own dataset.
+4. **Given** a sample with no measurements the reader may see, **When** the tab is opened, **Then**
+   the tab is there and says the sample has no measurements.
+5. **Given** a sample the reader may not open, **When** the tab's address is requested, **Then** the
+   answer is the same "not found" the sample's overview gives.
+6. **Given** a table with more rows than one page holds, **When** the reader moves to its next page,
+   **Then** that table moves and the others stay where they were.
+7. **Given** measurements of a type that is no longer registered, **When** the tab is opened,
+   **Then** they are listed in a table of the fields every measurement has.
+8. **Given** the sample's overview, **When** the reader follows its Measurements figure or the
+   card's link, **Then** they arrive at the tab.
+
+---
+
 ### Edge Cases
 
 - A page holds records of a type whose registration has since been removed. They are listed in a
@@ -251,9 +305,11 @@ against FR-026 to FR-030.
 **Every Samples and Measurements tab**
 
 - **FR-001**: A dataset, a project, a person and an organization MUST each carry a Samples tab and
-  a Measurements tab. No other page gets one from this feature.
+  a Measurements tab. A sample MUST carry a Measurements tab of its own (FR-034). No other page gets
+  one from this feature.
 - **FR-002**: The Samples tab MUST be one plugin registered on all four pages, and the Measurements
-  tab likewise. Each page supplies only which records it lists.
+  tab likewise. Each page supplies only which records it lists. FR-001 to FR-020 describe these two
+  plugins. A sample's Measurements tab is described by FR-034 to FR-040.
 - **FR-003**: A tab MUST have the same address segment, beneath the record's own address, on every
   page that carries it.
 - **FR-004**: A tab MUST be present on its page whatever it holds, and an empty list MUST say that
@@ -327,6 +383,28 @@ against FR-026 to FR-030.
   viewer, they MUST list only released records. Filter choices MUST follow the same rule.
 - **FR-030**: A measurement MUST be listed or left out by its own dataset, never by its sample's.
 
+**On a sample**
+
+- **FR-034**: A sample's Measurements tab MUST be a plugin of its own, registered on the sample. It
+  MUST use the same type tables, dataset column and handling of unregistered types as the tabs of
+  FR-001 to FR-020, defined once.
+- **FR-035**: The tab MUST list every measurement made on the sample that the viewer may see,
+  whichever dataset it belongs to. Each measurement MUST be listed or left out by its own dataset's
+  visibility, never by its sample's (FR-030).
+- **FR-036**: Each measurement type listed MUST have its own table, with the columns its
+  registration produces, and every listed type MUST be on the one page, one table after another,
+  the most numerous first. Types with no measurement listed MUST NOT be shown. The tab offers no
+  search and no filters.
+- **FR-037**: Each row MUST name the dataset the measurement belongs to and link it where the viewer
+  may open it. A row MUST NOT name the sample, since every row is on it.
+- **FR-038**: Each table MUST page its rows on its own: moving through one table MUST leave the
+  others on the page they show.
+- **FR-039**: The tab MUST open for exactly the viewers the sample's overview opens for, and anyone
+  else MUST get the same "not found". It MUST be present when the sample has no measurements the
+  viewer may see, and say so.
+- **FR-040**: The number of database queries the tab issues MUST NOT grow with the number of rows
+  it shows.
+
 **Across the feature**
 
 - **FR-031**: Every piece of text the tabs show MUST be marked for translation, and dates and
@@ -335,11 +413,13 @@ against FR-026 to FR-030.
   visitor or as one of the development accounts: a dataset with several sample and measurement
   types, a public dataset that is not published, an empty dataset, a measurement on another
   dataset's sample, a project with public, unpublished and private datasets, a person credited at
-  each level, and an organization that owns a project.
+  each level, an organization that owns a project, and a sample measured by several methods in its
+  own dataset, in another dataset and in a dataset a visitor may not open.
 - **FR-033**: The documentation for portal developers MUST name the two plugins, say which pages
   they are registered on, say which records each page lists, and say where a table's columns,
   filters and search come from. The documentation for portal users MUST describe how to browse the
-  samples and measurements of a dataset, a project and a contributor.
+  samples and measurements of a dataset, a project and a contributor, and the measurements of a
+  sample.
 
 ### Which story owns which requirement
 
@@ -348,6 +428,7 @@ against FR-026 to FR-030.
 | US-1: a dataset's samples and measurements, and the rules every tab shares | FR-001 to FR-022, FR-025 for the dataset, FR-031 to FR-033 |
 | US-2: a project's samples and measurements | FR-023 to FR-025 |
 | US-3: a contributor's samples and measurements | FR-026 to FR-030 |
+| US-4: a sample's measurements | FR-034 to FR-040 |
 
 FR-001 to FR-020 describe every tab in this feature. US-1 puts them in place on the dataset, and
 each later story meets them on its own pages. Each later story also extends the development data
@@ -357,6 +438,8 @@ each later story meets them on its own pages. Each later story also extends the 
 
 - **Samples tab, Measurements tab**: A tab beside a record's overview listing the samples, or the
   measurements, associated with that record. One plugin each, registered on four pages.
+- **A sample's Measurements tab**: A tab beside a sample's overview listing the measurements made on
+  it, every type at once. A plugin of its own, sharing the tables of the other tabs.
 - **Type table**: The table FairDM generates for a registered sample or measurement type from its
   registration. The portal-wide listing of that type uses the same one.
 - **A dataset's records**: The samples and measurements that belong to the dataset. A measurement
@@ -372,7 +455,7 @@ each later story meets them on its own pages. Each later story also extends the 
 ### Measurable Outcomes
 
 - **SC-001**: A dataset, a project, a person and an organization each have a Samples and a
-  Measurements tab, and no other page does.
+  Measurements tab, a sample has a Measurements tab, and no other page has either.
 - **SC-002**: Each of the two tabs is defined once. A change made to one is seen on all four pages,
   with no second place to change.
 - **SC-003**: Signed in as each development account and as a visitor, no tab names, counts or links
@@ -400,8 +483,7 @@ each later story meets them on its own pages. Each later story also extends the 
 - The tabs sit in the tab strip the plugin system already provides (specification 008). Where
   another feature adds a tab to the same pages, such as Contributors, Map or Statistics, that tab
   comes after these.
-- Out of scope, each owned elsewhere: a sample's own Measurements tab, merging the duplicate
-  Projects and Datasets tabs, removing the project's Export tab, and an organization's Members tab
-  (the follow-up issue linked from #403); an export or download on the dataset (#397); a data
+- Out of scope, each owned elsewhere: merging the duplicate Projects and Datasets tabs, and an
+  organization's Members tab (#649); an export or download on the dataset (#397); a data
   dictionary linked from the tabs (#397); the Contributors tab (#402); the Map tab (#405); the
   Statistics tabs (#406).

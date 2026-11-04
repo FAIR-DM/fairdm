@@ -1,0 +1,22 @@
+{% extends "page_view.html" %}
+{% load i18n humanize %}
+{% comment %}
+  A sample's Measurements tab: every measurement type made on the sample, one table after another,
+  each with its own heading and pager.
+{% endcomment %}
+{% block page.content %}
+  {% for section in sections %}
+    <section class="flex flex-col gap-2" aria-labelledby="type-{{ section.type.slug }}">
+      <h2 id="type-{{ section.type.slug }}" class="text-lg font-semibold">
+        <span class="record-title record-measurement">{{ section.type.name }}</span>
+        <span class="badge badge-ghost badge-sm">{{ section.type.count|intcomma }}</span>
+      </h2>
+      <c-mvp.addons.django-table :table="section.table" label="{{ section.type.name }}" />
+      <c-mvp.page.list.footer :page_obj="section.table.page" param="{{ section.table.prefixed_page_field }}" size="sm" />
+    </section>
+  {% empty %}
+    {% translate "No measurements of this sample" as heading %}
+    {% translate "Measurements made on the sample will be listed here, in one table for each measurement type." as message %}
+    <c-mvp.page.list.empty icon="measurement" heading="{{ heading }}" message="{{ message }}" />
+  {% endfor %}
+{% endblock page.content %}

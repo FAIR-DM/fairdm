@@ -1,7 +1,9 @@
-"""The Samples and Measurements tabs of a dataset, a project and a contributor.
+"""The Samples and Measurements tabs of a dataset, a project and a contributor, and a
+sample's Measurements tab.
 
-Each tab lists the samples or the measurements of one registered type at a time, the most
-numerous type unless the address names another.
+A dataset's, project's or contributor's tab lists the samples or the measurements of one
+registered type at a time, the most numerous type unless the address names another. A
+sample's tab lists every type of measurement made on it at once, one after another.
 """
 
 from dataclasses import dataclass
@@ -17,11 +19,12 @@ from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
 from django_filters import FilterSet
 from django_tables2.data import TableQuerysetData
+from django_tables2.views import MultiTableMixin
 
 from fairdm import plugins
 from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
 from fairdm.contrib.collections.tables import MeasurementTable, SampleTable
-from fairdm.contrib.collections.views import DataTableView
+from fairdm.contrib.collections.views import BOOKKEEPING_COLUMNS, DataTableView
 from fairdm.contrib.contributors.models import Contributor
 from fairdm.contrib.plugins import Plugin, reverse
 from fairdm.contrib.plugins.mixins import PrivateRecordNotFoundMixin
@@ -33,9 +36,11 @@ from fairdm.core.project.models import Project
 from fairdm.core.project.plugins import project_is_visible
 from fairdm.core.sample.filters import SampleFilter
 from fairdm.core.sample.models import Sample
+from fairdm.core.sample.plugins import Overview as SampleOverview
 from fairdm.registry import registry
 from fairdm.registry.config import ModelConfiguration
 from fairdm.registry.factories import PublishedChoicesMixin
+from fairdm.views import FairDMTemplateView
 
 FALLBACK_SLUG = "other"
 
@@ -265,6 +270,44 @@ def records_are_offered(request: HttpRequest, obj: Model | None) -> bool:
     return dataset_records_visible(request, obj)
 
 
+def type_rows(entry: RecordType, records: QuerySet, user) -> QuerySet:
+    """Return one type's records among ``records``, loaded for that type's table.
+
+    Every row carries ``dataset_open`` and, on measurements, ``sample_open``: whether
+    the user may open the row's dataset and sample.
+
+    Args:
+        entry: The type, from :func:`type_counts`.
+        records: The records the viewer may see, of every type.
+        user: The user whose access decides which datasets and samples open.
+
+    Returns:
+        The type's rows.
+    """
+    model: Any = entry.model
+    queryset = model.objects.filter(pk__in=records.values("pk"))
+    if entry.unregistered:
+        queryset = queryset.filter(polymorphic_ctype__in=entry.unregistered)
+    if hasattr(queryset, "with_related"):
+        queryset = queryset.with_related()
+    queryset = queryset.select_related("dataset__project").annotate(
+        dataset_open=Exists(
+            Dataset.all_objects.visible_to(user).filter(pk=OuterRef("dataset_id"))
+        )
+    )
+    if records.model is Measurement:
+        queryset = (
+            queryset.select_related("sample__dataset__project")
+            .annotate(
+                sample_open=Exists(
+                    Sample.objects.visible_to(user).filter(pk=OuterRef("sample_id"))
+                )
+            )
+            .with_effective_location(user)
+        )
+    return queryset
+
+
 class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
     """The samples or the measurements of a dataset, project or contributor, one type at a time.
 
@@ -401,35 +444,10 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
         ]
 
     def get_queryset(self):
-        """Limit to the chosen type's records on this page that the viewer may see.
-
-        Every row carries ``dataset_open`` and, on measurements, ``sample_open``: whether
-        the request's user may open the row's dataset and sample.
-        """
+        """Limit to the chosen type's records on this page that the viewer may see."""
         if self.chosen is None:
             return self.base_model.objects.none()  # type: ignore[attr-defined]
-        user = self.request.user
-        queryset = self.model.objects.filter(pk__in=self.visible_records().values("pk"))
-        if self.chosen.unregistered:
-            queryset = queryset.filter(polymorphic_ctype__in=self.chosen.unregistered)
-        if hasattr(queryset, "with_related"):
-            queryset = queryset.with_related()
-        queryset = queryset.select_related("dataset__project").annotate(
-            dataset_open=Exists(
-                Dataset.all_objects.visible_to(user).filter(pk=OuterRef("dataset_id"))
-            )
-        )
-        if self.base_model is Measurement:
-            queryset = (
-                queryset.select_related("sample__dataset__project")
-                .annotate(
-                    sample_open=Exists(
-                        Sample.objects.visible_to(user).filter(pk=OuterRef("sample_id"))
-                    )
-                )
-                .with_effective_location(user)
-            )
-        return queryset
+        return type_rows(self.chosen, self.visible_records(), self.request.user)
 
     def get_table_data(self):
         """Return the rows with their order ending in the primary key."""
@@ -572,3 +590,61 @@ class Measurements(RecordsTab):
     base_model = Measurement
     kind_label = _("Measurements")
     page_title = _("Measurements")
+
+
+@plugins.register(Sample, label=_("Measurements"), icon="measurement", order=400)
+class SampleMeasurements(Plugin, MultiTableMixin, FairDMTemplateView):
+    """List every measurement made on a sample, one table per type, on one page.
+
+    The tables follow one another, so that results from different methods are read
+    together. A measurement is listed when the viewer may see its own dataset, whichever
+    dataset that is and whoever may see the sample. Each table has its type's columns,
+    leads with the measurement's name and its dataset, and pages on its own.
+
+    Attributes:
+        sections: Each listed type with its table, most numerous first.
+    """
+
+    name = "measurements"
+    url_path = "measurements"
+    template_name = "record_lists/sample_measurements.html"
+    page_title = _("Measurements")
+    paginate_by = 50
+    check = staticmethod(SampleOverview.check)
+
+    sections: list[dict[str, Any]] = []
+
+    def handle_no_permission(self):
+        """Answer anyone the sample's overview refuses with the same "not found".
+
+        Raises:
+            Http404: Always.
+        """
+        raise Http404("No sample matches the given query.")
+
+    def get_tables(self):
+        """Build a table for each measurement type on the sample the viewer may see.
+
+        Returns:
+            The tables, most numerous type first, each with its own query-string prefix.
+        """
+        user = self.request.user
+        records = Measurement.objects.filter(sample=self.base_object).visible_to(user)
+        self.sections = []
+        for entry in type_counts(records):
+            table = entry.config.get_table_class()(
+                StableOrderData(type_rows(entry, records, user)),
+                prefix=f"{entry.slug}-",
+                # Every row is on this sample, so the sample is no column.
+                exclude=[*BOOKKEEPING_COLUMNS, "dataset", "sample"],
+                extra_columns=[("dataset_name", DatasetColumn())],
+                sequence=("name", "dataset_name", "..."),
+            )
+            self.sections.append({"type": entry, "table": table})
+        return [section["table"] for section in self.sections]
+
+    def get_context_data(self, **kwargs):
+        """Add each listed type with its table."""
+        context = super().get_context_data(**kwargs)
+        context["sections"] = self.sections
+        return context

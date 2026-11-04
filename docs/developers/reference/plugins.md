@@ -264,10 +264,11 @@ A registration is refused when:
 
 ## Samples and Measurements tabs
 
-`fairdm.contrib.collections.plugins` registers two plugins, `Samples` and `Measurements`. Both
+`fairdm.contrib.collections.plugins` registers three plugins. `Samples` and `Measurements`
 subclass `RecordsTab`, a `Plugin` that is also a table view, and have the `url_path` values
 `samples` and `measurements` at orders 300 and 400. Each lists the samples or the measurements
-of the record whose page it is on, one registered type at a time.
+of the record whose page it is on, one registered type at a time. `SampleMeasurements` is a
+sample's Measurements tab, described [below](#a-samples-measurements-tab).
 
 ### Pages and records
 
@@ -357,6 +358,32 @@ and Measurements figures, which link to the tabs, always equal the tabs' totals.
 Datasets figure counts the datasets the viewer may see, so a member of a private dataset counts it
 and a visitor does not. On a dataset whose records the viewer may not see, the figures, the
 composition and growth charts and the spatial coverage are left out of the page.
+
+### A sample's Measurements tab
+
+`SampleMeasurements` is registered on `Sample` with the name and `url_path` `measurements`, at
+order 400, so its URL name is `sample:measurements`. It is a `Plugin` with django-tables2's
+`MultiTableMixin`, and lists every measurement made on the sample that the viewer may see:
+`Measurement.objects.filter(sample=...).visible_to(user)`. A measurement is listed or left out by
+its own dataset, whichever dataset that is.
+
+`get_tables()` builds one table per type that `type_counts()` finds, most numerous first, with the
+fallback table last for types no longer registered. Each table is the type's registered table, fed
+by `type_rows()`, the function `RecordsTab` uses for its rows, and wrapped in `StableOrderData`.
+Each leads with the name and `DatasetColumn`, and drops the `sample` and `dataset` columns and the
+columns in `BOOKKEEPING_COLUMNS`. Each table has the prefix `<type slug>-`, so it sorts and pages by
+its own query parameters, such as `?xrf-page=2`, and its pager is drawn with
+`c-mvp.page.list.footer` and that table's `prefixed_page_field`. Fifty rows are shown to a page. The
+tab has no filter set and no search.
+
+Its check is the sample overview's, so it opens for exactly the viewers the overview opens for, and
+anyone else gets 404. The context holds `sections`, one dict per listed type with its `type` (a
+`RecordType`) and its `table`. With no measurement the viewer may see it is empty and the tab says
+so. Its template is `record_lists/sample_measurements.html`.
+
+The sample's overview links its Measurements figure and the Measurements card's **See all** to the
+tab. A measurement's overview links its list of other measurements on the same sample to it, where
+the viewer may open the sample.
 
 ### Development data
 

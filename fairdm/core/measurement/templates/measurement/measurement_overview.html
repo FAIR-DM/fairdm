@@ -119,6 +119,7 @@
     {% if siblings.total %}
       <c-mvp.card title="{% translate 'Other measurements on this sample' %}" class="bg-base-100">
         <c-slot name="badges"><span class="badge badge-ghost badge-sm">{{ siblings.total }}</span></c-slot>
+        {% if sample_measurements_url %}<c-slot name="actions"><c-button href="{{ sample_measurements_url }}" text="{% translate 'See all' %}" size="sm" only /></c-slot>{% endif %}
         <ul class="list">
           {% for row in siblings.rows %}
             <li class="list-row px-0">
@@ -136,8 +137,6 @@
         {% if siblings.more %}
           <div class="flex flex-wrap items-center gap-2 text-sm text-base-content/70">
             {% blocktranslate count counter=siblings.more %}and {{ counter }} more{% plural %}and {{ counter }} more{% endblocktranslate %}
-            {% translate "All measurements" as label %}{% translate "Every measurement made on this sample, as a filterable table." as reason %}
-            <c-actions.pending label="{{ label }}" icon="data" reason="{{ reason }}" size="xs" />
           </div>
         {% endif %}
       </c-mvp.card>

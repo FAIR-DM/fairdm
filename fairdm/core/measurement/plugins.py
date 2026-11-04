@@ -132,6 +132,11 @@ class Overview(TypedOverviewPlugin):
                 ),
                 "other_dataset": sample.dataset_id != measurement.dataset_id,
                 "siblings": self.get_siblings(),
+                "sample_measurements_url": safe_reverse(
+                    "sample:measurements", uuid=sample.uuid
+                )
+                if sample_visible
+                else None,
                 "project": project,
                 "citation": self.get_citation_details(
                     entries, dates, identifiers, sample if sample_visible else None

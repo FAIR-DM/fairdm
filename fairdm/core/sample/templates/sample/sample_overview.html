@@ -46,7 +46,7 @@
 
 {% block overview.figures %}
   <c-stats cols="1" lg="3" aria-label="{% translate 'Sample at a glance' %}">
-    <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" record="measurement" icon="measurement" />
+    <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" href="{{ measurements_url }}" record="measurement" icon="measurement" />
     <c-stats.item title="{% translate 'Related samples' %}" value="{{ counts.related }}" record="sample" icon="sample" />
     <c-stats.item title="{% translate 'People credited' %}" value="{{ counts.people }}" icon="people" />
   </c-stats>
@@ -75,6 +75,7 @@
   {% block overview.measurements %}
     <c-mvp.card title="{% translate 'Measurements' %}" class="bg-base-100">
       <c-slot name="badges">{% if measurements.total %}<span class="badge badge-ghost badge-sm">{{ measurements.total }}</span>{% endif %}</c-slot>
+      {% if measurements.total %}<c-slot name="actions"><c-button href="{{ measurements_url }}" text="{% translate 'See all' %}" size="sm" only /></c-slot>{% endif %}
       {% if measurements.items %}
         <ul class="list">
           {% for entry in measurements.items %}
@@ -96,8 +97,6 @@
         {% if measurements.more %}
           <div class="flex flex-wrap items-center gap-2 text-sm text-base-content/70">
             {% blocktranslate count counter=measurements.more %}and {{ counter }} more{% plural %}and {{ counter }} more{% endblocktranslate %}
-            {% translate "All measurements" as label %}{% translate "Every measurement made on this sample, as a table." as reason %}
-            <c-actions.pending label="{{ label }}" icon="data" reason="{{ reason }}" size="xs" />
           </div>
         {% endif %}
       {% else %}

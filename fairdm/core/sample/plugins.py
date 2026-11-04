@@ -171,6 +171,9 @@ class Overview(TypedOverviewPlugin):
                 "citation": self.get_citation_details(entries, dates, identifiers),
                 "identifiers": identifiers,
                 "api_url": safe_reverse("api:sample-detail", uuid=sample.uuid),
+                "measurements_url": safe_reverse(
+                    "sample:measurements", uuid=sample.uuid
+                ),
                 "type_info": self.get_type_info(),
                 "people": self.get_people(entries),
                 "details": self.get_details(project, status),
