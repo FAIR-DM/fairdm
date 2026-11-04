@@ -16,8 +16,9 @@ class OrganizationMembers(Plugin, PersonListView):
 
     The members are those the overview's Members card counts: the owner first, then the
     administrators, then the other members, each group by name. Pending and former members are
-    left out. The tab is offered on an organisation's page only, to everyone the overview opens
-    for.
+    left out. Unlike the People page, superusers who are members are listed, so the card's count
+    and the tab agree. The tab is offered on an organisation's page only, to everyone the overview
+    opens for.
     """
 
     url_path = "members"
