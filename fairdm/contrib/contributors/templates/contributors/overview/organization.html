@@ -52,7 +52,8 @@
 {% endblock overview.byline %}
 
 {% block overview.actions %}
-  <c-mvp.addons.share-dropdown size="sm" />
+  {% permalink organization as permalink %}
+  <c-mvp.addons.share-dropdown size="sm" url="{{ permalink }}" />
   {% if api_url %}
     <c-button href="{{ api_url }}" text="{% translate 'REST API' %}" icon="api" size="sm" />
   {% endif %}
@@ -166,7 +167,8 @@
   {% endblock overview.readiness %}
 
   {% block overview.identifiers %}
-    <c-card.identifiers :identifiers="identifiers" portal_id="{{ organization.uuid }}" />
+    {% permalink organization as permalink %}
+    <c-card.identifiers :identifiers="identifiers" portal_id="{{ organization.uuid }}" permalink="{{ permalink }}" />
   {% endblock overview.identifiers %}
 
   {% block overview.links %}

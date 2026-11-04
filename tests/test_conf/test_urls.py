@@ -1,7 +1,9 @@
 """Route smoke tests for the account and legal routes in ``fairdm/conf/urls.py``."""
 
+import importlib
+
 import pytest
-from django.urls import reverse
+from django.urls import Resolver404, clear_url_caches, resolve, reverse
 from mvp_compliance.models import Document
 
 from fairdm.factories import UserFactory
@@ -90,3 +92,22 @@ class TestLegalDocumentRoutes:
         client.post(reverse("hijack:release"))
 
         assert client.session["_auth_user_id"] == str(administrator.pk)
+
+
+class TestPermalinkPosition:
+    def test_an_address_with_a_portal_id_s_length_and_an_unused_letter_is_not_found(
+        self,
+    ):
+        with pytest.raises(Resolver404):
+            resolve("/x" + "2" * 22 + "/")
+
+    @pytest.mark.parametrize("path", ["/", "/projects/", "/legal/agree/"])
+    def test_existing_root_pages_still_resolve(self, path):
+        assert resolve(path).url_name != "permalink"
+
+    def test_reloading_the_root_urls_twice_raises_nothing(self):
+        from fairdm.conf import urls
+
+        importlib.reload(urls)
+        importlib.reload(urls)
+        clear_url_caches()

@@ -2,7 +2,7 @@
 
 An organization page is the public page of one institution, funder, facility or company. It is what opens when someone selects an organization's name on a record, in a list or on a person's profile. Everyone sees the same page, apart from the controls and the checklist described below, which are for the people who keep the organization's record.
 
-You reach it by selecting the organization's name on the [Organizations](../community/organizations.md) screen, or wherever it is named on a record or a profile. The address is `contributor/` followed by the organization's portal ID. Anyone can open it, signed in or not. The heading is the organization's name.
+You reach it by selecting the organization's name on the [Organizations](../community/organizations.md) screen, or wherever it is named on a record or a profile. The address is `contributor/` followed by the organization's portal ID. The portal ID alone, after the portal's address, also opens it: `/` followed by the portal ID is the organization's permalink. Anyone can open it, signed in or not. The heading is the organization's name.
 
 A strip of page links near the top has **Overview**, **Members**, **Projects** and **Datasets**. This page describes **Overview** and **Members**. **Projects** and **Datasets** list the public projects and datasets the organization owns or is credited on.
 
@@ -14,7 +14,7 @@ The header shows:
 - a badge for its type, such as **Education**, when it has one
 - its name, followed by a ROR icon linking to its ROR record when it has a ROR identifier
 - the organization it is part of, its place and the languages it works in, each shown only when set
-- a **Share** menu and a **REST API** button, which opens the page as JSON
+- a **Share** menu, which shares the organization's permalink, and a **REST API** button, which opens the page as JSON
 - the controls for the people who keep the record, described next
 
 The controls depend on who you are:
@@ -49,7 +49,7 @@ A **Map** card is in the main column and **Recent activity** sits in the column 
 ## The column on the right
 
 - **Organization record**, a checklist only the people who keep the record see, marked **Only admin can see this**. It counts how many items are in place, such as `4 of 6 in place`. Items still missing come first, each with a **Fix** link where the portal can take you to the field. The items are **A ROR identifier**, **A logo** (recommended), **The type of organization**, **City and country**, **A description** and **A website** (recommended).
-- **Identifiers**, a table of the organization's identifiers, such as its ROR identifier, and its **Portal ID** with a copy button.
+- **Identifiers**, a table of the organization's identifiers, such as its ROR identifier, and its **Portal ID** with a copy button. A **Permalink** row beneath it shows the organization's permanent link with a button that copies the whole link.
 - **Links**, the organization's web pages, each named by its site. Without any, it says **No links have been added.**
 - A map of where the organization is based, when it has coordinates.
 - **Organization hierarchy**, which shows the organization it is part of, its siblings and its own sub-organizations. Without any, it says **No parent organization and no institutes, departments or groups are recorded for this organization.**

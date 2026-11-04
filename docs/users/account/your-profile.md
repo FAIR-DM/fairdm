@@ -2,7 +2,7 @@
 
 A profile is the public page of one person. It is what opens when someone selects your name on a record, in a list or on the team page. This page describes the profile screen as you see it on your own profile. Everyone else sees the same screen without the parts that are for you alone, which are marked below.
 
-You reach your profile by finding your card on the [People](../community/people.md) screen and selecting your name, or by selecting your name wherever you are credited on a record. The address is `contributor/` followed by your portal ID. Anyone can open a profile, signed in or not. The heading is the person's name. The portal has no menu entry that goes straight to your own profile.
+You reach your profile by finding your card on the [People](../community/people.md) screen and selecting your name, or by selecting your name wherever you are credited on a record. The address is `contributor/` followed by your portal ID. Your portal ID alone, after the portal's address, also opens it: `/` followed by the portal ID is your permalink. Anyone can open a profile, signed in or not. The heading is the person's name. The portal has no menu entry that goes straight to your own profile.
 
 A strip of page links near the top has **Overview**, **Projects** and **Datasets**. This page describes **Overview**. **Projects** and **Datasets** list the public projects and datasets the person is credited on. On your own profile they are headed **My Projects** and **My Datasets**.
 
@@ -23,7 +23,7 @@ The header shows:
 - a badge reading **Claimed profile**, **Unclaimed profile** or **Inactive account**, and a badge for each portal role the person holds
 - the person's name, followed by an ORCID icon when they have an ORCID iD. The icon links to the ORCID record and says when the iD is unauthenticated.
 - the organization the person is primarily affiliated with, the place of that organization and the languages the person works in, each shown only when set
-- a **Share** menu
+- a **Share** menu, which shares the person's permalink
 - a **REST API** button, which opens the profile as JSON
 - an **Edit profile** button, which only the person themselves sees, and a Community Manager for a profile nobody can sign in to. See [Edit profile](edit-profile.md).
 - a disabled **Contact** button, which everyone but the person sees
@@ -53,7 +53,7 @@ A **Publications** card and a **Map** card are on the page, and **Recent activit
 ## The column on the right
 
 - **Your profile**, a checklist only you see, marked with the badge **Only you can see this**. It counts how many items are in place, such as `3 of 5 in place`. Items still missing come first, each with a **Fix** link where the portal can take you to the field, and the rest follow. The items are **A profile photo** (recommended), **ORCID iD connected by signing in with ORCID**, **A short biography**, **A primary affiliation** and **Links to your other profiles** (recommended).
-- **Identifiers**, a table of the person's identifiers, such as their ORCID iD, and their **Portal ID** with a copy button.
+- **Identifiers**, a table of the person's identifiers, such as their ORCID iD, and their **Portal ID** with a copy button. A **Permalink** row beneath it shows the link to your profile with a button that copies the whole link.
 - **Links**, the person's other web pages, each named by its site. Without any, it says **No links have been added.**
 - **Affiliations**, the organizations the person belongs to, with those that ended under **Previously**. Without any, it says **No affiliations have been recorded.**
 - **Frequent collaborators**, the faces of people credited on the same records. Without any, it says **Nobody else is credited on the same records yet.**

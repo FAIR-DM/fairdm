@@ -6,7 +6,7 @@ A measurement's page gathers what the portal holds about one measurement: its re
 
 Choose a measurement's name in a [measurements table](measurements.md), in the **Measurements** card of a [sample's page](../samples/sample.md), or in the **Other measurements on this sample** card of another measurement's page.
 
-The address is `/measurements/` followed by the measurement's portal ID. A measurement has two tabs: **Overview**, which this page describes, and **Contributors**, described on [Contributors](../contributors/contributors-tab.md).
+The address is `/measurements/` followed by the measurement's portal ID. The portal ID alone, after the portal's address, also opens it: `/` followed by the portal ID is the measurement's permalink. A measurement has two tabs: **Overview**, which this page describes, and **Contributors**, described on [Contributors](../contributors/contributors-tab.md).
 
 Who may open the page is explained in [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md).
 
@@ -24,7 +24,7 @@ The header shows:
 - Its keywords, as badges. These are keywords chosen from a controlled vocabulary.
 - Three buttons: **Cite**, which jumps to the Citation card, **Share**, and **Manage**.
 
-**Share** opens a menu headed "Share this page" with Facebook, X / Twitter, Reddit, Pinterest, **Email** and **Copy link**.
+**Share** opens a menu headed "Share this page" with Facebook, X / Twitter, Reddit, Pinterest, **Email** and **Copy link**. Every choice shares the measurement's permalink, and **Copy link** copies it.
 
 **Manage** opens a menu of the screens for changing the measurement. You see only the entries you may use. If you may use none, the button is left out.
 
@@ -92,11 +92,11 @@ A card headed **People** shows the faces of everyone credited, up to 18, with th
 
 ## Identifiers
 
-A card headed **Identifiers** lists each identifier the measurement carries with its type. A DOI that starts with `10.` links to doi.org. Below them are the measurement's **Local ID**, when it has one, and its **Portal ID**, with a button that copies it.
+A card headed **Identifiers** lists each identifier the measurement carries with its type. A DOI that starts with `10.` links to doi.org. Below them are the measurement's **Local ID**, when it has one, and its **Portal ID**, with a button that copies it. A **Permalink** row beneath the Portal ID shows the measurement's permanent link with a button that copies the whole link.
 
 ## Citation
 
-A card headed **Citation** gives the citation as plain text, and a **Copy** button copies it. The measurement is cited by the people credited with the Collection role, the year of its setup date (or the year it was added), its name, its type and the sample, and the DOI link or the page's address.
+A card headed **Citation** gives the citation as plain text, and a **Copy** button copies it. The measurement is cited by the people credited with the Collection role, the year of its setup date (or the year it was added), its name, its type and the sample, and the DOI link or, with no DOI, the measurement's permalink.
 
 A measurement with no DOI reads "Most measurements are cited through their dataset. This citation points at this page." with a **Cite the dataset** link to the dataset's Citation card.
 

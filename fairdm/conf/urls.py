@@ -2,13 +2,14 @@
 
 from django.conf import settings
 from django.conf.urls.static import static
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.views import defaults as default_views
 from django.views.i18n import JavaScriptCatalog
 from mvp.views.account import AccountCenterView
 
 from fairdm.contrib.contributors.views.orcid import orcid_callback, orcid_login
 from fairdm.views.generic import FairDMHomeView
+from fairdm.views.permalink import PORTAL_ID_PATTERN, PermalinkView
 
 from .setup import addon_urls
 
@@ -46,6 +47,15 @@ if addon_urls:
         urlpatterns += [
             path("", include(addon_url)),
         ]
+
+# Last, so that every page the portal or an addon declares wins over a permanent link.
+urlpatterns += [
+    re_path(
+        rf"^(?P<portal_id>{PORTAL_ID_PATTERN})/$",
+        PermalinkView.as_view(),
+        name="permalink",
+    ),
+]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -6,7 +6,7 @@ A sample's page gathers what the portal holds about one sample: its custody stat
 
 Choose a sample's name in a [samples table](samples.md), in the **Measured on** card of a [measurement's page](../measurements/measurement.md), or in the **Related** card of another sample's page.
 
-The address is `/samples/` followed by the sample's portal ID. An older link that ends in `/overview/` leads to the same page. A sample has three tabs: **Overview**, which this page describes, **Contributors**, described on [Contributors](../contributors/contributors-tab.md), and **Measurements**, described in [Browse samples and measurements](../datasets/browse-samples-and-measurements.md#browse-a-samples-measurements).
+The address is `/samples/` followed by the sample's portal ID. The portal ID alone, after the portal's address, also opens it: `/` followed by the portal ID is the sample's permalink. An older link that ends in `/overview/` leads to the same page. A sample has three tabs: **Overview**, which this page describes, **Contributors**, described on [Contributors](../contributors/contributors-tab.md), and **Measurements**, described in [Browse samples and measurements](../datasets/browse-samples-and-measurements.md#browse-a-samples-measurements).
 
 Who may open the page is explained in [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md).
 
@@ -28,7 +28,7 @@ The header shows:
 - Its keywords, as badges. These are keywords chosen from a controlled vocabulary.
 - Three buttons: **Cite**, which jumps to the Citation card, **Share**, and **Manage**.
 
-**Share** opens a menu headed "Share this page" with Facebook, X / Twitter, Reddit, Pinterest, **Email** and **Copy link**.
+**Share** opens a menu headed "Share this page" with Facebook, X / Twitter, Reddit, Pinterest, **Email** and **Copy link**. Every choice shares the sample's permalink, and **Copy link** copies it.
 
 **Manage** opens a menu of the screens for changing the sample. You see only the entries you may use. If you may use none, the button is left out.
 
@@ -97,11 +97,11 @@ A card headed **People** shows the faces of everyone credited, up to 18, with th
 
 ## Identifiers
 
-A card headed **Identifiers** lists each identifier the sample carries with its type. A DOI or IGSN that starts with `10.` links to doi.org. Below them are the sample's **Local ID**, when it has one, and its **Portal ID**, with a button that copies it.
+A card headed **Identifiers** lists each identifier the sample carries with its type. A DOI or IGSN that starts with `10.` links to doi.org. Below them are the sample's **Local ID**, when it has one, and its **Portal ID**, with a button that copies it. A **Permalink** row beneath the Portal ID shows the sample's permanent link with a button that copies the whole link.
 
 ## Citation
 
-A card headed **Citation** gives the citation as plain text, and a **Copy** button copies it. The sample is cited by the people credited as Collector, the year of its collection date (or the year it was added), its name and type, and the IGSN link or the page's address.
+A card headed **Citation** gives the citation as plain text, and a **Copy** button copies it. The sample is cited by the people credited as Collector, the year of its collection date (or the year it was added), its name and type, and the IGSN link or, with no IGSN, the sample's permalink.
 
 A sample with no IGSN reads "This sample has no IGSN, so the citation points at this page. An IGSN gives the physical specimen an identifier that outlives the portal."
 

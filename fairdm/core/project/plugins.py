@@ -34,6 +34,7 @@ from fairdm.core.vocabularies import (
     PROJECT_START,
 )
 from fairdm.utils.choices import Visibility
+from fairdm.views.permalink import get_permalink
 
 from ..dataset.views import DatasetListView
 from .models import Project, ProjectDescription
@@ -388,11 +389,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         doi = next(
             (i.value for i in project.identifiers.all() if i.type_id == DOI), None
         )
-        link = (
-            f"https://doi.org/{doi}"
-            if doi
-            else self.request.build_absolute_uri(project.get_absolute_url())
-        )
+        link = f"https://doi.org/{doi}" if doi else get_permalink(project, self.request)
         return {
             "text": self.get_citation(
                 authors=creators, year=year, title=project.name, link=link

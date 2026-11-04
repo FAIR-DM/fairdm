@@ -3,7 +3,7 @@
 import pytest
 from django.template import Context, Template
 
-from fairdm.factories import PersonFactory
+from fairdm.factories import PersonFactory, ProjectFactory
 from fairdm.templatetags.fairdm import has_permission, safe_markdown
 from fairdm.utils.markdown import markdownify
 
@@ -54,3 +54,14 @@ class TestHasPermissionTag:
         )
 
         assert has_permission({"user": person}, "dataset.change_dataset")
+
+
+@pytest.mark.django_db
+class TestPermalinkTag:
+    def test_it_gives_the_records_absolute_permalink_for_the_request(self, rf):
+        project = ProjectFactory()
+        template = Template("{% load fairdm %}{% permalink record as link %}{{ link }}")
+
+        html = template.render(Context({"record": project, "request": rf.get("/")}))
+
+        assert html == f"http://testserver/{project.uuid}/"

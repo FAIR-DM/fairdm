@@ -73,6 +73,15 @@ class TestBuildMetadata:
         assert [c.get("contributorType") for c in curators] == ["DataCurator"]
         assert root.find("d:subjects/d:subject", NS) is not None
 
+    def test_the_dataset_is_related_to_its_absolute_permalink(self, dataset):
+        root = metadata(dataset)
+
+        related = root.find(
+            "d:relatedIdentifiers/d:relatedIdentifier[@relationType='IsVariantFormOf']",
+            NS,
+        )
+        assert related.text == f"http://testserver/{dataset.uuid}/"
+
     def test_a_dataset_with_nothing_but_a_title_renders(self, dataset):
         root = metadata(dataset)
 

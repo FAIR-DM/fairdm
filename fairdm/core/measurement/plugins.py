@@ -18,6 +18,7 @@ from fairdm.core.vocabularies import (
     DESCRIPTION_TYPES,
     DOI,
 )
+from fairdm.views.permalink import get_permalink
 
 from .models import Measurement
 
@@ -245,9 +246,7 @@ class Overview(TypedOverviewPlugin):
                 ),
                 year=getattr(setup, "year", None) or measurement.added.year,
                 title=title,
-                link=doi["link"]
-                if doi
-                else self.request.build_absolute_uri(measurement.get_absolute_url()),
+                link=doi["link"] if doi else get_permalink(measurement, self.request),
             ),
         }
         if not doi:

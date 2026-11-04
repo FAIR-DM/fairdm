@@ -71,6 +71,20 @@ Avoid "bounding box" for the stored value of a dataset: nothing stores it, and i
 Implemented by `spatial_coverage` in `fairdm/utils/location/coverage.py`, and offered as
 `Dataset.spatial_coverage(user)` and `Project.spatial_coverage(user)`.
 
+### Portal ID
+
+The identifier every project, dataset, sample, measurement and contributor receives when it is
+created: one letter for the kind of record (`p`, `d`, `s`, `m` or `c`) followed by 22 characters.
+It is the record's `uuid` field, it never changes and it is unique across a portal. A portal ID
+is not a DOI or an IGSN, which an outside service issues and which outlive the portal.
+
+### Permalink
+
+A record's address built from its portal ID alone: the portal's root followed by the portal ID,
+such as `/p3xK...Wq/`. It answers with a temporary redirect to the record's overview page, so it
+keeps working when the pages of a kind of record move. It looks nothing up, so the overview page
+decides who may open the record. Built by `get_permalink` in `fairdm/views/permalink.py`.
+
 ### Contributor, Person, Organization
 
 `Contributor` is the polymorphic base for everyone credited on FairDM content, with two concrete

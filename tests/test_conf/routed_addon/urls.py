@@ -8,4 +8,7 @@ def addon_page(request):
     return HttpResponse()
 
 
-urlpatterns = [path("routed-addon/", addon_page, name="routed-addon-page")]
+urlpatterns = [
+    path("routed-addon/", addon_page, name="routed-addon-page"),
+    path("p" + "2" * 22 + "/", addon_page, name="routed-addon-portal-id-page"),
+]

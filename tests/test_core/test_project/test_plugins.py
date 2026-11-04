@@ -1106,7 +1106,7 @@ class TestOverviewCitation:
 
         assert self._citation(client, project).endswith("https://doi.org/10.5555/cited")
 
-    def test_a_project_without_a_doi_is_cited_by_its_page_and_the_card_says_so(
+    def test_a_project_without_a_doi_is_cited_by_its_permalink_and_the_card_says_so(
         self, client
     ):
         project = self._project_with_creators(("Anna", "Keller"))
@@ -1116,7 +1116,7 @@ class TestOverviewCitation:
         assert (
             response.page.find(id="citation-text")
             .get_text()
-            .endswith(_overview_url(project))
+            .endswith(f"http://testserver/{project.uuid}/")
         )
         assert response.context["citation"]["note"]
 

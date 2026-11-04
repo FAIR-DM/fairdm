@@ -1,6 +1,6 @@
 # The project page
 
-A project's page is where you land when you open a project. Its heading is the project's name. The page says what the project is, who leads it, how far it has got and what it holds, and it is where the people who work on the project reach every other project screen. Open it from a card on [Projects](projects.md), from a link on a person's or organization's page, or by saving a new project.
+A project's page is where you land when you open a project. Its heading is the project's name. The page says what the project is, who leads it, how far it has got and what it holds, and it is where the people who work on the project reach every other project screen. Open it from a card on [Projects](projects.md), from a link on a person's or organization's page, or by saving a new project. The project's portal ID, written after the portal's address, also opens it: `/` followed by the portal ID takes you to the page.
 
 Who may open the page depends on the project's visibility and the level you hold on it. A private project answers a stranger as though it did not exist. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md).
 
@@ -23,7 +23,7 @@ The header shows:
 - the project's leaders, each linked to their page. These are the people credited as Project Leader, then those credited as Project Manager.
 - the project's keywords
 - a **Cite** button, which jumps to the Citation card
-- a **Share** menu
+- a **Share** menu, which shares the project's permalink
 
 People who may change the project also see:
 
@@ -90,9 +90,9 @@ The narrow column holds these cards, from the top:
     - **Timeline**, the start and end dates as recorded, or "ongoing" when there is no end. With both dates it adds a progress bar and a label such as "Year 2 of 4", "Not started yet" or "Finished". With neither it says "No start or end date has been recorded."
     - **For machines**, with a **REST API** button that opens the project in the API. See [API documentation](../api/api-docs.md).
 - **People**, a grid of faces with the name on hover, each linked to the person's page. A **See all** button opens the Contributors tab, and a line counts those not shown. With nobody credited it says "No one is credited yet."
-- **Identifiers**, a table of the project's identifiers by type, with a DOI linked to doi.org, and the **Portal ID** with a button that copies it.
+- **Identifiers**, a table of the project's identifiers by type, with a DOI linked to doi.org, and the **Portal ID** with a button that copies it. A **Permalink** row beneath it shows the project's permanent link with a button that copies the whole link.
 - **Funding**, the awards recorded for the project with the funder, the award title and number. With none it says "No funding has been recorded." People who may change the project see a longer note. None of the editing screens changes funding.
-- **Citation**, the citation written as Creators (Year). Title. Publisher. Identifier. The year is the start year, or the year the project was added when it has no start date. The identifier is the DOI link, or the address of the page. When there is no DOI, a note says the citation points at the page. A **Copy** button copies the text.
+- **Citation**, the citation written as Creators (Year). Title. Publisher. Identifier. The year is the start year, or the year the project was added when it has no start date. The identifier is the DOI link, or the project's permalink. When there is no DOI, a note says the citation points at the page. A **Copy** button copies the text.
 
 ## What you can do here
 
