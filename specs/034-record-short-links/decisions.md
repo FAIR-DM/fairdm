@@ -19,10 +19,11 @@ redirect, and every visit asks the portal again.
 
 ## D3. Access is decided by the record's page
 
-The link redirects to the record's page and leaves the access check to that page. A portal ID
-cannot be guessed, so learning that an ID belongs to some record tells a visitor nothing they could
-act on, and the page then answers exactly as it would to a visitor who had its address. Checking
-access twice, in the link and in the page, would be a second copy of the rules to keep in step.
+The link looks nothing up. It sends the visitor to the overview address for the ID's letter, and
+the overview page decides: it answers not-found alike for a record the visitor may not open and for
+one that does not exist. A lookup in the link would answer a private record with a redirect and an
+unknown ID with not-found, which tells a visitor that the private record exists, something its page
+deliberately never does. Checking access twice would also keep a second copy of the rules in step.
 
 ## D4. The API keeps its page addresses
 

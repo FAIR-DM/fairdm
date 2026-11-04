@@ -6,7 +6,10 @@ Done against main at `89385154`, after the sketch was approved.
 
 ### N1. Look samples and measurements up on the base table
 
-**Adopted.** `Sample.objects` and `Measurement.objects` are `PolymorphicManager`s, and
+**Adopted, in the record's page rather than the link.** The link itself looks nothing up: a lookup
+there would answer a private record differently from an ID that belongs to no record, and reveal that
+the private record exists (design review). The link goes to the overview address for the ID's
+letter, and the overview page does the lookup on the base table. `Sample.objects` and `Measurement.objects` are `PolymorphicManager`s, and
 `Contributor.objects` is one too, so `Sample.objects.get(uuid=...)` returns a `SoilSample` or a
 `WaterSample` and `get_absolute_url()` gives that subtype's page. The sketch confirmed it on the
 development data: a water sample and an ICP-MS measurement each reached their own type's page, and
@@ -38,18 +41,22 @@ index.
 - **No closing slash.** `APPEND_SLASH` with `CommonMiddleware` already turns `/<id>` into a
   permanent redirect to `/<id>/`. That 301 points at the permalink itself, which never moves, so it
   does not conflict with FR-006.
-- **Private records.** `Dataset.objects` hides records from some viewers. The lookup uses
-  `Dataset.all_objects`, so the redirect happens for every existing record and the page decides
-  access (decision D3). The other managers do not filter by visibility.
+- **Private records.** The overview pages answer not-found both for a record the viewer may not open
+  and for one that does not exist (`fairdm/contrib/plugins/mixins.py`). The link does no lookup, so
+  it inherits that and reveals nothing (FR-005).
+- **`register_converter` raises on a second registration** in Django 6.0, and three test modules
+  reload `fairdm.conf.urls`. The pattern is a `re_path` with a named group.
+- **The Share menu's Copy link** in django-mvp 0.33.0 copies `window.location.href` and ignores
+  `url`. It is fixed in django-mvp and the dependency is raised.
 - **The schema.org description on a dataset page keeps its page address as `url`.** It describes the
   page, and the spec does not cover it.
 
 ## What already exists
 
 - The redirect: Django's `RedirectView`, with `permanent = False` and `query_string = True`.
-- The converter: Django's path converters (`register_converter`).
+- The pattern: Django's `re_path`.
 - The absolute address: `HttpRequest.build_absolute_uri`.
 - The Share menu's address: django-mvp's `share-dropdown` already takes `url`.
 - The copy button: the identifiers card's existing inline `navigator.clipboard.writeText` pattern.
-- New code: the view and its model map, the converter class, `get_permalink`, and the `permalink`
+- New code: the view and its URL-name map, the pattern constant, `get_permalink`, and the `permalink`
   template tag. Each one is small, and nothing in the repository or its packages does the same job.

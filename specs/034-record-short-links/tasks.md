@@ -10,33 +10,38 @@ that makes it pass is written. Wording and appearance get no tests.
 
 **Format**: `[ID] [Story] Description`.
 
-**Order**: US1, then US2 from US1's verified commit.
+**Order**: US1, then US2 from US1's verified commit. In US2, T011 comes before T009, and T007's
+Copy link assertion passes only once T011 is in.
 
 ## Phase 1: User Story 1, a visitor opens a record from its portal ID (P1)
 
 ### Group 1
 
 - [ ] T001 [US1] `tests/test_views/test_permalink.py`: for a project, a dataset, a sample and a
-  measurement of a registered subtype each, and a person and an organization, `GET /<uuid>/` answers
-  a temporary redirect (302) to `get_absolute_url()` of the record as its own type (AS 1, AS 2,
-  FR-001, FR-002). A well-formed ID that belongs to no record, and the ID of a deleted record, answer
-  404 (AS 3, FR-003). A private project's and a private dataset's links redirect for an anonymous
-  visitor and the page they reach answers that visitor exactly as the page does when opened
-  directly, and someone holding a level reaches the page (AS 4, FR-005). A query string is carried
-  to the target. `/<uuid>` with no slash reaches the record (AS 6). The redirect is never permanent
-  (AS 5, FR-006). An ID that differs only in case answers 404.
+  measurement of a registered subtype each, and a person (including one who has not claimed their
+  profile and one whose account is deactivated) and an organization, `GET /<uuid>/` answers a
+  temporary redirect (302) to the record's `get_absolute_url()`, and following it renders the page of
+  the record as its own type (AS 1, AS 2, FR-001, FR-002). A well-formed ID that belongs to no
+  record, the ID of a deleted record and an ID that differs from a real one only in case all end, once
+  followed, at the not-found page (AS 3, FR-003). For an anonymous visitor, a private project's and a
+  private dataset's links answer exactly as a well-formed ID of the same kind that belongs to no
+  record does, step for step, and someone holding a level reaches the page (AS 4, FR-005). A query
+  string is carried to the target. `/<uuid>` with no slash reaches the record (AS 6). The redirect
+  is never permanent (AS 5, FR-006).
 - [ ] T002 [US1] `tests/test_conf/test_urls.py`: an address at the root with a portal ID's length but
   a letter no record uses, and the existing root pages (`/projects/`, `/legal/`, the home page),
-  answer as they do without the permalink pattern. A root route declared by `routed_addon` whose
-  path is shaped like a portal ID is served by the addon (AS 7, FR-004).
-- [ ] T003 [US1] `tests/test_views/test_permalink.py`: the converter's pattern is built from the
-  five `uuid` fields' prefixes, length and shortuuid's alphabet, so every `uuid` a factory makes
-  for each model matches it. `get_permalink(record)` returns `/<uuid>/` and with a request the
-  absolute link.
+  answer as they do without the permalink pattern. Add one portal-ID-shaped path to
+  `tests/test_conf/routed_addon/urls.py`, and with `TestAddonUrlMounting`'s reload-and-restore
+  fixture in `tests/test_conf/test_addons.py`, show that address is served by the addon (AS 7,
+  FR-004). Reloading `fairdm.conf.urls` twice raises nothing.
+- [ ] T003 [US1] `tests/test_views/test_permalink.py`: the `uuid` a factory makes for each of the five
+  models resolves to the `permalink` route. `get_permalink(record)` returns `/<uuid>/`, and with a
+  request the absolute link.
 - [ ] T004 [US1] `fairdm/views/permalink.py` (replacing the sketch's `fairdm/views/links.py`):
-  `PortalIDConverter`, `record_managers`, `get_permalink`, `PermalinkView`, per the plan. Register
-  the converter and append the `permalink` pattern in `fairdm/conf/urls.py`. Update the sketch's
-  imports of `record_link` to `get_permalink`.
+  `PORTAL_ID_PATTERN`, `OVERVIEW_URL_NAMES`, `get_permalink` and `PermalinkView`, per the plan. No
+  converter and no record lookup. Append the `re_path` `permalink` pattern in `fairdm/conf/urls.py`
+  and remove the sketch's `register_converter`. Update the sketch's imports of `record_link` to
+  `get_permalink`.
 - [ ] T005 [US1] Docs: one sentence on the permalink in "How to reach it" of the project, dataset,
   sample, measurement, person and organization pages under `docs/users/`. Developer reference for the
   `permalink` URL name, `get_permalink`, and the rule that a declared root page wins. `CONTEXT.md`:
@@ -57,6 +62,8 @@ that makes it pass is written. Wording and appearance get no tests.
   measurement with no DOI ends with the record's absolute permalink. With a DOI or IGSN the
   citation is unchanged (AS 4, AS 5, FR-008). `tests/test_contrib/test_import_export/test_utils.py`:
   the DataCite export's `IsVariantFormOf` URL is the dataset's absolute permalink (AS 6, FR-009).
+- [ ] T011 [US2] Raise django-mvp in `pyproject.toml` to the release whose Share menu's Copy link
+  copies the `url` it is given, and relock. Every other choice already shares `url`.
 - [ ] T009 [US2] The `permalink` template tag in `fairdm/templatetags/fairdm.py`. The `permalink`
   attribute and row on `<c-card.identifiers>`, keeping the approved sketch's markup, with the copy
   button copying the given link. The three overview templates use the tag for the card and the Share

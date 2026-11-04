@@ -5,9 +5,9 @@
 
 ## Summary
 
-A new module, `fairdm/views/permalink.py`, holds the path converter, the model map built from the
-records' `uuid` fields, `get_permalink(record, request=None)` and `PermalinkView`, a temporary
-redirect to the record's page. `fairdm/conf/urls.py` registers the converter and appends the
+A new module, `fairdm/views/permalink.py`, holds the portal ID pattern built from the records'
+`uuid` fields, the overview URL name for each record letter, `get_permalink(record, request=None)` and `PermalinkView`, a temporary
+redirect to the record's page. `fairdm/conf/urls.py` appends the
 `permalink` pattern after every other root pattern. A `permalink` template tag gives the absolute
 link to the identifiers card, which gains a Permalink row beneath the Portal ID, and to the Share
 menu on every overview page. Citations without a DOI or IGSN, and the DataCite export, use
@@ -24,33 +24,38 @@ new dependency.
 
 ## Constitution Check
 
-No new dependency, model, migration or setting. Every public name is documented in the story that
+No new dependency, model, migration or setting. django-mvp is raised to a patch release. Every public name is documented in the story that
 adds it. Templates use Cotton components. Line length 88. No leading-underscore names.
 
 ## Design
 
 ### URL and view (US1)
 
-- `PortalIDConverter.regex` is `[<letters>][<alphabet>]{<length>}`, where the letters are the
-  `prefix` of the `uuid` field on `Project`, `Dataset`, `Sample`, `Measurement` and `Contributor`,
-  the alphabet is `shortuuid.get_alphabet()` and the length is the fields' shared `length`. Built
-  once at import from `apps.get_model` lookups inside a function the converter calls lazily, so the
-  URL module can import before the apps are ready.
-- `record_managers()` maps each prefix to the manager whose lookup the view uses: `Project.objects`,
-  `Dataset.all_objects`, `Sample.objects`, `Measurement.objects` and `Contributor.objects`.
-- `PermalinkView(RedirectView)`: `permanent = False`, `query_string = True`.
-  `get_redirect_url` looks the record up by `uuid` with `get_object_or_404` and returns
-  `record.get_absolute_url()`.
+- `PORTAL_ID_PATTERN`, a module constant in `fairdm/views/permalink.py`: `[<letters>][<alphabet>]{<length>}`,
+  built from the `uuid` fields of `Project`, `Dataset`, `Sample`, `Measurement` and `Contributor`,
+  imported at module top. The letters are the fields' `prefix`, the alphabet is
+  `ShortUUID(alphabet=field.alphabet).get_alphabet()`, which mirrors how the field generates, and the
+  length is the fields' shared `length`.
+- `OVERVIEW_URL_NAMES` maps each letter to the overview URL name every `get_absolute_url` already
+  reverses: `p` `project:overview`, `d` `dataset:overview`, `s` `sample:overview`, `m`
+  `measurement:overview`, `c` `contributor:overview`.
+- `PermalinkView(RedirectView)`: `permanent = False`, `query_string = True`. `get_redirect_url` returns
+  `reverse(OVERVIEW_URL_NAMES[portal_id[0]], kwargs={"uuid": portal_id})`. **It looks nothing up.**
+  The overview page looks the record up on its base table, which returns the subtype, and answers
+  not-found for a record the viewer may not open and for one that does not exist alike. So the link
+  answers a private record exactly as it answers an ID that belongs to no record (FR-005).
 - `get_permalink(record, request=None)` returns the path from `reverse("permalink", ...)`, or the
   absolute link through `request.build_absolute_uri` when a request is given.
-- `fairdm/conf/urls.py`: `register_converter(PortalIDConverter, "portal_id")`, and
-  `path("<portal_id:portal_id>/", PermalinkView.as_view(), name="permalink")` appended after the
-  addon routes.
+- `fairdm/conf/urls.py`: `re_path(rf"^(?P<portal_id>{PORTAL_ID_PATTERN})/$", PermalinkView.as_view(),
+  name="permalink")` appended after the addon routes. A `re_path`, not a path converter, because
+  `register_converter` raises on a second registration and the test suite reloads this module.
 
 ### Where the link is handed out (US2)
 
 - `fairdm/templatetags/fairdm.py`: `@register.simple_tag(takes_context=True) permalink(context,
   record)` returns `get_permalink(record, context["request"])`.
+- django-mvp is raised to the release whose Share menu's Copy link copies `url` (fixed upstream in
+  django-mvp, since the component's other choices already share `url`).
 - `<c-card.identifiers>` gains a `permalink` attribute. When it is set, a Permalink row beneath the
   Portal ID row shows it as a link with a button that copies it. The Portal ID row copies the bare
   ID, as on main.
