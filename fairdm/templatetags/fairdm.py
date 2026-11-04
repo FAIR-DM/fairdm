@@ -11,6 +11,7 @@ from quantityfield import settings as qsettings
 
 from fairdm.core.vocabularies import notation
 from fairdm.utils.markdown import markdownify
+from fairdm.views.permalink import get_permalink
 
 register = template.Library()
 ureg = qsettings.DJANGO_PINT_UNIT_REGISTER
@@ -325,3 +326,17 @@ def get_related_field(obj, field_name):
     final_obj = current
 
     return final_obj, final_attr
+
+
+@register.simple_tag(takes_context=True)
+def permalink(context, record):
+    """Return a record's absolute permalink for the current request.
+
+    Args:
+        context: The template context, which must hold ``request``.
+        record: Any record with a portal ID.
+
+    Returns:
+        The absolute permalink, such as ``https://portal.example/p1a2b3c4d5e6f/``.
+    """
+    return get_permalink(record, context["request"])

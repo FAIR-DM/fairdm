@@ -168,6 +168,35 @@ class TestIdentifiersCard:
         assert "PORTALONE" in page.find("button")["onclick"]
         assert page.find("button")["aria-label"]
 
+    def test_a_given_permalink_is_listed_as_a_link_beside_a_button_that_copies_it(
+        self, render_card, soup
+    ):
+        link = "http://testserver/PORTALONE/"
+        page = soup(
+            render_card(
+                "identifiers",
+                identifiers=[],
+                portal_id="PORTALONE",
+                permalink=link,
+                local_id="",
+            )
+        )
+
+        anchor = page.find("a", href=link)
+        assert anchor is not None
+        assert link in anchor.find_next_sibling("button")["onclick"]
+        assert "PORTALONE" in page.find("button")["onclick"]
+
+    def test_no_permalink_means_no_permalink_row(self, render_card, soup):
+        page = soup(
+            render_card(
+                "identifiers", identifiers=[], portal_id="PORTALONE", local_id=""
+            )
+        )
+
+        assert page.find("a") is None
+        assert len(page.find_all("button")) == 1
+
     def test_the_table_is_named_for_assistive_technology(self, render_card, soup):
         page = soup(
             render_card("identifiers", identifiers=[], portal_id="P", local_id="")

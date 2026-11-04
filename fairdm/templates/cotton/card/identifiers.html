@@ -5,12 +5,14 @@
 
   Attributes:
     identifiers  – [{type, value, link}]; `link` is set for DOIs and IGSNs
-    portal_id    – the record's portal ID, with a copy button, and beneath it the record's
-                   permalink, with a button that copies the whole link
+    portal_id    – the record's portal ID, with a copy button
+    permalink    – the record's absolute permalink (the `{% permalink record as permalink %}`
+                   tag makes it); shown beneath the portal ID with a button that copies the
+                   whole link, and left out when not given
     local_id     – the team's own ID for the record, if it has one
     class        – extra classes on the card
 {% endcomment %}
-<c-vars identifiers portal_id local_id class />
+<c-vars identifiers portal_id permalink local_id class />
 <c-mvp.card title="{% translate 'Identifiers' %}" class="bg-base-100 {{ class }}" data-card="identifiers" only>
   <table class="table table-xs">
     <caption class="sr-only">{% translate "Identifiers" %}</caption>
@@ -30,7 +32,6 @@
         </tr>
       {% endif %}
       {% if portal_id %}
-        {% url "permalink" portal_id=portal_id as portal_link %}
         <tr>
           <th scope="row" class="ps-0 font-normal text-base-content/70 whitespace-nowrap align-top">{% translate "Portal ID" %}</th>
           <td class="pe-0 font-mono break-all">
@@ -42,13 +43,15 @@
             </button>
           </td>
         </tr>
+      {% endif %}
+      {% if permalink %}
         <tr>
           <th scope="row" class="ps-0 font-normal text-base-content/70 whitespace-nowrap align-top">{% translate "Permalink" %}</th>
           <td class="pe-0 font-mono break-all">
-            <a href="{{ portal_link }}" class="link link-primary">{{ request.scheme }}://{{ request.get_host }}{{ portal_link }}</a>
+            <a href="{{ permalink }}" class="link link-primary">{{ permalink }}</a>
             <button type="button" class="btn btn-ghost btn-xs"
                     aria-label="{% translate 'Copy permalink' %}" title="{% translate 'Copy permalink' %}"
-                    onclick="navigator.clipboard.writeText(this.previousElementSibling.href)">
+                    onclick="navigator.clipboard.writeText('{{ permalink|escapejs }}')">
               <c-icon name="copy" aria-hidden="true" only />
             </button>
           </td>
