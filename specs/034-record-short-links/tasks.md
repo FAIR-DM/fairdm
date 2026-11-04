@@ -80,12 +80,12 @@ Copy link assertion passes only once T011 is in.
 
 ## Review fixes
 
-- [ ] T013 [US1] A test that a project's permalink follows a moved project page: with a test URLconf mounting the project pages under another prefix, followed by the permalink pattern, `GET /<uuid>/` redirects to the new address (FR-006, SC-002).
-- [ ] T014 [US1] The case test changes the case of one character that stays inside the portal ID alphabet, asserts the changed ID matches the pattern, then asserts not-found.
-- [ ] T015 [US1] The root-page test is named for what it checks: existing root pages still resolve.
-- [ ] T016 [US1] Following the link renders the page for an organization, an unclaimed person and a deactivated person too.
-- [ ] T017 [US2] `docs/developers/reference/components.md` lists the card's `permalink` attribute, and `overview-page-blocks.md` says `overview.actions` and `overview.identifiers` pass the record's permalink.
-- [ ] T018 [US2] The six user pages describing the Identifiers card mention the Permalink row.
-- [ ] T019 [US2] The branch's test files are ruff-formatted.
-- [ ] T020 [US2] A test that a dataset with no DOI gives its permalink as its schema.org `identifier`, and a changelog sentence.
-- [ ] T021 [US2] The DOI and IGSN citation tests create identifiers through their factories.
+- [x] T013 [US1] A test that a project's permalink follows a moved project page: with a test URLconf mounting the project pages under another prefix, followed by the permalink pattern, `GET /<uuid>/` redirects to the new address (FR-006, SC-002).
+- [x] T014 [US1] The case test changes the case of one character that stays inside the portal ID alphabet, asserts the changed ID matches the pattern, then asserts not-found.
+- [x] T015 [US1] The root-page test is named for what it checks: existing root pages still resolve.
+- [x] T016 [US1] Following the link renders the page for an organization, an unclaimed person and a deactivated person too.
+- [x] T017 [US2] `docs/developers/reference/components.md` lists the card's `permalink` attribute, and `overview-page-blocks.md` says `overview.actions` and `overview.identifiers` pass the record's permalink.
+- [x] T018 [US2] The six user pages describing the Identifiers card mention the Permalink row.
+- [x] T019 [US2] The branch's test files are ruff-formatted.
+- [x] T020 [US2] A test that a dataset with no DOI gives its permalink as its schema.org `identifier`, and a changelog sentence.
+- [x] T021 [US2] The DOI and IGSN citation tests create identifiers through their factories.
