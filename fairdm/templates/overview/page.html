@@ -1,5 +1,5 @@
 {% extends "detail_view.html" %}
-{% load i18n static humanize thumbnail %}
+{% load i18n static humanize thumbnail fairdm %}
 {% comment %}
   The overview page every core record shares: project, dataset, sample and measurement.
 
@@ -112,8 +112,8 @@
         <div class="flex flex-wrap gap-2 md:justify-end shrink-0">
           {% block overview.actions %}
             <c-button href="#cite" text="{% translate 'Cite' %}" icon="cite" size="sm" />
-            {% url "permalink" portal_id=record.uuid as permanent_link %}
-            <c-mvp.addons.share-dropdown size="sm" url="{{ request.scheme }}://{{ request.get_host }}{{ permanent_link }}" />
+            {% permalink record as permalink %}
+            <c-mvp.addons.share-dropdown size="sm" url="{{ permalink }}" />
             {% block overview.manage %}
               <c-actions.manage :entries="manage_menu" />
             {% endblock overview.manage %}
@@ -158,8 +158,10 @@
         {% endblock overview.people %}
 
         {% block overview.identifiers %}
+          {% permalink record as permalink %}
           <c-card.identifiers :identifiers="identifiers"
                               portal_id="{{ record.uuid }}"
+                              permalink="{{ permalink }}"
                               local_id="{{ record.local_id|default:'' }}" />
         {% endblock overview.identifiers %}
 
