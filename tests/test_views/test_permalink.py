@@ -3,7 +3,7 @@
 import re
 
 import pytest
-from django.urls import resolve, reverse
+from django.urls import clear_url_caches, resolve, reverse
 from shortuuid import ShortUUID
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
@@ -24,9 +24,7 @@ pytestmark = pytest.mark.django_db
 def public_dataset():
     """Build a public dataset in a public project."""
     project = ProjectFactory(visibility=Visibility.PUBLIC)
-    return DatasetFactory(
-        project=project, visibility=Visibility.PUBLIC, published=True
-    )
+    return DatasetFactory(project=project, visibility=Visibility.PUBLIC, published=True)
 
 
 def measurement():
@@ -89,7 +87,17 @@ class TestPermalinkRedirect:
         assert response.url == record.get_absolute_url()
 
     @pytest.mark.parametrize(
-        "kind", ["project", "dataset", "sample", "measurement", "person"]
+        "kind",
+        [
+            "project",
+            "dataset",
+            "sample",
+            "measurement",
+            "person",
+            "unclaimed person",
+            "deactivated person",
+            "organization",
+        ],
     )
     def test_following_the_link_renders_the_page_of_the_record(self, client, kind):
         record = public_records()[kind]
@@ -98,6 +106,20 @@ class TestPermalinkRedirect:
 
         assert response.status_code == 200
         assert response.redirect_chain[-1][0] == record.get_absolute_url()
+
+    def test_the_link_follows_a_page_that_has_moved(self, client, settings):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        settings.ROOT_URLCONF = "tests.test_views.moved_pages_urls"
+        clear_url_caches()
+        try:
+            response = client.get(f"/{project.uuid}/")
+            moved = reverse("project:overview", kwargs={"uuid": project.uuid})
+        finally:
+            clear_url_caches()
+
+        assert moved.startswith("/records/projects/")
+        assert response.status_code == 302
+        assert response.url == moved
 
     def test_the_redirect_is_temporary(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
@@ -142,8 +164,15 @@ class TestPermalinkNotFound:
         self, client
     ):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
-        changed = project.uuid[0] + project.uuid[1:].swapcase()
+        swappable = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz"
+        index = next(i for i, c in enumerate(project.uuid) if i and c in swappable)
+        changed = (
+            project.uuid[:index]
+            + project.uuid[index].swapcase()
+            + project.uuid[index + 1 :]
+        )
         assert changed != project.uuid
+        assert re.fullmatch(PORTAL_ID_PATTERN, changed)
 
         response = client.get(f"/{changed}/", follow=True)
 
