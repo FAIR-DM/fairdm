@@ -26,7 +26,6 @@ from fairdm.core.dataset.forms import DatasetForm
 from fairdm.core.dataset.models import (
     Dataset,
     DatasetDescription,
-    DatasetIdentifier,
     DatasetLiteratureRelation,
 )
 from fairdm.core.dataset.plugins import Overview
@@ -34,13 +33,13 @@ from fairdm.core.vocabularies import (
     CONTRIBUTOR_ROLES,
     DATE_TYPES,
     DESCRIPTION_TYPES,
-    DOI,
 )
 from fairdm.factories import (
     ContributionFactory,
     DatasetDateFactory,
     DatasetDescriptionFactory,
     DatasetFactory,
+    DatasetIdentifierFactory,
     DatasetLiteratureRelationFactory,
     LiteratureItemFactory,
     OrganizationFactory,
@@ -1155,20 +1154,25 @@ class TestOverviewCitation:
     def _citation(self, client, dataset):
         return _page(client, dataset).page.find(id="citation-text").get_text(strip=True)
 
-    def test_without_a_doi_the_citation_ends_with_the_datasets_permalink(
-        self, client
-    ):
+    def test_without_a_doi_the_citation_ends_with_the_datasets_permalink(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
 
         citation = self._citation(client, dataset)
 
         assert citation.endswith(f"http://testserver/{dataset.uuid}/")
 
+    def test_without_a_doi_the_schema_org_identifier_is_the_permalink(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+
+        data = _json_ld(_page(client, dataset).page)
+
+        assert data["identifier"] == f"http://testserver/{dataset.uuid}/"
+
     def test_with_a_doi_the_citation_ends_with_the_doi_and_names_no_permalink(
         self, client
     ):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        DatasetIdentifier.objects.create(related=dataset, type_id=DOI, value="10.1/ds")
+        DatasetIdentifierFactory(related=dataset, value="10.1/ds")
 
         citation = self._citation(client, dataset)
 

@@ -25,7 +25,6 @@ from fairdm.core.sample.models import (
     Sample,
     SampleDate,
     SampleDescription,
-    SampleIdentifier,
 )
 from fairdm.core.sample.plugins import Overview
 from fairdm.core.vocabularies import (
@@ -39,6 +38,7 @@ from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
     PersonFactory,
+    SampleIdentifierFactory,
     SampleRelationFactory,
 )
 from fairdm.registry import registry
@@ -686,8 +686,7 @@ class TestOverviewCitationAddress:
         assert self._citation(client, rock).endswith(f"http://testserver/{rock.uuid}/")
 
     def test_with_an_igsn_the_citation_names_no_permalink(self, client, rock):
-        SampleIdentifier.objects.create(related=rock, type_id=IGSN, value="10.58052/IGSN0001"
-        )
+        SampleIdentifierFactory(related=rock, type=IGSN, value="10.58052/IGSN0001")
 
         citation = self._citation(client, rock)
 
