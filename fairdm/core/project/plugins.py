@@ -1,4 +1,4 @@
-"""Registered pages for a project: overview, datasets and export."""
+"""Registered pages for a project: overview and datasets."""
 
 from collections import Counter
 
@@ -34,7 +34,6 @@ from fairdm.core.vocabularies import (
     PROJECT_START,
 )
 from fairdm.utils.choices import Visibility
-from fairdm.views import FairDMTemplateView
 
 from ..dataset.views import DatasetListView
 from .models import Project, ProjectDescription
@@ -549,12 +548,3 @@ class DatasetList(PrivateRecordNotFoundMixin, Plugin, DatasetListView):
     def get_lookup_kwargs(self) -> dict:
         """Return no lookup kwargs, as the queryset is already scoped to the project."""
         return {}
-
-
-@plugins.register(Project, label=_("Export"), order=200)
-class ProjectExportView(PrivateRecordNotFoundMixin, Plugin, FairDMTemplateView):
-    """Page for exporting the project's data."""
-
-    page_title = _("Export Project Data")
-    check = staticmethod(project_is_visible)
-    page_icon = "export"

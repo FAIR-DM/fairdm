@@ -8,6 +8,7 @@ from django.contrib.gis.geos import Point as GEOSPoint
 from django.db import models
 from django.template.loader import select_template
 from django.test.utils import isolate_apps
+from django.urls import reverse
 from pytest_django.asserts import assertContains, assertNotContains
 
 from demo.factories import (
@@ -383,6 +384,25 @@ class TestOverviewSiblings:
         rows = _page(client, xrf).context["siblings"]["rows"]
 
         assert sorted(r["same_type"] for r in rows) == [False, True]
+
+    def test_the_card_leads_to_the_samples_measurements_tab_where_the_sample_opens(
+        self, client, xrf
+    ):
+        XRFMeasurementFactory(dataset=xrf.dataset, sample=xrf.sample)
+        tab = reverse("sample:measurements", kwargs={"uuid": xrf.sample.uuid})
+
+        assertContains(_page(client, xrf), f'href="{tab}"')
+
+    def test_the_card_offers_no_tab_when_the_sample_is_hidden(self, client, released):
+        hidden = RockSampleFactory(dataset=_dataset(published=False))
+        xrf = XRFMeasurementFactory(dataset=released, sample=hidden)
+        XRFMeasurementFactory(dataset=released, sample=hidden)
+        tab = reverse("sample:measurements", kwargs={"uuid": hidden.uuid})
+
+        response = _page(client, xrf)
+
+        assert response.context["siblings"]["total"] == 1
+        assertNotContains(response, tab)
 
     def test_the_list_shows_the_eight_most_recent_and_counts_the_rest(
         self, client, xrf

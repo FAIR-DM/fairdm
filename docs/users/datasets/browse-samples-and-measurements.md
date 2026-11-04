@@ -1,6 +1,6 @@
 # Browse samples and measurements
 
-A dataset's page, a project's page and a person's or organization's page each have a **Samples** tab and a **Measurements** tab. Each lists the records in a table, one type at a time. Use them to see what a dataset, a project or a contributor holds and to find one record in it.
+A dataset's page, a project's page and a person's or organization's page each have a **Samples** tab and a **Measurements** tab. Each lists the records in a table, one type at a time. Use them to see what a dataset, a project or a contributor holds and to find one record in it. A sample's page has a **Measurements** tab too, which shows every type at once.
 
 ## Browse a dataset's samples and measurements
 
@@ -42,9 +42,19 @@ Everyone sees the records that are published and public. A person who opens thei
 
 A **Measurements** tab can list a measurement made in a published dataset on a sample whose own dataset is not published. The **Sample** column then shows a dash.
 
+## Browse a sample's measurements
+
+1. Open the sample's page. See [The sample page](../samples/sample.md).
+2. Open **Measurements** in the row of tabs under the header, or select the **Measurements** figure or **See all** on the **Overview** tab.
+3. Each measurement type made on the sample has its own table, with a heading naming the type and the number of its measurements. The most numerous type comes first, and the tables follow one another on the page, so you can read the results of different methods together.
+4. The column after the name gives each measurement's dataset. It is a link when you may open the dataset. A measurement can belong to a different dataset from its sample.
+5. Select a column heading to sort that table. A table with more than fifty measurements has its own pager, and moving through one table leaves the others where they are.
+
+The tab lists the measurements whose own dataset you may see. Being on the team of the sample's dataset does not show you a measurement in another team's unpublished or private dataset. The tab has no search and no filters. A sample with no measurements you may see still has the tab, and it says there are none. The tab opens for the people who may open the sample, and its address answers "not found" to anyone else.
+
 ## Find records of a type the portal no longer registers
 
-When a dataset holds records of a type the portal has stopped registering, the heading menu has one more entry, **Other**. It lists them in a basic table with the columns every sample, or every measurement, has.
+When a dataset holds records of a type the portal has stopped registering, the heading menu has one more entry, **Other**. It lists them in a basic table with the columns every sample, or every measurement, has. On a sample's **Measurements** tab they come last, in a table headed **Measurements**.
 
 ## When a tab is missing
 
@@ -67,5 +77,6 @@ The figures on the **Overview** of a dataset or a project, its charts and the ta
 
 - [The dataset page](dataset.md)
 - [The project page](../projects/project.md)
+- [The sample page](../samples/sample.md)
 - [People](../community/people.md) and [Organizations](../community/organizations.md)
 - [Samples](../samples/samples.md) and [Measurements](../measurements/measurements.md) for the portal-wide tables of one type

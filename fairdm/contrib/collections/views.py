@@ -9,6 +9,17 @@ from fairdm.registry import registry
 from fairdm.registry.factories import PublishedChoicesMixin
 from fairdm.views import FairDMTableView
 
+# The columns a generated table holds that say nothing to a reader of the records.
+BOOKKEEPING_COLUMNS = (
+    "polymorphic_ctype",
+    "measurement_ptr",
+    "sample_ptr",
+    "options",
+    "image",
+    "created",
+    "modified",
+)
+
 
 class DataTableView(FairDMTableView):
     """Display the published records of one Sample or Measurement sub-type as a filterable table.
@@ -96,17 +107,7 @@ class DataTableView(FairDMTableView):
 
     def get_table_kwargs(self):
         """Exclude bookkeeping columns and set the empty-state text."""
-        kwargs = {
-            "exclude": [
-                "polymorphic_ctype",
-                "measurement_ptr",
-                "sample_ptr",
-                "options",
-                "image",
-                "created",
-                "modified",
-            ],
-        }
+        kwargs = {"exclude": list(BOOKKEEPING_COLUMNS)}
         kwargs["empty_text"] = self.get_empty_state_heading()
         return kwargs
 

@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Records of a type the portal no longer registers are listed under **Other**. A dataset whose
   records a visitor may not see, such as a public dataset that is not published, offers them no tabs.
 - **`seed_record_lists`** loads development data for every state of the tabs.
+- **A sample has a Measurements tab.** It lists every measurement made on the sample that the
+  viewer may see, whichever dataset it belongs to, each type in its own table and every type on the
+  one page. Each row names its dataset, and each table pages on its own. The sample's Measurements
+  figure and card, and a measurement's list of other measurements on its sample, lead to it.
 
 ### Changed
 
@@ -41,6 +45,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   counts the samples of a public dataset that is not published.
 - **The portal-wide listing of a sample or measurement type no longer replaces the `page` context
   variable.** `page.title` is the type's plural name and `page.breadcrumbs` comes from the view.
+
+### Removed
+
+- **A project's Export tab.** It held only placeholder text. Its address now answers "not found".
 
 ## [v0.5.0] - 2026-11-03
 

@@ -286,6 +286,20 @@ class TestOverviewMeasurements:
             m.pk for m in reversed(measurements[2:])
         ]
 
+    def test_the_figure_and_the_card_lead_to_the_measurements_tab(self, client, rock):
+        XRFMeasurementFactory(dataset=rock.dataset, sample=rock)
+        tab = reverse("sample:measurements", kwargs={"uuid": rock.uuid})
+
+        response = _page(client, rock)
+
+        hrefs = [
+            a["href"]
+            for a in BeautifulSoup(response.content, "html.parser").find_all(
+                "a", href=True
+            )
+        ]
+        assert hrefs.count(tab) >= 2
+
 
 @pytest.mark.django_db
 class TestOverviewRelatedSamples:

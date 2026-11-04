@@ -1,4 +1,6 @@
-"""The Samples and Measurements tabs of a dataset, a project and a contributor."""
+"""The Samples and Measurements tabs of a dataset, a project and a contributor, and a
+sample's Measurements tab.
+"""
 
 import django_tables2 as tables
 import pytest
@@ -193,7 +195,7 @@ class TestDatasetRecords:
         for record in dataset.rocks:
             assert f'href="{record.get_absolute_url()}"' in response.content.decode()
 
-    def test_a_sample_page_has_neither_tab(self, client, dataset):
+    def test_a_sample_page_has_no_samples_tab(self, client, dataset):
         sample = dataset.rocks[0]
 
         response = client.get(sample.get_absolute_url())
@@ -205,9 +207,7 @@ class TestDatasetRecords:
             if a["href"].startswith(sample.get_absolute_url())
         ]
         assert tabs  # the sample's own tab strip is there
-        assert not [
-            h for h in tabs if h.rstrip("/").endswith(("samples", "measurements"))
-        ]
+        assert not [h for h in tabs if h.rstrip("/").endswith("samples")]
 
 
 class TestRecordState:
@@ -1314,3 +1314,170 @@ class TestContributorRecordQueries:
         assert self.count(client, contributor_address(small, kind)) == self.count(
             client, contributor_address(large, kind)
         )
+
+
+def sample_address(sample):
+    """Return the address of a sample's Measurements tab."""
+    return reverse("sample:measurements", kwargs={"uuid": sample.uuid})
+
+
+def sections(response):
+    """Return each listed type's model and the records its table's page lists."""
+    return [
+        (s["type"].model, [row.record for row in s["table"].page.object_list])
+        for s in response.context["sections"]
+    ]
+
+
+class TestSampleMeasurements:
+    @pytest.fixture
+    def rock(self):
+        """A published rock with three XRF and two ICP-MS runs in its own dataset."""
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        rock = RockSampleFactory(dataset=dataset)
+        XRFMeasurementFactory.create_batch(3, dataset=dataset, sample=rock)
+        ICP_MS_MeasurementFactory.create_batch(2, dataset=dataset, sample=rock)
+        return rock
+
+    def test_every_type_is_listed_in_its_own_table_on_one_page_most_numerous_first(
+        self, client, rock
+    ):
+        other_rock = RockSampleFactory(dataset=rock.dataset)
+        XRFMeasurementFactory(dataset=rock.dataset, sample=other_rock)
+
+        response = client.get(sample_address(rock))
+
+        assert response.status_code == 200
+        listed_types = sections(response)
+        assert [model for model, _ in listed_types] == [
+            XRFMeasurement,
+            ICP_MS_Measurement,
+        ]
+        assert [len(rows) for _, rows in listed_types] == [3, 2]
+        assert all(row.sample_id == rock.pk for _, rows in listed_types for row in rows)
+        # A generated table class is built afresh on each call: compare by name.
+        assert [type(s["table"]).__name__ for s in response.context["sections"]] == [
+            registry.get_for_model(XRFMeasurement).get_table_class().__name__,
+            registry.get_for_model(ICP_MS_Measurement).get_table_class().__name__,
+        ]
+
+    def test_a_measurement_in_another_dataset_is_listed_and_its_row_links_that_dataset(
+        self, client, rock
+    ):
+        other = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        borrowed = XRFMeasurementFactory(dataset=other, sample=rock)
+
+        response = client.get(sample_address(rock))
+
+        table = response.context["sections"][0]["table"]
+        row = next(r for r in table.page.object_list if r.record.pk == borrowed.pk)
+        assert f'href="{other.get_absolute_url()}"' in str(row.get_cell("dataset_name"))
+        assert list(table.sequence)[:2] == ["name", "dataset_name"]
+        assert "sample" not in table.columns.names()
+
+    def test_each_measurement_is_listed_by_its_own_dataset_never_the_samples(
+        self, client
+    ):
+        own = DatasetFactory(visibility=Visibility.PRIVATE)
+        rock = RockSampleFactory(dataset=own)
+        released = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        closed = DatasetFactory(visibility=Visibility.PRIVATE)
+        shown = XRFMeasurementFactory(dataset=released, sample=rock)
+        XRFMeasurementFactory(dataset=closed, sample=rock)
+        ICP_MS_MeasurementFactory(dataset=closed, sample=rock)
+        client.force_login(team_member(own))
+
+        response = client.get(sample_address(rock))
+
+        assert sections(response) == [(XRFMeasurement, [shown])]
+
+    def test_the_tab_opens_for_exactly_the_viewers_the_overview_opens_for(self, client):
+        waiting = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        rock = RockSampleFactory(dataset=waiting)
+        XRFMeasurementFactory(dataset=waiting, sample=rock)
+
+        assert client.get(rock.get_absolute_url()).status_code == 404
+        assert client.get(sample_address(rock)).status_code == 404
+        client.force_login(team_member(waiting))
+        assert client.get(rock.get_absolute_url()).status_code == 200
+        assert client.get(sample_address(rock)).status_code == 200
+
+    def test_a_sample_with_nothing_the_viewer_may_see_has_the_tab_and_says_it_is_empty(
+        self, client
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        rock = RockSampleFactory(dataset=dataset)
+        XRFMeasurementFactory(
+            dataset=DatasetFactory(visibility=Visibility.PRIVATE), sample=rock
+        )
+
+        overview = client.get(rock.get_absolute_url())
+        response = client.get(sample_address(rock))
+
+        page = BeautifulSoup(overview.content, "html.parser")
+        assert sample_address(rock) in {
+            a["href"] for a in page.find_all("a", href=True)
+        }
+        assert response.status_code == 200
+        assert response.context["sections"] == []
+
+    def test_each_table_pages_on_its_own(self, client, rock):
+        XRFMeasurementFactory.create_batch(60, dataset=rock.dataset, sample=rock)
+        icp = registry.get_for_model(ICP_MS_Measurement).get_slug()
+        xrf = registry.get_for_model(XRFMeasurement).get_slug()
+
+        response = client.get(sample_address(rock), {f"{xrf}-page": 2})
+
+        tables = {s["type"].model: s["table"] for s in response.context["sections"]}
+        assert tables[XRFMeasurement].page.number == 2
+        assert len(tables[XRFMeasurement].page.object_list) == 13
+        assert tables[ICP_MS_Measurement].page.number == 1
+        assert tables[ICP_MS_Measurement].prefixed_page_field == f"{icp}-page"
+
+    def test_each_tables_pager_moves_only_that_table(self, client, rock):
+        XRFMeasurementFactory.create_batch(60, dataset=rock.dataset, sample=rock)
+        xrf = registry.get_for_model(XRFMeasurement).get_slug()
+        heading = f"type-{xrf}"
+
+        response = client.get(sample_address(rock))
+
+        page = BeautifulSoup(response.content, "html.parser")
+        section = page.find("h2", id=heading).find_parent("section")
+        pages = {
+            a["href"] for a in section.find_all("a", href=True) if "page" in a["href"]
+        }
+        assert f"?{xrf}-page=2" in pages
+        assert not [
+            a
+            for a in page.find_all("a", href=True)
+            if "page=" in a["href"] and a.find_parent("section") is not section
+        ]
+
+    def test_measurements_of_an_unregistered_type_are_listed_in_the_base_table(
+        self, client, rock, monkeypatch
+    ):
+        from fairdm.contrib.collections.tables import MeasurementTable
+
+        held = {m: c for m, c in registry._registry.items() if m is not XRFMeasurement}
+        monkeypatch.setattr(registry, "_registry", held)
+
+        response = client.get(sample_address(rock))
+
+        tables = [type(s["table"]) for s in response.context["sections"]]
+        assert response.status_code == 200
+        assert MeasurementTable in tables
+        assert [len(rows) for _, rows in sections(response)] == [2, 3]
+
+    def test_the_tab_costs_the_same_queries_at_ten_rows_and_at_sixty(self, client):
+        def count(rows):
+            dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+            rock = RockSampleFactory(dataset=dataset)
+            XRFMeasurementFactory.create_batch(rows, dataset=dataset, sample=rock)
+            ICP_MS_MeasurementFactory.create_batch(rows, dataset=dataset, sample=rock)
+            url = sample_address(rock)
+            client.get(url)  # warm the per-process caches
+            with CaptureQueriesContext(connection) as queries:
+                assert client.get(url).status_code == 200
+            return len(queries)
+
+        assert count(10) == count(60)
