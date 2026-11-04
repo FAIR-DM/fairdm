@@ -12,7 +12,7 @@ that makes it pass is written. Wording and appearance get no tests.
 
 **Order**: US1, then US2 from US1's verified commit.
 
-## Phase 1: US-1, a visitor opens a record from its portal ID (P1)
+## Phase 1: User Story 1, a visitor opens a record from its portal ID (P1)
 
 ### Group 1
 
@@ -42,7 +42,7 @@ that makes it pass is written. Wording and appearance get no tests.
   `permalink` URL name, `get_permalink`, and the rule that a declared root page wins. `CONTEXT.md`:
   **Portal ID** and **Permalink** entries. A changelog entry.
 
-## Phase 2: US-2, a visitor shares or cites a record by its permanent link (P2)
+## Phase 2: User Story 2, a visitor shares or cites a record by its permanent link (P2)
 
 ### Group 1
 
