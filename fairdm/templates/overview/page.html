@@ -56,7 +56,8 @@
 {% block page.title %}
   {% block overview.notices %}{% endblock overview.notices %}
 
-  <c-mvp.card.wrapper class="bg-base-100">
+  {# record-<icon> gives a core record's header its colour along the top; a person or organization has none. #}
+  <c-mvp.card.wrapper class="bg-base-100 record-header record-{{ overview_icon }}">
     <div class="card-body gap-4">
       <div class="flex flex-col md:flex-row gap-4 md:items-start">
         <div class="hidden md:block shrink-0">

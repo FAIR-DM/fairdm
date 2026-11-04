@@ -94,7 +94,7 @@ An inner `Media` class, written as on a Django form, adds stylesheets and script
 | `base_object` | Cached property | The core record the plugin hangs from, or `None` when it cannot be resolved. A record that does not exist raises a 404 |
 | `get_base_object` | `get_base_object()` | The record named by the address. Reads through the model's `all_objects` manager when it has one, so a private record is found and the plugin's own `check` or `permission` decides |
 | `has_permission` | `has_permission()` | The result of [`can_open`](#can_open) for this class, the request and the record |
-| `get_breadcrumbs` | `get_breadcrumbs()` | The trail: the model's plural name (linked when a list page resolves), the record, then `page_title` |
+| `get_breadcrumbs` | `get_breadcrumbs()` | The trail: the model's plural name (linked when a list page resolves), the record, then `page_title`. A project, dataset, sample or measurement entry carries the `class` from `record_crumb_class()`, which marks it with its record type's colour |
 
 `base_object` is separate from `self.object`, which stays whatever your view class makes it.
 

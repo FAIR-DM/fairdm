@@ -15,6 +15,7 @@
 {% endcomment %}
 
 {% block overview.badges %}
+  <span class="record-tag record-project"><c-icon name="project" aria-hidden="true" only />{% translate "Project" %}</span>
   <span class="badge badge-soft badge-{{ project.status_badge_variant }} badge-sm">{{ project.get_status_display }}</span>
   {% if project.visibility != project.VISIBILITY.PUBLIC %}
     <span class="badge badge-ghost badge-sm"><c-icon name="lock" aria-hidden="true" />{% translate "Private" %}</span>
@@ -51,9 +52,9 @@
 
 {% block overview.figures %}
   <c-stats cols="2" lg="4" aria-label="{% translate 'Project at a glance' %}">
-    <c-stats.item title="{% translate 'Datasets' %}" value="{{ counts.datasets|intcomma }}" href="{{ urls.datasets }}" variant="success" icon="dataset" />
-    <c-stats.item title="{% translate 'Samples' %}" value="{{ counts.samples|intcomma }}" href="{{ urls.samples }}" variant="secondary" icon="sample" />
-    <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" href="{{ urls.measurements }}" variant="accent" icon="measurement" />
+    <c-stats.item title="{% translate 'Datasets' %}" value="{{ counts.datasets|intcomma }}" href="{{ urls.datasets }}" record="dataset" icon="dataset" />
+    <c-stats.item title="{% translate 'Samples' %}" value="{{ counts.samples|intcomma }}" href="{{ urls.samples }}" record="sample" icon="sample" />
+    <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" href="{{ urls.measurements }}" record="measurement" icon="measurement" />
     <c-stats.item title="{% translate 'Contributors' %}" value="{{ team.total }}" href="{{ urls.contributors }}" icon="people" />
   </c-stats>
 {% endblock overview.figures %}

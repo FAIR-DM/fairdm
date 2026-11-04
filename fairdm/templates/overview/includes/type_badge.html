@@ -1,13 +1,14 @@
 {% load i18n %}
 {% comment %}
-  The record's type as a primary badge in the header. When the registry describes the type, the
-  badge is a button that opens that description in a dialog.
+  The record's type in the header, as a tag in the record type's colour with its icon. When the
+  registry describes the type, the tag is a button that opens that description in a dialog.
 
-  Include with: label (the type's name), info (from `type_info`), id (the dialog's id)
+  Include with: kind (sample or measurement), label (the type's name), info (from `type_info`),
+  id (the dialog's id)
 {% endcomment %}
 {% if info %}
-  <button type="button" class="badge badge-primary badge-sm cursor-pointer" onclick="{{ id }}.showModal()"
-          aria-haspopup="dialog" title="{% blocktranslate with type=label %}About {{ type }}{% endblocktranslate %}">{{ label|capfirst }}</button>
+  <button type="button" class="record-tag record-{{ kind }}" onclick="{{ id }}.showModal()"
+          aria-haspopup="dialog" title="{% blocktranslate with type=label %}About {{ type }}{% endblocktranslate %}"><c-icon name="{{ kind }}" aria-hidden="true" only />{{ label|capfirst }}<c-icon name="info" class="opacity-60" aria-hidden="true" only /></button>
   {% blocktranslate with type=label|capfirst asvar about %}About {{ type }}{% endblocktranslate %}
   {% comment %}
     The dialog is written out here, not drawn by `c-modal`, because `c-modal` gives the `<dialog>`
@@ -44,5 +45,5 @@
     </form>
   </dialog>
 {% else %}
-  <span class="badge badge-primary badge-sm">{{ label|capfirst }}</span>
+  <span class="record-tag record-{{ kind }}"><c-icon name="{{ kind }}" aria-hidden="true" only />{{ label|capfirst }}</span>
 {% endif %}

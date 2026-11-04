@@ -237,8 +237,7 @@ The projects or the datasets a contributor is behind, each linked to its page. A
 |---|---|---|---|
 | `title` | string | | The card's title. |
 | `records` | dict | | `shown` (dictionaries with `record` and `owned`), `more` and `total`. `fill_slots()` in `fairdm.contrib.contributors.profiles` builds it. |
-| `kind` | string | | `project` or `dataset`. It picks the icon and shows the status for a project. |
-| `variant` | string | | The theme colour of the record type. |
+| `kind` | string | | `project` or `dataset`. It picks the icon and its record type's colour, and shows the status for a project. |
 | `all_url` | string | | Where the full list is, used for the "View all" button and the count of the rest. |
 | `empty` | string | | What to say when there are none. |
 | `class` | string | | Extra classes on the card. |
@@ -246,7 +245,7 @@ The projects or the datasets a contributor is behind, each linked to its page. A
 An entry with `owned` set shows an Owner badge. `active_then_recent()` in the same module orders records before they are cut to fit.
 
 ```django
-<c-card.records title="Projects" :records="projects" kind="project" variant="info"
+<c-card.records title="Projects" :records="projects" kind="project"
                 all_url="{{ urls.projects }}" empty="Not credited on any public project yet." />
 ```
 
@@ -443,7 +442,7 @@ A project in a listing: banner, type, status, number of datasets, name, contribu
 
 ### `c-sample.card`
 
-A sample of any type in a listing: image or icon, its type, name, the dataset it belongs to, portal identifier and local ID.
+A sample of any type in a listing: image or icon, its type, name, the dataset it belongs to, portal identifier and local ID. Its top edge and type badge are drawn in the Sample colour.
 
 | Attribute | Type | Default | Accepts |
 |---|---|---|---|
@@ -537,11 +536,11 @@ The public projects added most recently, as `c-project.card` cards.
 
 ### `c-landing.stats`
 
-The portal in figures, one count for each kind of public record.
+The portal in figures, one count for each kind of public record. Each figure's icon sits in a tile, drawn in the record type's colour for datasets, samples and measurements and neutral for the rest.
 
 | Attribute | Type | Default | Accepts |
 |---|---|---|---|
-| `counts` | list | | Dictionaries with `title`, `value` (a whole number) and `icon`. |
+| `counts` | list | | Dictionaries with `title`, `value` (a whole number) and `icon`. An `icon` of `project`, `dataset`, `sample` or `measurement` also picks that record type's colour. |
 
 ### `c-landing.type-list`
 
@@ -645,7 +644,8 @@ A daisyUI strip of figures read as one group. Put `c-stats.item` children inside
 | `value` | string | | The figure. |
 | `desc` | string | | A line under the figure. |
 | `href` | string | | Makes the title a link to where the figure comes from. |
-| `variant` | string | | The colour of the figure and its icon, such as `success` or `secondary`. Without one both stay neutral. |
+| `record` | string | | The record type counted: `project`, `dataset`, `sample` or `measurement`. The icon tile takes that record type's colour and the figure stays in the text colour. |
+| `variant` | string | | For a figure that is not a record type, a theme colour for the figure and its icon, such as `success`. Ignored when `record` is set. Without either both stay neutral. |
 | `icon` | string | | An icon drawn in a tinted tile at the end of the stat. |
 | `class` | string | | Extra classes on the item. |
 
@@ -655,8 +655,8 @@ A daisyUI strip of figures read as one group. Put `c-stats.item` children inside
 
 ```django
 <c-stats cols="2" lg="4">
-  <c-stats.item title="Datasets" value="4" icon="dataset" variant="success" />
-  <c-stats.item title="Samples" value="1,280" icon="sample" variant="secondary" />
+  <c-stats.item title="Datasets" value="4" icon="dataset" record="dataset" />
+  <c-stats.item title="Samples" value="1,280" icon="sample" record="sample" />
 </c-stats>
 ```
 
