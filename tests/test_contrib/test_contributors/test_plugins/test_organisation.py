@@ -15,9 +15,9 @@ def _members_url(contributor):
     )
 
 
-def _join(organization, name, type=Affiliation.MembershipType.MEMBER, **kwargs):
+def _join(organization, name, kind=Affiliation.MembershipType.MEMBER, **kwargs):
     person = PersonFactory(name=name, is_active=True, is_claimed=True, password="x")
-    AffiliationFactory(organization=organization, person=person, type=type, **kwargs)
+    AffiliationFactory(organization=organization, person=person, type=kind, **kwargs)
     return person
 
 
@@ -108,7 +108,7 @@ class TestOrganizationMembers:
         organization = OrganizationFactory()
         _join(organization, "Pending", Affiliation.MembershipType.PENDING)
 
-        response, page = get_page(organization.get_absolute_url())
+        _, page = get_page(organization.get_absolute_url())
         tab, _ = get_page(_members_url(organization))
 
         assert _members_url(organization) in _tabs(page, organization)
@@ -117,9 +117,7 @@ class TestOrganizationMembers:
         assert tab.context["empty_state"]["heading"]
 
     # User Story 4, scenario 7
-    def test_the_overviews_count_of_members_not_shown_links_to_the_tab(
-        self, get_page
-    ):
+    def test_the_overviews_count_of_members_not_shown_links_to_the_tab(self, get_page):
         organization = OrganizationFactory()
         for n in range(13):
             _join(organization, f"Member {n:02d}")

@@ -24,7 +24,9 @@ class OrganizationMembers(Plugin, PersonListView):
     page_title = _("Members")
     queryset = Person.objects.all()
     check = staticmethod(is_instance_of(Organization))
-    empty_state_heading = _("Nobody has listed this organization as an affiliation yet.")
+    empty_state_heading = _(
+        "Nobody has listed this organization as an affiliation yet."
+    )
 
     def get_queryset(self):
         """Limit the people to the organisation's members, the people who run it first."""
