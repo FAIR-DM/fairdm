@@ -1273,7 +1273,7 @@ wheels = [
 
 [[package]]
 name = "django-mvp"
-version = "0.33.0"
+version = "0.33.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "daisy-cotton" },
@@ -1286,9 +1286,9 @@ dependencies = [
     { name = "django-mvp-forms" },
     { name = "mergedeep" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/47/89/d11901381d9c4175956c67ec7dd816ba52ad0803c4c87618289bb14891ec/django_mvp-0.33.0.tar.gz", hash = "sha256:46c70071e351492c149f186416d469db7103acac804beefee503637ae9696b46", size = 321514, upload-time = "2026-11-02T11:46:20.303Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/68/92/d118de25b269d564e12d9b31ba91a7b1a55bf4f236ebd479fcf10b444ce4/django_mvp-0.33.1.tar.gz", hash = "sha256:974bf522d376eacd3697aed66623c8c56ceca20df6b427b7383e84d9b5910e21", size = 322093, upload-time = "2026-11-04T10:07:56.657Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/50/a7/a678b8ce48a45f6ae3d55b0d5f52a3ea5245a3f7bf89abf9ce0c15598f4c/django_mvp-0.33.0-py3-none-any.whl", hash = "sha256:24e0fed036ee4e9bb9d3fde251236e971cd8c75031e00d74c89293635cf33add", size = 378617, upload-time = "2026-11-02T11:46:18.83Z" },
+    { url = "https://files.pythonhosted.org/packages/73/80/382680fa786dd466abc47d7d4a00b930d9b04f835fb46873380fdcbaacd5/django_mvp-0.33.1-py3-none-any.whl", hash = "sha256:57721e6028f917e0f2949a5eda6dcf29f645693a5fa90587595f90a8c72ee93f", size = 379376, upload-time = "2026-11-04T10:07:55.173Z" },
 ]
 
 [[package]]
@@ -1900,7 +1900,7 @@ requires-dist = [
     { name = "django-literature", extras = ["ui"], specifier = ">=0.4.0,<0.5.0" },
     { name = "django-meta", specifier = ">=2.1.0,<3.0.0" },
     { name = "django-model-utils", specifier = ">=4.3.1,<6.0.0" },
-    { name = "django-mvp", specifier = ">=0.33.0,<0.34.0" },
+    { name = "django-mvp", specifier = ">=0.33.1,<0.34.0" },
     { name = "django-mvp-accounts", extras = ["api"], specifier = ">=0.4.0,<0.5.0" },
     { name = "django-mvp-charts", specifier = ">=0.3.0,<0.4.0" },
     { name = "django-mvp-compliance", specifier = ">=0.3.0,<0.4.0" },
