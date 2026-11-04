@@ -13,19 +13,19 @@
 :titlesonly:
 :maxdepth: 3
 
+fairdm.templatetags
+fairdm.management
+fairdm.forms
+fairdm.backups
+fairdm.views
+fairdm.conf
+fairdm.api
+fairdm.registry
 fairdm.db
 fairdm.contrib
-fairdm.conf
-fairdm.management
-fairdm.templatetags
-fairdm.core
-fairdm.forms
-fairdm.factories
-fairdm.views
-fairdm.api
-fairdm.backups
-fairdm.registry
 fairdm.utils
+fairdm.core
+fairdm.factories
 ```
 
 ## Submodules
@@ -34,11 +34,11 @@ fairdm.utils
 :titlesonly:
 :maxdepth: 1
 
-fairdm.config
-fairdm.models
 fairdm.portal_roles
-fairdm.permissions
-fairdm.menus
-fairdm.plugins
+fairdm.models
 fairdm.apps
+fairdm.menus
+fairdm.permissions
+fairdm.config
+fairdm.plugins
 ```

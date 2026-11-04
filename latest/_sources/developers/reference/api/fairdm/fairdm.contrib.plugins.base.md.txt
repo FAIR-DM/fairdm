@@ -21,6 +21,18 @@
     ```
 ````
 
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`record_crumb_class <fairdm.contrib.plugins.base.record_crumb_class>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.base.record_crumb_class
+    :summary:
+    ```
+````
+
 ### API
 
 `````{py:class} Plugin(**kwargs)
@@ -250,3 +262,10 @@ Bases: {py:obj}`django.contrib.auth.mixins.PermissionRequiredMixin`, {py:obj}`dj
 ````
 
 `````
+
+````{py:function} record_crumb_class(model: type[django.db.models.Model] | None) -> str
+:canonical: fairdm.contrib.plugins.base.record_crumb_class
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.record_crumb_class
+```
+````
