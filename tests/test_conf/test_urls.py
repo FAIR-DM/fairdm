@@ -102,7 +102,7 @@ class TestPermalinkPosition:
             resolve("/x" + "2" * 22 + "/")
 
     @pytest.mark.parametrize("path", ["/", "/projects/", "/legal/agree/"])
-    def test_a_root_page_resolves_to_itself_and_not_to_the_permalink(self, path):
+    def test_existing_root_pages_still_resolve(self, path):
         assert resolve(path).url_name != "permalink"
 
     def test_reloading_the_root_urls_twice_raises_nothing(self):
