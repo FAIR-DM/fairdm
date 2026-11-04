@@ -453,7 +453,7 @@ class TestOverviewCitation:
         citation = _page(client, xrf).context["citation"]
 
         assert citation["note_url"] == xrf.dataset.get_absolute_url() + "#cite"
-        assert xrf.get_absolute_url() in citation["text"]
+        assert f"http://testserver/{xrf.uuid}/" in citation["text"]
 
     def test_a_measurement_with_a_doi_is_cited_by_it_and_carries_no_note(
         self, client, xrf
@@ -468,6 +468,7 @@ class TestOverviewCitation:
 
         assert "note" not in citation
         assert "10.1234/meas.1" in citation["text"]
+        assert str(xrf.uuid) not in citation["text"]
 
 
 @pytest.mark.django_db

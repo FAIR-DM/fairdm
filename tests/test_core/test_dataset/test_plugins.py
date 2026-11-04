@@ -26,10 +26,16 @@ from fairdm.core.dataset.forms import DatasetForm
 from fairdm.core.dataset.models import (
     Dataset,
     DatasetDescription,
+    DatasetIdentifier,
     DatasetLiteratureRelation,
 )
 from fairdm.core.dataset.plugins import Overview
-from fairdm.core.vocabularies import CONTRIBUTOR_ROLES, DATE_TYPES, DESCRIPTION_TYPES
+from fairdm.core.vocabularies import (
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    DESCRIPTION_TYPES,
+    DOI,
+)
 from fairdm.factories import (
     ContributionFactory,
     DatasetDateFactory,
@@ -1148,6 +1154,26 @@ class TestOverviewCitation:
 
     def _citation(self, client, dataset):
         return _page(client, dataset).page.find(id="citation-text").get_text(strip=True)
+
+    def test_without_a_doi_the_citation_ends_with_the_datasets_permalink(
+        self, client
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+
+        citation = self._citation(client, dataset)
+
+        assert citation.endswith(f"http://testserver/{dataset.uuid}/")
+
+    def test_with_a_doi_the_citation_ends_with_the_doi_and_names_no_permalink(
+        self, client
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        DatasetIdentifier.objects.create(related=dataset, type_id=DOI, value="10.1/ds")
+
+        citation = self._citation(client, dataset)
+
+        assert citation.endswith("https://doi.org/10.1/ds")
+        assert str(dataset.uuid) not in citation
 
     def test_a_data_publication_is_cited_in_place_of_the_dataset(self, client):
         reference = LiteratureItemFactory()

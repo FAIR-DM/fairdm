@@ -21,12 +21,18 @@ from demo.models import RockSample
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.plugins.access import can_open
 from fairdm.core.measurement.models import Measurement
-from fairdm.core.sample.models import Sample, SampleDate, SampleDescription
+from fairdm.core.sample.models import (
+    Sample,
+    SampleDate,
+    SampleDescription,
+    SampleIdentifier,
+)
 from fairdm.core.sample.plugins import Overview
 from fairdm.core.vocabularies import (
     CONTRIBUTOR_ROLES,
     DATE_TYPES,
     DESCRIPTION_TYPES,
+    IGSN,
     SAMPLE_STATUS,
 )
 from fairdm.factories import (
@@ -667,3 +673,23 @@ class TestOverviewManageMenu:
         assert self._addresses(rock) == [
             f"/samples/{rock.uuid}/{segment}/" for segment in self.EDITING_PAGES
         ]
+
+
+@pytest.mark.django_db
+class TestOverviewCitationAddress:
+    def _citation(self, client, sample):
+        return _page(client, sample).page.find(id="citation-text").get_text(strip=True)
+
+    def test_without_an_igsn_the_citation_ends_with_the_samples_permalink(
+        self, client, rock
+    ):
+        assert self._citation(client, rock).endswith(f"http://testserver/{rock.uuid}/")
+
+    def test_with_an_igsn_the_citation_names_no_permalink(self, client, rock):
+        SampleIdentifier.objects.create(related=rock, type_id=IGSN, value="10.58052/IGSN0001"
+        )
+
+        citation = self._citation(client, rock)
+
+        assert citation.endswith("https://doi.org/10.58052/IGSN0001")
+        assert str(rock.uuid) not in citation
