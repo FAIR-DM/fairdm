@@ -38,6 +38,7 @@
 
 ## What was ruled by eye
 
-- The portal ID stays one row. The ID itself becomes the link, and the copy button copies the
-  whole link instead of the bare ID. A separate row showing the full address would repeat the
-  ID inside a long string in a narrow card.
+- The portal ID and the link are two rows of the identifiers card. The Portal ID row shows the
+  bare ID and copies it. The Permalink row beneath it shows the whole link and copies it.
+  (Maintainer, round 1.)
+- The address is called the record's **permalink** on screen.

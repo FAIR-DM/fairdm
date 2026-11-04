@@ -5,8 +5,8 @@
 
   Attributes:
     identifiers  – [{type, value, link}]; `link` is set for DOIs and IGSNs
-    portal_id    – the record's portal ID, linked to the record's permanent link, with a
-                   button that copies the link
+    portal_id    – the record's portal ID, with a copy button, and beneath it the record's
+                   permalink, with a button that copies the whole link
     local_id     – the team's own ID for the record, if it has one
     class        – extra classes on the card
 {% endcomment %}
@@ -34,10 +34,20 @@
         <tr>
           <th scope="row" class="ps-0 font-normal text-base-content/70 whitespace-nowrap align-top">{% translate "Portal ID" %}</th>
           <td class="pe-0 font-mono break-all">
-            <a href="{{ portal_link }}" class="link link-primary"
-               title="{% translate 'Permanent link to this record' %}">{{ portal_id }}</a>
+            {{ portal_id }}
             <button type="button" class="btn btn-ghost btn-xs"
-                    aria-label="{% translate 'Copy permanent link' %}" title="{% translate 'Copy permanent link' %}"
+                    aria-label="{% translate 'Copy portal ID' %}" title="{% translate 'Copy portal ID' %}"
+                    onclick="navigator.clipboard.writeText('{{ portal_id|escapejs }}')">
+              <c-icon name="copy" aria-hidden="true" only />
+            </button>
+          </td>
+        </tr>
+        <tr>
+          <th scope="row" class="ps-0 font-normal text-base-content/70 whitespace-nowrap align-top">{% translate "Permalink" %}</th>
+          <td class="pe-0 font-mono break-all">
+            <a href="{{ portal_link }}" class="link link-primary">{{ request.scheme }}://{{ request.get_host }}{{ portal_link }}</a>
+            <button type="button" class="btn btn-ghost btn-xs"
+                    aria-label="{% translate 'Copy permalink' %}" title="{% translate 'Copy permalink' %}"
                     onclick="navigator.clipboard.writeText(this.previousElementSibling.href)">
               <c-icon name="copy" aria-hidden="true" only />
             </button>
