@@ -17,7 +17,7 @@ Copy link assertion passes only once T011 is in.
 
 ### Group 1
 
-- [ ] T001 [US1] `tests/test_views/test_permalink.py`: for a project, a dataset, a sample and a
+- [x] T001 [US1] `tests/test_views/test_permalink.py`: for a project, a dataset, a sample and a
   measurement of a registered subtype each, and a person (including one who has not claimed their
   profile and one whose account is deactivated) and an organization, `GET /<uuid>/` answers a
   temporary redirect (302) to the record's `get_absolute_url()`, and following it renders the page of
@@ -28,21 +28,21 @@ Copy link assertion passes only once T011 is in.
   record does, step for step, and someone holding a level reaches the page (AS 4, FR-005). A query
   string is carried to the target. `/<uuid>` with no slash reaches the record (AS 6). The redirect
   is never permanent (AS 5, FR-006).
-- [ ] T002 [US1] `tests/test_conf/test_urls.py`: an address at the root with a portal ID's length but
+- [x] T002 [US1] `tests/test_conf/test_urls.py`: an address at the root with a portal ID's length but
   a letter no record uses, and the existing root pages (`/projects/`, `/legal/`, the home page),
   answer as they do without the permalink pattern. Add one portal-ID-shaped path to
   `tests/test_conf/routed_addon/urls.py`, and with `TestAddonUrlMounting`'s reload-and-restore
   fixture in `tests/test_conf/test_addons.py`, show that address is served by the addon (AS 7,
   FR-004). Reloading `fairdm.conf.urls` twice raises nothing.
-- [ ] T003 [US1] `tests/test_views/test_permalink.py`: the `uuid` a factory makes for each of the five
+- [x] T003 [US1] `tests/test_views/test_permalink.py`: the `uuid` a factory makes for each of the five
   models resolves to the `permalink` route. `get_permalink(record)` returns `/<uuid>/`, and with a
   request the absolute link.
-- [ ] T004 [US1] `fairdm/views/permalink.py` (replacing the sketch's `fairdm/views/links.py`):
+- [x] T004 [US1] `fairdm/views/permalink.py` (replacing the sketch's `fairdm/views/links.py`):
   `PORTAL_ID_PATTERN`, `OVERVIEW_URL_NAMES`, `get_permalink` and `PermalinkView`, per the plan. No
   converter and no record lookup. Append the `re_path` `permalink` pattern in `fairdm/conf/urls.py`
   and remove the sketch's `register_converter`. Update the sketch's imports of `record_link` to
   `get_permalink`.
-- [ ] T005 [US1] Docs: one sentence on the permalink in "How to reach it" of the project, dataset,
+- [x] T005 [US1] Docs: one sentence on the permalink in "How to reach it" of the project, dataset,
   sample, measurement, person and organization pages under `docs/users/`. Developer reference for the
   `permalink` URL name, `get_permalink`, and the rule that a declared root page wins. `CONTEXT.md`:
   **Portal ID** and **Permalink** entries. A changelog entry.
@@ -51,29 +51,29 @@ Copy link assertion passes only once T011 is in.
 
 ### Group 1
 
-- [ ] T006 [US2] `tests/test_templates/test_cards.py`: the identifiers card given a `permalink` lists
+- [x] T006 [US2] `tests/test_templates/test_cards.py`: the identifiers card given a `permalink` lists
   it as a link whose address is that permalink, beside a button that copies it, and still lists the
   Portal ID with its own copy button. Given no permalink, no Permalink row (AS 1, AS 2, FR-007).
   `tests/test_templatetags/`: `{% permalink record %}` gives the absolute link for the request.
-- [ ] T007 [US2] `tests/test_templates/test_overview_page.py` and the contributor overview tests:
+- [x] T007 [US2] `tests/test_templates/test_overview_page.py` and the contributor overview tests:
   on the overview page of each of the six kinds of record, the identifiers card's permalink and every
   choice in the Share menu carry the record's absolute permalink (AS 1, AS 3, FR-007).
-- [ ] T008 [US2] Plugin tests: the citation of a dataset with no DOI, a sample with no IGSN and a
+- [x] T008 [US2] Plugin tests: the citation of a dataset with no DOI, a sample with no IGSN and a
   measurement with no DOI ends with the record's absolute permalink. With a DOI or IGSN the
   citation is unchanged (AS 4, AS 5, FR-008). `tests/test_contrib/test_import_export/test_utils.py`:
   the DataCite export's `IsVariantFormOf` URL is the dataset's absolute permalink (AS 6, FR-009).
-- [ ] T011 [US2] Raise django-mvp in `pyproject.toml` to the release whose Share menu's Copy link
+- [x] T011 [US2] Raise django-mvp in `pyproject.toml` to the release whose Share menu's Copy link
   copies the `url` it is given, and relock. Every other choice already shares `url`.
-- [ ] T009 [US2] The `permalink` template tag in `fairdm/templatetags/fairdm.py`. The `permalink`
+- [x] T009 [US2] The `permalink` template tag in `fairdm/templatetags/fairdm.py`. The `permalink`
   attribute and row on `<c-card.identifiers>`, keeping the approved sketch's markup, with the copy
   button copying the given link. The three overview templates use the tag for the card and the Share
   menu, replacing the sketch's hand-built address. The three plugins and `datacite_xml` use
   `get_permalink(record, request)`.
-- [ ] T010 [US2] Docs: `docs/users/editing-a-record/identifiers.md`, "Where the identifiers appear",
+- [x] T010 [US2] Docs: `docs/users/editing-a-record/identifiers.md`, "Where the identifiers appear",
   covers the Permalink row, and the record page docs say the citation and the Share menu use the
   permalink where they describe them. The developer reference names the `permalink` tag and the
   card's `permalink` attribute.
-- [ ] T012 [US2] `tests/test_core/test_project/test_plugins.py`: a project with no DOI is cited by its
+- [x] T012 [US2] `tests/test_core/test_project/test_plugins.py`: a project with no DOI is cited by its
   absolute permalink (AS 4, FR-008). `fairdm/core/project/plugins.py` uses
   `get_permalink(project, request)`, and the project page docs say so. Found at story acceptance:
   the plan named the dataset, sample and measurement citations and missed the project's.
