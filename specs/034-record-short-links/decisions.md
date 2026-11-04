@@ -36,3 +36,10 @@ returns.
 A citation is the place a link is most likely to be kept for years, and today it carries the page
 address whenever the record has no DOI or IGSN. A record with one goes on citing it, because an
 identifier issued by an outside service outlives the portal itself, which the link cannot.
+
+## D6. The address is called the record's permalink
+
+The maintainer asked for the portal ID and the address on separate rows and for a name for the
+address. "Permalink" is the word readers already know for a link that does not change. "Persistent
+identifier" was not used: it would put the link beside DOIs and IGSNs, which outlive the portal, and
+the permalink does not. "URI" belongs in metadata, not on a page people click.

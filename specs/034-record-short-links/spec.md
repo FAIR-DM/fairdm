@@ -178,8 +178,8 @@ and a sample with no IGSN. Export a dataset's DataCite record.
 
 - **Portal ID**: the identifier every core record carries, the existing `uuid` field. Its first
   letter names the record's kind. Unchanged by this feature.
-- **Record link**: `<portal>/<portal ID>/`. Not stored. It is the portal ID put at the portal's
-  root.
+- **Permalink**: `<portal>/<portal ID>/`, the record's link. Not stored. It is the portal ID put
+  at the portal's root, and the identifiers card shows it as the record's **Permalink**.
 
 ## Success Criteria *(mandatory)*
 
