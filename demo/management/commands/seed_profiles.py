@@ -3,7 +3,8 @@
 Builds on the records ``seed_overviews`` creates and reaches every state the two pages answer for:
 a complete profile, your own incomplete profile, an unclaimed profile, an inactive account, a
 person credited on nothing, a name in a non-Latin script and a very long one; an organization
-with a logo, ROR ID, map, parent, sub-organizations, members, former members and projects, one
+with a logo, ROR ID, map, parent, sub-organizations, more members than its Members card has
+places, a pending and a former member, and projects; one
 you own with an administrator, a member and a former administrator, and one with nothing
 recorded; and the accounts holding the Community Manager and Data Curator roles. It refuses outside development, and running it again
 replaces what it created.
@@ -61,7 +62,8 @@ KIT_PROFILE = (
     "the structure of the upper crust, with a long record of fieldwork in the Upper Rhine Graben."
 )
 
-MEMBER, ADMIN, OWNER = (
+PENDING, MEMBER, ADMIN, OWNER = (
+    Affiliation.MembershipType.PENDING,
     Affiliation.MembershipType.MEMBER,
     Affiliation.MembershipType.ADMIN,
     Affiliation.MembershipType.OWNER,
@@ -481,6 +483,11 @@ class Command(BaseCommand):
         )
         for measurement in self.measurements(2, offset=12):
             wang.add_to(measurement, [f"{CONTRIBUTOR_ROLES}/measurement-preparation"])
+        # A request to join the university nobody has answered, so its member list leaves
+        # someone out.
+        Affiliation.objects.create(
+            person=wang, organization=orgs["kit"], type=PENDING, start_date="2025"
+        )
 
         # Credited on nothing and affiliated nowhere.
         nobody = self.new(

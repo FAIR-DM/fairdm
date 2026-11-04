@@ -8,6 +8,7 @@ from django.test import override_settings
 
 from fairdm.contrib.contributors.choices import AccountState
 from fairdm.contrib.contributors.models import Affiliation, Organization, Person
+from fairdm.contrib.contributors.plugins import Overview
 from fairdm.factories import PersonFactory
 from fairdm.management.commands.create_dev_accounts import DEV_ACCOUNT_PASSWORD
 from fairdm.portal_roles import PortalRoles
@@ -177,6 +178,22 @@ class TestSeedProfilesOrganizationStates:
         ]
 
         assert bare
+
+    def test_one_with_more_members_than_its_card_and_every_kind_of_membership_exists(
+        self, seeded_organizations
+    ):
+        kinds = Affiliation.MembershipType
+        crowded = [
+            o
+            for o in seeded_organizations
+            if len(o.get_current_memberships()) > Overview.member_slots
+            and {m.type for m in o.get_current_memberships()}
+            >= {kinds.OWNER, kinds.ADMIN, kinds.MEMBER}
+            and o.affiliations.filter(type=kinds.PENDING).exists()
+            and o.affiliations.past().exists()
+        ]
+
+        assert crowded
 
     def test_every_seeded_organization_page_answers_for_a_visitor(
         self, seeded_organizations, client

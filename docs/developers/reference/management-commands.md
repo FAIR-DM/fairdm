@@ -142,7 +142,7 @@ All five refuse to run, and create nothing, when the resolved environment is not
 | Command | Argument | Does |
 |---|---|---|
 | `seed_overviews` | None | Seeds a project, datasets, samples and measurements that reach every state of the four record overview pages. Signs them in through `regular.user`, `staff.user` and `super.user` at `example.com` |
-| `seed_profiles` | None | Seeds the person and organization pages in every state they answer for, and five more accounts around the organization `regular.user` owns. Runs `seed_overviews` first when its records are missing |
+| `seed_profiles` | None | Seeds the person and organization pages and an organization's Members tab in every state they answer for, and five more accounts around the organization `regular.user` owns. Runs `seed_overviews` first when its records are missing |
 | `seed_contributors` | `--keep-records` | Seeds every state of a record's Contributors tab on a project, a dataset, a sample and a measurement |
 | `seed_record_lists` | None | Seeds a dataset with several sample and measurement types, one that is public but not published, a private one and an empty one, a measurement on another dataset's sample, a project that owns them all, a private project, a sample measured by several methods in its own dataset, a partner dataset, an unpublished one and a private one, and credits on a project, a dataset, a sample and a measurement for `regular.user` |
 | `seed_record_search` | `--large` | Seeds the records the record search fields are tried against. `--large` adds a public dataset of 100,000 samples |

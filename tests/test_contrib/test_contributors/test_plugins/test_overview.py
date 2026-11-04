@@ -646,7 +646,7 @@ class TestPersonOverview:
 
 
 def _members(page):
-    """The places of the members card, as the person each links to or None for a count."""
+    """The places of the members card, as the address each links to."""
     places = []
     for place in _card(page, "members").select("ul > li"):
         link = place.select_one("a[href]")
@@ -884,7 +884,9 @@ class TestOrganizationOverview:
         places = _members(page)
         assert len(places) == 10
         assert places[:9] == [p.get_absolute_url() for p in people[:9]]
-        assert places[9] is None
+        assert places[9] == reverse(
+            "contributor:organization-members", kwargs={"uuid": organization.uuid}
+        )
         assert "+4" in _card(page, "members").select("ul > li")[9].get_text()
         assert (
             page.select(".stat")[-1].select_one(".stat-value").get_text(strip=True)

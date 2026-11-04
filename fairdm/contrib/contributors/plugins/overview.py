@@ -230,6 +230,9 @@ class Overview(OverviewPlugin):
         datasets = [
             {"record": d, "owned": False} for d in organization.get_public_datasets()
         ]
+        context["urls"]["members"] = safe_reverse(
+            "contributor:organization-members", uuid=organization.uuid
+        )
 
         context.update(
             {

@@ -390,6 +390,28 @@ the viewer may open the sample.
 `RecordListSeed` creates the data behind every state of the tabs. Run `seed_record_lists`, which
 [Management commands](management-commands.md) describes.
 
+## Members tab
+
+`fairdm.contrib.contributors.plugins.organisation` registers `OrganizationMembers` against
+`Contributor` at order 50, right after the overview, with the `url_path` `members` and the URL name
+`contributor:organization-members`. Its check is `is_instance_of(Organization)`, so the tab is
+offered on an organization's page only, to everyone the overview opens for, and a person's page has
+none.
+
+It subclasses `PersonListView` from `fairdm.contrib.contributors.views.person`, so it draws the
+People page's cards, search and filters. `get_queryset()` narrows the people to the organization's
+current, verified members, the same people `Organization.get_current_memberships()` returns:
+
+| Membership | Listed |
+|---|---|
+| Owner, administrator, member, with no end date | Yes. The owner first, then administrators, then members, each group by name |
+| Pending | No |
+| Ended | No |
+
+The order comes from an annotation, `membership`, holding the person's membership type. The cards'
+relations are prefetched, so the number of queries does not grow with the members listed. With no
+members the page answers 200 and its empty state says that nobody is affiliated.
+
 ## Subclassing
 
 A plugin is an ordinary class. A package can ship a plugin without registering it, and a portal registers a subclass:

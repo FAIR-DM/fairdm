@@ -4,7 +4,7 @@ An organization page is the public page of one institution, funder, facility or 
 
 You reach it by selecting the organization's name on the [Organizations](../community/organizations.md) screen, or wherever it is named on a record or a profile. The address is `contributor/` followed by the organization's portal ID. Anyone can open it, signed in or not. The heading is the organization's name.
 
-A strip of page links near the top has **Overview**, **Projects** and **Datasets**. This page describes **Overview**. **Projects** and **Datasets** list the public projects and datasets the organization owns or is credited on.
+A strip of page links near the top has **Overview**, **Members**, **Projects** and **Datasets**. This page describes **Overview** and **Members**. **Projects** and **Datasets** list the public projects and datasets the organization owns or is credited on.
 
 ## The header
 
@@ -26,7 +26,7 @@ The controls depend on who you are:
 
 ## The figures
 
-Three counts: **Projects** and **Datasets**, which link to the two tabs, and **Members**. They cover public records only.
+Three counts, each linking to its tab: **Projects**, **Datasets** and **Members**. The project and dataset counts cover public records only.
 
 ## About
 
@@ -34,7 +34,7 @@ A card headed **About**, with the organization's description. When there is none
 
 ## Members
 
-A card headed **Members**, with a count. It lists the people with a current affiliation, ten at most. Each row shows the person's photo and name, `Since` and the year they joined, and an **Owner** or **Administrator** badge where it applies. When there are more, the last row reads `+` a number **other members**. When nobody is affiliated, the card says **Nobody has listed this organization as an affiliation yet.**
+A card headed **Members**, with a count. It lists the people with a current affiliation, ten at most. Each row shows the person's photo and name, `Since` and the year they joined, and an **Owner** or **Administrator** badge where it applies. When there are more, the last row reads `+` a number **other members** and opens the [Members tab](#the-members-tab). When nobody is affiliated, the card says **Nobody has listed this organization as an affiliation yet.**
 
 ## Projects and Datasets
 
@@ -53,6 +53,12 @@ A **Map** card is in the main column and **Recent activity** sits in the column 
 - **Links**, the organization's web pages, each named by its site. Without any, it says **No links have been added.**
 - A map of where the organization is based, when it has coordinates.
 - **Organization hierarchy**, which shows the organization it is part of, its siblings and its own sub-organizations. Without any, it says **No parent organization and no institutes, departments or groups are recorded for this organization.**
+
+## The Members tab
+
+The **Members** tab lists everyone with a current affiliation to the organization, on the same cards and with the same toolbar as the [People](../community/people.md) screen. The owner comes first, then the administrators, then the other members, each group in name order. People who have asked to join and not yet been accepted, and people who have left, are not listed.
+
+Anyone can open the tab, signed in or not. When nobody is affiliated, it says **Nobody has listed this organization as an affiliation yet.** A person's page has no Members tab.
 
 ## What you can do here
 

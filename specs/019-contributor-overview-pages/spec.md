@@ -12,7 +12,7 @@ identifiers for people, organisations and samples are carried through the record
 
 **Roadmap**: none. No roadmap item covers contributor pages. R9 delivered the contributor records
 these pages read, and the specification behind it (009) left their pages to a later one. This is
-that specification, for the overview page only.
+that specification, for the overview page and an organization's Members tab.
 
 **Input**: A person and an organization each need an overview page that matches the ones projects,
 datasets, samples and measurements got in specification 018. Today the first tab of a contributor's
@@ -229,6 +229,41 @@ they do not.
 
 ---
 
+### User Story 4 - A reader browses an organization's members from its page (Priority: P4)
+
+A visitor on an organization's page wants to know who works there, and the Members card shows only
+the first nine or ten. They follow the card's count of the others, or the Members figure, to the
+organization's Members tab. It lists every current member on the same cards the portal's People
+page uses: the owner first, then the administrators, then the other members, each group by name.
+People whose request to join has not been answered, and people who have left, are not listed.
+
+**Why this priority**: The overview already says who runs the organization and how many belong to
+it. The full list matters only once an organization has more members than the card has places.
+
+**Independent Test**: Load development data. Open the organization with more members than its card
+has places, follow the card's last place to the Members tab as a visitor and signed in, and compare
+the list with the organization's affiliations.
+
+**Acceptance Scenarios**:
+
+1. **Given** an organization with an owner, administrators and other members, **When** anyone
+   opens its Members tab, **Then** the owner is listed first, then the administrators, then the
+   other members, each group by name.
+2. **Given** an organization with pending and former members, **When** anyone opens its Members
+   tab, a pending or former member included, **Then** neither is listed.
+3. **Given** any organization, **When** a visitor or a signed-in person opens the Members tab,
+   **Then** it opens for them as the overview does.
+4. **Given** any organization, **When** its page is opened, **Then** the Members tab comes right
+   after the overview.
+5. **Given** a person, **When** their page is opened, **Then** there is no Members tab.
+6. **Given** an organization with no current members, **When** its page is opened, **Then** the
+   Members tab is still offered, and opening it says that nobody is listed.
+7. **Given** an organization with more members than the overview's Members card has places,
+   **When** its page is opened, **Then** the card's last place links to the Members tab, and the
+   Members figure links there too and equals the number of people the tab lists.
+
+---
+
 ### Edge Cases
 
 - A person may have an account and no credits at all. Their page still opens, and the record cards,
@@ -284,8 +319,8 @@ they do not.
 - **FR-011**: The pages MUST ship with these shown as not yet available: claiming a profile, editing
   a profile, writing a biography or description from the page, contacting a person, asking to join
   an organization, editing an organization's details, managing its members, refreshing it from ROR,
-  the full member list, a person's publications, a map of the samples a person or an organization's
-  members are credited on, and recent activity.
+  a person's publications, a map of the samples a person or an organization's members are credited
+  on, and recent activity.
 - **FR-012**: Each item in FR-011 MUST use the treatment the record pages use for a capability that
   is not available yet. It MUST NOT look or behave as if it works, and an action standing in for a
   missing one MUST be disabled and say why.
@@ -336,8 +371,8 @@ they do not.
 - **FR-025**: The header's actions MUST be sharing the page and the organization's address in the
   API. A signed-in person who is not a current member MUST also be offered asking to join. The
   people who keep the record MUST instead be offered the management menu (FR-031).
-- **FR-026**: The figures MUST be the organization's projects, its datasets and its current members.
-  Its projects are the public projects it owns and those it is credited on. Its datasets are the
+- **FR-026**: The figures MUST be the organization's projects, its datasets and its current members,
+  each linking to the matching tab. Its projects are the public projects it owns and those it is credited on. Its datasets are the
   public datasets it is credited on and those inside the projects it owns. Nothing is counted
   twice, and its members' own credits are not counted.
 - **FR-027**: The content column MUST carry, in order: the description; the members; a projects
@@ -350,7 +385,7 @@ they do not.
   the owner, then administrators, then other members, each group by name. Each entry MUST link to
   the person's page, say since when they have been a member where that is recorded, and mark the
   owner and the administrators. The card MUST have ten places. With more than ten members, the
-  tenth place MUST count those not shown.
+  tenth place MUST count those not shown and link to the Members tab (FR-034).
 - **FR-029**: The hierarchy card MUST show the organization's parent, the parent's sub-organizations
   with this organization marked among them, and this organization's direct sub-organizations, in
   name order. Every organization in it other than this one MUST link to its page. Without a parent,
@@ -377,8 +412,24 @@ they do not.
 - **FR-033**: The demo application MUST provide development data that reaches every state the two
   pages answer for: a complete profile, the signed-in user's own incomplete profile, an unclaimed
   profile, an inactive account, a person credited on nothing, a very long name and a name in a
-  non-Latin script; and an organization with everything recorded, one the signed-in user owns, and
-  one with nothing recorded. It MUST use the three standard development accounts.
+  non-Latin script; an organization with everything recorded, one the signed-in user owns, and
+  one with nothing recorded; and an organization with more members than its Members card has
+  places, among them an owner and an administrator, together with a pending and a former member.
+  It MUST use the three standard development accounts.
+
+**The Members tab**
+
+- **FR-034**: An organization's tabbed detail view MUST have a Members tab, right after the
+  overview. A person's MUST NOT.
+- **FR-035**: The Members tab MUST list the members FR-028 lists, all of them, in the same order,
+  on the cards the portal's People page uses. Pending and former members MUST NOT be listed, for
+  any viewer.
+- **FR-036**: The Members tab MUST open for exactly the viewers the organization's overview opens
+  for (FR-005).
+- **FR-037**: An organization with no current members MUST still have the tab, and the tab MUST say
+  that nobody is listed.
+- **FR-038**: The number of database queries the Members tab makes MUST NOT grow with the number of
+  members it lists.
 
 ### Key Entities
 

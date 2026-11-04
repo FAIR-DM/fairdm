@@ -77,7 +77,7 @@
   <c-stats cols="1" lg="3" aria-label="{% translate 'Organization at a glance' %}">
     <c-stats.item title="{% translate 'Projects' %}" value="{{ org_counts.projects|intcomma }}" href="{{ urls.projects }}" record="project" icon="project" />
     <c-stats.item title="{% translate 'Datasets' %}" value="{{ org_counts.datasets|intcomma }}" href="{{ urls.datasets }}" record="dataset" icon="dataset" />
-    <c-stats.item title="{% translate 'Members' %}" value="{{ org_counts.members|intcomma }}" icon="member" />
+    <c-stats.item title="{% translate 'Members' %}" value="{{ org_counts.members|intcomma }}" href="{{ urls.members }}" icon="member" />
   </c-stats>
 {% endblock overview.figures %}
 
@@ -121,10 +121,11 @@
             </li>
           {% endfor %}
           {% if members.more %}
-            {% comment %}Stands in for a link to the full member list, which has no page yet.{% endcomment %}
-            <li class="flex items-center gap-3 min-w-0 text-base-content/70" title="{% translate 'The full member list is not available yet.' %}">
-              <c-mvp.avatar placeholder="+{{ members.more }}" variant="neutral" size="md" alt="" />
-              <span>{% blocktranslate count counter=members.more %}+{{ counter }} other member{% plural %}+{{ counter }} other members{% endblocktranslate %}</span>
+            <li class="min-w-0">
+              <a href="{{ urls.members }}" class="flex items-center gap-3 min-w-0 link link-hover">
+                <c-mvp.avatar placeholder="+{{ members.more }}" variant="neutral" size="md" alt="" />
+                <span>{% blocktranslate count counter=members.more %}+{{ counter }} other member{% plural %}+{{ counter }} other members{% endblocktranslate %}</span>
+              </a>
             </li>
           {% endif %}
         </ul>
