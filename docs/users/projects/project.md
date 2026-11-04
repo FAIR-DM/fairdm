@@ -23,7 +23,7 @@ The header shows:
 - the project's leaders, each linked to their page. These are the people credited as Project Leader, then those credited as Project Manager.
 - the project's keywords
 - a **Cite** button, which jumps to the Citation card
-- a **Share** menu
+- a **Share** menu, which shares the project's permalink
 
 People who may change the project also see:
 

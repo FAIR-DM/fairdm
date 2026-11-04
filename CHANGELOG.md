@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that a portal or an addon declares at the root always wins over the link. `get_permalink(record,
   request=None)` in `fairdm.views.permalink` returns the link, and the `permalink` URL name reverses
   it. See [Permalinks](developers/reference/permalinks.md).
+- **The permalink is handed out on every record page.** The Identifiers card shows a Permalink row
+  beneath the Portal ID, with a button that copies the whole link, and every choice in the Share
+  menu, Copy link included, shares it. The citation of a dataset with no DOI, a sample with no IGSN
+  and a measurement with no DOI ends with it, and so does the DataCite export's related identifier.
+  A citation with a DOI or IGSN keeps it. The `permalink` template tag returns the link, and
+  `<c-card.identifiers>` takes it as its `permalink` attribute. django-mvp 0.33.2 or later is
+  required, because earlier releases copy the page's address from Copy link.
 - **A dataset, a project and a contributor have Samples and Measurements tabs.** Each lists the records one
   registered type at a time, in the table of that type, with its filters and search. A project's
   tabs list the records of all its datasets that the viewer may see, each row naming its dataset.

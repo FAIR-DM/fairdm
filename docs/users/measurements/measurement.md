@@ -24,7 +24,7 @@ The header shows:
 - Its keywords, as badges. These are keywords chosen from a controlled vocabulary.
 - Three buttons: **Cite**, which jumps to the Citation card, **Share**, and **Manage**.
 
-**Share** opens a menu headed "Share this page" with Facebook, X / Twitter, Reddit, Pinterest, **Email** and **Copy link**.
+**Share** opens a menu headed "Share this page" with Facebook, X / Twitter, Reddit, Pinterest, **Email** and **Copy link**. Every choice shares the measurement's permalink, and **Copy link** copies it.
 
 **Manage** opens a menu of the screens for changing the measurement. You see only the entries you may use. If you may use none, the button is left out.
 
@@ -96,7 +96,7 @@ A card headed **Identifiers** lists each identifier the measurement carries with
 
 ## Citation
 
-A card headed **Citation** gives the citation as plain text, and a **Copy** button copies it. The measurement is cited by the people credited with the Collection role, the year of its setup date (or the year it was added), its name, its type and the sample, and the DOI link or the page's address.
+A card headed **Citation** gives the citation as plain text, and a **Copy** button copies it. The measurement is cited by the people credited with the Collection role, the year of its setup date (or the year it was added), its name, its type and the sample, and the DOI link or, with no DOI, the measurement's permalink.
 
 A measurement with no DOI reads "Most measurements are cited through their dataset. This citation points at this page." with a **Cite the dataset** link to the dataset's Citation card.
 

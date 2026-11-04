@@ -41,6 +41,21 @@ get_permalink(dataset)  # "/d3xK...Wq/"
 get_permalink(dataset, request)  # "https://portal.example.org/d3xK...Wq/"
 ```
 
+## The `permalink` template tag
+
+`{% permalink record as permalink %}`, loaded with `{% load fairdm %}`, returns `get_permalink(record, request)` for the request in the template context. The overview pages call it once for the identifiers card and once for the Share menu.
+
+```django
+{% load fairdm %}
+{% permalink record as permalink %}
+<c-card.identifiers :identifiers="identifiers" portal_id="{{ record.uuid }}" permalink="{{ permalink }}" />
+<c-mvp.addons.share-dropdown url="{{ permalink }}" />
+```
+
+## The identifiers card's `permalink` attribute
+
+`<c-card.identifiers>` takes the absolute link as its `permalink` attribute. When it is set, a **Permalink** row beneath the Portal ID row shows the link, with a button that copies it. The card builds no address itself, and without the attribute it shows no Permalink row. The Share menu needs django-mvp 0.33.2 or later, whose **Copy link** copies the `url` it is given.
+
 ## A page shaped like a portal ID
 
 A page that a portal or an addon declares at the root always wins over the permalink, because the permalink route comes last. A declared root page whose path has the shape of a portal ID hides the link of any record with that ID. None of the words the framework or its addons use for pages has that shape.

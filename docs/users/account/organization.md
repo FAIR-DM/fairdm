@@ -14,7 +14,7 @@ The header shows:
 - a badge for its type, such as **Education**, when it has one
 - its name, followed by a ROR icon linking to its ROR record when it has a ROR identifier
 - the organization it is part of, its place and the languages it works in, each shown only when set
-- a **Share** menu and a **REST API** button, which opens the page as JSON
+- a **Share** menu, which shares the organization's permalink, and a **REST API** button, which opens the page as JSON
 - the controls for the people who keep the record, described next
 
 The controls depend on who you are:

@@ -23,7 +23,7 @@ The header shows:
 - a badge reading **Claimed profile**, **Unclaimed profile** or **Inactive account**, and a badge for each portal role the person holds
 - the person's name, followed by an ORCID icon when they have an ORCID iD. The icon links to the ORCID record and says when the iD is unauthenticated.
 - the organization the person is primarily affiliated with, the place of that organization and the languages the person works in, each shown only when set
-- a **Share** menu
+- a **Share** menu, which shares the person's permalink
 - a **REST API** button, which opens the profile as JSON
 - an **Edit profile** button, which only the person themselves sees, and a Community Manager for a profile nobody can sign in to. See [Edit profile](edit-profile.md).
 - a disabled **Contact** button, which everyone but the person sees

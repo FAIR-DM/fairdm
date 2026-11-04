@@ -48,7 +48,7 @@ No other identifier type is checked for its form.
 
 ## Where the identifiers appear
 
-The record's page lists every identifier in its **Identifiers** card. A DOI, or an IGSN that starts with `10.`, links to doi.org. The same card shows the record's **Local ID**, when it has one, and its **Portal ID**. A sample's citation uses its IGSN, and a measurement's uses its DOI. See [The sample page](../samples/sample.md) and [The measurement page](../measurements/measurement.md). For a project and a dataset, see [The project page](../projects/project.md) and [The dataset page](../datasets/dataset.md).
+The record's page lists every identifier in its **Identifiers** card. A DOI, or an IGSN that starts with `10.`, links to doi.org. The same card shows the record's **Local ID**, when it has one, and its **Portal ID**, with a button that copies it. Beneath the Portal ID, the **Permalink** row shows the record's permanent link, the portal's address followed by the portal ID, with a button that copies the whole link. The Share menu and the citation of a record with no DOI or IGSN use the same permalink. A sample's citation uses its IGSN, and a measurement's uses its DOI. See [The sample page](../samples/sample.md) and [The measurement page](../measurements/measurement.md). For a project and a dataset, see [The project page](../projects/project.md) and [The dataset page](../datasets/dataset.md).
 
 ## Saving
 

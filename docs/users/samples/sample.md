@@ -28,7 +28,7 @@ The header shows:
 - Its keywords, as badges. These are keywords chosen from a controlled vocabulary.
 - Three buttons: **Cite**, which jumps to the Citation card, **Share**, and **Manage**.
 
-**Share** opens a menu headed "Share this page" with Facebook, X / Twitter, Reddit, Pinterest, **Email** and **Copy link**.
+**Share** opens a menu headed "Share this page" with Facebook, X / Twitter, Reddit, Pinterest, **Email** and **Copy link**. Every choice shares the sample's permalink, and **Copy link** copies it.
 
 **Manage** opens a menu of the screens for changing the sample. You see only the entries you may use. If you may use none, the button is left out.
 
@@ -101,7 +101,7 @@ A card headed **Identifiers** lists each identifier the sample carries with its 
 
 ## Citation
 
-A card headed **Citation** gives the citation as plain text, and a **Copy** button copies it. The sample is cited by the people credited as Collector, the year of its collection date (or the year it was added), its name and type, and the IGSN link or the page's address.
+A card headed **Citation** gives the citation as plain text, and a **Copy** button copies it. The sample is cited by the people credited as Collector, the year of its collection date (or the year it was added), its name and type, and the IGSN link or, with no IGSN, the sample's permalink.
 
 A sample with no IGSN reads "This sample has no IGSN, so the citation points at this page. An IGSN gives the physical specimen an identifier that outlives the portal."
 
