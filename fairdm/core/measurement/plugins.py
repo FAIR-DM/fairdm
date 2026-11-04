@@ -246,9 +246,7 @@ class Overview(TypedOverviewPlugin):
                 ),
                 year=getattr(setup, "year", None) or measurement.added.year,
                 title=title,
-                link=doi["link"]
-                if doi
-                else get_permalink(measurement, self.request),
+                link=doi["link"] if doi else get_permalink(measurement, self.request),
             ),
         }
         if not doi:

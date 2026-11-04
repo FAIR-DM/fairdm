@@ -251,9 +251,7 @@ class Overview(TypedOverviewPlugin):
             ),
             year=getattr(collected, "year", None) or sample.added.year,
             title=f"{sample.name} [{type(sample)._meta.verbose_name}]",
-            link=igsn["link"]
-            if igsn
-            else get_permalink(sample, self.request),
+            link=igsn["link"] if igsn else get_permalink(sample, self.request),
         )
         citation = {"title": gettext("Citation"), "text": text}
         if not igsn:

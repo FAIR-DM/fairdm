@@ -563,11 +563,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         doi = next(
             (i.value for i in dataset.identifiers.all() if i.type_id == DOI), None
         )
-        link = (
-            f"https://doi.org/{doi}"
-            if doi
-            else get_permalink(dataset, self.request)
-        )
+        link = f"https://doi.org/{doi}" if doi else get_permalink(dataset, self.request)
         return {
             "text": self.get_citation(
                 authors=creators, year=year, title=dataset.name, link=link
