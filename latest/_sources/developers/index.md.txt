@@ -245,6 +245,7 @@ reference/model-configuration
 reference/model-fields
 reference/overview-page-blocks
 reference/overview-plugins
+reference/permalinks
 reference/plugins
 reference/portal-roles
 reference/profile-claiming

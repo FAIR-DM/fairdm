@@ -87,6 +87,10 @@
   - ```{autodoc2-docstring} fairdm.templatetags.fairdm.get_related_field
     :summary:
     ```
+* - {py:obj}`permalink <fairdm.templatetags.fairdm.permalink>`
+  - ```{autodoc2-docstring} fairdm.templatetags.fairdm.permalink
+    :summary:
+    ```
 ````
 
 ### Data
@@ -271,5 +275,12 @@ Bases: {py:obj}`pint.delegates.formatter.plain.PrettyFormatter`
 :canonical: fairdm.templatetags.fairdm.get_related_field
 
 ```{autodoc2-docstring} fairdm.templatetags.fairdm.get_related_field
+```
+````
+
+````{py:function} permalink(context, record)
+:canonical: fairdm.templatetags.fairdm.permalink
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.permalink
 ```
 ````

@@ -4500,8 +4500,6 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.core.project.transforms.html#module-fairdm.core.project.transforms">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     fairdm.core.project.urls
 
@@ -4509,6 +4507,8 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.core.project.urls.html#module-fairdm.core.project.urls">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     fairdm.core.project.validators
 
@@ -4969,6 +4969,13 @@ window.runMermaid = runMermaid;</script>
 
       <ul>
         <li><a href="developers/reference/api/fairdm/fairdm.views.mixins.html#module-fairdm.views.mixins">module</a>
+</li>
+      </ul></li>
+      <li>
+    fairdm.views.permalink
+
+      <ul>
+        <li><a href="developers/reference/api/fairdm/fairdm.views.permalink.html#module-fairdm.views.permalink">module</a>
 </li>
       </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.conf.settings.addons.html#fairdm.conf.settings.addons.FAIRDM_ALLOWED_IDENTIFIERS">FAIRDM_ALLOWED_IDENTIFIERS (in module fairdm.conf.settings.addons)</a>
@@ -6171,6 +6178,8 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.core.plugins.html#fairdm.core.plugins.RecordOverviewPlugin.get_people">(RecordOverviewPlugin method)</a>
 </li>
       </ul></li>
+      <li><a href="developers/reference/api/fairdm/fairdm.views.permalink.html#fairdm.views.permalink.get_permalink">get_permalink() (in module fairdm.views.permalink)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.utils.html#fairdm.core.utils.get_permission_target">get_permission_target() (in module fairdm.core.utils)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.utils.html#fairdm.core.utils.get_perms">get_perms() (in module fairdm.core.utils)</a>
@@ -6276,7 +6285,11 @@ window.runMermaid = runMermaid;</script>
 </li>
       </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.measurement.views.html#fairdm.core.measurement.views.FormerAddressRedirect.get_redirect_url">get_redirect_url() (FormerAddressRedirect method)</a>
+
+      <ul>
+        <li><a href="developers/reference/api/fairdm/fairdm.views.permalink.html#fairdm.views.permalink.PermalinkView.get_redirect_url">(PermalinkView method)</a>
 </li>
+      </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.templatetags.fairdm.html#fairdm.templatetags.fairdm.get_registry_info">get_registry_info() (in module fairdm.templatetags.fairdm)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.templatetags.fairdm.html#fairdm.templatetags.fairdm.get_related_field">get_related_field() (in module fairdm.templatetags.fairdm)</a>
@@ -8571,6 +8584,8 @@ window.runMermaid = runMermaid;</script>
 </li>
         <li><a href="developers/reference/api/fairdm/fairdm.views.mixins.html#module-fairdm.views.mixins">fairdm.views.mixins</a>
 </li>
+        <li><a href="developers/reference/api/fairdm/fairdm.views.permalink.html#module-fairdm.views.permalink">fairdm.views.permalink</a>
+</li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -8932,10 +8947,10 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.api.viewsets.html#fairdm.api.viewsets.ProjectViewSet.ordering_fields">(ProjectViewSet attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reference/glossary.html#term-Organization"><strong>Organization</strong></a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Affiliation.organization">organization (Affiliation attribute)</a>
 
       <ul>
@@ -9041,6 +9056,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.shared.html#fairdm.contrib.contributors.plugins.shared.ContributionPage.overview">overview (ContributionPage property)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.editing.html#fairdm.core.editing.RecordEditingPage.overview_for">overview_for() (RecordEditingPage static method)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.views.permalink.html#fairdm.views.permalink.OVERVIEW_URL_NAMES">OVERVIEW_URL_NAMES (in module fairdm.views.permalink)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.plugins.html#fairdm.core.plugins.OverviewPlugin">OverviewPlugin (class in fairdm.core.plugins)</a>
 </li>
@@ -9250,10 +9267,16 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.api.viewsets.html#fairdm.api.viewsets.BaseViewSet.perform_update">perform_update() (BaseViewSet method)</a>
 </li>
+      <li><a href="developers/reference/api/fairdm/fairdm.templatetags.fairdm.html#fairdm.templatetags.fairdm.permalink">permalink() (in module fairdm.templatetags.fairdm)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.views.permalink.html#fairdm.views.permalink.PermalinkView">PermalinkView (class in fairdm.views.permalink)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.measurement.views.html#fairdm.core.measurement.views.FormerAddressRedirect.permanent">permanent (FormerAddressRedirect attribute)</a>
 
       <ul>
         <li><a href="developers/reference/api/fairdm/fairdm.core.sample.plugins.html#fairdm.core.sample.plugins.OverviewRedirect.permanent">(OverviewRedirect attribute)</a>
+</li>
+        <li><a href="developers/reference/api/fairdm/fairdm.views.permalink.html#fairdm.views.permalink.PermalinkView.permanent">(PermalinkView attribute)</a>
 </li>
       </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.plugins.base.html#fairdm.contrib.plugins.base.Plugin.permission">permission (Plugin attribute)</a>
@@ -9415,6 +9438,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="reference/glossary.html#term-Portal-user"><strong>Portal user</strong></a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.portal_roles.html#fairdm.portal_roles.PortalRoles.PORTAL_ADMINISTRATOR">PORTAL_ADMINISTRATOR (PortalRoles attribute)</a>
+</li>
+      <li><a href="developers/reference/api/fairdm/fairdm.views.permalink.html#fairdm.views.permalink.PORTAL_ID_PATTERN">PORTAL_ID_PATTERN (in module fairdm.views.permalink)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.models.html#fairdm.contrib.contributors.models.Person.portal_roles">portal_roles (Person property)</a>
 </li>
@@ -9710,14 +9735,18 @@ window.runMermaid = runMermaid;</script>
       </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.db.fields.html#fairdm.db.fields.QuantityField">QuantityField (class in fairdm.db.fields)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developers/reference/api/fairdm/fairdm.forms.fields.html#fairdm.forms.fields.QuantityFormField">QuantityFormField (class in fairdm.forms.fields)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="developers/reference/api/fairdm/fairdm.forms.fields.html#fairdm.forms.fields.QuantityFormFieldMixin">QuantityFormFieldMixin (class in fairdm.forms.fields)</a>
 </li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.sample.plugins.html#fairdm.core.sample.plugins.OverviewRedirect.query_string">query_string (OverviewRedirect attribute)</a>
+
+      <ul>
+        <li><a href="developers/reference/api/fairdm/fairdm.views.permalink.html#fairdm.views.permalink.PermalinkView.query_string">(PermalinkView attribute)</a>
 </li>
+      </ul></li>
       <li><a href="developers/reference/api/fairdm/fairdm.contrib.contributors.plugins.organisation.html#fairdm.contrib.contributors.plugins.organisation.OrganizationMembers.queryset">queryset (OrganizationMembers attribute)</a>
 
       <ul>
@@ -11340,6 +11369,8 @@ window.runMermaid = runMermaid;</script>
         <li><a href="developers/reference/api/fairdm/fairdm.core.sample.models.html#fairdm.core.sample.models.Sample.uuid">(Sample attribute)</a>
 </li>
       </ul></li>
+      <li><a href="developers/reference/api/fairdm/fairdm.views.permalink.html#fairdm.views.permalink.UUID_FIELDS">UUID_FIELDS (in module fairdm.views.permalink)</a>
+</li>
       <li><a href="developers/reference/api/fairdm/fairdm.core.utils.html#fairdm.core.utils.UUID_RE_PATTERN">UUID_RE_PATTERN (in module fairdm.core.utils)</a>
 </li>
   </ul></td>

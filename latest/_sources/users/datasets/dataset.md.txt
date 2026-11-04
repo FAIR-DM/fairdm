@@ -1,6 +1,6 @@
 # The dataset page
 
-A dataset's page is where you land when you open a dataset. Its heading is the dataset's name. The page says what the dataset is, whether its data is published, under which licence, what it holds, when each step of its life happened, how to cite it and who made it. It is also where the people who work on the dataset reach every other dataset screen. Open it from a card on [Datasets](datasets.md), from a project's page, from a link on a person's or organization's page, or by saving a new dataset.
+A dataset's page is where you land when you open a dataset. Its heading is the dataset's name. The page says what the dataset is, whether its data is published, under which licence, what it holds, when each step of its life happened, how to cite it and who made it. It is also where the people who work on the dataset reach every other dataset screen. Open it from a card on [Datasets](datasets.md), from a project's page, from a link on a person's or organization's page, or by saving a new dataset. The dataset's portal ID, written after the portal's address, also opens it: `/` followed by the portal ID takes you to the page.
 
 Who may open the page depends on the dataset's visibility and the level you hold on it. A private dataset answers a stranger as though it did not exist. A dataset in a private project is closed the same way, whatever its own visibility. Any other public dataset opens for everyone, but its samples and measurements stay hidden from everyone but its team until the dataset is published. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md) and [Dataset publication, DOIs and DataCite metadata](../../explanation/dataset-publication-dois-and-datacite-metadata.md).
 
@@ -23,7 +23,7 @@ The header shows:
 - the dataset's creators, each linked to their page. These are the people credited as Creator.
 - the dataset's keywords
 - a **Cite** button, which jumps to the Citation card
-- a **Share** menu
+- a **Share** menu, which shares the dataset's permalink
 
 People who may change the dataset also see a **Manage** menu. It lists the editing screens you may use, in this order:
 
@@ -78,8 +78,8 @@ The narrow column holds these cards, from the top:
     - **For machines**, with a **REST API** button that opens the dataset in the API. See [API documentation](../api/api-docs.md).
 - **Timeline**, the dataset's key dates in the order they happened. The steps are Collected (with its end date, or "ongoing"), Added to the portal, Submitted, Published, Available from and Withdrawn. A step with no date is left out, and Added to the portal is always there. A date appears as precisely as it was entered: a day, a month and year, or a year.
 - **People**, a grid of faces with the name on hover, each linked to the person's page. A line counts those not shown. With nobody credited it says "No one is credited yet."
-- **Identifiers**, a table of the dataset's identifiers by type, with a DOI linked to doi.org, and the **Portal ID** with a button that copies it.
-- **Citation**, the citation written as Creators (Year). Title. Publisher. Identifier. The year is the publication date, else the date it became available, else the year the dataset was added. The identifier is the DOI link, or the address of the page. When the dataset has a data publication, the card cites that publication and says to cite it rather than the page. With neither, a note says the citation points at the page and will use the DOI once one is recorded on [Identifiers](../editing-a-record/identifiers.md). A **Copy** button copies the text.
+- **Identifiers**, a table of the dataset's identifiers by type, with a DOI linked to doi.org, and the **Portal ID** with a button that copies it. A **Permalink** row beneath it shows the dataset's permanent link with a button that copies the whole link.
+- **Citation**, the citation written as Creators (Year). Title. Publisher. Identifier. The year is the publication date, else the date it became available, else the year the dataset was added. The identifier is the DOI link or, with no DOI, the dataset's permalink. When the dataset has a data publication, the card cites that publication and says to cite it rather than the page. With neither, a note says the citation points at the page and will use the DOI once one is recorded on [Identifiers](../editing-a-record/identifiers.md). A **Copy** button copies the text.
 - **Related publications**, each with a badge for how it relates to the dataset, such as "Describes this dataset", its title linked to its DOI and its year. With none, people who may change the dataset see "No publications linked. The paper that describes this data is the one reusers look for first." Everyone else sees "No publications are linked to this dataset." None of the editing screens changes this list.
 
 ## What you can do here

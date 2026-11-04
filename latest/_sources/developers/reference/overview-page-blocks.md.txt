@@ -31,7 +31,7 @@ The blocks are listed in page order. An indented block sits inside the block abo
 | `overview.name` | Header: the name inside the heading. Defaults to `record_title`, else `record.name`. |
 | `overview.byline` | Header: the people behind the record, from `header_people`, each linked to their page. |
 | `overview.keywords` | Header: the record's keywords. |
-| `overview.actions` | Header: the buttons. Cite and Share, then `overview.manage`. |
+| `overview.actions` | Header: the buttons. Cite and Share, then `overview.manage`. The Share menu is given the record's [permalink](permalinks.md) from the `permalink` tag, so a block that replaces this one without `{{ block.super }}` has to call the tag itself. |
 | `overview.manage` | Inside the actions: the [`c-actions.manage`](components.md#c-actionsmanage) menu, fed by `manage_menu`. |
 | `overview.figures` | The strip of figures. Empty on the shared page. |
 | `overview.main` | The wide column. Empty on the shared page. |
@@ -41,7 +41,7 @@ The blocks are listed in page order. An indented block sits inside the block abo
 | `overview.details_extra` | Inside Details: entries a record adds. |
 | `overview.timeline` | Key dates in the record's life. Empty on the shared page. |
 | `overview.people` | [`c-card.people`](components.md#c-cardpeople), fed by `people` and `people_url`. |
-| `overview.identifiers` | [`c-card.identifiers`](components.md#c-cardidentifiers), fed by `identifiers`, `record.uuid` and `record.local_id`. |
+| `overview.identifiers` | [`c-card.identifiers`](components.md#c-cardidentifiers), fed by `identifiers`, `record.uuid`, `record.local_id` and the record's [permalink](permalinks.md) from the `permalink` tag. A block that replaces it without `{{ block.super }}` loses the Permalink row unless it calls the tag. |
 | `overview.funding` | [`c-card.funding`](components.md#c-cardfunding), drawn when `funding` is not `None`. |
 | `overview.cite` | [`c-card.citation`](components.md#c-cardcitation), fed by `citation`. |
 | `overview.record_facts` | Cards particular to the record. Empty on the shared page. |
@@ -53,7 +53,8 @@ A block that wraps other blocks (`overview.main`, `overview.side`, `overview.det
 
 | Entry | Read by |
 |---|---|
-| `record` | `overview.image`, `overview.keywords`, `overview.identifiers`. |
+| `record` | `overview.image`, `overview.keywords`, `overview.actions`, `overview.identifiers`. |
+| `request` | `overview.actions`, `overview.identifiers`: the `permalink` tag reads it to build the absolute link. |
 | `overview_icon` | `overview.image`, when the record has no image. |
 | `record_title` | `overview.name`. |
 | `header_people`, `header_people_label` | `overview.byline`. |

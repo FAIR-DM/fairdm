@@ -1,0 +1,137 @@
+# {py:mod}`fairdm.views.permalink`
+
+```{py:module} fairdm.views.permalink
+```
+
+```{autodoc2-docstring} fairdm.views.permalink
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`PermalinkView <fairdm.views.permalink.PermalinkView>`
+  - ```{autodoc2-docstring} fairdm.views.permalink.PermalinkView
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`get_permalink <fairdm.views.permalink.get_permalink>`
+  - ```{autodoc2-docstring} fairdm.views.permalink.get_permalink
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`UUID_FIELDS <fairdm.views.permalink.UUID_FIELDS>`
+  - ```{autodoc2-docstring} fairdm.views.permalink.UUID_FIELDS
+    :summary:
+    ```
+* - {py:obj}`PORTAL_ID_PATTERN <fairdm.views.permalink.PORTAL_ID_PATTERN>`
+  - ```{autodoc2-docstring} fairdm.views.permalink.PORTAL_ID_PATTERN
+    :summary:
+    ```
+* - {py:obj}`OVERVIEW_URL_NAMES <fairdm.views.permalink.OVERVIEW_URL_NAMES>`
+  - ```{autodoc2-docstring} fairdm.views.permalink.OVERVIEW_URL_NAMES
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} UUID_FIELDS
+:canonical: fairdm.views.permalink.UUID_FIELDS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.views.permalink.UUID_FIELDS
+```
+
+````
+
+````{py:data} PORTAL_ID_PATTERN
+:canonical: fairdm.views.permalink.PORTAL_ID_PATTERN
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.views.permalink.PORTAL_ID_PATTERN
+```
+
+````
+
+````{py:data} OVERVIEW_URL_NAMES
+:canonical: fairdm.views.permalink.OVERVIEW_URL_NAMES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.views.permalink.OVERVIEW_URL_NAMES
+```
+
+````
+
+````{py:function} get_permalink(record, request=None) -> str
+:canonical: fairdm.views.permalink.get_permalink
+
+```{autodoc2-docstring} fairdm.views.permalink.get_permalink
+```
+````
+
+`````{py:class} PermalinkView(**kwargs)
+:canonical: fairdm.views.permalink.PermalinkView
+
+Bases: {py:obj}`django.views.generic.RedirectView`
+
+```{autodoc2-docstring} fairdm.views.permalink.PermalinkView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.views.permalink.PermalinkView.__init__
+```
+
+````{py:attribute} permanent
+:canonical: fairdm.views.permalink.PermalinkView.permanent
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.views.permalink.PermalinkView.permanent
+```
+
+````
+
+````{py:attribute} query_string
+:canonical: fairdm.views.permalink.PermalinkView.query_string
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.views.permalink.PermalinkView.query_string
+```
+
+````
+
+````{py:method} get_redirect_url(*args, **kwargs)
+:canonical: fairdm.views.permalink.PermalinkView.get_redirect_url
+
+```{autodoc2-docstring} fairdm.views.permalink.PermalinkView.get_redirect_url
+```
+
+````
+
+`````

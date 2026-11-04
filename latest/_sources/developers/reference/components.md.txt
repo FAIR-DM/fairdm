@@ -131,6 +131,7 @@ Every identifier the record carries as a small table, then the team's own ID and
 | `identifiers` | list | | Dictionaries with `type`, `value` and `link`. A `link` makes the value a link. |
 | `portal_id` | string | | The record's portal ID. |
 | `local_id` | string | | The team's own ID for the record. |
+| `permalink` | string | | The record's absolute [permalink](permalinks.md), drawn as a row beneath the portal ID with a button that copies it. |
 | `class` | string | | Extra classes on the card. |
 
 ### `c-card.location`
