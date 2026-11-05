@@ -75,6 +75,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **The portal-wide listing of a sample or measurement type no longer replaces the `page` context
   variable.** `page.title` is the type's plural name and `page.breadcrumbs` comes from the view.
 
+### Fixed
+
+- **The FairDM logo is no longer clipped at the top.** The horizontal logo in the portal header
+  (`brand/logo.svg` and `brand/logo_dark.svg`) and in the documentation's navigation bar drew its
+  symbol 17% too tall, so the top of the symbol fell outside the image. Both now use the redrawn
+  logo, at its correct proportions.
+- **The favicon is the FairDM symbol.** `brand/favicon.svg` and every favicon and app icon under
+  `assets/logo/web/` (the ICO, the 16, 32 and 48 pixel PNGs, the Apple touch icon, the 192 and 512
+  pixel icons and the maskable icon) are redrawn from the same symbol as the rest of the logo set.
+  The narrow small-size cut of the symbol, `fairdm-symbol-small.svg` and its dark version, is
+  withdrawn from `assets/logo/`.
+
 ### Removed
 
 - **A project's Export tab.** It held only placeholder text. Its address now answers "not found".
