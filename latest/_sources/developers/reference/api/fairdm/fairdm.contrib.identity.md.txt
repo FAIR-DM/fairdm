@@ -15,6 +15,6 @@
 
 fairdm.contrib.identity.admin
 fairdm.contrib.identity.models
-fairdm.contrib.identity.apps
 fairdm.contrib.identity.forms
+fairdm.contrib.identity.apps
 ```

@@ -130,7 +130,7 @@ Bases: {py:obj}`fairdm.views.FairDMTableView`
 
 ````
 
-````{py:method} get_listing_entries(models)
+````{py:method} get_listing_entries()
 :canonical: fairdm.contrib.collections.views.DataTableView.get_listing_entries
 
 ```{autodoc2-docstring} fairdm.contrib.collections.views.DataTableView.get_listing_entries

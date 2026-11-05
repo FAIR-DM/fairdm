@@ -13,14 +13,14 @@
 :titlesonly:
 :maxdepth: 3
 
-fairdm.contrib.plugins
-fairdm.contrib.identity
 fairdm.contrib.autocomplete
-fairdm.contrib.location
-fairdm.contrib.import_export
-fairdm.contrib.contributors
-fairdm.contrib.collections
 fairdm.contrib.admin
+fairdm.contrib.collections
+fairdm.contrib.plugins
+fairdm.contrib.contributors
+fairdm.contrib.location
+fairdm.contrib.identity
+fairdm.contrib.import_export
 ```
 
 ## Package Contents

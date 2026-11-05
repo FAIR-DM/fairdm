@@ -102,7 +102,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.5.0" />
-    <meta name="docbuild:last-update" content="Nov 04, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 05, 2026"/>
   
     
     <script src="_static/searchtools.js"></script>
@@ -852,6 +852,15 @@ list.</p></li>
 <section id="changed">
 <h3>Changed<a class="headerlink" href="#changed" title="Link to this heading">#</a></h3>
 <ul class="simple">
+<li><p><strong>A sample or measurement collection is headed like a Samples or Measurements tab.</strong> The
+heading is the type’s name, underlined in its kind’s colour, and is itself the menu of the other
+collections of the same kind, each with its count of published records, most first. A sample
+collection no longer offers measurement collections, nor the reverse. The <strong>Switch</strong> button at
+the end of the toolbar is gone. Both pages draw the heading with <code class="docutils literal notranslate"><span class="pre">&lt;c-list.type-heading&gt;</span></code>, which
+takes the types as <code class="docutils literal notranslate"><span class="pre">entries</span></code>.</p></li>
+<li><p><strong>A record’s active tab is underlined in the colour of the record’s type</strong> rather than filled.
+A person’s or organization’s tabs use the primary colour.</p></li>
+<li><p><strong>A project’s Datasets tab is labelled Datasets.</strong></p></li>
 <li><p><strong>Every place that shows a core record type draws it in that type’s colour.</strong> Project is the
 brand blue, Dataset violet, Sample yellow and Measurement deep green. The colour now marks the
 top of each overview page, the record’s badge in its header, the figures on overview pages,

@@ -27,6 +27,10 @@
 :class: autosummary longtable
 :align: left
 
+* - {py:obj}`record_kind <fairdm.contrib.plugins.base.record_kind>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.base.record_kind
+    :summary:
+    ```
 * - {py:obj}`record_crumb_class <fairdm.contrib.plugins.base.record_crumb_class>`
   - ```{autodoc2-docstring} fairdm.contrib.plugins.base.record_crumb_class
     :summary:
@@ -262,6 +266,13 @@ Bases: {py:obj}`django.contrib.auth.mixins.PermissionRequiredMixin`, {py:obj}`dj
 ````
 
 `````
+
+````{py:function} record_kind(model: type[django.db.models.Model] | None) -> str
+:canonical: fairdm.contrib.plugins.base.record_kind
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.record_kind
+```
+````
 
 ````{py:function} record_crumb_class(model: type[django.db.models.Model] | None) -> str
 :canonical: fairdm.contrib.plugins.base.record_crumb_class

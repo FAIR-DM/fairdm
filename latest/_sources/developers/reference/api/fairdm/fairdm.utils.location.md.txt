@@ -13,9 +13,9 @@
 :titlesonly:
 :maxdepth: 1
 
-fairdm.utils.location.db
-fairdm.utils.location.coverage
 fairdm.utils.location.resources
 fairdm.utils.location.managers
 fairdm.utils.location.forms
+fairdm.utils.location.coverage
+fairdm.utils.location.db
 ```

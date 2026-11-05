@@ -14,7 +14,7 @@
 :maxdepth: 1
 
 fairdm.views.base
-fairdm.views.generic
 fairdm.views.mixins
 fairdm.views.permalink
+fairdm.views.generic
 ```

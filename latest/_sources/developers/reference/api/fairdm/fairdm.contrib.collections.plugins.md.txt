@@ -606,7 +606,7 @@ Bases: {py:obj}`fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin`, {py:o
 
 ````
 
-````{py:method} get_listing_entries(models)
+````{py:method} get_listing_entries()
 :canonical: fairdm.contrib.collections.plugins.RecordsTab.get_listing_entries
 
 ```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.get_listing_entries
