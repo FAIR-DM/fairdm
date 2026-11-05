@@ -1,0 +1,38 @@
+{% comment %}
+  <c-list.type-heading> — the heading of a page listing one sample or measurement type.
+
+  The heading names the type shown, underlined in the colour of its kind. Given a slot of menu
+  items, the heading is also the switcher between types: a dropdown in the title's place, with a
+  caret. Without one it is a plain heading.
+
+  Attributes:
+    name  – the type's plural name
+    kind  – "sample" or "measurement", which sets the underline colour
+    label – accessible name for the menu of types
+    boost – swap the page's <main> in place when a type is chosen, rather than load a new page
+{% endcomment %}
+<c-vars name kind label boost />
+{% if slot %}
+  <h1 class="text-xl font-semibold leading-tight min-w-0">
+    <c-mvp.dropdown id="type-switcher" class="min-w-0">
+      <c-slot name="button">
+        <button type="button"
+                aria-haspopup="menu"
+                aria-controls="type-switcher-menu"
+                class="inline-flex items-center gap-1 px-2 py-1 rounded-box cursor-pointer font-semibold hover:bg-base-200 focus-visible:outline-2 focus-visible:outline-offset-2"
+                style="margin-inline: -0.5rem">
+          <span class="truncate record-title record-{{ kind }}">{{ name }}</span>
+          <c-icon name="chevron-down" class="text-base text-base-content/60" aria-hidden="true" />
+        </button>
+      </c-slot>
+      <div id="type-switcher-menu"
+           {% if boost %}hx-boost="true" hx-target="main" hx-select="main" hx-swap="outerHTML"{% endif %}>
+        <c-menu class="w-full" aria-label="{{ label }}">
+          {{ slot }}
+        </c-menu>
+      </div>
+    </c-mvp.dropdown>
+  </h1>
+{% else %}
+  <h1 class="text-xl font-semibold leading-tight truncate"><span class="record-title record-{{ kind }}">{{ name }}</span></h1>
+{% endif %}

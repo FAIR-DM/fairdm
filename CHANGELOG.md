@@ -45,6 +45,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **A sample or measurement collection is headed like a Samples or Measurements tab.** The
+  heading is the type's name, underlined in its kind's colour, and is itself the menu of every
+  other collection. The **Switch** button at the end of the toolbar is gone. Both pages draw the
+  heading with `<c-list.type-heading>`.
+- **A record's active tab is underlined in the colour of the record's type** rather than filled.
+  A person's or organization's tabs use the primary colour.
+- **A project's Datasets tab is labelled Datasets.**
 - **Every place that shows a core record type draws it in that type's colour.** Project is the
   brand blue, Dataset violet, Sample yellow and Measurement deep green. The colour now marks the
   top of each overview page, the record's badge in its header, the figures on overview pages,

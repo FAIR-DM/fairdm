@@ -500,8 +500,8 @@ class TestSwitcher:
         response = client.get(current_url)
 
         content = response.content.decode()
-        assert 'id="listing-switcher"' in content
-        switcher = content.split('id="listing-switcher"', 1)[1]
+        assert 'id="type-switcher"' in content
+        switcher = content.split('id="type-switcher"', 1)[1]
         for url in self._all_listing_urls() - {current_url}:
             assert f'href="{url}"' in switcher
 
@@ -579,7 +579,7 @@ class TestSwitcher:
             }
         ]
         assert response.context["measurement_listings"] == []
-        assert 'id="listing-switcher"' not in response.content.decode()
+        assert 'id="type-switcher"' not in response.content.decode()
 
 
 @pytest.mark.django_db

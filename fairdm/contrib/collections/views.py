@@ -63,9 +63,10 @@ class DataTableView(FairDMTableView):
         return queryset
 
     def get_context_data(self, **kwargs):
-        """Add the registry, the sample and measurement switcher entries and the page title."""
+        """Add the registry, the listed kind and the sample and measurement switcher entries."""
         context = super().get_context_data(**kwargs)
         context["registry"] = registry
+        context["kind"] = "measurement" if self.model in registry.measurements else "sample"
         context["sample_listings"] = self.get_listing_entries(registry.samples)
         context["measurement_listings"] = self.get_listing_entries(
             registry.measurements

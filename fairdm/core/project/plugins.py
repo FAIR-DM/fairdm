@@ -530,7 +530,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         return rows
 
 
-@plugins.register(Project, order=100)
+@plugins.register(Project, label=_("Datasets"), icon="dataset", order=100)
 class DatasetList(PrivateRecordNotFoundMixin, Plugin, DatasetListView):
     """List the datasets that belong to the project."""
 
