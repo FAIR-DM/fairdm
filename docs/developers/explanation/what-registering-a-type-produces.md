@@ -36,7 +36,7 @@ Registration also changes the portal around the components. For each type the po
 
 - A listing page at `collections/samples/<model name>/` or `collections/measurements/<model name>/`, under the URL name `<model name>-list`. See [ADR 0017](../../adr/0017-listings-are-addressed-and-named-apart-from-records.md).
 - An entry in the menu, named by the model's `verbose_name_plural`, under **Samples** or **Measurements**.
-- A switcher on each listing that offers the listing of every other type.
+- A switcher in each listing's heading that offers the listing of every other type of the same kind.
 - A card on the home page, with the type's description and the number of records that a visitor who is not signed in can see.
 - API endpoints at `api/v1/samples/<plural name>/` or `api/v1/measurements/<plural name>/`, where the plural name is `verbose_name_plural` in lower case with hyphens. They appear in the API documentation with the description, authority, citation and keywords from the configuration's metadata.
 - An administration page, and a place in the polymorphic list of all samples or all measurements.

@@ -535,7 +535,7 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
                 filter_.extra["scope"] = "public"
         return filterset
 
-    def get_listing_entries(self, models):
+    def get_listing_entries(self):
         """Offer no switcher between the portal's listings: this page has its own."""
         return []
 

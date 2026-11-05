@@ -1,10 +1,15 @@
 """Tabular listing view for the registered sample and measurement types."""
 
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ImproperlyConfigured
+from django.db.models import Count
 from django.urls import NoReverseMatch, path, reverse
+from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
 from django_filters.filterset import FilterSet
 
+from fairdm.core.measurement.models import Measurement
+from fairdm.core.sample.models import Sample
 from fairdm.registry import registry
 from fairdm.registry.factories import PublishedChoicesMixin
 from fairdm.views import FairDMTableView
@@ -63,28 +68,40 @@ class DataTableView(FairDMTableView):
         return queryset
 
     def get_context_data(self, **kwargs):
-        """Add the registry, the sample and measurement switcher entries and the page title."""
+        """Add the registry, the listed kind and the switcher's entries."""
         context = super().get_context_data(**kwargs)
         context["registry"] = registry
-        context["sample_listings"] = self.get_listing_entries(registry.samples)
-        context["measurement_listings"] = self.get_listing_entries(
-            registry.measurements
+        context["kind"] = (
+            "measurement" if self.model in registry.measurements else "sample"
         )
+        context["type_entries"] = self.get_listing_entries()
         return context
 
     def get_page_title(self):
         """Return the listed type's plural name."""
         return self.model_config.get_verbose_name_plural()
 
-    def get_listing_entries(self, models):
-        """Build the switcher entries for samples or measurements.
+    def get_listing_entries(self):
+        """Build the switcher entries: every listing of the same kind, most records first.
 
-        Args:
-            models: The registered model classes of one kind.
+        A tie is broken by the types' names, so the order is stable. A type with no published
+        records is still offered, with a count of nought.
 
         Returns:
-            One ``{name, url, is_current}`` dict per model with a ``<slug>-list`` route.
+            One ``{name, url, count, is_current}`` dict per sample type, or per measurement
+            type, with a ``<slug>-list`` route.
         """
+        if self.model in registry.measurements:
+            models, base = registry.measurements, Measurement
+        else:
+            models, base = registry.samples, Sample
+        counts = dict(
+            base.objects.published()
+            .outside_private_projects()
+            .order_by()
+            .values_list("polymorphic_ctype")
+            .annotate(count=Count("pk"))
+        )
         entries = []
         for model_class in models:
             config = registry.get_for_model(model_class)
@@ -92,13 +109,16 @@ class DataTableView(FairDMTableView):
                 url = reverse(f"{config.get_slug()}-list")
             except NoReverseMatch:
                 continue
+            ctype = ContentType.objects.get_for_model(model_class)
             entries.append(
                 {
-                    "name": config.get_verbose_name_plural(),
+                    "name": capfirst(str(config.get_verbose_name_plural())),
                     "url": url,
+                    "count": counts.get(ctype.pk, 0),
                     "is_current": model_class == self.model,
                 }
             )
+        entries.sort(key=lambda entry: (-entry["count"], str(entry["name"])))
         return entries
 
     def get_table_class(self):

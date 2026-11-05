@@ -6,38 +6,8 @@
   is the switcher between them.
 {% endcomment %}
 {% block page.title %}
-  {% comment %}
-    The heading names the type shown. Where several are listed, the heading is the switcher: a
-    dropdown in the title's place, with a caret, listing each type with its count.
-  {% endcomment %}
-  {% if type_entries|length > 1 %}
-    <h1 class="text-xl font-semibold leading-tight min-w-0">
-      <c-mvp.dropdown id="type-switcher" class="min-w-0">
-        <c-slot name="button">
-          <button type="button"
-                  aria-haspopup="menu"
-                  aria-controls="type-switcher-menu"
-                  class="inline-flex items-center gap-1 px-2 py-1 rounded-box cursor-pointer font-semibold hover:bg-base-200 focus-visible:outline-2 focus-visible:outline-offset-2"
-                  style="margin-inline: -0.5rem">
-            <span class="truncate record-title record-{{ kind }}">{{ current_type.name }}</span>
-            <c-icon name="chevron-down" class="text-base text-base-content/60" aria-hidden="true" />
-          </button>
-        </c-slot>
-        {% comment %}Boosted: a type swaps the page's <main> in place and pushes its address.{% endcomment %}
-        <div id="type-switcher-menu" hx-boost="true" hx-target="main" hx-select="main" hx-swap="outerHTML">
-        <c-menu class="w-full"
-                aria-label="{% if kind == 'sample' %}{% translate 'Sample types' %}{% else %}{% translate 'Measurement types' %}{% endif %}">
-          {% for entry in type_entries %}
-            <c-menu.item text="{{ entry.name }} ({{ entry.count|intcomma }})"
-                         href="{{ entry.url }}"
-                         :active="entry.is_current" />
-          {% endfor %}
-        </c-menu>
-        </div>
-      </c-mvp.dropdown>
-    </h1>
-  {% elif current_type %}
-    <h1 class="text-xl font-semibold leading-tight truncate"><span class="record-title record-{{ kind }}">{{ current_type.name }}</span></h1>
+  {% if current_type %}
+    <c-list.type-heading name="{{ current_type.name }}" kind="{{ kind }}" :entries="type_entries" boost />
   {% else %}
     <h1 class="text-xl font-semibold leading-tight truncate">{{ page.title }}</h1>
   {% endif %}

@@ -217,6 +217,8 @@ class Plugin(PermissionRequiredMixin, View):
 
         # The base template renders the local tab navigation when `plugin_menu` is present.
         context["plugin_menu"] = self.menu
+        # The active tab is underlined in the colour of the record's type.
+        context["record_kind"] = record_kind(self.registered_model)
         if hasattr(self, "Media"):
             context["plugin_media"] = Media(self.Media)
         else:
@@ -268,15 +270,15 @@ class Plugin(PermissionRequiredMixin, View):
         return breadcrumbs
 
 
-def record_crumb_class(model: type[Model] | None) -> str:
-    """Return the classes that mark a core record's breadcrumb with its record type's colour.
+def record_kind(model: type[Model] | None) -> str:
+    """Return the core record type a model is, of any registered type.
 
     Args:
         model: The model a plugin serves.
 
     Returns:
-        ``"record-crumb record-<type>"`` for a project, dataset, sample or measurement, of any
-        registered type, and an empty string for anything else.
+        ``"project"``, ``"dataset"``, ``"sample"`` or ``"measurement"``, and an empty string
+        for anything else.
     """
     from fairdm.core.dataset.models import Dataset
     from fairdm.core.measurement.models import Measurement
@@ -292,5 +294,19 @@ def record_crumb_class(model: type[Model] | None) -> str:
         ("measurement", Measurement),
     ):
         if issubclass(model, base):
-            return f"record-crumb record-{kind}"
+            return kind
     return ""
+
+
+def record_crumb_class(model: type[Model] | None) -> str:
+    """Return the classes that mark a core record's breadcrumb with its record type's colour.
+
+    Args:
+        model: The model a plugin serves.
+
+    Returns:
+        ``"record-crumb record-<type>"`` for a project, dataset, sample or measurement, of any
+        registered type, and an empty string for anything else.
+    """
+    kind = record_kind(model)
+    return f"record-crumb record-{kind}" if kind else ""

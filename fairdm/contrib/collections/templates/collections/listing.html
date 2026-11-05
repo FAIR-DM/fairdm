@@ -1,33 +1,5 @@
 {% extends "table_view.html" %}
-{% load i18n %}
-{% comment %}The switcher sits at the trailing edge of the toolbar's bar, which is where django-mvp draws `page.actions` on a table page.{% endcomment %}
-{% block page.actions %}
-  {% with sample_count=sample_listings|length measurement_count=measurement_listings|length %}
-    {% if sample_count|add:measurement_count > 1 %}
-      <div id="listing-switcher">
-        <c-mvp.dropdown text="{% trans "Switch" %}" size="sm">
-          <c-menu class="w-full">
-            {% if sample_listings %}
-              <li></li>
-              <c-menu.title text="{% trans "Samples" %}" class="uppercase" />
-              {% for entry in sample_listings %}
-                <c-menu.item text="{{ entry.name }}"
-                             href="{{ entry.url }}"
-                             :active="entry.is_current" />
-              {% endfor %}
-            {% endif %}
-            {% if measurement_listings %}
-              <li></li>
-              <c-menu.title text="{% trans "Measurements" %}" class="uppercase" />
-              {% for entry in measurement_listings %}
-                <c-menu.item text="{{ entry.name }}"
-                             href="{{ entry.url }}"
-                             :active="entry.is_current" />
-              {% endfor %}
-            {% endif %}
-          </c-menu>
-        </c-mvp.dropdown>
-      </div>
-    {% endif %}
-  {% endwith %}
-{% endblock page.actions %}
+{% comment %}The heading is the switcher between the portal's listings of the same kind, as on a record's Samples and Measurements tabs.{% endcomment %}
+{% block page.title %}
+  <c-list.type-heading name="{{ page.title }}" kind="{{ kind }}" :entries="type_entries" />
+{% endblock page.title %}
