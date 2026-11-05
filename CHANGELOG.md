@@ -81,15 +81,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`brand/logo.svg` and `brand/logo_dark.svg`) and in the documentation's navigation bar drew its
   symbol 17% too tall, so the top of the symbol fell outside the image. Both now use the redrawn
   logo, at its correct proportions.
-- **The favicon is the FairDM symbol.** `brand/favicon.svg` and every favicon and app icon under
-  `assets/logo/web/` (the ICO, the 16, 32 and 48 pixel PNGs, the Apple touch icon, the 192 and 512
-  pixel icons and the maskable icon) are redrawn from the same symbol as the rest of the logo set.
-  The narrow small-size cut of the symbol, `fairdm-symbol-small.svg` and its dark version, is
-  withdrawn from `assets/logo/`.
+- **The favicon is the FairDM symbol.** `brand/favicon.svg` is redrawn from the same symbol as the
+  rest of the logo set. The narrow small-size cut of the symbol, `fairdm-symbol-small.svg` and its
+  dark version, is withdrawn from `assets/logo/`.
 
 ### Removed
 
 - **A project's Export tab.** It held only placeholder text. Its address now answers "not found".
+- **The PNG and ICO exports of the logo.** `assets/logo/` holds the logo kit as SVG only, and
+  `assets/logo/png/` and `assets/logo/web/` are removed. Nothing in FairDM loaded them. The masters
+  are kept outside this repository and copied into it in one direction, so these SVGs are never
+  edited here. A PNG or ICO export is generated from them when something needs one, and is not
+  committed.
 
 ## [v0.5.0] - 2026-11-03
 
