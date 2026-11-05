@@ -89,10 +89,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **A project's Export tab.** It held only placeholder text. Its address now answers "not found".
 - **The PNG and ICO exports of the logo.** `assets/logo/` holds the logo kit as SVG only, and
-  `assets/logo/png/` and `assets/logo/web/` are removed. Nothing in FairDM loaded them. The masters
-  are kept outside this repository and copied into it in one direction, so these SVGs are never
-  edited here. A PNG or ICO export is generated from them when something needs one, and is not
-  committed.
+  `assets/logo/png/` and `assets/logo/web/` are removed. Nothing in FairDM loaded them.
+  `assets/logo/README.md` documents which logo file to use, the usage rules, and who may use the
+  logo.
 
 ## [v0.5.0] - 2026-11-03
 
