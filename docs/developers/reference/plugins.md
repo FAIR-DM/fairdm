@@ -108,6 +108,7 @@ An inner `Media` class, written as on a Django form, adds stylesheets and script
 | `object` | The view's own object, or `base_object` when the view has none |
 | `breadcrumbs` | The trail from `get_breadcrumbs` |
 | `plugin_menu` | The record type's navigation menu. FairDM's base template draws it as tabs |
+| `record_kind` | `"project"`, `"dataset"`, `"sample"` or `"measurement"` from `record_kind(model)` for the record the plugin serves, or `""` for a contributor. The active tab is underlined in that type's colour, or the primary colour when it is empty |
 | `plugin_media` | The `Media` built from the inner `Media` class, or `None` |
 
 ## Addresses and URL names
