@@ -16,7 +16,7 @@ The table lists the measurements held in published datasets, and it lists the sa
 
 The toolbar sits above the table.
 
-- The heading is the type's plural name, followed by a count of the rows that match. When the portal has more than one screen to switch between, the heading is a menu listing every sample and measurement screen under the headings **Samples** and **Measurements**, with the one you are on marked.
+- The heading is the type's plural name, followed by a count of the rows that match. When the portal has more than one measurement type, the heading is a menu listing every measurement screen with its number of published records, most first, with the one you are on marked.
 - A search box narrows the rows by the fields the type's registration lists for search. Unless the registration lists others, that is the measurement's name.
 - A **Filters** button opens the filter panel beside the table. It shows how many filters are applied.
 
@@ -52,5 +52,5 @@ The table reads "No published" followed by the type's plural name and "yet", for
 
 - Open a measurement by choosing its name. See [The measurement page](measurement.md).
 - Open the sample a measurement was made on. See [The sample page](../samples/sample.md).
-- Switch to another measurement or sample screen from the heading's menu. For samples, see [Samples](../samples/samples.md).
+- Switch to another measurement screen from the heading's menu. For samples, open **Samples** in the navigation menu. See [Samples](../samples/samples.md).
 - Narrow the rows with the search box and the filters.

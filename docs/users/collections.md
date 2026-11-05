@@ -6,7 +6,7 @@ You reach a collection in any of these ways:
 
 - Open **Samples** or **Measurements** in the navigation menu and choose a kind.
 - Select the name of a kind in the **Samples and measurements** section of the [Home](home.md) screen.
-- Choose another kind from the heading of a collection.
+- Choose another kind of sample or measurement from the heading of a collection of the same kind.
 
 Each table has its own address, `collections/samples/` or `collections/measurements/` followed by the name of the kind. Anyone can open a collection, signed in or not. It lists published records only, whoever is looking, and leaves out those in a private project. See [Dataset publication, DOIs and DataCite metadata](../explanation/dataset-publication-dois-and-datacite-metadata.md) for what publishing means.
 
@@ -14,7 +14,7 @@ Each table has its own address, `collections/samples/` or `collections/measureme
 
 Along the top of the table are:
 
-- the heading, which is the plural name of the kind, followed by a count. When the portal has more than one collection, the heading is a menu with a **Samples** group and a **Measurements** group, naming every collection.
+- the heading, which is the plural name of the kind, followed by a count. When the portal has more than one collection of the same kind, the heading is a menu naming each of them with its number of published records, most first. A sample collection offers only sample collections, and a measurement collection only measurement collections.
 - a **Search** box with a **Search** button, when the kind has fields to search
 - a **Status** menu, when the kind has a status, listing the statuses with **Any status** at the top
 - a **Filters** button, when the kind has more filters than fit in the toolbar

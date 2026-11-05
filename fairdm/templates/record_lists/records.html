@@ -6,18 +6,8 @@
   is the switcher between them.
 {% endcomment %}
 {% block page.title %}
-  {% comment %}Where several types are listed, the heading is the switcher between them, each with its count.{% endcomment %}
-  {% if kind == "sample" %}{% translate "Sample types" as types_label %}{% else %}{% translate "Measurement types" as types_label %}{% endif %}
-  {% if type_entries|length > 1 %}
-    <c-list.type-heading name="{{ current_type.name }}" kind="{{ kind }}" label="{{ types_label }}" boost>
-      {% for entry in type_entries %}
-        <c-menu.item text="{{ entry.name }} ({{ entry.count|intcomma }})"
-                     href="{{ entry.url }}"
-                     :active="entry.is_current" />
-      {% endfor %}
-    </c-list.type-heading>
-  {% elif current_type %}
-    <c-list.type-heading name="{{ current_type.name }}" kind="{{ kind }}" />
+  {% if current_type %}
+    <c-list.type-heading name="{{ current_type.name }}" kind="{{ kind }}" :entries="type_entries" boost />
   {% else %}
     <h1 class="text-xl font-semibold leading-tight truncate">{{ page.title }}</h1>
   {% endif %}

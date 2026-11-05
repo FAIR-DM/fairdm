@@ -1,25 +1,5 @@
 {% extends "table_view.html" %}
-{% load i18n %}
-{% comment %}The heading is the switcher between every listing in the portal, samples and measurements grouped apart.{% endcomment %}
+{% comment %}The heading is the switcher between the portal's listings of the same kind, as on a record's Samples and Measurements tabs.{% endcomment %}
 {% block page.title %}
-  {% with sample_count=sample_listings|length measurement_count=measurement_listings|length %}
-    {% if sample_count|add:measurement_count > 1 %}
-      <c-list.type-heading name="{{ page.title }}" kind="{{ kind }}" label="{% translate 'Listings' %}">
-        {% if sample_listings %}
-          <c-menu.title text="{% translate "Samples" %}" class="uppercase" />
-          {% for entry in sample_listings %}
-            <c-menu.item text="{{ entry.name }}" href="{{ entry.url }}" :active="entry.is_current" />
-          {% endfor %}
-        {% endif %}
-        {% if measurement_listings %}
-          <c-menu.title text="{% translate "Measurements" %}" class="uppercase" />
-          {% for entry in measurement_listings %}
-            <c-menu.item text="{{ entry.name }}" href="{{ entry.url }}" :active="entry.is_current" />
-          {% endfor %}
-        {% endif %}
-      </c-list.type-heading>
-    {% else %}
-      <c-list.type-heading name="{{ page.title }}" kind="{{ kind }}" />
-    {% endif %}
-  {% endwith %}
+  <c-list.type-heading name="{{ page.title }}" kind="{{ kind }}" :entries="type_entries" />
 {% endblock page.title %}

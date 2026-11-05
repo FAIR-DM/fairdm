@@ -471,114 +471,110 @@ class TestPageTitle:
 
 @pytest.mark.django_db
 class TestSwitcher:
-    def _all_listing_urls(self):
+    def _listing_urls(self, models):
         return {
             reverse(f"{registry.get_for_model(model).get_slug()}-list")
-            for model in registry.samples + registry.measurements
+            for model in models
         }
 
-    def test_the_switcher_lists_every_registered_types_listing(self, client):
+    def _url(self, model):
+        return reverse(f"{registry.get_for_model(model).get_slug()}-list")
+
+    def test_a_sample_listings_switcher_offers_every_sample_listing_only(self, client):
         assert len(registry.samples) > 1
         assert registry.measurements
-        slug = registry.get_for_model(RockSample).get_slug()
 
-        response = client.get(reverse(f"{slug}-list"))
+        response = client.get(self._url(RockSample))
 
-        listed_urls = {
-            entry["url"]
-            for entry in response.context["sample_listings"]
-            + response.context["measurement_listings"]
-        }
-        assert listed_urls == self._all_listing_urls()
+        listed = {entry["url"] for entry in response.context["type_entries"]}
+        assert listed == self._listing_urls(registry.samples)
 
-    def test_the_switcher_control_is_rendered_with_a_link_to_every_other_listing(
+    def test_a_measurement_listings_switcher_offers_every_measurement_listing_only(
         self, client
     ):
-        slug = registry.get_for_model(RockSample).get_slug()
-        current_url = reverse(f"{slug}-list")
+        assert len(registry.measurements) > 1
+
+        response = client.get(self._url(XRFMeasurement))
+
+        listed = {entry["url"] for entry in response.context["type_entries"]}
+        assert listed == self._listing_urls(registry.measurements)
+
+    def test_the_switcher_control_links_to_every_other_listing_of_its_kind(
+        self, client
+    ):
+        current_url = self._url(RockSample)
 
         response = client.get(current_url)
 
-        content = response.content.decode()
-        assert 'id="type-switcher"' in content
-        switcher = content.split('id="type-switcher"', 1)[1]
-        for url in self._all_listing_urls() - {current_url}:
-            assert f'href="{url}"' in switcher
+        switcher = BeautifulSoup(response.content, "html.parser").find(
+            id="type-switcher"
+        )
+        links = {a["href"] for a in switcher.find_all("a", href=True)}
+        assert links == self._listing_urls(registry.samples)
 
-    def test_entries_are_grouped_under_samples_and_measurements(self, client):
-        slug = registry.get_for_model(RockSample).get_slug()
+    def test_each_entry_counts_the_published_records_of_its_type(
+        self, client, published_dataset, unpublished_dataset
+    ):
+        RockSampleFactory.create_batch(2, dataset=published_dataset)
+        WaterSampleFactory(dataset=published_dataset)
+        RockSampleFactory(dataset=unpublished_dataset)
 
-        response = client.get(reverse(f"{slug}-list"))
+        response = client.get(self._url(RockSample))
 
-        sample_urls = {entry["url"] for entry in response.context["sample_listings"]}
-        measurement_urls = {
-            entry["url"] for entry in response.context["measurement_listings"]
+        counts = {
+            entry["url"]: entry["count"] for entry in response.context["type_entries"]
         }
-        expected_sample_urls = {
-            reverse(f"{registry.get_for_model(model).get_slug()}-list")
-            for model in registry.samples
-        }
-        expected_measurement_urls = {
-            reverse(f"{registry.get_for_model(model).get_slug()}-list")
-            for model in registry.measurements
-        }
-        assert sample_urls == expected_sample_urls
-        assert measurement_urls == expected_measurement_urls
+        assert counts[self._url(RockSample)] == 2
+        assert counts[self._url(WaterSample)] == 1
+        assert counts[self._url(SoilSample)] == 0
+
+    def test_the_most_numerous_type_is_offered_first(self, client, published_dataset):
+        WaterSampleFactory.create_batch(2, dataset=published_dataset)
+        RockSampleFactory(dataset=published_dataset)
+
+        response = client.get(self._url(RockSample))
+
+        urls = [entry["url"] for entry in response.context["type_entries"]]
+        assert urls[:2] == [self._url(WaterSample), self._url(RockSample)]
 
     def test_the_currently_viewed_listing_is_marked_current(self, client):
-        slug = registry.get_for_model(RockSample).get_slug()
-        current_url = reverse(f"{slug}-list")
+        current_url = self._url(RockSample)
 
         response = client.get(current_url)
 
-        all_entries = (
-            response.context["sample_listings"]
-            + response.context["measurement_listings"]
-        )
-        current_entries = [entry for entry in all_entries if entry["is_current"]]
-        other_entries = [entry for entry in all_entries if not entry["is_current"]]
-        assert [entry["url"] for entry in current_entries] == [current_url]
-        assert all(entry["url"] != current_url for entry in other_entries)
+        current = [
+            entry["url"]
+            for entry in response.context["type_entries"]
+            if entry["is_current"]
+        ]
+        assert current == [current_url]
 
-    def test_choosing_a_measurement_listing_from_a_searched_sample_listing_opens_it_unfiltered(
+    def test_choosing_another_listing_from_a_searched_listing_opens_it_unfiltered(
         self, client
     ):
-        rock_slug = registry.get_for_model(RockSample).get_slug()
-        measurement_slug = registry.get_for_model(ExampleMeasurement).get_slug()
-        expected_url = reverse(f"{measurement_slug}-list")
-
         response = client.get(
-            reverse(f"{rock_slug}-list"), {"q": "Basalt", "rock_type": "Granite"}
+            self._url(RockSample), {"q": "Basalt", "rock_type": "Granite"}
         )
 
-        measurement_entry = next(
+        water = next(
             entry
-            for entry in response.context["measurement_listings"]
-            if entry["url"] == expected_url
+            for entry in response.context["type_entries"]
+            if entry["url"] == self._url(WaterSample)
         )
-        assert measurement_entry["url"] == expected_url
-        assert "?" not in measurement_entry["url"]
+        assert "?" not in water["url"]
 
-    def test_with_exactly_one_registered_type_no_switcher_control_is_rendered(
+    def test_with_exactly_one_type_of_the_kind_no_switcher_control_is_rendered(
         self, client, monkeypatch
     ):
         monkeypatch.setattr(
             type(registry), "samples", property(lambda self: [RockSample])
         )
-        monkeypatch.setattr(type(registry), "measurements", property(lambda self: []))
-        slug = registry.get_for_model(RockSample).get_slug()
-        current_url = reverse(f"{slug}-list")
 
-        response = client.get(current_url)
+        response = client.get(self._url(RockSample))
 
-        assert response.context["sample_listings"] == [
-            {
-                "name": registry.get_for_model(RockSample).get_verbose_name_plural(),
-                "url": current_url,
-                "is_current": True,
-            }
+        assert [entry["url"] for entry in response.context["type_entries"]] == [
+            self._url(RockSample)
         ]
-        assert response.context["measurement_listings"] == []
         assert 'id="type-switcher"' not in response.content.decode()
 
 

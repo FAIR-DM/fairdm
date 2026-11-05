@@ -1,18 +1,19 @@
+{% load i18n humanize %}
 {% comment %}
   <c-list.type-heading> — the heading of a page listing one sample or measurement type.
 
-  The heading names the type shown, underlined in the colour of its kind. Given a slot of menu
-  items, the heading is also the switcher between types: a dropdown in the title's place, with a
-  caret. Without one it is a plain heading.
+  The heading names the type shown, underlined in the colour of its kind. Where more than one type
+  is offered, the heading is also the switcher between them: a dropdown in the title's place, with
+  a caret, listing each type with its count. Otherwise it is a plain heading.
 
   Attributes:
-    name  – the type's plural name
-    kind  – "sample" or "measurement", which sets the underline colour
-    label – accessible name for the menu of types
-    boost – swap the page's <main> in place when a type is chosen, rather than load a new page
+    name    – the type's plural name
+    kind    – "sample" or "measurement", which sets the underline colour
+    entries – the types offered, as dicts of name, url, count and is_current
+    boost   – swap the page's <main> in place when a type is chosen, rather than load a new page
 {% endcomment %}
-<c-vars name kind label boost />
-{% if slot %}
+<c-vars name kind entries boost />
+{% if entries|length > 1 %}
   <h1 class="text-xl font-semibold leading-tight min-w-0">
     <c-mvp.dropdown id="type-switcher" class="min-w-0">
       <c-slot name="button">
@@ -27,8 +28,13 @@
       </c-slot>
       <div id="type-switcher-menu"
            {% if boost %}hx-boost="true" hx-target="main" hx-select="main" hx-swap="outerHTML"{% endif %}>
-        <c-menu class="w-full" aria-label="{{ label }}">
-          {{ slot }}
+        <c-menu class="w-full"
+                aria-label="{% if kind == 'measurement' %}{% translate 'Measurement types' %}{% else %}{% translate 'Sample types' %}{% endif %}">
+          {% for entry in entries %}
+            <c-menu.item text="{{ entry.name }} ({{ entry.count|intcomma }})"
+                         href="{{ entry.url }}"
+                         :active="entry.is_current" />
+          {% endfor %}
         </c-menu>
       </div>
     </c-mvp.dropdown>

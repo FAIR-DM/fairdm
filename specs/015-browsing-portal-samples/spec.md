@@ -221,31 +221,33 @@ to its listing.
 
 ### User Story 5 - Move between listings (Priority: P2)
 
-A reader looking at one type's listing uses a control on the page to jump straight to any other
-listing the portal offers, samples and measurements alike, grouped under those two headings. They
-do not have to return to the navigation or to a landing page to cross from a sample type to a
-measurement type.
+A reader looking at one type's listing uses the listing's heading to jump straight to any other
+listing of the same kind: a sample listing offers every sample type, a measurement listing every
+measurement type, each with the number of published records it holds. The control is the one a
+record's Samples and Measurements tabs carry. They do not have to return to the navigation or to a
+landing page to move between types.
 
 **Why this priority**: it is the difference between a set of listings and a way of exploring a
-portal, and the reader who has just narrowed a sample listing usually wants the measurements next.
+portal, and a reader comparing types of one kind should not have to go back to the navigation.
 It sits below the stories above because the navigation already offers the same journeys in more
 steps.
 
 **Independent Test**: with several types of each kind registered, open one listing, confirm the
-control lists every other listing grouped by kind and marks the current one, and follow it to a
-listing of the other kind.
+control lists every listing of its kind with its count and marks the current one, and follow it to
+another type.
 
 **Acceptance Scenarios**:
 
-1. **Given** a listing, **When** it renders, **Then** it offers a control listing every other
-   registered type's listing in the portal.
-2. **Given** that control, **When** it renders, **Then** its entries are grouped under Samples and
-   Measurements.
+1. **Given** a sample listing, **When** it renders, **Then** its heading offers every registered
+   sample type's listing and no measurement type's, and a measurement listing likewise offers only
+   measurement types.
+2. **Given** that control, **When** it renders, **Then** each entry gives the number of published
+   records of its type, and the most numerous type comes first.
 3. **Given** that control, **When** it renders, **Then** the listing currently being viewed is
    marked as current.
-4. **Given** a sample listing, **When** a measurement type is chosen from the control, **Then** that
-   measurement listing opens.
-5. **Given** a portal with exactly one registered type, **When** its listing renders, **Then** the
+4. **Given** a sample listing, **When** another sample type is chosen from the control, **Then**
+   that listing opens.
+5. **Given** a portal with exactly one registered type of a kind, **When** its listing renders, **Then** the
    control does not offer a journey to nowhere.
 6. **Given** a listing that has been searched and filtered, **When** another listing is chosen,
    **Then** that listing opens unfiltered rather than carrying terms that mean nothing to it.
@@ -394,15 +396,16 @@ Article XIII.
 
 ### Switching between listings
 
-- **FR-042**: Every listing MUST carry a control offering every other type's listing in the portal.
-- **FR-043**: That control MUST offer sample types and measurement types alike, grouped under those
-  two headings.
+- **FR-042**: Every listing MUST carry a control in its heading offering every other listing of the
+  same kind: sample listings offer sample types, measurement listings measurement types.
+- **FR-043**: Each entry MUST give the number of published records of its type, outside private
+  projects, and the entries MUST be ordered most numerous first, then by name.
 - **FR-044**: That control MUST mark the listing currently being viewed.
 - **FR-045**: Choosing another listing from the control MUST open it.
 - **FR-046**: A listing opened from the control MUST open unnarrowed. Search terms and filter values
   MUST NOT be carried across, because they are chosen from a different type's fields.
-- **FR-047**: Where a portal has registered only one type, the control MUST NOT offer a journey to
-  nowhere.
+- **FR-047**: Where a portal has registered only one type of a kind, its listing's control MUST NOT
+  offer a journey to nowhere.
 
 ### Addresses
 
