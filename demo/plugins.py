@@ -54,7 +54,7 @@ class SampleOverview(Plugin):
     # Must inherit from a Django CBV
     __bases__ = (Plugin, TemplateView)
 
-    menu = {"label": _("Overview"), "icon": "eye", "order": 0}
+    menu = {"label": "Overview", "icon": "eye", "order": 0}
 
     def get_context_data(self, **kwargs):
         '''Add sample-specific context.'''
@@ -82,7 +82,7 @@ class LocationDetailsPlugin(Plugin):
 
     __bases__ = (Plugin, TemplateView)
 
-    menu = {"label": _("Location Details"), "icon": "geo-alt", "order": 50}
+    menu = {"label": "Location Details", "icon": "geo-alt", "order": 50}
 
     # Custom visibility check: only show if sample has a location
     @staticmethod
@@ -121,7 +121,7 @@ class RockAnalysisPlugin(Plugin, TemplateView):
     from .models import RockSample
 
     check = is_instance_of(RockSample)  # Only visible for RockSample
-    menu = {"label": _("Rock Analysis"), "icon": "gem", "order": 30}
+    menu = {"label": "Rock Analysis", "icon": "gem", "order": 30}
     template_name = "demo/plugins/rock_analysis.html"
 ```
 
@@ -132,7 +132,7 @@ class RockAnalysisPlugin(Plugin, TemplateView):
 class LocationOverview(OverviewPlugin):
     '''Location overview with map display.'''
 
-    menu = {"label": _("Map"), "icon": "map", "order": 0}
+    menu = {"label": "Map", "icon": "map", "order": 0}
 
     def get_context_data(self, **kwargs):
         '''Add map configuration to context.'''

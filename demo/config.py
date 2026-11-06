@@ -24,8 +24,6 @@ The examples in this module illustrate:
   - Advanced patterns and introspection capabilities
 """
 
-from django.utils.translation import gettext_lazy as _
-
 import fairdm
 from fairdm.core.measurement.config import BaseMeasurementConfiguration
 from fairdm.core.sample.config import BaseSampleConfiguration
@@ -53,7 +51,6 @@ class CustomParentSampleConfig(BaseSampleConfiguration):
     - Complete metadata with authority, citation, and repository information
     - Grouped field layouts using tuples for visual organization
     - Custom resource class for specialized import/export handling
-    - Internationalization support with gettext_lazy
 
     See: docs/developers/reference/model-configuration.md
     """
@@ -62,7 +59,7 @@ class CustomParentSampleConfig(BaseSampleConfiguration):
     metadata = ModelMetadata(
         description="A rock sample is a naturally occurring solid material that is composed of one or more minerals or mineraloids and represents a fragment of a larger geological formation or rock unit. The sample is typically obtained from a specific location in order to study its physical properties, mineral composition, texture, structure, and formation processes.",
         authority=Authority(
-            name=str(_("FairDM Core Development")),
+            name="FairDM Core Development",
             short_name="FairDM",
             website="https://fairdm.org",
         ),
@@ -108,7 +105,7 @@ class CustomSampleConfig(ModelConfiguration):
     metadata = ModelMetadata(
         description="A thin section is a small, flat slice of rock, mineral, or other material that has been carefully ground and polished to a standard thickness, typically around 30 micrometers (0.03 millimeters). This thinness allows light to pass through the sample when viewed under a polarizing light microscope. Thin sections are used in petrography (the study of rocks) and mineralogy to examine the optical properties, texture, and microstructure of the sample, which helps in identifying the minerals present, understanding the rock's formation history, and determining its geological significance.",
         authority=Authority(
-            name=str(_("FairDM Core Development")),
+            name="FairDM Core Development",
             short_name="FairDM",
             website="https://fairdm.org",
         ),
@@ -168,7 +165,7 @@ class ExampleMeasurementConfig(BaseMeasurementConfiguration):
             "developers learning how to define custom measurement types."
         ),
         authority=Authority(
-            name=str(_("FairDM Core Development")),
+            name="FairDM Core Development",
             short_name="FairDM",
             website="https://fairdm.org",
         ),
@@ -217,13 +214,13 @@ class RockSampleConfig(BaseSampleConfiguration):
 
     model = RockSample
     metadata = ModelMetadata(
-        description=_(
+        description=(
             "Geological rock samples demonstrating minimal FairDM registry "
             "configuration. All components (form, table, filters) are "
             "auto-generated from field definitions."
         ),
         authority=Authority(
-            name=str(_("FairDM Demo Project")),
+            name="FairDM Demo Project",
             short_name="Demo",
             website="https://fairdm.org/demo",
         ),
@@ -259,13 +256,13 @@ class SoilSampleConfig(BaseSampleConfiguration):
 
     model = SoilSample
     metadata = ModelMetadata(
-        description=_(
+        description=(
             "Soil samples demonstrating component-specific field configuration. "
             "Tables show summary data while forms provide comprehensive "
             "data entry interfaces."
         ),
         authority=Authority(
-            name=str(_("FairDM Demo Project")),
+            name="FairDM Demo Project",
             short_name="Demo",
             website="https://fairdm.org/demo",
         ),
@@ -331,13 +328,13 @@ class WaterSampleConfig(BaseSampleConfiguration):
 
     model = WaterSample
     metadata = ModelMetadata(
-        description=_(
+        description=(
             "Water quality samples demonstrating where custom component "
             "classes would be used (forms with special widgets, tables "
             "with color-coded values, advanced filters)."
         ),
         authority=Authority(
-            name=str(_("FairDM Demo Project")),
+            name="FairDM Demo Project",
             short_name="Demo",
             website="https://fairdm.org/demo",
         ),
@@ -399,7 +396,7 @@ class XRFMeasurementConfig(BaseMeasurementConfiguration):
     metadata = ModelMetadata(
         description="X-ray fluorescence (XRF) spectroscopy is an analytical technique used to determine the elemental composition of materials. This measurement records quantitative elemental analysis data including concentrations, detection limits, and analytical conditions.",
         authority=Authority(
-            name=str(_("FairDM Demo Team")),
+            name="FairDM Demo Team",
             short_name="FairDM-Demo",
             website="https://fairdm.org/demo",
         ),
@@ -435,7 +432,7 @@ class ICP_MS_MeasurementConfig(BaseMeasurementConfiguration):
     metadata = ModelMetadata(
         description="Inductively Coupled Plasma Mass Spectrometry (ICP-MS) is a highly sensitive analytical technique for trace element determination. This measurement captures isotope-specific data with quantitative concentrations, analytical uncertainties, and quality control parameters.",
         authority=Authority(
-            name=str(_("FairDM Demo Team")),
+            name="FairDM Demo Team",
             short_name="FairDM-Demo",
             website="https://fairdm.org/demo",
         ),

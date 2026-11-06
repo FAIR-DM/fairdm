@@ -276,8 +276,6 @@ See Also:
     - specs/004-core-datasets/quickstart.md
 """
 
-from django.utils.translation import gettext_lazy as _
-
 from fairdm.core.models import Measurement, Sample
 from fairdm.db import models
 
@@ -663,23 +661,21 @@ class ICP_MS_Measurement(Measurement):
     )
     value = models.DecimalQuantityField(
         "microgram / liter",
-        verbose_name=_("Value"),
+        verbose_name="Value",
         max_digits=12,
         decimal_places=3,
         null=True,
         blank=True,
-        help_text=_(
-            "The measured concentration, reported as a quantity carrying its own units."
-        ),
+        help_text="The measured concentration, reported as a quantity carrying its own units.",
     )
     uncertainty = models.DecimalQuantityField(
         "microgram / liter",
-        verbose_name=_("Uncertainty"),
+        verbose_name="Uncertainty",
         max_digits=12,
         decimal_places=3,
         null=True,
         blank=True,
-        help_text=_(
+        help_text=(
             "The analytical uncertainty of the measured concentration, in the same "
             "units as the value."
         ),

@@ -1,5 +1,4 @@
 {% extends "sample/sample_overview.html" %}
-{% load i18n %}
 {% comment %}
   A sample type adding its own content to the generic sample page.
 
@@ -18,15 +17,15 @@
 
 {# The block the base page leaves empty for exactly this: the type's own fields. #}
 {% block overview.properties %}
-  <c-mvp.card title="{% translate 'Rock properties' %}" class="bg-base-100">
+  <c-mvp.card title="Rock properties" class="bg-base-100">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-      <c-mvp.data-field label="{% translate 'Rock type' %}" value="{{ sample.rock_type|capfirst }}" />
-      <c-mvp.data-field label="{% translate 'Collection date' %}" value="{{ sample.collection_date|date:'SHORT_DATE_FORMAT' }}" />
-      <c-mvp.data-field label="{% translate 'Weight' %}" value="{% if sample.weight_grams %}{{ sample.weight_grams|floatformat:1 }} g{% endif %}" />
-      <c-mvp.data-field label="{% translate 'Hardness (Mohs)' %}" value="{{ sample.hardness_mohs|default_if_none:'' }}" />
+      <c-mvp.data-field label="Rock type" value="{{ sample.rock_type|capfirst }}" />
+      <c-mvp.data-field label="Collection date" value="{{ sample.collection_date|date:'SHORT_DATE_FORMAT' }}" />
+      <c-mvp.data-field label="Weight" value="{% if sample.weight_grams %}{{ sample.weight_grams|floatformat:1 }} g{% endif %}" />
+      <c-mvp.data-field label="Hardness (Mohs)" value="{{ sample.hardness_mohs|default_if_none:'' }}" />
     </div>
     {% if sample.mineral_content %}
-      <c-mvp.data-field label="{% translate 'Mineral content' %}" value="{{ sample.mineral_content }}" />
+      <c-mvp.data-field label="Mineral content" value="{{ sample.mineral_content }}" />
     {% endif %}
   </c-mvp.card>
 {% endblock overview.properties %}

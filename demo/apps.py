@@ -1,7 +1,6 @@
 """App configuration for the demo application."""
 
 from django.apps import AppConfig
-from django.utils.translation import gettext_lazy as _
 
 from fairdm.registry.config import Authority, Citation
 
@@ -11,7 +10,7 @@ class DemoConfig(AppConfig):
 
     name = "demo"
     authority = Authority(
-        name=_("FairDM Core Development"),
+        name="FairDM Core Development",
         short_name="FairDM",
         website="https://fairdm.org",
     )
