@@ -13,16 +13,16 @@
 :titlesonly:
 :maxdepth: 1
 
-fairdm.api.checks
 fairdm.api.router
-fairdm.api.urls
-fairdm.api.permissions
-fairdm.api.throttling
-fairdm.api.viewsets
-fairdm.api.filters
-fairdm.api.serializers
-fairdm.api.pagination
-fairdm.api.apps
 fairdm.api.schema
+fairdm.api.apps
+fairdm.api.filters
+fairdm.api.pagination
+fairdm.api.urls
 fairdm.api.settings
+fairdm.api.permissions
+fairdm.api.viewsets
+fairdm.api.checks
+fairdm.api.throttling
+fairdm.api.serializers
 ```
