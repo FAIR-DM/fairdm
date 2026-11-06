@@ -176,7 +176,6 @@ class MySampleConfig(ModelConfiguration):
 """
 
 import django_filters
-from django.utils.translation import gettext_lazy as _
 from mvp.filters import SearchFilter
 
 from demo.models import RockSample, WaterSample
@@ -352,12 +351,12 @@ class RockSampleFilter(SampleFilterMixin, django_filters.FilterSet):
 
     rock_type = django_filters.ChoiceFilter(
         field_name="rock_type",
-        label=_("Rock Type"),
+        label="Rock Type",
         choices=[
-            ("", _("Any rock type")),
-            ("igneous", _("Igneous")),
-            ("sedimentary", _("Sedimentary")),
-            ("metamorphic", _("Metamorphic")),
+            ("", "Any rock type"),
+            ("igneous", "Igneous"),
+            ("sedimentary", "Sedimentary"),
+            ("metamorphic", "Metamorphic"),
         ],
         empty_label=None,
     )
@@ -365,17 +364,17 @@ class RockSampleFilter(SampleFilterMixin, django_filters.FilterSet):
     mineral_content = django_filters.CharFilter(
         field_name="mineral_content",
         lookup_expr="icontains",
-        label=_("Mineral Content"),
+        label="Mineral Content",
     )
 
     grain_size = django_filters.ChoiceFilter(
         field_name="grain_size",
-        label=_("Grain Size"),
+        label="Grain Size",
         choices=[
-            ("", _("Any grain size")),
-            ("fine", _("Fine")),
-            ("medium", _("Medium")),
-            ("coarse", _("Coarse")),
+            ("", "Any grain size"),
+            ("fine", "Fine"),
+            ("medium", "Medium"),
+            ("coarse", "Coarse"),
         ],
         empty_label=None,
     )
@@ -422,43 +421,43 @@ class WaterSampleFilter(SampleFilterMixin, django_filters.FilterSet):
     water_source = django_filters.CharFilter(
         field_name="water_source",
         lookup_expr="icontains",
-        label=_("Water Source"),
+        label="Water Source",
     )
 
     ph_min = django_filters.NumberFilter(
         field_name="ph_level",
         lookup_expr="gte",
-        label=_("pH minimum"),
+        label="pH minimum",
     )
 
     ph_max = django_filters.NumberFilter(
         field_name="ph_level",
         lookup_expr="lte",
-        label=_("pH maximum"),
+        label="pH maximum",
     )
 
     temp_min = django_filters.NumberFilter(
         field_name="temperature_celsius",
         lookup_expr="gte",
-        label=_("Temperature min (°C)"),
+        label="Temperature min (°C)",
     )
 
     temp_max = django_filters.NumberFilter(
         field_name="temperature_celsius",
         lookup_expr="lte",
-        label=_("Temperature max (°C)"),
+        label="Temperature max (°C)",
     )
 
     do_min = django_filters.NumberFilter(
         field_name="dissolved_oxygen_mg_l",
         lookup_expr="gte",
-        label=_("DO minimum (mg/L)"),
+        label="DO minimum (mg/L)",
     )
 
     do_max = django_filters.NumberFilter(
         field_name="dissolved_oxygen_mg_l",
         lookup_expr="lte",
-        label=_("DO maximum (mg/L)"),
+        label="DO maximum (mg/L)",
     )
 
     class Meta(SampleFilterMixin.Meta):

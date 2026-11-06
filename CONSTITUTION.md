@@ -1,15 +1,9 @@
 <!--
 Sync Impact Report
-- Version change: 2.0.1 → 3.0.0
-- MAJOR: Article X (Test structure & fixtures) is removed. Its rules now live in
-  docs/contributing/standards/testing.md, which Article I points to. Articles XI-XVIII
-  are renumbered X-XVII.
-- Article I is now a pointer to the testing standard. The URL smoke-test rule moved to
-  that document's project additions.
-- Article VI points docstrings, component annotations and comments at
-  docs/contributing/standards/code-documentation.md.
-- Testing rules repeated in the sustainability article, Architecture & Stack
-  Constraints and Development Workflow are replaced with references to Article I.
+- Version change: 3.2.0 → 3.2.1
+- PATCH: Article VIII now says it covers the package only. The demo app is never
+  translated, translation markup there is a blocking review comment, and message
+  extraction runs over the package source and never the demo app.
 -->
 
 # FairDM Constitution
@@ -87,6 +81,13 @@ and wrap strings with `{% trans %}` or `{% blocktrans %}`. Model `verbose_name` 
 pure acronyms are exempt. The package ships a base English catalog and a `locale/` directory so
 host portals can compile or extend translations. A hard-coded user-visible string in a pull
 request is a blocking comment.
+
+This article covers the package only. The `demo/` app is never translated: its strings are plain
+text, with no `gettext`, `{% trans %}` or `{% blocktrans %}` markup, because nobody installs it
+and each marked string would be one more for the package's translators to carry. Translation
+markup in `demo/` is a blocking comment. Message extraction (`makemessages`) runs over the package
+source and never over `demo/`. The demo may keep `LocaleMiddleware` and the `set_language` view so
+the package's own translations can be seen working.
 
 Accessibility and internationalisation readiness are non-optional; a regression in either is a
 bug, not a nice-to-have.
@@ -344,4 +345,4 @@ The constitution defines how FairDM is evolved and how compliance is enforced.
   - Maintainers SHOULD provide clear, written rationale when accepting or rejecting significant changes with explicit reference to this document.
   - As additional maintainers and institutional stakeholders join the project, a more formal governance structure (e.g., a small core team or steering group with an RFC process) SHOULD be established and documented as an amendment to this section.
 
-**Version**: 3.2.0 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-10-23
+**Version**: 3.2.1 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-11-06

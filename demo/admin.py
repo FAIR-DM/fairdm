@@ -135,7 +135,6 @@ After customizing admin interfaces, test:
 """
 
 from django.contrib import admin
-from django.utils.translation import gettext_lazy as _
 
 from fairdm.core.dataset.models import DatasetDescription
 
@@ -220,7 +219,7 @@ class XRFMeasurementAdminExample(admin.ModelAdmin):
 
     fieldsets = (
         (
-            _("Basic Information"),
+            "Basic Information",
             {
                 "fields": (
                     "name",
@@ -230,21 +229,19 @@ class XRFMeasurementAdminExample(admin.ModelAdmin):
             },
         ),
         (
-            _("Measurement Data"),
+            "Measurement Data",
             {"fields": ()},
         ),
         (
-            _("Calculated Values"),
+            "Calculated Values",
             {
                 "fields": (),
                 "classes": ("collapse",),
-                "description": _(
-                    "These values are automatically calculated and cannot be edited manually."
-                ),
+                "description": "These values are automatically calculated and cannot be edited manually.",
             },
         ),
         (
-            _("Timestamps"),
+            "Timestamps",
             {
                 "fields": ("added", "modified"),
                 "classes": ("collapse",),
