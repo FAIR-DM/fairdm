@@ -99,7 +99,7 @@ that makes it pass is written. Wording and appearance get no tests.
   `dj-signals-panel` nor the hub's `urls` or `signals` extras (FR-010, the production half of
   AS 2). As a superuser, POST to `dj_urls_panel:execute_request` with a body naming any URL and
   assert 403 (FR-013), keeping T002's settings assertion.
-- [ ] T011 [US2] Documentation: a section in
+- [x] T011 [US2] Documentation: a section in
   `docs/developers/how-to/change-who-can-open-the-control-room.md` on the development-only panels:
   how a portal adds the two packages to its development dependencies, why they must never be
   production dependencies, and that the URL panel's request testing is off and why.

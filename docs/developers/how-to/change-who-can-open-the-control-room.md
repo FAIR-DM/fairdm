@@ -57,6 +57,28 @@ Editing the Redis database changes the cache and the background-task queue under
    INSTALLED_APPS = [app for app in INSTALLED_APPS if app not in CONTROL_ROOM_APPS]
    ```
 
+## Add the URL and signal panels in development
+
+Two more panels, one listing every URL pattern and one listing every Django signal and its receivers, are available while `DJANGO_ENV=development`. They open under the same rule as the others: superusers only.
+
+1. Add both packages to your project's development dependencies, not its main ones.
+
+   ```toml
+   # pyproject.toml
+   [dependency-groups]
+   dev = [
+       "dj-urls-panel>=0.5,<1",
+       "dj-signals-panel>=0.6,<1",
+   ]
+   ```
+
+2. Install the group and start the portal with `DJANGO_ENV=development`. The development settings add each panel ahead of the dashboard if its package is importable, so a portal that has not installed one simply goes without it.
+3. Open the dashboard in the administration interface. Both panels now appear beside the others.
+
+Do not add either package to `[project].dependencies`, and do not select the `urls` or `signals` extras of `dj-control-room` there. Both panels reveal how the portal is wired, and they belong on a developer's machine, never on a deployed portal. A portal that installs neither package, or runs under any other `DJANGO_ENV`, has no such routes: their addresses answer 404.
+
+The URL panel can send a request to any pattern it lists. FairDM turns that off with `ENABLE_TESTING` set to `False` in `DJ_URLS_PANEL_SETTINGS`, because the request runs on the server with the signed-in superuser's session. The panel still lists and describes the patterns, and its request endpoint answers 403. Turn it on only in a development settings module of your own, after `fairdm.setup()`, and repeat `REQUIRE_SUPERUSER` when you replace the dictionary.
+
 ## Why the agent interface stays off
 
 The package can offer an interface through which an AI agent calls the panels' tools. It is off unless `DJ_CONTROL_ROOM_SETTINGS` sets `MCP_ENABLED`, a token and a user name. Turning it on lets whoever holds the token read everything the panels show, including task arguments, as the named user. FairDM sets none of these.
