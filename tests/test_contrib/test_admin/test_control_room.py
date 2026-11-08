@@ -170,6 +170,20 @@ class TestControlRoomAdminIndex:
 
         self.assert_no_control_room_link(client)
 
+    @pytest.mark.skip(
+        reason=(
+            "Django Control Room registers its dashboard admin entry without the hub's "
+            "panel config, so the entry falls back to is_staff and REQUIRE_SUPERUSER is "
+            "not consulted. Opening it is still refused. Tracked in FAIR-DM/fairdm#665."
+        )
+    )
+    def test_a_staff_account_that_is_not_a_superuser_is_offered_no_link(
+        self, client, staff_user
+    ):
+        client.force_login(staff_user)
+
+        self.assert_no_control_room_link(client)
+
 
 @pytest.mark.django_db
 class TestControlRoomUnderAnotherAdminAddress:
