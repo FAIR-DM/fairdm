@@ -103,3 +103,8 @@ that makes it pass is written. Wording and appearance get no tests.
   `docs/developers/how-to/change-who-can-open-the-control-room.md` on the development-only panels:
   how a portal adds the two packages to its development dependencies, why they must never be
   production dependencies, and that the URL panel's request testing is off and why.
+
+## Convergence
+
+- [x] T013 [US1] Make the dashboard-removal test patch the installed-app check, as the US2 test does,
+  instead of removing the apps from settings, which re-runs every app's start-up.
