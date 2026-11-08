@@ -52,6 +52,7 @@ dependencies = [
     'psycopg2-binary (>=2.9.13,<3.0.0)',
     'redis>=4.5.2,<9.0.0',
     'whitenoise (>=6.4.0,<7.0.0)',
+    'dj-control-room[redis,cache,celery]>=1.8.1,<2',
     'django-controlled-vocabularies (>=0.3.1,<0.4.0)',
     'shortuuid (>=1.0.13,<2.0.0)',
     'django-literature[ui] (>=0.4.0,<0.5.0)',
@@ -118,6 +119,8 @@ dev = [
     "fairdm-discussions",
     "pytest-mock>=3.15.1,<4.0",
     "django>=6.0,<7.0",
+    "dj-urls-panel>=0.5,<1",
+    "dj-signals-panel>=0.6,<1",
 ]
 docs = [
     "fairdm-docs[pydata-sphinx-theme]",
@@ -340,6 +343,11 @@ package_module_name_map = { django-environ = "environ", django-filter = "django_
 # them. Everything below is genuinely used and none of it is dead weight.
 DEP002 = [
     "daisy-cotton-ext",
+    "dj-cache-panel",
+    "dj-celery-panel",
+    "dj-control-room",
+    "dj-control-room-base",
+    "dj-redis-panel",
     "django-celery-beat",
     "django-cleanup",
     "django-cors-headers",
