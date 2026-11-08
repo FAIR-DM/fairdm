@@ -80,6 +80,12 @@ specifying, without putting it to him again. The longer reasoning is in
 - Q: Where is the dashboard? → A: Inside the administration interface, at whatever address the
   portal gives that interface, so a portal that moves its administration interface moves the
   dashboard with it.
+- Q: Does the URL panel send test requests to addresses? → A: No. The package can send a real
+  request to an address to show how it answers, which is a request leaving the portal. FairDM turns
+  that off and keeps the list of routes.
+- Q: Can the Redis panel change or delete keys? → A: No. The package leaves editing, deleting and
+  expiry changes off unless a portal turns them on, and FairDM keeps them off. The cache panel's own
+  editing stays, for superusers only.
 - Q: What happens when Redis or the worker is down? → A: The dashboard and its panels still open
   and say the service cannot be reached. The rest of the administration interface is unaffected.
 
@@ -136,12 +142,15 @@ staff account and as a Data Curator, and check that neither can open the dashboa
     requests the package's agent interface, **Then** it is not found.
 11. **Given** a portal with no control-room settings of its own, **When** a superuser uses the
     dashboard and its panels, **Then** no request leaves the portal for an outside service.
+12. **Given** a portal with no control-room settings of its own, **When** a superuser opens a key
+    in the Redis panel, **Then** they can read it, and the panel offers no way to edit it, delete it
+    or change its expiry.
 
 *A portal's own choices*
 
-12. **Given** a portal that sets its own control-room access settings, **When** settings resolve,
+13. **Given** a portal that sets its own control-room access settings, **When** settings resolve,
     **Then** the portal's values win over FairDM's.
-13. **Given** a portal that removes the control-room applications from its settings, **When** it
+14. **Given** a portal that removes the control-room applications from its settings, **When** it
     starts, **Then** it starts normally, the administration interface works, and no dashboard is
     offered.
 
@@ -150,9 +159,9 @@ staff account and as a Data Curator, and check that neither can open the dashboa
 ### User Story 2 - A developer inspects a portal's routes and signals while building it (Priority: P2)
 
 A developer building a portal runs the development stack. Signed in as a superuser, they open the
-operations dashboard and find two more panels: one lists every URL route in the portal and tests
-which view an address resolves to, and one lists the signal receivers connected in the portal. A
-production portal offers neither.
+operations dashboard and find two more panels: one lists every URL route in the portal and the view
+each one reaches, and one lists the signal receivers connected in the portal. A production portal
+opens neither.
 
 **Why this priority**: it helps the people building portals, but the portal runs without it. It is
 P2 because it reuses everything US1 delivers.
@@ -167,8 +176,8 @@ offered or reachable.
    dashboard, **Then** it lists the URL and signal panels along with the three from US1, and both
    open.
 2. **Given** a portal running with production settings, **When** a superuser opens the dashboard,
-   **Then** it lists neither the URL panel nor the signal panel, and requests for either are not
-   found.
+   **Then** it offers no way to open the URL panel or the signal panel, and requests for either are
+   not found.
 3. **Given** a portal running with development settings, **When** a staff account that is not a
    superuser requests either panel, **Then** it is refused.
 
@@ -203,12 +212,16 @@ offered or reachable.
   itself, and nothing FairDM configures for the dashboard may send portal data to an outside
   service. (US1)
 - **FR-008**: A portal's own control-room settings MUST win over FairDM's. (US1)
+- **FR-014**: The Redis panel MUST NOT offer editing, deleting or changing the expiry of a key
+  unless a portal turns that on itself. (US1)
 - **FR-009**: A portal that removes the control-room applications MUST start and run normally.
   (US1)
 - **FR-010**: With development settings, the dashboard MUST also offer the URL and signal panels,
   under the same access rule as FR-004. (US2)
-- **FR-011**: With production settings, the URL and signal panels MUST NOT be offered or reachable.
-  (US2)
+- **FR-011**: With production settings, the URL and signal panels MUST NOT be reachable, and the
+  dashboard MUST offer no way to open them. (US2)
+- **FR-013**: No panel FairDM enables MAY send a request from the portal to another address, in
+  development or production. (US1, US2)
 - **FR-012**: The documentation MUST describe the dashboard, who can open it, how a portal changes
   access or removes it, and what turning on the AI-agent interface would expose. (US1)
 
