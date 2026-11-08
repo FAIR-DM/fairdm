@@ -8,7 +8,7 @@ Each package reads its own settings dictionary. The names are in [Settings](../r
 
 ## Let a group open one panel
 
-1. Replace `REQUIRE_SUPERUSER` with `ALLOWED_GROUPS` for that panel. Members of the named groups, who must also be staff, may open it. Superusers always can.
+1. Replace `REQUIRE_SUPERUSER` with `ALLOWED_GROUPS` for that panel. Members of the named groups may open it if their account is also marked as staff. Holding a portal role does not make an account staff, so a role holder who is not staff is still refused. Superusers always can.
 
    ```python
    # settings.py, after fairdm.setup()
@@ -44,7 +44,7 @@ Editing the Redis database changes the cache and the background-task queue under
 
 ## Remove the dashboard
 
-1. Take the five control-room apps out of `INSTALLED_APPS`. The routes go with them.
+1. Take the control-room apps out of `INSTALLED_APPS`. The routes go with them. In development, take out the URL and signal panels too, if they are installed.
 
    ```python
    CONTROL_ROOM_APPS = {
@@ -53,6 +53,8 @@ Editing the Redis database changes the cache and the background-task queue under
        "dj_cache_panel",
        "dj_celery_panel",
        "dj_control_room",
+       "dj_urls_panel",
+       "dj_signals_panel",
    }
    INSTALLED_APPS = [app for app in INSTALLED_APPS if app not in CONTROL_ROOM_APPS]
    ```

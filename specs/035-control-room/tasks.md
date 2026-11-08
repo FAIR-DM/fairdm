@@ -108,3 +108,12 @@ that makes it pass is written. Wording and appearance get no tests.
 
 - [x] T013 [US1] Make the dashboard-removal test patch the installed-app check, as the US2 test does,
   instead of removing the apps from settings, which re-runs every app's start-up.
+
+## Review fixes
+
+- [x] T014 [US1] The dashboard links to each of its panels, development ones included, so the test
+  fails if the dashboard lists none (US1 AS 2, US2 AS 1).
+- [x] T015 [US1] The read-only Redis test also asserts the key is shown, and builds its settings from
+  FairDM's own.
+- [x] T016 [US1] The developers' how-to: removing the dashboard in development takes the URL and
+  signal panels out too, and a portal-role holder who is not staff is refused a group-opened panel.

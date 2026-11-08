@@ -35,6 +35,8 @@ PANEL_INDEXES = [
     "dj_celery_panel:index",
 ]
 CONTROL_ROOM_PAGES = [DASHBOARD, *PANEL_INDEXES]
+DEVELOPMENT_PANEL_APPS = ["dj_urls_panel", "dj_signals_panel"]
+DEVELOPMENT_PANEL_INDEXES = ["dj_urls_panel:index", "dj_signals_panel:index"]
 
 
 @pytest.fixture(autouse=True)
@@ -144,6 +146,20 @@ class TestControlRoomAccess:
 
 
 @pytest.mark.django_db
+class TestDashboardListsItsPanels:
+    @staticmethod
+    def links_on_dashboard(client):
+        soup = BeautifulSoup(client.get(reverse(DASHBOARD)).content, "html.parser")
+        return {tag["href"] for tag in soup.select("a[href]")}
+
+    @pytest.mark.parametrize("url_name", PANEL_INDEXES + DEVELOPMENT_PANEL_INDEXES)
+    def test_the_dashboard_links_to_each_panel(self, client, superuser, url_name):
+        client.force_login(superuser)
+
+        assert reverse(url_name) in self.links_on_dashboard(client)
+
+
+@pytest.mark.django_db
 class TestControlRoomAdminIndex:
     @staticmethod
     def links_on_admin_index(client):
@@ -243,10 +259,6 @@ class TestPortalWithoutTheControlRoom:
 
         assert index.status_code == 200
         assert dashboard.status_code == 404
-
-
-DEVELOPMENT_PANEL_APPS = ["dj_urls_panel", "dj_signals_panel"]
-DEVELOPMENT_PANEL_INDEXES = ["dj_urls_panel:index", "dj_signals_panel:index"]
 
 
 @pytest.mark.django_db
@@ -365,9 +377,12 @@ class TestRedisPanelIsReadOnly:
     @pytest.fixture
     def live_redis_key(self, settings):
         location = os.environ["REDIS_URL"]
+        panel_settings = settings.DJ_REDIS_PANEL_SETTINGS
         settings.DJ_REDIS_PANEL_SETTINGS = {
-            "REQUIRE_SUPERUSER": True,
-            "INSTANCES": {"default": {"url": location}},
+            **panel_settings,
+            "INSTANCES": {
+                "default": {**panel_settings["INSTANCES"]["default"], "url": location}
+            },
         }
         connection = redis.Redis.from_url(location)
         connection.set("control-room-read-only", "value")
@@ -391,5 +406,6 @@ class TestRedisPanelIsReadOnly:
 
         soup = BeautifulSoup(response.content, "html.parser")
         assert response.status_code == 200
+        assert b"value" in response.content
         assert soup.select("input[name=action]") == []
         assert soup.select("form[method=post]:not(#logout-form)") == []
