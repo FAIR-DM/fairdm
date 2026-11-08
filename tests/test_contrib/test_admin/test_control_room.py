@@ -237,6 +237,80 @@ class TestPortalWithoutTheControlRoom:
         assert dashboard.status_code == 404
 
 
+DEVELOPMENT_PANEL_APPS = ["dj_urls_panel", "dj_signals_panel"]
+DEVELOPMENT_PANEL_INDEXES = ["dj_urls_panel:index", "dj_signals_panel:index"]
+
+
+@pytest.mark.django_db
+class TestDevelopmentOnlyPanelAccess:
+    @pytest.mark.parametrize("url_name", DEVELOPMENT_PANEL_INDEXES)
+    def test_a_superuser_opens_the_panel(self, client, superuser, url_name):
+        client.force_login(superuser)
+
+        response = client.get(reverse(url_name))
+
+        assert response.status_code == 200
+
+    @pytest.mark.parametrize("url_name", DEVELOPMENT_PANEL_INDEXES)
+    def test_a_staff_account_that_is_not_a_superuser_is_refused(
+        self, client, staff_user, url_name
+    ):
+        client.force_login(staff_user)
+
+        response = client.get(reverse(url_name))
+
+        assert response.status_code == 403
+
+    def test_a_superuser_cannot_send_requests_from_the_url_panel(
+        self, client, superuser
+    ):
+        client.force_login(superuser)
+
+        response = client.post(
+            reverse("dj_urls_panel:execute_request"),
+            data={"url": "http://localhost/", "method": "GET"},
+            content_type="application/json",
+        )
+
+        assert response.status_code == 403
+
+    def test_the_panels_are_gone_when_their_apps_are_not_installed(
+        self, client, superuser
+    ):
+        addresses = [reverse(name) for name in DEVELOPMENT_PANEL_INDEXES]
+        client.force_login(superuser)
+        try:
+            with modify_settings(INSTALLED_APPS={"remove": DEVELOPMENT_PANEL_APPS}):
+                importlib.reload(admin_urls)
+                importlib.reload(root_urls)
+                clear_url_caches()
+                statuses = [client.get(address).status_code for address in addresses]
+        finally:
+            importlib.reload(admin_urls)
+            importlib.reload(root_urls)
+            clear_url_caches()
+
+        assert statuses == [404, 404]
+
+
+class TestDevelopmentOnlyPanelPackages:
+    def test_production_dependencies_name_neither_panel_nor_their_extras(self):
+        import tomllib
+        from pathlib import Path
+
+        import fairdm
+
+        pyproject = Path(fairdm.__file__).parent.parent / "pyproject.toml"
+        dependencies = tomllib.loads(pyproject.read_text())["project"]["dependencies"]
+
+        for requirement in dependencies:
+            assert "dj-urls-panel" not in requirement
+            assert "dj-signals-panel" not in requirement
+            if requirement.startswith("dj-control-room"):
+                extras = requirement.split("[")[1].split("]")[0].split(",")
+                assert {"urls", "signals"}.isdisjoint(extras)
+
+
 @pytest.mark.django_db
 class TestControlRoomWithServicesDown:
     @pytest.mark.parametrize(

@@ -85,13 +85,13 @@ that makes it pass is written. Wording and appearance get no tests.
 
 ### Group 2
 
-- [ ] T008 [US2] Add to `tests/test_conf/test_development.py`: with `DJANGO_ENV=development`,
+- [x] T008 [US2] Add to `tests/test_conf/test_development.py`: with `DJANGO_ENV=development`,
   `INSTALLED_APPS` holds `dj_urls_panel` and `dj_signals_panel`, both before `dj_control_room`
   (FR-010). With `DJANGO_ENV=qa` it holds neither (FR-011).
-- [ ] T009 [US2] `fairdm/conf/development.py`: insert each app before `dj_control_room` when
+- [x] T009 [US2] `fairdm/conf/development.py`: insert each app before `dj_control_room` when
   `importlib.util.find_spec` finds it, as for `django_browser_reload`. T008 goes green, and add to
   T008 that with `find_spec` patched to report a package missing, that app is not added.
-- [ ] T010 [US2] Add to `tests/test_contrib/test_admin/test_control_room.py`: under the suite's
+- [x] T010 [US2] Add to `tests/test_contrib/test_admin/test_control_room.py`: under the suite's
   development settings a superuser gets 200 on the URL panel's and the signal panel's index routes
   and a staff account that is not a superuser gets 403 (US2 AS 1, AS 3). With the two apps removed
   and the URL conf reloaded, both addresses answer 404 (AS 2). `pyproject.toml`'s
