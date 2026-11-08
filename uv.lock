@@ -812,6 +812,109 @@ wheels = [
 ]
 
 [[package]]
+name = "dj-cache-panel"
+version = "0.6.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "dj-control-room-base" },
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f5/17/57c1a02fc4424d0de7478ac53aea47fc64037b98062f74a32c7f2afa6251/dj_cache_panel-0.6.0.tar.gz", hash = "sha256:0611c8582866072bcc7f03929a8ed2f4b7b74fdbe0eae5ecec3521310e39c850", size = 29882, upload-time = "2026-08-11T19:46:22.217Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/95/8c/30afc8b5cea23bbec87ca3a046691dd4fec5a5194e9e14d1bdac4b54a8a7/dj_cache_panel-0.6.0-py3-none-any.whl", hash = "sha256:157e98cb3e055ec51405c0f44152647d0866056b9998ea2841be794c39fecb27", size = 25115, upload-time = "2026-08-11T19:46:21.013Z" },
+]
+
+[[package]]
+name = "dj-celery-panel"
+version = "0.6.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "dj-control-room-base" },
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/cf/3d/a2a21e92caa86ee00db8768f50349693c29fe7afdd1cffe185760154c7a9/dj_celery_panel-0.6.0.tar.gz", hash = "sha256:de915a8880474954f59f8af0a5462b8f647539c96f271ac26f22ab897218401d", size = 39068, upload-time = "2026-08-11T19:50:31.732Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0b/c7/71b950644a01dcc40802bfd224beb6d3d2ef24b1ccb97c0a5aa466a8bcb6/dj_celery_panel-0.6.0-py3-none-any.whl", hash = "sha256:b059af9edaedb64015357a0f520d389543dcf7e125495cbc8a3572c61afb9f8b", size = 40595, upload-time = "2026-08-11T19:50:30.361Z" },
+]
+
+[[package]]
+name = "dj-control-room"
+version = "1.8.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "dj-control-room-base" },
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/79/17/c502610ec7b0e87c080b3ef60578d67062d2018e76444966183559f41d9d/dj_control_room-1.8.1.tar.gz", hash = "sha256:546c83e2ed5a0dbbd989a82137c1866fd751f35bdb8a3ad28c39b0b789029909", size = 1450502, upload-time = "2026-09-30T17:20:26.986Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7a/74/55a11ecd692e2cfbbe821f046a099eb1d26469631c900773dda51011e215/dj_control_room-1.8.1-py3-none-any.whl", hash = "sha256:2902695e3339a8d9c0b4be7598ee23edc78476ab7fa8f675122eeb699bce2689", size = 1440962, upload-time = "2026-09-30T17:20:25.36Z" },
+]
+
+[package.optional-dependencies]
+cache = [
+    { name = "dj-cache-panel" },
+]
+celery = [
+    { name = "dj-celery-panel" },
+]
+redis = [
+    { name = "dj-redis-panel" },
+]
+
+[[package]]
+name = "dj-control-room-base"
+version = "1.6.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d2/ac/d045f54ea20f0187164c29baa542922991a90e47c267f58d980f949855a6/dj_control_room_base-1.6.0.tar.gz", hash = "sha256:250c11296baa7e84e4ea988783f70825598523d3fa30f8447db937dabb76b338", size = 146131, upload-time = "2026-09-28T04:28:37.073Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/06/74/dd0471d559f0d1856d7bfea31b877bcef49c1dc5f014c4aa0c2db2cad9e8/dj_control_room_base-1.6.0-py3-none-any.whl", hash = "sha256:54e74e8655ff077f429722b956b2c574e5e5fb390da0882cfb41ebce1cab1551", size = 159548, upload-time = "2026-09-28T04:28:35.711Z" },
+]
+
+[[package]]
+name = "dj-redis-panel"
+version = "0.10.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "dj-control-room-base" },
+    { name = "django" },
+    { name = "redis" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/86/1c/c0101ce59bc5cc4efdb86ebf1132943885c570ba1340d299776c086765e5/dj_redis_panel-0.10.0.tar.gz", hash = "sha256:533d91e89c21ff846527e189707a7e408eda01bba3765f77a1464d36e2486b36", size = 55067, upload-time = "2026-08-11T19:53:22.087Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8a/6b/f00964df716dbd43ec798418462cc1d467b272907ac45ae8549f408a272d/dj_redis_panel-0.10.0-py3-none-any.whl", hash = "sha256:ef7f2f5897d86a1172c36206b437a04713ec73793934d81e480e549fe0861033", size = 42094, upload-time = "2026-08-11T19:53:20.718Z" },
+]
+
+[[package]]
+name = "dj-signals-panel"
+version = "0.6.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "dj-control-room-base" },
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4f/2e/b386a8e9293ad56bdded626b6876e4f59957fac51762609194c43960ab92/dj_signals_panel-0.6.0.tar.gz", hash = "sha256:bcdabefaf001d65795703e74881441e0163eda220192da73f7b955dc99ea30a4", size = 32778, upload-time = "2026-08-11T19:51:57.824Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e8/3f/5b5836e29ded9da6c0e231a1ac5aa1e5e920cfcb2f2094002f3ac30a9ebe/dj_signals_panel-0.6.0-py3-none-any.whl", hash = "sha256:e24e33c1001d73e099645af8851440269557dc12a3572e28ad26517e06dabec0", size = 25136, upload-time = "2026-08-11T19:51:56.628Z" },
+]
+
+[[package]]
+name = "dj-urls-panel"
+version = "0.5.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "dj-control-room-base" },
+    { name = "django" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f5/2a/7e737a09025a405ea1fc8fd6e7e59d25913c8305c2b24ab45acfb07779ce/dj_urls_panel-0.5.0.tar.gz", hash = "sha256:7cdbd655b5e8ff9ece18582f94a2dce496a18ada72c4fa73017bbc2969ca4c1e", size = 41976, upload-time = "2026-08-11T19:55:58.94Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0f/5c/29dd8baf044078d977fb1824db3ff0cdd1b3dcdbd71b988ca82d99843e29/dj_urls_panel-0.5.0-py3-none-any.whl", hash = "sha256:b9eddf66216570a8909ddcf0d94efd855ca15953e080f1b214f3ebcc315ee254", size = 34257, upload-time = "2026-08-11T19:55:57.855Z" },
+]
+
+[[package]]
 name = "django"
 version = "6.0.9"
 source = { registry = "https://pypi.org/simple" }
@@ -1792,6 +1895,7 @@ dependencies = [
     { name = "celery" },
     { name = "daisy-cotton-ext" },
     { name = "defusedxml" },
+    { name = "dj-control-room", extra = ["cache", "celery", "redis"] },
     { name = "django", extra = ["argon2"] },
     { name = "django-adminactions" },
     { name = "django-allauth", extra = ["mfa", "socialaccount"] },
@@ -1860,6 +1964,8 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "dj-signals-panel" },
+    { name = "dj-urls-panel" },
     { name = "django" },
     { name = "fairdm-discussions" },
     { name = "mvp-shared", extra = ["dev", "test"] },
@@ -1875,6 +1981,7 @@ requires-dist = [
     { name = "celery", specifier = ">=5.6.2,<6.0.0" },
     { name = "daisy-cotton-ext", specifier = ">=0.5.0,<0.6.0" },
     { name = "defusedxml", specifier = ">=0.7.0,<0.8.0" },
+    { name = "dj-control-room", extras = ["redis", "cache", "celery"], specifier = ">=1.8.1,<2" },
     { name = "django", extras = ["argon2"], specifier = ">=6.0,<7.0.0" },
     { name = "django-adminactions", specifier = ">=2.0.0,<3.0.0" },
     { name = "django-allauth", extras = ["mfa", "socialaccount"], specifier = ">=65.19.4,<66.0.0" },
@@ -1943,6 +2050,8 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "dj-signals-panel", specifier = ">=0.6,<1" },
+    { name = "dj-urls-panel", specifier = ">=0.5,<1" },
     { name = "django", specifier = ">=6.0,<7.0" },
     { name = "fairdm-discussions", git = "https://github.com/FAIR-DM/fairdm-discussions" },
     { name = "mvp-shared", extras = ["dev", "test"], git = "https://github.com/django-mvp/shared.git?tag=v0.6.0" },

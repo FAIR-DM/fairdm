@@ -271,6 +271,7 @@ def setup(
         "settings/cache.py",
         "settings/static_media.py",
         "settings/celery.py",
+        "settings/control_room.py",
         "settings/auth.py",
         "settings/logging.py",
         "settings/email.py",
