@@ -214,6 +214,7 @@ class TestPortalWithoutTheControlRoom:
                 index = client.get(reverse("admin:index"))
                 dashboard = client.get("/admin/dj-control-room/")
         finally:
+            monkeypatch.undo()
             importlib.reload(admin_urls)
             importlib.reload(root_urls)
             clear_url_caches()
