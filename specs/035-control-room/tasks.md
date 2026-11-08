@@ -117,3 +117,5 @@ that makes it pass is written. Wording and appearance get no tests.
   FairDM's own.
 - [x] T016 [US1] The developers' how-to: removing the dashboard in development takes the URL and
   signal panels out too, and a portal-role holder who is not staff is refused a group-opened panel.
+- [x] T017 [US1] The read-only Redis page test skips where no Redis is configured, as in CI. The
+  settings test still asserts that no Redis write feature is turned on.

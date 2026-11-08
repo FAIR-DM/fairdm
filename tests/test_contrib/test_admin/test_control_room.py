@@ -376,7 +376,9 @@ class TestControlRoomWithServicesDown:
 class TestRedisPanelIsReadOnly:
     @pytest.fixture
     def live_redis_key(self, settings):
-        location = os.environ["REDIS_URL"]
+        location = os.environ.get("REDIS_URL")
+        if not location:
+            pytest.skip("Needs a live Redis at REDIS_URL to hold a key to open.")
         panel_settings = settings.DJ_REDIS_PANEL_SETTINGS
         settings.DJ_REDIS_PANEL_SETTINGS = {
             **panel_settings,
