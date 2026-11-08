@@ -5,7 +5,9 @@
 
 ## Summary
 
-FairDM depends on Django Control Room with its Redis, cache, Celery, URL and signal panels. A new
+FairDM depends on Django Control Room with its Redis, cache and Celery panels. The URL and signal
+panels go in FairDM's own development dependency group and are turned on by the development
+settings wherever they are installed. A new
 baseline settings module, `fairdm/conf/settings/control_room.py`, installs the hub and the three
 operational panels and writes each package's settings dict with `REQUIRE_SUPERUSER: True`. It
 points the Redis panel at `REDIS_URL` with editing left off, and turns off the URL panel's test
@@ -17,8 +19,9 @@ changing who can open it or removing it, and settings reference entries.
 ## Technical Context
 
 **Language/Version**: Python 3.13, Django 6.0
-**Primary Dependencies**: new: `dj-control-room[redis,cache,celery,urls,signals]` (pulls in
-`dj-control-room-base` and the five panels). Present: `redis`, `celery`, `django-redis`.
+**Primary Dependencies**: new runtime: `dj-control-room[redis,cache,celery]` (pulls in
+`dj-control-room-base` and the three panels). New development group: `dj-urls-panel`,
+`dj-signals-panel`. Present: `redis`, `celery`, `django-redis`.
 **Storage**: the packages ship placeholder models for their admin entries and migrations of their
 own. FairDM adds no model and no migration.
 **Testing**: pytest through the shared development container
@@ -65,8 +68,11 @@ after `settings/celery.py`:
   one module keeps the access rule in one place.
 - Nothing sets `MCP_ENABLED`.
 
-`fairdm/conf/development.py`: inserts `dj_urls_panel` and `dj_signals_panel` into
-`INSTALLED_APPS` immediately before `dj_control_room`, so they are panels of the same hub.
+`fairdm/conf/development.py`: inserts each of `dj_urls_panel` and `dj_signals_panel` into
+`INSTALLED_APPS` immediately before `dj_control_room` when `importlib.util.find_spec` finds it,
+the pattern already used for `django_browser_reload`. They are never runtime dependencies: the hub
+discovers panels from installed distributions' entry points, not from `INSTALLED_APPS`, and lists
+an installed, unmounted panel in the admin sidebar with a link that fails.
 
 A portal overrides any of these by assigning its own value after `setup()`, as for every other
 setting. A portal removes the dashboard by removing the five or seven app names from
@@ -132,6 +138,8 @@ no helper module.
 
 ## Risks
 
+- **The hub lists every installed panel.** Any panel package a portal installs appears on its
+  dashboard. The documentation says so.
 - **A young dependency.** Pinned with a lower bound at the current release and an upper bound at
   the next major. A panel that breaks is removed on its own.
 - **The panels' templates extend the stock admin.** FairDM's admin is the stock admin with its own

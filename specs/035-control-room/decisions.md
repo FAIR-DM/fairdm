@@ -56,3 +56,13 @@ The constitution leaves advanced dashboards to addons. This dashboard is about r
 not about its research data. It serves G16, a research group with no operations staff runs its own
 portal, and that group is exactly the one that would not know to install an addon. The maintainer
 decided it ships with every portal.
+
+## D7 — The URL and signal panels are development dependencies only
+
+Found at design review. The dashboard finds panels from the packages installed in the
+environment, not from the apps a portal turns on. A panel package installed in production but not
+turned on would still appear in the administration sidebar, and its link would fail. So FairDM
+does not install the two packages for every portal. They are in FairDM's own development
+dependencies, and FairDM's development settings turn them on wherever they are installed. A portal
+developer who wants them adds the two packages to the portal's development dependencies. This
+narrows US2, so the open spec gate was not re-run.

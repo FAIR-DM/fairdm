@@ -59,14 +59,19 @@ removed on its own.
    nothing for it.
 8. **The Celery panel reads from `celery.current_app`** and inspects workers over the broker. With
    no worker it reports none. FairDM's Celery app is configured in `fairdm/conf/celery.py`.
-9. **Development-only apps follow an existing pattern.** `fairdm/conf/development.py` appends apps
-   to `INSTALLED_APPS` when `DJANGO_ENV=development`. The URL and signal panels are installed
-   packages in every portal and added to `INSTALLED_APPS` only there. Their URL routes are mounted
+9. **Development-only apps follow an existing pattern.** `fairdm/conf/development.py` appends
+   `django_browser_reload` to `INSTALLED_APPS` when `find_spec` finds it. The URL and signal
+   panels follow it: development dependencies only, added to `INSTALLED_APPS` when installed. Their URL routes are mounted
    only when the app is installed (`django.apps.apps.is_installed`), so production answers 404.
-10. **The hub discovers panels through entry points and lists official panels that are not
-    installed** as cards with an install guide. A production dashboard may therefore show the URL
-    and signal panels as available to install. That card opens nothing in the portal, which is
-    what FR-011 asks.
+10. **The hub discovers panels through installed distributions' entry points, not
+    `INSTALLED_APPS`** (`registry.py`, `admin_integration.register_panel_admins`). A panel package
+    that is installed but not in `INSTALLED_APPS` still gets an admin sidebar entry, whose link
+    fails. So the URL and signal panels must not be installed in production at all, which is why
+    they are development dependencies. Official panels that are not installed show as cards with
+    an install guide; such a card opens nothing in the portal.
+12. **Only the Celery workers and queues pages talk to the broker.** The Celery index page makes no
+    broker call, so the unreachable-service tests request the workers and queues pages, and the
+    Redis panel's instance and key-search pages.
 11. **A portal's settings win by assignment.** FairDM's settings are applied by `setup()`, and a
     portal's settings module assigns its own values afterwards, as for every other FairDM setting
     (FR-008).

@@ -86,6 +86,10 @@ specifying, without putting it to him again. The longer reasoning is in
 - Q: Can the Redis panel change or delete keys? → A: No. The package leaves editing, deleting and
   expiry changes off unless a portal turns them on, and FairDM keeps them off. The cache panel's own
   editing stays, for superusers only.
+- Q: How does a portal get the URL and signal panels? → A: It adds the two packages to its own
+  development dependencies. FairDM does not install them for every portal, because the dashboard
+  lists every installed panel and a production portal would then show links to panels it does not
+  serve. FairDM's development settings turn them on whenever they are installed.
 - Q: What happens when Redis or the worker is down? → A: The dashboard and its panels still open
   and say the service cannot be reached. The rest of the administration interface is unaffected.
 
@@ -158,7 +162,8 @@ staff account and as a Data Curator, and check that neither can open the dashboa
 
 ### User Story 2 - A developer inspects a portal's routes and signals while building it (Priority: P2)
 
-A developer building a portal runs the development stack. Signed in as a superuser, they open the
+A developer building a portal adds the URL and signal panel packages to their development
+environment and runs the portal with development settings. Signed in as a superuser, they open the
 operations dashboard and find two more panels: one lists every URL route in the portal and the view
 each one reaches, and one lists the signal receivers connected in the portal. A production portal
 opens neither.
@@ -172,8 +177,8 @@ offered or reachable.
 
 **Acceptance Scenarios**:
 
-1. **Given** a portal running with development settings, **When** a superuser opens the
-   dashboard, **Then** it lists the URL and signal panels along with the three from US1, and both
+1. **Given** a portal running with development settings and the two panel packages installed,
+   **When** a superuser opens the dashboard, **Then** it lists the URL and signal panels along with the three from US1, and both
    open.
 2. **Given** a portal running with production settings, **When** a superuser opens the dashboard,
    **Then** it offers no way to open the URL panel or the signal panel, and requests for either are
@@ -216,8 +221,9 @@ offered or reachable.
   unless a portal turns that on itself. (US1)
 - **FR-009**: A portal that removes the control-room applications MUST start and run normally.
   (US1)
-- **FR-010**: With development settings, the dashboard MUST also offer the URL and signal panels,
-  under the same access rule as FR-004. (US2)
+- **FR-010**: With development settings and the two panel packages installed, the dashboard MUST
+  also offer the URL and signal panels, under the same access rule as FR-004. FairDM MUST NOT
+  install them in a portal's production environment. (US2)
 - **FR-011**: With production settings, the URL and signal panels MUST NOT be reachable, and the
   dashboard MUST offer no way to open them. (US2)
 - **FR-013**: No panel FairDM enables MAY send a request from the portal to another address, in
