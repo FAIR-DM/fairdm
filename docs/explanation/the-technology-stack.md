@@ -24,6 +24,10 @@ Celery runs work that should not hold up a page. FairDM's own tasks look up and 
 
 In development, a portal with no `REDIS_URL` runs tasks in the web process and keeps caches in memory, so you can work without a Redis server. That setup is for development only, and the configuration checks report it in production. See the [configuration checks](../administrators/reference/configuration-checks.md).
 
+## The control room
+
+The administration interface carries Django Control Room, a dashboard with panels for Redis, the cache and Celery. It is there because the people who run a portal, often researchers without operations staff, need to see which service is down before they can fix it, and FairDM already requires all three services. Only superusers can open it. See [How to check the portal's services in the control room](../administrators/how-to/check-the-portals-services-in-the-control-room.md).
+
 ## The interface
 
 The interface is rendered on the server. FairDM builds it on django-mvp, a shared application shell, with Tailwind CSS and daisyUI for styling and Cotton components for reusable template pieces. HTMX provides small enhancements. There is no separate single-page application, and a portal's pages work without custom templates or JavaScript.

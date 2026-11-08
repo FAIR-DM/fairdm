@@ -18,6 +18,7 @@ The groups are:
 - [Cache](#cache)
 - [Static and media files](#static-and-media-files)
 - [Background tasks](#background-tasks)
+- [Operations dashboard](#operations-dashboard)
 - [Email](#email)
 - [Authentication and sign-in](#authentication-and-sign-in)
 - [Profiles and claiming](#profiles-and-claiming)
@@ -784,6 +785,59 @@ The Celery settings use the `CELERY_` prefix, which FairDM's Celery application 
 - **Default**: `True`
 - **What it does**: Makes workers send events that monitoring tools read.
 - **Accepts**: `True` or `False`.
+
+## Operations dashboard
+
+These settings configure the Django Control Room dashboard in the administration interface and the panels on it. Each package reads one dictionary. The keys common to all of them are `REQUIRE_SUPERUSER`, `ALLOWED_GROUPS` and `SCOPE_PERMISSIONS`. To change who can open the dashboard, see [How to change who can open the control room](../how-to/change-who-can-open-the-control-room.md).
+
+### `DJ_CACHE_PANEL_SETTINGS`
+
+- **Type**: `dict`
+- **Default**: `{"REQUIRE_SUPERUSER": True}`
+- **What it does**: Who can open the cache panel.
+- **Accepts**: A dictionary with `REQUIRE_SUPERUSER` (`bool`), `ALLOWED_GROUPS` (list of group names) and the package's other keys.
+
+### `DJ_CELERY_PANEL_SETTINGS`
+
+- **Type**: `dict`
+- **Default**: `{"REQUIRE_SUPERUSER": True}`
+- **What it does**: Who can open the Celery panel.
+- **Accepts**: A dictionary with `REQUIRE_SUPERUSER` (`bool`), `ALLOWED_GROUPS` (list of group names) and the package's other keys.
+
+### `DJ_CONTROL_ROOM_BASE_SETTINGS`
+
+- **Type**: `dict`
+- **Default**: `{"REQUIRE_SUPERUSER": True}`
+- **What it does**: Who can open the pages of the shared base package that every panel builds on.
+- **Accepts**: A dictionary with `REQUIRE_SUPERUSER` (`bool`), `ALLOWED_GROUPS` (list of group names) and the package's other keys.
+
+### `DJ_CONTROL_ROOM_SETTINGS`
+
+- **Type**: `dict`
+- **Default**: `{"REQUIRE_SUPERUSER": True}`
+- **What it does**: Who can open the dashboard. The agent interface is off unless this dictionary sets `MCP_ENABLED`, `MCP_TOKEN` and `MCP_USERNAME`, and FairDM sets none of them.
+- **Accepts**: A dictionary with `REQUIRE_SUPERUSER` (`bool`), `ALLOWED_GROUPS` (list of group names) and the package's other keys. `MCP_ENABLED` turns the agent interface on.
+
+### `DJ_REDIS_PANEL_SETTINGS`
+
+- **Type**: `dict`
+- **Default**: `{"REQUIRE_SUPERUSER": True, "INSTANCES": {"default": {"url": <REDIS_URL>}}}`, with the location the cache uses and no `features` key
+- **What it does**: Who can open the Redis panel, and which Redis servers it shows. Editing, deleting and changing the lifetime of keys are off until an instance sets `ALLOW_KEY_EDIT`, `ALLOW_KEY_DELETE` or `ALLOW_TTL_UPDATE` to `True` under its `features`.
+- **Accepts**: A dictionary with `REQUIRE_SUPERUSER` (`bool`), `ALLOWED_GROUPS` (list of group names) and the package's other keys. `INSTANCES` maps a name to a dictionary with a `url` and optional `features`.
+
+### `DJ_SIGNALS_PANEL_SETTINGS`
+
+- **Type**: `dict`
+- **Default**: `{"REQUIRE_SUPERUSER": True}`
+- **What it does**: Who can open the signals panel. The panel is installed only where its package is added to the development dependencies and the development settings are in use.
+- **Accepts**: A dictionary with `REQUIRE_SUPERUSER` (`bool`), `ALLOWED_GROUPS` (list of group names) and the package's other keys.
+
+### `DJ_URLS_PANEL_SETTINGS`
+
+- **Type**: `dict`
+- **Default**: `{"REQUIRE_SUPERUSER": True, "ENABLE_TESTING": False}`
+- **What it does**: Who can open the URL panel, and whether it can send a test request to an address. FairDM turns test requests off so the portal sends nothing. The panel is installed only where its package is added to the development dependencies and the development settings are in use.
+- **Accepts**: A dictionary with `REQUIRE_SUPERUSER` (`bool`), `ALLOWED_GROUPS` (list of group names) and the package's other keys. `ENABLE_TESTING` allows test requests.
 
 ## Email
 

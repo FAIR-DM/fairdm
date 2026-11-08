@@ -15,6 +15,7 @@ portal behaves.
 - [How to approve a pending affiliation](how-to/approve-a-pending-affiliation.md)
 - [How to assign a portal role](how-to/assign-a-portal-role.md)
 - [How to change the status of several projects](how-to/change-the-status-of-several-projects.md)
+- [How to check the portal's services in the control room](how-to/check-the-portals-services-in-the-control-room.md)
 - [How to close self-service signup](how-to/close-self-service-signup.md)
 - [How to correct a profile that nobody has claimed](how-to/correct-an-unclaimed-profile.md)
 - [How to create a user account](how-to/create-a-user-account.md)
@@ -62,6 +63,7 @@ how-to/add-a-sample-in-the-admin
 how-to/approve-a-pending-affiliation
 how-to/assign-a-portal-role
 how-to/change-the-status-of-several-projects
+how-to/check-the-portals-services-in-the-control-room
 how-to/close-self-service-signup
 how-to/correct-an-unclaimed-profile
 how-to/create-a-user-account
