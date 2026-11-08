@@ -49,4 +49,5 @@ do not restate earlier ones, only build past them.
 0040-backup-schedules-are-periodic-tasks
 0041-backups-are-encrypted-to-a-public-key
 0042-a-records-permalink-is-its-portal-id-at-the-root
+0043-the-operations-dashboard-is-for-superusers-only
 ```

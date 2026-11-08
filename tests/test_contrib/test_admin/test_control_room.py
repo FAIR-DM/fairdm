@@ -10,7 +10,6 @@ from bs4 import BeautifulSoup
 from celery import current_app
 from django.apps import apps as django_apps
 from django.contrib import admin
-from django.test import modify_settings
 from django.urls import clear_url_caches, reverse
 
 from fairdm.conf import urls as root_urls
@@ -221,9 +220,16 @@ class TestPortalWithoutTheControlRoom:
             if model._meta.app_label not in CONTROL_ROOM_APPS
         }
         monkeypatch.setattr(admin.site, "_registry", remaining)
+        # Patched rather than removed with modify_settings, which would re-run every
+        # app's start-up and duplicate menu entries for later tests.
+        is_installed = django_apps.is_installed
+
+        def without_control_room(label):
+            return label not in CONTROL_ROOM_APPS and is_installed(label)
+
         client.force_login(superuser)
         try:
-            with modify_settings(INSTALLED_APPS={"remove": CONTROL_ROOM_APPS}):
+            with mock.patch.object(django_apps, "is_installed", without_control_room):
                 importlib.reload(admin_urls)
                 importlib.reload(root_urls)
                 clear_url_caches()
