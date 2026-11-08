@@ -2,11 +2,13 @@
 
 import importlib
 import os
+from unittest import mock
 
 import pytest
 import redis
 from bs4 import BeautifulSoup
 from celery import current_app
+from django.apps import apps as django_apps
 from django.contrib import admin
 from django.test import modify_settings
 from django.urls import clear_url_caches, reverse
@@ -277,10 +279,17 @@ class TestDevelopmentOnlyPanelAccess:
     def test_the_panels_are_gone_when_their_apps_are_not_installed(
         self, client, superuser
     ):
+        # Removing the apps with modify_settings would re-run every app's start-up and
+        # duplicate menu entries for later tests; the URL conf reads only is_installed.
+        is_installed = django_apps.is_installed
+
+        def without_panels(label):
+            return label not in DEVELOPMENT_PANEL_APPS and is_installed(label)
+
         addresses = [reverse(name) for name in DEVELOPMENT_PANEL_INDEXES]
         client.force_login(superuser)
         try:
-            with modify_settings(INSTALLED_APPS={"remove": DEVELOPMENT_PANEL_APPS}):
+            with mock.patch.object(django_apps, "is_installed", without_panels):
                 importlib.reload(admin_urls)
                 importlib.reload(root_urls)
                 clear_url_caches()
