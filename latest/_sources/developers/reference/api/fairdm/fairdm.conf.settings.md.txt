@@ -22,6 +22,7 @@ fairdm.conf.settings.addons
 fairdm.conf.settings.database
 fairdm.conf.settings.apps
 fairdm.conf.settings.auth
+fairdm.conf.settings.control_room
 fairdm.conf.settings.api
 fairdm.conf.settings.celery
 ```

@@ -332,7 +332,7 @@ Serves G10. Out of scope: harvesting protocols for portal-to-portal exchange, wh
 
 ### R26 — A research group can deploy the shipped stack
 
-*delivered in [#520](https://github.com/FAIR-DM/fairdm/issues/520), [#601](https://github.com/FAIR-DM/fairdm/issues/601) · advances G16*
+*delivered in [#520](https://github.com/FAIR-DM/fairdm/issues/520), [#601](https://github.com/FAIR-DM/fairdm/issues/601), [#661](https://github.com/FAIR-DM/fairdm/issues/661) · advances G16*
 
 The deployment story does not run. The container stack builds from a directory that is not in the repository, points at an environment file that is not there, and the production configuration described in the documentation does not exist. A group with no operations staff has nothing to follow.
 

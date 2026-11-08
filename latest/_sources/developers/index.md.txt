@@ -37,6 +37,7 @@ explanation covers why parts of FairDM work as they do. Explanation every reader
 - [How to change the portal theme](how-to/change-the-portal-theme.md)
 - [How to change what a home page section shows](how-to/change-what-a-home-page-section-shows.md)
 - [How to change what the edit details page offers](how-to/change-what-the-edit-details-page-offers.md)
+- [How to change who can open the control room](how-to/change-who-can-open-the-control-room.md)
 - [How to choose the fields the API returns](how-to/choose-the-fields-the-api-returns.md)
 - [How to configure the agreement check](how-to/configure-the-agreement-check.md)
 - [How to count API callers behind a proxy](how-to/count-api-callers-behind-a-proxy.md)
@@ -169,6 +170,7 @@ how-to/change-the-entrance-pane
 how-to/change-the-portal-theme
 how-to/change-what-a-home-page-section-shows
 how-to/change-what-the-edit-details-page-offers
+how-to/change-who-can-open-the-control-room
 how-to/choose-the-fields-the-api-returns
 how-to/configure-the-agreement-check
 how-to/count-api-callers-behind-a-proxy

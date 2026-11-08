@@ -103,7 +103,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.5.0" />
-    <meta name="docbuild:last-update" content="Nov 06, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 08, 2026"/>
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -780,6 +780,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l1"><a class="reference internal" href="../how-to/change-the-portal-theme.html">How to change the portal theme</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/change-what-a-home-page-section-shows.html">How to change what a home page section shows</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/change-what-the-edit-details-page-offers.html">How to change what the edit details page offers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/change-who-can-open-the-control-room.html">How to change who can open the control room</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/choose-the-fields-the-api-returns.html">How to choose the fields the API returns</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/configure-the-agreement-check.html">How to configure the agreement check</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/count-api-callers-behind-a-proxy.html">How to count API callers behind a proxy</a></li>
@@ -1090,6 +1091,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><p><a class="reference internal" href="#cache">Cache</a></p></li>
 <li><p><a class="reference internal" href="#static-and-media-files">Static and media files</a></p></li>
 <li><p><a class="reference internal" href="#background-tasks">Background tasks</a></p></li>
+<li><p><a class="reference internal" href="#operations-dashboard">Operations dashboard</a></p></li>
 <li><p><a class="reference internal" href="#email">Email</a></p></li>
 <li><p><a class="reference internal" href="#authentication-and-sign-in">Authentication and sign-in</a></p></li>
 <li><p><a class="reference internal" href="#profiles-and-claiming">Profiles and claiming</a></p></li>
@@ -2091,6 +2093,73 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">True</span></code></p></li>
 <li><p><strong>What it does</strong>: Makes workers send events that monitoring tools read.</p></li>
 <li><p><strong>Accepts</strong>: <code class="docutils literal notranslate"><span class="pre">True</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+</ul>
+</section>
+</section>
+<section id="operations-dashboard">
+<h2>Operations dashboard<a class="headerlink" href="#operations-dashboard" title="Link to this heading">#</a></h2>
+<p>These settings configure the Django Control Room dashboard in the administration interface and the panels on it. Each package reads one dictionary. The keys common to all of them are <code class="docutils literal notranslate"><span class="pre">REQUIRE_SUPERUSER</span></code>, <code class="docutils literal notranslate"><span class="pre">ALLOWED_GROUPS</span></code> and <code class="docutils literal notranslate"><span class="pre">SCOPE_PERMISSIONS</span></code>. To change who can open the dashboard, see <a class="reference internal" href="../how-to/change-who-can-open-the-control-room.html"><span class="std std-doc">How to change who can open the control room</span></a>.</p>
+<section id="dj-cache-panel-settings">
+<h3><code class="docutils literal notranslate"><span class="pre">DJ_CACHE_PANEL_SETTINGS</span></code><a class="headerlink" href="#dj-cache-panel-settings" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Type</strong>: <code class="docutils literal notranslate"><span class="pre">dict</span></code></p></li>
+<li><p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">{&quot;REQUIRE_SUPERUSER&quot;:</span> <span class="pre">True}</span></code></p></li>
+<li><p><strong>What it does</strong>: Who can open the cache panel.</p></li>
+<li><p><strong>Accepts</strong>: A dictionary with <code class="docutils literal notranslate"><span class="pre">REQUIRE_SUPERUSER</span></code> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>), <code class="docutils literal notranslate"><span class="pre">ALLOWED_GROUPS</span></code> (list of group names) and the package’s other keys.</p></li>
+</ul>
+</section>
+<section id="dj-celery-panel-settings">
+<h3><code class="docutils literal notranslate"><span class="pre">DJ_CELERY_PANEL_SETTINGS</span></code><a class="headerlink" href="#dj-celery-panel-settings" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Type</strong>: <code class="docutils literal notranslate"><span class="pre">dict</span></code></p></li>
+<li><p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">{&quot;REQUIRE_SUPERUSER&quot;:</span> <span class="pre">True}</span></code></p></li>
+<li><p><strong>What it does</strong>: Who can open the Celery panel.</p></li>
+<li><p><strong>Accepts</strong>: A dictionary with <code class="docutils literal notranslate"><span class="pre">REQUIRE_SUPERUSER</span></code> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>), <code class="docutils literal notranslate"><span class="pre">ALLOWED_GROUPS</span></code> (list of group names) and the package’s other keys.</p></li>
+</ul>
+</section>
+<section id="dj-control-room-base-settings">
+<h3><code class="docutils literal notranslate"><span class="pre">DJ_CONTROL_ROOM_BASE_SETTINGS</span></code><a class="headerlink" href="#dj-control-room-base-settings" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Type</strong>: <code class="docutils literal notranslate"><span class="pre">dict</span></code></p></li>
+<li><p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">{&quot;REQUIRE_SUPERUSER&quot;:</span> <span class="pre">True}</span></code></p></li>
+<li><p><strong>What it does</strong>: Who can open the pages of the shared base package that every panel builds on.</p></li>
+<li><p><strong>Accepts</strong>: A dictionary with <code class="docutils literal notranslate"><span class="pre">REQUIRE_SUPERUSER</span></code> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>), <code class="docutils literal notranslate"><span class="pre">ALLOWED_GROUPS</span></code> (list of group names) and the package’s other keys.</p></li>
+</ul>
+</section>
+<section id="dj-control-room-settings">
+<h3><code class="docutils literal notranslate"><span class="pre">DJ_CONTROL_ROOM_SETTINGS</span></code><a class="headerlink" href="#dj-control-room-settings" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Type</strong>: <code class="docutils literal notranslate"><span class="pre">dict</span></code></p></li>
+<li><p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">{&quot;REQUIRE_SUPERUSER&quot;:</span> <span class="pre">True}</span></code></p></li>
+<li><p><strong>What it does</strong>: Who can open the dashboard. The agent interface is off unless this dictionary sets <code class="docutils literal notranslate"><span class="pre">MCP_ENABLED</span></code>, <code class="docutils literal notranslate"><span class="pre">MCP_TOKEN</span></code> and <code class="docutils literal notranslate"><span class="pre">MCP_USERNAME</span></code>, and FairDM sets none of them.</p></li>
+<li><p><strong>Accepts</strong>: A dictionary with <code class="docutils literal notranslate"><span class="pre">REQUIRE_SUPERUSER</span></code> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>), <code class="docutils literal notranslate"><span class="pre">ALLOWED_GROUPS</span></code> (list of group names) and the package’s other keys. <code class="docutils literal notranslate"><span class="pre">MCP_ENABLED</span></code> turns the agent interface on.</p></li>
+</ul>
+</section>
+<section id="dj-redis-panel-settings">
+<h3><code class="docutils literal notranslate"><span class="pre">DJ_REDIS_PANEL_SETTINGS</span></code><a class="headerlink" href="#dj-redis-panel-settings" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Type</strong>: <code class="docutils literal notranslate"><span class="pre">dict</span></code></p></li>
+<li><p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">{&quot;REQUIRE_SUPERUSER&quot;:</span> <span class="pre">True,</span> <span class="pre">&quot;INSTANCES&quot;:</span> <span class="pre">{&quot;default&quot;:</span> <span class="pre">{&quot;url&quot;:</span> <span class="pre">&lt;REDIS_URL&gt;}}}</span></code>, with the location the cache uses and no <code class="docutils literal notranslate"><span class="pre">features</span></code> key</p></li>
+<li><p><strong>What it does</strong>: Who can open the Redis panel, and which Redis servers it shows. Editing, deleting and changing the lifetime of keys are off until an instance sets <code class="docutils literal notranslate"><span class="pre">ALLOW_KEY_EDIT</span></code>, <code class="docutils literal notranslate"><span class="pre">ALLOW_KEY_DELETE</span></code> or <code class="docutils literal notranslate"><span class="pre">ALLOW_TTL_UPDATE</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code> under its <code class="docutils literal notranslate"><span class="pre">features</span></code>.</p></li>
+<li><p><strong>Accepts</strong>: A dictionary with <code class="docutils literal notranslate"><span class="pre">REQUIRE_SUPERUSER</span></code> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>), <code class="docutils literal notranslate"><span class="pre">ALLOWED_GROUPS</span></code> (list of group names) and the package’s other keys. <code class="docutils literal notranslate"><span class="pre">INSTANCES</span></code> maps a name to a dictionary with a <code class="docutils literal notranslate"><span class="pre">url</span></code> and optional <code class="docutils literal notranslate"><span class="pre">features</span></code>.</p></li>
+</ul>
+</section>
+<section id="dj-signals-panel-settings">
+<h3><code class="docutils literal notranslate"><span class="pre">DJ_SIGNALS_PANEL_SETTINGS</span></code><a class="headerlink" href="#dj-signals-panel-settings" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Type</strong>: <code class="docutils literal notranslate"><span class="pre">dict</span></code></p></li>
+<li><p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">{&quot;REQUIRE_SUPERUSER&quot;:</span> <span class="pre">True}</span></code></p></li>
+<li><p><strong>What it does</strong>: Who can open the signals panel. The panel is installed only where its package is added to the development dependencies and the development settings are in use.</p></li>
+<li><p><strong>Accepts</strong>: A dictionary with <code class="docutils literal notranslate"><span class="pre">REQUIRE_SUPERUSER</span></code> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>), <code class="docutils literal notranslate"><span class="pre">ALLOWED_GROUPS</span></code> (list of group names) and the package’s other keys.</p></li>
+</ul>
+</section>
+<section id="dj-urls-panel-settings">
+<h3><code class="docutils literal notranslate"><span class="pre">DJ_URLS_PANEL_SETTINGS</span></code><a class="headerlink" href="#dj-urls-panel-settings" title="Link to this heading">#</a></h3>
+<ul class="simple">
+<li><p><strong>Type</strong>: <code class="docutils literal notranslate"><span class="pre">dict</span></code></p></li>
+<li><p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">{&quot;REQUIRE_SUPERUSER&quot;:</span> <span class="pre">True,</span> <span class="pre">&quot;ENABLE_TESTING&quot;:</span> <span class="pre">False}</span></code></p></li>
+<li><p><strong>What it does</strong>: Who can open the URL panel, and whether it can send a test request to an address. FairDM turns test requests off so the portal sends nothing. The panel is installed only where its package is added to the development dependencies and the development settings are in use.</p></li>
+<li><p><strong>Accepts</strong>: A dictionary with <code class="docutils literal notranslate"><span class="pre">REQUIRE_SUPERUSER</span></code> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>), <code class="docutils literal notranslate"><span class="pre">ALLOWED_GROUPS</span></code> (list of group names) and the package’s other keys. <code class="docutils literal notranslate"><span class="pre">ENABLE_TESTING</span></code> allows test requests.</p></li>
 </ul>
 </section>
 </section>
@@ -3448,6 +3517,16 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#celery-task-time-limit"><code class="docutils literal notranslate"><span class="pre">CELERY_TASK_TIME_LIMIT</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#celery-timezone"><code class="docutils literal notranslate"><span class="pre">CELERY_TIMEZONE</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#celery-worker-send-task-events"><code class="docutils literal notranslate"><span class="pre">CELERY_WORKER_SEND_TASK_EVENTS</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#operations-dashboard">Operations dashboard</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dj-cache-panel-settings"><code class="docutils literal notranslate"><span class="pre">DJ_CACHE_PANEL_SETTINGS</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dj-celery-panel-settings"><code class="docutils literal notranslate"><span class="pre">DJ_CELERY_PANEL_SETTINGS</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dj-control-room-base-settings"><code class="docutils literal notranslate"><span class="pre">DJ_CONTROL_ROOM_BASE_SETTINGS</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dj-control-room-settings"><code class="docutils literal notranslate"><span class="pre">DJ_CONTROL_ROOM_SETTINGS</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dj-redis-panel-settings"><code class="docutils literal notranslate"><span class="pre">DJ_REDIS_PANEL_SETTINGS</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dj-signals-panel-settings"><code class="docutils literal notranslate"><span class="pre">DJ_SIGNALS_PANEL_SETTINGS</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#dj-urls-panel-settings"><code class="docutils literal notranslate"><span class="pre">DJ_URLS_PANEL_SETTINGS</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#email">Email</a><ul class="nav section-nav flex-column">

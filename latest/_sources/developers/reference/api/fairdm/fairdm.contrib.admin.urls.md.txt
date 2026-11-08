@@ -15,6 +15,14 @@
 :class: autosummary longtable
 :align: left
 
+* - {py:obj}`admin_url <fairdm.contrib.admin.urls.admin_url>`
+  - ```{autodoc2-docstring} fairdm.contrib.admin.urls.admin_url
+    :summary:
+    ```
+* - {py:obj}`CONTROL_ROOM_PANELS <fairdm.contrib.admin.urls.CONTROL_ROOM_PANELS>`
+  - ```{autodoc2-docstring} fairdm.contrib.admin.urls.CONTROL_ROOM_PANELS
+    :summary:
+    ```
 * - {py:obj}`urlpatterns <fairdm.contrib.admin.urls.urlpatterns>`
   - ```{autodoc2-docstring} fairdm.contrib.admin.urls.urlpatterns
     :summary:
@@ -22,6 +30,26 @@
 ````
 
 ### API
+
+````{py:data} admin_url
+:canonical: fairdm.contrib.admin.urls.admin_url
+:value: >
+   'getattr(...)'
+
+```{autodoc2-docstring} fairdm.contrib.admin.urls.admin_url
+```
+
+````
+
+````{py:data} CONTROL_ROOM_PANELS
+:canonical: fairdm.contrib.admin.urls.CONTROL_ROOM_PANELS
+:value: >
+   (('dj_redis_panel', 'dj-redis-panel'), ('dj_cache_panel', 'dj-cache-panel'), ('dj_celery_panel', 'dj...
+
+```{autodoc2-docstring} fairdm.contrib.admin.urls.CONTROL_ROOM_PANELS
+```
+
+````
 
 ````{py:data} urlpatterns
 :canonical: fairdm.contrib.admin.urls.urlpatterns

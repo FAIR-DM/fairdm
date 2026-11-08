@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="developers/reference/api/fairdm/fairdm.contrib.admin.urls.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="URL configuration for the admin site. Module Contents: Data:,, urlpatterns,,,,, API:" />
-<meta name="description" content="URL configuration for the admin site. Module Contents: Data:,, urlpatterns,,,,, API:" />
+<meta property="og:description" content="URL configuration for the admin site. Module Contents: Data:,, admin_url,,, CONTROL_ROOM_PANELS,,, urlpatterns,,,,, API:" />
+<meta name="description" content="URL configuration for the admin site. Module Contents: Data:,, admin_url,,, CONTROL_ROOM_PANELS,,, urlpatterns,,,,, API:" />
 
     <title>fairdm.contrib.admin.urls &#8212; fairdm 0.5.0 documentation</title>
   
@@ -103,7 +103,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.5.0" />
-    <meta name="docbuild:last-update" content="Nov 06, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 08, 2026"/>
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -780,6 +780,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/change-the-portal-theme.html">How to change the portal theme</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/change-what-a-home-page-section-shows.html">How to change what a home page section shows</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/change-what-the-edit-details-page-offers.html">How to change what the edit details page offers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/change-who-can-open-the-control-room.html">How to change who can open the control room</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/choose-the-fields-the-api-returns.html">How to choose the fields the API returns</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/configure-the-agreement-check.html">How to configure the agreement check</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/count-api-callers-behind-a-proxy.html">How to count API callers behind a proxy</a></li>
@@ -1094,6 +1095,12 @@ commentsRunWhenDOMLoaded(addUtterances);
 <h3>Data<a class="headerlink" href="#data" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="autosummary longtable table table-left">
 <tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.admin.urls.admin_url" title="fairdm.contrib.admin.urls.admin_url"><code class="xref py py-obj docutils literal notranslate"><span class="pre">admin_url</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.admin.urls.CONTROL_ROOM_PANELS" title="fairdm.contrib.admin.urls.CONTROL_ROOM_PANELS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CONTROL_ROOM_PANELS</span></code></a></p></td>
+<td></td>
+</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.admin.urls.urlpatterns" title="fairdm.contrib.admin.urls.urlpatterns"><code class="xref py py-obj docutils literal notranslate"><span class="pre">urlpatterns</span></code></a></p></td>
 <td></td>
 </tr>
@@ -1103,6 +1110,18 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="api">
 <h3>API<a class="headerlink" href="#api" title="Link to this heading">#</a></h3>
+<dl class="py data">
+<dt class="sig sig-object py" id="fairdm.contrib.admin.urls.admin_url">
+<span class="sig-name descname"><span class="pre">admin_url</span></span><a class="headerlink" href="#fairdm.contrib.admin.urls.admin_url" title="Link to this definition">#</a></dt>
+<dd><p>‘getattr(…)’</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="fairdm.contrib.admin.urls.CONTROL_ROOM_PANELS">
+<span class="sig-name descname"><span class="pre">CONTROL_ROOM_PANELS</span></span><a class="headerlink" href="#fairdm.contrib.admin.urls.CONTROL_ROOM_PANELS" title="Link to this definition">#</a></dt>
+<dd><p>((‘dj_redis_panel’, ‘dj-redis-panel’), (‘dj_cache_panel’, ‘dj-cache-panel’), (‘dj_celery_panel’, ‘dj…</p>
+</dd></dl>
+
 <dl class="py data">
 <dt class="sig sig-object py" id="fairdm.contrib.admin.urls.urlpatterns">
 <span class="sig-name descname"><span class="pre">urlpatterns</span></span><a class="headerlink" href="#fairdm.contrib.admin.urls.urlpatterns" title="Link to this definition">#</a></dt>
@@ -1163,6 +1182,8 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module Contents</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#data">Data</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#api">API</a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.admin.urls.admin_url"><code class="docutils literal notranslate"><span class="pre">admin_url</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.admin.urls.CONTROL_ROOM_PANELS"><code class="docutils literal notranslate"><span class="pre">CONTROL_ROOM_PANELS</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.contrib.admin.urls.urlpatterns"><code class="docutils literal notranslate"><span class="pre">urlpatterns</span></code></a></li>
 </ul>
 </li>

@@ -1,0 +1,146 @@
+# {py:mod}`fairdm.conf.settings.control_room`
+
+```{py:module} fairdm.conf.settings.control_room
+```
+
+```{autodoc2-docstring} fairdm.conf.settings.control_room
+:allowtitles:
+```
+
+## Module Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`INSTALLED_APPS <fairdm.conf.settings.control_room.INSTALLED_APPS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.control_room.INSTALLED_APPS
+    :summary:
+    ```
+* - {py:obj}`CACHES <fairdm.conf.settings.control_room.CACHES>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.control_room.CACHES
+    :summary:
+    ```
+* - {py:obj}`DJ_CONTROL_ROOM_SETTINGS <fairdm.conf.settings.control_room.DJ_CONTROL_ROOM_SETTINGS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.control_room.DJ_CONTROL_ROOM_SETTINGS
+    :summary:
+    ```
+* - {py:obj}`DJ_CONTROL_ROOM_BASE_SETTINGS <fairdm.conf.settings.control_room.DJ_CONTROL_ROOM_BASE_SETTINGS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.control_room.DJ_CONTROL_ROOM_BASE_SETTINGS
+    :summary:
+    ```
+* - {py:obj}`DJ_REDIS_PANEL_SETTINGS <fairdm.conf.settings.control_room.DJ_REDIS_PANEL_SETTINGS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.control_room.DJ_REDIS_PANEL_SETTINGS
+    :summary:
+    ```
+* - {py:obj}`DJ_CACHE_PANEL_SETTINGS <fairdm.conf.settings.control_room.DJ_CACHE_PANEL_SETTINGS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.control_room.DJ_CACHE_PANEL_SETTINGS
+    :summary:
+    ```
+* - {py:obj}`DJ_CELERY_PANEL_SETTINGS <fairdm.conf.settings.control_room.DJ_CELERY_PANEL_SETTINGS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.control_room.DJ_CELERY_PANEL_SETTINGS
+    :summary:
+    ```
+* - {py:obj}`DJ_URLS_PANEL_SETTINGS <fairdm.conf.settings.control_room.DJ_URLS_PANEL_SETTINGS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.control_room.DJ_URLS_PANEL_SETTINGS
+    :summary:
+    ```
+* - {py:obj}`DJ_SIGNALS_PANEL_SETTINGS <fairdm.conf.settings.control_room.DJ_SIGNALS_PANEL_SETTINGS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.control_room.DJ_SIGNALS_PANEL_SETTINGS
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} INSTALLED_APPS
+:canonical: fairdm.conf.settings.control_room.INSTALLED_APPS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.control_room.INSTALLED_APPS
+```
+
+````
+
+````{py:data} CACHES
+:canonical: fairdm.conf.settings.control_room.CACHES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.control_room.CACHES
+```
+
+````
+
+````{py:data} DJ_CONTROL_ROOM_SETTINGS
+:canonical: fairdm.conf.settings.control_room.DJ_CONTROL_ROOM_SETTINGS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.control_room.DJ_CONTROL_ROOM_SETTINGS
+```
+
+````
+
+````{py:data} DJ_CONTROL_ROOM_BASE_SETTINGS
+:canonical: fairdm.conf.settings.control_room.DJ_CONTROL_ROOM_BASE_SETTINGS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.control_room.DJ_CONTROL_ROOM_BASE_SETTINGS
+```
+
+````
+
+````{py:data} DJ_REDIS_PANEL_SETTINGS
+:canonical: fairdm.conf.settings.control_room.DJ_REDIS_PANEL_SETTINGS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.control_room.DJ_REDIS_PANEL_SETTINGS
+```
+
+````
+
+````{py:data} DJ_CACHE_PANEL_SETTINGS
+:canonical: fairdm.conf.settings.control_room.DJ_CACHE_PANEL_SETTINGS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.control_room.DJ_CACHE_PANEL_SETTINGS
+```
+
+````
+
+````{py:data} DJ_CELERY_PANEL_SETTINGS
+:canonical: fairdm.conf.settings.control_room.DJ_CELERY_PANEL_SETTINGS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.control_room.DJ_CELERY_PANEL_SETTINGS
+```
+
+````
+
+````{py:data} DJ_URLS_PANEL_SETTINGS
+:canonical: fairdm.conf.settings.control_room.DJ_URLS_PANEL_SETTINGS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.control_room.DJ_URLS_PANEL_SETTINGS
+```
+
+````
+
+````{py:data} DJ_SIGNALS_PANEL_SETTINGS
+:canonical: fairdm.conf.settings.control_room.DJ_SIGNALS_PANEL_SETTINGS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.control_room.DJ_SIGNALS_PANEL_SETTINGS
+```
+
+````

@@ -103,7 +103,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.5.0" />
-    <meta name="docbuild:last-update" content="Nov 06, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 08, 2026"/>
   
     
     <script src="../_static/searchtools.js"></script>
@@ -826,6 +826,10 @@ commentsRunWhenDOMLoaded(addUtterances);
 <p>Celery runs work that should not hold up a page. FairDM’s own tasks look up and refresh contributor details from ORCID and ROR, and look for duplicate people. A portal can add its own tasks. The container images start a worker with their <code class="docutils literal notranslate"><span class="pre">worker</span></code> command.</p>
 <p>In development, a portal with no <code class="docutils literal notranslate"><span class="pre">REDIS_URL</span></code> runs tasks in the web process and keeps caches in memory, so you can work without a Redis server. That setup is for development only, and the configuration checks report it in production. See the <a class="reference internal" href="../administrators/reference/configuration-checks.html"><span class="std std-doc">configuration checks</span></a>.</p>
 </section>
+<section id="the-control-room">
+<h2>The control room<a class="headerlink" href="#the-control-room" title="Link to this heading">#</a></h2>
+<p>The administration interface carries Django Control Room, a dashboard with panels for Redis, the cache and Celery. It is there because the people who run a portal, often researchers without operations staff, need to see which service is down before they can fix it, and FairDM already requires all three services. Only superusers can open it. See <a class="reference internal" href="../administrators/how-to/check-the-portals-services-in-the-control-room.html"><span class="std std-doc">How to check the portal’s services in the control room</span></a>.</p>
+</section>
 <section id="the-interface">
 <h2>The interface<a class="headerlink" href="#the-interface" title="Link to this heading">#</a></h2>
 <p>The interface is rendered on the server. FairDM builds it on django-mvp, a shared application shell, with Tailwind CSS and daisyUI for styling and Cotton components for reusable template pieces. HTMX provides small enhancements. There is no separate single-page application, and a portal’s pages work without custom templates or JavaScript.</p>
@@ -919,6 +923,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#python-and-django">Python and Django</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#postgresql-with-postgis">PostgreSQL with PostGIS</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#redis-and-celery">Redis and Celery</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-control-room">The control room</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-interface">The interface</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#authentication">Authentication</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-rest-api">The REST API</a></li>
