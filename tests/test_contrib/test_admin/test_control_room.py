@@ -7,6 +7,8 @@ import pytest
 import redis
 from bs4 import BeautifulSoup
 from celery import current_app
+from django.contrib import admin
+from django.test import modify_settings
 from django.urls import clear_url_caches, reverse
 
 from fairdm.conf import urls as root_urls
@@ -25,6 +27,7 @@ APP_LABELS = [
     "dj_celery_panel",
     "dj_control_room",
 ]
+CONTROL_ROOM_APPS = [*APP_LABELS]
 PANEL_INDEXES = [
     "dj_redis_panel:index",
     "dj_cache_panel:index",
@@ -187,6 +190,36 @@ class TestControlRoomUnderAnotherAdminAddress:
 
         assert address.startswith("/manage/")
         assert response.status_code == 200
+
+
+@pytest.mark.django_db
+class TestPortalWithoutTheControlRoom:
+    def test_the_admin_stays_up_and_the_dashboard_is_gone(
+        self, client, superuser, monkeypatch
+    ):
+        # A process that never installed the apps never registered their admin entries;
+        # this one did at start-up, so they are dropped for the duration.
+        remaining = {
+            model: model_admin
+            for model, model_admin in admin.site._registry.items()
+            if model._meta.app_label not in CONTROL_ROOM_APPS
+        }
+        monkeypatch.setattr(admin.site, "_registry", remaining)
+        client.force_login(superuser)
+        try:
+            with modify_settings(INSTALLED_APPS={"remove": CONTROL_ROOM_APPS}):
+                importlib.reload(admin_urls)
+                importlib.reload(root_urls)
+                clear_url_caches()
+                index = client.get(reverse("admin:index"))
+                dashboard = client.get("/admin/dj-control-room/")
+        finally:
+            importlib.reload(admin_urls)
+            importlib.reload(root_urls)
+            clear_url_caches()
+
+        assert index.status_code == 200
+        assert dashboard.status_code == 404
 
 
 @pytest.mark.django_db

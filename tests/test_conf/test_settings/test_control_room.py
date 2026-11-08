@@ -63,3 +63,31 @@ class TestControlRoomAccess:
     @pytest.mark.parametrize("name", SETTINGS_NAMES)
     def test_the_agent_interface_is_not_turned_on(self, production_module, name):
         assert not getattr(production_module, name).get("MCP_ENABLED")
+
+
+class TestControlRoomPortalOverrides:
+    def test_a_portal_dict_assigned_after_setup_is_kept(
+        self, isolated_env, settings_module
+    ):
+        os.environ["DJANGO_ENV"] = "qa"
+        portal_dict = {"REQUIRE_SUPERUSER": False, "features": {"ALLOW_KEY_EDIT": True}}
+
+        module = settings_module(after=f"DJ_REDIS_PANEL_SETTINGS = {portal_dict!r}")
+
+        assert module.DJ_REDIS_PANEL_SETTINGS == portal_dict
+
+    def test_a_portal_can_remove_the_control_room_apps(
+        self, isolated_env, settings_module
+    ):
+        os.environ["DJANGO_ENV"] = "qa"
+        removed = ", ".join(repr(app) for app in RUNTIME_APPS)
+
+        module = settings_module(
+            after=(
+                "INSTALLED_APPS = [app for app in INSTALLED_APPS "
+                f"if app not in [{removed}]]"
+            )
+        )
+
+        for app in RUNTIME_APPS:
+            assert app not in module.INSTALLED_APPS
