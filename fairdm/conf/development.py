@@ -20,6 +20,12 @@ if importlib.util.find_spec("django_browser_reload"):
         "django_browser_reload.middleware.BrowserReloadMiddleware",
     ]
 
+# Development-only control-room panels. Dev-group dependencies, never production ones, so a
+# portal has them only if it installs them. They go ahead of the dashboard that lists them.
+for panel in ("dj_urls_panel", "dj_signals_panel"):
+    if importlib.util.find_spec(panel):
+        INSTALLED_APPS.insert(INSTALLED_APPS.index("dj_control_room"), panel)
+
 DEBUG = True
 
 # Surface thumbnail failures instead of degrading to a blank image.

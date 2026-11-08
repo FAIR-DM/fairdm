@@ -182,6 +182,52 @@ class TestDevelopmentWithoutRedis:
         assert module.CELERY_TASK_ALWAYS_EAGER is False
 
 
+PANEL_APPS = ["dj_urls_panel", "dj_signals_panel"]
+
+
+class TestDevelopmentOnlyPanels:
+    @pytest.fixture
+    def panel_not_installed(self):
+        find_spec = importlib.util.find_spec
+
+        def without_panel(name, *args, **kwargs):
+            if name == "dj_signals_panel":
+                return None
+            return find_spec(name, *args, **kwargs)
+
+        with mock.patch("importlib.util.find_spec", without_panel):
+            yield
+
+    @pytest.mark.parametrize("app", PANEL_APPS)
+    def test_development_installs_each_panel_before_the_dashboard(
+        self, isolated_env, settings_module, app
+    ):
+        os.environ["DJANGO_ENV"] = "development"
+
+        apps = settings_module().INSTALLED_APPS
+
+        assert app in apps
+        assert apps.index(app) < apps.index("dj_control_room")
+
+    @pytest.mark.parametrize("app", PANEL_APPS)
+    def test_the_production_baseline_installs_neither_panel(
+        self, isolated_env, settings_module, app
+    ):
+        os.environ["DJANGO_ENV"] = "qa"
+
+        assert app not in settings_module().INSTALLED_APPS
+
+    def test_a_panel_that_is_not_installed_is_left_out_and_the_other_stays(
+        self, isolated_env, settings_module, panel_not_installed
+    ):
+        os.environ["DJANGO_ENV"] = "development"
+
+        apps = settings_module().INSTALLED_APPS
+
+        assert "dj_signals_panel" not in apps
+        assert "dj_urls_panel" in apps
+
+
 class TestBrowserReload:
     @pytest.fixture
     def browser_reload_not_installed(self):
