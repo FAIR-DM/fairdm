@@ -17,12 +17,12 @@ that makes it pass is written. Wording and appearance get no tests.
 
 ### Group 1
 
-- [ ] T001 [US1] Add `dj-control-room[redis,cache,celery]>=1.8.1,<2` to
+- [x] T001 [US1] Add `dj-control-room[redis,cache,celery]>=1.8.1,<2` to
   `[project].dependencies` in `pyproject.toml`, and `dj-urls-panel>=0.5,<1` and
   `dj-signals-panel>=0.6,<1` to the `dev` dependency group (never the runtime list: research
   finding 10). Add the distribution names to the deptry ignore list for packages named only in
   settings strings, and update `uv.lock`. No test: deptry and the suite cover it.
-- [ ] T002 [US1] `tests/test_conf/test_settings/test_control_room.py`: with the production
+- [x] T002 [US1] `tests/test_conf/test_settings/test_control_room.py`: with the production
   baseline (`DJANGO_ENV=qa`), `INSTALLED_APPS` holds `dj_control_room_base`, `dj_redis_panel`,
   `dj_cache_panel`, `dj_celery_panel` and `dj_control_room`, with the hub after the three panels
   and none of `dj_urls_panel`, `dj_signals_panel`. Each of `DJ_CONTROL_ROOM_SETTINGS`,
@@ -32,10 +32,10 @@ that makes it pass is written. Wording and appearance get no tests.
   its URL and no `features` key (FR-014). `DJ_URLS_PANEL_SETTINGS["ENABLE_TESTING"]` is false
   (FR-013). No dict sets `MCP_ENABLED` true (FR-007). Use the `isolated_env` and
   `settings_module` fixtures the other modules in that directory use.
-- [ ] T003 [US1] `fairdm/conf/settings/control_room.py`, as plan.md "Settings" describes, with a
+- [x] T003 [US1] `fairdm/conf/settings/control_room.py`, as plan.md "Settings" describes, with a
   module docstring in the style of its siblings, and add it to `settings_modules` in
   `fairdm/conf/setup.py` after `settings/celery.py`. T002 goes green.
-- [ ] T004 [US1] `tests/test_contrib/test_admin/test_control_room.py`: on the dashboard
+- [x] T004 [US1] `tests/test_contrib/test_admin/test_control_room.py`: on the dashboard
   (`dj_control_room:index`) and the index route of each of the Redis, cache and Celery panels, a
   superuser gets 200 (US1 AS 2); a staff account that is not a superuser gets 403 (AS 4); a holder
   of each rights-carrying portal role gets 403 (AS 5, reconcile roles as
@@ -53,16 +53,16 @@ that makes it pass is written. Wording and appearance get no tests.
   `urls.py` for the route names. Mark the Redis-backed tests so they skip cleanly when no Redis is
   reachable only if the shared container has none; it does (`REDIS_URL` is set there), so prefer
   real Redis.
-- [ ] T005 [US1] `fairdm/contrib/admin/urls.py`: the panel routes as plan.md "Routes" describes.
+- [x] T005 [US1] `fairdm/contrib/admin/urls.py`: the panel routes as plan.md "Routes" describes.
   T004 goes green. Add a test to T004's module that, under `override_settings(ADMIN_URL=
   "manage/")` with the URL conf reloaded, the dashboard reverses under `manage/` and answers 200
   (AS 3).
-- [ ] T006 [US1] Add to T002's module: a portal settings module that assigns its own
+- [x] T006 [US1] Add to T002's module: a portal settings module that assigns its own
   `DJ_REDIS_PANEL_SETTINGS` after `fairdm.setup()` keeps its own value (AS 13, FR-008), and one
   that removes the five control-room apps from `INSTALLED_APPS` still loads. Add to T004's module:
   with the five apps removed (`modify_settings` and a reloaded URL conf), the admin index answers
   200 and the dashboard address answers 404 (AS 14, FR-009).
-- [ ] T007 [US1] Documentation (FR-012):
+- [x] T007 [US1] Documentation (FR-012):
   `docs/administrators/how-to/check-the-portals-services-in-the-control-room.md` and
   `docs/developers/how-to/change-who-can-open-the-control-room.md`, each linked from its section's
   `index.md`; one entry per new setting in `docs/developers/reference/settings.md` under a new
@@ -76,6 +76,10 @@ that makes it pass is written. Wording and appearance get no tests.
   2), how to widen or narrow access with `REQUIRE_SUPERUSER` and `ALLOWED_GROUPS` per panel, how to
   turn on Redis editing per instance, how to remove the dashboard, and what turning on the agent
   interface exposes. Run every code example against the branch.
+
+- [x] T012 [US1] Add to T004's module the AS 7 test for a staff account that is not a superuser,
+  skipped: the package registers its dashboard admin entry without the hub's access settings, so
+  the link shows while opening it is refused. Tracked in #665.
 
 ## Phase 2: User Story 2, a developer inspects routes and signals (P2)
 
