@@ -29,7 +29,9 @@ over speculation.
 ### Article III — Anti-Abstraction
 
 No wrapper layers, base classes, or "future-proofing" indirection without a present, concrete
-second use. Prefer duplication over the wrong abstraction.
+second use. Prefer duplication over the wrong abstraction. A second use also counts as
+present when it is in another approved specification built in the same batch, such as several
+features specified together from one prototype.
 
 ### Article IV — Integration-First
 
@@ -345,4 +347,4 @@ The constitution defines how FairDM is evolved and how compliance is enforced.
   - Maintainers SHOULD provide clear, written rationale when accepting or rejecting significant changes with explicit reference to this document.
   - As additional maintainers and institutional stakeholders join the project, a more formal governance structure (e.g., a small core team or steering group with an RFC process) SHOULD be established and documented as an amendment to this section.
 
-**Version**: 3.2.1 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-11-06
+**Version**: 3.2.2 | **Ratified**: 2025-12-30 | **Last Amended**: 2026-11-11
