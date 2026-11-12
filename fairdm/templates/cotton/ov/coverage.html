@@ -8,7 +8,7 @@
 <c-ov.panel title="{{ title|default:_('Where the samples come from') }}" data-card="coverage">
   {% if coverage.geojson %}
     <script type="application/json" id="{{ id }}-data">{{ coverage.geojson|safe }}</script>
-    <div class="ov-map" data-points="{{ id }}-data" data-bounds="[{{ coverage.bounds|join:',' }}]" role="img"
+    <div class="ov-map record-sample" data-points="{{ id }}-data" data-bounds="[{{ coverage.bounds|join:',' }}]" role="img"
          aria-label="{% blocktranslate count counter=coverage.located %}Map of {{ counter }} sample location{% plural %}Map of {{ counter }} sample locations{% endblocktranslate %}"></div>
     <div class="ov-map-legend">
       <span>{% blocktranslate count counter=coverage.located with n=coverage.located|intcomma %}<strong>{{ n }}</strong> sample with a location{% plural %}<strong>{{ n }}</strong> samples with a location{% endblocktranslate %}</span>

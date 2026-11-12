@@ -96,6 +96,12 @@
             <span class="ov-step__date">{% if step.day %}{{ step.day|date:"SHORT_DATE_FORMAT" }}{% else %}{{ step.date }}{% endif %}</span>
           </li>
         {% endfor %}
+        {% if access.state == "published" and not dates.published %}
+          <li class="ov-step is-done">
+            <span class="ov-step__label">{% translate "Published" %}</span>
+            <span class="ov-step__date"><span aria-hidden="true">—</span><span class="sr-only">{% translate "date not recorded" %}</span></span>
+          </li>
+        {% endif %}
         {% if not dates.published and access.state != "published" %}
           <li class="ov-step">
             <span class="ov-step__label">{% translate "Published" %}</span>
@@ -152,7 +158,7 @@
 
   {% block overview.activity %}
     {% if shows_records and data_types %}
-      <c-ov.activity :activity="activity" />
+      <c-ov.activity :activity="activity" here="{{ dataset.name }}" />
     {% endif %}
   {% endblock overview.activity %}
 {% endblock overview.main %}

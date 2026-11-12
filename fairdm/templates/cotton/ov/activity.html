@@ -4,7 +4,7 @@
   Attributes: activity ([{day, events: [{kind, text, target, url}]}]), empty.
 {% endcomment %}
 {% load i18n humanize %}
-<c-vars activity empty />
+<c-vars activity empty here />
 <c-ov.panel title="{% translate 'Recent activity' %}" data-card="activity">
   {% if activity %}
     <ol class="ov-activity">
@@ -13,7 +13,7 @@
           <span class="ov-activity__day">{{ group.day|naturalday:"j M Y"|capfirst }}</span>
           <ul class="ov-activity__events">
             {% for event in group.events %}
-              <li class="record-{{ event.kind }}"><span>{{ event.text }}{% if event.kind != "dataset" %} {% translate "to" %}{% else %}:{% endif %} {% if event.url %}<a href="{{ event.url }}">{{ event.target }}</a>{% else %}{{ event.target }}{% endif %}</span></li>
+              <li class="record-{{ event.kind }}"><span>{% if here and event.target == here %}{{ event.text }}{% else %}{{ event.text }}{% if event.kind != "dataset" %} {% translate "to" %}{% else %}:{% endif %} {% if event.url %}<a href="{{ event.url }}">{{ event.target }}</a>{% else %}{{ event.target }}{% endif %}{% endif %}</span></li>
             {% endfor %}
           </ul>
         </li>

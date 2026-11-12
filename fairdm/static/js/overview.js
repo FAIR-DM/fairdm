@@ -205,7 +205,7 @@
           map.addLayer({
             id: "clusters", type: "circle", source: "samples", filter: ["has", "point_count"],
             paint: {
-              "circle-color": colour, "circle-opacity": 0.85,
+              "circle-color": colour, "circle-opacity": 0.9,
               "circle-radius": ["step", ["get", "point_count"], 14, 10, 18, 50, 24],
               "circle-stroke-width": 3, "circle-stroke-color": "rgba(255,255,255,0.85)",
             },

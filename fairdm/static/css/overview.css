@@ -228,6 +228,8 @@ a.ov-figure:focus-visible { outline: 2px solid var(--color-primary); outline-off
 
 @media (max-width: 639px) {
   .ov-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ov-figures:has(> :nth-child(3):last-child) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ov-figures:has(> :nth-child(3):last-child) .ov-figure { padding-inline: 0.75rem; }
   .ov-figure { padding: 0.75rem 1rem; border-top: 1px solid var(--ov-line); margin-top: -1px; }
   .ov-figure__value { font-size: 1.375rem; }
 }
@@ -386,7 +388,8 @@ a.ov-row__title:hover { text-decoration: underline; }
 .ov-rows__more { margin-top: 0.25rem; font-size: 0.875rem; }
 
 @media (max-width: 639px) {
-  .ov-rows > li { grid-template-columns: auto minmax(0, 1fr); }
+  .ov-rows > li { grid-template-columns: auto minmax(0, 1fr); row-gap: 0.25rem; align-items: start; }
+  .ov-rows > li > .ov-mark { grid-row: span 2; }
   .ov-row__end { grid-column: 2; text-align: start; }
   .ov-row__end strong { font-size: 0.8125rem; }
   .ov-row__end .ov-sub { display: inline; }
@@ -546,7 +549,7 @@ a.ov-row__title:hover { text-decoration: underline; }
 .maplibregl-popup-content span { display: block; color: color-mix(in oklch, var(--color-base-content) 65%, transparent); }
 
 .ov-charts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
-@media (min-width: 1280px) { .ov-charts { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2rem; } }
+@media (min-width: 1536px) { .ov-charts { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2rem; } }
 .ov-chart { display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
 .ov-chart__title { margin: 0; font-size: 0.8125rem; font-weight: 600; color: var(--ov-muted); }
 .ov-chart figcaption, .ov-chart .chart-caption { font-size: 0.75rem; color: var(--ov-faint); }
@@ -606,7 +609,7 @@ a.ov-row__title:hover { text-decoration: underline; }
 }
 
 /* Properties a type adds: label over value, in a grid. */
-.ov-props { display: grid; grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); gap: 1rem 1.5rem; margin: 0; }
+.ov-props { display: grid; grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr)); gap: 1rem 1.5rem; margin: 0; }
 .ov-props > div { display: flex; flex-direction: column; gap: 0.125rem; min-width: 0; }
 .ov-props > div.is-wide { grid-column: 1 / -1; }
 .ov-props dt { font-size: 0.75rem; color: var(--ov-muted); }
@@ -636,7 +639,7 @@ a.ov-row__title:hover { text-decoration: underline; }
 
 /* Records by type: one bar per type, in the type's colour, longest first. */
 .ov-mix { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.625rem; }
-.ov-mix li { display: grid; grid-template-columns: minmax(7rem, 11rem) minmax(0, 1fr) 3rem; gap: 0.75rem; align-items: center; font-size: 0.8125rem; }
+.ov-mix li { display: grid; grid-template-columns: minmax(6rem, 10rem) minmax(4rem, 1fr) 3rem; gap: 0.75rem; align-items: center; font-size: 0.8125rem; }
 .ov-mix__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ov-mix__track { display: block; height: 0.625rem; border-radius: 999px; background: var(--color-base-200); overflow: hidden; }
 .ov-mix__track span { display: block; height: 100%; border-radius: inherit; background: var(--record); min-width: 3px; }
