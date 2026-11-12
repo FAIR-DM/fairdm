@@ -1,0 +1,25 @@
+{% comment %}
+  <c-ov.activity> — what changed lately, worked out from when records were added: one line per
+  dataset and day.
+  Attributes: activity ([{day, events: [{kind, text, target, url}]}]), empty.
+{% endcomment %}
+{% load i18n humanize %}
+<c-vars activity empty />
+<c-ov.panel title="{% translate 'Recent activity' %}" data-card="activity">
+  {% if activity %}
+    <ol class="ov-activity">
+      {% for group in activity %}
+        <li>
+          <span class="ov-activity__day">{{ group.day|naturalday:"j M Y"|capfirst }}</span>
+          <ul class="ov-activity__events">
+            {% for event in group.events %}
+              <li class="record-{{ event.kind }}"><span>{{ event.text }}{% if event.kind != "dataset" %} {% translate "to" %}{% else %}:{% endif %} {% if event.url %}<a href="{{ event.url }}">{{ event.target }}</a>{% else %}{{ event.target }}{% endif %}</span></li>
+            {% endfor %}
+          </ul>
+        </li>
+      {% endfor %}
+    </ol>
+  {% else %}
+    <p class="ov-empty">{{ empty|default:_("Nothing has been added yet.") }}</p>
+  {% endif %}
+</c-ov.panel>

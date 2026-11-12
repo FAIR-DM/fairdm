@@ -10,22 +10,16 @@
 {# Add the rock type beside the generic type and status badges; block.super keeps those. #}
 {% block overview.badges %}
   {{ block.super }}
-  {% if sample.rock_type %}
-    <span class="badge badge-outline badge-sm">{{ sample.rock_type|capfirst }}</span>
-  {% endif %}
+  {% if sample.rock_type %}<span class="ov-pill">{{ sample.rock_type|capfirst }}</span>{% endif %}
 {% endblock overview.badges %}
 
 {# The block the base page leaves empty for exactly this: the type's own fields. #}
 {% block overview.properties %}
-  <c-mvp.card title="Rock properties" class="bg-base-100">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-      <c-mvp.data-field label="Rock type" value="{{ sample.rock_type|capfirst }}" />
-      <c-mvp.data-field label="Collection date" value="{{ sample.collection_date|date:'SHORT_DATE_FORMAT' }}" />
-      <c-mvp.data-field label="Weight" value="{% if sample.weight_grams %}{{ sample.weight_grams|floatformat:1 }} g{% endif %}" />
-      <c-mvp.data-field label="Hardness (Mohs)" value="{{ sample.hardness_mohs|default_if_none:'' }}" />
-    </div>
-    {% if sample.mineral_content %}
-      <c-mvp.data-field label="Mineral content" value="{{ sample.mineral_content }}" />
-    {% endif %}
-  </c-mvp.card>
+  <c-ov.props title="Rock properties">
+    <c-ov.prop label="Rock type" value="{{ sample.rock_type|capfirst }}" />
+    <c-ov.prop label="Collection date" value="{{ sample.collection_date|date:'SHORT_DATE_FORMAT' }}" />
+    <c-ov.prop label="Weight" value="{% if sample.weight_grams %}{{ sample.weight_grams|floatformat:1 }} g{% endif %}" />
+    <c-ov.prop label="Hardness (Mohs)" value="{{ sample.hardness_mohs|default_if_none:'' }}" />
+    <c-ov.prop label="Mineral content" value="{{ sample.mineral_content }}" wide text />
+  </c-ov.props>
 {% endblock overview.properties %}

@@ -10,37 +10,25 @@
 
 {% block overview.badges %}
   {{ block.super }}
-  <span class="badge badge-outline badge-sm font-mono">{{ measurement.element }}</span>
+  <span class="ov-pill" style="font-family: var(--font-mono, monospace)">{{ measurement.element }}</span>
 {% endblock overview.badges %}
 
 {% block overview.result %}
-  <c-mvp.card.wrapper class="bg-base-100">
-    <div class="card-body gap-3">
-      <p class="text-xs uppercase font-semibold text-base-content/60">Concentration</p>
-      <p class="flex flex-wrap items-baseline gap-x-3">
-        <span class="text-4xl font-semibold tabular-nums">{{ measurement.concentration_ppm|floatformat:"-2"|intcomma }}</span>
-        <span class="text-lg text-base-content/70">ppm {{ measurement.element }}</span>
-      </p>
-      {% if measurement.detection_limit_ppm is not None %}
-        <p class="text-sm text-base-content/70">
-          Detection limit {{ measurement.detection_limit_ppm|floatformat:"-2"|intcomma }} ppm
-          {% if measurement.concentration_ppm <= measurement.detection_limit_ppm %}
-            <span class="badge badge-soft badge-warning badge-sm ms-2">At or below the detection limit</span>
-          {% endif %}
-        </p>
+  <c-ov.result label="Concentration" value="{{ measurement.concentration_ppm|floatformat:'-2'|intcomma }}" unit="ppm {{ measurement.element }}">
+    {% if measurement.detection_limit_ppm is not None %}
+      <span>Detection limit {{ measurement.detection_limit_ppm|floatformat:"-2"|intcomma }} ppm</span>
+      {% if measurement.concentration_ppm <= measurement.detection_limit_ppm %}
+        <span class="ov-pill ov-pill--warning"><span class="ov-pill__dot"></span>At or below the detection limit</span>
       {% endif %}
-    </div>
-  </c-mvp.card.wrapper>
+    {% endif %}
+    {% if measurement.instrument_model %}<span>{{ measurement.instrument_model }}</span>{% endif %}
+  </c-ov.result>
 {% endblock overview.result %}
 
 {% block overview.properties %}
-  <c-mvp.card title="Analytical conditions" class="bg-base-100">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6">
-      <c-mvp.data-field label="Instrument" value="{{ measurement.instrument_model }}" />
-      <c-mvp.data-field label="Element" value="{{ measurement.element }}" />
-    </div>
-    {% if measurement.measurement_conditions %}
-      <c-mvp.data-field label="Conditions" value="{{ measurement.measurement_conditions }}" />
-    {% endif %}
-  </c-mvp.card>
+  <c-ov.props title="Analytical conditions">
+    <c-ov.prop label="Instrument" value="{{ measurement.instrument_model }}" />
+    <c-ov.prop label="Element" value="{{ measurement.element }}" />
+    <c-ov.prop label="Conditions" value="{{ measurement.measurement_conditions }}" wide text />
+  </c-ov.props>
 {% endblock overview.properties %}

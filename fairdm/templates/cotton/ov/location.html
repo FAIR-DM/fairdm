@@ -1,0 +1,24 @@
+{% comment %}
+  <c-ov.location> — where one sample was taken (or one measurement made): a map with the point,
+  and the coordinates as recorded.
+  Attributes: location (x = longitude, y = latitude), elevation, uncertainty, title, label, empty.
+{% endcomment %}
+{% load i18n %}
+<c-vars location elevation uncertainty title label empty />
+{% if location or empty %}
+  <c-ov.panel side title="{{ title|default:_('Location') }}" data-card="location">
+    {% if location %}
+      <div class="ov-map ov-map--side" role="img" data-lon="{{ location.x|stringformat:'s' }}" data-lat="{{ location.y|stringformat:'s' }}"
+           aria-label="{% if label %}{{ label }}{% else %}{% blocktranslate with x=location.x y=location.y %}Map of where the sample was taken, at longitude {{ x }} and latitude {{ y }}{% endblocktranslate %}{% endif %}"></div>
+      <dl class="ov-coords">
+        <div><dt>{% translate "Latitude" %}</dt><dd>{{ location.y|floatformat:5 }}</dd></div>
+        <div><dt>{% translate "Longitude" %}</dt><dd>{{ location.x|floatformat:5 }}</dd></div>
+        {% if elevation is not None and elevation != "" %}<div><dt>{% translate "Elevation" %}</dt><dd>{{ elevation|floatformat:"-1" }} m</dd></div>{% endif %}
+        {% if uncertainty is not None and uncertainty != "" %}<div><dt>{% translate "Uncertainty" %}</dt><dd>± {{ uncertainty|floatformat:"-1" }} m</dd></div>{% endif %}
+      </dl>
+      <p class="ov-note">{% translate "Decimal degrees, WGS 84" %}</p>
+    {% else %}
+      <p class="ov-empty">{{ empty }}</p>
+    {% endif %}
+  </c-ov.panel>
+{% endif %}

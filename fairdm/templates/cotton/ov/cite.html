@@ -1,0 +1,25 @@
+{% comment %}
+  <c-ov.cite> — how to cite the record: the citation as text, BibTeX or RIS, copied or downloaded.
+  The panel's id is `cite`, which the header's Cite button scrolls to.
+  Attributes: cite ({formats: [{key, label, value, file}], doi, url}). Slot: a note under it.
+{% endcomment %}
+{% load i18n %}
+<c-vars cite />
+<section class="ov-panel ov-panel--side" id="cite" data-cite aria-labelledby="cite-heading">
+  {{ cite.formats|json_script:"cite-formats" }}
+  <div class="ov-panel__head">
+    <h2 class="ov-panel__title" id="cite-heading">{% translate "Cite" %}</h2>
+    <div class="ov-seg" role="tablist" aria-label="{% translate 'Citation format' %}" style="margin-inline-start:auto">
+      {% for format in cite.formats %}
+        <button type="button" role="tab" data-format="{{ format.key }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="citation-text">{{ format.label }}</button>
+      {% endfor %}
+    </div>
+  </div>
+  <pre class="ov-cite__text" id="citation-text" data-format="text" tabindex="0">{{ cite.formats.0.value }}</pre>
+  {% if slot %}<p class="ov-note">{{ slot }}</p>{% endif %}
+  <div class="ov-cite__actions">
+    <button type="button" class="btn btn-sm" data-copy-from="citation-text"><c-icon name="copy" aria-hidden="true" only />{% translate "Copy" %}</button>
+    <button type="button" class="btn btn-sm btn-ghost" data-download hidden><c-icon name="download" aria-hidden="true" only />{% translate "Download" %}</button>
+    <span class="ov-copied" role="status" hidden>{% translate "Copied" %}</span>
+  </div>
+</section>

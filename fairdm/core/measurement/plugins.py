@@ -68,7 +68,7 @@ class Overview(TypedOverviewPlugin):
             _("Taken down"),
         ),
     ]
-    siblings_shown = 8
+    siblings_shown = 12
 
     def get_page_title(self):
         """Title the page with the measurement's name, or its portal ID when it has none."""

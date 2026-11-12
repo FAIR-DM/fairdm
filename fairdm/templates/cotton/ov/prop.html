@@ -1,0 +1,10 @@
+{% comment %}
+  <c-ov.prop> — one field: its label and its value, or an em dash when nothing is recorded.
+  Attributes: label, value, wide (spans the grid), text (a longer piece of writing).
+{% endcomment %}
+{% load i18n %}
+<c-vars label value wide=False text=False />
+<div class="{% if wide %}is-wide{% endif %}">
+  <dt>{{ label }}</dt>
+  <dd class="{% if text %}ov-props__text{% endif %}">{% if value %}{{ value }}{% elif slot %}{{ slot }}{% else %}<span aria-hidden="true">—</span><span class="sr-only">{% translate "Not recorded" %}</span>{% endif %}</dd>
+</div>

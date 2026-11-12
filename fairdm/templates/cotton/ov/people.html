@@ -1,0 +1,33 @@
+{% comment %}
+  <c-ov.people> — everyone credited: the first few by name with their roles, then faces, then a
+  link to the full list.
+  Attributes: credits ({named: [{contributor, roles, affiliation}], faces, more, total}), all_url,
+  title, empty.
+{% endcomment %}
+{% load i18n %}
+<c-vars credits all_url title empty />
+<c-ov.panel side title="{{ title|default:_('People') }}" count="{{ credits.total }}" more_url="{% if credits.total %}{{ all_url }}{% endif %}" data-card="people">
+  {% if credits.named %}
+    <ul class="ov-people">
+      {% for row in credits.named %}
+        <li>
+          <c-mvp.avatar :for="row.contributor" alt="" size="sm" only />
+          <span class="min-w-0">
+            <a href="{{ row.contributor.get_absolute_url }}">{{ row.contributor }}</a>
+            <span class="ov-people__role" title="{{ row.roles }}{% if row.affiliation %} · {{ row.affiliation }}{% endif %}">{% if row.roles %}{{ row.roles }}{% endif %}{% if row.affiliation %}{% if row.roles %} · {% endif %}{{ row.affiliation }}{% endif %}</span>
+          </span>
+        </li>
+      {% endfor %}
+    </ul>
+    {% if credits.faces %}
+      <div class="ov-faces">
+        {% for person in credits.faces %}
+          <a href="{{ person.get_absolute_url }}" title="{{ person }}" aria-label="{{ person }}"><c-mvp.avatar :for="person" alt="" size="xs" only /></a>
+        {% endfor %}
+        {% if credits.more %}<a href="{{ all_url }}" class="ov-faces__more">{% blocktranslate count counter=credits.more %}+{{ counter }} more{% plural %}+{{ counter }} more{% endblocktranslate %}</a>{% endif %}
+      </div>
+    {% endif %}
+  {% else %}
+    <p class="ov-empty">{{ empty|default:_("No one is credited yet.") }}</p>
+  {% endif %}
+</c-ov.panel>

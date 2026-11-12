@@ -1,0 +1,12 @@
+{% comment %}
+  <c-ov.result> — a measurement's result in the header: the value large, its unit, and notes.
+  Attributes: label, value, unit. Slot: notes beside the value (detection limit, uncertainty).
+{% endcomment %}
+<c-vars label value unit />
+<div class="ov-result">
+  <div>
+    <div class="ov-result__label">{{ label }}</div>
+    <div class="ov-result__value"><span class="ov-result__number">{{ value }}</span>{% if unit %}<span class="ov-result__unit">{{ unit }}</span>{% endif %}</div>
+  </div>
+  {% if slot %}<div class="ov-result__aside">{{ slot }}</div>{% endif %}
+</div>

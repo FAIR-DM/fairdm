@@ -4,30 +4,30 @@
   The dataset's overview page.
 
   A dataset is what a portal cites and distributes, so this page answers a reuser's questions in
-  the order they ask them: what it is and whether its data is published, under what licence, what
-  it holds and how it grew, how to cite it, and who made it.
+  the order they ask them: what it is and who made it, whether its data is published and under
+  what licence, what it holds and where it comes from, how to cite it.
 
-  The anatomy and the facts column come from `overview/page.html`. Its context is gathered by
-  the dataset's `Overview` plugin in `fairdm/core/dataset/plugins.py`.
-
-  Dataset blocks in the wide column: overview.about, overview.data (shown only while the dataset
-  is empty), overview.charts, overview.map. In the facts column: overview.timeline,
+  Dataset blocks in the wide column: overview.about, overview.lifecycle, overview.data (shown only
+  while the dataset is empty), overview.charts, overview.map, overview.activity. In the facts column:
   overview.publications.
 {% endcomment %}
 
 {% block overview.badges %}
   <span class="record-tag record-dataset"><c-icon name="dataset" aria-hidden="true" only />{% translate "Dataset" %}</span>
   {% if access.state == "published" %}
-    <span class="badge badge-soft badge-success badge-sm"><c-icon name="success" aria-hidden="true" />{{ access.label }}</span>
+    <span class="ov-pill ov-pill--success"><span class="ov-pill__dot"></span>{{ access.label }}</span>
   {% elif access.state == "public" %}
-    <span class="badge badge-soft badge-neutral badge-sm">{{ access.label }}</span>
+    <span class="ov-pill ov-pill--info"><span class="ov-pill__dot"></span>{{ access.label }}</span>
   {% else %}
-    <span class="badge badge-ghost badge-sm"><c-icon name="lock" aria-hidden="true" />{{ access.label }}</span>
-  {% endif %}
-  {% if dataset.license %}
-    <span class="badge badge-outline badge-sm" title="{% translate 'Licence' %}"><c-icon name="license" aria-hidden="true" />{{ dataset.license.name }}</span>
+    <span class="ov-pill"><c-icon name="lock" aria-hidden="true" only />{{ access.label }}</span>
   {% endif %}
 {% endblock overview.badges %}
+
+{% block overview.facts %}
+  {% if project_info %}<li><span class="ov-facts__label">{% translate "Project" %}</span><a href="{{ project_info.project.get_absolute_url }}">{{ project_info.project }}</a></li>{% endif %}
+  <li><span class="ov-facts__label">{% translate "Licence" %}</span>{% if dataset.license %}<span>{{ dataset.license.name }}</span>{% else %}<span aria-hidden="true">—</span><span class="sr-only">{% translate "No licence" %}</span>{% endif %}</li>
+  {% if primary_id %}<li><span class="ov-facts__label">{{ primary_id.type }}</span><a href="{{ primary_id.link }}" class="ov-mono">{{ primary_id.value }}</a></li>{% endif %}
+{% endblock overview.facts %}
 
 {% block overview.manage %}
   {% if can_manage and not dataset.data_is_public %}
@@ -63,109 +63,115 @@
 {% endblock overview.notices %}
 
 {% block overview.figures %}
-  <c-stats cols="2" lg="4" aria-label="{% translate 'Dataset at a glance' %}">
+  <div class="ov-figures" aria-label="{% translate 'Dataset at a glance' %}" role="group">
     {% if shows_records %}
-      <c-stats.item title="{% translate 'Samples' %}" value="{{ counts.samples|intcomma }}" href="{{ urls.samples }}" record="sample" icon="sample" />
-      <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" href="{{ urls.measurements }}" record="measurement" icon="measurement" />
+      <c-ov.figure value="{{ counts.samples|intcomma }}" label="{% translate 'Samples' %}" href="{{ urls.samples }}" record="sample" />
+      <c-ov.figure value="{{ counts.measurements|intcomma }}" label="{% translate 'Measurements' %}" href="{{ urls.measurements }}" record="measurement" />
     {% endif %}
-    <c-stats.item title="{% translate 'Contributors' %}" value="{{ team.total }}" icon="people" />
-    <c-stats.item title="{% translate 'Related publications' %}" value="{{ counts.publications }}" icon="literature" />
-  </c-stats>
+    <c-ov.figure value="{{ team.total }}" label="{% translate 'Contributors' %}" href="{{ people_url }}" />
+    <c-ov.figure value="{{ counts.publications }}" label="{% translate 'Related publications' %}" href="#publications" />
+  </div>
 {% endblock overview.figures %}
 
 {% block overview.main %}
   {% block overview.about %}
-    <c-card.descriptions :descriptions="descriptions" group="dataset-about">
+    <c-ov.descriptions :descriptions="descriptions" group="dataset-about">
       {% if can_manage %}
-        <div class="flex flex-col items-start gap-3">
-          <p class="text-base-content/70">{% translate "Nobody has described this dataset yet. An abstract and a methods section are what a reuser reads first, and both are needed before it can be published." %}</p>
+        <div class="ov-empty-block">
+          <p class="ov-empty">{% translate "Nobody has described this dataset yet. An abstract and a methods section are what a reuser reads first, and both are needed before it can be published." %}</p>
           <c-button href="{{ urls.descriptions }}" text="{% translate 'Write a description' %}" icon="description" size="sm" variant="primary" />
         </div>
       {% else %}
-        <p class="text-base-content/70">{% translate "No description has been added yet." %}</p>
+        <p class="ov-empty">{% translate "No description has been added yet." %}</p>
       {% endif %}
-    </c-card.descriptions>
+    </c-ov.descriptions>
   {% endblock overview.about %}
+
+  {% block overview.lifecycle %}
+    <c-ov.panel title="{% translate 'Timeline' %}" data-card="timeline" more_url="{% if can_manage %}{{ urls.key_dates }}{% endif %}" more_text="{% translate 'Edit dates' %}">
+      <ol class="ov-steps">
+        {% for step in lifecycle %}
+          <li class="ov-step is-done{% if step.label == _('Withdrawn') %} is-alert{% endif %}">
+            <span class="ov-step__label">{{ step.label }}</span>
+            <span class="ov-step__date">{% if step.day %}{{ step.day|date:"SHORT_DATE_FORMAT" }}{% else %}{{ step.date }}{% endif %}</span>
+          </li>
+        {% endfor %}
+        {% if not dates.published and access.state != "published" %}
+          <li class="ov-step">
+            <span class="ov-step__label">{% translate "Published" %}</span>
+            <span class="ov-step__date">{% translate "Not yet" %}</span>
+          </li>
+        {% endif %}
+      </ol>
+    </c-ov.panel>
+  {% endblock overview.lifecycle %}
 
   {% block overview.data %}
     {% if shows_records and not data_types %}
-      <c-mvp.card id="dataset-no-records" title="{% translate 'Data types' %}" class="bg-base-100">
-        {% if can_manage %}
-          <div class="flex flex-col items-start gap-3">
-            <p class="text-base-content/70">{% translate "This dataset holds no samples or measurements yet. Import a spreadsheet or add records by hand to start building it." %}</p>
+      <c-ov.panel title="{% translate 'What it holds' %}" id="dataset-no-records">
+        <div class="ov-empty-block">
+          {% if can_manage %}
+            <p class="ov-empty">{% translate "This dataset holds no samples or measurements yet. Import a spreadsheet or add records by hand to start building it." %}</p>
             {% translate "Import data" as label %}
             {% translate "Upload a spreadsheet against one of the portal's record types." as reason %}
             <c-actions.pending label="{{ label }}" icon="import" reason="{{ reason }}" variant="primary" />
-          </div>
-        {% else %}
-          <p class="text-base-content/70">{% translate "No samples or measurements have been added to this dataset yet." %}</p>
-        {% endif %}
-      </c-mvp.card>
+          {% else %}
+            <p class="ov-empty">{% translate "No samples or measurements have been added to this dataset yet." %}</p>
+          {% endif %}
+        </div>
+      </c-ov.panel>
     {% endif %}
   {% endblock overview.data %}
 
   {% block overview.charts %}
-    {% if composition_chart or growth_chart %}
-      <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
-        {% if composition_chart %}
-          <c-mvp.card title="{% translate 'Data types' %}" class="bg-base-100 min-w-0">
-            <c-chart :chart="composition_chart.chart"
-                     id="dataset-composition"
-                     height="{{ composition_chart.height }}"
-                     name="{% translate 'Records by type' %}"
-                     caption="{% translate 'Records by sample and measurement type.' %}"
-                     description="{{ composition_chart.description }}" />
-          </c-mvp.card>
-        {% endif %}
-        {% if growth_chart %}
-          <c-mvp.card title="{% translate 'Progress' %}" class="bg-base-100 min-w-0">
-            <c-chart :chart="growth_chart.chart"
-                     id="dataset-growth"
-                     aspect-ratio="16/9"
-                     name="{% translate 'Samples and measurements added over time' %}"
-                     caption="{% translate 'Running total, by month added to the portal.' %}"
-                     description="{{ growth_chart.description }}" />
-          </c-mvp.card>
-        {% endif %}
-      </div>
+    {% if mix or growth_chart %}
+      <c-ov.panel title="{% translate 'What it holds' %}" data-card="charts">
+        <div class="ov-charts">
+          {% if mix %}<c-ov.mix :mix="mix" />{% endif %}
+          {% if growth_chart %}
+            <div class="ov-chart">
+              <h3 class="ov-chart__title">{% translate "Growth" %}</h3>
+              <c-chart :chart="growth_chart.chart"
+                       id="dataset-growth"
+                       aspect-ratio="16/9"
+                       name="{% translate 'Samples and measurements added over time' %}"
+                       caption="{% translate 'Running total, by the month each record was added.' %}"
+                       description="{{ growth_chart.description }}" />
+            </div>
+          {% endif %}
+        </div>
+      </c-ov.panel>
     {% endif %}
   {% endblock overview.charts %}
 
   {% block overview.map %}
-    {% if shows_records %}
-      <c-card.placeholder title="{% translate 'Spatial coverage' %}"
-                          icon="map"
-                          wide
-                          message="{% translate 'A map of every sample with a location, and the area the dataset covers.' %}" />
+    {% if shows_records and counts.samples %}
+      <c-ov.coverage :coverage="coverage" id="dataset-coverage" />
     {% endif %}
   {% endblock overview.map %}
-{% endblock overview.main %}
 
-{% block overview.timeline %}
-  <c-card.timeline title="{% translate 'Timeline' %}" :steps="lifecycle" empty="{% translate 'No key dates have been recorded for this dataset.' %}" />
-{% endblock overview.timeline %}
+  {% block overview.activity %}
+    {% if shows_records and data_types %}
+      <c-ov.activity :activity="activity" />
+    {% endif %}
+  {% endblock overview.activity %}
+{% endblock overview.main %}
 
 {% block overview.record_facts %}
   {% block overview.publications %}
-    <c-mvp.card title="{% translate 'Related publications' %}" class="bg-base-100" data-card="publications">
+    <c-ov.panel side title="{% translate 'Related publications' %}" count="{% if literature.items %}{{ literature.items|length }}{% endif %}" id="publications" data-card="publications">
       {% if literature.items %}
-        <ul class="flex flex-col gap-3 text-sm">
+        <ul class="ov-awards">
           {% for entry in literature.items %}
-            <li class="flex flex-col gap-1">
-              <span class="badge badge-ghost badge-xs">{{ entry.relation }}</span>
-              {% if entry.doi %}
-                <a href="https://doi.org/{{ entry.doi }}" class="link link-hover">{{ entry.item }}</a>
-              {% else %}
-                <span>{{ entry.item }}</span>
-              {% endif %}
-              {% if entry.year %}<span class="text-xs text-base-content/70">{{ entry.year }}</span>{% endif %}
+            <li>
+              <span class="ov-awards__title">{{ entry.relation }}{% if entry.year %} · {{ entry.year }}{% endif %}</span>
+              {% if entry.doi %}<a href="https://doi.org/{{ entry.doi }}">{{ entry.item }}</a>{% else %}<span>{{ entry.item }}</span>{% endif %}
             </li>
           {% endfor %}
         </ul>
       {% else %}
-        <p class="text-sm text-base-content/70">{% if can_manage %}{% translate "No publications linked. The paper that describes this data is the one reusers look for first." %}{% else %}{% translate "No publications are linked to this dataset." %}{% endif %}</p>
+        <p class="ov-empty">{% if can_manage %}{% translate "No publications linked. The paper that describes this data is the one reusers look for first." %}{% else %}{% translate "No publications are linked to this dataset." %}{% endif %}</p>
       {% endif %}
-    </c-mvp.card>
+    </c-ov.panel>
   {% endblock overview.publications %}
-
 {% endblock overview.record_facts %}

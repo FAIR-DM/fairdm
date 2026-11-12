@@ -145,6 +145,13 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             page["readiness"] = self.get_readiness(page)
         page.update(self.get_shared_context(page))
 
+        # Prototype: the coverage map and recent activity.
+        from fairdm.core import overview_proto
+
+        page["coverage"] = overview_proto.map_points(samples)
+        page["activity"] = overview_proto.activity(samples, measurements, datasets)
+        page["mix"] = overview_proto.mix(samples, measurements)
+
         context["project"] = project
         context.update(page)
         return context

@@ -1,0 +1,21 @@
+{% comment %}
+  <c-ov.coverage> — where the samples were taken: every sample with a location on one map,
+  clustered where they crowd, each opening to its sample.
+  Attributes: coverage ({geojson, bounds, located, total, missing, datasets}), id, title, empty.
+{% endcomment %}
+{% load i18n humanize %}
+<c-vars coverage id title empty />
+<c-ov.panel title="{{ title|default:_('Where the samples come from') }}" data-card="coverage">
+  {% if coverage.geojson %}
+    <script type="application/json" id="{{ id }}-data">{{ coverage.geojson|safe }}</script>
+    <div class="ov-map" data-points="{{ id }}-data" data-bounds="[{{ coverage.bounds|join:',' }}]" role="img"
+         aria-label="{% blocktranslate count counter=coverage.located %}Map of {{ counter }} sample location{% plural %}Map of {{ counter }} sample locations{% endblocktranslate %}"></div>
+    <div class="ov-map-legend">
+      <span>{% blocktranslate count counter=coverage.located with n=coverage.located|intcomma %}<strong>{{ n }}</strong> sample with a location{% plural %}<strong>{{ n }}</strong> samples with a location{% endblocktranslate %}</span>
+      {% if coverage.missing %}<span>{% blocktranslate count counter=coverage.missing with n=coverage.missing|intcomma %}<strong>{{ n }}</strong> without one{% plural %}<strong>{{ n }}</strong> without one{% endblocktranslate %}</span>{% endif %}
+      <span>{% translate "Select a cluster to zoom in, or a point to open its sample." %}</span>
+    </div>
+  {% else %}
+    <p class="ov-empty">{{ empty|default:_("None of the samples has a location yet, so there is nothing to map.") }}</p>
+  {% endif %}
+</c-ov.panel>

@@ -89,6 +89,20 @@ class RecordOverviewPlugin(OverviewPlugin):
         context["manage_menu"] = manage_menu(self.request, self.base_object)
         return context
 
+    def render_to_response(self, context, **response_kwargs):
+        """Prototype: add what the redesigned pages read, once every plugin has filled its part."""
+        from fairdm.core import overview_proto
+
+        credits = self.get_credits()
+        kind = context.get("overview_icon", "project")
+        citation = context.get("citation") or {}
+        context["cite"] = overview_proto.citation_formats(
+            self.base_object, kind, citation.get("text", ""), credits, self.request
+        )
+        context["credits"] = overview_proto.credits_for_panel(credits)
+        context["primary_id"] = overview_proto.primary_identifier(context.get("identifiers"))
+        return super().render_to_response(context, **response_kwargs)
+
     def get_contributions(self) -> list[Contribution]:
         """List the record's credits, people first and then organizations, each in order.
 

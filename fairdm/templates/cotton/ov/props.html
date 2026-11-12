@@ -1,0 +1,9 @@
+{% comment %}
+  <c-ov.props> — the fields a sample or measurement type adds, label over value in a grid. Fill it
+  with <c-ov.prop> entries.
+  Attributes: title. Slot: the entries.
+{% endcomment %}
+<c-vars title />
+<c-ov.panel title="{{ title }}" data-card="properties">
+  <dl class="ov-props">{{ slot }}</dl>
+</c-ov.panel>

@@ -1,0 +1,22 @@
+{% comment %}
+  <c-ov.panel> — a section of an overview page: a heading with an optional count and a link to the
+  full list, then its content.
+  Attributes: title, count, more_url, more_text, sub (a line under the heading), side (a side-column
+  panel), id, class. Slots: (default) the content, head (extra controls in the heading row).
+{% endcomment %}
+{% load i18n %}
+<c-vars title count more_url more_text sub side=False class id head />
+<section class="ov-panel{% if side %} ov-panel--side{% endif %} {{ class }}"{% if id %} id="{{ id }}"{% endif %} {{ attrs }}>
+  {% if title or head %}
+    <div class="ov-panel__head">
+      {% if title %}<h2 class="ov-panel__title">{{ title }}</h2>{% endif %}
+      {% if count is not None and count != "" %}<span class="ov-count">{{ count }}</span>{% endif %}
+      {{ head }}
+      {% if more_url %}
+        <a href="{{ more_url }}" class="ov-panel__more">{{ more_text|default:_("See all") }}<c-icon name="chevron-right" aria-hidden="true" only /></a>
+      {% endif %}
+      {% if sub %}<p class="ov-panel__sub">{{ sub }}</p>{% endif %}
+    </div>
+  {% endif %}
+  {{ slot }}
+</section>

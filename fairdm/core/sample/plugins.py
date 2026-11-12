@@ -126,7 +126,7 @@ class Overview(TypedOverviewPlugin):
         SAMPLE_STATUS_DESTROYED: _("The specimen no longer exists. Its data remains."),
         SAMPLE_STATUS_UNKNOWN: _("Where the specimen is now has not been recorded."),
     }
-    measurements_shown = 10
+    measurements_shown = 30
 
     def get_context_data(self, **kwargs):
         """Add the sample and everything the overview page draws."""
@@ -180,6 +180,10 @@ class Overview(TypedOverviewPlugin):
                 "details": self.get_details(project, status),
             }
         )
+        # Prototype: measurements counted by type, for the grouped list.
+        from fairdm.core import overview_proto
+
+        context["measurement_types"] = overview_proto.measurement_types(sample, self.request.user)
         return context
 
     def get_status(self):
