@@ -57,8 +57,15 @@ says how many samples have no location.
 day: samples and measurements added to each dataset, and datasets created.
 
 - **Screens:** "Recent activity" on the project and dataset pages.
-- **Models:** none. Activity is worked out from when records were added, counting only records the
-  viewer may open. Publishing, edits and people joining are left out until there is a change log.
+- **Built on:** the `activity` extra of
+  [django-mvp-community](https://github.com/django-mvp/django-mvp-community), which is built on
+  django-activity-stream (Sam, 2026-11-13). FairDM installs it, registers its records, records an
+  action when something happens to a record, and shows the extra's recent-activity component in the
+  panel, styled to the prototype's look. The prototype instead works activity out from when records
+  were added, so it only shows additions. Recording actions also covers publishing, edits and people
+  joining. The specification settles which of those it records.
+- **Models:** none of FairDM's own. django-activity-stream brings its tables. Activity about a
+  record a viewer may not open is never shown to them.
 - **Depends on:** C3.
 
 ## Changes to the existing pages
@@ -110,7 +117,7 @@ first feature to need a piece builds it, and the others reuse it.
 | Filter chips | `overview.js:160` (`initChips`) | Shared script | C5 | |
 | Citation formats | `overview_proto.py:25` (`citation_formats`), `overview.js:111` (`initCite`) | Built from the record, each format at its own address | F1 | |
 | Map points | `overview_proto.py:116` (`map_points`) | Uses the spatial coverage from specification 030 | F2 | |
-| Activity | `overview_proto.py:149` (`activity`) | Method on the project and dataset plugins | F3 | |
+| Activity | `overview_proto.py:149` (`activity`) | Replaced by actions recorded with django-activity-stream, shown through django-mvp-community's recent-activity component | F3 | |
 
 ## Duplication to remove
 
@@ -136,7 +143,7 @@ Port each file. Never redraw it.
 | `cotton/ov/history.html`, `props.html`, `prop.html`, `location.html` | C5 | same |
 | `cotton/ov/result.html` | C6 | same |
 | `cotton/ov/coverage.html` | F2 | same |
-| `cotton/ov/activity.html` | F3 | same |
+| `cotton/ov/activity.html` | F3 | the look of django-mvp-community's recent-activity component on these pages, through a template override |
 | `fairdm/core/project/templates/project/project_detail.html` | C3 | same path |
 | `fairdm/core/dataset/templates/dataset/dataset_detail.html` | C4 | same path |
 | `fairdm/core/sample/templates/sample/sample_overview.html`, `demo/templates/demo/rocksample_overview.html` | C5 | same paths |
@@ -218,7 +225,7 @@ Decided during the prototype and not changed by Sam:
 |---|---|
 | Pill shape and keyword style are CSS overrides of the theme's badge | C2 |
 | Funding and related publications have no editing page, so their panels carry no Edit | Left as is. Not in this scope |
-| Activity is worked out from when records were added. Publishing, edits and people joining are missing | F3 keeps this scope. A change log is a separate feature |
+| Activity is worked out from when records were added. Publishing, edits and people joining are missing | F3, by recording actions through django-mvp-community's activity extra |
 | The map shows at most 1,500 samples and only sample locations, with no list of points for screen readers beyond the counts | F2 |
 | BibTeX and RIS are built from the citation text, with the year read out of it | F1 |
 | Page context is gathered in one override and a helper module | C3–C6, F1–F3, each for its own piece |
