@@ -47,7 +47,7 @@
   // Tabs: a role="tablist" of buttons, each controlling a panel. Arrow keys, Home and End move
   // between them.
   function initTabs(root) {
-    root.querySelectorAll(".ov [role=tablist]").forEach(function (list) {
+    root.querySelectorAll(".ov [role=tablist]:not(.ov-seg)").forEach(function (list) {
       var tabs = Array.prototype.slice.call(list.querySelectorAll("[role=tab]"));
       function select(tab, focus) {
         tabs.forEach(function (other) {
@@ -118,6 +118,52 @@
     });
   }
 
+  // Cite: the switch swaps the format on show; Download links to that format's file. The reader's
+  // format is remembered, and Text is the fallback.
+  function initCite(root) {
+    root.querySelectorAll("[data-cite]").forEach(function (box) {
+      var formats = JSON.parse(box.querySelector("#cite-formats").textContent);
+      if (!formats.length) return;
+      var out = box.querySelector(".ov-cite__text");
+      var download = box.querySelector("[data-download]");
+      var buttons = Array.prototype.slice.call(box.querySelectorAll(".ov-seg [role=tab]"));
+      function show(key, focus) {
+        var format = formats.filter(function (f) { return f.key === key; })[0];
+        out.textContent = format.value;
+        out.dataset.format = key;
+        buttons.forEach(function (b) {
+          var on = b.dataset.format === key;
+          b.setAttribute("aria-selected", on ? "true" : "false");
+          b.tabIndex = on ? 0 : -1;
+          if (on && focus) b.focus();
+        });
+        if (download) {
+          download.hidden = !(format.download && format.url);
+          if (format.url) download.setAttribute("href", format.url);
+          else download.removeAttribute("href");
+        }
+        try { localStorage.setItem("ov-cite-format", key); } catch (e) { /* storage unavailable */ }
+      }
+      buttons.forEach(function (b, i) {
+        b.addEventListener("click", function () { show(b.dataset.format); });
+        b.addEventListener("keydown", function (event) {
+          var next = null;
+          if (event.key === "ArrowRight") next = buttons[(i + 1) % buttons.length];
+          if (event.key === "ArrowLeft") next = buttons[(i - 1 + buttons.length) % buttons.length];
+          if (event.key === "Home") next = buttons[0];
+          if (event.key === "End") next = buttons[buttons.length - 1];
+          if (next) {
+            event.preventDefault();
+            show(next.dataset.format, true);
+          }
+        });
+      });
+      var saved = null;
+      try { saved = localStorage.getItem("ov-cite-format"); } catch (e) { /* storage unavailable */ }
+      show(formats.some(function (f) { return f.key === saved; }) ? saved : "text");
+    });
+  }
+
   // The header's Cite button: scroll to the citation and point at it.
   function initJumpToCite(root) {
     root.querySelectorAll("[data-jump-cite]").forEach(function (button) {
@@ -128,6 +174,8 @@
         target.scrollIntoView({ behavior: "smooth", block: "start" });
         target.classList.add("ov-pulse");
         setTimeout(function () { target.classList.remove("ov-pulse"); }, 1400);
+        var selected = target.querySelector(".ov-seg [aria-selected=true]");
+        if (selected) selected.focus({ preventScroll: true });
       });
     });
   }
@@ -311,6 +359,7 @@
     initTabs(document);
     initFolds(document);
     initCopy(document);
+    initCite(document);
     initJumpToCite(document);
     initDialogs(document);
     initChips(document);

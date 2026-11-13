@@ -1,5 +1,6 @@
 """Tests for the shared overview page skeleton, ``overview/page.html``."""
 
+import json
 from urllib.parse import quote
 
 import pytest
@@ -60,7 +61,18 @@ def page_context(db):
             }
         ],
         "funding": [{"funderName": "FUNDER-MARKER"}],
-        "citation": {"title": "Citation", "text": "CITATION-MARKER"},
+        "citation": {
+            "title": "Citation",
+            "formats": [
+                {
+                    "key": "text",
+                    "label": "Text",
+                    "value": "CITATION-MARKER",
+                    "url": None,
+                    "download": False,
+                }
+            ],
+        },
     }
 
 
@@ -430,3 +442,34 @@ class TestSampleMapOnTheOverviewPage:
         assert page.select_one("[data-card=coverage]") is not None
         assert page.select_one("[data-map]") is None
         assert not any("maplibre-gl@" in (s.get("src") or "") for s in page("script"))
+
+
+@pytest.mark.django_db
+class TestCitePanelOnEveryRecordPage:
+    @pytest.fixture(params=["project", "dataset", "sample", "measurement"])
+    def shown(self, request, client):
+        """A record of one kind, its overview page, and the app it belongs to."""
+        record = RECORDS[request.param]()
+        response = client.get(record.get_absolute_url())
+        assert response.status_code == 200
+        return record, BeautifulSoup(response.content, "html.parser")
+
+    def test_the_panel_offers_text_bibtex_and_ris(self, shown):
+        _, page = shown
+
+        tabs = page.select("#cite [role=tablist] [role=tab]")
+
+        assert [t["data-format"] for t in tabs] == ["text", "bibtex", "ris"]
+
+    def test_each_format_carries_the_address_that_serves_it(self, shown):
+        record, page = shown
+        page_address = record.get_absolute_url()
+
+        formats = json.loads(page.find(id="cite-formats").string)
+
+        assert [f["key"] for f in formats] == ["text", "bibtex", "ris"]
+        by_key = {f["key"]: f for f in formats}
+        for key in ("bibtex", "ris"):
+            assert by_key[key]["download"] is True
+            assert by_key[key]["url"] == f"{page_address}cite/{key}/"
+        assert by_key["text"]["download"] is False

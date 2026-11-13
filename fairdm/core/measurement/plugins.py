@@ -240,16 +240,23 @@ class Overview(TypedOverviewPlugin):
             if sample is not None
             else gettext("an unpublished sample"),
         }
+        authors = self.get_contributors_with_role(
+            entries, f"{CONTRIBUTOR_ROLES}/measurement-collection"
+        )
+        year = getattr(setup, "year", None) or measurement.added.year
+        link = doi["link"] if doi else get_permalink(measurement, self.request)
+        text = self.get_citation(authors=authors, year=year, title=title, link=link)
+        work = self.build_citation(
+            authors=authors,
+            year=year,
+            title=title,
+            link=link,
+            types=("dataset", "DATA"),
+        )
         citation = {
             "title": gettext("Citation"),
-            "text": self.get_citation(
-                authors=self.get_contributors_with_role(
-                    entries, f"{CONTRIBUTOR_ROLES}/measurement-collection"
-                ),
-                year=getattr(setup, "year", None) or measurement.added.year,
-                title=title,
-                link=doi["link"] if doi else get_permalink(measurement, self.request),
-            ),
+            "text": text,
+            **self.get_cited_details(work, text),
         }
         if not doi:
             citation["note"] = gettext(

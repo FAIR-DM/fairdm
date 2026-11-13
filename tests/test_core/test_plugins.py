@@ -1,21 +1,29 @@
 """Tests for the plugin base classes the core record pages share."""
 
 import uuid
+from types import SimpleNamespace
 
 import pytest
+import rispy
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.geos import Point
+from django.contrib.sites.models import Site
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
+from pybtex.database import parse_string
 
+from demo.factories import RockSampleFactory, XRFMeasurementFactory
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Organization, Person
 from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.contrib.plugins import Plugin
+from fairdm.core.citation import FORMATS
 from fairdm.core.plugins import RecordOverviewPlugin
 from fairdm.core.vocabularies import CONTRIBUTOR_ROLES, IDENTIFIER_TYPES
 from fairdm.factories import (
     AffiliationFactory,
+    ContributionFactory,
     DatasetFactory,
     OrganizationFactory,
     PersonFactory,
@@ -692,3 +700,183 @@ class TestSamplePoints:
         views = importlib.import_module(overview).Overview.get_extra_views()
 
         assert views == [Citation, SamplePoints]
+
+
+def public_dataset_for_citation():
+    return DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+
+
+def private_dataset_for_citation():
+    return DatasetFactory(visibility=Visibility.PRIVATE, published=False)
+
+
+def sample_for_citation(dataset):
+    return RockSampleFactory(dataset=dataset, name="Zq-4471 rift core")
+
+
+def measurement_for_citation(dataset):
+    return XRFMeasurementFactory(
+        dataset=dataset, sample=sample_for_citation(dataset), name="Zq-9902 scan"
+    )
+
+
+#: kind: (namespace, makes a record from a dataset, the name the file is given)
+KINDS = {
+    "project": (
+        "project",
+        lambda dataset: ProjectFactory(
+            visibility=dataset.visibility, name="Seismic survey"
+        ),
+        "seismic-survey",
+    ),
+    "dataset": ("dataset", lambda dataset: dataset, None),
+    "sample": ("sample", sample_for_citation, "zq-4471-rift-core-rock-sample"),
+    "measurement": (
+        "measurement",
+        measurement_for_citation,
+        "zq-9902-scan-xrf-measurement-of-zq-4471-rift-core",
+    ),
+}
+
+
+def address_for_citation(kind, record, key):
+    return reverse(
+        f"{KINDS[kind][0]}:overview-citation",
+        kwargs={"uuid": record.uuid, "format": key},
+    )
+
+
+def page_address_for_citation(kind, record):
+    return reverse(f"{KINDS[kind][0]}:overview", kwargs={"uuid": record.uuid})
+
+
+def team_member_of_for_citation(kind, record):
+    """A user with view access to the record, through its own team or its dataset's."""
+    user = PersonFactory(is_active=True)
+    held = record if kind in ("project", "dataset") else record.dataset
+    ContributionFactory(
+        content_object=held, contributor=user, level=ContributionLevel.VIEW
+    )
+    return user
+
+
+@pytest.fixture(params=list(KINDS))
+def kind(request):
+    return request.param
+
+
+@pytest.fixture
+def public_record(kind):
+    dataset = public_dataset_for_citation()
+    record = KINDS[kind][1](dataset)
+    if kind == "dataset":
+        record.name = "Borehole logs"
+        record.save()
+    return record
+
+
+@pytest.fixture
+def private_record(kind):
+    dataset = private_dataset_for_citation()
+    record = KINDS[kind][1](dataset)
+    if kind == "dataset":
+        record.name = "Borehole logs"
+        record.save()
+    return record
+
+
+def stem_for_citation(kind, record):
+    return KINDS[kind][2] or "borehole-logs"
+
+
+@pytest.mark.django_db
+class TestCitationFile:
+    """The address of each citation format, at ``<record address>cite/<format>/``."""
+
+    @pytest.mark.parametrize("fmt", FORMATS, ids=lambda f: f.key)
+    def test_each_format_answers_with_its_content_type_and_a_named_attachment(
+        self, client, kind, public_record, fmt
+    ):
+        response = client.get(address_for_citation(kind, public_record, fmt.key))
+
+        assert response.status_code == 200
+        assert response["Content-Type"] == fmt.content_type
+        stem = stem_for_citation(kind, public_record)
+        assert response["Content-Disposition"] == (
+            f'attachment; filename="{stem}.{fmt.extension}"'
+        )
+
+    @pytest.mark.parametrize("fmt", FORMATS, ids=lambda f: f.key)
+    def test_the_body_is_the_formats_value_on_the_pages_context(
+        self, client, kind, public_record, fmt
+    ):
+        page = client.get(page_address_for_citation(kind, public_record))
+        values = {f["key"]: f["value"] for f in page.context["citation"]["formats"]}
+
+        response = client.get(address_for_citation(kind, public_record, fmt.key))
+
+        assert response.content.decode() == values[fmt.key]
+
+    def test_a_stranger_gets_the_not_found_the_page_gives_for_a_private_record(
+        self, client, kind, private_record
+    ):
+        page = client.get(page_address_for_citation(kind, private_record))
+
+        for fmt in FORMATS:
+            response = client.get(address_for_citation(kind, private_record, fmt.key))
+            assert response.status_code == page.status_code == 404
+
+    @pytest.mark.parametrize("fmt", FORMATS, ids=lambda f: f.key)
+    def test_a_team_member_gets_the_file_for_a_private_record(
+        self, client, kind, private_record, fmt
+    ):
+        client.force_login(team_member_of_for_citation(kind, private_record))
+
+        response = client.get(address_for_citation(kind, private_record, fmt.key))
+
+        assert response.status_code == 200
+        assert response["Content-Type"] == fmt.content_type
+
+    def test_an_unknown_record_is_not_found(self, client, kind, public_record):
+        unknown = SimpleNamespace(uuid=uuid.uuid4())
+
+        assert (
+            client.get(address_for_citation(kind, unknown, "bibtex")).status_code == 404
+        )
+
+    def test_an_unknown_format_is_not_found(self, client, kind, public_record):
+        assert (
+            client.get(address_for_citation(kind, public_record, "csl")).status_code
+            == 404
+        )
+
+    def test_a_site_with_no_name_gives_no_publisher(self, client, kind, public_record):
+        Site.objects.filter(pk=Site.objects.get_current().pk).update(name="")
+        Site.objects.clear_cache()
+
+        bibtex = client.get(
+            address_for_citation(kind, public_record, "bibtex")
+        ).content.decode()
+        ris = client.get(
+            address_for_citation(kind, public_record, "ris")
+        ).content.decode()
+
+        [entry] = parse_string(bibtex, "bibtex").entries.values()
+        assert "publisher" not in entry.fields
+        assert "publisher" not in rispy.loads(ris)[0]
+
+    def test_the_address_costs_no_more_queries_than_the_page(
+        self, client, kind, public_record
+    ):
+        client.get(page_address_for_citation(kind, public_record))
+        with CaptureQueriesContext(connection) as page:
+            client.get(page_address_for_citation(kind, public_record))
+        with CaptureQueriesContext(connection) as file:
+            client.get(address_for_citation(kind, public_record, "bibtex"))
+
+        assert len(file) <= len(page)
+
+    def test_a_portal_plugin_without_the_view_gives_the_formats_no_address(self):
+        person = PersonFactory(is_active=True)
+
+        assert _plugin_for(person).get_citation_address("bibtex") is None

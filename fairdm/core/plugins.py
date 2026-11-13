@@ -8,11 +8,13 @@ from typing import Any
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, Q
 from django.db.models.functions import TruncMonth
-from django.http import JsonResponse
-from django.urls import reverse
+from django.http import Http404, HttpResponse, JsonResponse
+from django.urls import NoReverseMatch, reverse
 from django.utils.formats import date_format
+from django.utils.http import content_disposition_header
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
+from django.views import View
 from partial_dates import Precision
 from pyecharts import options as opts
 from pyecharts.charts import Line
@@ -20,6 +22,7 @@ from pyecharts.charts import Line
 from fairdm.contrib.contributors.models import Contribution, Contributor
 from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins import reverse as plugin_reverse
+from fairdm.core.citation import FORMATS, Citation, CitedName
 from fairdm.core.overview import describe_coverage, format_authors, sentence_case
 from fairdm.core.vocabularies import DOI, IGSN
 from fairdm.views import FairDMTemplateView
@@ -67,6 +70,67 @@ class OverviewPlugin(Plugin, FairDMTemplateView):
         return str(self.base_object)
 
 
+class CitationFile(Plugin, View):
+    """One format of a record's citation as a file, at ``<record>/cite/<format>/``.
+
+    The record's overview answers who may open it, and this view asks that overview, so
+    a private record answers a stranger as its page does and an unknown record is not
+    found. The file is the format's value on the overview's own context, so it is the
+    one the Cite panel shows.
+
+    A portal plugin that sets its own ``extra_views`` must list this class to keep the
+    addresses.
+
+    Attributes:
+        name: The route's name, ``<namespace>:overview-citation``.
+        url_path: The route's last part, ``cite/<format>``.
+    """
+
+    name = "citation"
+    url_path = "cite/<str:format>"
+
+    def setup(self, request, *args, **kwargs):
+        """Build the overview that owns this address, set up for this request."""
+        super().setup(request, *args, **kwargs)
+        self.owner = self.plugin_class(
+            registered_model=self.registered_model, menu=self.menu
+        )
+        self.owner.setup(request, *args, **kwargs)
+
+    def has_permission(self):
+        """Ask the owning overview, so the file opens for whom the page opens for."""
+        return self.owner.has_permission()
+
+    def handle_no_permission(self):
+        """Answer as the owning overview answers."""
+        return self.owner.handle_no_permission()
+
+    def get(self, request, *args, **kwargs):
+        """Answer with the citation in the format named by the address.
+
+        Args:
+            request: The request.
+            *args: Positional URL arguments.
+            **kwargs: Keyword URL arguments, the record's and the ``format``.
+
+        Returns:
+            The file, as an attachment named after the record.
+
+        Raises:
+            Http404: The format is not one of ``FORMATS``.
+        """
+        chosen = next((f for f in FORMATS if f.key == kwargs["format"]), None)
+        if chosen is None:
+            raise Http404(_("No such citation format."))
+        citation = self.owner.get_context_data()["citation"]
+        value = next(f["value"] for f in citation["formats"] if f["key"] == chosen.key)
+        response = HttpResponse(value, content_type=chosen.content_type)
+        response["Content-Disposition"] = content_disposition_header(
+            True, citation["work"].filename(chosen.extension)
+        )
+        return response
+
+
 class RecordOverviewPlugin(OverviewPlugin):
     """The overview of a project, dataset, sample or measurement.
 
@@ -83,6 +147,7 @@ class RecordOverviewPlugin(OverviewPlugin):
     people_named = 6
     people_faces = 10
     resolvable_identifier_types = (DOI, IGSN)
+    extra_views = [CitationFile]
 
     def get_context_data(self, **kwargs):
         """Add what the shared page reads on every record.
@@ -240,27 +305,154 @@ class RecordOverviewPlugin(OverviewPlugin):
         """
         return next((i for i in identifiers if i["link"]), None)
 
-    def get_citation(self, *, authors, year, title, link) -> str:
+    def get_publisher(self) -> str:
+        """Name the publisher a citation gives: the site's name.
+
+        Returns:
+            The current site's name, or an empty string when the site has none.
+        """
+        return getattr(getattr(self.request, "site", None), "name", "") or ""
+
+    @staticmethod
+    def format_cited_names(names) -> str:
+        """Write cited names as a citation lists them, like :func:`format_authors`.
+
+        Args:
+            names: The :class:`~fairdm.core.citation.CitedName` values, in order.
+
+        Returns:
+            "Keller, A., Oliveira, T. & Brandt, L.", or an empty string for no names.
+        """
+        written = [
+            f"{name.family}, {name.given[0]}."
+            if name.family and name.given
+            else name.family or name.literal
+            for name in names
+        ]
+        if len(written) > 1:
+            return ", ".join(written[:-1]) + " & " + written[-1]
+        return written[0] if written else ""
+
+    def get_citation(self, *, authors, year, title, link, publisher=None) -> str:
         """Write the citation in DataCite's form: Creators (Year). Title. Publisher. Identifier.
 
         Args:
-            authors: The creators to name.
+            authors: The creators to name, as contributors or as cited names.
             year: The year of publication.
             title: The record's title.
-            link: Its DOI link, or the address of the page.
+            link: Its DOI link, or the address of the page. ``None`` when it has none.
+            publisher: The publisher to name. Defaults to :meth:`get_publisher`.
 
         Returns:
             The citation as plain text.
         """
-        names = format_authors(authors)
-        publisher = getattr(getattr(self.request, "site", None), "name", "") or ""
+        if publisher is None:
+            publisher = self.get_publisher()
+        if authors and all(isinstance(a, CitedName) for a in authors):
+            names = self.format_cited_names(authors)
+        else:
+            names = format_authors(authors)
+        year = gettext("n.d.") if year is None else year
         parts = [
             f"{names} ({year})." if names else f"({year}).",
             f"{title}.",
             f"{publisher}.",
             link,
         ]
-        return " ".join(part for part in parts if part.strip(". "))
+        return " ".join(part for part in parts if part and part.strip(". "))
+
+    def build_citation(
+        self, *, authors, year, title, link, publisher=None, types=("misc", "GEN")
+    ) -> Citation:
+        """Gather the parts of the record's citation into the value the files use.
+
+        Args:
+            authors: The creators, as contributors or as cited names.
+            year: The year of publication.
+            title: The title.
+            link: The link the text ends with, or ``None``.
+            publisher: The publisher. Defaults to :meth:`get_publisher`.
+            types: The BibTeX and RIS types.
+
+        Returns:
+            The citation, keyed by the record's portal ID. Its DOI is set when ``link``
+            is a doi.org link.
+        """
+        prefix = "https://doi.org/"
+        bibtex_type, ris_type = types
+        return Citation(
+            key=str(self.base_object.uuid),
+            authors=[
+                a if isinstance(a, CitedName) else CitedName.from_contributor(a)
+                for a in authors
+            ],
+            year=year,
+            title=title,
+            publisher=self.get_publisher() if publisher is None else publisher,
+            doi=link.removeprefix(prefix) if link and link.startswith(prefix) else None,
+            url=link,
+            bibtex_type=bibtex_type,
+            ris_type=ris_type,
+        )
+
+    def get_citation_formats(self, citation, text) -> list[dict[str, Any]]:
+        """List the ways to take the citation, for the Cite panel and the files.
+
+        Args:
+            citation: The :class:`~fairdm.core.citation.Citation`.
+            text: The citation as text.
+
+        Returns:
+            One ``{"key", "label", "value", "url", "download"}`` entry per format, in
+            the order of ``FORMATS``. ``url`` is the format's address beside the
+            record's page, or ``None`` where the portal's plugin does not mount
+            :class:`CitationFile`.
+        """
+        values = {
+            "text": text,
+            "bibtex": citation.to_bibtex(),
+            "ris": citation.to_ris(),
+        }
+        return [
+            {
+                "key": f.key,
+                "label": f.label,
+                "value": values[f.key],
+                "url": self.get_citation_address(f.key),
+                "download": f.downloadable,
+            }
+            for f in FORMATS
+        ]
+
+    def get_citation_address(self, key) -> str | None:
+        """Give the address of one format of the record's citation.
+
+        Args:
+            key: The format's key, one of ``FORMATS``.
+
+        Returns:
+            The address, or ``None`` when the portal's plugin does not mount
+            :class:`CitationFile`.
+        """
+        try:
+            return plugin_reverse(self.base_object, "overview-citation", format=key)
+        except NoReverseMatch:
+            return None
+
+    def get_cited_details(self, citation, text) -> dict[str, Any]:
+        """Give the two keys every record's citation card adds to its text.
+
+        Args:
+            citation: The :class:`~fairdm.core.citation.Citation`.
+            text: The citation as text.
+
+        Returns:
+            ``work``, the citation, and ``formats``, from :meth:`get_citation_formats`.
+        """
+        return {
+            "work": citation,
+            "formats": self.get_citation_formats(citation, text),
+        }
 
     def get_timeline(self, steps, dates, descriptions, entries) -> list[dict[str, Any]]:
         """Join the three ways the vocabularies describe a step in a record's life.

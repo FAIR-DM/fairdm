@@ -6,8 +6,8 @@ from django.forms import inlineformset_factory
 from fairdm.core.dataset.models import Dataset, DatasetDate
 from fairdm.core.formsets import date_ordering_formset
 from fairdm.core.project.models import Project, ProjectDate
-from fairdm.factories import DatasetFactory, ProjectFactory
 from fairdm.core.vocabularies import DATE_TYPES
+from fairdm.factories import DatasetFactory, ProjectFactory
 
 DATE_ORDER_CASES = [
     (

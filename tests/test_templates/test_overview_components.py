@@ -198,27 +198,98 @@ class TestSheetFunding:
 
 
 class TestCite:
+    FORMATS = [
+        {
+            "key": "text",
+            "label": "Text",
+            "value": "CITE-TEXT",
+            "url": None,
+            "download": False,
+        },
+        {
+            "key": "bibtex",
+            "label": "BibTeX",
+            "value": "@misc{key, title={BIB-TEXT}}",
+            "url": "/record/cite/bibtex/",
+            "download": True,
+        },
+        {
+            "key": "ris",
+            "label": "RIS",
+            "value": "TY  - GEN\nER  - ",
+            "url": "/record/cite/ris/",
+            "download": True,
+        },
+    ]
+
     def test_the_citation_is_shown_and_the_panel_is_the_cite_buttons_target(
         self, render_overview, soup
     ):
-        page = soup(render_overview("cite", text="CITE-TEXT"))
+        page = soup(render_overview("cite", formats=self.FORMATS))
 
         assert page.find(id="cite") is not None
         assert page.find(id="citation-text").get_text(strip=True) == "CITE-TEXT"
 
+    def test_the_text_sits_in_a_pre_that_names_its_format(self, render_overview, soup):
+        page = soup(render_overview("cite", formats=self.FORMATS))
+
+        text = page.find(id="citation-text")
+        assert text.name == "pre"
+        assert text["data-format"] == "text"
+
+    def test_there_is_one_tab_per_format_with_text_selected(
+        self, render_overview, soup
+    ):
+        page = soup(render_overview("cite", formats=self.FORMATS))
+
+        tabs = page.select("[role=tablist] [role=tab]")
+        assert [t["data-format"] for t in tabs] == ["text", "bibtex", "ris"]
+        assert [t["aria-selected"] for t in tabs] == ["true", "false", "false"]
+        assert {t["aria-controls"] for t in tabs} == {"citation-text"}
+
+    def test_the_formats_reach_the_script_as_json(self, render_overview, soup):
+        page = soup(render_overview("cite", formats=self.FORMATS))
+
+        carried = json.loads(page.find(id="cite-formats").string)
+        assert carried == self.FORMATS
+
+    def test_a_title_that_closes_the_script_tag_cannot_break_out_of_the_json(
+        self, render_overview, soup
+    ):
+        hostile = [{**self.FORMATS[0], "value": "</script><b id='broken'>x</b>"}]
+
+        page = soup(render_overview("cite", formats=hostile))
+
+        assert page.find(id="broken") is None
+        carried = json.loads(page.find(id="cite-formats").string)
+        assert carried[0]["value"] == hostile[0]["value"]
+
+    def test_a_hidden_link_waits_for_a_downloadable_format(self, render_overview, soup):
+        page = soup(render_overview("cite", formats=self.FORMATS))
+
+        link = page.select_one("a[data-download]")
+        assert link.has_attr("hidden")
+        assert link.has_attr("download")
+        assert not link.has_attr("href")
+
     def test_a_button_copies_the_citation(self, render_overview, soup):
-        page = soup(render_overview("cite", text="CITE-TEXT"))
+        page = soup(render_overview("cite", formats=self.FORMATS))
 
         assert page.select_one("button[data-copy-from]")["data-copy-from"] == (
             "citation-text"
         )
 
+    def test_the_panel_is_marked_for_the_script(self, render_overview, soup):
+        page = soup(render_overview("cite", formats=self.FORMATS))
+
+        assert page.find(id="cite").has_attr("data-cite")
+
     def test_a_note_is_shown_under_the_citation(self, child_template, render_template):
         name = child_template(
-            """<c-overview.cite text="CITE-TEXT">NOTE-MARKER</c-overview.cite>"""
+            """<c-overview.cite :formats="formats">NOTE-MARKER</c-overview.cite>"""
         )
 
-        assert "NOTE-MARKER" in render_template(name)
+        assert "NOTE-MARKER" in render_template(name, {"formats": self.FORMATS})
 
 
 class TestDescriptions:

@@ -15,6 +15,7 @@ from fairdm.contrib.plugins.access import has_perm
 from fairdm.contrib.plugins.mixins import (
     PrivateRecordNotFoundMixin,
 )
+from fairdm.core.citation import CitedName, publication_types
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.overview import (
     as_date,
@@ -221,7 +222,12 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             "record": dataset,
             "overview_icon": "dataset",
             "has_charts": bool(page["growth_chart"]),
-            "citation": {"title": gettext("Citation"), "text": citation["text"]},
+            "citation": {
+                "title": gettext("Citation"),
+                "text": citation["text"],
+                "work": citation["work"],
+                "formats": citation["formats"],
+            },
             "identifiers": identifiers,
             "primary_identifier": self.get_primary_identifier(identifiers),
             "people": self.get_people(),
@@ -597,18 +603,38 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
 
         Returns:
             The citation ``text`` and ``link`` and whether it ``has_doi``, ``from_reference`` and
-            how many ``creators`` it names.
+            how many ``creators`` it names, with the ``work`` it is written from and its
+            ``formats``.
         """
         dataset = self.base_object
         if dataset.reference_id:
             reference = dataset.reference
+            names = [CitedName.from_item_name(n) for n in reference.authors]
+            year = reference.year
             doi = reference.doi
+            link = f"https://doi.org/{doi}" if doi else None
+            text = self.get_citation(
+                authors=names,
+                year=year,
+                title=reference.title,
+                link=link,
+                publisher=reference.publisher,
+            )
+            work = self.build_citation(
+                authors=names,
+                year=year,
+                title=reference.title,
+                link=link,
+                publisher=reference.publisher,
+                types=publication_types(reference.type),
+            )
             return {
-                "text": str(reference),
-                "link": f"https://doi.org/{doi}" if doi else None,
+                "text": text,
+                "link": link,
                 "has_doi": bool(doi),
                 "creators": len(page["team"]["creators"]),
                 "from_reference": True,
+                **self.get_cited_details(work, text),
             }
         creators = [entry["contributor"] for entry in page["team"]["creators"]]
         when = as_date(page["dates"]["published"] or page["dates"]["available"])
@@ -617,14 +643,23 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             (i.value for i in dataset.identifiers.all() if i.type_id == DOI), None
         )
         link = f"https://doi.org/{doi}" if doi else get_permalink(dataset, self.request)
+        text = self.get_citation(
+            authors=creators, year=year, title=dataset.name, link=link
+        )
+        work = self.build_citation(
+            authors=creators,
+            year=year,
+            title=dataset.name,
+            link=link,
+            types=("dataset", "DATA"),
+        )
         return {
-            "text": self.get_citation(
-                authors=creators, year=year, title=dataset.name, link=link
-            ),
+            "text": text,
             "link": link,
             "has_doi": bool(doi),
             "creators": len(creators),
             "from_reference": False,
+            **self.get_cited_details(work, text),
         }
 
     def get_schema_org(self, page):

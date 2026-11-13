@@ -71,7 +71,7 @@ A panel with this heading lists the other measurements made on the same sample i
 
 ## Cite
 
-A panel headed **Cite**, at the top of the side column, gives the citation as plain text, and a **Copy** button copies it. The measurement is cited by the people credited with the Collection role, the year of its setup date (or the year it was added), its name, its type and the sample, and the DOI link or, with no DOI, the measurement's permalink.
+A panel headed **Cite**, at the top of the side column, gives the citation as **Text**, **BibTeX** or **RIS**, chosen with the switch in the panel's heading. **Copy** copies the format on show, and for BibTeX and RIS a **Download** link saves it as a file named after the measurement. The panel keeps the format you chose for your next visit. The measurement is cited by the people credited with the Collection role, the year of its setup date (or the year it was added), its name, its type and the sample, and the DOI link or, with no DOI, the measurement's permalink.
 
 A measurement with no DOI reads "Most measurements are cited through their dataset. This citation points at this page." with a **Cite the dataset** link to the dataset's Cite panel.
 
