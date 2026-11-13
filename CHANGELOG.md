@@ -79,6 +79,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A record type's About dialog opens.** On a sample or measurement page, the type badge's
+  button named its dialog by a bare id such as `about-sample-type`, which JavaScript reads as a
+  subtraction, so clicking it threw an error and the dialog never opened. The button now looks
+  the dialog up with `document.getElementById`.
 - **The FairDM logo is no longer clipped at the top.** The horizontal logo in the portal header
   (`brand/logo.svg` and `brand/logo_dark.svg`) and in the documentation's navigation bar drew its
   symbol 17% too tall, so the top of the symbol fell outside the image. Both now use the redrawn

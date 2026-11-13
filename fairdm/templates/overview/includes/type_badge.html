@@ -7,7 +7,7 @@
   id (the dialog's id)
 {% endcomment %}
 {% if info %}
-  <button type="button" class="record-tag record-{{ kind }}" onclick="{{ id }}.showModal()"
+  <button type="button" class="record-tag record-{{ kind }}" onclick="document.getElementById('{{ id }}').showModal()"
           aria-haspopup="dialog" title="{% blocktranslate with type=label %}About {{ type }}{% endblocktranslate %}"><c-icon name="{{ kind }}" aria-hidden="true" only />{{ label|capfirst }}<c-icon name="info" class="opacity-60" aria-hidden="true" only /></button>
   {% blocktranslate with type=label|capfirst asvar about %}About {{ type }}{% endblocktranslate %}
   {% comment %}
