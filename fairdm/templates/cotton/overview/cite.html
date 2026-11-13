@@ -17,7 +17,7 @@
   {% if slot %}<p class="ov-note">{{ slot }}</p>{% endif %}
   <div class="ov-cite__actions">
     <button type="button" class="btn btn-sm" data-copy-from="citation-text"><c-icon name="copy" aria-hidden="true" only />{% translate "Copy" %}</button>
-    <a class="btn btn-sm btn-ghost" data-download hidden download href=""><c-icon name="download" aria-hidden="true" only />{% translate "Download" %}</a>
+    <a class="btn btn-sm btn-ghost" data-download hidden download><c-icon name="download" aria-hidden="true" only />{% translate "Download" %}</a>
     <span class="ov-copied" role="status" hidden>{% translate "Copied" %}</span>
   </div>
 </section>

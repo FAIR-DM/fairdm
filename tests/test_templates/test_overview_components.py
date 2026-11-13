@@ -270,6 +270,7 @@ class TestCite:
         link = page.select_one("a[data-download]")
         assert link.has_attr("hidden")
         assert link.has_attr("download")
+        assert not link.has_attr("href")
 
     def test_a_button_copies_the_citation(self, render_overview, soup):
         page = soup(render_overview("cite", formats=self.FORMATS))

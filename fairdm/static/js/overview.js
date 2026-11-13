@@ -139,7 +139,8 @@
         });
         if (download) {
           download.hidden = !(format.download && format.url);
-          download.setAttribute("href", format.url || "");
+          if (format.url) download.setAttribute("href", format.url);
+          else download.removeAttribute("href");
         }
         try { localStorage.setItem("ov-cite-format", key); } catch (e) { /* storage unavailable */ }
       }
