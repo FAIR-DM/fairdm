@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Project and dataset pages map where their samples come from.** A "Where the samples come
+  from" panel shows every sample the viewer may open that has a location, clustered where they
+  crowd, opening on the record's spatial coverage. Selecting a cluster zooms in and selecting a
+  point lists every sample at that spot with a link to its page. Beneath the map are how many
+  samples are mapped, how many have no location, on a project how many datasets they come from,
+  the area they cover and a link to the samples list, so the page says everything the map shows
+  without it. The page does not wait for the points: the map fetches them from the record's
+  address followed by `sample-points/`, which answers as the record's page does. The panel is
+  drawn by `<c-overview.coverage>` in the new `overview.map` block, and a portal changes the
+  points by overriding `get_sample_points()` or `get_map_samples()` on the overview plugin. See
+  [Overview plugins](developers/reference/overview-plugins.md) and
+  [Components](developers/reference/components.md#c-overviewcoverage).
 - **A control room in the administration interface.** Superusers can open a Django Control Room dashboard with panels for Redis, the cache and the Celery workers, at `dj-control-room/` under the administration address. Staff who are not superusers and holders of a portal role are refused. The Redis panel is read-only, the panels send no requests from the portal and the agent interface is off. A portal changes any of this through `DJ_CONTROL_ROOM_SETTINGS` and the panel settings dictionaries described in [Settings](developers/reference/settings.md#operations-dashboard), and removes the dashboard by removing its apps from `INSTALLED_APPS`. Under `DJANGO_ENV=development`, a portal that has installed `dj-urls-panel` and `dj-signals-panel` as development dependencies also gets a URL panel and a signal panel, open to superusers only; the URL panel sends no requests. See [How to change who can open the control room](developers/how-to/change-who-can-open-the-control-room.md).
 - **A record's portal ID opens the record.** A project, dataset, sample, measurement, person or
   organization opens at the portal's root followed by its portal ID, for example `/p3xK…Wq/`. The

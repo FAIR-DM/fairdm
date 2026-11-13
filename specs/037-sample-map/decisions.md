@@ -182,3 +182,11 @@ with. The difference between FR-004's wording and this case goes to the specific
 change rather than being edited here.
 
 **ADR:** none — local to this feature.
+
+## D16. The edits to specifications and the documentation were written directly
+
+**Chosen:** T009 and T010 were written by the build's own session, not dispatched.
+
+**Why:** they are prose describing what groups 1 and 2 built, with no design content and no code.
+
+**ADR:** none — how this build was carried out.
