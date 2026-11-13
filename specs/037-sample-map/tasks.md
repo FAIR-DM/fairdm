@@ -52,3 +52,5 @@ with the environment in `/home/sam/projects/worktrees/fairdm-037-env.sh` sourced
 ### Found after planning
 
 - [x] T011 [US1] Wrap the lines group 1 added to 88 characters.
+- [x] T012 [US1] A test that a viewer holding a level on one sample of an unpublished dataset
+  maps nothing, which the mutation pass found missing.

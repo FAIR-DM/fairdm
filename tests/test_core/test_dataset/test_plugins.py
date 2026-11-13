@@ -1836,6 +1836,25 @@ class TestOverviewSampleMap:
         assert response.context["sample_map"]["located"] == 1
         assert loads_map_script(response)
 
+    def test_a_level_on_one_sample_of_an_unpublished_dataset_maps_nothing(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        sample = RockSampleFactory(
+            dataset=dataset, location=Point(7.9, 48.9, srid=4326)
+        )
+        user = UserFactory()
+        ContributionFactory(
+            content_object=sample, contributor=user, level=ContributionLevel.VIEW
+        )
+        client.force_login(user)
+
+        page = _page(client, dataset)
+        points = client.get(
+            reverse("dataset:overview-sample-points", kwargs={"uuid": dataset.uuid})
+        )
+
+        assert page.context["sample_map"] is None
+        assert points.json()["features"] == []
+
     def test_the_points_address_of_an_unpublished_dataset_gives_a_visitor_nothing(
         self, client
     ):
