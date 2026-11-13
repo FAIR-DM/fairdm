@@ -1117,6 +1117,9 @@ element.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.core.overview.json_ld" title="fairdm.core.overview.json_ld"><code class="xref py py-obj docutils literal notranslate"><span class="pre">json_ld</span></code></a></p></td>
 <td><p>Serialise <code class="docutils literal notranslate"><span class="pre">data</span></code> for an inline <code class="docutils literal notranslate"><span class="pre">&lt;script&gt;</span></code>.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.core.overview.describe_coverage" title="fairdm.core.overview.describe_coverage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">describe_coverage</span></code></a></p></td>
+<td><p>Write the area a box covers as text, for the panel and the map’s label.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1200,6 +1203,19 @@ data: Anything <code class="docutils literal notranslate"><span class="pre">json
 The JSON text, safe to place inside a script element.</p>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="fairdm.core.overview.describe_coverage">
+<span class="sig-name descname"><span class="pre">describe_coverage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coverage</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/fairdm/core/overview.html#describe_coverage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#fairdm.core.overview.describe_coverage" title="Link to this definition">#</a></dt>
+<dd><p>Write the area a box covers as text, for the panel and the map’s label.</p>
+<p>Latitudes read N or S and longitudes E or W from their sign, to two decimal places.
+A box that is a single spot reads as one point.</p>
+<p>Args:
+coverage: A <code class="docutils literal notranslate"><span class="pre">Coverage</span></code>, in WGS 84 degrees.</p>
+<p>Returns:
+For instance “48.80° N to 49.20° N, 7.80° E to 8.70° E”, or “48.80° N, 7.80° E”
+for a single spot.</p>
+</dd></dl>
+
 </section>
 </section>
 </section>
@@ -1261,6 +1277,7 @@ The JSON text, safe to place inside a script element.</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.overview.sentence_case"><code class="docutils literal notranslate"><span class="pre">sentence_case()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.overview.format_authors"><code class="docutils literal notranslate"><span class="pre">format_authors()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.overview.json_ld"><code class="docutils literal notranslate"><span class="pre">json_ld()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.overview.describe_coverage"><code class="docutils literal notranslate"><span class="pre">describe_coverage()</span></code></a></li>
 </ul>
 </li>
 </ul>

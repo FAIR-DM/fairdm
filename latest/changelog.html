@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="changelog.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="All notable changes to the FairDM project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.[Unreleased]: Added: A control ro..." />
-<meta name="description" content="All notable changes to the FairDM project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.[Unreleased]: Added: A control ro..." />
+<meta property="og:description" content="All notable changes to the FairDM project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.[Unreleased]: Added: Project and ..." />
+<meta name="description" content="All notable changes to the FairDM project will be documented in this file. The format is based on Keep a Changelog, and this project adheres to Semantic Versioning.[Unreleased]: Added: Project and ..." />
 
     <title>Changelog &#8212; fairdm 0.5.0 documentation</title>
   
@@ -815,6 +815,18 @@ and this project adheres to <a class="reference external" href="https://semver.o
 <section id="added">
 <h3>Added<a class="headerlink" href="#added" title="Link to this heading">#</a></h3>
 <ul class="simple">
+<li><p><strong>Project and dataset pages map where their samples come from.</strong> A “Where the samples come
+from” panel shows every sample the viewer may open that has a location, clustered where they
+crowd, opening on the record’s spatial coverage. Selecting a cluster zooms in and selecting a
+point lists every sample at that spot with a link to its page. Beneath the map are how many
+samples are mapped, how many have no location, on a project how many datasets they come from,
+the area they cover and a link to the samples list, so the page says everything the map shows
+without it. The page does not wait for the points: the map fetches them from the record’s
+address followed by <code class="docutils literal notranslate"><span class="pre">sample-points/</span></code>, which answers as the record’s page does. The panel is
+drawn by <code class="docutils literal notranslate"><span class="pre">&lt;c-overview.coverage&gt;</span></code> in the new <code class="docutils literal notranslate"><span class="pre">overview.map</span></code> block, and a portal changes the
+points by overriding <code class="docutils literal notranslate"><span class="pre">get_sample_points()</span></code> or <code class="docutils literal notranslate"><span class="pre">get_map_samples()</span></code> on the overview plugin. See
+<a class="reference internal" href="developers/reference/overview-plugins.html"><span class="std std-doc">Overview plugins</span></a> and
+<a class="reference internal" href="developers/reference/components.html#c-overview-coverage"><span class="std std-ref">Components</span></a>.</p></li>
 <li><p><strong>A control room in the administration interface.</strong> Superusers can open a Django Control Room dashboard with panels for Redis, the cache and the Celery workers, at <code class="docutils literal notranslate"><span class="pre">dj-control-room/</span></code> under the administration address. Staff who are not superusers and holders of a portal role are refused. The Redis panel is read-only, the panels send no requests from the portal and the agent interface is off. A portal changes any of this through <code class="docutils literal notranslate"><span class="pre">DJ_CONTROL_ROOM_SETTINGS</span></code> and the panel settings dictionaries described in <a class="reference internal" href="developers/reference/settings.html#operations-dashboard"><span class="std std-ref">Settings</span></a>, and removes the dashboard by removing its apps from <code class="docutils literal notranslate"><span class="pre">INSTALLED_APPS</span></code>. Under <code class="docutils literal notranslate"><span class="pre">DJANGO_ENV=development</span></code>, a portal that has installed <code class="docutils literal notranslate"><span class="pre">dj-urls-panel</span></code> and <code class="docutils literal notranslate"><span class="pre">dj-signals-panel</span></code> as development dependencies also gets a URL panel and a signal panel, open to superusers only; the URL panel sends no requests. See <a class="reference internal" href="developers/how-to/change-who-can-open-the-control-room.html"><span class="std std-doc">How to change who can open the control room</span></a>.</p></li>
 <li><p><strong>A record’s portal ID opens the record.</strong> A project, dataset, sample, measurement, person or
 organization opens at the portal’s root followed by its portal ID, for example <code class="docutils literal notranslate"><span class="pre">/p3xK…Wq/</span></code>. The

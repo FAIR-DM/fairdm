@@ -139,6 +139,23 @@ Bases: {py:obj}`fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin`, {py:o
 
 ````
 
+````{py:method} get_extra_views()
+:canonical: fairdm.core.dataset.plugins.Overview.get_extra_views
+:classmethod:
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview.get_extra_views
+```
+
+````
+
+````{py:method} get_map_samples()
+:canonical: fairdm.core.dataset.plugins.Overview.get_map_samples
+
+```{autodoc2-docstring} fairdm.core.dataset.plugins.Overview.get_map_samples
+```
+
+````
+
 ````{py:method} get_context_data(**kwargs)
 :canonical: fairdm.core.dataset.plugins.Overview.get_context_data
 

@@ -1154,6 +1154,7 @@ window.runMermaid = runMermaid;</script>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.urls</span><span class="w"> </span><span class="kn">import</span> <span class="n">NoReverseMatch</span><span class="p">,</span> <span class="n">reverse</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.formats</span><span class="w"> </span><span class="kn">import</span> <span class="n">date_format</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.translation</span><span class="w"> </span><span class="kn">import</span> <span class="n">gettext</span><span class="p">,</span> <span class="n">pgettext</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">partial_dates</span><span class="w"> </span><span class="kn">import</span> <span class="n">Precision</span>
 
 
@@ -1295,6 +1296,44 @@ window.runMermaid = runMermaid;</script>
         <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"&gt;"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">u003e"</span><span class="p">)</span>
         <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"&amp;"</span><span class="p">,</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">u0026"</span><span class="p">)</span>
     <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="describe_coverage">
+<a class="viewcode-back" href="../../../developers/reference/api/fairdm/fairdm.core.overview.html#fairdm.core.overview.describe_coverage">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">describe_coverage</span><span class="p">(</span><span class="n">coverage</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Write the area a box covers as text, for the panel and the map's label.</span>
+
+<span class="sd">    Latitudes read N or S and longitudes E or W from their sign, to two decimal places.</span>
+<span class="sd">    A box that is a single spot reads as one point.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        coverage: A ``Coverage``, in WGS 84 degrees.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        For instance "48.80° N to 49.20° N, 7.80° E to 8.70° E", or "48.80° N, 7.80° E"</span>
+<span class="sd">        for a single spot.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">degrees</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">positive</span><span class="p">,</span> <span class="n">negative</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">° </span><span class="si">{</span><span class="n">positive</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="n">negative</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="n">north_letter</span> <span class="o">=</span> <span class="n">pgettext</span><span class="p">(</span><span class="s2">"compass point"</span><span class="p">,</span> <span class="s2">"N"</span><span class="p">)</span>
+    <span class="n">south_letter</span> <span class="o">=</span> <span class="n">pgettext</span><span class="p">(</span><span class="s2">"compass point"</span><span class="p">,</span> <span class="s2">"S"</span><span class="p">)</span>
+    <span class="n">east_letter</span> <span class="o">=</span> <span class="n">pgettext</span><span class="p">(</span><span class="s2">"compass point"</span><span class="p">,</span> <span class="s2">"E"</span><span class="p">)</span>
+    <span class="n">west_letter</span> <span class="o">=</span> <span class="n">pgettext</span><span class="p">(</span><span class="s2">"compass point"</span><span class="p">,</span> <span class="s2">"W"</span><span class="p">)</span>
+    <span class="n">south</span> <span class="o">=</span> <span class="n">degrees</span><span class="p">(</span><span class="n">coverage</span><span class="o">.</span><span class="n">south</span><span class="p">,</span> <span class="n">north_letter</span><span class="p">,</span> <span class="n">south_letter</span><span class="p">)</span>
+    <span class="n">north</span> <span class="o">=</span> <span class="n">degrees</span><span class="p">(</span><span class="n">coverage</span><span class="o">.</span><span class="n">north</span><span class="p">,</span> <span class="n">north_letter</span><span class="p">,</span> <span class="n">south_letter</span><span class="p">)</span>
+    <span class="n">west</span> <span class="o">=</span> <span class="n">degrees</span><span class="p">(</span><span class="n">coverage</span><span class="o">.</span><span class="n">west</span><span class="p">,</span> <span class="n">east_letter</span><span class="p">,</span> <span class="n">west_letter</span><span class="p">)</span>
+    <span class="n">east</span> <span class="o">=</span> <span class="n">degrees</span><span class="p">(</span><span class="n">coverage</span><span class="o">.</span><span class="n">east</span><span class="p">,</span> <span class="n">east_letter</span><span class="p">,</span> <span class="n">west_letter</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">coverage</span><span class="o">.</span><span class="n">south</span> <span class="o">==</span> <span class="n">coverage</span><span class="o">.</span><span class="n">north</span> <span class="ow">and</span> <span class="n">coverage</span><span class="o">.</span><span class="n">west</span> <span class="o">==</span> <span class="n">coverage</span><span class="o">.</span><span class="n">east</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">gettext</span><span class="p">(</span><span class="s2">"</span><span class="si">%(latitude)s</span><span class="s2">, </span><span class="si">%(longitude)s</span><span class="s2">"</span><span class="p">)</span> <span class="o">%</span> <span class="p">{</span>
+            <span class="s2">"latitude"</span><span class="p">:</span> <span class="n">south</span><span class="p">,</span>
+            <span class="s2">"longitude"</span><span class="p">:</span> <span class="n">west</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="k">return</span> <span class="n">gettext</span><span class="p">(</span>
+        <span class="s2">"</span><span class="si">%(south)s</span><span class="s2"> to </span><span class="si">%(north)s</span><span class="s2">, </span><span class="si">%(west)s</span><span class="s2"> to </span><span class="si">%(east)s</span><span class="s2">"</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">%</span> <span class="p">{</span><span class="s2">"south"</span><span class="p">:</span> <span class="n">south</span><span class="p">,</span> <span class="s2">"north"</span><span class="p">:</span> <span class="n">north</span><span class="p">,</span> <span class="s2">"west"</span><span class="p">:</span> <span class="n">west</span><span class="p">,</span> <span class="s2">"east"</span><span class="p">:</span> <span class="n">east</span><span class="p">}</span></div>
 
 </pre></div>
 

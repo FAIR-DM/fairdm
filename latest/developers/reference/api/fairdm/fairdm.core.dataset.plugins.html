@@ -1216,6 +1216,21 @@ keyword arguments, and other things.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.dataset.plugins.Overview.get_extra_views">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_extra_views</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.dataset.plugins.Overview.get_extra_views" title="Link to this definition">#</a></dt>
+<dd><p>Keep the shared overview’s views and add the address of the map’s points.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.dataset.plugins.Overview.get_map_samples">
+<span class="sig-name descname"><span class="pre">get_map_samples</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.dataset.plugins.Overview.get_map_samples" title="Link to this definition">#</a></dt>
+<dd><p>Give the samples the map draws: those the page counts, or none.</p>
+<p>Returns:
+The dataset’s samples the viewer may see, or none when the viewer is not
+offered the dataset’s records.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="fairdm.core.dataset.plugins.Overview.get_context_data">
 <span class="sig-name descname"><span class="pre">get_context_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.dataset.plugins.Overview.get_context_data" title="Link to this definition">#</a></dt>
 <dd><p>Add the dataset and everything the overview page draws.</p>
@@ -1446,6 +1461,8 @@ many required ones are missing.</p>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.plugins.Overview.check"><code class="docutils literal notranslate"><span class="pre">Overview.check</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.plugins.Overview.template_name"><code class="docutils literal notranslate"><span class="pre">Overview.template_name</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.plugins.Overview.bookkeeping_fields"><code class="docutils literal notranslate"><span class="pre">Overview.bookkeeping_fields</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.plugins.Overview.get_extra_views"><code class="docutils literal notranslate"><span class="pre">Overview.get_extra_views()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.plugins.Overview.get_map_samples"><code class="docutils literal notranslate"><span class="pre">Overview.get_map_samples()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.plugins.Overview.get_context_data"><code class="docutils literal notranslate"><span class="pre">Overview.get_context_data()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.plugins.Overview.get_shared_context"><code class="docutils literal notranslate"><span class="pre">Overview.get_shared_context()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.dataset.plugins.Overview.get_details"><code class="docutils literal notranslate"><span class="pre">Overview.get_details()</span></code></a></li>

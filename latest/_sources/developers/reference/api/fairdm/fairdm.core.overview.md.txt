@@ -43,6 +43,10 @@
   - ```{autodoc2-docstring} fairdm.core.overview.json_ld
     :summary:
     ```
+* - {py:obj}`describe_coverage <fairdm.core.overview.describe_coverage>`
+  - ```{autodoc2-docstring} fairdm.core.overview.describe_coverage
+    :summary:
+    ```
 ````
 
 ### API
@@ -93,5 +97,12 @@
 :canonical: fairdm.core.overview.json_ld
 
 ```{autodoc2-docstring} fairdm.core.overview.json_ld
+```
+````
+
+````{py:function} describe_coverage(coverage)
+:canonical: fairdm.core.overview.describe_coverage
+
+```{autodoc2-docstring} fairdm.core.overview.describe_coverage
 ```
 ````

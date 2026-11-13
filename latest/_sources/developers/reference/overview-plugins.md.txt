@@ -17,6 +17,8 @@ An overview page's numbers, lists and cards are worked out by a plugin registere
 
 Each core `Overview` has `url_path = None`, so the overview sits at the record's own address. `OverviewRedirect` in `fairdm.core.sample.plugins` sends a sample's `overview/` address to the record's own with a permanent redirect.
 
+`SamplePoints` in `fairdm.core.plugins` is an additional view of the project and dataset overviews, at the record's address followed by `sample-points/` and named `project:overview-sample-points` and `dataset:overview-sample-points`. It answers the samples the page's map draws, from the overview's `get_map_samples()` through `get_sample_points()`, as GeoJSON. It asks the overview whether the viewer may open the record, so it answers "not found" wherever the page does.
+
 ## `RecordOverviewPlugin`
 
 It holds what every record overview works out the same way. A portal changes one piece of a page by subclassing a record's `Overview` and overriding one attribute or method.
@@ -46,6 +48,8 @@ It holds what every record overview works out the same way. A portal changes one
 | `get_license_entry(licence, note=None)` | A row for [`c-overview.sheet`](components.md#c-overviewsheet), or a warning row when no licence is chosen. |
 | `get_type_mix(samples, measurements)` | The records by registered type for [`c-overview.mix`](components.md#c-overviewmix): `samples` and `measurements`, each a list of `(type name, count)` largest first, and `max`, the largest count. `None` when there is nothing to count. |
 | `get_growth_chart(samples, measurements)` | A dictionary of `chart` and `description` for the running total by month, or `None` when the records span fewer than two months. |
+| `get_sample_points(samples)` | The located samples as a GeoJSON `FeatureCollection` for the samples map, one `Point` per sample, ordered by name, with the properties `name`, `type`, `dataset` and `url`. Read in one query. |
+| `get_sample_map(samples, coverage, points_url, *, count_datasets=False)` | What [`c-overview.coverage`](components.md#c-overviewcoverage) shows: `located`, `missing`, `bounds`, `area`, `points_url`, and `datasets` when `count_datasets` is true. `bounds` and `area` are `None` when nothing is located. `None` when `samples` is empty. |
 
 ```python
 from fairdm.core.plugins import RecordOverviewPlugin
@@ -89,8 +93,9 @@ It subclasses `RecordOverviewPlugin` for the records portals subclass: samples a
 | `get_readiness(page)` | The checklist: `items`, `done`, `total` and `percent`. The project checklist has ten items. |
 | `get_details(licenses)` | The rows of the fact sheet. |
 | `get_shared_context(page)` | The entries every overview provides. |
+| `get_map_samples()` | The samples the page's Samples figure counts, which the map draws. |
 
-Context entries: `project`, `can_manage`, `descriptions`, `timeline` (from `get_progress()`), `team`, `funding`, `counts`, `datasets_preview`, `licenses`, `mix` (from `get_type_mix()`), `growth_chart`, `citation`, `json_ld`, `api_url`, `urls`, and for the team `readiness`, plus the shared entries, which on the project page include `primary_identifier`.
+Context entries: `project`, `can_manage`, `descriptions`, `timeline` (from `get_progress()`), `team`, `funding`, `counts`, `datasets_preview`, `licenses`, `mix` (from `get_type_mix()`), `growth_chart`, `sample_map` (from `get_sample_map()`, `None` when the viewer may open no sample), `has_map` when samples are located, `citation`, `json_ld`, `api_url`, `urls`, and for the team `readiness`, plus the shared entries, which on the project page include `primary_identifier`.
 
 `project_is_visible(request, obj)` in the same module is the plugin's `check`: a public project is visible to all and a private one to holders of `project.view_project`.
 
@@ -116,8 +121,9 @@ Context entries: `project`, `can_manage`, `descriptions`, `timeline` (from `get_
 | `get_readiness(page)` | The checklist: `items`, `done`, `total`, `percent`, `ready` and `missing_required`. It has seven required and three recommended items. |
 | `get_details(project_info)` | The rows of the fact sheet. |
 | `get_shared_context(page)` | The entries every overview provides. |
+| `get_map_samples()` | The samples the page counts, which the map draws, or none while the viewer may not see the dataset's records. |
 
-Context entries: `dataset`, `can_manage`, `access`, `descriptions`, `dates`, `team`, `literature`, `data_types`, `counts`, `mix` (from `get_type_mix()`), `growth_chart`, `project_info`, `api_url`, `urls`, `citation`, `json_ld`, `lifecycle`, and for the team, while the dataset's data is not public, `readiness`, plus the shared entries, which on the dataset page include `primary_identifier`.
+Context entries: `dataset`, `can_manage`, `access`, `descriptions`, `dates`, `team`, `literature`, `data_types`, `counts`, `mix` (from `get_type_mix()`), `growth_chart`, `sample_map`, `has_map` when samples are located, `project_info`, `api_url`, `urls`, `citation`, `json_ld`, `lifecycle`, and for the team, while the dataset's data is not public, `readiness`, plus the shared entries, which on the dataset page include `primary_identifier`.
 
 `dataset_is_visible(request, obj)` is the plugin's `check`.
 
@@ -198,6 +204,7 @@ Models supply the data: `Person.get_affiliation_history()`, `Person.get_profile_
 | `format_partial_date(partial)` | A partial date as a day, a month and year, or a year, as it was recorded. |
 | `sentence_case(text)` | The text with its first letter capitalised and the rest untouched. |
 | `safe_reverse(name, **kwargs)` | A URL, or `None` when the name does not resolve. |
+| `describe_coverage(coverage)` | A spatial coverage as text, for instance `48.80° N to 49.20° N, 7.80° E to 8.70° E`, or one point when the coverage is a single spot. |
 
 `fairdm.contrib.contributors.profiles`:
 

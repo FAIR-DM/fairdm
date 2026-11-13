@@ -1098,7 +1098,10 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tr class="row-even"><td><p><a class="reference internal" href="#fairdm.core.plugins.RecordOverviewPlugin" title="fairdm.core.plugins.RecordOverviewPlugin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RecordOverviewPlugin</span></code></a></p></td>
 <td><p>The overview of a project, dataset, sample or measurement.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.core.plugins.TypedOverviewPlugin" title="fairdm.core.plugins.TypedOverviewPlugin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TypedOverviewPlugin</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.core.plugins.SamplePoints" title="fairdm.core.plugins.SamplePoints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SamplePoints</span></code></a></p></td>
+<td><p>Answer a record’s located samples as GeoJSON, for its overview page’s map.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.core.plugins.TypedOverviewPlugin" title="fairdm.core.plugins.TypedOverviewPlugin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TypedOverviewPlugin</span></code></a></p></td>
 <td><p>The overview of a record portals subclass: a sample or a measurement.</p></td>
 </tr>
 </tbody>
@@ -1345,6 +1348,40 @@ is nothing to count.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.plugins.RecordOverviewPlugin.get_sample_points">
+<span class="sig-name descname"><span class="pre">get_sample_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#fairdm.core.plugins.RecordOverviewPlugin.get_sample_points" title="Link to this definition">#</a></dt>
+<dd><p>Give the located samples as GeoJSON for the map to draw.</p>
+<p>The rows are read with <code class="docutils literal notranslate"><span class="pre">values()</span></code>, never as model instances, so the answer
+costs one query however many samples there are.</p>
+<p>Args:
+samples: The samples to draw. Those without a location are left out.</p>
+<p>Returns:
+A <code class="docutils literal notranslate"><span class="pre">FeatureCollection</span></code> with one <code class="docutils literal notranslate"><span class="pre">Point</span></code> feature per located sample,
+ordered by name. Each feature’s properties are <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">type</span></code> (the
+sample type’s name, empty when the type’s model no longer exists),
+<code class="docutils literal notranslate"><span class="pre">dataset</span></code> (the dataset’s name) and <code class="docutils literal notranslate"><span class="pre">url</span></code> (the sample’s page).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.plugins.RecordOverviewPlugin.get_sample_map">
+<span class="sig-name descname"><span class="pre">get_sample_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coverage</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">points_url</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">count_datasets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#fairdm.core.plugins.RecordOverviewPlugin.get_sample_map" title="Link to this definition">#</a></dt>
+<dd><p>Work out what the map panel shows: how many samples are located and where.</p>
+<p>One aggregate query counts the samples, no rows are read.</p>
+<p>Args:
+samples: The samples the page counts.
+coverage: The smallest box holding their locations, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.
+points_url: The address that answers the located samples as GeoJSON.
+count_datasets: Whether to count the datasets the located samples come from.</p>
+<p>Returns:
+<code class="docutils literal notranslate"><span class="pre">located</span></code>, <code class="docutils literal notranslate"><span class="pre">missing</span></code> (the samples without a location), <code class="docutils literal notranslate"><span class="pre">bounds</span></code> (the
+coverage as <code class="docutils literal notranslate"><span class="pre">[west,</span> <span class="pre">south,</span> <span class="pre">east,</span> <span class="pre">north]</span></code>, with <code class="docutils literal notranslate"><span class="pre">east</span></code> carried past 180
+when the box crosses the 180th meridian so MapLibre fits the narrow box),
+<code class="docutils literal notranslate"><span class="pre">area</span></code> (the coverage as text) and <code class="docutils literal notranslate"><span class="pre">points_url</span></code>, plus <code class="docutils literal notranslate"><span class="pre">datasets</span></code> when
+asked. With no located sample, <code class="docutils literal notranslate"><span class="pre">bounds</span></code> and <code class="docutils literal notranslate"><span class="pre">area</span></code> are <code class="docutils literal notranslate"><span class="pre">None</span></code>.
+<code class="docutils literal notranslate"><span class="pre">None</span></code> when <code class="docutils literal notranslate"><span class="pre">samples</span></code> is empty.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="fairdm.core.plugins.RecordOverviewPlugin.get_growth_chart">
 <span class="sig-name descname"><span class="pre">get_growth_chart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">measurements</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#fairdm.core.plugins.RecordOverviewPlugin.get_growth_chart" title="Link to this definition">#</a></dt>
 <dd><p>Draw the cumulative samples and measurements by month, two series on one count axis.</p>
@@ -1354,6 +1391,60 @@ measurements: The measurements to count.</p>
 <p>Returns:
 The chart and its text alternative, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when the records span fewer than two
 months.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.core.plugins.SamplePoints">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">SamplePoints</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.plugins.SamplePoints" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.contrib.plugins.Plugin</span></code></p>
+<p>Answer a record’s located samples as GeoJSON, for its overview page’s map.</p>
+<p>It decides nothing itself. The owning overview plugin says who may open the record
+and which of its samples the viewer sees, so this address answers exactly as the
+record’s page does: a private record is “not found”, and the points are the samples
+the page counts.</p>
+<p>The owner is built with this mount’s model. A plugin built without it resolves no
+record, and a plugin that resolves none lets everyone in.</p>
+<p>Attributes:
+owner: The overview plugin that owns this address, set when access is decided.</p>
+<p class="rubric">Initialization</p>
+<p>Constructor. Called in the URLconf; can contain helpful extra
+keyword arguments, and other things.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.core.plugins.SamplePoints.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#fairdm.core.plugins.SamplePoints.name" title="Link to this definition">#</a></dt>
+<dd><p>‘sample-points’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.core.plugins.SamplePoints.url_path">
+<span class="sig-name descname"><span class="pre">url_path</span></span><a class="headerlink" href="#fairdm.core.plugins.SamplePoints.url_path" title="Link to this definition">#</a></dt>
+<dd><p>‘sample-points’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.core.plugins.SamplePoints.owner">
+<span class="sig-name descname"><span class="pre">owner</span></span><a class="headerlink" href="#fairdm.core.plugins.SamplePoints.owner" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.plugins.SamplePoints.has_permission">
+<span class="sig-name descname"><span class="pre">has_permission</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#fairdm.core.plugins.SamplePoints.has_permission" title="Link to this definition">#</a></dt>
+<dd><p>Ask the owning overview plugin whether the viewer may open its record.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.plugins.SamplePoints.handle_no_permission">
+<span class="sig-name descname"><span class="pre">handle_no_permission</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.plugins.SamplePoints.handle_no_permission" title="Link to this definition">#</a></dt>
+<dd><p>Refuse as the overview does, so a private record answers “not found”.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.plugins.SamplePoints.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.plugins.SamplePoints.get" title="Link to this definition">#</a></dt>
+<dd><p>Give the samples the page counts that have a location, as GeoJSON.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1494,7 +1585,18 @@ or <code class="docutils literal notranslate"><span class="pre">None</span></cod
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_timeline"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_timeline()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_license_entry"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_license_entry()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_type_mix"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_type_mix()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_sample_points"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_sample_points()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_sample_map"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_sample_map()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_growth_chart"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_growth_chart()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.SamplePoints"><code class="docutils literal notranslate"><span class="pre">SamplePoints</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.SamplePoints.name"><code class="docutils literal notranslate"><span class="pre">SamplePoints.name</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.SamplePoints.url_path"><code class="docutils literal notranslate"><span class="pre">SamplePoints.url_path</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.SamplePoints.owner"><code class="docutils literal notranslate"><span class="pre">SamplePoints.owner</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.SamplePoints.has_permission"><code class="docutils literal notranslate"><span class="pre">SamplePoints.has_permission()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.SamplePoints.handle_no_permission"><code class="docutils literal notranslate"><span class="pre">SamplePoints.handle_no_permission()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.SamplePoints.get"><code class="docutils literal notranslate"><span class="pre">SamplePoints.get()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.TypedOverviewPlugin"><code class="docutils literal notranslate"><span class="pre">TypedOverviewPlugin</span></code></a><ul class="nav section-nav flex-column">

@@ -23,6 +23,10 @@
   - ```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin
     :summary:
     ```
+* - {py:obj}`SamplePoints <fairdm.core.plugins.SamplePoints>`
+  - ```{autodoc2-docstring} fairdm.core.plugins.SamplePoints
+    :summary:
+    ```
 * - {py:obj}`TypedOverviewPlugin <fairdm.core.plugins.TypedOverviewPlugin>`
   - ```{autodoc2-docstring} fairdm.core.plugins.TypedOverviewPlugin
     :summary:
@@ -228,10 +232,96 @@ Bases: {py:obj}`fairdm.core.plugins.OverviewPlugin`
 
 ````
 
+````{py:method} get_sample_points(samples) -> dict[str, typing.Any]
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_sample_points
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_sample_points
+```
+
+````
+
+````{py:method} get_sample_map(samples, coverage, points_url, *, count_datasets=False) -> dict[str, typing.Any] | None
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_sample_map
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_sample_map
+```
+
+````
+
 ````{py:method} get_growth_chart(samples, measurements) -> dict[str, typing.Any] | None
 :canonical: fairdm.core.plugins.RecordOverviewPlugin.get_growth_chart
 
 ```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_growth_chart
+```
+
+````
+
+`````
+
+`````{py:class} SamplePoints(**kwargs)
+:canonical: fairdm.core.plugins.SamplePoints
+
+Bases: {py:obj}`fairdm.contrib.plugins.Plugin`
+
+```{autodoc2-docstring} fairdm.core.plugins.SamplePoints
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.plugins.SamplePoints.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.core.plugins.SamplePoints.name
+:value: >
+   'sample-points'
+
+```{autodoc2-docstring} fairdm.core.plugins.SamplePoints.name
+```
+
+````
+
+````{py:attribute} url_path
+:canonical: fairdm.core.plugins.SamplePoints.url_path
+:value: >
+   'sample-points'
+
+```{autodoc2-docstring} fairdm.core.plugins.SamplePoints.url_path
+```
+
+````
+
+````{py:attribute} owner
+:canonical: fairdm.core.plugins.SamplePoints.owner
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.plugins.SamplePoints.owner
+```
+
+````
+
+````{py:method} has_permission() -> bool
+:canonical: fairdm.core.plugins.SamplePoints.has_permission
+
+```{autodoc2-docstring} fairdm.core.plugins.SamplePoints.has_permission
+```
+
+````
+
+````{py:method} handle_no_permission()
+:canonical: fairdm.core.plugins.SamplePoints.handle_no_permission
+
+```{autodoc2-docstring} fairdm.core.plugins.SamplePoints.handle_no_permission
+```
+
+````
+
+````{py:method} get(request, *args, **kwargs)
+:canonical: fairdm.core.plugins.SamplePoints.get
+
+```{autodoc2-docstring} fairdm.core.plugins.SamplePoints.get
 ```
 
 ````

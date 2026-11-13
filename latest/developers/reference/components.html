@@ -1733,6 +1733,50 @@ commentsRunWhenDOMLoaded(addUtterances);
 </pre></div>
 </div>
 </section>
+<section id="c-overview-coverage">
+<h3><code class="docutils literal notranslate"><span class="pre">c-overview.coverage</span></code><a class="headerlink" href="#c-overview-coverage" title="Link to this heading">#</a></h3>
+<p>Where a project’s or dataset’s samples were taken: every located sample the viewer may open on one map, clustered where they crowd, with the counts, the area covered and a “See all” link to the samples list beneath. <code class="docutils literal notranslate"><span class="pre">data-card</span></code> is <code class="docutils literal notranslate"><span class="pre">coverage</span></code>. With no located sample, it says there is nothing to map yet and draws no map. The map element carries <code class="docutils literal notranslate"><span class="pre">data-points-url</span></code> and <code class="docutils literal notranslate"><span class="pre">data-bounds</span></code>, and <code class="docutils literal notranslate"><span class="pre">js/overview.js</span></code> fetches the points once the page has drawn. The page sets <code class="docutils literal notranslate"><span class="pre">has_map</span></code> so MapLibre is loaded.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Attribute</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Accepts</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">map</span></code></p></td>
+<td><p>dictionary</p></td>
+<td><p></p></td>
+<td><p>The page’s <code class="docutils literal notranslate"><span class="pre">sample_map</span></code>: <code class="docutils literal notranslate"><span class="pre">located</span></code>, <code class="docutils literal notranslate"><span class="pre">missing</span></code>, <code class="docutils literal notranslate"><span class="pre">bounds</span></code>, <code class="docutils literal notranslate"><span class="pre">area</span></code>, <code class="docutils literal notranslate"><span class="pre">points_url</span></code> and, on a project, <code class="docutils literal notranslate"><span class="pre">datasets</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">id</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>The panel’s id.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">title</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Where</span> <span class="pre">the</span> <span class="pre">samples</span> <span class="pre">come</span> <span class="pre">from</span></code></p></td>
+<td><p>The heading.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">more_url</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>The samples list, linked as See all.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">empty</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>What to say when no sample has a location.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">c-overview.coverage</span> <span class="na">:map</span><span class="o">=</span><span class="s">"sample_map"</span> <span class="na">id</span><span class="o">=</span><span class="s">"coverage"</span> <span class="na">more_url</span><span class="o">=</span><span class="s">"{{ urls.samples }}"</span> <span class="p">/&gt;</span>
+</pre></div>
+</div>
+</section>
 <section id="c-overview-location">
 <h3><code class="docutils literal notranslate"><span class="pre">c-overview.location</span></code><a class="headerlink" href="#c-overview-location" title="Link to this heading">#</a></h3>
 <p>Where a sample was taken or a measurement made: a map with the point marked, and the coordinates written out as decimal degrees in WGS 84 to five places. <code class="docutils literal notranslate"><span class="pre">data-card</span></code> is <code class="docutils literal notranslate"><span class="pre">location</span></code>. The map is drawn by <code class="docutils literal notranslate"><span class="pre">js/overview.js</span></code> with MapLibre, which <code class="docutils literal notranslate"><span class="pre">overview/page.html</span></code> loads in its <code class="docutils literal notranslate"><span class="pre">overview.map_library</span></code> block when the context sets <code class="docutils literal notranslate"><span class="pre">has_map</span></code>.</p>
@@ -1791,7 +1835,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="maps-and-filters-in-js-overview-js">
 <h3>Maps and filters in <code class="docutils literal notranslate"><span class="pre">js/overview.js</span></code><a class="headerlink" href="#maps-and-filters-in-js-overview-js" title="Link to this heading">#</a></h3>
-<p>The script every overview page loads draws a map in each element marked <code class="docutils literal notranslate"><span class="pre">data-map</span></code> with <code class="docutils literal notranslate"><span class="pre">data-lon</span></code> and <code class="docutils literal notranslate"><span class="pre">data-lat</span></code>, with a marker in the record type’s colour. Each map has zoom buttons, scrolls with the page until the reader means to move it, and keeps the tile credits closed behind their (i) button.</p>
+<p>The script every overview page loads draws a map in each element marked <code class="docutils literal notranslate"><span class="pre">data-map</span></code> with <code class="docutils literal notranslate"><span class="pre">data-lon</span></code> and <code class="docutils literal notranslate"><span class="pre">data-lat</span></code>, with a marker in the record type’s colour. An element marked <code class="docutils literal notranslate"><span class="pre">data-map</span></code> with <code class="docutils literal notranslate"><span class="pre">data-points-url</span></code> and <code class="docutils literal notranslate"><span class="pre">data-bounds</span></code> instead opens on the bounds, fetches GeoJSON points from the address and draws them clustered: selecting a cluster zooms in, and selecting a point opens a popup listing every sample at that spot, each linking to its page. Each map has zoom buttons, scrolls with the page until the reader means to move it, and keeps the tile credits closed behind their (i) button.</p>
 <p>A group of buttons marked <code class="docutils literal notranslate"><span class="pre">data-filter-chips=&quot;&lt;list</span> <span class="pre">id&gt;&quot;</span></code> filters the list with that id: each button shows only the rows whose <code class="docutils literal notranslate"><span class="pre">data-type</span></code> is its <code class="docutils literal notranslate"><span class="pre">data-value</span></code>, and an empty <code class="docutils literal notranslate"><span class="pre">data-value</span></code> shows them all. A link marked <code class="docutils literal notranslate"><span class="pre">data-filter-more=&quot;&lt;list</span> <span class="pre">id&gt;&quot;</span></code> is hidden while a type is chosen.</p>
 </section>
 </section>
@@ -3476,6 +3520,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-mix"><code class="docutils literal notranslate"><span class="pre">c-overview.mix</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-history"><code class="docutils literal notranslate"><span class="pre">c-overview.history</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-props-and-c-overview-prop"><code class="docutils literal notranslate"><span class="pre">c-overview.props</span></code> and <code class="docutils literal notranslate"><span class="pre">c-overview.prop</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-coverage"><code class="docutils literal notranslate"><span class="pre">c-overview.coverage</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-location"><code class="docutils literal notranslate"><span class="pre">c-overview.location</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#maps-and-filters-in-js-overview-js">Maps and filters in <code class="docutils literal notranslate"><span class="pre">js/overview.js</span></code></a></li>
 </ul>
