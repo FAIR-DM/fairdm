@@ -1,0 +1,48 @@
+{% load i18n fairdm %}
+{% comment %}
+  <c-overview.descriptions> — a record's descriptions. One is shown under its own name. Several get
+  tabs in the panel's heading, each tab's name being the heading. Long text folds after a few lines.
+
+  Attributes:
+    descriptions  – [{label, value}], the abstract first
+    group         – a prefix that makes the tabs' ids unique on the page
+    edit_url      – the descriptions' editing page, for someone who may edit them
+  Slots:
+    (default) – what to show when the record has none
+{% endcomment %}
+<c-vars descriptions group edit_url />
+<section class="ov-panel" aria-labelledby="{{ group }}-heading" data-card="descriptions">
+  {% if descriptions|length > 1 %}
+    <div class="ov-tabs-row">
+      <div class="ov-tabs" role="tablist" aria-label="{% translate 'Descriptions' %}" id="{{ group }}-heading">
+        {% for description in descriptions %}
+          <button type="button" role="tab" class="ov-tab" id="{{ group }}-tab-{{ forloop.counter }}"
+                  aria-controls="{{ group }}-panel-{{ forloop.counter }}"
+                  aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+                  tabindex="{% if forloop.first %}0{% else %}-1{% endif %}">{{ description.label }}</button>
+        {% endfor %}
+      </div>
+      <c-overview.edit href="{{ edit_url }}" label="{% translate 'Edit descriptions' %}" only />
+    </div>
+    {% for description in descriptions %}
+      <div role="tabpanel" id="{{ group }}-panel-{{ forloop.counter }}" aria-labelledby="{{ group }}-tab-{{ forloop.counter }}"{% if not forloop.first %} hidden{% endif %}>
+        <div class="ov-fold" data-folded="true">
+          <div class="ov-fold__body ov-prose">{{ description.value|safe_markdown }}</div>
+          <button type="button" class="ov-fold__toggle" aria-expanded="false" data-more="{% translate 'Read more' %}" data-less="{% translate 'Show less' %}"><span data-label>{% translate "Read more" %}</span></button>
+        </div>
+      </div>
+    {% endfor %}
+  {% elif descriptions %}
+    <div class="ov-panel__head">
+      <h2 class="ov-panel__title" id="{{ group }}-heading">{{ descriptions.0.label }}</h2>
+      {% if edit_url %}<div class="ov-panel__tools"><c-overview.edit href="{{ edit_url }}" label="{% translate 'Edit descriptions' %}" only /></div>{% endif %}
+    </div>
+    <div class="ov-fold" data-folded="true">
+      <div class="ov-fold__body ov-prose">{{ descriptions.0.value|safe_markdown }}</div>
+      <button type="button" class="ov-fold__toggle" aria-expanded="false" data-more="{% translate 'Read more' %}" data-less="{% translate 'Show less' %}"><span data-label>{% translate "Read more" %}</span></button>
+    </div>
+  {% else %}
+    <div class="ov-panel__head"><h2 class="ov-panel__title" id="{{ group }}-heading">{% translate "About" %}</h2></div>
+    {{ slot }}
+  {% endif %}
+</section>

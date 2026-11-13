@@ -258,13 +258,13 @@ class Overview(TypedOverviewPlugin):
         return citation
 
     def get_details(self, project):
-        """Write the Details card's entries: where the measurement sits, its licence and dates.
+        """Write the fact sheet's entries: where the measurement sits, its licence and dates.
 
         Args:
             project: The parent project, or ``None`` when there is none or the viewer may not see it.
 
         Returns:
-            The entries for :class:`c-card.details`.
+            The entries for :class:`c-overview.sheet`.
         """
         measurement = self.base_object
         parents = []

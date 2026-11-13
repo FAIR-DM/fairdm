@@ -37,6 +37,7 @@ from demo.factories import (
 from demo.seed.common import (
     example_accounts,
     grant_team_rights,
+    lab_name,
     remove_own_projects,
 )
 from fairdm.contrib.contributors.models import Person
@@ -195,9 +196,9 @@ class SampleSeed(BaseCommand):
         )
 
         for _ in range(8):
-            XRFMeasurementFactory(sample=core, dataset=cores)
+            lab_name(XRFMeasurementFactory(sample=core, dataset=cores))
         for _ in range(3):
-            ICP_MS_MeasurementFactory(sample=core, dataset=lab)
+            lab_name(ICP_MS_MeasurementFactory(sample=core, dataset=lab))
         for letter in "ABC":
             split = RockSampleFactory(
                 dataset=cores,
@@ -233,5 +234,5 @@ class SampleSeed(BaseCommand):
             ],
         )
         for _ in range(2):
-            ICP_MS_MeasurementFactory(sample=water, dataset=cores)
+            lab_name(ICP_MS_MeasurementFactory(sample=water, dataset=cores))
         return water

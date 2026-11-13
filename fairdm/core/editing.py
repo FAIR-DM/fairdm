@@ -2,7 +2,8 @@
 
 A project, a dataset, a sample and a measurement are edited through the same pages, each a plugin
 registered on all four models. A sample or measurement type a portal registers gets them with no
-further work. The pages are reached from the Manage menu, never from the tabs.
+further work. Each is reached from an Edit control on the overview panel that shows the part it
+changes, never from the tabs.
 """
 
 import inspect
@@ -12,7 +13,6 @@ from typing import ClassVar
 from django.forms import modelform_factory
 from django.http import Http404
 from django.urls import reverse
-from django.utils.functional import Promise
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 from meta.views import MetadataMixin
@@ -67,8 +67,8 @@ class RecordEditingPage(Plugin):
     Attributes:
         access: ``"change"`` for the pages that edit the record, ``"delete"`` for the one that
             removes it.
-        menu_label: The page's entry in the Manage menu.
-        menu_icon: The icon beside that entry.
+        part: The part of the record the page changes, which names its link in
+            :func:`edit_links`.
     """
 
     OPEN: ClassVar[str] = "open"
@@ -91,8 +91,7 @@ class RecordEditingPage(Plugin):
     }
 
     access: ClassVar[str] = "change"
-    menu_label: ClassVar[str | Promise] = ""
-    menu_icon: ClassVar[str] = "edit"
+    part: ClassVar[str] = ""
 
     @classmethod
     def permission_for(cls, record):
@@ -153,7 +152,7 @@ class RecordEditingPage(Plugin):
 
     @classmethod
     def may_be_used_by(cls, request, record, may_see=None):
-        """Say whether the page would open for the viewer, for the Manage menu.
+        """Say whether the page would open for the viewer, so its Edit control is shown.
 
         Args:
             request: The current request.
@@ -244,8 +243,7 @@ class EditDetails(RecordEditingPage, FairDMUpdateView):
 
     name = "edit"
     access = "change"
-    menu_label = _("Edit details")
-    menu_icon = "edit"
+    part = "details"
     page_title = _("Edit details")  # type: ignore[assignment]
 
     def get_form_class(self):
@@ -284,8 +282,7 @@ class EditDescriptions(RecordEditingPage, MetadataMixin, MVPFormView):
 
     name = "descriptions"
     access = "change"
-    menu_label = _("Edit descriptions")
-    menu_icon = "description"
+    part = "descriptions"
     page_title = _("Descriptions")  # type: ignore[assignment]
     form_class = VocabularyDescriptionsForm
     # A plain form view derives no template from a model, so Django raises if this is unset.
@@ -323,8 +320,7 @@ class EditKeywords(RecordEditingPage, FairDMUpdateView):
 
     name = "keywords"
     access = "change"
-    menu_label = _("Keywords")
-    menu_icon = "keywords"
+    part = "keywords"
     page_title = _("Keywords")  # type: ignore[assignment]
     form_class = KeywordForm
 
@@ -342,8 +338,7 @@ class EditKeyDates(RecordEditingPage, FairDMUpdateView):
 
     name = "key-dates"
     access = "change"
-    menu_label = _("Key dates")
-    menu_icon = "date"
+    part = "dates"
     page_title = _("Key dates")  # type: ignore[assignment]
     fields = ()
     template_name = "editing/rows.html"
@@ -369,8 +364,7 @@ class EditIdentifiers(RecordEditingPage, FairDMUpdateView):
 
     name = "identifiers"
     access = "change"
-    menu_label = _("Identifiers")
-    menu_icon = "identifier"
+    part = "identifiers"
     page_title = _("Identifiers")  # type: ignore[assignment]
     fields = ()
     template_name = "editing/rows.html"
@@ -400,8 +394,7 @@ class DeleteRecord(RecordEditingPage, RecordOwnPageBackFallbackMixin, FairDMDele
 
     name = "delete"
     access = "delete"
-    menu_label = _("Delete")
-    menu_icon = "delete"
+    part = "delete"
     page_title = _("Delete")  # type: ignore[assignment]
     template_name = "editing/delete_record.html"
     require_confirmation = True
@@ -599,7 +592,7 @@ class DeleteRecord(RecordEditingPage, RecordOwnPageBackFallbackMixin, FairDMDele
             )
 
 
-MENU_PAGES = (
+EDITING_PAGES = (
     EditDetails,
     EditDescriptions,
     EditKeywords,
@@ -609,25 +602,23 @@ MENU_PAGES = (
 )
 
 
-def manage_menu(request, record):
-    """List the editing pages the viewer may use on a record, in the order the menu shows them.
+def edit_links(request, record):
+    """Find the editing pages the viewer may use on a record, keyed by the part each changes.
+
+    The overview page draws each as the Edit control on the panel that shows that part, and draws
+    no control for a part that is missing here.
 
     Args:
         request: The current request.
         record: A project, dataset, sample or measurement, of any registered type.
 
     Returns:
-        One entry per page the viewer may open, each with a ``label``, an ``icon``, a ``url`` and
-        ``destructive``, which marks the entry that deletes the record.
+        ``{part: address}`` for each page the viewer may open: ``details``, ``descriptions``,
+        ``keywords``, ``dates``, ``identifiers`` and ``delete``.
     """
     may_see = can_open(RecordEditingPage.overview_for(record), request, record)
-    return [
-        {
-            "label": page.menu_label,
-            "icon": page.menu_icon,
-            "url": plugin_reverse(record, page.get_name()),
-            "destructive": page.access == "delete",
-        }
-        for page in MENU_PAGES
+    return {
+        page.part: plugin_reverse(record, page.get_name())
+        for page in EDITING_PAGES
         if page.may_be_used_by(request, record, may_see)
-    ]
+    }

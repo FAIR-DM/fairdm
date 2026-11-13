@@ -67,8 +67,8 @@ def project_is_visible(request, obj):
 class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
     """The project's own page and the root of its collection.
 
-    The editing pages are the shared ones in :mod:`fairdm.core.editing`, reached from the Manage
-    menu.
+    The editing pages are the shared ones in :mod:`fairdm.core.editing`, each reached from the
+    panel that shows what it changes.
 
     ``PrivateRecordNotFoundMixin`` makes a private project answer a stranger with a 404, since a
     403 or a sign-in redirect would confirm the record exists.
@@ -119,7 +119,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             "counts": self.get_counts(datasets, samples, measurements, can_manage),
             "datasets_preview": self.get_datasets_preview(datasets),
             "licenses": self.get_licenses(datasets),
-            "composition_chart": self.get_composition_chart(samples, measurements),
+            "mix": self.get_type_mix(samples, measurements),
             "growth_chart": self.get_growth_chart(samples, measurements),
             "citation": self.get_citation_details(),
             "json_ld": json_ld(to_json_ld(project)),
@@ -160,15 +160,17 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             the Details rows and, for the team, the readiness checklist.
         """
         leads = [entry["contributor"] for entry in page["team"]["leads"]]
+        identifiers = self.get_identifiers()
         result = {
             "record": self.base_object,
             "overview_icon": "project",
-            "has_charts": bool(page["composition_chart"] or page["growth_chart"]),
+            "has_charts": bool(page["growth_chart"]),
             "citation": {
                 "title": gettext("Citation"),
                 "text": page["citation"]["text"],
             },
-            "identifiers": self.get_identifiers(),
+            "identifiers": identifiers,
+            "primary_identifier": self.get_primary_identifier(identifiers),
             "people": self.get_people(),
             "people_url": page["urls"]["contributors"],
             "header_people": leads,
@@ -479,13 +481,13 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         }
 
     def get_details(self, licenses):
-        """List the rows of the Details card: organisation, status, licences and dates.
+        """List the rows of the fact sheet: organisation, status, licences and dates.
 
         Args:
             licenses: The licence summary from :meth:`get_licenses`.
 
         Returns:
-            The rows, for :class:`c-card.details`.
+            The rows, for :class:`c-overview.sheet`.
         """
         project = self.base_object
         rows = []

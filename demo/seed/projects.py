@@ -1,12 +1,15 @@
 """Seed the development database with projects that exercise every state of the project
 overview page.
 
-Development only. Creates the standard sign-in accounts and three projects:
+Development only. Creates the standard sign-in accounts and four projects:
 
 - a fully described, active project with datasets, samples and measurements spread over
-  three years, a large team, funding and identifiers;
+  three years, a large team with ``regular.user`` on it, funding and identifiers. Most of its
+  samples have a location, and one in eight has none;
 - a brand-new private project with nothing but a name, owned by ``staff.user``;
-- a sparse public project with a very long title, one dataset and one contributor.
+- a sparse public project with a very long title, one dataset and one contributor;
+- an empty project with one empty dataset, on ``regular.user2``'s team, so a first visit by a
+  new team can be judged. ``staff.user`` is on it too, as on every seeded project.
 
 Safe to run twice: it removes the projects it created before creating them again, and leaves any
 project somebody else made under the same name.
@@ -16,6 +19,7 @@ import random
 from datetime import timedelta
 
 from controlled_vocabularies.models import ConceptScheme, Record
+from django.contrib.gis.geos import Point
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import transaction
@@ -33,8 +37,10 @@ from demo.factories import (
     XRFMeasurementFactory,
 )
 from demo.seed.common import (
+    create_accounts,
     example_accounts,
     grant_team_rights,
+    lab_name,
     remove_own_projects,
 )
 from fairdm.contrib.contributors.models import Organization, Person
@@ -68,7 +74,19 @@ SPARSE = (
     "A long-running intercomparison of low-temperature thermochronology laboratories "
     "across central Europe, and what their disagreements tell us about sample preparation"
 )
-SEEDED_NAMES = [SHOWCASE, EMPTY, SPARSE]
+NEW_TEAM = "Karst spring monitoring, Swabian Jura"
+SEEDED_NAMES = [SHOWCASE, EMPTY, SPARSE, NEW_TEAM]
+
+# Where each showcase dataset's samples were taken: a centre (longitude, latitude), a spread in
+# degrees and an elevation range in metres.
+SITES = {
+    "Thermal conductivity of Buntsandstein sandstones": ((8.55, 49.02), 0.18, (140, 420)),
+    "Shallow soil gas survey, Bruchsal": ((8.60, 49.12), 0.05, (110, 180)),
+    "Core samples from the Soultz-sous-Forêts boreholes": ((7.865, 48.935), 0.02, (150, 160)),
+    "Deep groundwater chemistry, Rittershoffen and Landau": ((8.03, 49.04), 0.16, (120, 190)),
+    "Borehole temperature logs (quality-controlled)": ((8.25, 49.30), 0.25, (95, 160)),
+    "Spring water sampling campaign 2026": ((8.35, 48.75), 0.30, (120, 600)),
+}
 
 
 KEYWORDS = [
@@ -197,6 +215,7 @@ class ProjectSeed(BaseCommand):
         showcase = self.showcase(users, keywords)
         self.empty(users)
         self.sparse(users)
+        self.new_team(users)
         self.dataset_metadata(users, keywords, showcase)
         self.stdout.write(
             self.style.SUCCESS("Seeded the project and dataset overview states.")
@@ -314,6 +333,7 @@ class ProjectSeed(BaseCommand):
             users["super.user"], with_roles=[f"{CONTRIBUTOR_ROLES}/project-manager"]
         )
         grant_team_rights(users["staff.user"], project)
+        grant_team_rights(users["regular.user"], project)
 
         start = timezone.now() - timedelta(days=int(365 * 2.5))
         now = timezone.now()
@@ -334,13 +354,17 @@ class ProjectSeed(BaseCommand):
                 created_by=users["super.user"],
             )
             samples = [
-                sample_factory(dataset=dataset, name=f"{name.split()[0]}-{n:03d}")
+                sample_factory(
+                    dataset=dataset,
+                    name=f"{name.split()[0]}-{n:03d}",
+                    **self.location(name, n),
+                )
                 for n in range(random.randint(12, 40))
             ]
             for sample in samples:
                 for factory in measurement_factories:
                     for _ in range(random.randint(1, 3)):
-                        factory(sample=sample, dataset=dataset)
+                        lab_name(factory(sample=sample, dataset=dataset))
             self.backdate(Sample.objects.filter(dataset=dataset), start, now)
             self.backdate(
                 Measurement.objects.filter(dataset=dataset),
@@ -355,6 +379,49 @@ class ProjectSeed(BaseCommand):
             added=start, modified=now - timedelta(days=2)
         )
         return project
+
+    @staticmethod
+    def location(dataset_name, n):
+        """Place the ``n``-th sample of a showcase dataset near its site.
+
+        One sample in eight keeps no location, so the pages show how many have none.
+
+        Returns:
+            The sample's location fields, empty for a sample left without one.
+        """
+        if n % 8 == 7:
+            return {}
+        (lon, lat), spread, elevation = SITES.get(
+            dataset_name, ((8.3, 49.0), 0.3, (100, 400))
+        )
+        return {
+            "location": Point(
+                lon + random.uniform(-spread, spread) * 1.4,
+                lat + random.uniform(-spread, spread),
+                srid=4326,
+            ),
+            "location_elevation": round(random.uniform(*elevation)),
+            "location_uncertainty": random.choice([5, 10, 25, 50]),
+        }
+
+    def new_team(self, users):
+        """Create an empty project and dataset on the teams of ``regular.user2`` and ``staff.user``."""
+        second = create_accounts(
+            [("regular.user2@example.com", "Second", "User", False, False)]
+        )["regular.user2"]
+        project = Project.objects.create(
+            name=NEW_TEAM,
+            status=ProjectStatus.CONCEPT,
+            visibility=Visibility.PUBLIC,
+            created_by=users["super.user"],
+        )
+        dataset = Dataset.all_objects.create(
+            name="Spring discharge 2027 (planned)",
+            project=project,
+            created_by=users["super.user"],
+        )
+        grant_team_rights(second, project, dataset)
+        grant_team_rights(users["staff.user"], project, dataset)
 
     def empty(self, users):
         project = Project.objects.create(

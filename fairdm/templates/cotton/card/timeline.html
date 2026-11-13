@@ -8,10 +8,12 @@
     title  – e.g. "History"
     steps  – [{label, date, day, people, note}]; `day` is set when the date is a full day
     empty  – what to say when no step is recorded
+    edit_url  – the key dates' editing page, for someone who may edit them
     class  – extra classes on the card
 {% endcomment %}
-<c-vars title steps empty class />
+<c-vars title steps empty edit_url class />
 <c-mvp.card title="{{ title }}" class="bg-base-100 {{ class }}" data-card="timeline" only>
+  <c-slot name="actions">{% if edit_url %}<c-overview.edit href="{{ edit_url }}" label="{% translate 'Edit key dates' %}" only />{% endif %}</c-slot>
   {% if steps %}
     <ol class="timeline timeline-vertical timeline-compact timeline-snap-icon">
       {% for step in steps %}

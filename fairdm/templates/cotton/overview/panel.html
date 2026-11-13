@@ -1,0 +1,39 @@
+{% load i18n %}
+{% comment %}
+  <c-overview.panel> — a section of an overview page: a heading with an optional count, the panel's
+  own Edit control and a link to the full list, then its content.
+
+  Attributes:
+    title       – the heading
+    count       – a count beside the heading
+    edit_url    – the editing page for what the panel shows, for someone who may edit it
+    edit_text   – the Edit control's text, "Edit" by default
+    edit_icon   – its icon
+    edit_label  – its accessible name
+    more_url    – the full list
+    more_text   – the link's text, "See all" by default
+    sub         – a line under the heading
+    side        – a side-column panel, which is tighter
+    id, class   – on the section
+  Slots:
+    (default)  – the content
+    head       – extra controls in the heading row
+{% endcomment %}
+<c-vars title count edit_url edit_text edit_icon edit_label more_url more_text sub side=False class id head />
+<section class="ov-panel{% if side %} ov-panel--side{% endif %} {{ class }}"{% if id %} id="{{ id }}"{% endif %} {{ attrs }}>
+  {% if title or head %}
+    <div class="ov-panel__head">
+      {% if title %}<h2 class="ov-panel__title">{{ title }}</h2>{% endif %}
+      {% if count is not None and count != "" %}<span class="ov-count">{{ count }}</span>{% endif %}
+      {{ head }}
+      {% if edit_url or more_url %}
+        <div class="ov-panel__tools">
+          <c-overview.edit href="{{ edit_url }}" text="{{ edit_text }}" icon="{{ edit_icon }}" label="{{ edit_label }}" only />
+          {% if more_url %}<a href="{{ more_url }}" class="ov-panel__more">{{ more_text|default:_("See all") }}<c-icon name="chevron-right" aria-hidden="true" only /></a>{% endif %}
+        </div>
+      {% endif %}
+      {% if sub %}<p class="ov-panel__sub">{{ sub }}</p>{% endif %}
+    </div>
+  {% endif %}
+  {{ slot }}
+</section>

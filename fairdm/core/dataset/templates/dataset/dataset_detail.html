@@ -29,14 +29,17 @@
   {% endif %}
 {% endblock overview.badges %}
 
-{% block overview.manage %}
-  {% if can_manage and not dataset.data_is_public %}
-    {% translate "Publish" as label %}
-    {% translate "Checks the list under Ready to publish? and releases the data." as reason %}
-    <c-actions.pending label="{{ label }}" icon="upload" reason="{{ reason }}" variant="primary" />
+{% block overview.readiness %}
+  {% if readiness %}
+    <c-overview.readiness :readiness="readiness">
+      {% if can_manage and not dataset.data_is_public %}
+        {% translate "Publish" as label %}
+        {% translate "Checks the list under Ready to publish? and releases the data." as reason %}
+        <c-actions.pending label="{{ label }}" icon="upload" reason="{{ reason }}" variant="primary" size="sm" only />
+      {% endif %}
+    </c-overview.readiness>
   {% endif %}
-  <c-actions.manage :entries="manage_menu" />
-{% endblock overview.manage %}
+{% endblock overview.readiness %}
 
 {% block overview.notices %}
   {% if access.state == "private" and can_manage %}
@@ -75,7 +78,7 @@
 
 {% block overview.main %}
   {% block overview.about %}
-    <c-card.descriptions :descriptions="descriptions" group="dataset-about">
+    <c-overview.descriptions :descriptions="descriptions" group="dataset-about" edit_url="{{ edit.descriptions }}">
       {% if can_manage %}
         <div class="flex flex-col items-start gap-3">
           <p class="text-base-content/70">{% translate "Nobody has described this dataset yet. An abstract and a methods section are what a reuser reads first, and both are needed before it can be published." %}</p>
@@ -84,7 +87,7 @@
       {% else %}
         <p class="text-base-content/70">{% translate "No description has been added yet." %}</p>
       {% endif %}
-    </c-card.descriptions>
+    </c-overview.descriptions>
   {% endblock overview.about %}
 
   {% block overview.data %}
@@ -142,7 +145,7 @@
 {% endblock overview.main %}
 
 {% block overview.timeline %}
-  <c-card.timeline title="{% translate 'Timeline' %}" :steps="lifecycle" empty="{% translate 'No key dates have been recorded for this dataset.' %}" />
+  <c-card.timeline title="{% translate 'Timeline' %}" :steps="lifecycle" empty="{% translate 'No key dates have been recorded for this dataset.' %}" edit_url="{{ edit.dates }}" />
 {% endblock overview.timeline %}
 
 {% block overview.record_facts %}

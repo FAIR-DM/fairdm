@@ -1,0 +1,17 @@
+{% comment %}
+  <c-overview.figure> — one headline figure along the foot of the header. Links to its list when
+  `href` is set.
+
+  Attributes:
+    value   – the figure
+    label   – what it counts
+    href    – the list it counts
+    record  – project, dataset, sample or measurement: draws the type's colour beside the label
+    note    – a line under the label
+{% endcomment %}
+<c-vars value label href record note />
+{% if href %}<a href="{{ href }}"{% else %}<div{% endif %} class="ov-figure{% if record %} record-{{ record }}{% endif %}">
+  <span class="ov-figure__value">{{ value }}</span>
+  <span class="ov-figure__label">{{ label }}</span>
+  {% if note %}<span class="ov-figure__note">{{ note }}</span>{% endif %}
+{% if href %}</a>{% else %}</div>{% endif %}

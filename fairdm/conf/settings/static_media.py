@@ -86,9 +86,11 @@ THUMBNAIL_SUBDIR = "thumbs"
 THUMBNAIL_DEBUG = False
 
 THUMBNAIL_ALIASES = {
-    # 3:2 aliases shared by Project, Dataset, Sample and Measurement.
+    # Shared by Project, Dataset, Sample and Measurement: 3:2 crops and the uncropped cover.
     "": {
         "core_small": {"size": (600, 400), "crop": "smart"},
+        # The header of a record with an image: its full width, never cropped.
+        "core_cover": {"size": (1200, 0)},
         "core_large": {"size": (1200, 800), "crop": "smart"},
     },
     "contributors": {

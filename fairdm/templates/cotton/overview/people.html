@@ -1,0 +1,48 @@
+{% load i18n %}
+{% comment %}
+  <c-overview.people> — everyone credited: the first few by name with their roles, then faces, then
+  a link to the full list.
+
+  Attributes:
+    people      – {named: [{contributor, roles, more_roles, affiliation}], faces, more, total}
+    all_url     – the full list of contributors
+    manage_url  – where the team changes who is credited, shown as Manage
+    title       – the heading, "People" by default
+    empty       – the line shown when nobody is credited
+{% endcomment %}
+<c-vars people all_url manage_url title empty />
+<c-overview.panel side
+                  title="{{ title|default:_('People') }}"
+                  count="{{ people.total }}"
+                  more_url="{% if people.total and not manage_url %}{{ all_url }}{% endif %}"
+                  edit_url="{{ manage_url }}"
+                  edit_text="{% translate 'Manage' %}"
+                  edit_icon="people"
+                  edit_label="{% translate 'Manage who is credited' %}"
+                  data-card="people">
+  {% if people.named %}
+    <ul class="ov-people">
+      {% for row in people.named %}
+        {% with roles=row.roles|join:", " %}
+          <li>
+            <c-mvp.avatar :for="row.contributor" alt="" size="sm" only />
+            <span class="min-w-0">
+              <a href="{{ row.contributor.get_absolute_url }}">{{ row.contributor }}</a>
+              <span class="ov-people__role" title="{{ roles }}{% if row.affiliation %} · {{ row.affiliation }}{% endif %}">{{ roles }}{% if row.more_roles %} +{{ row.more_roles }}{% endif %}{% if row.affiliation %}{% if roles %} · {% endif %}{{ row.affiliation }}{% endif %}</span>
+            </span>
+          </li>
+        {% endwith %}
+      {% endfor %}
+    </ul>
+    {% if people.faces %}
+      <div class="ov-faces">
+        {% for person in people.faces %}
+          <a href="{{ person.get_absolute_url }}" title="{{ person }}" aria-label="{{ person }}"><c-mvp.avatar :for="person" alt="" size="xs" only /></a>
+        {% endfor %}
+        {% if people.more %}<a href="{{ all_url }}" class="ov-faces__more">{% blocktranslate count counter=people.more %}+{{ counter }} more{% plural %}+{{ counter }} more{% endblocktranslate %}</a>{% endif %}
+      </div>
+    {% endif %}
+  {% else %}
+    <p class="ov-empty">{{ empty|default:_("No one is credited yet.") }}</p>
+  {% endif %}
+</c-overview.panel>

@@ -58,6 +58,7 @@
   {% block overview.notes %}
     {% if notes %}
       <c-mvp.card title="{% translate 'Notes' %}" class="bg-base-100">
+        <c-slot name="actions">{% if edit.descriptions %}<c-overview.edit href="{{ edit.descriptions }}" label="{% translate 'Edit notes' %}" only />{% endif %}</c-slot>
         <div class="prose max-w-none">{{ notes|safe_markdown }}</div>
       </c-mvp.card>
     {% endif %}
@@ -69,7 +70,7 @@
     {% else %}
       {% translate "No history has been recorded for this specimen." as empty %}
     {% endif %}
-    <c-card.timeline title="{% translate 'History' %}" :steps="lifecycle" empty="{{ empty }}" />
+    <c-card.timeline title="{% translate 'History' %}" :steps="lifecycle" empty="{{ empty }}" edit_url="{{ edit.dates }}" />
   {% endblock overview.history %}
 
   {% block overview.measurements %}

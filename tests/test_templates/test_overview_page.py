@@ -17,12 +17,12 @@ from fairdm.utils.choices import Visibility
 
 SIDE_COLUMN_MARKERS = [
     "READINESS-MARKER",
+    "CITATION-MARKER",
     "DETAILS-MARKER",
-    "TIMELINE-MARKER",
-    "PEOPLE-MARKER",
     "IDENTIFIER-MARKER",
     "FUNDER-MARKER",
-    "CITATION-MARKER",
+    "TIMELINE-MARKER",
+    "PEOPLE-MARKER",
     "FACTS-MARKER",
 ]
 
@@ -45,7 +45,12 @@ def page_context(db):
             "about": "why it matters",
         },
         "details": [{"label": "DETAILS-MARKER", "icon": "info", "text": "a value"}],
-        "people": {"shown": [person], "more": 0, "total": 1},
+        "people": {
+            "named": [{"contributor": person, "roles": [], "more_roles": 0}],
+            "faces": [],
+            "more": 0,
+            "total": 1,
+        },
         "identifiers": [
             {
                 "type": f"{IDENTIFIER_TYPES}/doi",
@@ -90,7 +95,7 @@ class TestSideColumn:
     def test_the_people_card_shows_when_nobody_is_credited(
         self, render_template, page_context
     ):
-        page_context["people"] = {"shown": [], "more": 0, "total": 0}
+        page_context["people"] = {"named": [], "faces": [], "more": 0, "total": 0}
 
         html = render_template("overview/page.html", page_context)
 
@@ -210,6 +215,63 @@ class TestHeader:
 
 
 @pytest.mark.django_db
+class TestHeaderImage:
+    def test_a_record_with_an_image_opens_it_at_full_size(
+        self, render_template, page_context, soup
+    ):
+        record = ProjectFactory(with_image=True)
+        page_context.update(record=record, cover_image=record.image)
+
+        page = soup(render_template("overview/page.html", page_context))
+
+        opener = page.select_one("button[data-opens]")
+        dialog = page.find(id=opener["data-opens"])
+        assert dialog.name == "dialog"
+        assert dialog.find("img")["src"] == record.image.url
+
+    def test_a_record_without_an_image_has_nothing_to_open(
+        self, render_template, page_context, soup
+    ):
+        page = soup(render_template("overview/page.html", page_context))
+
+        assert page.select_one("button[data-opens]") is None
+        assert page.find("dialog") is None
+
+
+@pytest.mark.django_db
+class TestHeaderEditing:
+    def test_the_header_edits_the_details_and_the_keywords(
+        self, render_template, page_context, soup
+    ):
+        page_context["edit"] = {"details": "/details/", "keywords": "/keywords/"}
+
+        page = soup(render_template("overview/page.html", page_context))
+
+        header = page.find("header")
+        assert {"/details/", "/keywords/"} <= {a["href"] for a in header("a")}
+
+    def test_a_record_with_no_keywords_offers_its_team_a_way_to_add_them(
+        self, render_template, page_context, soup
+    ):
+        page_context["edit"] = {"keywords": "/keywords/"}
+
+        page = soup(render_template("overview/page.html", page_context))
+
+        keywords = page.select_one("header ul[aria-label]:has(a[href='/keywords/'])")
+        assert keywords is not None
+        assert keywords.select(".badge") == []
+
+    def test_a_viewer_who_may_not_edit_gets_no_editing_link(
+        self, render_template, page_context, soup
+    ):
+        page_context["edit"] = {}
+
+        page = soup(render_template("overview/page.html", page_context))
+
+        assert page.select(".ov-edit") == []
+
+
+@pytest.mark.django_db
 class TestChartLibrary:
     def test_the_page_loads_the_chart_library_only_when_it_has_a_chart(
         self, render_template, page_context
@@ -282,7 +344,8 @@ class TestPermalinkOnEveryOverviewPage:
         card = page.select_one("[data-card=identifiers]")
 
         assert card.select_one(f"a[href='{permalink}']") is not None
-        assert any(permalink in b["onclick"] for b in card.select("button[onclick]"))
+        copies = [b.get("data-copy", "") + b.get("onclick", "") for b in card("button")]
+        assert any(permalink in copy for copy in copies)
 
     def test_every_choice_in_the_share_menu_carries_the_permalink(self, shown):
         permalink, page = shown

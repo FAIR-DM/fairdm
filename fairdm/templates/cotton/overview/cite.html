@@ -1,0 +1,23 @@
+{% load i18n %}
+{% comment %}
+  <c-overview.cite> — how to cite the record, with a button that copies the citation.
+
+  The panel's id is `cite`, which the header's Cite button scrolls to.
+
+  Attributes:
+    text  – the citation, as plain text
+  Slots:
+    (default) – a note under the citation, e.g. why it points at this page rather than a DOI
+{% endcomment %}
+<c-vars text />
+<section class="ov-panel ov-panel--side" id="cite" aria-labelledby="cite-heading" data-card="citation">
+  <div class="ov-panel__head">
+    <h2 class="ov-panel__title" id="cite-heading">{% translate "Cite" %}</h2>
+  </div>
+  <p class="ov-cite__text" id="citation-text" tabindex="0">{{ text }}</p>
+  {% if slot %}<p class="ov-note">{{ slot }}</p>{% endif %}
+  <div class="ov-cite__actions">
+    <button type="button" class="btn btn-sm" data-copy-from="citation-text"><c-icon name="copy" aria-hidden="true" only />{% translate "Copy" %}</button>
+    <span class="ov-copied" role="status" hidden>{% translate "Copied" %}</span>
+  </div>
+</section>

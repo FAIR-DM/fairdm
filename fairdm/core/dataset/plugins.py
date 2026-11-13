@@ -240,7 +240,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             project_info: The project the viewer may see with its other datasets, or ``None``.
 
         Returns:
-            The rows as ``c-card.details`` draws them.
+            The rows as ``c-overview.sheet`` draws them.
         """
         dataset = self.base_object
         rows = []

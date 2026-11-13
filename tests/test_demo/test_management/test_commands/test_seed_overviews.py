@@ -14,6 +14,7 @@ from demo.seed.projects import EMPTY, SEEDED_NAMES, SHOWCASE, SPARSE
 from demo.seed.samples import PROJECT as SAMPLE_PROJECT
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
+from fairdm.core.sample.models import Sample
 from fairdm.factories import DatasetFactory, ProjectFactory, UserFactory
 from fairdm.management.commands.create_dev_accounts import (
     DEV_ACCOUNT_PASSWORD,
@@ -195,13 +196,34 @@ class TestSeedOverviewsTeams:
         assert response.status_code == 200
         assert response.context["readiness"]["total"] > 0
 
-    def test_the_regular_user_is_on_no_team(self):
+    def test_the_regular_user_is_on_the_showcase_projects_team_only(self):
         regular = Person.objects.get(email=ACCOUNTS["regular"])
 
-        for project in _seeded_projects():
-            assert not regular.has_perm("project.change_project", project)
-        for dataset in Dataset.all_objects.filter(project__in=_seeded_projects()):
-            assert not regular.has_perm("dataset.change_dataset", dataset)
+        teams = [
+            project
+            for project in _seeded_projects()
+            if regular.has_perm("project.change_project", project)
+        ]
+        assert [project.name for project in teams] == [SHOWCASE]
+
+    def test_the_showcase_has_samples_with_a_location_and_samples_without_one(self):
+        samples = Sample.objects.filter(dataset__project__name=SHOWCASE)
+
+        assert samples.filter(location__isnull=False).exists()
+        assert samples.filter(location__isnull=True).exists()
+
+    def test_the_second_regular_user_is_on_the_team_of_an_empty_project(self):
+        second = Person.objects.get(email="regular.user2@example.com")
+
+        teams = [
+            project
+            for project in _seeded_projects()
+            if second.has_perm("project.change_project", project)
+        ]
+        assert len(teams) == 1
+        datasets = Dataset.all_objects.filter(project=teams[0])
+        assert [second.has_perm("dataset.change_dataset", d) for d in datasets] == [True]
+        assert not Sample.objects.filter(dataset__in=datasets).exists()
 
     def test_the_regular_user_may_not_open_the_private_empty_project(self, client):
         client.login(email=ACCOUNTS["regular"], password=DEV_ACCOUNT_PASSWORD)

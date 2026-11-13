@@ -200,14 +200,14 @@ class Overview(TypedOverviewPlugin):
         }
 
     def get_details(self, project, status):
-        """Write the Details card's entries: where the sample sits, its licence, status and dates.
+        """Write the fact sheet's entries: where the sample sits, its licence, status and dates.
 
         Args:
             project: The parent project, or ``None`` when there is none or the viewer may not see it.
             status: The sample's status, from :meth:`get_status`.
 
         Returns:
-            The entries for :class:`c-card.details`.
+            The entries for :class:`c-overview.sheet`.
         """
         sample = self.base_object
         parents = []

@@ -25,7 +25,7 @@ from fairdm.core.dataset.models import (
     DatasetDescription,
     DatasetIdentifier,
 )
-from fairdm.core.editing import manage_menu as build_manage_menu
+from fairdm.core.editing import edit_links
 from fairdm.core.measurement.models import (
     Measurement,
     MeasurementDate,
@@ -66,8 +66,15 @@ from fairdm.utils.choices import Visibility
 
 KINDS = ("project", "dataset", "sample", "measurement")
 PAGES = ("edit", "descriptions", "keywords", "key-dates", "identifiers")
-# The order the Manage menu offers every page in, delete last.
-MENU_ORDER = (*PAGES, "delete")
+# The part of the record each editing page changes, as the overview page keys its links.
+PARTS = {
+    "details": "edit",
+    "descriptions": "descriptions",
+    "keywords": "keywords",
+    "dates": "key-dates",
+    "identifiers": "identifiers",
+    "delete": "delete",
+}
 ROLES = CONTRIBUTOR_ROLES
 # Per record type: the setting that names its keyword vocabularies and the key it sits under.
 KEYWORD_SETTINGS = {
@@ -308,11 +315,6 @@ def still_exists(record):
     """Say whether the record is still stored, whatever its visibility."""
     model = type(record)
     return getattr(model, "all_objects", model.objects).filter(pk=record.pk).exists()
-
-
-def manage_menu(response):
-    """Return the Manage menu element of an overview page, or None when it has none."""
-    return soup_of(response).select_one('[data-menu="manage"]')
 
 
 def hrefs(element):
@@ -561,25 +563,34 @@ class TestAccess:
 
 
 @pytest.mark.django_db
-class TestManageMenu:
+class TestEditLinks:
     @pytest.mark.parametrize("kind", KINDS)
-    def test_a_person_who_may_edit_is_offered_every_page_once_in_order(
+    def test_a_person_who_may_manage_is_offered_every_part_and_delete(
         self, make_case, person_at, kind
     ):
         case = make_case(kind)
-        editor = person_at(case, ContributionLevel.EDIT)
+        manager = person_at(case, ContributionLevel.MANAGE)
 
-        response = browser_as(editor).get(case.own_url)
+        response = browser_as(manager).get(case.own_url)
 
-        assert response.status_code == 200
-        menu = manage_menu(response)
-        assert menu is not None
-        shared = [case.url(page) for page in PAGES]
-        assert [url for url in hrefs(menu) if url in shared] == shared
-        offered = [entry["url"] for entry in response.context["manage_menu"]]
-        assert [url for url in offered if url in shared] == shared
+        assert response.context["edit"] == {
+            part: case.url(page) for part, page in PARTS.items()
+        }
 
-    def test_the_menu_asks_whether_the_viewer_may_see_the_record_once(
+    @pytest.mark.parametrize("kind", KINDS)
+    def test_each_part_is_edited_from_a_link_on_the_page(
+        self, make_case, person_at, kind
+    ):
+        case = make_case(kind)
+        manager = person_at(case, ContributionLevel.MANAGE)
+
+        response = browser_as(manager).get(case.own_url)
+
+        offered = hrefs(soup_of(response))
+        for page in ("edit", "keywords", "identifiers", "delete"):
+            assert case.url(page) in offered
+
+    def test_the_links_ask_whether_the_viewer_may_see_the_record_once(
         self, make_case, person_at, django_assert_num_queries
     ):
         case = make_case("sample", public=False)
@@ -588,27 +599,25 @@ class TestManageMenu:
         request.user = manager
 
         with django_assert_num_queries(5):
-            entries = build_manage_menu(request, case.record)
+            links = edit_links(request, case.record)
 
-        assert [entry["url"] for entry in entries] == [
-            case.url(page) for page in MENU_ORDER
-        ]
+        assert links == {part: case.url(page) for part, page in PARTS.items()}
 
     @pytest.mark.parametrize("kind", KINDS)
-    def test_a_person_who_may_manage_is_offered_all_six_pages_in_one_order(
+    def test_a_person_who_may_only_edit_is_offered_every_part_but_delete(
         self, make_case, person_at, kind
     ):
         case = make_case(kind)
-        manager = person_at(case, ContributionLevel.MANAGE)
+        editor = person_at(case, ContributionLevel.EDIT)
 
-        response = browser_as(manager).get(case.own_url)
+        response = browser_as(editor).get(case.own_url)
 
-        expected = [case.url(page) for page in MENU_ORDER]
-        assert [entry["url"] for entry in response.context["manage_menu"]] == expected
-        assert hrefs(manage_menu(response)) == expected
+        assert "delete" not in response.context["edit"]
+        assert response.context["edit"]["details"] == case.url("edit")
+        assert case.url("delete") not in hrefs(soup_of(response))
 
     @pytest.mark.parametrize("kind", KINDS)
-    def test_a_person_who_may_only_view_is_offered_no_menu(
+    def test_a_person_who_may_only_view_is_offered_no_editing_page(
         self, make_case, person_at, kind
     ):
         case = make_case(kind)
@@ -617,64 +626,27 @@ class TestManageMenu:
         response = browser_as(reader).get(case.own_url)
 
         assert response.status_code == 200
-        assert manage_menu(response) is None
-        assert list(response.context["manage_menu"]) == []
+        assert response.context["edit"] == {}
+        offered = hrefs(soup_of(response))
+        assert not any(case.url(page) in offered for page in PARTS.values())
 
     @pytest.mark.parametrize("kind", KINDS)
-    def test_a_visitor_is_offered_no_menu(self, make_case, kind):
+    def test_a_visitor_is_offered_no_editing_page(self, make_case, kind):
         case = make_case(kind)
 
         response = browser_as().get(case.own_url)
 
-        assert manage_menu(response) is None
-
-    def test_the_project_menu_has_no_contributors_entry(self, make_case, person_at):
-        case = make_case("project")
-        manager = person_at(case, ContributionLevel.MANAGE)
-
-        response = browser_as(manager).get(case.own_url)
-
-        contributors = reverse(
-            "project:contribution-list", kwargs={"uuid": case.record.uuid}
-        )
-        assert contributors not in hrefs(manage_menu(response))
-
-    def test_the_sample_keywords_page_stays_in_the_menu(self, make_case, person_at):
-        case = make_case("sample")
-        editor = person_at(case, ContributionLevel.EDIT)
-
-        response = browser_as(editor).get(case.own_url)
-
-        assert case.url("keywords") in hrefs(manage_menu(response))
+        offered = hrefs(soup_of(response))
+        assert not any(case.url(page) in offered for page in PARTS.values())
 
     @pytest.mark.parametrize("kind", KINDS)
-    def test_a_person_who_may_manage_is_offered_delete_last_and_marked(
-        self, make_case, person_at, kind
-    ):
+    def test_the_page_has_no_manage_menu(self, make_case, person_at, kind):
         case = make_case(kind)
         manager = person_at(case, ContributionLevel.MANAGE)
 
         response = browser_as(manager).get(case.own_url)
 
-        entries = response.context["manage_menu"]
-        assert entries[-1]["url"] == case.url("delete")
-        assert entries[-1]["destructive"] is True
-        assert not any(entry.get("destructive") for entry in entries[:-1])
-        assert hrefs(manage_menu(response)).count(case.url("delete")) == 1
-
-    @pytest.mark.parametrize("kind", KINDS)
-    def test_a_person_who_may_only_edit_is_offered_the_editing_pages_and_not_delete(
-        self, make_case, person_at, kind
-    ):
-        case = make_case(kind)
-        editor = person_at(case, ContributionLevel.EDIT)
-
-        response = browser_as(editor).get(case.own_url)
-
-        offered = [entry["url"] for entry in response.context["manage_menu"]]
-        assert case.url("delete") not in offered
-        assert case.url("edit") in offered
-        assert case.url("delete") not in hrefs(manage_menu(response))
+        assert soup_of(response).select_one('[data-menu="manage"]') is None
 
 
 @pytest.mark.django_db

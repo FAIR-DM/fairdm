@@ -1,0 +1,22 @@
+{% load i18n humanize %}
+{% comment %}
+  <c-overview.mix> — how many records of each type, as bars in the type's colour, samples and
+  measurements in their own groups.
+
+  Attributes:
+    mix  – {samples: [(label, n)], measurements: [(label, n)], max}
+{% endcomment %}
+<c-vars mix />
+<div class="ov-chart">
+  <h3 class="ov-chart__title">{% translate "Records by type" %}</h3>
+  <ul class="ov-mix">
+    {% if mix.samples %}<li class="ov-mix__group" aria-hidden="true">{% translate "Samples" %}</li>{% endif %}
+    {% for label, n in mix.samples %}
+      <li class="record-sample"><span class="ov-mix__label" title="{{ label }}">{{ label }}</span><span class="ov-mix__track"><span style="width: {% widthratio n mix.max 100 %}%"></span></span><span class="ov-mix__n">{{ n|intcomma }}</span></li>
+    {% endfor %}
+    {% if mix.measurements %}<li class="ov-mix__group" aria-hidden="true">{% translate "Measurements" %}</li>{% endif %}
+    {% for label, n in mix.measurements %}
+      <li class="record-measurement"><span class="ov-mix__label" title="{{ label }}">{{ label }}</span><span class="ov-mix__track"><span style="width: {% widthratio n mix.max 100 %}%"></span></span><span class="ov-mix__n">{{ n|intcomma }}</span></li>
+    {% endfor %}
+  </ul>
+</div>

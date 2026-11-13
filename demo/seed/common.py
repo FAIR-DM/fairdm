@@ -1,5 +1,7 @@
 """What the development-data seeds share: the example accounts and the clean-up of earlier runs."""
 
+import random
+
 from allauth.account.models import EmailAddress
 from django.contrib.auth.models import Group
 
@@ -126,3 +128,34 @@ def grant_team_rights(user: Person, *records: Project | Dataset) -> None:
             roles=list(contribution.roles.all()),
             level=ContributionLevel.MANAGE,
         )
+
+
+ELEMENTS = ["Fe", "Ca", "Mg", "Na", "K", "Ti", "Mn", "Si", "Al", "P"]
+ANALYTES = ["Li", "Sr", "Ba", "Rb", "Cs", "B", "U"]
+
+
+def lab_name(measurement):
+    """Name a seeded measurement the way a laboratory would, and save it.
+
+    An XRF measurement is named for its element and bead, an ICP-MS one for its analyte, and any
+    other by its type and a run number.
+
+    Args:
+        measurement: A measurement a seed has just created.
+
+    Returns:
+        The same measurement.
+    """
+    kind = type(measurement).__name__.upper()
+    if "XRF" in kind:
+        element = getattr(measurement, "element", None) or random.choice(ELEMENTS)
+        measurement.name = f"{element}, fused bead, run {random.randint(100, 520)}"
+    elif "ICP" in kind:
+        measurement.name = (
+            f"{random.choice(ANALYTES)}, solution ICP-MS, run {random.randint(10, 90)}"
+        )
+    else:
+        label = type(measurement)._meta.verbose_name.capitalize()
+        measurement.name = f"{label} {random.randint(1, 400)}"
+    measurement.save(update_fields=["name"])
+    return measurement

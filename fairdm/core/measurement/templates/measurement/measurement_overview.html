@@ -59,12 +59,13 @@
     {% else %}
       {% translate "No details of how this measurement was made have been recorded." as empty %}
     {% endif %}
-    <c-card.timeline title="{% translate 'How it was measured' %}" :steps="procedure" empty="{{ empty }}" />
+    <c-card.timeline title="{% translate 'How it was measured' %}" :steps="procedure" empty="{{ empty }}" edit_url="{{ edit.dates }}" />
   {% endblock overview.procedure %}
 
   {% block overview.notes %}
     {% if notes %}
       <c-mvp.card title="{% translate 'Notes' %}" class="bg-base-100">
+        <c-slot name="actions">{% if edit.descriptions %}<c-overview.edit href="{{ edit.descriptions }}" label="{% translate 'Edit notes' %}" only />{% endif %}</c-slot>
         <div class="prose max-w-none">{{ notes|safe_markdown }}</div>
       </c-mvp.card>
     {% endif %}

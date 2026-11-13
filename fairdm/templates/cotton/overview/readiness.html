@@ -1,0 +1,46 @@
+{% load i18n %}
+{% comment %}
+  <c-overview.readiness> — for the record's team only: a ring with how much is in place, what is
+  missing with a link to fix each, and what is done folded away.
+
+  Attributes:
+    readiness  – {title, summary, about, done, total, ready, items: [{label, done, url, required}]};
+                 `required` false marks an item as recommended
+  Slots:
+    (default) – an action the checklist leads to, such as Publish
+{% endcomment %}
+<c-vars readiness />
+<section class="ov-panel ov-panel--side ov-ready" aria-labelledby="ready-heading" data-card="readiness">
+  <div class="ov-panel__head">
+    <h2 class="ov-panel__title" id="ready-heading">{{ readiness.title }}</h2>
+    <span class="ov-count ov-count--end" title="{% translate 'Only people who can edit this record see this' %}"><c-icon name="lock" aria-hidden="true" only /> {% translate "Team" %}</span>
+  </div>
+  <div class="ov-ready__top">
+    <div class="ov-ring{% if readiness.ready %} ov-ring--done{% endif %}" style="--p: {% widthratio readiness.done readiness.total 100 %}" role="img" aria-label="{% blocktranslate with done=readiness.done total=readiness.total %}{{ done }} of {{ total }} in place{% endblocktranslate %}"><span>{{ readiness.done }}/{{ readiness.total }}</span></div>
+    <div>
+      <div class="ov-ready__summary">{{ readiness.summary }}</div>
+      {% if readiness.about %}<p class="ov-ready__about">{{ readiness.about }}</p>{% endif %}
+    </div>
+  </div>
+  {% if readiness.done < readiness.total %}
+    <ul class="ov-todo">
+      {% for item in readiness.items %}
+        {% if not item.done %}
+          <li{% if item.required is False %} class="is-optional"{% endif %}>
+            <span class="ov-todo__label">{{ item.label }}{% if item.required is False %} <span class="ov-todo__optional">({% translate "recommended" %})</span>{% endif %}<span class="sr-only"> — {% translate "missing" %}</span></span>
+            {% if item.url %}<a href="{{ item.url }}">{% translate "Fix" %}</a>{% endif %}
+          </li>
+        {% endif %}
+      {% endfor %}
+    </ul>
+  {% endif %}
+  {% if slot %}<div class="ov-cite__actions">{{ slot }}</div>{% endif %}
+  {% if readiness.done %}
+    <details class="ov-done">
+      <summary>{% blocktranslate count counter=readiness.done %}{{ counter }} in place{% plural %}{{ counter }} in place{% endblocktranslate %}</summary>
+      <ul class="ov-todo">
+        {% for item in readiness.items %}{% if item.done %}<li class="is-done"><span class="ov-todo__label">{{ item.label }}<span class="sr-only"> — {% translate "done" %}</span></span></li>{% endif %}{% endfor %}
+      </ul>
+    </details>
+  {% endif %}
+</section>
