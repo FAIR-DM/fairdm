@@ -43,7 +43,10 @@ It holds what every record overview works out the same way. A portal changes one
 | `get_people(entries=None)` | What the People panel shows: `named` (up to `people_named` credits, each with `contributor`, its first two `roles`, `more_roles`, how many more it holds, and `affiliation`), `faces` (the next `people_faces` contributors), `more` (how many are left) and `total`. |
 | `get_identifiers()` | One dictionary per identifier: `type`, the identifier type's concept, `value` and `link`. |
 | `get_primary_identifier(identifiers)` | The first identifier from `get_identifiers()` with a `link`, the one a reader looks for first, or `None`. The project and dataset pages show it among the header's key facts. |
-| `get_citation(*, authors, year, title, link)` | The citation as text: `Creators (Year). Title. Publisher. Identifier.` The publisher is the current site's name. |
+| `get_publisher()` | The publisher a citation names: the current site's name, or an empty string when the site has none. |
+| `get_citation(*, authors, year, title, link, publisher=None)` | The citation as text: `Creators (Year). Title. Publisher. Identifier.` `authors` are contributors, or [`CitedName`](#citations) values. `publisher` defaults to `get_publisher()`. A part that is empty, `link` included, is left out. |
+| `build_citation(*, authors, year, title, link, publisher=None, types=("misc", "GEN"))` | The [`Citation`](#citations) the files are written from, keyed by the record's portal ID. Its `doi` is set when `link` is a doi.org link. |
+| `get_citation_formats(citation, text)` | One dictionary per citation format: `key`, `label`, `value`, `url` and `download`. `url` is `None` when the portal's plugin does not mount `CitationFile`. |
 | `get_timeline(steps, dates, descriptions, entries)` | One dictionary per step that has a date, a person or a note, with `label`, `date`, `day`, `people` and `note`. Dated steps come first. `steps` is a list of `(date_type, role, description_type, label)`, each type and role given by its address. |
 | `get_license_entry(licence, note=None)` | A row for [`c-overview.sheet`](components.md#c-overviewsheet), or a warning row when no licence is chosen. |
 | `get_type_mix(samples, measurements)` | The records by registered type for [`c-overview.mix`](components.md#c-overviewmix): `samples` and `measurements`, each a list of `(type name, count)` largest first, and `max`, the largest count. `None` when there is nothing to count. |
@@ -57,6 +60,53 @@ from fairdm.core.plugins import RecordOverviewPlugin
 
 class Summary(RecordOverviewPlugin):
     people_named = 3
+```
+
+### Citations
+
+Every record's `citation` context entry carries its citation in three formats. `work` is a `fairdm.core.citation.Citation`, the value both files are written from. `formats` lists the formats in the order of `fairdm.core.citation.FORMATS`: Text, BibTeX and RIS. Text is the sentence `get_citation()` writes. BibTeX and RIS are written from `work` with `work.to_bibtex()` and `work.to_ris()`.
+
+Each format is also a file, at the record's address followed by `cite/<format>/`, where the format is `text`, `bibtex` or `ris`. The route is named `<namespace>:overview-citation`:
+
+```python
+from django.urls import reverse
+
+reverse(
+    "project:overview-citation",
+    kwargs={"uuid": project.uuid, "format": "bibtex"},
+)
+```
+
+`CitationFile`, in `fairdm.core.plugins`, answers it. It asks the record's overview who may open the page, so a private record answers a stranger with the page's own 404 and an unknown record or an unknown format answers 404. The body is the format's `value` from the page's `citation["formats"]`, sent as an attachment named after the record's title, for example `seismic-survey.bib`.
+
+| Format | `key` | Content type | Extension | Download offered |
+|---|---|---|---|---|
+| Text | `text` | `text/plain; charset=utf-8` | `txt` | No |
+| BibTeX | `bibtex` | `application/x-bibtex; charset=utf-8` | `bib` | Yes |
+| RIS | `ris` | `application/x-research-info-systems; charset=utf-8` | `ris` | Yes |
+
+The entry type follows the record. A project and a sample are `misc` in BibTeX and `GEN` in RIS. A dataset and a measurement are `dataset` and `DATA`. A dataset cited as its data publication takes the publication's own type, read from its CSL type by `fairdm.core.citation.publication_types(csl_type)`, which gives `("misc", "GEN")` for a type it does not map. A record with no DOI or IGSN gives its permalink as `url` and no `doi`. A legacy IGSN that does not resolve gives neither.
+
+To change a record's citation, override a method of its overview. `get_publisher()` changes the publisher in the text and in both files:
+
+```python
+from fairdm.core.project.plugins import Overview
+
+
+class PortalProjectOverview(Overview):
+    def get_publisher(self):
+        return "Rhine Data Portal"
+```
+
+`CitationFile` is mounted through `extra_views`, which `RecordOverviewPlugin` sets to `[CitationFile]` and the sample overview sets to `[OverviewRedirect, CitationFile]`. A portal plugin that sets its own `extra_views` must include `CitationFile` to keep the addresses. Without it the page still renders, and each format's `url` is `None`:
+
+```python
+from fairdm.core.plugins import CitationFile
+from fairdm.core.sample.plugins import Overview, OverviewRedirect
+
+
+class PortalSampleOverview(Overview):
+    extra_views = [OverviewRedirect, CitationFile]
 ```
 
 ## `TypedOverviewPlugin`
@@ -89,7 +139,7 @@ It subclasses `RecordOverviewPlugin` for the records portals subclass: samples a
 | `get_counts(datasets, samples, measurements, can_manage)` | The counts of datasets, samples and measurements, each with a `_desc` line. |
 | `get_datasets_preview(datasets)` | `rows` (up to `dataset_preview`) and `more`. |
 | `get_licenses(datasets)` | `items` (licence name and count, most common first) and `unlicensed`, over the public datasets. |
-| `get_citation_details()` | `text`, `link`, `has_doi` and `creators`. |
+| `get_citation_details()` | `text`, `link`, `has_doi` and `creators`, with `work` and `formats` from the [citations](#citations). |
 | `get_readiness(page)` | The checklist: `items`, `done`, `total` and `percent`. The project checklist has ten items. |
 | `get_details(licenses)` | The rows of the fact sheet. |
 | `get_shared_context(page)` | The entries every overview provides. |
@@ -116,7 +166,7 @@ Context entries: `project`, `can_manage`, `descriptions`, `timeline` (from `get_
 | `get_record_types(samples, measurements)` | One dictionary per registered type the dataset holds, with `kind`, `label` and the labels of its `fields`. |
 | `get_counts(samples, measurements, data_types)` | The counts of samples and measurements, each with a `_desc` line. |
 | `get_project_info()` | The project and how many other datasets in it the viewer may see, or `None` when the viewer may not see the project. |
-| `get_citation_details(page)` | `text`, `link`, `has_doi`, `from_reference` and `creators`. |
+| `get_citation_details(page)` | `text`, `link`, `has_doi`, `from_reference` and `creators`, with `work` and `formats` from the [citations](#citations). |
 | `get_schema_org(page)` | The schema.org `Dataset` description for the page head. |
 | `get_readiness(page)` | The checklist: `items`, `done`, `total`, `percent`, `ready` and `missing_required`. It has seven required and three recommended items. |
 | `get_details(project_info)` | The rows of the fact sheet. |
@@ -144,7 +194,7 @@ Context entries: `dataset`, `can_manage`, `access`, `descriptions`, `dates`, `te
 | `get_measurement_types()` | One dictionary per measurement type among them, the most measured first, for the filter above the list: `key` (the model's label, which each item carries as `type_key`), `label` and `n`. |
 | `get_related_samples()` | `items`, `parents`, `children` and `hidden`, the number of relations the viewer may not see. |
 | `get_relations_summary(relations)` | A caption such as "1 parent · 2 subsamples", or "None recorded". |
-| `get_citation_details(entries, dates, identifiers)` | `title` and `text`, with a `note` when the sample has no IGSN. |
+| `get_citation_details(entries, dates, identifiers)` | `title` and `text`, with `work` and `formats` from the [citations](#citations) and a `note` when the sample has no IGSN. |
 | `get_details(project, status)` | The rows of the fact sheet. `project` is `None` when the viewer may not see it. |
 
 Context entries: `sample`, `record`, `can_manage`, `sample_type`, `status`, `lifecycle`, `notes`, `measurements`, `measurement_types`, `relations`, `location`, `has_map` (set when the sample has a location), `primary_identifier` (the first identifier that resolves, shown in the header), `project`, `counts`, `citation`, `identifiers`, `api_url`, `type_info`, `people` and `details`.
@@ -161,7 +211,7 @@ Context entries: `sample`, `record`, `can_manage`, `sample_type`, `status`, `lif
 | `get_result()` | A dictionary with `text` when the type declares a `value`, else `None`. |
 | `get_sample_status()` | The sample's status `label` and `variant`, or `None` when it records none. |
 | `get_siblings()` | The other measurements on the same sample that the viewer may see: `rows`, `more` and `total`. |
-| `get_citation_details(entries, dates, identifiers, sample)` | `title` and `text`, with `note`, `note_url` and `note_link` when there is no DOI. `sample` is `None` when the viewer may not see it. |
+| `get_citation_details(entries, dates, identifiers, sample)` | `title` and `text`, with `work` and `formats` from the [citations](#citations), and `note`, `note_url` and `note_link` when there is no DOI. `sample` is `None` when the viewer may not see it. |
 | `get_details(project)` | The rows of the fact sheet. |
 | `get_page_title()` | The measurement's name, else its portal ID. |
 

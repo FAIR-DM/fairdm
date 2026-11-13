@@ -46,7 +46,7 @@ addresses goes first.
 - [x] T007 [US2] `CitationFile` in `fairdm/core/plugins.py`, `RecordOverviewPlugin.extra_views`,
   and `CitationFile` added to the sample overview's `extra_views`, as plan.md "The address"
   describes. T006 goes green.
-- [ ] T008 [US2] Documentation: a section on citations in
+- [x] T008 [US2] Documentation: a section on citations in
   `docs/developers/reference/overview-plugins.md`, as plan.md "Documentation" describes, and a
   `CHANGELOG.md` entry under `[Unreleased]`. Run every example in it against the branch.
 
