@@ -153,3 +153,11 @@ fixtures. Implementers are told: no test may derive its expected people or title
 
 **ADR:** none. Review record.
 
+
+## D16. The BibTeX writer overrides one protected method of pybtex
+
+`pybtex`'s BibTeX writer encodes every field through `_write_field` and offers no public way to
+leave a field alone. `CitationWriter` overrides that one method so `doi` and `url` are written as
+given. The version bound (`<0.27`) and the read-back tests catch a change to it.
+
+**ADR:** none. Local to one writer.
