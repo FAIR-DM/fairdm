@@ -1,16 +1,23 @@
-{# @description How to cite the record, with a button that copies the citation. Its id is cite, which the header's Cite button scrolls to. #}
-{# @prop text:text | description:"The citation, as plain text." #}
+{# @description How to cite the record as Text, BibTeX or RIS, with a button that copies the format on show and a link that downloads BibTeX or RIS. Its id is cite, which the header's Cite button scrolls to. #}
+{# @prop formats:list | description:"The ways to take the citation: a list of key, label, value, url and download, as the record's overview plugin gives them." #}
 {# @slot This record has no DOI, so the citation points at this page. — A note under the citation. #}
 {% load i18n %}
-<c-vars text />
-<section class="ov-panel ov-panel--side" id="cite" aria-labelledby="cite-heading" data-card="citation">
+<c-vars formats />
+<section class="ov-panel ov-panel--side" id="cite" aria-labelledby="cite-heading" data-card="citation" data-cite>
+  {{ formats|json_script:"cite-formats" }}
   <div class="ov-panel__head">
     <h2 class="ov-panel__title" id="cite-heading">{% translate "Cite" %}</h2>
+    <div class="ov-seg" role="tablist" aria-label="{% translate 'Citation format' %}">
+      {% for format in formats %}
+        <button type="button" role="tab" data-format="{{ format.key }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}" aria-controls="citation-text">{{ format.label }}</button>
+      {% endfor %}
+    </div>
   </div>
-  <p class="ov-cite__text" id="citation-text" tabindex="0">{{ text }}</p>
+  <pre class="ov-cite__text" id="citation-text" data-format="{{ formats.0.key }}" tabindex="0">{{ formats.0.value }}</pre>
   {% if slot %}<p class="ov-note">{{ slot }}</p>{% endif %}
   <div class="ov-cite__actions">
     <button type="button" class="btn btn-sm" data-copy-from="citation-text"><c-icon name="copy" aria-hidden="true" only />{% translate "Copy" %}</button>
+    <a class="btn btn-sm btn-ghost" data-download hidden download href=""><c-icon name="download" aria-hidden="true" only />{% translate "Download" %}</a>
     <span class="ov-copied" role="status" hidden>{% translate "Copied" %}</span>
   </div>
 </section>

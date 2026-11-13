@@ -164,7 +164,7 @@
           {% endblock overview.readiness %}
 
           {% block overview.cite %}
-            <c-overview.cite text="{{ citation.text }}">{{ citation.note }}{% if citation.note_url %} <a href="{{ citation.note_url }}" class="ov-link">{{ citation.note_link }}</a>{% endif %}</c-overview.cite>
+            <c-overview.cite :formats="citation.formats">{{ citation.note }}{% if citation.note_url %} <a href="{{ citation.note_url }}" class="ov-link">{{ citation.note_link }}</a>{% endif %}</c-overview.cite>
           {% endblock overview.cite %}
 
           {% block overview.details %}
