@@ -96,7 +96,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
 
     @classmethod
     def get_extra_views(cls):
-        """Keep the views the shared overview declares and add the address of the map's points."""
+        """Keep the shared overview's views and add the address of the map's points."""
         return [*super().get_extra_views(), SamplePoints]
 
     def get_map_samples(self):

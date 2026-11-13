@@ -136,17 +136,17 @@ def json_ld(data):
 
 
 def describe_coverage(coverage):
-    """Write the area a box covers as text, for the panel and the map's accessible name.
+    """Write the area a box covers as text, for the panel and the map's label.
 
-    Latitudes read N or S and longitudes E or W from their sign, to two decimal places. A box
-    that is a single spot reads as one point.
+    Latitudes read N or S and longitudes E or W from their sign, to two decimal places.
+    A box that is a single spot reads as one point.
 
     Args:
         coverage: A ``Coverage``, in WGS 84 degrees.
 
     Returns:
-        For instance "48.80° N to 49.20° N, 7.80° E to 8.70° E", or "48.80° N, 7.80° E" for a
-        single spot.
+        For instance "48.80° N to 49.20° N, 7.80° E to 8.70° E", or "48.80° N, 7.80° E"
+        for a single spot.
     """
 
     def degrees(value, positive, negative):

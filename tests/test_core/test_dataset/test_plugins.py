@@ -1776,7 +1776,7 @@ def loads_map_script(response):
 class TestOverviewSampleMap:
     @pytest.fixture
     def published(self):
-        """A public, published dataset: two located samples and one without a location."""
+        """A public, published dataset: two located samples and one with no location."""
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         RockSampleFactory(dataset=dataset, location=Point(7.9, 48.9, srid=4326))
         RockSampleFactory(dataset=dataset, location=Point(8.1, 49.0, srid=4326))

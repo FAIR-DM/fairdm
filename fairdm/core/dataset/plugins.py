@@ -130,15 +130,15 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
 
     @classmethod
     def get_extra_views(cls):
-        """Keep the views the shared overview declares and add the address of the map's points."""
+        """Keep the shared overview's views and add the address of the map's points."""
         return [*super().get_extra_views(), SamplePoints]
 
     def get_map_samples(self):
-        """Give the samples the map draws: those the page counts, none where it counts none.
+        """Give the samples the map draws: those the page counts, or none.
 
         Returns:
-            The dataset's samples the viewer may see, or none when the viewer is not offered the
-            dataset's records.
+            The dataset's samples the viewer may see, or none when the viewer is not
+            offered the dataset's records.
         """
         dataset = self.base_object
         if not dataset_records_visible(self.request, dataset):

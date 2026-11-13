@@ -529,7 +529,7 @@ class TestGetSampleMap:
 class TestSamplePoints:
     @pytest.fixture
     def mapped(self):
-        """A public project: two sample types over two published datasets, and a private one."""
+        """A public project: two sample types in two datasets, and a private one."""
         from types import SimpleNamespace
 
         from demo.factories import RockSampleFactory, SoilSampleFactory

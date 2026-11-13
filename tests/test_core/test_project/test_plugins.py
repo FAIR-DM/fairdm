@@ -1653,7 +1653,7 @@ class TestDatasetsTabListsWhatTheViewerMaySee:
 
 @pytest.fixture
 def mapped():
-    """A public project whose samples sit in a published, an unpublished and a private dataset.
+    """A public project with samples in a published, unpublished and private dataset.
 
     The published dataset holds two located samples and one without a location. The
     unpublished dataset holds one located sample and the private dataset two.

@@ -354,17 +354,17 @@ class RecordOverviewPlugin(OverviewPlugin):
     def get_sample_points(self, samples) -> dict[str, Any]:
         """Give the located samples as GeoJSON for the map to draw.
 
-        The rows are read with ``values()``, never as model instances, so the answer costs one
-        query however many samples there are.
+        The rows are read with ``values()``, never as model instances, so the answer
+        costs one query however many samples there are.
 
         Args:
             samples: The samples to draw. Those without a location are left out.
 
         Returns:
-            A ``FeatureCollection`` with one ``Point`` feature per located sample, ordered by
-            name. Each feature's properties are ``name``, ``type`` (the sample type's name, empty
-            when the type's model no longer exists), ``dataset`` (the dataset's name) and ``url``
-            (the sample's page).
+            A ``FeatureCollection`` with one ``Point`` feature per located sample,
+            ordered by name. Each feature's properties are ``name``, ``type`` (the
+            sample type's name, empty when the type's model no longer exists),
+            ``dataset`` (the dataset's name) and ``url`` (the sample's page).
         """
         rows = (
             samples.filter(location__isnull=False)
@@ -412,11 +412,12 @@ class RecordOverviewPlugin(OverviewPlugin):
             count_datasets: Whether to count the datasets the located samples come from.
 
         Returns:
-            ``located``, ``missing`` (the samples without a location), ``bounds`` (the coverage
-            as ``[west, south, east, north]``, with ``east`` carried past 180 when the box
-            crosses the 180th meridian so MapLibre fits the narrow box), ``area`` (the coverage
-            as text) and ``points_url``, plus ``datasets`` when asked. With no located sample,
-            ``bounds`` and ``area`` are ``None``. ``None`` when ``samples`` is empty.
+            ``located``, ``missing`` (the samples without a location), ``bounds`` (the
+            coverage as ``[west, south, east, north]``, with ``east`` carried past 180
+            when the box crosses the 180th meridian so MapLibre fits the narrow box),
+            ``area`` (the coverage as text) and ``points_url``, plus ``datasets`` when
+            asked. With no located sample, ``bounds`` and ``area`` are ``None``.
+            ``None`` when ``samples`` is empty.
         """
         located_only = Q(location__isnull=False)
         counts = samples.aggregate(
@@ -571,14 +572,15 @@ class RecordOverviewPlugin(OverviewPlugin):
 
 
 class SamplePoints(Plugin):
-    """Answer a record's located samples as GeoJSON, for the map on its overview page.
+    """Answer a record's located samples as GeoJSON, for its overview page's map.
 
-    It decides nothing itself. The owning overview plugin says who may open the record and which
-    of its samples the viewer sees, so this address answers exactly as the record's page does: a
-    private record is "not found", and the points are the samples the page counts.
+    It decides nothing itself. The owning overview plugin says who may open the record
+    and which of its samples the viewer sees, so this address answers exactly as the
+    record's page does: a private record is "not found", and the points are the samples
+    the page counts.
 
-    The owner is built with this mount's model. A plugin built without it resolves no record, and
-    a plugin that resolves none lets everyone in.
+    The owner is built with this mount's model. A plugin built without it resolves no
+    record, and a plugin that resolves none lets everyone in.
 
     Attributes:
         owner: The overview plugin that owns this address, set when access is decided.
@@ -589,7 +591,7 @@ class SamplePoints(Plugin):
     owner = None
 
     def has_permission(self) -> bool:
-        """Ask the overview plugin that owns this address whether the viewer may open its record."""
+        """Ask the owning overview plugin whether the viewer may open its record."""
         self.owner = self.plugin_class(
             registered_model=self.registered_model, menu=self.menu
         )
