@@ -97,15 +97,15 @@ def dataset_records_visible(request, obj):
 class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
     """The dataset's own page and the root of its collection.
 
-    The editing pages are the shared ones in :mod:`fairdm.core.editing`, each reached from the
-    panel that shows what it changes.
+    The editing pages are the shared ones in :mod:`fairdm.core.editing`, each reached
+    from the panel that shows what it changes.
 
     A dataset is the unit a portal cites and distributes. Its page answers a reuser's questions:
     what it is, whether its data is published, what it holds and how it grew, when each step of its
     life happened, how to cite it and who made it. Two gates decide what a visitor sees.
     Visibility governs the page and ``published`` governs the records, so a public, unpublished
-    dataset shows its description to everyone but its counts and charts only to those who may see
-    its records. Everything drawn from the records is counted through
+    dataset shows its description to everyone but its counts and charts only to those
+    who may see its records. Everything drawn from the records is counted through
     ``visible_to``, so the figures always equal the Samples and Measurements tabs. The page
     lists no record. Nothing here is written for a particular portal's types.
 
@@ -185,9 +185,9 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             page: The page context gathered so far.
 
         Returns:
-            The record, its icon, the header's people, the citation, People, the identifiers and
-            the one that resolves, the Details rows, the timeline and, for the team, the
-            readiness checklist.
+            The record, its icon, the header's people, the citation, People, the
+            identifiers and the one that resolves, the Details rows, the timeline and,
+            for the team, the readiness checklist.
         """
         dataset = self.base_object
         citation = page["citation"]
@@ -264,18 +264,19 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         return rows
 
     def get_lifecycle(self, dates):
-        """List the dataset's key dates in the order they happened, publication included.
+        """List the dataset's key dates in the order they happened, with publication.
 
-        Every recorded date is a step that has happened. With no Published date, publication is
-        still a step: done and undated when the data is public, still to come when it is not. It
-        sits before a withdrawal, which always ends the timeline.
+        Every recorded date is a step that has happened. With no Published date,
+        publication is still a step: done and undated when the data is public, still to
+        come when it is not. It sits before a withdrawal, which always ends the timeline.
 
         Args:
             dates: The dataset's dates as returned by :meth:`get_dates`.
 
         Returns:
-            The steps, each with its ``label``, its ``date`` as recorded, its ``day`` when
-            recorded to the day, whether it is ``done`` and whether it is an ``alert``.
+            The steps, each with its ``label``, its ``date`` as recorded, its ``day``
+            when recorded to the day, whether it is ``done`` and whether it is an
+            ``alert``.
         """
         dataset = self.base_object
         steps = []

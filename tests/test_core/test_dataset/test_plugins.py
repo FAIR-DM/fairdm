@@ -1283,9 +1283,9 @@ class TestOverviewCharts:
 
 
 class TestOverviewHeaderFacts:
-    """FR-030: the licence and the identifier that resolves are key facts in the header."""
+    """FR-030: the licence and the resolving identifier are key facts in the header."""
 
-    def _header(self, client, dataset):
+    def header_of(self, client, dataset):
         return _page(client, dataset).page.find("h1").find_parent("header")
 
     def test_the_licence_is_named_and_the_doi_linked(self, client):
@@ -1293,7 +1293,7 @@ class TestOverviewHeaderFacts:
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, license=licence)
         DatasetIdentifierFactory(related=dataset, value="10.1/ds")
 
-        header = self._header(client, dataset)
+        header = self.header_of(client, dataset)
 
         assert licence.name in header.get_text()
         assert header.find("a", href="https://doi.org/10.1/ds") is not None
@@ -1301,15 +1301,17 @@ class TestOverviewHeaderFacts:
     def test_a_dataset_with_no_licence_shows_a_dash_and_no_identifier(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, license=None)
 
-        facts = self._header(client, dataset).select_one(".ov-facts")
+        facts = self.header_of(client, dataset).select_one(".ov-facts")
 
         assert "—" in facts.get_text()
         assert facts.find("a", href=re.compile("doi.org")) is None
 
 
 class TestOverviewFiguresLeadToTheirLists:
-    """FR-031: the contributors figure leads to the contributors tab, and the publications
-    figure to the Related publications panel."""
+    """FR-031: the contributors figure leads to the contributors tab.
+
+    The publications figure leads to the Related publications panel.
+    """
 
     def test_the_contributors_figure_links_to_the_contributors_tab(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
