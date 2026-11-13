@@ -43,7 +43,7 @@ addresses goes first.
   `tests/test_core/test_dataset/test_plugins.py`, which T004 changes to the full citation.
 - [x] T006 [US2] `TestCitationFile` in `tests/test_core/test_plugins.py`, as plan.md "Tests, US2"
   describes.
-- [ ] T007 [US2] `CitationFile` in `fairdm/core/plugins.py`, `RecordOverviewPlugin.extra_views`,
+- [x] T007 [US2] `CitationFile` in `fairdm/core/plugins.py`, `RecordOverviewPlugin.extra_views`,
   and `CitationFile` added to the sample overview's `extra_views`, as plan.md "The address"
   describes. T006 goes green.
 - [ ] T008 [US2] Documentation: a section on citations in

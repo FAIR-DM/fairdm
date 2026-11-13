@@ -865,3 +865,8 @@ class TestCitationFile:
             client.get(_address(kind, public_record, "bibtex"))
 
         assert len(file) <= len(page)
+
+    def test_a_portal_plugin_without_the_view_gives_the_formats_no_address(self):
+        person = PersonFactory(is_active=True)
+
+        assert _plugin_for(person).get_citation_address("bibtex") is None

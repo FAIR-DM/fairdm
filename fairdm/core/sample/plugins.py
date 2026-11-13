@@ -13,7 +13,7 @@ from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins.access import has_perm
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.overview import safe_reverse, sentence_case
-from fairdm.core.plugins import TypedOverviewPlugin
+from fairdm.core.plugins import CitationFile, TypedOverviewPlugin
 from fairdm.core.vocabularies import (
     CONTRIBUTOR_ROLES,
     DATE_TYPES,
@@ -77,7 +77,7 @@ class Overview(TypedOverviewPlugin):
     # The root of the sample's address, as the other overviews are. Left unset the plugin base
     # would mount it at `overview/`, and the record's own address would answer 404.
     url_path = None
-    extra_views = [OverviewRedirect]
+    extra_views = [OverviewRedirect, CitationFile]
 
     lifecycle = [
         (f"{DATE_TYPES}/created", None, None, _("Created")),

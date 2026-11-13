@@ -8,11 +8,13 @@ from typing import Any
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, Q
 from django.db.models.functions import TruncMonth
-from django.http import JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.urls import NoReverseMatch, reverse
 from django.utils.formats import date_format
+from django.utils.http import content_disposition_header
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
+from django.views import View
 from partial_dates import Precision
 from pyecharts import options as opts
 from pyecharts.charts import Line
@@ -68,6 +70,67 @@ class OverviewPlugin(Plugin, FairDMTemplateView):
         return str(self.base_object)
 
 
+class CitationFile(Plugin, View):
+    """One format of a record's citation, as a file, at ``<record address>cite/<format>/``.
+
+    The record's overview answers who may open it, and this view asks that overview, so a
+    private record answers a stranger as its page does and an unknown record is not found. The
+    file is the format's value on the overview's own context, so it is the one the Cite panel
+    shows.
+
+    A portal plugin that sets its own ``extra_views`` must list this class to keep the
+    addresses.
+
+    Attributes:
+        name: The route's name, ``<namespace>:overview-citation``.
+        url_path: The route's last part, ``cite/<format>``.
+    """
+
+    name = "citation"
+    url_path = "cite/<str:format>"
+
+    def setup(self, request, *args, **kwargs):
+        """Build the overview that owns this address, set up for this request."""
+        super().setup(request, *args, **kwargs)
+        self.owner = self.plugin_class(
+            registered_model=self.registered_model, menu=self.menu
+        )
+        self.owner.setup(request, *args, **kwargs)
+
+    def has_permission(self):
+        """Ask the owning overview, so the file opens for whom the page opens for."""
+        return self.owner.has_permission()
+
+    def handle_no_permission(self):
+        """Answer as the owning overview answers."""
+        return self.owner.handle_no_permission()
+
+    def get(self, request, *args, **kwargs):
+        """Answer with the citation in the format named by the address.
+
+        Args:
+            request: The request.
+            *args: Positional URL arguments.
+            **kwargs: Keyword URL arguments, the record's and the ``format``.
+
+        Returns:
+            The file, as an attachment named after the record.
+
+        Raises:
+            Http404: The format is not one of ``FORMATS``.
+        """
+        chosen = next((f for f in FORMATS if f.key == kwargs["format"]), None)
+        if chosen is None:
+            raise Http404(_("No such citation format."))
+        citation = self.owner.get_context_data()["citation"]
+        value = next(f["value"] for f in citation["formats"] if f["key"] == chosen.key)
+        response = HttpResponse(value, content_type=chosen.content_type)
+        response["Content-Disposition"] = content_disposition_header(
+            True, citation["work"].filename(chosen.extension)
+        )
+        return response
+
+
 class RecordOverviewPlugin(OverviewPlugin):
     """The overview of a project, dataset, sample or measurement.
 
@@ -84,6 +147,7 @@ class RecordOverviewPlugin(OverviewPlugin):
     people_named = 6
     people_faces = 10
     resolvable_identifier_types = (DOI, IGSN)
+    extra_views = [CitationFile]
 
     def get_context_data(self, **kwargs):
         """Add what the shared page reads on every record.
