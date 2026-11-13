@@ -89,3 +89,33 @@ DOI and private records are scenarios under them.
 #673's footer claims G10 and G14. G10, data and metadata reachable by machines: each format has an
 address a tool can fetch. G14, metadata complete enough for a publication addon: the formats carry
 the same creators, year, title, publisher and identifier a publication needs. Both claims hold.
+
+## D10. TeX's special characters are escaped before the BibTeX writer sees them
+
+`pybtex`'s writer passes values through `latexcodec`, which escapes `& % # _ ~` and keeps every
+other letter as UTF-8, but leaves `\ { } $ ^` alone and refuses a value whose braces do not
+balance. Those five are written first as LaTeX's own commands for them: `\textbackslash{}`, `\$`,
+`\textasciicircum{}`, and `\{` `\}` for a brace with a partner in the value or
+`\textbraceleft{}` `\textbraceright{}` for one without, which keeps every entry balanced. A line
+break becomes a space, as BibTeX itself reads it. Letters outside English stay UTF-8, which every
+current reference manager reads, rather than being turned into accent commands.
+
+**ADR:** none. It is how this one writer is used, and nothing else depends on it.
+
+## D11. The format switch answers the arrow keys
+
+The prototype's switch is a `role="tablist"` whose buttons respond to clicks only. A tab list is
+expected to move with the arrow keys, Home and End, as the description tabs on the same page
+already do. The port adds that and nothing else.
+
+**ADR:** none.
+
+## D12. A format's address reads the page's own context
+
+The address asks the record's overview plugin for its page context and takes the formats from it,
+so the file and the panel cannot disagree, and access is the page's own decision. It costs the
+page's queries for a file that is fetched rarely. A separate path that gathered only the
+citation's inputs would need each kind of record to compute them twice, once for the page and once
+for the file, and keep the two in step by hand.
+
+**ADR:** none. **Revisit if** a reference manager or a harvester fetches the addresses in bulk.
