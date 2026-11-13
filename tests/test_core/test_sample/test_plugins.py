@@ -853,7 +853,7 @@ class TestOverviewCitationFormats:
         permalink = f"http://testserver/{rock.uuid}/"
 
         formats = self.formats_of(client, rock)
-        key, entry, ris = self.entry_of(formats)
+        entry, ris = self.entry_of(formats)[1:]
 
         assert formats["text"].endswith(permalink)
         assert entry.fields["url"] == permalink
@@ -865,7 +865,7 @@ class TestOverviewCitationFormats:
         SampleIdentifierFactory(related=rock, type=IGSN, value="10.58052/IGSN_1")
 
         formats = self.formats_of(client, rock)
-        key, entry, ris = self.entry_of(formats)
+        entry, ris = self.entry_of(formats)[1:]
 
         assert formats["text"].endswith("https://doi.org/10.58052/IGSN_1")
         assert entry.fields["doi"] == "10.58052/IGSN_1"
@@ -879,7 +879,7 @@ class TestOverviewCitationFormats:
         SampleIdentifierFactory(related=rock, type=IGSN, value="AU1101")
 
         formats = self.formats_of(client, rock)
-        key, entry, ris = self.entry_of(formats)
+        entry, ris = self.entry_of(formats)[1:]
 
         assert "http" not in formats["text"]
         assert "doi" not in entry.fields
@@ -889,14 +889,14 @@ class TestOverviewCitationFormats:
 
     def test_a_sample_is_a_misc_entry_and_a_general_reference(self, client, rock):
         formats = self.formats_of(client, rock)
-        key, entry, ris = self.entry_of(formats)
+        entry, ris = self.entry_of(formats)[1:]
 
         assert entry.type == "misc"
         assert ris["type_of_reference"] == "GEN"
 
     def test_with_nobody_credited_no_author_is_given(self, client, rock):
         formats = self.formats_of(client, rock)
-        key, entry, ris = self.entry_of(formats)
+        entry, ris = self.entry_of(formats)[1:]
 
         assert "author" not in entry.persons
         assert "authors" not in ris
@@ -907,7 +907,7 @@ class TestOverviewCitationFormats:
 
         citation = _page(client, sample).context["citation"]
         formats = {entry["key"]: entry["value"] for entry in citation["formats"]}
-        key, entry, ris = self.entry_of(formats)
+        entry, ris = self.entry_of(formats)[1:]
 
         assert list(formats) == ["text", "bibtex", "ris"]
         assert "Portal core [concrete sample]" in formats["text"]

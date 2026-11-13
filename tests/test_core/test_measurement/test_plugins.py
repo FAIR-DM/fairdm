@@ -772,7 +772,7 @@ class TestOverviewCitationFormats:
         permalink = f"http://testserver/{xrf.uuid}/"
 
         formats = self.formats_of(_page(client, xrf))
-        key, entry, ris = self.entry_of(formats)
+        entry, ris = self.entry_of(formats)[1:]
 
         assert formats["text"].endswith(permalink)
         assert entry.fields["url"] == permalink
@@ -788,7 +788,7 @@ class TestOverviewCitationFormats:
         )
 
         formats = self.formats_of(_page(client, xrf))
-        key, entry, ris = self.entry_of(formats)
+        entry, ris = self.entry_of(formats)[1:]
 
         assert formats["text"].endswith("https://doi.org/10.1234/meas_1")
         assert entry.fields["doi"] == "10.1234/meas_1"
@@ -798,14 +798,14 @@ class TestOverviewCitationFormats:
 
     def test_a_measurement_is_a_dataset_entry_and_a_data_reference(self, client, xrf):
         formats = self.formats_of(_page(client, xrf))
-        key, entry, ris = self.entry_of(formats)
+        entry, ris = self.entry_of(formats)[1:]
 
         assert entry.type == "dataset"
         assert ris["type_of_reference"] == "DATA"
 
     def test_with_nobody_credited_no_author_is_given(self, client, xrf):
         formats = self.formats_of(_page(client, xrf))
-        key, entry, ris = self.entry_of(formats)
+        entry, ris = self.entry_of(formats)[1:]
 
         assert "author" not in entry.persons
         assert "authors" not in ris
@@ -820,7 +820,7 @@ class TestOverviewCitationFormats:
         measurement = XRFMeasurementFactory(dataset=released, sample=sample)
 
         formats = self.formats_of(_page(client, measurement))
-        key, entry, ris = self.entry_of(formats)
+        entry, ris = self.entry_of(formats)[1:]
 
         assert "of an unpublished sample" in formats["text"]
         assert codecs.decode(entry.fields["title"], "ulatex").endswith(
@@ -837,7 +837,7 @@ class TestOverviewCitationFormats:
 
         response = _page(client, measurement)
         formats = self.formats_of(response)
-        key, entry, ris = self.entry_of(formats)
+        entry, ris = self.entry_of(formats)[1:]
 
         title = "Portal reading [concrete measurement] of Portal core"
         assert list(formats) == ["text", "bibtex", "ris"]

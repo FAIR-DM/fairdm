@@ -256,6 +256,20 @@ Models supply the data: `Person.get_affiliation_history()`, `Person.get_profile_
 | `safe_reverse(name, **kwargs)` | A URL, or `None` when the name does not resolve. |
 | `describe_coverage(coverage)` | A spatial coverage as text, for instance `48.80° N to 49.20° N, 7.80° E to 8.70° E`, or one point when the coverage is a single spot. |
 
+`fairdm.core.citation`, the citation the Cite panel and the format files are written from:
+
+| Name | What it is |
+|---|---|
+| `Citation` | A record's citation: `key`, `authors`, `year`, `title`, `publisher`, `doi`, `url`, `bibtex_type` and `ris_type`. `to_bibtex()` and `to_ris()` write it, and `filename(extension)` names its file. |
+| `CitedName` | One name in a citation: `family`, `given` and `suffix` for a person, or one `literal` for an organisation. `CitedName.from_contributor(contributor)` and `CitedName.from_item_name(name)` read a contributor and a django-literature name. |
+| `CitationFormat` | One format a citation is offered in: its `key`, `label`, `content_type`, `extension` and whether Download is offered. |
+| `FORMATS` | The three formats, Text, BibTeX and RIS, in the order the panel shows them. |
+| `publication_types(csl_type)` | The BibTeX and RIS entry types for a CSL type, or `("misc", "GEN")`. |
+| `escape_tex(value)` | A value written so BibTeX reads it back as typed: `\`, `$`, `^` and unpaired braces as TeX commands, whitespace runs as one space. |
+| `collapse_whitespace(value)` | A value on one line, every run of whitespace written as one space. |
+| `CitationWriter` | pybtex's BibTeX writer, except that `doi` and `url` are written as given rather than TeX-encoded. |
+| `RisCitationWriter` | rispy's RIS writer with no counter line, so an entry starts with its `TY` line. |
+
 `fairdm.contrib.contributors.profiles`:
 
 | Function | Returns |

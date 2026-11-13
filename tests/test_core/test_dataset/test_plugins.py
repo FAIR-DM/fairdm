@@ -1974,7 +1974,7 @@ class TestOverviewCitationFormats:
         permalink = f"http://testserver/{dataset.uuid}/"
 
         formats = self.formats_of(client, dataset)
-        key, entry, ris = self.entry_of(formats)
+        entry, ris = self.entry_of(formats)[1:]
 
         assert formats["text"].endswith(permalink)
         assert entry.fields["url"] == permalink
@@ -1987,7 +1987,7 @@ class TestOverviewCitationFormats:
         DatasetIdentifierFactory(related=dataset, value="10.5555/ds_1")
 
         formats = self.formats_of(client, dataset)
-        key, entry, ris = self.entry_of(formats)
+        entry, ris = self.entry_of(formats)[1:]
 
         assert formats["text"].endswith("https://doi.org/10.5555/ds_1")
         assert entry.fields["doi"] == "10.5555/ds_1"
@@ -1997,7 +1997,7 @@ class TestOverviewCitationFormats:
 
     def test_a_dataset_is_a_dataset_entry_and_a_data_reference(self, client):
         formats = self.formats_of(client, self.make_dataset())
-        key, entry, ris = self.entry_of(formats)
+        entry, ris = self.entry_of(formats)[1:]
 
         assert entry.type == "dataset"
         assert ris["type_of_reference"] == "DATA"
@@ -2006,7 +2006,7 @@ class TestOverviewCitationFormats:
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
 
         formats = self.formats_of(client, dataset)
-        key, entry, ris = self.entry_of(formats)
+        entry, ris = self.entry_of(formats)[1:]
 
         assert "author" not in entry.persons
         assert "authors" not in ris

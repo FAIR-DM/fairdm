@@ -1869,7 +1869,7 @@ class TestOverviewCitationFormats:
         permalink = f"http://testserver/{project.uuid}/"
 
         formats = self.formats_of(client, project)
-        key, entry, ris = self.entry_of(formats)
+        entry, ris = self.entry_of(formats)[1:]
 
         assert formats["text"].endswith(permalink)
         assert entry.fields["url"] == permalink
@@ -1884,7 +1884,7 @@ class TestOverviewCitationFormats:
         )
 
         formats = self.formats_of(client, project)
-        key, entry, ris = self.entry_of(formats)
+        entry, ris = self.entry_of(formats)[1:]
 
         assert formats["text"].endswith("https://doi.org/10.5555/cited_1")
         assert entry.fields["doi"] == "10.5555/cited_1"
@@ -1894,7 +1894,7 @@ class TestOverviewCitationFormats:
 
     def test_a_project_is_a_misc_entry_and_a_general_reference(self, client):
         formats = self.formats_of(client, self.make_project())
-        key, entry, ris = self.entry_of(formats)
+        entry, ris = self.entry_of(formats)[1:]
 
         assert entry.type == "misc"
         assert ris["type_of_reference"] == "GEN"
@@ -1903,7 +1903,7 @@ class TestOverviewCitationFormats:
         project = ProjectFactory(visibility=Visibility.PUBLIC)
 
         formats = self.formats_of(client, project)
-        key, entry, ris = self.entry_of(formats)
+        entry, ris = self.entry_of(formats)[1:]
 
         assert "author" not in entry.persons
         assert "authors" not in ris
