@@ -1186,10 +1186,13 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">overview.chart_library</span></code></p></td>
 <td><p>The ECharts script, loaded only when <code class="docutils literal notranslate"><span class="pre">has_charts</span></code> is true. Replace it to serve ECharts yourself.</p></td>
 </tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">overview.map_library</span></code></p></td>
+<td><p>MapLibre’s script and stylesheet, loaded only when <code class="docutils literal notranslate"><span class="pre">has_map</span></code> is true. Replace it to serve MapLibre yourself.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
-<p>A block that wraps other blocks (<code class="docutils literal notranslate"><span class="pre">overview.main</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.side</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.details</span></code>) keeps its content when you add to it with <code class="docutils literal notranslate"><span class="pre">{{</span> <span class="pre">block.super</span> <span class="pre">}}</span></code>, and replaces it when you do not. The template also extends the shell’s <code class="docutils literal notranslate"><span class="pre">head</span></code> and <code class="docutils literal notranslate"><span class="pre">extra_js</span></code> blocks: <code class="docutils literal notranslate"><span class="pre">head</span></code> carries the schema.org description from <code class="docutils literal notranslate"><span class="pre">json_ld</span></code>, and <code class="docutils literal notranslate"><span class="pre">extra_js</span></code> loads <code class="docutils literal notranslate"><span class="pre">js/overview.js</span></code>, which runs the description tabs, folds long text, copies identifiers and the citation, and opens the image at full size.</p>
+<p>A block that wraps other blocks (<code class="docutils literal notranslate"><span class="pre">overview.main</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.side</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.details</span></code>) keeps its content when you add to it with <code class="docutils literal notranslate"><span class="pre">{{</span> <span class="pre">block.super</span> <span class="pre">}}</span></code>, and replaces it when you do not. The template also extends the shell’s <code class="docutils literal notranslate"><span class="pre">head</span></code> and <code class="docutils literal notranslate"><span class="pre">extra_js</span></code> blocks: <code class="docutils literal notranslate"><span class="pre">head</span></code> carries the schema.org description from <code class="docutils literal notranslate"><span class="pre">json_ld</span></code>, and <code class="docutils literal notranslate"><span class="pre">extra_js</span></code> loads <code class="docutils literal notranslate"><span class="pre">js/overview.js</span></code>, which runs the description tabs, folds long text, copies identifiers and the citation, opens the image at full size, filters a list by type and draws the maps (see <a class="reference internal" href="components.html#maps-and-filters-in-js-overview-js"><span class="std std-ref">Maps and filters</span></a>).</p>
 <section id="context-the-shared-blocks-read">
 <h3>Context the shared blocks read<a class="headerlink" href="#context-the-shared-blocks-read" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="table">
@@ -1241,6 +1244,9 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">has_charts</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">overview.chart_library</span></code> and the chart scripts.</p></td>
 </tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">has_map</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">overview.map_library</span></code>.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1268,9 +1274,9 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p><code class="docutils literal notranslate"><span class="pre">overview.publications</span></code>, inside <code class="docutils literal notranslate"><span class="pre">overview.record_facts</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Sample</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">overview.badges</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.notices</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.figures</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.main</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.record_facts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">overview.badges</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.facts</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.notices</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.figures</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.main</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.side</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">overview.properties</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.notes</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.history</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.measurements</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">overview.location</span></code> and <code class="docutils literal notranslate"><span class="pre">overview.samples</span></code>, inside <code class="docutils literal notranslate"><span class="pre">overview.record_facts</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">overview.location</span></code> after <code class="docutils literal notranslate"><span class="pre">overview.cite</span></code>, and <code class="docutils literal notranslate"><span class="pre">overview.samples</span></code> after <code class="docutils literal notranslate"><span class="pre">overview.details</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>Measurement</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">overview.badges</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.notices</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.figures</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.main</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.record_facts</span></code></p></td>

@@ -1176,7 +1176,9 @@ their dates.
 status_variants: The theme colour each custody status carries. Only “destroyed” is a
 warning to a reuser; the rest report where the specimen is.
 status_meanings: What each status means to someone hoping to re-examine the specimen.
-measurements_shown: How many measurements are listed before the rest are counted.</p>
+measurements_shown: How many measurements are listed before the rest are counted.
+The list is filtered by type in the page, so it holds enough of each to
+filter.</p>
 <p class="rubric">Initialization</p>
 <p>Constructor. Called in the URLconf; can contain helpful extra
 keyword arguments, and other things.</p>
@@ -1231,7 +1233,7 @@ keyword arguments, and other things.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="fairdm.core.sample.plugins.Overview.measurements_shown">
 <span class="sig-name descname"><span class="pre">measurements_shown</span></span><a class="headerlink" href="#fairdm.core.sample.plugins.Overview.measurements_shown" title="Link to this definition">#</a></dt>
-<dd><p>10</p>
+<dd><p>30</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1273,14 +1275,34 @@ The card’s title and text, with a note when the sample has no IGSN.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="fairdm.core.sample.plugins.Overview.get_measurements">
-<span class="sig-name descname"><span class="pre">get_measurements</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.sample.plugins.Overview.get_measurements" title="Link to this definition">#</a></dt>
-<dd><p>Read the measurements made on this sample, most recent first.</p>
+<dt class="sig sig-object py" id="fairdm.core.sample.plugins.Overview.get_visible_measurements">
+<span class="sig-name descname"><span class="pre">get_visible_measurements</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.sample.plugins.Overview.get_visible_measurements" title="Link to this definition">#</a></dt>
+<dd><p>Select the measurements made on this sample that the viewer may see.</p>
 <p>A measurement can belong to a different dataset than its sample, which is how one team
 measures another team’s specimens. Each is shown only if the viewer may see its own
 dataset, and being on the sample’s dataset team opens nothing else.</p>
 <p>Returns:
-The measurements shown, how many the viewer may see and how many are left over.</p>
+The measurements, as a queryset.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.sample.plugins.Overview.get_measurements">
+<span class="sig-name descname"><span class="pre">get_measurements</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.sample.plugins.Overview.get_measurements" title="Link to this definition">#</a></dt>
+<dd><p>Read the measurements made on this sample, most recent first.</p>
+<p>Returns:
+The measurements shown, how many the viewer may see and how many are left
+over. Each shown entry carries its type’s name and <code class="docutils literal notranslate"><span class="pre">type_key</span></code>, the key its
+type has in :meth:<code class="docutils literal notranslate"><span class="pre">get_measurement_types</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.sample.plugins.Overview.get_measurement_types">
+<span class="sig-name descname"><span class="pre">get_measurement_types</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.sample.plugins.Overview.get_measurement_types" title="Link to this definition">#</a></dt>
+<dd><p>Count the visible measurements on this sample by type, for the type filter.</p>
+<p>Returns:
+One <code class="docutils literal notranslate"><span class="pre">{&quot;key&quot;,</span> <span class="pre">&quot;label&quot;,</span> <span class="pre">&quot;n&quot;}</span></code> entry per type, the most measured first.
+<code class="docutils literal notranslate"><span class="pre">key</span></code> is the model’s label, which each listed measurement carries as
+<code class="docutils literal notranslate"><span class="pre">type_key</span></code>.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1383,7 +1405,9 @@ For example “1 parent · 2 subsamples”, or “None recorded”.</p>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.Overview.get_status"><code class="docutils literal notranslate"><span class="pre">Overview.get_status()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.Overview.get_details"><code class="docutils literal notranslate"><span class="pre">Overview.get_details()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.Overview.get_citation_details"><code class="docutils literal notranslate"><span class="pre">Overview.get_citation_details()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.Overview.get_visible_measurements"><code class="docutils literal notranslate"><span class="pre">Overview.get_visible_measurements()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.Overview.get_measurements"><code class="docutils literal notranslate"><span class="pre">Overview.get_measurements()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.Overview.get_measurement_types"><code class="docutils literal notranslate"><span class="pre">Overview.get_measurement_types()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.Overview.get_related_samples"><code class="docutils literal notranslate"><span class="pre">Overview.get_related_samples()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.sample.plugins.Overview.get_relations_summary"><code class="docutils literal notranslate"><span class="pre">Overview.get_relations_summary()</span></code></a></li>
 </ul>

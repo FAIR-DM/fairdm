@@ -51,8 +51,9 @@ The blocks are listed in page order. An indented block sits inside the block abo
 | `overview.people` | [`c-overview.people`](components.md#c-overviewpeople), fed by `people` and `people_url`, with Manage for the team. |
 | `overview.record_facts` | Panels particular to the record. Empty on the shared page. |
 | `overview.chart_library` | The ECharts script, loaded only when `has_charts` is true. Replace it to serve ECharts yourself. |
+| `overview.map_library` | MapLibre's script and stylesheet, loaded only when `has_map` is true. Replace it to serve MapLibre yourself. |
 
-A block that wraps other blocks (`overview.main`, `overview.side`, `overview.details`) keeps its content when you add to it with `{{ block.super }}`, and replaces it when you do not. The template also extends the shell's `head` and `extra_js` blocks: `head` carries the schema.org description from `json_ld`, and `extra_js` loads `js/overview.js`, which runs the description tabs, folds long text, copies identifiers and the citation, and opens the image at full size.
+A block that wraps other blocks (`overview.main`, `overview.side`, `overview.details`) keeps its content when you add to it with `{{ block.super }}`, and replaces it when you do not. The template also extends the shell's `head` and `extra_js` blocks: `head` carries the schema.org description from `json_ld`, and `extra_js` loads `js/overview.js`, which runs the description tabs, folds long text, copies identifiers and the citation, opens the image at full size, filters a list by type and draws the maps (see [Maps and filters](components.md#maps-and-filters-in-jsoverviewjs)).
 
 ### Context the shared blocks read
 
@@ -72,6 +73,7 @@ A block that wraps other blocks (`overview.main`, `overview.side`, `overview.det
 | `people`, `people_url`, `can_manage` | `overview.people`. |
 | `json_ld` | The page head. |
 | `has_charts` | `overview.chart_library` and the chart scripts. |
+| `has_map` | `overview.map_library`. |
 
 ## Blocks the record templates add
 
@@ -79,7 +81,7 @@ A block that wraps other blocks (`overview.main`, `overview.side`, `overview.det
 |---|---|---|---|
 | Project | `overview.badges`, `overview.facts`, `overview.notices`, `overview.figures`, `overview.main`, `overview.details_extra` | `overview.about`, `overview.datasets`, `overview.charts` | |
 | Dataset | `overview.badges`, `overview.readiness`, `overview.notices`, `overview.figures`, `overview.main`, `overview.timeline`, `overview.record_facts` | `overview.about`, `overview.data`, `overview.charts` | `overview.publications`, inside `overview.record_facts` |
-| Sample | `overview.badges`, `overview.notices`, `overview.figures`, `overview.main`, `overview.record_facts` | `overview.properties`, `overview.notes`, `overview.history`, `overview.measurements` | `overview.location` and `overview.samples`, inside `overview.record_facts` |
+| Sample | `overview.badges`, `overview.facts`, `overview.notices`, `overview.figures`, `overview.main`, `overview.side` | `overview.properties`, `overview.notes`, `overview.history`, `overview.measurements` | `overview.location` after `overview.cite`, and `overview.samples` after `overview.details` |
 | Measurement | `overview.badges`, `overview.notices`, `overview.figures`, `overview.main`, `overview.record_facts` | `overview.properties`, `overview.procedure`, `overview.notes`, `overview.sample`, `overview.siblings` | `overview.location`, inside `overview.record_facts` |
 | Person | `overview.notices`, `overview.image`, `overview.badges`, `overview.name`, `overview.byline`, `overview.actions`, `overview.figures`, `overview.main`, `overview.side` | `overview.about`, `overview.records`, `overview.roles`, `overview.future` | |
 | Organization | `overview.image`, `overview.badges`, `overview.name`, `overview.byline`, `overview.actions`, `overview.figures`, `overview.main`, `overview.side` | `overview.about`, `overview.members`, `overview.records`, `overview.future` | `overview.location`, `overview.hierarchy` |

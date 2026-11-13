@@ -199,7 +199,7 @@ Bases: {py:obj}`fairdm.core.plugins.TypedOverviewPlugin`
 ````{py:attribute} measurements_shown
 :canonical: fairdm.core.sample.plugins.Overview.measurements_shown
 :value: >
-   10
+   30
 
 ```{autodoc2-docstring} fairdm.core.sample.plugins.Overview.measurements_shown
 ```
@@ -238,10 +238,26 @@ Bases: {py:obj}`fairdm.core.plugins.TypedOverviewPlugin`
 
 ````
 
+````{py:method} get_visible_measurements()
+:canonical: fairdm.core.sample.plugins.Overview.get_visible_measurements
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.Overview.get_visible_measurements
+```
+
+````
+
 ````{py:method} get_measurements()
 :canonical: fairdm.core.sample.plugins.Overview.get_measurements
 
 ```{autodoc2-docstring} fairdm.core.sample.plugins.Overview.get_measurements
+```
+
+````
+
+````{py:method} get_measurement_types()
+:canonical: fairdm.core.sample.plugins.Overview.get_measurement_types
+
+```{autodoc2-docstring} fairdm.core.sample.plugins.Overview.get_measurement_types
 ```
 
 ````
