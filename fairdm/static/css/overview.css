@@ -46,7 +46,30 @@
 }
 
 /* Behind a header with no image: the ruled grid the sign-in pages use, in the record's colour. */
-.ov-hero__grid { position: absolute; inset: 0; z-index: -1; color: var(--record); pointer-events: none; }
+.ov-hero__grid {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  width: min(55%, 40rem);
+  z-index: -1;
+  color: var(--record);
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to left, #000 0%, rgba(0, 0, 0, 0.55) 35%, transparent 90%);
+  mask-image: linear-gradient(to left, #000 0%, rgba(0, 0, 0, 0.55) 35%, transparent 90%);
+}
+.ov-hero--cover .ov-hero__grid { inset-inline-end: min(40%, 30rem); width: min(35%, 26rem); }
+@media (max-width: 1023px) { .ov-hero--cover .ov-hero__grid { inset-inline-end: 36%; width: 34%; } }
+@media (max-width: 639px) {
+  /* No side to spare on a phone: the grid keeps to the top trailing corner, clear of the text. */
+  .ov-hero__grid, .ov-hero--cover .ov-hero__grid {
+    inset-inline-end: 0; width: 60%; height: 9rem; inset-block-end: auto;
+    -webkit-mask-image: linear-gradient(to left, #000, transparent 85%), linear-gradient(to bottom, #000, transparent);
+    -webkit-mask-composite: source-in;
+    mask-image: linear-gradient(to left, #000, transparent 85%), linear-gradient(to bottom, #000, transparent);
+    mask-composite: intersect;
+  }
+  .ov-hero--cover .ov-hero__grid { display: none; }
+}
 
 .ov-hero::after {
   content: "";
@@ -115,14 +138,18 @@
   gap: 0.375rem;
   padding: 0.0625rem 0.5rem;
   border-radius: 999px;
-  border: 1px solid var(--ov-line);
-  background: color-mix(in oklch, var(--color-base-100) 80%, transparent);
+  border: 0;
+  background: color-mix(in oklch, var(--ov-pill, var(--ov-faint)) 14%, var(--color-base-100));
   font-size: 0.75rem;
   font-weight: 500;
   line-height: 1.25rem;
   white-space: nowrap;
 }
-.ov-pill__dot { width: 0.5rem; height: 0.5rem; border-radius: 999px; background: var(--ov-faint); }
+.ov-pill__dot { width: 0.5rem; height: 0.5rem; border-radius: 999px; background: var(--ov-pill, var(--ov-faint)); }
+.ov-pill--success { --ov-pill: var(--color-success); }
+.ov-pill--warning { --ov-pill: var(--color-warning); }
+.ov-pill--error { --ov-pill: var(--color-error); }
+.ov-pill--info { --ov-pill: var(--color-info); }
 .ov-pill--success .ov-pill__dot { background: var(--color-success); }
 .ov-pill--warning .ov-pill__dot { background: var(--color-warning); }
 .ov-pill--error .ov-pill__dot { background: var(--color-error); }
@@ -166,15 +193,6 @@
 .ov-facts .ov-mono { font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8125rem; }
 
 .ov-keywords { display: flex; flex-wrap: wrap; gap: 0.375rem; margin: 0; padding: 0; list-style: none; }
-.ov-keyword {
-  padding: 0.0625rem 0.5rem;
-  border-radius: var(--radius-selector, 0.375rem);
-  background: color-mix(in oklch, var(--color-base-100) 70%, transparent);
-  border: 1px solid var(--ov-line);
-  font-size: 0.75rem;
-  line-height: 1.25rem;
-  color: var(--ov-muted);
-}
 
 /* The figures along the foot of the header. */
 .ov-figures {
