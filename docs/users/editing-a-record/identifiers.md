@@ -4,7 +4,7 @@ The Identifiers screen records the identifiers that name a record outside the po
 
 ## How to reach it
 
-Open the record's page, choose **Manage**, then **Identifiers**. The address is the record's own address followed by `identifiers/`:
+Open the record's page and choose **Edit** beside **Identifiers** in the **Details** panel. The address is the record's own address followed by `identifiers/`:
 
 | Record | Address |
 |---|---|

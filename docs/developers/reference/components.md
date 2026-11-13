@@ -2,7 +2,7 @@
 
 FairDM ships Cotton components that a portal's templates can use. This page lists each one with its attributes, its slots and what it renders. It does not say where a component sits on a page. The pages that use them are described in [Overview page blocks](overview-page-blocks.md), [Home page](home-page.md) and [Entrance pages](entrance-pages.md).
 
-Every component is written as a tag named after its template path, with `/` turned into `.` and `_` turned into `-`. `card/details/entry.html` is `<c-card.details.entry>`. An attribute that takes a Python value, such as a list, a dictionary or a record, is written with a leading colon: `<c-card.people :people="people" />`. Most components also take `class`, which adds classes to the outer element, and pass any other attribute to it.
+Every component is written as a tag named after its template path, with `/` turned into `.` and `_` turned into `-`. `overview/sheet.html` is `<c-overview.sheet>`. An attribute that takes a Python value, such as a list, a dictionary or a record, is written with a leading colon: `<c-overview.people :people="people" />`. Most components also take `class`, which adds classes to the outer element, and pass any other attribute to it.
 
 The tables give each attribute's type, its default and what it accepts. A blank default means the attribute is not set.
 
@@ -11,24 +11,6 @@ The tables give each attribute's type, its default and what it accepts. A blank 
 ### `c-actions.create-new`
 
 A dropdown button labelled "Create new" with a link to the project create page and one to the dataset create page. It renders only for a signed-in user and reads `user` from the template context, so it takes no attributes.
-
-### `c-actions.manage`
-
-The Manage menu of a record's page: a dropdown of the editing pages the viewer may use. It draws nothing when there are no entries and the slot is empty.
-
-| Attribute | Type | Default | Accepts |
-|---|---|---|---|
-| `entries` | list | | The `manage_menu` context entry. Each entry has `label`, `icon` and `url`, and `destructive` on the entry that deletes the record, which is drawn last after a divider in the error colour. |
-
-| Slot | Holds |
-|---|---|
-| default | Further `<c-menu.item>` entries, drawn after the shared ones. |
-
-```django
-<c-actions.manage :entries="manage_menu">
-  <c-menu.item text="Import data" icon="upload" href="{{ import_url }}" />
-</c-actions.manage>
-```
 
 ### `c-actions.pending`
 
@@ -46,81 +28,151 @@ A disabled button for something a portal does not offer yet. It never submits or
 <c-actions.pending label="Publish" icon="upload" reason="Publishing is not available yet." />
 ```
 
-## Cards for record pages
+## Overview page components
 
-Every card is a `<c-card.NAME>` tag. Each carries a `data-card` attribute that tests and scripts can find it by. The attributes below are the data the overview plugins build, listed in [Overview plugins](overview-plugins.md).
+The shared overview page and each record's template draw their panels with `<c-overview.NAME>` tags. A panel carries a `data-card` attribute that tests and scripts can find it by. The attributes below are the data the overview plugins build, listed in [Overview plugins](overview-plugins.md), and the blocks that draw each are listed in [Overview page blocks](overview-page-blocks.md).
 
-### `c-card.citation`
+### `c-overview.panel`
 
-How to cite the record, with a button that copies the text and a disabled export button. The card's element id is `cite`, which the Cite button in every page header jumps to. `data-card` is `citation`.
+A section of an overview page: a heading with an optional count, the panel's own Edit control and a link to the full list, then its content.
 
 | Attribute | Type | Default | Accepts |
 |---|---|---|---|
-| `title` | string | | The card's title. |
-| `text` | string | | The citation as plain text. |
-| `class` | string | | Extra classes on the card. |
+| `title` | string | | The heading. |
+| `count` | string | | A count beside the heading. |
+| `edit_url` | string | | The editing page for what the panel shows. Leave it empty for anyone who may not edit it, and no control is drawn. |
+| `edit_text` | string | `Edit` | The Edit control's text. |
+| `edit_icon` | string | `edit` | Its icon. |
+| `edit_label` | string | | Its accessible name, when the text alone does not say what is edited. |
+| `more_url` | string | | The full list, linked as "See all". |
+| `more_text` | string | `See all` | The link's text. |
+| `sub` | string | | A line under the heading. |
+| `side` | boolean | `False` | A side-column panel, which is tighter. |
+| `id`, `class` | string | | On the section. |
 
 | Slot | Holds |
 |---|---|
-| default | A note under the citation. |
+| default | The content. |
+| `head` | Extra controls in the heading row. |
 
-### `c-card.descriptions`
+```django
+<c-overview.panel title="Datasets" count="3" more_url="{{ urls.datasets }}"
+                  edit_url="{{ add_url }}" edit_text="Add dataset" edit_icon="add">
+  …
+</c-overview.panel>
+```
 
-The record's descriptions. With more than one, each has a tab. With one, its label is the card's title. With none, the card is titled "About" and shows the slot. Values are rendered as markdown.
+### `c-overview.edit`
+
+The small Edit control a panel carries for the part of the record it shows. It draws nothing when `href` is empty.
+
+| Attribute | Type | Default | Accepts |
+|---|---|---|---|
+| `href` | string | | The editing page, usually one of the [edit links](record-editing-pages.md#the-edit-links). |
+| `text` | string | `Edit` | The visible text. |
+| `icon` | string | `edit` | The icon. |
+| `label` | string | | The accessible name, when the text alone does not say what is edited. |
+
+```django
+<c-overview.edit href="{{ edit.identifiers }}" label="Edit identifiers" />
+```
+
+### `c-overview.figure`
+
+One headline figure along the foot of the header, linked to its list when `href` is set.
+
+| Attribute | Type | Default | Accepts |
+|---|---|---|---|
+| `value` | string | | The figure. |
+| `label` | string | | What it counts. |
+| `href` | string | | The list it counts. |
+| `record` | string | | `project`, `dataset`, `sample` or `measurement`, which draws the type's colour beside the label. |
+| `note` | string | | A line under the label. |
+
+Put the figures in a `<div class="ov-figures">` in the `overview.figures` block.
+
+### `c-overview.cite`
+
+How to cite the record, with a button that copies the citation. The panel's element id is `cite`, which the Cite button in every page header jumps to. `data-card` is `citation`.
+
+| Attribute | Type | Default | Accepts |
+|---|---|---|---|
+| `text` | string | | The citation as plain text. |
+
+| Slot | Holds |
+|---|---|
+| default | A note under the citation, such as why it points at this page rather than a DOI. |
+
+### `c-overview.sheet`
+
+The record's facts in one panel: the details, the identifiers, the funding and how a machine reaches the record, each a section of label-and-value rows. A row with no value shows a dash. The team's Edit controls sit on the panel and on its Identifiers section, and Delete is its last line. `data-card` is `details`, and the Identifiers and Funding sections carry `identifiers` and `funding`.
+
+| Attribute | Type | Default | Accepts |
+|---|---|---|---|
+| `rows` | list | | Dictionaries with `label`, and one of `record` (a record, shown by name in its type's colour, with `icon` naming the type), `badge` with `badge_variant`, `date` with an optional `until` for a range, or `text` with an optional `url`. A row may also carry `note` (a line under the value) and `warning` (draws the value as a warning). |
+| `edit` | dict | | The [edit links](record-editing-pages.md#the-edit-links). `details`, `identifiers` and `delete` are read. |
+| `kind` | string | | The word for the record's kind, named in the Delete line. |
+| `identifiers` | list | | Dictionaries with `type`, `value` and `link`. A `link` makes the value a link. Each has a button that copies it. |
+| `portal_id` | string | | The record's portal ID, with a button that copies it. |
+| `permalink` | string | | The record's absolute [permalink](permalinks.md), with a button that copies it. |
+| `local_id` | string | | The team's own ID for the record. |
+| `funding` | list | | DataCite funding references with `funderName`, `funderIdentifier`, `awardTitle`, `awardNumber` and `awardURI`. A funder identifier or award address is linked only when it starts with `http`. `None` leaves the section out, and an empty list says none is recorded. |
+| `can_manage` | boolean | `False` | Whether the viewer is on the record's team. With no funding, the team is told why funding matters. |
+| `api_url` | string | | The record's REST API address. With none, no API link is drawn. |
+
+| Slot | Holds |
+|---|---|
+| default | Rows added to the details section, each written as `<div><dt>…</dt><dd>…</dd></div>`. |
+
+### `c-overview.people`
+
+Everyone credited on the record: the first few by name with their roles, then faces, then a count of the rest linked to the full list. The team gets Manage, which leads to the Contributors tab. With nobody credited, the panel says so. `data-card` is `people`.
+
+| Attribute | Type | Default | Accepts |
+|---|---|---|---|
+| `people` | dict | | `named` (dictionaries with `contributor`, `roles`, `more_roles` and `affiliation`), `faces`, `more` and `total`, from `get_people()`. |
+| `all_url` | string | | Where the full list is. It becomes "See all" for a visitor and the link on the count of the rest. |
+| `manage_url` | string | | Where the team changes who is credited, drawn as Manage. Leave it empty for anyone else. |
+| `title` | string | `People` | The heading. |
+| `empty` | string | `No one is credited yet.` | What to say when nobody is credited. |
+
+### `c-overview.readiness`
+
+For the record's team only: a ring with how much is in place, what is still missing with a Fix link where one exists, and what is done folded away. `data-card` is `readiness`.
+
+| Attribute | Type | Default | Accepts |
+|---|---|---|---|
+| `readiness` | dict | | `title`, `summary`, `about`, `items` (dictionaries with `label`, `done`, `url` and `required`, where `required` set to `False` marks a recommended item), `done`, `total` and `ready`. |
+
+| Slot | Holds |
+|---|---|
+| default | An action the checklist leads to, such as the dataset's Publish. |
+
+### `c-overview.descriptions`
+
+The record's descriptions. With more than one, each has a tab in the panel's heading. With one, its label is the heading. With none, the panel is headed "About" and shows the slot. Values are rendered as markdown, and long text folds after a few lines behind "Read more". `data-card` is `descriptions`.
 
 | Attribute | Type | Default | Accepts |
 |---|---|---|---|
 | `descriptions` | list | | Dictionaries with `label` and `value`, in the order the tabs appear. |
-| `group` | string | | A name for the tab set, unique on the page. |
-| `class` | string | | Extra classes on the card. |
+| `group` | string | | A prefix that makes the tabs' ids unique on the page. |
+| `edit_url` | string | | The descriptions' editing page, for someone who may edit them. |
 
 | Slot | Holds |
 |---|---|
 | default | What to show when there are no descriptions. |
 
-### `c-card.details`
+### `c-overview.mix`
 
-The record's metadata in one card, as a list of entries followed by a "For machines" entry that holds the REST API link and a disabled "Metadata downloads" button. `data-card` is `details`.
-
-| Attribute | Type | Default | Accepts |
-|---|---|---|---|
-| `rows` | list | | Dictionaries with `label` and `icon`, and one of `record` (a record, shown by name and linked to its page), `badge` with `badge_variant`, `date` with an optional `until` for a range, or `text` with an optional `url`. A row may also carry `note` (a line under the value) and `warning` (draws the value as a warning). |
-| `api_url` | string | | The record's REST API address. With none, no API link is drawn. |
-| `class` | string | | Extra classes on the card. |
-
-| Slot | Holds |
-|---|---|
-| default | Entries after the rows. |
-
-```django
-<c-card.details :rows="details" api_url="{{ api_url }}">
-  <c-card.details.entry label="Instrument" icon="info">Bruker S8 Tiger</c-card.details.entry>
-</c-card.details>
-```
-
-### `c-card.details.entry`
-
-One entry in a Details card: an icon and a title in capitals, then the value.
+How many records of each type there are, as bars in the type's colour, samples and measurements in their own groups, each bar drawn against the largest count.
 
 | Attribute | Type | Default | Accepts |
 |---|---|---|---|
-| `label` | string | | The entry's title. |
-| `icon` | string | | An icon name. |
-| `class` | string | | Extra classes on the entry. |
+| `mix` | dict | | `samples` and `measurements`, each a list of `(type name, count)`, and `max`, from `get_type_mix()`. |
 
-| Slot | Holds |
-|---|---|
-| default | The value. |
+## Cards for record and contributor pages
 
-### `c-card.funding`
-
-The awards that paid for the record, each with its funder, title and number. A funder identifier or award address is linked only when it starts with `http://` or `https://`. With no funding the card says so. `data-card` is `funding`.
-
-| Attribute | Type | Default | Accepts |
-|---|---|---|---|
-| `funding` | list | | DataCite funding references with `funderName`, `funderIdentifier`, `awardTitle`, `awardNumber` and `awardURI`. |
-| `can_manage` | boolean | `False` | Whether the viewer is on the record's team. With no funding, the team is told why funding matters. |
-| `class` | string | | Extra classes on the card. |
+Every card is a `<c-card.NAME>` tag. Each carries a `data-card` attribute that tests and scripts can find it by. The dataset, sample and measurement pages, and the person and organization pages, draw these beside the `c-overview.*` panels.
 
 ### `c-card.identifiers`
 
@@ -194,6 +246,7 @@ What happened to a record, in order. Each step shows its label, its date, the pe
 | `title` | string | | The card's title. |
 | `steps` | list | | Dictionaries with `label`, `date`, `day`, `people` and `note`. `day` is set when the date is a full day. `note` is rendered as markdown. |
 | `empty` | string | | What to say when there are no steps. |
+| `edit_url` | string | | The key dates' editing page, drawn as the card's Edit for someone who may edit them. |
 | `class` | string | | Extra classes on the card. |
 
 ## Cards for contributor pages

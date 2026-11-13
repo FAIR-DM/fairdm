@@ -47,6 +47,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Every badge is a pill and every keyword a solid pill.** Keywords on project and dataset cards, on the landing page and in a record type's "About" dialog are pills in a light shade of the primary colour, where they were outlined or grey boxes. An outline badge takes a light fill of its own colour, and the record-type label on a record card and on a page is a pill edged in the record's colour. The shape is set in `css/fairdm-theme.css` and holds on any theme. Put `badge-keyword` on a badge to show a keyword in a portal's own templates. See [How to change the portal theme](developers/how-to/change-the-portal-theme.md#the-result).
+- **The project overview page and the page every record shares are redesigned.** The header is a
+  band in the record's colour with its badges, name, people, key facts, keywords, actions and
+  headline figures. A record with an image shows it filling the header's trailing side, opening at
+  full size, and a record without one shows its icon on the sign-in pages' ruled grid. The side
+  column runs Cite, one fact sheet (details, identifiers, funding and machine access, a missing value
+  shown as a dash), then People named with their roles before their faces. Readiness shows a ring.
+  Descriptions fold after a few lines. A project's records by type are bars in each type's colour.
+  The shared panels are `c-overview.*` components, described in
+  [Components](developers/reference/components.md#overview-page-components), and the page's
+  behaviour is in `js/overview.js`. `RecordOverviewPlugin` gains `get_primary_identifier()` and
+  `get_type_mix()`, and `get_people()` returns `named`, `faces`, `more` and `total` under
+  `people_named` and `people_faces`, which replace `people_shown`. A new thumbnail alias,
+  `core_cover`, serves the header image. The development data puts `regular.user` on the showcase
+  project's team, adds `regular.user2` with an empty project, places most showcase samples and names
+  measurements the way a laboratory would.
+- **Each part of a record is edited from the panel that shows it.** The header's Edit opens the
+  details, the keywords, descriptions, notes, key dates and identifiers each carry an Edit, People
+  carries Manage, and Delete is the last line of the Details panel. Publish sits in a dataset's
+  "Ready to publish?" panel. `edit_links()` in `fairdm.core.editing` gives the addresses, keyed by
+  each page's new `part`. See [ADR 0044](adr/0044-each-part-of-a-record-is-edited-from-the-panel-that-shows-it.md).
 - **A sample or measurement collection is headed like a Samples or Measurements tab.** The
   heading is the type's name, underlined in its kind's colour, and is itself the menu of the other
   collections of the same kind, each with its count of published records, most first. A sample
@@ -93,6 +113,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **The Manage menu.** `manage_menu()`, `MENU_PAGES`, `<c-actions.manage>` and the
+  `menu_label` and `menu_icon` attributes of the editing pages are removed. A portal that filled
+  `overview.manage` to add an entry puts its own button in that block beside the header's Edit, or
+  an Edit control on the panel its action changes. See
+  [How to add an action to an overview page](developers/how-to/add-an-action-to-an-overview-page.md).
+- **The "not yet available" panels for the project's map, recent activity and exporting a
+  citation**, and the dataset's map. Each comes back as a working panel with its own feature.
+- **`<c-card.citation>`, `<c-card.descriptions>`, `<c-card.details>`, `<c-card.details.entry>` and
+  `<c-card.funding>`**, replaced by `<c-overview.cite>`, `<c-overview.descriptions>` and
+  `<c-overview.sheet>`. The project page no longer draws its composition chart.
 - **A project's Export tab.** It held only placeholder text. Its address now answers "not found".
 - **The PNG and ICO exports of the logo.** `assets/logo/` holds the logo kit as SVG only, and
   `assets/logo/png/` and `assets/logo/web/` are removed. Nothing in FairDM loaded them.

@@ -8,7 +8,7 @@ You need the **Can manage** level on the dataset or on the project above it. Onl
 
 ## Steps
 
-1. Open [the dataset page](dataset.md). Open the **Manage** menu and choose **Edit details**.
+1. Open [the dataset page](dataset.md). Choose **Edit** in its header.
 2. Under **Visibility**, choose **Private**.
 3. Select **Save & continue**. The dataset page shows a **Private** badge.
 4. Open the **Contributors** tab. Read who is listed and what each person may do. Below the lists, the **Access from the project** card names anyone who can open the dataset because of what they hold on its project. Those people are changed on the project, through its **Manage there** button.

@@ -9,7 +9,7 @@ You need the **Can manage** level on the dataset or on the project above it. Onl
 ## Steps
 
 1. Open the dataset's **Contributors** tab. Check that only people you trust hold **Can edit** or **Can manage**. A public dataset keeps its levels, so these people can still change it.
-2. Open the **Manage** menu on [the dataset page](dataset.md) and choose **Edit details**.
+2. Choose **Edit** in the header of [the dataset page](dataset.md).
 3. Under **Visibility**, choose **Public**.
 4. Select **Save & continue**.
 5. Open the dataset in a private browser window. The page should show its details and offer no editing controls.

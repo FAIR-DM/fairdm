@@ -19,26 +19,25 @@ Notices appear above the header, so they are read first.
 
 ## The header
 
-The header shows:
+The header is a band in the sample's colour. A sample with an image shows it filling the header's right-hand side, and on a phone as a banner above the header. Selecting the image opens it at full size. A sample without one shows the sample icon on a ruled grid. The header shows:
 
-- The sample's image, or the sample icon when it has none.
 - The sample's type as a badge. When the portal describes the type, the badge is a button headed "About" and the type's name. It opens a dialog with the type's description, its keywords, the authority whose schema it follows and the protocol it cites, and you close it with **Close**.
 - The sample's custody status as a second badge: **Available**, **In Use**, **Stored**, **Destroyed**, or **Status unknown** when none was recorded.
 - The sample's name.
-- Its keywords, as badges. These are keywords chosen from a controlled vocabulary.
-- Three buttons: **Cite**, which jumps to the Citation card, **Share**, and **Manage**.
+- Its keywords, as badges. These are keywords chosen from a controlled vocabulary. People who may change the sample see **Edit** beside them, or **Add keywords** when there are none.
+- Buttons: **Cite**, which jumps to the Cite panel, **Share**, and for people who may change the sample **Edit**, which opens [Edit details](edit-details.md).
 
 **Share** opens a menu headed "Share this page" with Facebook, X / Twitter, Reddit, Pinterest, **Email** and **Copy link**. Every choice shares the sample's permalink, and **Copy link** copies it.
 
-**Manage** opens a menu of the screens for changing the sample. You see only the entries you may use. If you may use none, the button is left out.
+There is no menu of editing screens. Each part of the sample is edited from the panel that shows it, and a control appears only for someone who may use its screen.
 
 ## Sample at a glance
 
-Three figures: **Measurements**, **Related samples** and **People credited**. Each is a count, and shows 0 when there is nothing to count. **Measurements** opens the sample's **Measurements** tab.
+Three figures along the foot of the header: **Measurements**, **Related samples** and **People credited**. Each is a count, and shows 0 when there is nothing to count. **Measurements** opens the sample's **Measurements** tab.
 
 ## Notes
 
-A card headed **Notes** shows the sample's description of type Other. It is left out when the sample has no such description.
+A card headed **Notes** shows the sample's description of type Other. It is left out when the sample has no such description. People who may change the sample see **Edit**, which opens [Descriptions](../editing-a-record/descriptions.md).
 
 ## History
 
@@ -54,7 +53,7 @@ A card headed **History** lays the sample's life out as a timeline. Each step co
 | Restored | Restoration date | Restorer | none |
 | Destroyed | Destruction date | Destroyer | Destruction |
 
-Steps with a date come first, in date order, and the others follow. A date recorded only to the year or the month is shown as recorded.
+Steps with a date come first, in date order, and the others follow. A date recorded only to the year or the month is shown as recorded. People who may change the sample see **Edit**, which opens [Key dates](../editing-a-record/key-dates.md).
 
 When nothing is recorded, a person who may change the dataset reads "Nothing is recorded about how this specimen was collected, prepared or stored. Those dates and notes are what lets someone else trust and reuse its measurements." Anyone else reads "No history has been recorded for this specimen."
 
@@ -68,6 +67,30 @@ With none, it reads "No measurements have been made on this sample yet."
 
 A sample type can add cards of its own to the wide column, above Notes. This is where a portal's own fields appear on the page. A type that adds nothing shows nothing here.
 
+## Cite
+
+A panel headed **Cite**, at the top of the side column, gives the citation as plain text, and a **Copy** button copies it. The sample is cited by the people credited as Collector, the year of its collection date (or the year it was added), its name and type, and the IGSN link or, with no IGSN, the sample's permalink.
+
+A sample with no IGSN reads "This sample has no IGSN, so the citation points at this page. An IGSN gives the physical specimen an identifier that outlives the portal."
+
+## Details
+
+A panel headed **Details** holds the sample's facts in sections. A fact with no value shows a dash. People who may change the sample see **Edit** on it, which opens Edit details. The first section has one row for each of these, in order:
+
+- **Project**, when the sample's project is visible to you.
+- **Dataset**.
+- **Licence**, from the dataset. A dataset with no licence shows "None chosen yet" in a warning colour, with the note "Nobody can safely reuse this data until a licence is chosen."
+- **Status**, with a line saying what the status means for anyone hoping to re-examine the specimen.
+- **Added** and **Last updated**.
+
+**Identifiers** follows. It lists each identifier the sample carries with its type. A DOI or IGSN that starts with `10.` links to doi.org. Below them are the sample's **Local ID**, when it has one, its **Portal ID** and its **Permalink**. Each identifier, the portal ID and the permalink have a button that copies it. People who may change the sample see **Edit**, which opens [Identifiers](../editing-a-record/identifiers.md).
+
+**For machines** has a **REST API** button that opens the sample's address in the API. People who may delete the sample see **Delete this sample** as the last line, which opens [Delete](../editing-a-record/delete.md).
+
+## People
+
+A panel headed **People** names the first six people credited, each with their roles and the organization they are credited from, then shows up to ten more as faces, each linked to their page, and counts the rest. **See all** opens the [Contributors](../contributors/contributors-tab.md) tab, and for people who may manage the sample **Manage** does. With nobody credited it says "No one is credited yet."
+
 ## Location
 
 A card headed **Location** shows a map with the point marked, then **Latitude** and **Longitude** to five decimal places. **Elevation** and **Uncertainty** follow, in metres, when they are recorded. The coordinates are decimal degrees in WGS 84.
@@ -80,31 +103,6 @@ A card headed **Related** lists the samples this one is a parent or a subsample 
 
 Samples in datasets you may not see are not named. The card says how many there are, as "1 related sample belongs to a dataset that hasn't been published yet." With nothing related it reads "No related samples have been recorded."
 
-## Details
-
-A card headed **Details** has one entry for each of these, in order:
-
-- **Project**, when the sample's project is visible to you.
-- **Dataset**.
-- **Licence**, from the dataset. A dataset with no licence shows "None chosen yet" in a warning colour, with the note "Nobody can safely reuse this data until a licence is chosen."
-- **Status**, with a line saying what the status means for anyone hoping to re-examine the specimen.
-- **Added** and **Last updated**.
-- **For machines**, with a **REST API** button that opens the sample's address in the API.
-
-## People
-
-A card headed **People** shows the faces of everyone credited, up to 18, with the name on hover. When there are more it says "and" followed by a count and "other contributors". **See all** opens the [Contributors](../contributors/contributors-tab.md) tab. With nobody credited it reads "No one is credited yet."
-
-## Identifiers
-
-A card headed **Identifiers** lists each identifier the sample carries with its type. A DOI or IGSN that starts with `10.` links to doi.org. Below them are the sample's **Local ID**, when it has one, and its **Portal ID**, with a button that copies it. A **Permalink** row beneath the Portal ID shows the sample's permanent link with a button that copies the whole link.
-
-## Citation
-
-A card headed **Citation** gives the citation as plain text, and a **Copy** button copies it. The sample is cited by the people credited as Collector, the year of its collection date (or the year it was added), its name and type, and the IGSN link or, with no IGSN, the sample's permalink.
-
-A sample with no IGSN reads "This sample has no IGSN, so the citation points at this page. An IGSN gives the physical specimen an identifier that outlives the portal."
-
 ## What you can do here
 
 Anything on this page links onward. These are the actions it offers:
@@ -113,10 +111,10 @@ Anything on this page links onward. These are the actions it offers:
 - Open the type's description from the type badge.
 - Open the sample's dataset, project, related samples and measurements from the cards.
 - See everyone credited with **See all**, and [change who is credited](../contributors/contributors-tab.md).
-- Choose **Manage**, then one of:
-    - **Edit details**, described on [Edit details](edit-details.md).
-    - **Edit descriptions**, described on [Descriptions](../editing-a-record/descriptions.md).
-    - **Keywords**, described on [Keywords](../editing-a-record/keywords.md).
-    - **Key dates**, described on [Key dates](../editing-a-record/key-dates.md).
-    - **Identifiers**, described on [Identifiers](../editing-a-record/identifiers.md).
-    - **Delete**, described on [Delete](../editing-a-record/delete.md). To do it, see [How to delete a sample](delete-a-sample.md).
+- Change the sample, if you may, from the **Edit** on the panel that shows each part:
+    - the header's **Edit**, described on [Edit details](edit-details.md)
+    - **Edit** on Notes, described on [Descriptions](../editing-a-record/descriptions.md)
+    - **Edit** beside the keywords, described on [Keywords](../editing-a-record/keywords.md)
+    - **Edit** on History, described on [Key dates](../editing-a-record/key-dates.md)
+    - **Edit** beside Identifiers, described on [Identifiers](../editing-a-record/identifiers.md)
+    - **Delete this sample**, described on [Delete](../editing-a-record/delete.md). To do it, see [How to delete a sample](delete-a-sample.md).
