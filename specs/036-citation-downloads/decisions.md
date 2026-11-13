@@ -58,7 +58,7 @@ The text is for pasting into a document, so it has nothing to import and no Down
 prototype. The prototype saves what the panel shows. Here Download takes the file from the format's
 address, so the file a reader saves and the file a tool fetches are one and the same.
 
-**ADR:** none.
+**ADR:** none. Local to the Cite panel's script, and the page's other tabs already behave this way.
 
 ## D6. The panel remembers the reader's format
 
@@ -75,7 +75,7 @@ citation card as text with a way to copy it (FR-014). This feature's pull reques
 the specification reads as the pages are. #672 drops the placeholder from the pages, and this
 feature makes the capability real.
 
-**ADR:** none.
+**ADR:** none. Local to the Cite panel's script, and the page's other tabs already behave this way.
 
 ## D8. Two stories
 
@@ -84,11 +84,15 @@ a person sets out to do. The second serves people who never open the page (a ref
 import by address, a script citing many records). Format choice, Copy, Download, records without a
 DOI and private records are scenarios under them.
 
+**ADR:** none. How this specification is divided, not how the code is built.
+
 ## D9. Goals
 
 #673's footer claims G10 and G14. G10, data and metadata reachable by machines: each format has an
 address a tool can fetch. G14, metadata complete enough for a publication addon: the formats carry
 the same creators, year, title, publisher and identifier a publication needs. Both claims hold.
+
+**ADR:** none. A record of which goals the feature serves.
 
 ## D10. TeX's special characters are escaped before the BibTeX writer sees them
 
@@ -108,7 +112,7 @@ The prototype's switch is a `role="tablist"` whose buttons respond to clicks onl
 expected to move with the arrow keys, Home and End, as the description tabs on the same page
 already do. The port adds that and nothing else.
 
-**ADR:** none.
+**ADR:** none. Local to the Cite panel's script, and the page's other tabs already behave this way.
 
 ## D12. A format's address reads the page's own context
 
