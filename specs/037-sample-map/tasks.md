@@ -37,10 +37,10 @@ with the environment in `/home/sam/projects/worktrees/fairdm-037-env.sh` sourced
   the `overview.map` block in `fairdm/core/project/templates/project/project_detail.html` and
   `fairdm/core/dataset/templates/dataset/dataset_detail.html`, as plan.md "The panel" describes.
   T005 goes green.
-- [ ] T007 [US1] `fairdm/static/js/overview.js`: `startSampleMap` and its branch in `initMaps`,
+- [x] T007 [US1] `fairdm/static/js/overview.js`: `startSampleMap` and its branch in `initMaps`,
   ported from the prototype's `initMaps`, as plan.md "The script" describes. No test (plan.md
   "What is not built").
-- [ ] T008 [US1] `fairdm/static/css/fairdm.css`: the legend and popup rules, as plan.md "The look"
+- [x] T008 [US1] `fairdm/static/css/fairdm.css`: the legend and popup rules, as plan.md "The look"
   describes. No test.
 
 ### Group 3

@@ -1431,6 +1431,12 @@ a.ov-row__title:hover { text-decoration: underline; }
 .ov-map { position: relative; height: 22rem; border-radius: var(--radius-field, 0.5rem); overflow: hidden; background: var(--color-base-200); border: 1px solid var(--ov-line); }
 .ov-map--side { height: auto; aspect-ratio: 4 / 3; }
 @media (max-width: 639px) { .ov-map { height: 16rem; } }
+.ov-map-legend { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; font-size: 0.8125rem; color: var(--ov-muted); }
+.ov-map-legend strong { color: var(--color-base-content); font-variant-numeric: tabular-nums; }
+.maplibregl-popup-content { font: inherit; font-size: 0.8125rem; padding: 0.625rem 0.75rem; border-radius: 0.5rem; background: var(--color-base-100); color: var(--color-base-content); }
+.maplibregl-popup-content a { font-weight: 600; color: var(--ov-link, var(--color-primary)); }
+.maplibregl-popup-content span { display: block; color: color-mix(in oklch, var(--color-base-content) 65%, transparent); }
+.ov-map-samples { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
 .ov-coords { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem 1rem; margin: 0; }
 .ov-coords dt { font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; color: var(--ov-faint); }
 .ov-coords dd { margin: 0; font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8125rem; }
