@@ -30,7 +30,7 @@ with the environment in `/home/sam/projects/worktrees/fairdm-037-env.sh` sourced
 
 ### Group 2
 
-- [ ] T005 [US1] Tests: `TestCoverage` in `tests/test_templates/test_overview_components.py`, and
+- [x] T005 [US1] Tests: `TestCoverage` in `tests/test_templates/test_overview_components.py`, and
   the project and dataset page tests in `tests/test_templates/test_overview_page.py`, as plan.md
   "Tests" lists.
 - [ ] T006 [US1] `fairdm/templates/cotton/overview/coverage.html`, ported from the prototype, and

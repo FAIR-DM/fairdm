@@ -5,6 +5,7 @@ what it delivers: the data it was given, the links it draws and the names it car
 assistive technology. Wording is never asserted.
 """
 
+import json
 from datetime import date
 
 import pytest
@@ -436,3 +437,118 @@ class TestResult:
         page = soup(render_overview("result", label="L", value="1"))
 
         assert page.select_one(".ov-result__aside") is None
+
+
+class TestCoverage:
+    @pytest.fixture
+    def located(self):
+        """The ``sample_map`` a page hands the panel when samples have locations."""
+        return {
+            "located": 1234,
+            "missing": 5,
+            "bounds": [7.9, 48.9, 8.1, 49.0],
+            "area": "48.9 N to 49.0 N, 7.9 E to 8.1 E",
+            "points_url": "/abc/sample-points/",
+            "datasets": 3,
+        }
+
+    def render(self, render_overview, map_, **attributes):
+        return render_overview(
+            "coverage", map=map_, id="cov", more_url="/abc/samples/", **attributes
+        )
+
+    def test_the_map_element_carries_where_to_fetch_the_points_and_what_to_fit(
+        self, render_overview, soup, located
+    ):
+        page = soup(self.render(render_overview, located))
+
+        element = page.select_one("[data-map]")
+        assert element["data-points-url"] == "/abc/sample-points/"
+        assert json.loads(element["data-bounds"]) == [7.9, 48.9, 8.1, 49.0]
+        assert element["role"] == "img"
+
+    def test_the_maps_accessible_name_holds_the_number_mapped_and_the_area(
+        self, render_overview, soup, located
+    ):
+        page = soup(self.render(render_overview, located))
+
+        label = page.select_one("[data-map]")["aria-label"]
+        assert "1,234" in label
+        assert located["area"] in label
+
+    def test_the_legend_counts_the_samples_with_and_without_a_location(
+        self, render_overview, soup, located
+    ):
+        page = soup(self.render(render_overview, located))
+
+        legend = page.select_one(".ov-map-legend")
+        assert [s.get_text() for s in legend.select("strong")][:2] == ["1,234", "5"]
+
+    def test_the_legend_leaves_out_the_count_without_a_location_when_none_is_missing(
+        self, render_overview, soup, located
+    ):
+        page = soup(self.render(render_overview, {**located, "missing": 0}))
+
+        legend = page.select_one(".ov-map-legend")
+        assert "5" not in [s.get_text() for s in legend.select("strong")]
+
+    def test_the_legend_counts_the_datasets_only_when_given(
+        self, render_overview, soup, located
+    ):
+        with_datasets = soup(self.render(render_overview, located))
+        without = {k: v for k, v in located.items() if k != "datasets"}
+        without_datasets = soup(self.render(render_overview, without))
+
+        def figures(page):
+            return [s.get_text() for s in page.select(".ov-map-legend strong")]
+
+        assert "3" in figures(with_datasets)
+        assert len(figures(without_datasets)) == len(figures(with_datasets)) - 1
+
+    def test_the_legend_names_the_area_covered(self, render_overview, soup, located):
+        page = soup(self.render(render_overview, located))
+
+        assert located["area"] in page.select_one(".ov-map-legend").get_text()
+
+    def test_the_see_all_link_is_the_samples_list_given(
+        self, render_overview, soup, located
+    ):
+        page = soup(self.render(render_overview, located))
+
+        assert page.select_one(".ov-panel__more")["href"] == "/abc/samples/"
+
+    def test_the_panel_has_no_edit_control(self, render_overview, soup, located):
+        page = soup(self.render(render_overview, located))
+
+        assert page.select_one(".ov-panel__tools a:not(.ov-panel__more)") is None
+
+    def test_the_panel_is_the_coverage_card(self, render_overview, soup, located):
+        page = soup(self.render(render_overview, located))
+
+        assert page.select_one("[data-card=coverage]") is not None
+
+    def test_with_none_located_there_is_no_map_element(
+        self, render_overview, soup, located
+    ):
+        none_located = {**located, "located": 0, "bounds": None, "area": None}
+
+        page = soup(self.render(render_overview, none_located))
+
+        assert page.select_one("[data-map]") is None
+        assert page.select_one(".ov-map-legend") is None
+        assert page.select_one(".ov-empty") is not None
+
+    def test_the_empty_line_can_be_replaced(self, render_overview, soup, located):
+        none_located = {**located, "located": 0, "bounds": None, "area": None}
+
+        page = soup(self.render(render_overview, none_located, empty="EMPTY-MARKER"))
+
+        assert page.select_one(".ov-empty").get_text() == "EMPTY-MARKER"
+
+    def test_located_samples_without_bounds_give_the_legend_and_no_map(
+        self, render_overview, soup, located
+    ):
+        page = soup(self.render(render_overview, {**located, "bounds": None}))
+
+        assert page.select_one("[data-map]") is None
+        assert page.select_one(".ov-map-legend") is not None
