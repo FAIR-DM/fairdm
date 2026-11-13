@@ -12,7 +12,8 @@
   Blocks, in page order (the names a record or a type fills):
 
     overview.notices        alerts above the header, so they are read first
-    overview.image          header: the record's image, or its icon in its colour
+    overview.image          header: the icon tile, shown when the record has no image (an
+                            image fills the header's trailing side instead)
     overview.badges         header: type, status and access
     overview.name           header: the name inside the heading
     overview.byline         header: the people behind the record, by name
@@ -50,17 +51,27 @@
   <div class="ov ov--head record-{{ overview_icon }}">
     <div class="ov-notices">{% block overview.notices %}{% endblock overview.notices %}</div>
 
-    <header class="ov-hero record-{{ overview_icon }}">
+    <header class="ov-hero record-{{ overview_icon }}{% if record.image %} ov-hero--cover{% endif %}">
+      <div class="ov-hero__top">
+      {% if record.image %}
+        {% comment %} The record's image fills the header's trailing side, and opens at full size. {% endcomment %}
+        <button type="button" class="ov-cover" onclick="document.getElementById('ov-cover-full').showModal()" aria-haspopup="dialog" aria-label="{% translate 'View the image at full size' %}">
+          <img src="{{ record.image|thumbnail_url:'core_cover' }}" alt="" />
+        </button>
+        <dialog id="ov-cover-full" class="modal ov-lightbox" aria-label="{{ record_title|default:record.name }}">
+          <div class="modal-box">
+            <img src="{{ record.image.url }}" alt="" />
+            <form method="dialog"><button class="btn btn-sm btn-circle absolute end-3 top-3" aria-label="{% translate 'Close' %}">✕</button></form>
+          </div>
+          <form method="dialog" class="modal-backdrop"><button aria-label="{% translate 'Close' %}">{% translate "Close" %}</button></form>
+        </dialog>
+      {% endif %}
       <div class="ov-hero__inner">
-        <div class="ov-hero__media">
-          {% block overview.image %}
-            {% if record.image %}
-              <div class="ov-tile ov-tile--photo"><img src="{{ record.image|thumbnail_url:'core_small' }}" alt="" /></div>
-            {% else %}
-              <div class="ov-tile" aria-hidden="true"><c-icon name="{{ overview_icon }}" only /></div>
-            {% endif %}
-          {% endblock overview.image %}
-        </div>
+        {% block overview.image %}
+          {% if not record.image %}
+            <div class="ov-hero__media"><div class="ov-tile" aria-hidden="true"><c-icon name="{{ overview_icon }}" only /></div></div>
+          {% endif %}
+        {% endblock overview.image %}
 
         <div class="ov-badges">{% block overview.badges %}{% endblock overview.badges %}</div>
 
@@ -108,6 +119,7 @@
             {% endblock overview.manage %}
           {% endblock overview.actions %}
         </div>
+      </div>
       </div>
 
       {% block overview.figures %}{% endblock overview.figures %}

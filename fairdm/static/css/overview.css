@@ -45,25 +45,22 @@
     linear-gradient(120deg, var(--record-tint) 0%, color-mix(in srgb, var(--record-tint) 40%, var(--color-base-100)) 40%, var(--color-base-100) 75%);
 }
 
+/* Behind a header with no image: a fine grid of dots in the record's colour, strongest at the
+ * trailing edge and fading out before it reaches the text. */
 .ov-hero::before {
   content: "";
   position: absolute;
   inset: 0 0 0 auto;
-  width: min(62%, 44rem);
+  width: min(55%, 40rem);
   z-index: -1;
-  background-color: var(--record);
-  opacity: 0.22;
-  -webkit-mask-image: url("../img/overview-contours.svg"), linear-gradient(to left, #000 20%, transparent);
-  -webkit-mask-composite: source-in;
-  mask-image: url("../img/overview-contours.svg"), linear-gradient(to left, #000 20%, transparent);
-  mask-composite: intersect;
-  mask-size: cover, 100% 100%;
-  mask-position: right top, 0 0;
-  mask-repeat: no-repeat;
-  -webkit-mask-size: cover, 100% 100%;
-  -webkit-mask-position: right top, 0 0;
-  -webkit-mask-repeat: no-repeat;
+  background-image: radial-gradient(circle at center, var(--record) 1.25px, transparent 1.75px);
+  background-size: 14px 14px;
+  background-position: right 7px top 7px;
+  opacity: 0.42;
+  -webkit-mask-image: linear-gradient(to left, #000 0%, rgba(0, 0, 0, 0.55) 35%, transparent 90%);
+  mask-image: linear-gradient(to left, #000 0%, rgba(0, 0, 0, 0.55) 35%, transparent 90%);
 }
+.ov-hero--cover::before { display: none; }
 
 .ov-hero::after {
   content: "";
@@ -101,7 +98,7 @@
     grid-template-areas: "media" "badges" "text" "actions";
     gap: 0.875rem;
   }
-  .ov-hero::before { width: 100%; opacity: 0.14; }
+  .ov-hero::before { width: 100%; opacity: 0.18; }
 }
 
 .ov-tile {
@@ -219,6 +216,7 @@ a.ov-figure:focus-visible { outline: 2px solid var(--color-primary); outline-off
 .ov-figure__label { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8125rem; color: var(--ov-muted); }
 .ov-figure__label::before {
   content: "";
+  flex: none;
   width: 0.5rem; height: 0.5rem; border-radius: 2px;
   background: var(--record, transparent);
   display: var(--ov-swatch, none);
@@ -645,3 +643,40 @@ a.ov-row__title:hover { text-decoration: underline; }
 .ov-mix__track span { display: block; height: 100%; border-radius: inherit; background: var(--record); min-width: 3px; }
 .ov-mix__n { text-align: end; font-variant-numeric: tabular-nums; font-weight: 600; }
 .ov-mix li.ov-mix__group { display: block; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 650; color: var(--ov-faint); margin-top: 0.25rem; }
+
+/* A record with an image: the image fills the header's trailing side, full height, and opens at
+ * full size. The icon tile is left out, since the image already says what the record is. */
+.ov-hero__top { position: relative; }
+.ov-hero--cover .ov-hero__top { padding-inline-end: min(40%, 30rem); min-height: 15rem; }
+.ov-hero--cover .ov-hero__inner {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "badges" "text" "actions";
+}
+.ov-hero--cover .ov-hero__actions { justify-content: flex-start; padding-top: 0.25rem; }
+.ov-cover {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: min(40%, 30rem);
+  margin: 0; padding: 0; border: 0;
+  background: var(--record-tint);
+  cursor: zoom-in;
+  overflow: hidden;
+  border-inline-start: 1px solid var(--ov-line);
+}
+.ov-cover img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s ease; }
+.ov-cover:hover img { transform: scale(1.025); }
+.ov-cover:focus-visible { outline: 3px solid var(--color-primary); outline-offset: -3px; }
+@media (prefers-reduced-motion: reduce) { .ov-cover img { transition: none; } .ov-cover:hover img { transform: none; } }
+
+@media (max-width: 1023px) {
+  .ov-hero--cover .ov-hero__top { padding-inline-end: 36%; }
+  .ov-cover { width: 36%; }
+}
+@media (max-width: 639px) {
+  .ov-hero--cover .ov-hero__top { padding-inline-end: 0; min-height: 0; }
+  .ov-cover { position: relative; inset: auto; width: 100%; aspect-ratio: 16 / 9; display: block; border-inline-start: 0; border-bottom: 1px solid var(--ov-line); }
+  .ov-hero--cover .ov-hero__inner { grid-template-columns: minmax(0, 1fr); grid-template-areas: "badges" "text" "actions"; padding-top: var(--ov-pad); }
+}
+
+.ov-lightbox .modal-box { width: auto; max-width: min(92vw, 80rem); max-height: 90vh; padding: 0; overflow: hidden; background: var(--color-base-100); }
+.ov-lightbox img { display: block; max-width: min(92vw, 80rem); max-height: 90vh; object-fit: contain; }

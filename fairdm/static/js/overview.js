@@ -182,6 +182,20 @@
     return getComputedStyle(el).getPropertyValue(name).trim();
   }
 
+  // The tiles' attribution, closed to its (i) button until someone opens it.
+  function addAttribution(map) {
+    map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-right");
+    function close() {
+      map.getContainer().querySelectorAll(".maplibregl-ctrl-attrib").forEach(function (el) {
+        el.classList.remove("maplibregl-compact-show");
+        el.removeAttribute("open");
+      });
+    }
+    close();
+    map.once("load", close);
+    map.once("idle", close);
+  }
+
   // Maps: a single point (data-lon, data-lat) or a set of points (data-points names a JSON script).
   function initMaps(root) {
     if (!window.maplibregl) return;
@@ -196,10 +210,11 @@
           style: "https://tiles.openfreemap.org/styles/positron",
           bounds: [[b[0], b[1]], [b[2], b[3]]],
           fitBoundsOptions: { padding: 48, maxZoom: 10 },
-          attributionControl: { compact: true },
+          attributionControl: false,
           cooperativeGestures: true,
         });
         map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+        addAttribution(map);
         map.on("load", function () {
           map.addSource("samples", { type: "geojson", data: data, cluster: true, clusterRadius: 38, clusterMaxZoom: 11 });
           map.addLayer({
@@ -249,10 +264,11 @@
           style: "https://tiles.openfreemap.org/styles/liberty",
           center: point,
           zoom: 9,
-          attributionControl: { compact: true },
+          attributionControl: false,
           cooperativeGestures: true,
         });
         map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+        addAttribution(map);
         new maplibregl.Marker({ color: colour }).setLngLat(point).addTo(map);
       }
     });

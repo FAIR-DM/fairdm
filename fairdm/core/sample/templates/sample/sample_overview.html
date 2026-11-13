@@ -21,13 +21,6 @@
   (the map, after the citation) and overview.samples (related samples).
 {% endcomment %}
 
-{% block overview.image %}
-  {% if sample.image %}
-    <div class="ov-tile ov-tile--photo"><img src="{{ sample.image|thumbnail_url:'core_small' }}" alt="" /></div>
-  {% else %}
-    <div class="ov-tile" aria-hidden="true"><c-icon name="sample" only /></div>
-  {% endif %}
-{% endblock overview.image %}
 
 {% block overview.badges %}
   {% include "overview/includes/type_badge.html" with kind="sample" label=sample_type info=type_info id="about-sample-type" %}
@@ -128,8 +121,7 @@
   {% block overview.cite %}{{ block.super }}{% endblock overview.cite %}
 
   {% block overview.location %}
-    <div id="location"></div>
-    <c-ov.location :location="location" :elevation="sample.location_elevation" :uncertainty="sample.location_uncertainty" empty="{% translate 'No location has been recorded for this sample.' %}" />
+    <c-ov.location id="location" :location="location" :elevation="sample.location_elevation" :uncertainty="sample.location_uncertainty" empty="{% translate 'No location has been recorded for this sample.' %}" />
   {% endblock overview.location %}
 
   {% block overview.details %}{{ block.super }}{% endblock overview.details %}

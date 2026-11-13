@@ -89,6 +89,7 @@ THUMBNAIL_ALIASES = {
     # 3:2 aliases shared by Project, Dataset, Sample and Measurement.
     "": {
         "core_small": {"size": (600, 400), "crop": "smart"},
+        "core_cover": {"size": (1200, 0)},
         "core_large": {"size": (1200, 800), "crop": "smart"},
     },
     "contributors": {

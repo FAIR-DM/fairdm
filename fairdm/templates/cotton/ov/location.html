@@ -1,12 +1,12 @@
 {% comment %}
   <c-ov.location> — where one sample was taken (or one measurement made): a map with the point,
   and the coordinates as recorded.
-  Attributes: location (x = longitude, y = latitude), elevation, uncertainty, title, label, empty.
+  Attributes: location (x = longitude, y = latitude), elevation, uncertainty, title, label, empty, id.
 {% endcomment %}
 {% load i18n %}
-<c-vars location elevation uncertainty title label empty />
+<c-vars location elevation uncertainty title label empty id />
 {% if location or empty %}
-  <c-ov.panel side title="{{ title|default:_('Location') }}" data-card="location">
+  <c-ov.panel side title="{{ title|default:_('Location') }}" id="{{ id }}" data-card="location">
     {% if location %}
       <div class="ov-map ov-map--side" role="img" data-lon="{{ location.x|stringformat:'s' }}" data-lat="{{ location.y|stringformat:'s' }}"
            aria-label="{% if label %}{{ label }}{% else %}{% blocktranslate with x=location.x y=location.y %}Map of where the sample was taken, at longitude {{ x }} and latitude {{ y }}{% endblocktranslate %}{% endif %}"></div>
