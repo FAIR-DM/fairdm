@@ -60,15 +60,27 @@ def _seeded_projects():
 
 
 @pytest.fixture(scope="class")
-def overviews_seeded(django_db_setup, django_db_blocker):
+def overviews_seeded(django_db_setup, django_db_blocker, tmp_path_factory):
     """Run the command once for a test class: it is the slowest part of these tests.
 
-    Each test rolls back to this point, and the class rolls back to where it started.
+    Each test rolls back to this point, and the class rolls back to where it started. The
+    seeded images are written under a media root of the class's own, which it yields.
     """
-    with django_db_blocker.unblock(), transaction.atomic():
+    media_root = str(tmp_path_factory.mktemp("media"))
+    with (
+        override_settings(MEDIA_ROOT=media_root),
+        django_db_blocker.unblock(),
+        transaction.atomic(),
+    ):
         _seed()
-        yield
+        yield media_root
         transaction.set_rollback(True)
+
+
+@pytest.fixture
+def seeded_media(overviews_seeded, settings):
+    """Serve the seeded images: every test otherwise gets an empty media root of its own."""
+    settings.MEDIA_ROOT = overviews_seeded
 
 
 @pytest.mark.django_db
@@ -186,7 +198,7 @@ class TestSeedOverviewsTeams:
                 assert staff.has_perm(f"dataset.{right}", dataset), (dataset, right)
 
     def test_the_staff_user_sees_the_readiness_checklist_on_the_sparse_project(
-        self, client
+        self, client, seeded_media
     ):
         client.login(email=ACCOUNTS["staff"], password=DEV_ACCOUNT_PASSWORD)
         sparse = Project.objects.get(name=SPARSE)
@@ -206,6 +218,10 @@ class TestSeedOverviewsTeams:
         ]
         assert [project.name for project in teams] == [SHOWCASE]
 
+    def test_one_project_has_an_image_and_the_showcase_has_none(self):
+        assert Project.objects.get(name=SPARSE).image
+        assert not Project.objects.get(name=SHOWCASE).image
+
     def test_the_showcase_has_samples_with_a_location_and_samples_without_one(self):
         samples = Sample.objects.filter(dataset__project__name=SHOWCASE)
 
@@ -222,7 +238,9 @@ class TestSeedOverviewsTeams:
         ]
         assert len(teams) == 1
         datasets = Dataset.all_objects.filter(project=teams[0])
-        assert [second.has_perm("dataset.change_dataset", d) for d in datasets] == [True]
+        assert [second.has_perm("dataset.change_dataset", d) for d in datasets] == [
+            True
+        ]
         assert not Sample.objects.filter(dataset__in=datasets).exists()
 
     def test_the_regular_user_may_not_open_the_private_empty_project(self, client):

@@ -159,3 +159,41 @@ def lab_name(measurement):
         measurement.name = f"{label} {random.randint(1, 400)}"
     measurement.save(update_fields=["name"])
     return measurement
+
+
+def cover_image(name, width=1600, height=1000):
+    """Draw a landscape-shaped placeholder photograph for a seeded record's image.
+
+    Bands of colour shade from a pale sky to dark ground, so the image reads as a photograph at a
+    glance and its proportions show how a page crops it.
+
+    Args:
+        name: The file name to give the image.
+        width: Its width in pixels.
+        height: Its height in pixels.
+
+    Returns:
+        The image as a file a model's image field accepts.
+    """
+    from io import BytesIO
+
+    from django.core.files.base import ContentFile
+    from PIL import Image, ImageDraw
+
+    image = Image.new("RGB", (width, height))
+    draw = ImageDraw.Draw(image)
+    for y in range(height):
+        share = y / height
+        top, bottom = (188, 208, 222), (58, 74, 52)
+        colour = tuple(round(a + (b - a) * share) for a, b in zip(top, bottom))
+        draw.line([(0, y), (width, y)], fill=colour)
+    for n, shade in enumerate(((96, 112, 120), (74, 90, 80), (52, 64, 50))):
+        base = height * (0.45 + 0.12 * n)
+        ridge = [
+            (x, base - (60 - 15 * n) * (1 + ((x * (n + 3)) % 7) / 7))
+            for x in range(0, width + 80, 80)
+        ]
+        draw.polygon([(0, height), *ridge, (width, height)], fill=shade)
+    buffer = BytesIO()
+    image.save(buffer, format="JPEG", quality=85)
+    return ContentFile(buffer.getvalue(), name=name)

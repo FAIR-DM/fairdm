@@ -7,7 +7,7 @@ Development only. Creates the standard sign-in accounts and four projects:
   three years, a large team with ``regular.user`` on it, funding and identifiers. Most of its
   samples have a location, and one in eight has none;
 - a brand-new private project with nothing but a name, owned by ``staff.user``;
-- a sparse public project with a very long title, one dataset and one contributor;
+- a sparse public project with a very long title, an image, one dataset and one contributor;
 - an empty project with one empty dataset, on ``regular.user2``'s team, so a first visit by a
   new team can be judged. ``staff.user`` is on it too, as on every seeded project.
 
@@ -37,6 +37,7 @@ from demo.factories import (
     XRFMeasurementFactory,
 )
 from demo.seed.common import (
+    cover_image,
     create_accounts,
     example_accounts,
     grant_team_rights,
@@ -80,10 +81,22 @@ SEEDED_NAMES = [SHOWCASE, EMPTY, SPARSE, NEW_TEAM]
 # Where each showcase dataset's samples were taken: a centre (longitude, latitude), a spread in
 # degrees and an elevation range in metres.
 SITES = {
-    "Thermal conductivity of Buntsandstein sandstones": ((8.55, 49.02), 0.18, (140, 420)),
+    "Thermal conductivity of Buntsandstein sandstones": (
+        (8.55, 49.02),
+        0.18,
+        (140, 420),
+    ),
     "Shallow soil gas survey, Bruchsal": ((8.60, 49.12), 0.05, (110, 180)),
-    "Core samples from the Soultz-sous-Forêts boreholes": ((7.865, 48.935), 0.02, (150, 160)),
-    "Deep groundwater chemistry, Rittershoffen and Landau": ((8.03, 49.04), 0.16, (120, 190)),
+    "Core samples from the Soultz-sous-Forêts boreholes": (
+        (7.865, 48.935),
+        0.02,
+        (150, 160),
+    ),
+    "Deep groundwater chemistry, Rittershoffen and Landau": (
+        (8.03, 49.04),
+        0.16,
+        (120, 190),
+    ),
     "Borehole temperature logs (quality-controlled)": ((8.25, 49.30), 0.25, (95, 160)),
     "Spring water sampling campaign 2026": ((8.35, 48.75), 0.30, (120, 600)),
 }
@@ -386,6 +399,10 @@ class ProjectSeed(BaseCommand):
 
         One sample in eight keeps no location, so the pages show how many have none.
 
+        Args:
+            dataset_name: The showcase dataset the sample belongs to, which picks its site.
+            n: The sample's place in the dataset, counted from zero.
+
         Returns:
             The sample's location fields, empty for a sample left without one.
         """
@@ -442,6 +459,7 @@ class ProjectSeed(BaseCommand):
             visibility=Visibility.PUBLIC,
             owner=self.organization("Universität Tübingen"),
             created_by=users["super.user"],
+            image=cover_image("intercomparison.jpg"),
         )
         ProjectDescription.objects.create(
             related=project,

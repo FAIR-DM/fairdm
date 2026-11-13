@@ -949,12 +949,9 @@ def project_figures(page, project):
     """Return the Samples and Measurements figures as ``{tab: value}``, found by their link."""
     figures = {}
     for kind in ("samples", "measurements"):
-        link = page.select_one(
-            f'.stat-title a[href="{project_address(project, kind)}"]'
-        )
+        link = page.select_one(f'a.ov-figure[href="{project_address(project, kind)}"]')
         if link is not None:
-            figure = link.find_parent(class_="stat")
-            figures[kind] = figure.select_one(".stat-value").get_text(strip=True)
+            figures[kind] = link.select_one(".ov-figure__value").get_text(strip=True)
     return figures
 
 

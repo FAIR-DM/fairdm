@@ -26,7 +26,7 @@ The commands refuse to run outside development, because the accounts they create
 
    It builds on the records `seed_overviews` creates, so run that first.
 
-3. Sign in as `staff.user` to see the pages as a member of a team. `staff.user` holds the manage level on every seeded project and dataset, so its pages show the readiness checklist. `regular.user` holds none. Open the pages signed out to see them as a visitor.
+3. Sign in as `staff.user` to see the pages as a member of a team. `staff.user` holds the manage level on every seeded project and dataset, so its pages show the readiness checklist. `regular.user` is on the team of the project described in full, and `regular.user2` owns the empty project. Open the pages signed out to see them as a visitor.
 
 4. Run the command again whenever you want fresh data. It replaces only the records it created, and leaves records someone else made.
 
@@ -34,8 +34,8 @@ The commands refuse to run outside development, because the accounts they create
 
 The database holds records that reach each state the pages describe:
 
-- projects: one described in full, with datasets, samples, measurements, a large team, funding and identifiers, one brand-new private project with only a name, and one sparse public project with a very long title
-- samples: one with a full history, an identifier, a location, measurements and subsamples, one that has been destroyed, one with only a name, and one in an unpublished dataset
+- projects: one described in full, with datasets, samples, measurements, a large team, funding and identifiers, one brand-new private project with only a name, one sparse public project with a very long title and an image, and one empty project with one empty dataset
+- samples: most of the full project's samples have a location near their dataset's site, and one in eight has none. There is also one with a full history, an identifier, a location, measurements and subsamples, one that has been destroyed, one with only a name, and one in an unpublished dataset
 - measurements: one with its procedure, a DOI and a location of its own, one recorded in another team's dataset, one with nothing else recorded, and one in an unpublished dataset
 
 Types with a template of their own show the extended page, and types without one show the shared page. See [How to give a sample or measurement type its own overview page](give-a-sample-or-measurement-type-its-own-overview-page.md).
@@ -51,4 +51,6 @@ Types with a template of their own show the extended page, and types without one
 | `create_accounts(accounts)` | Creates the missing accounts from `(email, first, last, is_staff, is_superuser)` entries and returns them keyed by the part of the address before the `@`. |
 | `remove_own_projects(names, users)` | Deletes the projects an earlier run created. |
 | `grant_team_rights(user, *records)` | Lists an account at the manage level on the projects and datasets it is given. |
+| `lab_name(measurement)` | Names a measurement the way a laboratory would, by element, analyte or run number, and saves it. |
+| `cover_image(name, width, height)` | Draws a placeholder photograph to give a seeded record as its image. |
 | `data_curator()` | Returns the development account that holds the Data Curator role, creating it when missing. |

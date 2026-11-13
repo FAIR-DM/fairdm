@@ -318,8 +318,7 @@ class TestPeople:
     def people(named, faces=(), more=0):
         return {
             "named": [
-                {"contributor": p, "roles": ["Creator"], "more_roles": 0}
-                for p in named
+                {"contributor": p, "roles": ["Creator"], "more_roles": 0} for p in named
             ],
             "faces": list(faces),
             "more": more,

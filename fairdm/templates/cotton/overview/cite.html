@@ -1,14 +1,7 @@
+{# @description How to cite the record, with a button that copies the citation. Its id is cite, which the header's Cite button scrolls to. #}
+{# @prop text:text | description:"The citation, as plain text." #}
+{# @slot This record has no DOI, so the citation points at this page. — A note under the citation. #}
 {% load i18n %}
-{% comment %}
-  <c-overview.cite> — how to cite the record, with a button that copies the citation.
-
-  The panel's id is `cite`, which the header's Cite button scrolls to.
-
-  Attributes:
-    text  – the citation, as plain text
-  Slots:
-    (default) – a note under the citation, e.g. why it points at this page rather than a DOI
-{% endcomment %}
 <c-vars text />
 <section class="ov-panel ov-panel--side" id="cite" aria-labelledby="cite-heading" data-card="citation">
   <div class="ov-panel__head">

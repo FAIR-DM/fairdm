@@ -186,7 +186,9 @@ class RecordOverviewPlugin(OverviewPlugin):
         named = [
             {
                 "contributor": entry["contributor"],
-                "roles": [sentence_case(label) for label in list(entry["roles"].values())[:2]],
+                "roles": [
+                    sentence_case(label) for label in list(entry["roles"].values())[:2]
+                ],
                 "more_roles": max(len(entry["roles"]) - 2, 0),
                 "affiliation": entry["affiliation"],
             }
@@ -195,7 +197,9 @@ class RecordOverviewPlugin(OverviewPlugin):
         last_face = self.people_named + self.people_faces
         return {
             "named": named,
-            "faces": [entry["contributor"] for entry in entries[self.people_named : last_face]],
+            "faces": [
+                entry["contributor"] for entry in entries[self.people_named : last_face]
+            ],
             "more": max(len(entries) - last_face, 0),
             "total": len(entries),
         }
@@ -389,7 +393,11 @@ class RecordOverviewPlugin(OverviewPlugin):
         counts = [n for _label, n in by_sample + by_measurement]
         if not counts:
             return None
-        return {"samples": by_sample, "measurements": by_measurement, "max": max(counts)}
+        return {
+            "samples": by_sample,
+            "measurements": by_measurement,
+            "max": max(counts),
+        }
 
     def get_growth_chart(self, samples, measurements) -> dict[str, Any] | None:
         """Draw the cumulative samples and measurements by month, two series on one count axis.

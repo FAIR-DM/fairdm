@@ -1,15 +1,9 @@
+{# @description A record's descriptions: one under its own name, several as tabs in the panel's heading. Long text folds after a few lines. #}
+{# @prop descriptions:list | description:"[{label, value}], the abstract first." #}
+{# @prop group:text | description:"A prefix that makes the tabs' ids unique on the page." #}
+{# @prop edit_url:text | description:"The descriptions' editing page, for someone who may edit them." #}
+{# @slot <p>No description has been added yet.</p> — What to show when the record has none. #}
 {% load i18n fairdm %}
-{% comment %}
-  <c-overview.descriptions> — a record's descriptions. One is shown under its own name. Several get
-  tabs in the panel's heading, each tab's name being the heading. Long text folds after a few lines.
-
-  Attributes:
-    descriptions  – [{label, value}], the abstract first
-    group         – a prefix that makes the tabs' ids unique on the page
-    edit_url      – the descriptions' editing page, for someone who may edit them
-  Slots:
-    (default) – what to show when the record has none
-{% endcomment %}
 <c-vars descriptions group edit_url />
 <section class="ov-panel" aria-labelledby="{{ group }}-heading" data-card="descriptions">
   {% if descriptions|length > 1 %}

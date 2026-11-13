@@ -1,15 +1,10 @@
+{# @description Everyone credited on a record: the first few by name with their roles, then faces, then a count linked to the full list. #}
+{# @prop people:dict | description:"{named: [{contributor, roles, more_roles, affiliation}], faces, more, total}." #}
+{# @prop all_url:text | description:"The full list of contributors." #}
+{# @prop manage_url:text | description:"Where the team changes who is credited, shown as Manage." #}
+{# @prop title:text | default:"People" | description:"The heading." #}
+{# @prop empty:text | default:"No one is credited yet." | description:"The line shown when nobody is credited." #}
 {% load i18n %}
-{% comment %}
-  <c-overview.people> — everyone credited: the first few by name with their roles, then faces, then
-  a link to the full list.
-
-  Attributes:
-    people      – {named: [{contributor, roles, more_roles, affiliation}], faces, more, total}
-    all_url     – the full list of contributors
-    manage_url  – where the team changes who is credited, shown as Manage
-    title       – the heading, "People" by default
-    empty       – the line shown when nobody is credited
-{% endcomment %}
 <c-vars people all_url manage_url title empty />
 <c-overview.panel side
                   title="{{ title|default:_('People') }}"

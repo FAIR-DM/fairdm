@@ -1,30 +1,16 @@
+{# @description The record's facts in one panel: details, identifiers, funding and how a machine reaches it, each a section of label-and-value rows, with Delete last for whoever may. A row with no value shows a dash. #}
+{# @prop rows:list | description:"The details: [{label, text, url, record, icon, date, until, note, badge, badge_variant, warning}]." #}
+{# @prop edit:dict | description:"The editing pages the viewer may open, by the part each changes." #}
+{# @prop kind:text | description:"The word for the record's kind, named in the Delete line." #}
+{# @prop identifiers:list | description:"[{type, value, link}]." #}
+{# @prop portal_id:text | description:"The record's portal ID." #}
+{# @prop permalink:text | description:"Its permanent address." #}
+{# @prop local_id:text | description:"The team's own ID." #}
+{# @prop funding:list | description:"The awards. None leaves the section out." #}
+{# @prop can_manage:boolean | description:"The viewer is on the team. With no funding, it then says why it matters." #}
+{# @prop api_url:text | description:"The record's REST API address." #}
+{# @slot <div><dt>Instrument</dt><dd>Bruker S8 Tiger</dd></div> — Rows added to the details section. #}
 {% load i18n %}
-{% comment %}
-  <c-overview.sheet> — the record's facts in one panel: details, identifiers, funding and how a
-  machine reaches it, each a section of label-and-value rows, and Delete last for whoever may.
-
-  Attributes:
-    rows          – the details: [{label, text, url, record, icon, date, until, note, badge,
-                    badge_variant, warning}]
-                    record       – a record, shown by name in its type's colour and linked
-                    text + url   – a value, linked when `url` is set
-                    date/until   – a date, or a date range
-                    badge        – a status pill in `badge_variant`
-                    note         – a line under the value
-                    warning      – draws the value as a warning
-                    A row with no value shows a dash.
-    edit          – the editing pages the viewer may open, by the part each changes
-    kind          – the record's kind, named in the Delete line
-    identifiers   – [{type, value, link}]
-    portal_id     – the record's portal ID
-    permalink     – its permanent address
-    local_id      – the team's own ID
-    funding       – the awards; `None` leaves the section out
-    can_manage    – the viewer is on the team; with no funding recorded, it then says why it matters
-    api_url       – the record's REST API address
-  Slots:
-    (default) – rows added to the details section, written as <div><dt>…</dt><dd>…</dd></div>
-{% endcomment %}
 <c-vars rows identifiers portal_id permalink local_id funding can_manage api_url edit kind />
 <section class="ov-panel ov-panel--side" aria-labelledby="sheet-heading" data-card="details">
   <div class="ov-panel__head">

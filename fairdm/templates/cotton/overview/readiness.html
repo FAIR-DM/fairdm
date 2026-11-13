@@ -1,14 +1,7 @@
+{# @description For the record's team only: a ring with how much is in place, what is missing with a link to fix each, and what is done folded away. #}
+{# @prop readiness:dict | description:"{title, summary, about, done, total, ready, items: [{label, done, url, required}]}. required false marks an item as recommended." #}
+{# @slot <button class="btn btn-sm">Publish</button> — An action the checklist leads to. #}
 {% load i18n %}
-{% comment %}
-  <c-overview.readiness> — for the record's team only: a ring with how much is in place, what is
-  missing with a link to fix each, and what is done folded away.
-
-  Attributes:
-    readiness  – {title, summary, about, done, total, ready, items: [{label, done, url, required}]};
-                 `required` false marks an item as recommended
-  Slots:
-    (default) – an action the checklist leads to, such as Publish
-{% endcomment %}
 <c-vars readiness />
 <section class="ov-panel ov-panel--side ov-ready" aria-labelledby="ready-heading" data-card="readiness">
   <div class="ov-panel__head">

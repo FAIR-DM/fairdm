@@ -1,14 +1,9 @@
-{% comment %}
-  <c-overview.figure> — one headline figure along the foot of the header. Links to its list when
-  `href` is set.
-
-  Attributes:
-    value   – the figure
-    label   – what it counts
-    href    – the list it counts
-    record  – project, dataset, sample or measurement: draws the type's colour beside the label
-    note    – a line under the label
-{% endcomment %}
+{# @description One headline figure along the foot of an overview page's header, linked to its list when given an address. #}
+{# @prop value:text | description:"The figure." #}
+{# @prop label:text | description:"What it counts." #}
+{# @prop href:text | description:"The list it counts." #}
+{# @prop record:select['project','dataset','sample','measurement'] | description:"Draws the record type's colour beside the label." #}
+{# @prop note:text | description:"A line under the label." #}
 <c-vars value label href record note />
 {% if href %}<a href="{{ href }}"{% else %}<div{% endif %} class="ov-figure{% if record %} record-{{ record }}{% endif %}">
   <span class="ov-figure__value">{{ value }}</span>

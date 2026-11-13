@@ -14,7 +14,7 @@ from django.utils.formats import date_format
 from partial_dates import PartialDate
 
 from fairdm.core.vocabularies import IDENTIFIER_TYPES
-from fairdm.factories import OrganizationFactory, PersonFactory
+from fairdm.factories import PersonFactory
 
 
 def _card_titles(soup):
@@ -166,7 +166,9 @@ class TestTimelineCard:
         assert "SECOND" in items[1]
 
     def test_a_date_recorded_only_to_the_year_is_shown_as_recorded(self, render_card):
-        steps = [{"label": "Step", "date": PartialDate.fromisoformat("2020"), "day": None}]
+        steps = [
+            {"label": "Step", "date": PartialDate.fromisoformat("2020"), "day": None}
+        ]
 
         html = render_card("timeline", title="History", steps=steps, empty="")
 
@@ -176,7 +178,9 @@ class TestTimelineCard:
     def test_a_date_recorded_only_to_the_month_follows_the_active_locale(
         self, render_card
     ):
-        steps = [{"label": "Step", "date": PartialDate.fromisoformat("2021-05"), "day": None}]
+        steps = [
+            {"label": "Step", "date": PartialDate.fromisoformat("2021-05"), "day": None}
+        ]
         with translation.override("de"):
             html = render_card("timeline", title="History", steps=steps, empty="")
             expected = date_format(date(2021, 5, 1), "YEAR_MONTH_FORMAT")
@@ -185,7 +189,13 @@ class TestTimelineCard:
 
     def test_a_full_day_follows_the_active_locale(self, render_card):
         when = date(2021, 5, 6)
-        steps = [{"label": "Step", "date": PartialDate.fromisoformat("2021-05-06"), "day": when}]
+        steps = [
+            {
+                "label": "Step",
+                "date": PartialDate.fromisoformat("2021-05-06"),
+                "day": when,
+            }
+        ]
 
         with translation.override("de"):
             html = render_card("timeline", title="History", steps=steps, empty="")

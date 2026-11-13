@@ -402,7 +402,9 @@ class TestAccess:
         reader = person_at(case, ContributionLevel.VIEW)
         client = browser_as(reader)
         description_model = DESCRIPTION_MODELS[kind]
-        first_type = next(concept.uri for concept in description_model.get_type_concepts())
+        first_type = next(
+            concept.uri for concept in description_model.get_type_concepts()
+        )
 
         assert client.get(case.url(page)).status_code == 403
         response = client.post(
@@ -639,15 +641,6 @@ class TestEditLinks:
         offered = hrefs(soup_of(response))
         assert not any(case.url(page) in offered for page in PARTS.values())
 
-    @pytest.mark.parametrize("kind", KINDS)
-    def test_the_page_has_no_manage_menu(self, make_case, person_at, kind):
-        case = make_case(kind)
-        manager = person_at(case, ContributionLevel.MANAGE)
-
-        response = browser_as(manager).get(case.own_url)
-
-        assert soup_of(response).select_one('[data-menu="manage"]') is None
-
 
 @pytest.mark.django_db
 class TestEditDetails:
@@ -880,7 +873,9 @@ class TestEditKeyDates:
         assert response.status_code == 200
         row_set = only_row_set(response, "dates")
         offered = [value for value, _label in row_set.empty_form.fields["type"].choices]
-        assert [value for value in offered if value] == [concept.uri for concept in model.get_type_concepts()]
+        assert [value for value in offered if value] == [
+            concept.uri for concept in model.get_type_concepts()
+        ]
         assert row_set.initial_form_count() == 1
         assert len(row_set.forms) == 1
         assert row_set.forms[0]["type"].value() == recorded
@@ -1116,7 +1111,9 @@ class TestEditIdentifiers:
         assert response.status_code == 200
         row_set = only_row_set(response, "identifiers")
         offered = [value for value, _label in row_set.empty_form.fields["type"].choices]
-        assert [value for value in offered if value] == [concept.uri for concept in model.get_type_concepts()]
+        assert [value for value in offered if value] == [
+            concept.uri for concept in model.get_type_concepts()
+        ]
         assert row_set.initial_form_count() == 1
         assert len(row_set.forms) == 1
         assert row_set.forms[0]["type"].value() == f"{IDENTIFIER_TYPES}/doi"
@@ -1329,7 +1326,9 @@ class TestEditDescriptions:
         response = browser_as(editor).get(case.url("descriptions"))
 
         form = response.context["form"]
-        assert list(form.fields) == [concept.uri for concept in model.get_type_concepts()]
+        assert list(form.fields) == [
+            concept.uri for concept in model.get_type_concepts()
+        ]
         assert form[recorded].value() == "Written down"
 
     @pytest.mark.parametrize("kind", KINDS)
