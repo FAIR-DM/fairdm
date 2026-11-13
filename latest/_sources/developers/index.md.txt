@@ -22,7 +22,7 @@ explanation covers why parts of FairDM work as they do. Explanation every reader
 - [How to add a start step to a container](how-to/add-a-start-step-to-a-container.md)
 - [How to add a transform for another format](how-to/add-a-transform-for-another-format.md)
 - [How to add a viewset to the API router](how-to/add-a-viewset-to-the-api-router.md)
-- [How to add an entry to the Manage menu](how-to/add-an-entry-to-the-manage-menu.md)
+- [How to add an action to an overview page](how-to/add-an-action-to-an-overview-page.md)
 - [How to add an environment override module](how-to/add-an-environment-override-module.md)
 - [How to add pages to a plugin](how-to/add-pages-to-a-plugin.md)
 - [How to add queryset methods to a measurement type](how-to/add-queryset-methods-to-a-measurement-type.md)
@@ -155,7 +155,7 @@ how-to/add-a-section-to-the-home-page
 how-to/add-a-start-step-to-a-container
 how-to/add-a-transform-for-another-format
 how-to/add-a-viewset-to-the-api-router
-how-to/add-an-entry-to-the-manage-menu
+how-to/add-an-action-to-an-overview-page
 how-to/add-an-environment-override-module
 how-to/add-pages-to-a-plugin
 how-to/add-queryset-methods-to-a-measurement-type

@@ -51,8 +51,8 @@
 :class: autosummary longtable
 :align: left
 
-* - {py:obj}`manage_menu <fairdm.core.editing.manage_menu>`
-  - ```{autodoc2-docstring} fairdm.core.editing.manage_menu
+* - {py:obj}`edit_links <fairdm.core.editing.edit_links>`
+  - ```{autodoc2-docstring} fairdm.core.editing.edit_links
     :summary:
     ```
 ````
@@ -63,8 +63,8 @@
 :class: autosummary longtable
 :align: left
 
-* - {py:obj}`MENU_PAGES <fairdm.core.editing.MENU_PAGES>`
-  - ```{autodoc2-docstring} fairdm.core.editing.MENU_PAGES
+* - {py:obj}`EDITING_PAGES <fairdm.core.editing.EDITING_PAGES>`
+  - ```{autodoc2-docstring} fairdm.core.editing.EDITING_PAGES
     :summary:
     ```
 ````
@@ -140,23 +140,12 @@ Bases: {py:obj}`fairdm.contrib.plugins.Plugin`
 
 ````
 
-````{py:attribute} menu_label
-:canonical: fairdm.core.editing.RecordEditingPage.menu_label
-:type: typing.ClassVar[str | django.utils.functional.Promise]
+````{py:attribute} part
+:canonical: fairdm.core.editing.RecordEditingPage.part
+:type: typing.ClassVar[str]
 :value: <Multiline-String>
 
-```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage.menu_label
-```
-
-````
-
-````{py:attribute} menu_icon
-:canonical: fairdm.core.editing.RecordEditingPage.menu_icon
-:type: typing.ClassVar[str]
-:value: >
-   'edit'
-
-```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage.menu_icon
+```{autodoc2-docstring} fairdm.core.editing.RecordEditingPage.part
 ```
 
 ````
@@ -299,22 +288,12 @@ Bases: {py:obj}`fairdm.core.editing.RecordEditingPage`, {py:obj}`fairdm.views.Fa
 
 ````
 
-````{py:attribute} menu_label
-:canonical: fairdm.core.editing.EditDetails.menu_label
+````{py:attribute} part
+:canonical: fairdm.core.editing.EditDetails.part
 :value: >
-   '_(...)'
+   'details'
 
-```{autodoc2-docstring} fairdm.core.editing.EditDetails.menu_label
-```
-
-````
-
-````{py:attribute} menu_icon
-:canonical: fairdm.core.editing.EditDetails.menu_icon
-:value: >
-   'edit'
-
-```{autodoc2-docstring} fairdm.core.editing.EditDetails.menu_icon
+```{autodoc2-docstring} fairdm.core.editing.EditDetails.part
 ```
 
 ````
@@ -389,22 +368,12 @@ Bases: {py:obj}`fairdm.core.editing.RecordEditingPage`, {py:obj}`meta.views.Meta
 
 ````
 
-````{py:attribute} menu_label
-:canonical: fairdm.core.editing.EditDescriptions.menu_label
+````{py:attribute} part
+:canonical: fairdm.core.editing.EditDescriptions.part
 :value: >
-   '_(...)'
+   'descriptions'
 
-```{autodoc2-docstring} fairdm.core.editing.EditDescriptions.menu_label
-```
-
-````
-
-````{py:attribute} menu_icon
-:canonical: fairdm.core.editing.EditDescriptions.menu_icon
-:value: >
-   'description'
-
-```{autodoc2-docstring} fairdm.core.editing.EditDescriptions.menu_icon
+```{autodoc2-docstring} fairdm.core.editing.EditDescriptions.part
 ```
 
 ````
@@ -502,22 +471,12 @@ Bases: {py:obj}`fairdm.core.editing.RecordEditingPage`, {py:obj}`fairdm.views.Fa
 
 ````
 
-````{py:attribute} menu_label
-:canonical: fairdm.core.editing.EditKeywords.menu_label
-:value: >
-   '_(...)'
-
-```{autodoc2-docstring} fairdm.core.editing.EditKeywords.menu_label
-```
-
-````
-
-````{py:attribute} menu_icon
-:canonical: fairdm.core.editing.EditKeywords.menu_icon
+````{py:attribute} part
+:canonical: fairdm.core.editing.EditKeywords.part
 :value: >
    'keywords'
 
-```{autodoc2-docstring} fairdm.core.editing.EditKeywords.menu_icon
+```{autodoc2-docstring} fairdm.core.editing.EditKeywords.part
 ```
 
 ````
@@ -586,22 +545,12 @@ Bases: {py:obj}`fairdm.core.editing.RecordEditingPage`, {py:obj}`fairdm.views.Fa
 
 ````
 
-````{py:attribute} menu_label
-:canonical: fairdm.core.editing.EditKeyDates.menu_label
+````{py:attribute} part
+:canonical: fairdm.core.editing.EditKeyDates.part
 :value: >
-   '_(...)'
+   'dates'
 
-```{autodoc2-docstring} fairdm.core.editing.EditKeyDates.menu_label
-```
-
-````
-
-````{py:attribute} menu_icon
-:canonical: fairdm.core.editing.EditKeyDates.menu_icon
-:value: >
-   'date'
-
-```{autodoc2-docstring} fairdm.core.editing.EditKeyDates.menu_icon
+```{autodoc2-docstring} fairdm.core.editing.EditKeyDates.part
 ```
 
 ````
@@ -691,22 +640,12 @@ Bases: {py:obj}`fairdm.core.editing.RecordEditingPage`, {py:obj}`fairdm.views.Fa
 
 ````
 
-````{py:attribute} menu_label
-:canonical: fairdm.core.editing.EditIdentifiers.menu_label
+````{py:attribute} part
+:canonical: fairdm.core.editing.EditIdentifiers.part
 :value: >
-   '_(...)'
+   'identifiers'
 
-```{autodoc2-docstring} fairdm.core.editing.EditIdentifiers.menu_label
-```
-
-````
-
-````{py:attribute} menu_icon
-:canonical: fairdm.core.editing.EditIdentifiers.menu_icon
-:value: >
-   'identifier'
-
-```{autodoc2-docstring} fairdm.core.editing.EditIdentifiers.menu_icon
+```{autodoc2-docstring} fairdm.core.editing.EditIdentifiers.part
 ```
 
 ````
@@ -796,22 +735,12 @@ Bases: {py:obj}`fairdm.core.editing.RecordEditingPage`, {py:obj}`fairdm.contrib.
 
 ````
 
-````{py:attribute} menu_label
-:canonical: fairdm.core.editing.DeleteRecord.menu_label
-:value: >
-   '_(...)'
-
-```{autodoc2-docstring} fairdm.core.editing.DeleteRecord.menu_label
-```
-
-````
-
-````{py:attribute} menu_icon
-:canonical: fairdm.core.editing.DeleteRecord.menu_icon
+````{py:attribute} part
+:canonical: fairdm.core.editing.DeleteRecord.part
 :value: >
    'delete'
 
-```{autodoc2-docstring} fairdm.core.editing.DeleteRecord.menu_icon
+```{autodoc2-docstring} fairdm.core.editing.DeleteRecord.part
 ```
 
 ````
@@ -931,19 +860,19 @@ Bases: {py:obj}`fairdm.core.editing.RecordEditingPage`, {py:obj}`fairdm.contrib.
 
 `````
 
-````{py:data} MENU_PAGES
-:canonical: fairdm.core.editing.MENU_PAGES
+````{py:data} EDITING_PAGES
+:canonical: fairdm.core.editing.EDITING_PAGES
 :value: >
    ()
 
-```{autodoc2-docstring} fairdm.core.editing.MENU_PAGES
+```{autodoc2-docstring} fairdm.core.editing.EDITING_PAGES
 ```
 
 ````
 
-````{py:function} manage_menu(request, record)
-:canonical: fairdm.core.editing.manage_menu
+````{py:function} edit_links(request, record)
+:canonical: fairdm.core.editing.edit_links
 
-```{autodoc2-docstring} fairdm.core.editing.manage_menu
+```{autodoc2-docstring} fairdm.core.editing.edit_links
 ```
 ````

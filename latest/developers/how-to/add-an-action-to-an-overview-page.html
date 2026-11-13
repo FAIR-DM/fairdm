@@ -7,14 +7,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta property="og:title" content="How to add an entry to the Manage menu" />
+<meta property="og:title" content="How to add an action to an overview page" />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="developers/how-to/add-an-entry-to-the-manage-menu.html" />
+<meta property="og:url" content="developers/how-to/add-an-action-to-an-overview-page.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="The Manage menu in a record’s header lists the editing pages the viewer may use. You add an entry of your own when a record has an action that belongs there, such as importing data into it. Before ..." />
-<meta name="description" content="The Manage menu in a record’s header lists the editing pages the viewer may use. You add an entry of your own when a record has an action that belongs there, such as importing data into it. Before ..." />
+<meta property="og:description" content="A record’s overview page has no central editing menu. Each part of the record is edited from the panel that shows it, and the header carries the actions that concern the whole record. You add an ac..." />
+<meta name="description" content="A record’s overview page has no central editing menu. Each part of the record is edited from the panel that shows it, and the header carries the actions that concern the whole record. You add an ac..." />
 
-    <title>How to add an entry to the Manage menu &#8212; fairdm 0.5.0 documentation</title>
+    <title>How to add an action to an overview page &#8212; fairdm 0.5.0 documentation</title>
   
   
   
@@ -86,7 +86,7 @@ var addUtterances = () => {
 commentsRunWhenDOMLoaded(addUtterances);
 </script>
     <script src="../../_static/design-tabs.js?v=f930bc37"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'developers/how-to/add-an-entry-to-the-manage-menu';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'developers/how-to/add-an-action-to-an-overview-page';</script>
     <script>
         DOCUMENTATION_OPTIONS.theme_version = '0.21.0';
         DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.fairdm.org/switcher.json';
@@ -765,7 +765,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l1"><a class="reference internal" href="add-a-start-step-to-a-container.html">How to add a start step to a container</a></li>
 <li class="toctree-l1"><a class="reference internal" href="add-a-transform-for-another-format.html">How to add a transform for another format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="add-a-viewset-to-the-api-router.html">How to add a viewset to the API router</a></li>
-<li class="toctree-l1 current active"><a class="current reference internal" href="#">How to add an entry to the Manage menu</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">How to add an action to an overview page</a></li>
 <li class="toctree-l1"><a class="reference internal" href="add-an-environment-override-module.html">How to add an environment override module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="add-pages-to-a-plugin.html">How to add pages to a plugin</a></li>
 <li class="toctree-l1"><a class="reference internal" href="add-queryset-methods-to-a-measurement-type.html">How to add queryset methods to a measurement type</a></li>
@@ -1057,7 +1057,7 @@ commentsRunWhenDOMLoaded(addUtterances);
     
     <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Developers</a></li>
     
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">How to add an entry to the Manage menu</span></li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">How to add an action to an overview page</span></li>
   </ul>
 </nav>
 </div>
@@ -1074,34 +1074,50 @@ commentsRunWhenDOMLoaded(addUtterances);
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <section id="how-to-add-an-entry-to-the-manage-menu">
-<h1>How to add an entry to the Manage menu<a class="headerlink" href="#how-to-add-an-entry-to-the-manage-menu" title="Link to this heading">#</a></h1>
-<p>The Manage menu in a record’s header lists the editing pages the viewer may use. You add an entry of your own when a record has an action that belongs there, such as importing data into it.</p>
+  <section id="how-to-add-an-action-to-an-overview-page">
+<h1>How to add an action to an overview page<a class="headerlink" href="#how-to-add-an-action-to-an-overview-page" title="Link to this heading">#</a></h1>
+<p>A record’s overview page has no central editing menu. Each part of the record is edited from the panel that shows it, and the header carries the actions that concern the whole record. You add an action of your own when a record has one that belongs on its page, such as importing data into it.</p>
 <section id="before-you-start">
 <h2>Before you start<a class="headerlink" href="#before-you-start" title="Link to this heading">#</a></h2>
-<p>You need the template of the page you are changing. For a sample or measurement type this is the type’s own overview template, described in <a class="reference internal" href="give-a-sample-or-measurement-type-its-own-overview-page.html"><span class="std std-doc">How to give a sample or measurement type its own overview page</span></a>. The menu is described in <a class="reference internal" href="../reference/record-editing-pages.html#the-manage-menu"><span class="std std-ref">Record editing pages</span></a>.</p>
+<p>You need the template of the page you are changing. For a sample or measurement type this is the type’s own overview template, described in <a class="reference internal" href="give-a-sample-or-measurement-type-its-own-overview-page.html"><span class="std std-doc">How to give a sample or measurement type its own overview page</span></a>. The shared editing pages and the links to them are described in <a class="reference internal" href="../reference/record-editing-pages.html#the-edit-links"><span class="std std-ref">Record editing pages</span></a>.</p>
 </section>
-<section id="steps">
-<h2>Steps<a class="headerlink" href="#steps" title="Link to this heading">#</a></h2>
+<section id="an-action-on-the-whole-record">
+<h2>An action on the whole record<a class="headerlink" href="#an-action-on-the-whole-record" title="Link to this heading">#</a></h2>
 <ol class="arabic">
-<li><p>In the template, fill the <code class="docutils literal notranslate"><span class="pre">overview.manage</span></code> block.</p></li>
-<li><p>Draw <a class="reference internal" href="../reference/components.html#c-actions-manage"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">c-actions.manage</span></code></span></a> with the shared entries, passed as <code class="docutils literal notranslate"><span class="pre">manage_menu</span></code>, and put your own <code class="docutils literal notranslate"><span class="pre">c-menu.item</span></code> entries in its slot.</p>
+<li><p>In the template, fill the <code class="docutils literal notranslate"><span class="pre">overview.manage</span></code> block and keep what it holds with <code class="docutils literal notranslate"><span class="pre">{{</span> <span class="pre">block.super</span> <span class="pre">}}</span></code>. The block holds the header’s Edit, which opens the record’s details.</p>
 <div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">block</span> <span class="nv">overview.manage</span> <span class="cp">%}</span>
-<span class="x">  &lt;c-actions.manage :entries="manage_menu"&gt;</span>
-<span class="x">    &lt;c-menu.item text="Import data" icon="upload" href="</span><span class="cp">{{</span> <span class="nv">import_url</span> <span class="cp">}}</span><span class="x">" /&gt;</span>
-<span class="x">  &lt;/c-actions.manage&gt;</span>
+<span class="x">  </span><span class="cp">{{</span> <span class="nb">block</span><span class="nv">.super</span> <span class="cp">}}</span>
+<span class="x">  </span><span class="cp">{%</span> <span class="k">if</span> <span class="nv">can_manage</span> <span class="cp">%}</span>
+<span class="x">    &lt;c-button href="</span><span class="cp">{{</span> <span class="nv">import_url</span> <span class="cp">}}</span><span class="x">" text="Import data" icon="upload" size="sm" /&gt;</span>
+<span class="x">  </span><span class="cp">{%</span> <span class="k">endif</span> <span class="cp">%}</span>
 <span class="cp">{%</span> <span class="k">endblock</span> <span class="nv">overview.manage</span> <span class="cp">%}</span>
 </pre></div>
 </div>
 </li>
 <li><p>Supply <code class="docutils literal notranslate"><span class="pre">import_url</span></code> from the plugin’s <code class="docutils literal notranslate"><span class="pre">get_context_data()</span></code>, or write the address in the template.</p></li>
-<li><p>Put any button that belongs before the menu in the same block, ahead of the component.</p></li>
-<li><p>Open the record as someone who may change it.</p></li>
+</ol>
+</section>
+<section id="an-action-on-one-part-of-the-record">
+<h2>An action on one part of the record<a class="headerlink" href="#an-action-on-one-part-of-the-record" title="Link to this heading">#</a></h2>
+<ol class="arabic">
+<li><p>Put the panel that shows that part in its block, drawn with <a class="reference internal" href="../reference/components.html#c-overview-panel"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">c-overview.panel</span></code></span></a>, and give the panel the action’s address as <code class="docutils literal notranslate"><span class="pre">edit_url</span></code>. The panel draws it as its Edit control, beside its “See all” link.</p>
+<div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">block</span> <span class="nv">overview.properties</span> <span class="cp">%}</span>
+<span class="x">  &lt;c-overview.panel title="Properties"</span>
+<span class="x">                    edit_url="</span><span class="cp">{%</span> <span class="k">if</span> <span class="nv">can_manage</span> <span class="cp">%}{{</span> <span class="nv">properties_url</span> <span class="cp">}}{%</span> <span class="k">endif</span> <span class="cp">%}</span><span class="x">"</span>
+<span class="x">                    edit_text="Edit properties"&gt;</span>
+<span class="x">    …</span>
+<span class="x">  &lt;/c-overview.panel&gt;</span>
+<span class="cp">{%</span> <span class="k">endblock</span> <span class="nv">overview.properties</span> <span class="cp">%}</span>
+</pre></div>
+</div>
+</li>
+<li><p>Inside any other element, draw <a class="reference internal" href="../reference/components.html#c-overview-edit"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">c-overview.edit</span></code></span></a> with the address. It draws nothing when the address is empty, so leave it empty for anyone who may not use the action.</p></li>
+<li><p>Open the record as someone who may change it, and as a visitor.</p></li>
 </ol>
 </section>
 <section id="the-result">
 <h2>The result<a class="headerlink" href="#the-result" title="Link to this heading">#</a></h2>
-<p>Your entry sits in the same menu as the shared ones, after them. The menu is drawn when the slot has content even if the person has none of the shared pages. The project and dataset templates already fill <code class="docutils literal notranslate"><span class="pre">overview.manage</span></code> to put Add dataset or Publish before the menu, so to add an entry to those pages, copy that block and add your item to the slot.</p>
+<p>The team sees your action where the part it changes is shown, and a visitor sees none. The shared parts already carry theirs: the header’s Edit and the keywords’ Edit, Edit on the descriptions, key dates and identifiers, Manage on People, and Delete as the last line of the Details panel.</p>
 </section>
 </section>
 
@@ -1153,7 +1169,8 @@ commentsRunWhenDOMLoaded(addUtterances);
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#before-you-start">Before you start</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#steps">Steps</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an-action-on-the-whole-record">An action on the whole record</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#an-action-on-one-part-of-the-record">An action on one part of the record</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-result">The result</a></li>
 </ul>
   </nav></div>

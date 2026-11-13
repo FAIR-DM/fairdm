@@ -919,31 +919,23 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="the-header">
 <h2>The header<a class="headerlink" href="#the-header" title="Link to this heading">#</a></h2>
-<p>The header shows:</p>
+<p>The header is a band in the project’s colour. It shows:</p>
 <ul class="simple">
-<li><p>the project’s image, or an icon when it has none</p></li>
-<li><p>a badge for the project’s status, and a <strong>Private</strong> badge when the project is private</p></li>
+<li><p>a <strong>Project</strong> badge, a badge for the project’s status, and a <strong>Private</strong> badge when the project is private</p></li>
 <li><p>the project’s name</p></li>
-<li><p>the project’s leaders, each linked to their page. These are the people credited as Project Leader, then those credited as Project Manager.</p></li>
+<li><p>the project’s leaders, each linked to their page. These are the people credited as Project Leader, then those credited as Project Manager. The first four are named, and a link counts the rest.</p></li>
+<li><p>a line of key facts: the owning <strong>Organisation</strong>, linked to its page, when <strong>Runs</strong> from its start to its end (or “ongoing”), and its DOI, linked to doi.org</p></li>
 <li><p>the project’s keywords</p></li>
-<li><p>a <strong>Cite</strong> button, which jumps to the Citation card</p></li>
+<li><p>a <strong>Cite</strong> button, which jumps to the Cite panel</p></li>
 <li><p>a <strong>Share</strong> menu, which shares the project’s permalink</p></li>
 </ul>
+<p>A project with an image shows it filling the header’s right-hand side, and on a phone as a banner above the header. Selecting the image opens it at full size. A project without an image shows the project icon on a ruled grid.</p>
 <p>People who may change the project also see:</p>
 <ul class="simple">
-<li><p>an <strong>Add dataset</strong> button, which opens <a class="reference internal" href="../datasets/create-dataset.html"><span class="std std-doc">Create a Dataset</span></a></p></li>
-<li><p>a <strong>Manage</strong> menu</p></li>
+<li><p>an <strong>Edit</strong> button, which opens <a class="reference internal" href="edit-details.html"><span class="std std-doc">Edit details</span></a></p></li>
+<li><p><strong>Edit</strong> beside the keywords, or <strong>Add keywords</strong> when there are none, which opens <a class="reference internal" href="../editing-a-record/keywords.html"><span class="std std-doc">Keywords</span></a></p></li>
 </ul>
-<p>The <strong>Manage</strong> menu lists the editing screens you may use, in this order:</p>
-<ol class="arabic simple">
-<li><p><strong>Edit details</strong>, described in <a class="reference internal" href="edit-details.html"><span class="std std-doc">Edit details</span></a>.</p></li>
-<li><p><strong>Edit descriptions</strong>, described in <a class="reference internal" href="../editing-a-record/descriptions.html"><span class="std std-doc">Descriptions</span></a>.</p></li>
-<li><p><strong>Keywords</strong>, described in <a class="reference internal" href="../editing-a-record/keywords.html"><span class="std std-doc">Keywords</span></a>.</p></li>
-<li><p><strong>Key dates</strong>, described in <a class="reference internal" href="../editing-a-record/key-dates.html"><span class="std std-doc">Key dates</span></a>.</p></li>
-<li><p><strong>Identifiers</strong>, described in <a class="reference internal" href="../editing-a-record/identifiers.html"><span class="std std-doc">Identifiers</span></a>.</p></li>
-<li><p><strong>Delete</strong>, described in <a class="reference internal" href="../editing-a-record/delete.html"><span class="std std-doc">Delete</span></a>. It comes last, after a divider, and only people who may delete the project see it.</p></li>
-</ol>
-<p>The menu does not appear when nothing is in it.</p>
+<p>There is no menu of editing screens. Each part of the project is edited from the panel that shows it, and a control appears only for someone who may use its screen.</p>
 </section>
 <section id="the-notices">
 <h2>The notices<a class="headerlink" href="#the-notices" title="Link to this heading">#</a></h2>
@@ -955,29 +947,29 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="the-figures">
 <h2>The figures<a class="headerlink" href="#the-figures" title="Link to this heading">#</a></h2>
-<p>A strip of four figures sits under the header:</p>
+<p>Four figures sit along the foot of the header:</p>
 <ul class="simple">
 <li><p><strong>Datasets</strong>, linked to the Dataset List tab</p></li>
-<li><p><strong>Samples</strong></p></li>
-<li><p><strong>Measurements</strong></p></li>
+<li><p><strong>Samples</strong>, linked to the Samples tab</p></li>
+<li><p><strong>Measurements</strong>, linked to the Measurements tab</p></li>
 <li><p><strong>Contributors</strong>, linked to the Contributors tab</p></li>
 </ul>
-<p>A visitor’s figures count only the project’s public datasets and the samples and measurements in them. The figures of people who may change the project count every dataset. Under the dataset count, the page gives how many datasets are published, or <strong>None yet</strong>. When some datasets are private, people who may change the project see how many are public and how many are private instead. Under the sample and measurement counts the page gives the number of types, or <strong>None yet</strong>.</p>
+<p>A visitor’s figures count only the project’s public datasets and the samples and measurements in them. The figures of people who may change the project count every dataset.</p>
 </section>
 <section id="the-content-column">
 <h2>The content column<a class="headerlink" href="#the-content-column" title="Link to this heading">#</a></h2>
-<p>The wide column holds these cards, from the top:</p>
+<p>The wide column holds these panels, from the top:</p>
 <ul class="simple">
-<li><p><strong>Descriptions.</strong> With several descriptions, the card has a tab for each type. With one, the card is titled with that type. With none, the card is titled <strong>About</strong>. It tells people who may change the project that nobody has described it yet and offers a <strong>Write an abstract</strong> button. It tells everyone else “No description has been added yet.”</p></li>
-<li><p><strong>Datasets.</strong> The five datasets updated most recently. Each shows whether it is <strong>Published</strong> or <strong>Unpublished</strong>, its licence (or <strong>No licence</strong>), how many samples and measurements it holds and when it was last updated. A link under the list counts the rest, and a <strong>View all</strong> button opens the Dataset List tab. With no datasets, the card says “No datasets have been shared from this project yet.” People who may change the project see an explanation and an <strong>Add dataset</strong> button instead.</p></li>
-<li><p><strong>Data types</strong> and <strong>Progress</strong>. A bar chart of the records by sample and measurement type, and a line chart of the running total of samples and measurements by month. Each has a text description. A chart is left out when there is nothing to draw, and the line chart needs records from at least two months.</p></li>
+<li><p><strong>Descriptions.</strong> With several descriptions, the panel has a tab for each type. With one, the panel is titled with that type. Long text folds after a few lines behind <strong>Read more</strong>. With none, the panel is titled <strong>About</strong>. It tells people who may change the project that nobody has described it yet and offers a <strong>Write an abstract</strong> button. It tells everyone else “No description has been added yet.” People who may change the project see <strong>Edit</strong>, which opens <a class="reference internal" href="../editing-a-record/descriptions.html"><span class="std std-doc">Descriptions</span></a>.</p></li>
+<li><p><strong>Datasets.</strong> The five datasets updated most recently. Each shows whether it is <strong>Published</strong> or <strong>Unpublished</strong>, its licence (or <strong>No licence</strong>), when it was last updated, and how many samples and measurements it holds. A link under the list counts the rest, and <strong>See all</strong> opens the Dataset List tab. People who may change the project see <strong>Add dataset</strong> beside it. With no datasets, the panel says “No datasets have been shared from this project yet.” People who may change the project see an explanation and an <strong>Add dataset</strong> button instead.</p></li>
+<li><p><strong>What it holds.</strong> <strong>Records by type</strong>, a bar for each sample and measurement type in its type’s colour, with its count, and <strong>Growth</strong>, a line chart of the running total of samples and measurements by month with a text description. The panel is left out when there is nothing to draw, and the line chart needs records from at least two months.</p></li>
 </ul>
 </section>
 <section id="the-side-column">
 <h2>The side column<a class="headerlink" href="#the-side-column" title="Link to this heading">#</a></h2>
-<p>The narrow column holds these cards, from the top:</p>
+<p>The narrow column holds these panels, from the top:</p>
 <ul class="simple">
-<li><p><strong>Metadata readiness</strong>, for people who may change the project. It says how many of ten items are in place, with a progress bar, and lists the missing ones first. Each missing item with a <strong>Fix</strong> link opens the screen that fixes it. The items are:</p>
+<li><p><strong>Metadata readiness</strong>, for people who may change the project. A ring shows how many of ten items are in place. The missing ones are listed, and each with a <strong>Fix</strong> link opens the screen that fixes it. The items in place are folded away under a count. The items are:</p>
 <ul>
 <li><p>An abstract describes the project (<strong>Fix</strong> opens Descriptions)</p></li>
 <li><p>At least one creator is credited (opens Contributors)</p></li>
@@ -991,20 +983,18 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><p>The project is public (opens Edit details)</p></li>
 </ul>
 </li>
-<li><p><strong>Details</strong>, a list of facts:</p>
+<li><p><strong>Cite</strong>, the citation written as Creators (Year). Title. Publisher. Identifier. The year is the start year, or the year the project was added when it has no start date. The identifier is the DOI link, or the project’s permalink. When there is no DOI, a note says the citation points at the page. A <strong>Copy</strong> button copies the text.</p></li>
+<li><p><strong>Details</strong>, one panel of facts in sections. A fact with no value shows a dash.</p>
 <ul>
-<li><p><strong>Organisation</strong>, the owner, linked to its page. The row is left out when the project has no owner.</p></li>
-<li><p><strong>Status</strong></p></li>
-<li><p><strong>Licences</strong>, each licence held by the public datasets with a count, or “No public datasets yet”. A note counts public datasets that have no licence.</p></li>
-<li><p><strong>Added</strong> and <strong>Last updated</strong></p></li>
-<li><p><strong>Timeline</strong>, the start and end dates as recorded, or “ongoing” when there is no end. With both dates it adds a progress bar and a label such as “Year 2 of 4”, “Not started yet” or “Finished”. With neither it says “No start or end date has been recorded.”</p></li>
+<li><p>The details: <strong>Organisation</strong>, the owner, linked to its page, which is left out when the project has no owner, then <strong>Status</strong>, <strong>Licences</strong>, each licence held by the public datasets with a count, or “No public datasets yet”, with a note that counts public datasets that have no licence, then <strong>Added</strong> and <strong>Last updated</strong>, and <strong>Timeline</strong>: the start and end dates as recorded, or “ongoing” when there is no end. With both dates it adds a bar and a label such as “Year 2 of 4”, “Not started yet” or “Finished”. People who may change the project see <strong>Edit</strong> beside it, or <strong>Add dates</strong> when there are none, which opens <a class="reference internal" href="../editing-a-record/key-dates.html"><span class="std std-doc">Key dates</span></a>.</p></li>
+<li><p><strong>Identifiers</strong>: the project’s identifiers by type, with a DOI linked to doi.org, the <strong>Portal ID</strong> and the <strong>Permalink</strong>, the project’s permanent link. Each has a button that copies it. People who may change the project see <strong>Edit</strong>, which opens <a class="reference internal" href="../editing-a-record/identifiers.html"><span class="std std-doc">Identifiers</span></a>.</p></li>
+<li><p><strong>Funding</strong>: the awards recorded for the project with the funder, the award title and number. With none it says “No funding has been recorded.” People who may change the project see a longer note. None of the editing screens changes funding.</p></li>
 <li><p><strong>For machines</strong>, with a <strong>REST API</strong> button that opens the project in the API. See <a class="reference internal" href="../api/api-docs.html"><span class="std std-doc">API documentation</span></a>.</p></li>
+<li><p>People who may delete the project see <strong>Delete this project</strong> as the last line, which opens <a class="reference internal" href="../editing-a-record/delete.html"><span class="std std-doc">Delete</span></a>.
+People who may change the project see <strong>Edit</strong> on the panel, which opens Edit details.</p></li>
 </ul>
 </li>
-<li><p><strong>People</strong>, a grid of faces with the name on hover, each linked to the person’s page. A <strong>See all</strong> button opens the Contributors tab, and a line counts those not shown. With nobody credited it says “No one is credited yet.”</p></li>
-<li><p><strong>Identifiers</strong>, a table of the project’s identifiers by type, with a DOI linked to doi.org, and the <strong>Portal ID</strong> with a button that copies it. A <strong>Permalink</strong> row beneath it shows the project’s permanent link with a button that copies the whole link.</p></li>
-<li><p><strong>Funding</strong>, the awards recorded for the project with the funder, the award title and number. With none it says “No funding has been recorded.” People who may change the project see a longer note. None of the editing screens changes funding.</p></li>
-<li><p><strong>Citation</strong>, the citation written as Creators (Year). Title. Publisher. Identifier. The year is the start year, or the year the project was added when it has no start date. The identifier is the DOI link, or the project’s permalink. When there is no DOI, a note says the citation points at the page. A <strong>Copy</strong> button copies the text.</p></li>
+<li><p><strong>People</strong>, everyone credited on the project. The first six are named with their roles and the organization they are credited from, then up to ten more are shown as faces, each linked to their page, and a link counts the rest. <strong>See all</strong> opens the Contributors tab, and for people who may manage the project <strong>Manage</strong> does. With nobody credited it says “No one is credited yet.”</p></li>
 </ul>
 </section>
 <section id="what-you-can-do-here">

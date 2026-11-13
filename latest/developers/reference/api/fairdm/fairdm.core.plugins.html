@@ -765,7 +765,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-start-step-to-a-container.html">How to add a start step to a container</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-transform-for-another-format.html">How to add a transform for another format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-viewset-to-the-api-router.html">How to add a viewset to the API router</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-an-entry-to-the-manage-menu.html">How to add an entry to the Manage menu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-an-action-to-an-overview-page.html">How to add an action to an overview page</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-an-environment-override-module.html">How to add an environment override module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-pages-to-a-plugin.html">How to add pages to a plugin</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-queryset-methods-to-a-measurement-type.html">How to add queryset methods to a measurement type</a></li>
@@ -1175,18 +1175,25 @@ keyword arguments, and other things.</p>
 <dd><p>Bases: <a class="reference internal" href="#fairdm.core.plugins.OverviewPlugin" title="fairdm.core.plugins.OverviewPlugin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.core.plugins.OverviewPlugin</span></code></a></p>
 <p>The overview of a project, dataset, sample or measurement.</p>
 <p>Holds what every one of those pages works out the same way: who is credited, the People
-card, identifiers, citation, timeline, licence entry and the two charts. A portal changes one
+panel, identifiers, citation, timeline, licence entry, records by type and the charts. A portal changes one
 piece of a page by subclassing that page’s plugin and overriding one of these methods.</p>
 <p>Attributes:
-people_shown: How many faces the People card draws before it counts the rest.
+people_named: How many credits the People panel names, with their roles.
+people_faces: How many faces it draws after them before it counts the rest.
 resolvable_identifier_types: The identifier types that link to doi.org.</p>
 <p class="rubric">Initialization</p>
 <p>Constructor. Called in the URLconf; can contain helpful extra
 keyword arguments, and other things.</p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.core.plugins.RecordOverviewPlugin.people_shown">
-<span class="sig-name descname"><span class="pre">people_shown</span></span><a class="headerlink" href="#fairdm.core.plugins.RecordOverviewPlugin.people_shown" title="Link to this definition">#</a></dt>
-<dd><p>18</p>
+<dt class="sig sig-object py" id="fairdm.core.plugins.RecordOverviewPlugin.people_named">
+<span class="sig-name descname"><span class="pre">people_named</span></span><a class="headerlink" href="#fairdm.core.plugins.RecordOverviewPlugin.people_named" title="Link to this definition">#</a></dt>
+<dd><p>6</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.core.plugins.RecordOverviewPlugin.people_faces">
+<span class="sig-name descname"><span class="pre">people_faces</span></span><a class="headerlink" href="#fairdm.core.plugins.RecordOverviewPlugin.people_faces" title="Link to this definition">#</a></dt>
+<dd><p>10</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1198,7 +1205,9 @@ keyword arguments, and other things.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="fairdm.core.plugins.RecordOverviewPlugin.get_context_data">
 <span class="sig-name descname"><span class="pre">get_context_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.plugins.RecordOverviewPlugin.get_context_data" title="Link to this definition">#</a></dt>
-<dd><p>Lead the People card to the record’s Contributors tab and add the Manage menu.</p>
+<dd><p>Add what the shared page reads on every record.</p>
+<p>The People panel’s link to the Contributors tab, each panel’s Edit link, the word for the
+record’s kind, and the record’s image, which fills the header’s trailing side.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1248,23 +1257,36 @@ the order of :meth:<code class="docutils literal notranslate"><span class="pre">
 <dl class="py method">
 <dt class="sig sig-object py" id="fairdm.core.plugins.RecordOverviewPlugin.get_people">
 <span class="sig-name descname"><span class="pre">get_people</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">entries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#fairdm.core.plugins.RecordOverviewPlugin.get_people" title="Link to this definition">#</a></dt>
-<dd><p>Work out what the People card shows.</p>
+<dd><p>Work out what the People panel shows: names with roles first, then faces.</p>
 <p>Args:
 entries: The record’s credits, when the caller already has them. Defaults to
 :meth:<code class="docutils literal notranslate"><span class="pre">get_credits</span></code>.</p>
 <p>Returns:
-The first <code class="docutils literal notranslate"><span class="pre">people_shown</span></code> faces, how many more there are and the total.</p>
+<code class="docutils literal notranslate"><span class="pre">named</span></code>: the first <code class="docutils literal notranslate"><span class="pre">people_named</span></code> credits, each with its <code class="docutils literal notranslate"><span class="pre">contributor</span></code>, its
+first two <code class="docutils literal notranslate"><span class="pre">roles</span></code>, how many <code class="docutils literal notranslate"><span class="pre">more_roles</span></code> it holds and its <code class="docutils literal notranslate"><span class="pre">affiliation</span></code>.
+<code class="docutils literal notranslate"><span class="pre">faces</span></code>: the next <code class="docutils literal notranslate"><span class="pre">people_faces</span></code> contributors. <code class="docutils literal notranslate"><span class="pre">more</span></code>: how many are left after
+those. <code class="docutils literal notranslate"><span class="pre">total</span></code>: everyone credited.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="fairdm.core.plugins.RecordOverviewPlugin.get_identifiers">
 <span class="sig-name descname"><span class="pre">get_identifiers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#fairdm.core.plugins.RecordOverviewPlugin.get_identifiers" title="Link to this definition">#</a></dt>
-<dd><p>List the record’s identifiers for the Identifiers card.</p>
+<dd><p>List the record’s identifiers for the fact sheet.</p>
 <p>A DOI or an IGSN links to doi.org, since an IGSN is a DataCite DOI since 2023. A legacy
 IGSN handle, which does not start with <code class="docutils literal notranslate"><span class="pre">10.</span></code>, does not resolve there and stays unlinked.</p>
 <p>Returns:
 One <code class="docutils literal notranslate"><span class="pre">{&quot;type&quot;,</span> <span class="pre">&quot;value&quot;,</span> <span class="pre">&quot;link&quot;}</span></code> entry per identifier, <code class="docutils literal notranslate"><span class="pre">type</span></code> being the identifier
 type’s concept. <code class="docutils literal notranslate"><span class="pre">link</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> for any other type.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.plugins.RecordOverviewPlugin.get_primary_identifier">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">get_primary_identifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifiers</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#fairdm.core.plugins.RecordOverviewPlugin.get_primary_identifier" title="Link to this definition">#</a></dt>
+<dd><p>Pick the identifier a reader looks for first: the first one that resolves.</p>
+<p>Args:
+identifiers: The record’s identifiers, from :meth:<code class="docutils literal notranslate"><span class="pre">get_identifiers</span></code>.</p>
+<p>Returns:
+The first identifier with a <code class="docutils literal notranslate"><span class="pre">link</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when none resolves.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1301,12 +1323,12 @@ show.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="fairdm.core.plugins.RecordOverviewPlugin.get_license_entry">
 <span class="sig-name descname"><span class="pre">get_license_entry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">licence</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">note</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#fairdm.core.plugins.RecordOverviewPlugin.get_license_entry" title="Link to this definition">#</a></dt>
-<dd><p>Write the Details card’s licence entry: the licence linked to its text, or a warning.</p>
+<dd><p>Write the fact sheet’s licence entry: the licence linked to its text, or a warning.</p>
 <p>Args:
 licence: The licence, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when none is chosen.
 note: A line to show under the licence.</p>
 <p>Returns:
-An entry for :class:<code class="docutils literal notranslate"><span class="pre">c-card.details</span></code>.</p>
+An entry for :class:<code class="docutils literal notranslate"><span class="pre">c-overview.sheet</span></code>.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1319,6 +1341,19 @@ measurements: The measurements to count.</p>
 <p>Returns:
 The chart, its height and its text alternative, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when there is nothing to
 count.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.plugins.RecordOverviewPlugin.get_type_mix">
+<span class="sig-name descname"><span class="pre">get_type_mix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">measurements</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#fairdm.core.plugins.RecordOverviewPlugin.get_type_mix" title="Link to this definition">#</a></dt>
+<dd><p>Count the records by type for the bars in each type’s colour.</p>
+<p>Args:
+samples: The samples to count.
+measurements: The measurements to count.</p>
+<p>Returns:
+<code class="docutils literal notranslate"><span class="pre">samples</span></code> and <code class="docutils literal notranslate"><span class="pre">measurements</span></code>, each <code class="docutils literal notranslate"><span class="pre">[(plural</span> <span class="pre">type</span> <span class="pre">name,</span> <span class="pre">count)]</span></code> largest first,
+and <code class="docutils literal notranslate"><span class="pre">max</span></code>, the largest count, which every bar is drawn against. <code class="docutils literal notranslate"><span class="pre">None</span></code> when there
+is nothing to count.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1456,7 +1491,8 @@ or <code class="docutils literal notranslate"><span class="pre">None</span></cod
 </ul>
 </li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.people_shown"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.people_shown</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.people_named"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.people_named</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.people_faces"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.people_faces</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.resolvable_identifier_types"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.resolvable_identifier_types</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_context_data"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_context_data()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_contributions"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_contributions()</span></code></a></li>
@@ -1465,10 +1501,12 @@ or <code class="docutils literal notranslate"><span class="pre">None</span></cod
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_credits"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_credits()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_people"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_people()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_identifiers"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_identifiers()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_primary_identifier"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_primary_identifier()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_citation"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_citation()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_timeline"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_timeline()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_license_entry"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_license_entry()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_composition_chart"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_composition_chart()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_type_mix"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_type_mix()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_growth_chart"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_growth_chart()</span></code></a></li>
 </ul>
 </li>

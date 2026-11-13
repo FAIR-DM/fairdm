@@ -99,12 +99,22 @@ Bases: {py:obj}`fairdm.core.plugins.OverviewPlugin`
 ```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.__init__
 ```
 
-````{py:attribute} people_shown
-:canonical: fairdm.core.plugins.RecordOverviewPlugin.people_shown
+````{py:attribute} people_named
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.people_named
 :value: >
-   18
+   6
 
-```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.people_shown
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.people_named
+```
+
+````
+
+````{py:attribute} people_faces
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.people_faces
+:value: >
+   10
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.people_faces
 ```
 
 ````
@@ -177,6 +187,15 @@ Bases: {py:obj}`fairdm.core.plugins.OverviewPlugin`
 
 ````
 
+````{py:method} get_primary_identifier(identifiers) -> dict[str, typing.Any] | None
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_primary_identifier
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_primary_identifier
+```
+
+````
+
 ````{py:method} get_citation(*, authors, year, title, link) -> str
 :canonical: fairdm.core.plugins.RecordOverviewPlugin.get_citation
 
@@ -205,6 +224,14 @@ Bases: {py:obj}`fairdm.core.plugins.OverviewPlugin`
 :canonical: fairdm.core.plugins.RecordOverviewPlugin.get_composition_chart
 
 ```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_composition_chart
+```
+
+````
+
+````{py:method} get_type_mix(samples, measurements) -> dict[str, typing.Any] | None
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_type_mix
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_type_mix
 ```
 
 ````

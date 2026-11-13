@@ -765,7 +765,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-start-step-to-a-container.html">How to add a start step to a container</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-transform-for-another-format.html">How to add a transform for another format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-viewset-to-the-api-router.html">How to add a viewset to the API router</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../how-to/add-an-entry-to-the-manage-menu.html">How to add an entry to the Manage menu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-an-action-to-an-overview-page.html">How to add an action to an overview page</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/add-an-environment-override-module.html">How to add an environment override module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/add-pages-to-a-plugin.html">How to add pages to a plugin</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/add-queryset-methods-to-a-measurement-type.html">How to add queryset methods to a measurement type</a></li>
@@ -1077,52 +1077,13 @@ commentsRunWhenDOMLoaded(addUtterances);
   <section id="components">
 <h1>Components<a class="headerlink" href="#components" title="Link to this heading">#</a></h1>
 <p>FairDM ships Cotton components that a portal’s templates can use. This page lists each one with its attributes, its slots and what it renders. It does not say where a component sits on a page. The pages that use them are described in <a class="reference internal" href="overview-page-blocks.html"><span class="std std-doc">Overview page blocks</span></a>, <a class="reference internal" href="home-page.html"><span class="std std-doc">Home page</span></a> and <a class="reference internal" href="entrance-pages.html"><span class="std std-doc">Entrance pages</span></a>.</p>
-<p>Every component is written as a tag named after its template path, with <code class="docutils literal notranslate"><span class="pre">/</span></code> turned into <code class="docutils literal notranslate"><span class="pre">.</span></code> and <code class="docutils literal notranslate"><span class="pre">_</span></code> turned into <code class="docutils literal notranslate"><span class="pre">-</span></code>. <code class="docutils literal notranslate"><span class="pre">card/details/entry.html</span></code> is <code class="docutils literal notranslate"><span class="pre">&lt;c-card.details.entry&gt;</span></code>. An attribute that takes a Python value, such as a list, a dictionary or a record, is written with a leading colon: <code class="docutils literal notranslate"><span class="pre">&lt;c-card.people</span> <span class="pre">:people=&quot;people&quot;</span> <span class="pre">/&gt;</span></code>. Most components also take <code class="docutils literal notranslate"><span class="pre">class</span></code>, which adds classes to the outer element, and pass any other attribute to it.</p>
+<p>Every component is written as a tag named after its template path, with <code class="docutils literal notranslate"><span class="pre">/</span></code> turned into <code class="docutils literal notranslate"><span class="pre">.</span></code> and <code class="docutils literal notranslate"><span class="pre">_</span></code> turned into <code class="docutils literal notranslate"><span class="pre">-</span></code>. <code class="docutils literal notranslate"><span class="pre">overview/sheet.html</span></code> is <code class="docutils literal notranslate"><span class="pre">&lt;c-overview.sheet&gt;</span></code>. An attribute that takes a Python value, such as a list, a dictionary or a record, is written with a leading colon: <code class="docutils literal notranslate"><span class="pre">&lt;c-overview.people</span> <span class="pre">:people=&quot;people&quot;</span> <span class="pre">/&gt;</span></code>. Most components also take <code class="docutils literal notranslate"><span class="pre">class</span></code>, which adds classes to the outer element, and pass any other attribute to it.</p>
 <p>The tables give each attribute’s type, its default and what it accepts. A blank default means the attribute is not set.</p>
 <section id="actions">
 <h2>Actions<a class="headerlink" href="#actions" title="Link to this heading">#</a></h2>
 <section id="c-actions-create-new">
 <h3><code class="docutils literal notranslate"><span class="pre">c-actions.create-new</span></code><a class="headerlink" href="#c-actions-create-new" title="Link to this heading">#</a></h3>
 <p>A dropdown button labelled “Create new” with a link to the project create page and one to the dataset create page. It renders only for a signed-in user and reads <code class="docutils literal notranslate"><span class="pre">user</span></code> from the template context, so it takes no attributes.</p>
-</section>
-<section id="c-actions-manage">
-<h3><code class="docutils literal notranslate"><span class="pre">c-actions.manage</span></code><a class="headerlink" href="#c-actions-manage" title="Link to this heading">#</a></h3>
-<p>The Manage menu of a record’s page: a dropdown of the editing pages the viewer may use. It draws nothing when there are no entries and the slot is empty.</p>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>Attribute</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Default</p></th>
-<th class="head"><p>Accepts</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">entries</span></code></p></td>
-<td><p>list</p></td>
-<td><p></p></td>
-<td><p>The <code class="docutils literal notranslate"><span class="pre">manage_menu</span></code> context entry. Each entry has <code class="docutils literal notranslate"><span class="pre">label</span></code>, <code class="docutils literal notranslate"><span class="pre">icon</span></code> and <code class="docutils literal notranslate"><span class="pre">url</span></code>, and <code class="docutils literal notranslate"><span class="pre">destructive</span></code> on the entry that deletes the record, which is drawn last after a divider in the error colour.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>Slot</p></th>
-<th class="head"><p>Holds</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>default</p></td>
-<td><p>Further <code class="docutils literal notranslate"><span class="pre">&lt;c-menu.item&gt;</span></code> entries, drawn after the shared ones.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="x">&lt;c-actions.manage :entries="manage_menu"&gt;</span>
-<span class="x">  &lt;c-menu.item text="Import data" icon="upload" href="</span><span class="cp">{{</span> <span class="nv">import_url</span> <span class="cp">}}</span><span class="x">" /&gt;</span>
-<span class="x">&lt;/c-actions.manage&gt;</span>
-</pre></div>
-</div>
 </section>
 <section id="c-actions-pending">
 <h3><code class="docutils literal notranslate"><span class="pre">c-actions.pending</span></code><a class="headerlink" href="#c-actions-pending" title="Link to this heading">#</a></h3>
@@ -1169,12 +1130,12 @@ commentsRunWhenDOMLoaded(addUtterances);
 </div>
 </section>
 </section>
-<section id="cards-for-record-pages">
-<h2>Cards for record pages<a class="headerlink" href="#cards-for-record-pages" title="Link to this heading">#</a></h2>
-<p>Every card is a <code class="docutils literal notranslate"><span class="pre">&lt;c-card.NAME&gt;</span></code> tag. Each carries a <code class="docutils literal notranslate"><span class="pre">data-card</span></code> attribute that tests and scripts can find it by. The attributes below are the data the overview plugins build, listed in <a class="reference internal" href="overview-plugins.html"><span class="std std-doc">Overview plugins</span></a>.</p>
-<section id="c-card-citation">
-<h3><code class="docutils literal notranslate"><span class="pre">c-card.citation</span></code><a class="headerlink" href="#c-card-citation" title="Link to this heading">#</a></h3>
-<p>How to cite the record, with a button that copies the text and a disabled export button. The card’s element id is <code class="docutils literal notranslate"><span class="pre">cite</span></code>, which the Cite button in every page header jumps to. <code class="docutils literal notranslate"><span class="pre">data-card</span></code> is <code class="docutils literal notranslate"><span class="pre">citation</span></code>.</p>
+<section id="overview-page-components">
+<h2>Overview page components<a class="headerlink" href="#overview-page-components" title="Link to this heading">#</a></h2>
+<p>The shared overview page and each record’s template draw their panels with <code class="docutils literal notranslate"><span class="pre">&lt;c-overview.NAME&gt;</span></code> tags. A panel carries a <code class="docutils literal notranslate"><span class="pre">data-card</span></code> attribute that tests and scripts can find it by. The attributes below are the data the overview plugins build, listed in <a class="reference internal" href="overview-plugins.html"><span class="std std-doc">Overview plugins</span></a>, and the blocks that draw each are listed in <a class="reference internal" href="overview-page-blocks.html"><span class="std std-doc">Overview page blocks</span></a>.</p>
+<section id="c-overview-panel">
+<h3><code class="docutils literal notranslate"><span class="pre">c-overview.panel</span></code><a class="headerlink" href="#c-overview-panel" title="Link to this heading">#</a></h3>
+<p>A section of an overview page: a heading with an optional count, the panel’s own Edit control and a link to the full list, then its content.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Attribute</p></th>
@@ -1187,17 +1148,57 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">title</span></code></p></td>
 <td><p>string</p></td>
 <td><p></p></td>
-<td><p>The card’s title.</p></td>
+<td><p>The heading.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">text</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">count</span></code></p></td>
 <td><p>string</p></td>
 <td><p></p></td>
-<td><p>The citation as plain text.</p></td>
+<td><p>A count beside the heading.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">class</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">edit_url</span></code></p></td>
 <td><p>string</p></td>
 <td><p></p></td>
-<td><p>Extra classes on the card.</p></td>
+<td><p>The editing page for what the panel shows. Leave it empty for anyone who may not edit it, and no control is drawn.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">edit_text</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Edit</span></code></p></td>
+<td><p>The Edit control’s text.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">edit_icon</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">edit</span></code></p></td>
+<td><p>Its icon.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">edit_label</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>Its accessible name, when the text alone does not say what is edited.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">more_url</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>The full list, linked as “See all”.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">more_text</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">See</span> <span class="pre">all</span></code></p></td>
+<td><p>The link’s text.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">sub</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>A line under the heading.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">side</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>A side-column panel, which is tighter.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">class</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>On the section.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1210,15 +1211,327 @@ commentsRunWhenDOMLoaded(addUtterances);
 </thead>
 <tbody>
 <tr class="row-even"><td><p>default</p></td>
-<td><p>A note under the citation.</p></td>
+<td><p>The content.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">head</span></code></p></td>
+<td><p>Extra controls in the heading row.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="x">&lt;c-overview.panel title="Datasets" count="3" more_url="</span><span class="cp">{{</span> <span class="nv">urls.datasets</span> <span class="cp">}}</span><span class="x">"</span>
+<span class="x">                  edit_url="</span><span class="cp">{{</span> <span class="nv">add_url</span> <span class="cp">}}</span><span class="x">" edit_text="Add dataset" edit_icon="add"&gt;</span>
+<span class="x">  …</span>
+<span class="x">&lt;/c-overview.panel&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="c-overview-edit">
+<h3><code class="docutils literal notranslate"><span class="pre">c-overview.edit</span></code><a class="headerlink" href="#c-overview-edit" title="Link to this heading">#</a></h3>
+<p>The small Edit control a panel carries for the part of the record it shows. It draws nothing when <code class="docutils literal notranslate"><span class="pre">href</span></code> is empty.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Attribute</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Accepts</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">href</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>The editing page, usually one of the <a class="reference internal" href="record-editing-pages.html#the-edit-links"><span class="std std-ref">edit links</span></a>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">text</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Edit</span></code></p></td>
+<td><p>The visible text.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">icon</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">edit</span></code></p></td>
+<td><p>The icon.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">label</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>The accessible name, when the text alone does not say what is edited.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="x">&lt;c-overview.edit href="</span><span class="cp">{{</span> <span class="nv">edit.identifiers</span> <span class="cp">}}</span><span class="x">" label="Edit identifiers" /&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="c-overview-status">
+<h3><code class="docutils literal notranslate"><span class="pre">c-overview.status</span></code><a class="headerlink" href="#c-overview-status" title="Link to this heading">#</a></h3>
+<p>A status or access chip in an overview page’s header or fact sheet: a pill with a dot and a light fill in its status colour.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Attribute</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Accepts</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">variant</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">neutral</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">success</span></code>, <code class="docutils literal notranslate"><span class="pre">warning</span></code>, <code class="docutils literal notranslate"><span class="pre">error</span></code>, <code class="docutils literal notranslate"><span class="pre">info</span></code> or <code class="docutils literal notranslate"><span class="pre">neutral</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">icon</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>An icon drawn in place of the dot.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">title</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>What the status means, shown on hover.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="x">&lt;c-overview.status variant="</span><span class="cp">{{</span> <span class="nv">project.status_badge_variant</span> <span class="cp">}}</span><span class="x">"&gt;</span><span class="cp">{{</span> <span class="nv">project.get_status_display</span> <span class="cp">}}</span><span class="x">&lt;/c-overview.status&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="c-overview-figure">
+<h3><code class="docutils literal notranslate"><span class="pre">c-overview.figure</span></code><a class="headerlink" href="#c-overview-figure" title="Link to this heading">#</a></h3>
+<p>One headline figure along the foot of the header, linked to its list when <code class="docutils literal notranslate"><span class="pre">href</span></code> is set.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Attribute</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Accepts</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">value</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>The figure.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">label</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>What it counts.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">href</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>The list it counts.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">record</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">project</span></code>, <code class="docutils literal notranslate"><span class="pre">dataset</span></code>, <code class="docutils literal notranslate"><span class="pre">sample</span></code> or <code class="docutils literal notranslate"><span class="pre">measurement</span></code>, which draws the type’s colour beside the label.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">note</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>A line under the label.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Put the figures in a <code class="docutils literal notranslate"><span class="pre">&lt;div</span> <span class="pre">class=&quot;ov-figures&quot;&gt;</span></code> in the <code class="docutils literal notranslate"><span class="pre">overview.figures</span></code> block.</p>
+</section>
+<section id="c-overview-cite">
+<h3><code class="docutils literal notranslate"><span class="pre">c-overview.cite</span></code><a class="headerlink" href="#c-overview-cite" title="Link to this heading">#</a></h3>
+<p>How to cite the record, with a button that copies the citation. The panel’s element id is <code class="docutils literal notranslate"><span class="pre">cite</span></code>, which the Cite button in every page header jumps to. <code class="docutils literal notranslate"><span class="pre">data-card</span></code> is <code class="docutils literal notranslate"><span class="pre">citation</span></code>.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Attribute</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Accepts</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">text</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>The citation as plain text.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Slot</p></th>
+<th class="head"><p>Holds</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>default</p></td>
+<td><p>A note under the citation, such as why it points at this page rather than a DOI.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
 </section>
-<section id="c-card-descriptions">
-<h3><code class="docutils literal notranslate"><span class="pre">c-card.descriptions</span></code><a class="headerlink" href="#c-card-descriptions" title="Link to this heading">#</a></h3>
-<p>The record’s descriptions. With more than one, each has a tab. With one, its label is the card’s title. With none, the card is titled “About” and shows the slot. Values are rendered as markdown.</p>
+<section id="c-overview-sheet">
+<h3><code class="docutils literal notranslate"><span class="pre">c-overview.sheet</span></code><a class="headerlink" href="#c-overview-sheet" title="Link to this heading">#</a></h3>
+<p>The record’s facts in one panel: the details, the identifiers, the funding and how a machine reaches the record, each a section of label-and-value rows. A row with no value shows a dash. The team’s Edit controls sit on the panel and on its Identifiers section, and Delete is its last line. <code class="docutils literal notranslate"><span class="pre">data-card</span></code> is <code class="docutils literal notranslate"><span class="pre">details</span></code>, and the Identifiers and Funding sections carry <code class="docutils literal notranslate"><span class="pre">identifiers</span></code> and <code class="docutils literal notranslate"><span class="pre">funding</span></code>.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Attribute</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Accepts</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rows</span></code></p></td>
+<td><p>list</p></td>
+<td><p></p></td>
+<td><p>Dictionaries with <code class="docutils literal notranslate"><span class="pre">label</span></code>, and one of <code class="docutils literal notranslate"><span class="pre">record</span></code> (a record, shown by name in its type’s colour, with <code class="docutils literal notranslate"><span class="pre">icon</span></code> naming the type), <code class="docutils literal notranslate"><span class="pre">badge</span></code> with <code class="docutils literal notranslate"><span class="pre">badge_variant</span></code>, <code class="docutils literal notranslate"><span class="pre">date</span></code> with an optional <code class="docutils literal notranslate"><span class="pre">until</span></code> for a range, or <code class="docutils literal notranslate"><span class="pre">text</span></code> with an optional <code class="docutils literal notranslate"><span class="pre">url</span></code>. A row may also carry <code class="docutils literal notranslate"><span class="pre">note</span></code> (a line under the value) and <code class="docutils literal notranslate"><span class="pre">warning</span></code> (draws the value as a warning).</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">edit</span></code></p></td>
+<td><p>dict</p></td>
+<td><p></p></td>
+<td><p>The <a class="reference internal" href="record-editing-pages.html#the-edit-links"><span class="std std-ref">edit links</span></a>. <code class="docutils literal notranslate"><span class="pre">details</span></code>, <code class="docutils literal notranslate"><span class="pre">identifiers</span></code> and <code class="docutils literal notranslate"><span class="pre">delete</span></code> are read.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">kind</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>The word for the record’s kind, named in the Delete line.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">identifiers</span></code></p></td>
+<td><p>list</p></td>
+<td><p></p></td>
+<td><p>Dictionaries with <code class="docutils literal notranslate"><span class="pre">type</span></code>, <code class="docutils literal notranslate"><span class="pre">value</span></code> and <code class="docutils literal notranslate"><span class="pre">link</span></code>. A <code class="docutils literal notranslate"><span class="pre">link</span></code> makes the value a link. Each has a button that copies it.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">portal_id</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>The record’s portal ID, with a button that copies it.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">permalink</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>The record’s absolute <a class="reference internal" href="permalinks.html"><span class="std std-doc">permalink</span></a>, with a button that copies it.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">local_id</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>The team’s own ID for the record.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">funding</span></code></p></td>
+<td><p>list</p></td>
+<td><p></p></td>
+<td><p>DataCite funding references with <code class="docutils literal notranslate"><span class="pre">funderName</span></code>, <code class="docutils literal notranslate"><span class="pre">funderIdentifier</span></code>, <code class="docutils literal notranslate"><span class="pre">awardTitle</span></code>, <code class="docutils literal notranslate"><span class="pre">awardNumber</span></code> and <code class="docutils literal notranslate"><span class="pre">awardURI</span></code>. A funder identifier or award address is linked only when it starts with <code class="docutils literal notranslate"><span class="pre">http</span></code>. <code class="docutils literal notranslate"><span class="pre">None</span></code> leaves the section out, and an empty list says none is recorded.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">can_manage</span></code></p></td>
+<td><p>boolean</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
+<td><p>Whether the viewer is on the record’s team. With no funding, the team is told why funding matters.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">api_url</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>The record’s REST API address. With none, no API link is drawn.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Slot</p></th>
+<th class="head"><p>Holds</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>default</p></td>
+<td><p>Rows added to the details section, each written as <code class="docutils literal notranslate"><span class="pre">&lt;div&gt;&lt;dt&gt;…&lt;/dt&gt;&lt;dd&gt;…&lt;/dd&gt;&lt;/div&gt;</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="c-overview-people">
+<h3><code class="docutils literal notranslate"><span class="pre">c-overview.people</span></code><a class="headerlink" href="#c-overview-people" title="Link to this heading">#</a></h3>
+<p>Everyone credited on the record: the first few by name with their roles, then faces, then a count of the rest linked to the full list. The team gets Manage, which leads to the Contributors tab. With nobody credited, the panel says so. <code class="docutils literal notranslate"><span class="pre">data-card</span></code> is <code class="docutils literal notranslate"><span class="pre">people</span></code>.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Attribute</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Accepts</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">people</span></code></p></td>
+<td><p>dict</p></td>
+<td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">named</span></code> (dictionaries with <code class="docutils literal notranslate"><span class="pre">contributor</span></code>, <code class="docutils literal notranslate"><span class="pre">roles</span></code>, <code class="docutils literal notranslate"><span class="pre">more_roles</span></code> and <code class="docutils literal notranslate"><span class="pre">affiliation</span></code>), <code class="docutils literal notranslate"><span class="pre">faces</span></code>, <code class="docutils literal notranslate"><span class="pre">more</span></code> and <code class="docutils literal notranslate"><span class="pre">total</span></code>, from <code class="docutils literal notranslate"><span class="pre">get_people()</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">all_url</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>Where the full list is. It becomes “See all” for a visitor and the link on the count of the rest.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">manage_url</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>Where the team changes who is credited, drawn as Manage. Leave it empty for anyone else.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">title</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">People</span></code></p></td>
+<td><p>The heading.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">empty</span></code></p></td>
+<td><p>string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">No</span> <span class="pre">one</span> <span class="pre">is</span> <span class="pre">credited</span> <span class="pre">yet.</span></code></p></td>
+<td><p>What to say when nobody is credited.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="c-overview-readiness">
+<h3><code class="docutils literal notranslate"><span class="pre">c-overview.readiness</span></code><a class="headerlink" href="#c-overview-readiness" title="Link to this heading">#</a></h3>
+<p>For the record’s team only: a ring with how much is in place, what is still missing with a Fix link where one exists, and what is done folded away. <code class="docutils literal notranslate"><span class="pre">data-card</span></code> is <code class="docutils literal notranslate"><span class="pre">readiness</span></code>.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Attribute</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Accepts</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">readiness</span></code></p></td>
+<td><p>dict</p></td>
+<td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">title</span></code>, <code class="docutils literal notranslate"><span class="pre">summary</span></code>, <code class="docutils literal notranslate"><span class="pre">about</span></code>, <code class="docutils literal notranslate"><span class="pre">items</span></code> (dictionaries with <code class="docutils literal notranslate"><span class="pre">label</span></code>, <code class="docutils literal notranslate"><span class="pre">done</span></code>, <code class="docutils literal notranslate"><span class="pre">url</span></code> and <code class="docutils literal notranslate"><span class="pre">required</span></code>, where <code class="docutils literal notranslate"><span class="pre">required</span></code> set to <code class="docutils literal notranslate"><span class="pre">False</span></code> marks a recommended item), <code class="docutils literal notranslate"><span class="pre">done</span></code>, <code class="docutils literal notranslate"><span class="pre">total</span></code> and <code class="docutils literal notranslate"><span class="pre">ready</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Slot</p></th>
+<th class="head"><p>Holds</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>default</p></td>
+<td><p>An action the checklist leads to, such as the dataset’s Publish.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="c-overview-descriptions">
+<h3><code class="docutils literal notranslate"><span class="pre">c-overview.descriptions</span></code><a class="headerlink" href="#c-overview-descriptions" title="Link to this heading">#</a></h3>
+<p>The record’s descriptions. With more than one, each has a tab in the panel’s heading. With one, its label is the heading. With none, the panel is headed “About” and shows the slot. Values are rendered as markdown, and long text folds after a few lines behind “Read more”. <code class="docutils literal notranslate"><span class="pre">data-card</span></code> is <code class="docutils literal notranslate"><span class="pre">descriptions</span></code>.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Attribute</p></th>
@@ -1236,12 +1549,12 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">group</span></code></p></td>
 <td><p>string</p></td>
 <td><p></p></td>
-<td><p>A name for the tab set, unique on the page.</p></td>
+<td><p>A prefix that makes the tabs’ ids unique on the page.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">class</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">edit_url</span></code></p></td>
 <td><p>string</p></td>
 <td><p></p></td>
-<td><p>Extra classes on the card.</p></td>
+<td><p>The descriptions’ editing page, for someone who may edit them.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1260,9 +1573,9 @@ commentsRunWhenDOMLoaded(addUtterances);
 </table>
 </div>
 </section>
-<section id="c-card-details">
-<h3><code class="docutils literal notranslate"><span class="pre">c-card.details</span></code><a class="headerlink" href="#c-card-details" title="Link to this heading">#</a></h3>
-<p>The record’s metadata in one card, as a list of entries followed by a “For machines” entry that holds the REST API link and a disabled “Metadata downloads” button. <code class="docutils literal notranslate"><span class="pre">data-card</span></code> is <code class="docutils literal notranslate"><span class="pre">details</span></code>.</p>
+<section id="c-overview-mix">
+<h3><code class="docutils literal notranslate"><span class="pre">c-overview.mix</span></code><a class="headerlink" href="#c-overview-mix" title="Link to this heading">#</a></h3>
+<p>How many records of each type there are, as bars in the type’s colour, samples and measurements in their own groups, each bar drawn against the largest count.</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Attribute</p></th>
@@ -1272,118 +1585,19 @@ commentsRunWhenDOMLoaded(addUtterances);
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rows</span></code></p></td>
-<td><p>list</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">mix</span></code></p></td>
+<td><p>dict</p></td>
 <td><p></p></td>
-<td><p>Dictionaries with <code class="docutils literal notranslate"><span class="pre">label</span></code> and <code class="docutils literal notranslate"><span class="pre">icon</span></code>, and one of <code class="docutils literal notranslate"><span class="pre">record</span></code> (a record, shown by name and linked to its page), <code class="docutils literal notranslate"><span class="pre">badge</span></code> with <code class="docutils literal notranslate"><span class="pre">badge_variant</span></code>, <code class="docutils literal notranslate"><span class="pre">date</span></code> with an optional <code class="docutils literal notranslate"><span class="pre">until</span></code> for a range, or <code class="docutils literal notranslate"><span class="pre">text</span></code> with an optional <code class="docutils literal notranslate"><span class="pre">url</span></code>. A row may also carry <code class="docutils literal notranslate"><span class="pre">note</span></code> (a line under the value) and <code class="docutils literal notranslate"><span class="pre">warning</span></code> (draws the value as a warning).</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">api_url</span></code></p></td>
-<td><p>string</p></td>
-<td><p></p></td>
-<td><p>The record’s REST API address. With none, no API link is drawn.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">class</span></code></p></td>
-<td><p>string</p></td>
-<td><p></p></td>
-<td><p>Extra classes on the card.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>Slot</p></th>
-<th class="head"><p>Holds</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>default</p></td>
-<td><p>Entries after the rows.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="x">&lt;c-card.details :rows="details" api_url="</span><span class="cp">{{</span> <span class="nv">api_url</span> <span class="cp">}}</span><span class="x">"&gt;</span>
-<span class="x">  &lt;c-card.details.entry label="Instrument" icon="info"&gt;Bruker S8 Tiger&lt;/c-card.details.entry&gt;</span>
-<span class="x">&lt;/c-card.details&gt;</span>
-</pre></div>
-</div>
-</section>
-<section id="c-card-details-entry">
-<h3><code class="docutils literal notranslate"><span class="pre">c-card.details.entry</span></code><a class="headerlink" href="#c-card-details-entry" title="Link to this heading">#</a></h3>
-<p>One entry in a Details card: an icon and a title in capitals, then the value.</p>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>Attribute</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Default</p></th>
-<th class="head"><p>Accepts</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">label</span></code></p></td>
-<td><p>string</p></td>
-<td><p></p></td>
-<td><p>The entry’s title.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">icon</span></code></p></td>
-<td><p>string</p></td>
-<td><p></p></td>
-<td><p>An icon name.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">class</span></code></p></td>
-<td><p>string</p></td>
-<td><p></p></td>
-<td><p>Extra classes on the entry.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>Slot</p></th>
-<th class="head"><p>Holds</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>default</p></td>
-<td><p>The value.</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">samples</span></code> and <code class="docutils literal notranslate"><span class="pre">measurements</span></code>, each a list of <code class="docutils literal notranslate"><span class="pre">(type</span> <span class="pre">name,</span> <span class="pre">count)</span></code>, and <code class="docutils literal notranslate"><span class="pre">max</span></code>, from <code class="docutils literal notranslate"><span class="pre">get_type_mix()</span></code>.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
 </section>
-<section id="c-card-funding">
-<h3><code class="docutils literal notranslate"><span class="pre">c-card.funding</span></code><a class="headerlink" href="#c-card-funding" title="Link to this heading">#</a></h3>
-<p>The awards that paid for the record, each with its funder, title and number. A funder identifier or award address is linked only when it starts with <code class="docutils literal notranslate"><span class="pre">http://</span></code> or <code class="docutils literal notranslate"><span class="pre">https://</span></code>. With no funding the card says so. <code class="docutils literal notranslate"><span class="pre">data-card</span></code> is <code class="docutils literal notranslate"><span class="pre">funding</span></code>.</p>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>Attribute</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Default</p></th>
-<th class="head"><p>Accepts</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">funding</span></code></p></td>
-<td><p>list</p></td>
-<td><p></p></td>
-<td><p>DataCite funding references with <code class="docutils literal notranslate"><span class="pre">funderName</span></code>, <code class="docutils literal notranslate"><span class="pre">funderIdentifier</span></code>, <code class="docutils literal notranslate"><span class="pre">awardTitle</span></code>, <code class="docutils literal notranslate"><span class="pre">awardNumber</span></code> and <code class="docutils literal notranslate"><span class="pre">awardURI</span></code>.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">can_manage</span></code></p></td>
-<td><p>boolean</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">False</span></code></p></td>
-<td><p>Whether the viewer is on the record’s team. With no funding, the team is told why funding matters.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">class</span></code></p></td>
-<td><p>string</p></td>
-<td><p></p></td>
-<td><p>Extra classes on the card.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
 </section>
+<section id="cards-for-record-and-contributor-pages">
+<h2>Cards for record and contributor pages<a class="headerlink" href="#cards-for-record-and-contributor-pages" title="Link to this heading">#</a></h2>
+<p>Every card is a <code class="docutils literal notranslate"><span class="pre">&lt;c-card.NAME&gt;</span></code> tag. Each carries a <code class="docutils literal notranslate"><span class="pre">data-card</span></code> attribute that tests and scripts can find it by. The dataset, sample and measurement pages, and the person and organization pages, draw these beside the <code class="docutils literal notranslate"><span class="pre">c-overview.*</span></code> panels.</p>
 <section id="c-card-identifiers">
 <h3><code class="docutils literal notranslate"><span class="pre">c-card.identifiers</span></code><a class="headerlink" href="#c-card-identifiers" title="Link to this heading">#</a></h3>
 <p>Every identifier the record carries as a small table, then the team’s own ID and the portal ID with a button that copies it. <code class="docutils literal notranslate"><span class="pre">data-card</span></code> is <code class="docutils literal notranslate"><span class="pre">identifiers</span></code>.</p>
@@ -1631,7 +1845,12 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p></p></td>
 <td><p>What to say when there are no steps.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">class</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">edit_url</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>The key dates’ editing page, drawn as the card’s Edit for someone who may edit them.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">class</span></code></p></td>
 <td><p>string</p></td>
 <td><p></p></td>
 <td><p>Extra classes on the card.</p></td>
@@ -3081,16 +3300,23 @@ commentsRunWhenDOMLoaded(addUtterances);
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#actions">Actions</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-actions-create-new"><code class="docutils literal notranslate"><span class="pre">c-actions.create-new</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-actions-manage"><code class="docutils literal notranslate"><span class="pre">c-actions.manage</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-actions-pending"><code class="docutils literal notranslate"><span class="pre">c-actions.pending</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cards-for-record-pages">Cards for record pages</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-card-citation"><code class="docutils literal notranslate"><span class="pre">c-card.citation</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-card-descriptions"><code class="docutils literal notranslate"><span class="pre">c-card.descriptions</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-card-details"><code class="docutils literal notranslate"><span class="pre">c-card.details</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-card-details-entry"><code class="docutils literal notranslate"><span class="pre">c-card.details.entry</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-card-funding"><code class="docutils literal notranslate"><span class="pre">c-card.funding</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#overview-page-components">Overview page components</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-panel"><code class="docutils literal notranslate"><span class="pre">c-overview.panel</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-edit"><code class="docutils literal notranslate"><span class="pre">c-overview.edit</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-status"><code class="docutils literal notranslate"><span class="pre">c-overview.status</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-figure"><code class="docutils literal notranslate"><span class="pre">c-overview.figure</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-cite"><code class="docutils literal notranslate"><span class="pre">c-overview.cite</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-sheet"><code class="docutils literal notranslate"><span class="pre">c-overview.sheet</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-people"><code class="docutils literal notranslate"><span class="pre">c-overview.people</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-readiness"><code class="docutils literal notranslate"><span class="pre">c-overview.readiness</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-descriptions"><code class="docutils literal notranslate"><span class="pre">c-overview.descriptions</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-mix"><code class="docutils literal notranslate"><span class="pre">c-overview.mix</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cards-for-record-and-contributor-pages">Cards for record and contributor pages</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-card-identifiers"><code class="docutils literal notranslate"><span class="pre">c-card.identifiers</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-card-location"><code class="docutils literal notranslate"><span class="pre">c-card.location</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-card-people"><code class="docutils literal notranslate"><span class="pre">c-card.people</span></code></a></li>

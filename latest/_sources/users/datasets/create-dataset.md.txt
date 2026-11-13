@@ -25,7 +25,7 @@ The dataset lists you as a contributor with the **Can manage** level and the rol
 
 ## What is not on this screen
 
-The form leaves out the cover image and the data publication, which are on [Edit details](edit-details.md). The dataset's descriptions, keywords, dates and identifiers have screens of their own, all in the **Manage** menu of [the dataset page](dataset.md).
+The form leaves out the cover image and the data publication, which are on [Edit details](edit-details.md). The dataset's descriptions, keywords, dates and identifiers have screens of their own, each reached from **Edit** on the panel of [the dataset page](dataset.md) that shows it.
 
 ## What you can do here
 

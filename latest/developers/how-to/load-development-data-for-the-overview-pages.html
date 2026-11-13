@@ -765,7 +765,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l1"><a class="reference internal" href="add-a-start-step-to-a-container.html">How to add a start step to a container</a></li>
 <li class="toctree-l1"><a class="reference internal" href="add-a-transform-for-another-format.html">How to add a transform for another format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="add-a-viewset-to-the-api-router.html">How to add a viewset to the API router</a></li>
-<li class="toctree-l1"><a class="reference internal" href="add-an-entry-to-the-manage-menu.html">How to add an entry to the Manage menu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="add-an-action-to-an-overview-page.html">How to add an action to an overview page</a></li>
 <li class="toctree-l1"><a class="reference internal" href="add-an-environment-override-module.html">How to add an environment override module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="add-pages-to-a-plugin.html">How to add pages to a plugin</a></li>
 <li class="toctree-l1"><a class="reference internal" href="add-queryset-methods-to-a-measurement-type.html">How to add queryset methods to a measurement type</a></li>
@@ -1097,7 +1097,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </div>
 <p>It builds on the records <code class="docutils literal notranslate"><span class="pre">seed_overviews</span></code> creates, so run that first.</p>
 </li>
-<li><p>Sign in as <code class="docutils literal notranslate"><span class="pre">staff.user</span></code> to see the pages as a member of a team. <code class="docutils literal notranslate"><span class="pre">staff.user</span></code> holds the manage level on every seeded project and dataset, so its pages show the readiness checklist. <code class="docutils literal notranslate"><span class="pre">regular.user</span></code> holds none. Open the pages signed out to see them as a visitor.</p></li>
+<li><p>Sign in as <code class="docutils literal notranslate"><span class="pre">staff.user</span></code> to see the pages as a member of a team. <code class="docutils literal notranslate"><span class="pre">staff.user</span></code> holds the manage level on every seeded project and dataset, so its pages show the readiness checklist. <code class="docutils literal notranslate"><span class="pre">regular.user</span></code> is on the team of the project described in full, and <code class="docutils literal notranslate"><span class="pre">regular.user2</span></code> owns the empty project. Open the pages signed out to see them as a visitor.</p></li>
 <li><p>Run the command again whenever you want fresh data. It replaces only the records it created, and leaves records someone else made.</p></li>
 </ol>
 </section>
@@ -1105,8 +1105,8 @@ commentsRunWhenDOMLoaded(addUtterances);
 <h2>The result<a class="headerlink" href="#the-result" title="Link to this heading">#</a></h2>
 <p>The database holds records that reach each state the pages describe:</p>
 <ul class="simple">
-<li><p>projects: one described in full, with datasets, samples, measurements, a large team, funding and identifiers, one brand-new private project with only a name, and one sparse public project with a very long title</p></li>
-<li><p>samples: one with a full history, an identifier, a location, measurements and subsamples, one that has been destroyed, one with only a name, and one in an unpublished dataset</p></li>
+<li><p>projects: one described in full, with datasets, samples, measurements, a large team, funding and identifiers, one brand-new private project with only a name, one sparse public project with a very long title and an image, and one empty project with one empty dataset</p></li>
+<li><p>samples: most of the full project’s samples have a location near their dataset’s site, and one in eight has none. There is also one with a full history, an identifier, a location, measurements and subsamples, one that has been destroyed, one with only a name, and one in an unpublished dataset</p></li>
 <li><p>measurements: one with its procedure, a DOI and a location of its own, one recorded in another team’s dataset, one with nothing else recorded, and one in an unpublished dataset</p></li>
 </ul>
 <p>Types with a template of their own show the extended page, and types without one show the shared page. See <a class="reference internal" href="give-a-sample-or-measurement-type-its-own-overview-page.html"><span class="std std-doc">How to give a sample or measurement type its own overview page</span></a>.</p>
@@ -1135,6 +1135,12 @@ commentsRunWhenDOMLoaded(addUtterances);
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">grant_team_rights(user,</span> <span class="pre">*records)</span></code></p></td>
 <td><p>Lists an account at the manage level on the projects and datasets it is given.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">lab_name(measurement)</span></code></p></td>
+<td><p>Names a measurement the way a laboratory would, by element, analyte or run number, and saves it.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">cover_image(name,</span> <span class="pre">width,</span> <span class="pre">height)</span></code></p></td>
+<td><p>Draws a placeholder photograph to give a seeded record as its image.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">data_curator()</span></code></p></td>
 <td><p>Returns the development account that holds the Data Curator role, creating it when missing.</p></td>

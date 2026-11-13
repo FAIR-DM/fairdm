@@ -765,7 +765,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-start-step-to-a-container.html">How to add a start step to a container</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-transform-for-another-format.html">How to add a transform for another format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/add-a-viewset-to-the-api-router.html">How to add a viewset to the API router</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../how-to/add-an-entry-to-the-manage-menu.html">How to add an entry to the Manage menu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how-to/add-an-action-to-an-overview-page.html">How to add an action to an overview page</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/add-an-environment-override-module.html">How to add an environment override module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/add-pages-to-a-plugin.html">How to add pages to a plugin</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../how-to/add-queryset-methods-to-a-measurement-type.html">How to add queryset methods to a measurement type</a></li>
@@ -1146,11 +1146,15 @@ commentsRunWhenDOMLoaded(addUtterances);
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">people_shown</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">18</span></code></p></td>
-<td><p>How many faces the People card draws before it counts the rest.</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">people_named</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">6</span></code></p></td>
+<td><p>How many credits the People panel names, with their roles.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">resolvable_identifier_types</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">people_faces</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">10</span></code></p></td>
+<td><p>How many faces it draws after them before it counts the rest.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">resolvable_identifier_types</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">(DOI,</span> <span class="pre">IGSN)</span></code>, the addresses from <code class="docutils literal notranslate"><span class="pre">fairdm.core.vocabularies</span></code></p></td>
 <td><p>The identifier types that link to doi.org. A value links only when it starts with <code class="docutils literal notranslate"><span class="pre">10.</span></code>.</p></td>
 </tr>
@@ -1168,7 +1172,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </thead>
 <tbody>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_context_data(**kwargs)</span></code></p></td>
-<td><p>The context with <code class="docutils literal notranslate"><span class="pre">people_url</span></code> (the record’s Contributors tab) and <code class="docutils literal notranslate"><span class="pre">manage_menu</span></code> added.</p></td>
+<td><p>The context with <code class="docutils literal notranslate"><span class="pre">people_url</span></code> (the record’s Contributors tab), <code class="docutils literal notranslate"><span class="pre">edit</span></code> (the <a class="reference internal" href="record-editing-pages.html#the-edit-links"><span class="std std-ref">edit links</span></a>), <code class="docutils literal notranslate"><span class="pre">record_kind</span></code> (the word for the record’s kind) and <code class="docutils literal notranslate"><span class="pre">cover_image</span></code> (the record’s image, or <code class="docutils literal notranslate"><span class="pre">None</span></code>) added.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_contributions()</span></code></p></td>
 <td><p>The record’s credits, people first and then organizations, each in the order set on the Contributors tab, each with its real contributor and roles loaded.</p></td>
@@ -1183,22 +1187,28 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p>One dictionary per credit, in the order of <code class="docutils literal notranslate"><span class="pre">get_contributions()</span></code>: <code class="docutils literal notranslate"><span class="pre">contributor</span></code>, <code class="docutils literal notranslate"><span class="pre">roles</span></code> (a dictionary of role address to label) and <code class="docutils literal notranslate"><span class="pre">affiliation</span></code> (the organization recorded on the credit, or <code class="docutils literal notranslate"><span class="pre">None</span></code>).</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_people(entries=None)</span></code></p></td>
-<td><p>What the People card shows: <code class="docutils literal notranslate"><span class="pre">shown</span></code> (up to <code class="docutils literal notranslate"><span class="pre">people_shown</span></code>), <code class="docutils literal notranslate"><span class="pre">more</span></code> and <code class="docutils literal notranslate"><span class="pre">total</span></code>.</p></td>
+<td><p>What the People panel shows: <code class="docutils literal notranslate"><span class="pre">named</span></code> (up to <code class="docutils literal notranslate"><span class="pre">people_named</span></code> credits, each with <code class="docutils literal notranslate"><span class="pre">contributor</span></code>, its first two <code class="docutils literal notranslate"><span class="pre">roles</span></code>, <code class="docutils literal notranslate"><span class="pre">more_roles</span></code>, how many more it holds, and <code class="docutils literal notranslate"><span class="pre">affiliation</span></code>), <code class="docutils literal notranslate"><span class="pre">faces</span></code> (the next <code class="docutils literal notranslate"><span class="pre">people_faces</span></code> contributors), <code class="docutils literal notranslate"><span class="pre">more</span></code> (how many are left) and <code class="docutils literal notranslate"><span class="pre">total</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_identifiers()</span></code></p></td>
 <td><p>One dictionary per identifier: <code class="docutils literal notranslate"><span class="pre">type</span></code>, the identifier type’s concept, <code class="docutils literal notranslate"><span class="pre">value</span></code> and <code class="docutils literal notranslate"><span class="pre">link</span></code>.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_citation(*,</span> <span class="pre">authors,</span> <span class="pre">year,</span> <span class="pre">title,</span> <span class="pre">link)</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_primary_identifier(identifiers)</span></code></p></td>
+<td><p>The first identifier from <code class="docutils literal notranslate"><span class="pre">get_identifiers()</span></code> with a <code class="docutils literal notranslate"><span class="pre">link</span></code>, the one a reader looks for first, or <code class="docutils literal notranslate"><span class="pre">None</span></code>. The project page shows it among the header’s key facts.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_citation(*,</span> <span class="pre">authors,</span> <span class="pre">year,</span> <span class="pre">title,</span> <span class="pre">link)</span></code></p></td>
 <td><p>The citation as text: <code class="docutils literal notranslate"><span class="pre">Creators</span> <span class="pre">(Year).</span> <span class="pre">Title.</span> <span class="pre">Publisher.</span> <span class="pre">Identifier.</span></code> The publisher is the current site’s name.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_timeline(steps,</span> <span class="pre">dates,</span> <span class="pre">descriptions,</span> <span class="pre">entries)</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_timeline(steps,</span> <span class="pre">dates,</span> <span class="pre">descriptions,</span> <span class="pre">entries)</span></code></p></td>
 <td><p>One dictionary per step that has a date, a person or a note, with <code class="docutils literal notranslate"><span class="pre">label</span></code>, <code class="docutils literal notranslate"><span class="pre">date</span></code>, <code class="docutils literal notranslate"><span class="pre">day</span></code>, <code class="docutils literal notranslate"><span class="pre">people</span></code> and <code class="docutils literal notranslate"><span class="pre">note</span></code>. Dated steps come first. <code class="docutils literal notranslate"><span class="pre">steps</span></code> is a list of <code class="docutils literal notranslate"><span class="pre">(date_type,</span> <span class="pre">role,</span> <span class="pre">description_type,</span> <span class="pre">label)</span></code>, each type and role given by its address.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_license_entry(licence,</span> <span class="pre">note=None)</span></code></p></td>
-<td><p>A row for <a class="reference internal" href="components.html#c-card-details"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">c-card.details</span></code></span></a>, or a warning row when no licence is chosen.</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_license_entry(licence,</span> <span class="pre">note=None)</span></code></p></td>
+<td><p>A row for <a class="reference internal" href="components.html#c-overview-sheet"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">c-overview.sheet</span></code></span></a>, or a warning row when no licence is chosen.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_type_mix(samples,</span> <span class="pre">measurements)</span></code></p></td>
+<td><p>The records by registered type for <a class="reference internal" href="components.html#c-overview-mix"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">c-overview.mix</span></code></span></a>: <code class="docutils literal notranslate"><span class="pre">samples</span></code> and <code class="docutils literal notranslate"><span class="pre">measurements</span></code>, each a list of <code class="docutils literal notranslate"><span class="pre">(type</span> <span class="pre">name,</span> <span class="pre">count)</span></code> largest first, and <code class="docutils literal notranslate"><span class="pre">max</span></code>, the largest count. <code class="docutils literal notranslate"><span class="pre">None</span></code> when there is nothing to count.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_composition_chart(samples,</span> <span class="pre">measurements)</span></code></p></td>
-<td><p>A dictionary of <code class="docutils literal notranslate"><span class="pre">chart</span></code>, <code class="docutils literal notranslate"><span class="pre">height</span></code> and <code class="docutils literal notranslate"><span class="pre">description</span></code>, counting records by registered type, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when there is nothing to count.</p></td>
+<td><p>A dictionary of <code class="docutils literal notranslate"><span class="pre">chart</span></code>, <code class="docutils literal notranslate"><span class="pre">height</span></code> and <code class="docutils literal notranslate"><span class="pre">description</span></code>, counting records by registered type, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when there is nothing to count. The dataset page draws it.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_growth_chart(samples,</span> <span class="pre">measurements)</span></code></p></td>
 <td><p>A dictionary of <code class="docutils literal notranslate"><span class="pre">chart</span></code> and <code class="docutils literal notranslate"><span class="pre">description</span></code> for the running total by month, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when the records span fewer than two months.</p></td>
@@ -1210,7 +1220,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">Summary</span><span class="p">(</span><span class="n">RecordOverviewPlugin</span><span class="p">):</span>
-    <span class="n">people_shown</span> <span class="o">=</span> <span class="mi">8</span>
+    <span class="n">people_named</span> <span class="o">=</span> <span class="mi">3</span>
 </pre></div>
 </div>
 </section>
@@ -1310,7 +1320,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p>The checklist: <code class="docutils literal notranslate"><span class="pre">items</span></code>, <code class="docutils literal notranslate"><span class="pre">done</span></code>, <code class="docutils literal notranslate"><span class="pre">total</span></code> and <code class="docutils literal notranslate"><span class="pre">percent</span></code>. The project checklist has ten items.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_details(licenses)</span></code></p></td>
-<td><p>The rows of the Details card.</p></td>
+<td><p>The rows of the fact sheet.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_shared_context(page)</span></code></p></td>
 <td><p>The entries every overview provides.</p></td>
@@ -1318,7 +1328,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </tbody>
 </table>
 </div>
-<p>Context entries: <code class="docutils literal notranslate"><span class="pre">project</span></code>, <code class="docutils literal notranslate"><span class="pre">can_manage</span></code>, <code class="docutils literal notranslate"><span class="pre">descriptions</span></code>, <code class="docutils literal notranslate"><span class="pre">timeline</span></code> (from <code class="docutils literal notranslate"><span class="pre">get_progress()</span></code>), <code class="docutils literal notranslate"><span class="pre">team</span></code>, <code class="docutils literal notranslate"><span class="pre">funding</span></code>, <code class="docutils literal notranslate"><span class="pre">counts</span></code>, <code class="docutils literal notranslate"><span class="pre">datasets_preview</span></code>, <code class="docutils literal notranslate"><span class="pre">licenses</span></code>, <code class="docutils literal notranslate"><span class="pre">composition_chart</span></code>, <code class="docutils literal notranslate"><span class="pre">growth_chart</span></code>, <code class="docutils literal notranslate"><span class="pre">citation</span></code>, <code class="docutils literal notranslate"><span class="pre">json_ld</span></code>, <code class="docutils literal notranslate"><span class="pre">api_url</span></code>, <code class="docutils literal notranslate"><span class="pre">urls</span></code>, and for the team <code class="docutils literal notranslate"><span class="pre">readiness</span></code>, plus the shared entries.</p>
+<p>Context entries: <code class="docutils literal notranslate"><span class="pre">project</span></code>, <code class="docutils literal notranslate"><span class="pre">can_manage</span></code>, <code class="docutils literal notranslate"><span class="pre">descriptions</span></code>, <code class="docutils literal notranslate"><span class="pre">timeline</span></code> (from <code class="docutils literal notranslate"><span class="pre">get_progress()</span></code>), <code class="docutils literal notranslate"><span class="pre">team</span></code>, <code class="docutils literal notranslate"><span class="pre">funding</span></code>, <code class="docutils literal notranslate"><span class="pre">counts</span></code>, <code class="docutils literal notranslate"><span class="pre">datasets_preview</span></code>, <code class="docutils literal notranslate"><span class="pre">licenses</span></code>, <code class="docutils literal notranslate"><span class="pre">mix</span></code> (from <code class="docutils literal notranslate"><span class="pre">get_type_mix()</span></code>), <code class="docutils literal notranslate"><span class="pre">growth_chart</span></code>, <code class="docutils literal notranslate"><span class="pre">citation</span></code>, <code class="docutils literal notranslate"><span class="pre">json_ld</span></code>, <code class="docutils literal notranslate"><span class="pre">api_url</span></code>, <code class="docutils literal notranslate"><span class="pre">urls</span></code>, and for the team <code class="docutils literal notranslate"><span class="pre">readiness</span></code>, plus the shared entries, which on the project page include <code class="docutils literal notranslate"><span class="pre">primary_identifier</span></code>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">project_is_visible(request,</span> <span class="pre">obj)</span></code> in the same module is the plugin’s <code class="docutils literal notranslate"><span class="pre">check</span></code>: a public project is visible to all and a private one to holders of <code class="docutils literal notranslate"><span class="pre">project.view_project</span></code>.</p>
 </section>
 <section id="dataset-overview">
@@ -1382,7 +1392,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p>The checklist: <code class="docutils literal notranslate"><span class="pre">items</span></code>, <code class="docutils literal notranslate"><span class="pre">done</span></code>, <code class="docutils literal notranslate"><span class="pre">total</span></code>, <code class="docutils literal notranslate"><span class="pre">percent</span></code>, <code class="docutils literal notranslate"><span class="pre">ready</span></code> and <code class="docutils literal notranslate"><span class="pre">missing_required</span></code>. It has seven required and three recommended items.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_details(project_info)</span></code></p></td>
-<td><p>The rows of the Details card.</p></td>
+<td><p>The rows of the fact sheet.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_shared_context(page)</span></code></p></td>
 <td><p>The entries every overview provides.</p></td>
@@ -1445,7 +1455,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p><code class="docutils literal notranslate"><span class="pre">title</span></code> and <code class="docutils literal notranslate"><span class="pre">text</span></code>, with a <code class="docutils literal notranslate"><span class="pre">note</span></code> when the sample has no IGSN.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_details(project,</span> <span class="pre">status)</span></code></p></td>
-<td><p>The rows of the Details card. <code class="docutils literal notranslate"><span class="pre">project</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> when the viewer may not see it.</p></td>
+<td><p>The rows of the fact sheet. <code class="docutils literal notranslate"><span class="pre">project</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> when the viewer may not see it.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1493,7 +1503,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p><code class="docutils literal notranslate"><span class="pre">title</span></code> and <code class="docutils literal notranslate"><span class="pre">text</span></code>, with <code class="docutils literal notranslate"><span class="pre">note</span></code>, <code class="docutils literal notranslate"><span class="pre">note_url</span></code> and <code class="docutils literal notranslate"><span class="pre">note_link</span></code> when there is no DOI. <code class="docutils literal notranslate"><span class="pre">sample</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> when the viewer may not see it.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_details(project)</span></code></p></td>
-<td><p>The rows of the Details card.</p></td>
+<td><p>The rows of the fact sheet.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_page_title()</span></code></p></td>
 <td><p>The measurement’s name, else its portal ID.</p></td>

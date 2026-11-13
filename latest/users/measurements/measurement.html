@@ -918,16 +918,15 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="the-header">
 <h2>The header<a class="headerlink" href="#the-header" title="Link to this heading">#</a></h2>
-<p>The header shows:</p>
+<p>The header is a band in the measurement’s colour. A measurement with an image shows it filling the header’s right-hand side, and on a phone as a banner above the header. Selecting the image opens it at full size. A measurement without one shows the measurement icon on a ruled grid. The header shows:</p>
 <ul class="simple">
-<li><p>The measurement’s image, or the measurement icon when it has none.</p></li>
 <li><p>The measurement’s type as a badge. When the portal describes the type, the badge is a button headed “About” and the type’s name. It opens a dialog with the type’s description, its keywords, the authority whose schema it follows and the protocol it cites, and you close it with <strong>Close</strong>.</p></li>
 <li><p>The measurement’s name, or its portal ID.</p></li>
-<li><p>Its keywords, as badges. These are keywords chosen from a controlled vocabulary.</p></li>
-<li><p>Three buttons: <strong>Cite</strong>, which jumps to the Citation card, <strong>Share</strong>, and <strong>Manage</strong>.</p></li>
+<li><p>Its keywords, as badges. These are keywords chosen from a controlled vocabulary. People who may change the measurement see <strong>Edit</strong> beside them, or <strong>Add keywords</strong> when there are none.</p></li>
+<li><p>Buttons: <strong>Cite</strong>, which jumps to the Cite panel, <strong>Share</strong>, and for people who may change the measurement <strong>Edit</strong>, which opens <a class="reference internal" href="edit-details.html"><span class="std std-doc">Edit details</span></a>.</p></li>
 </ul>
 <p><strong>Share</strong> opens a menu headed “Share this page” with Facebook, X / Twitter, Reddit, Pinterest, <strong>Email</strong> and <strong>Copy link</strong>. Every choice shares the measurement’s permalink, and <strong>Copy link</strong> copies it.</p>
-<p><strong>Manage</strong> opens a menu of the screens for changing the measurement. You see only the entries you may use. If you may use none, the button is left out.</p>
+<p>There is no menu of editing screens. Each part of the measurement is edited from the panel that shows it, and a control appears only for someone who may use its screen.</p>
 </section>
 <section id="result">
 <h2>Result<a class="headerlink" href="#result" title="Link to this heading">#</a></h2>
@@ -967,12 +966,12 @@ commentsRunWhenDOMLoaded(addUtterances);
 </tbody>
 </table>
 </div>
-<p>Steps with a date come first, in date order, and the others follow. A date recorded only to the year or the month is shown as recorded.</p>
+<p>Steps with a date come first, in date order, and the others follow. A date recorded only to the year or the month is shown as recorded. People who may change the measurement see <strong>Edit</strong>, which opens <a class="reference internal" href="../editing-a-record/key-dates.html"><span class="std std-doc">Key dates</span></a>.</p>
 <p>When nothing is recorded, a person who may change the measurement’s dataset reads “Nothing is recorded about how this measurement was made. The setup and conditions are what let someone else judge whether the value is comparable with theirs.” Anyone else reads “No details of how this measurement was made have been recorded.”</p>
 </section>
 <section id="notes">
 <h2>Notes<a class="headerlink" href="#notes" title="Link to this heading">#</a></h2>
-<p>A card headed <strong>Notes</strong> shows the measurement’s description of type Other. It is left out when there is none.</p>
+<p>A card headed <strong>Notes</strong> shows the measurement’s description of type Other. It is left out when there is none. People who may change the measurement see <strong>Edit</strong>, which opens <a class="reference internal" href="../editing-a-record/descriptions.html"><span class="std std-doc">Descriptions</span></a>.</p>
 </section>
 <section id="measured-on">
 <h2>Measured on<a class="headerlink" href="#measured-on" title="Link to this heading">#</a></h2>
@@ -984,6 +983,27 @@ commentsRunWhenDOMLoaded(addUtterances);
 <h2>Other measurements on this sample<a class="headerlink" href="#other-measurements-on-this-sample" title="Link to this heading">#</a></h2>
 <p>A card with this heading lists the other measurements made on the same sample, newest first, with a count in the corner. Each row has the measurement’s name, its type, the dataset when it differs from this one, and the date it was added. The card lists the first eight and says “and” followed by a count and “more” for the rest. When you may open the sample, <strong>See all</strong> opens the sample’s <strong>Measurements</strong> tab, which lists every one. You see only measurements whose own dataset you may see. The card is left out when there are none.</p>
 </section>
+<section id="cite">
+<h2>Cite<a class="headerlink" href="#cite" title="Link to this heading">#</a></h2>
+<p>A panel headed <strong>Cite</strong>, at the top of the side column, gives the citation as plain text, and a <strong>Copy</strong> button copies it. The measurement is cited by the people credited with the Collection role, the year of its setup date (or the year it was added), its name, its type and the sample, and the DOI link or, with no DOI, the measurement’s permalink.</p>
+<p>A measurement with no DOI reads “Most measurements are cited through their dataset. This citation points at this page.” with a <strong>Cite the dataset</strong> link to the dataset’s Cite panel.</p>
+</section>
+<section id="details">
+<h2>Details<a class="headerlink" href="#details" title="Link to this heading">#</a></h2>
+<p>A panel headed <strong>Details</strong> holds the measurement’s facts in sections. A fact with no value shows a dash. People who may change the measurement see <strong>Edit</strong> on it, which opens Edit details. The first section has one row for each of these, in order:</p>
+<ul class="simple">
+<li><p><strong>Project</strong>, when the measurement’s project is visible to you.</p></li>
+<li><p><strong>Dataset</strong>.</p></li>
+<li><p><strong>Licence</strong>, from the dataset. A dataset with no licence shows “None chosen yet” in a warning colour, with the note “Nobody can safely reuse this data until a licence is chosen.”</p></li>
+<li><p><strong>Added</strong> and <strong>Last updated</strong>.</p></li>
+</ul>
+<p><strong>Identifiers</strong> follows. It lists each identifier the measurement carries with its type. A DOI that starts with <code class="docutils literal notranslate"><span class="pre">10.</span></code> links to doi.org. Below them are the measurement’s <strong>Local ID</strong>, when it has one, its <strong>Portal ID</strong> and its <strong>Permalink</strong>. Each identifier, the portal ID and the permalink have a button that copies it. People who may change the measurement see <strong>Edit</strong>, which opens <a class="reference internal" href="../editing-a-record/identifiers.html"><span class="std std-doc">Identifiers</span></a>.</p>
+<p><strong>For machines</strong> has a <strong>REST API</strong> button that opens the measurement’s address in the API. People who may delete the measurement see <strong>Delete this measurement</strong> as the last line, which opens <a class="reference internal" href="../editing-a-record/delete.html"><span class="std std-doc">Delete</span></a>.</p>
+</section>
+<section id="people">
+<h2>People<a class="headerlink" href="#people" title="Link to this heading">#</a></h2>
+<p>A panel headed <strong>People</strong> names the first six people credited, each with their roles and the organization they are credited from, then shows up to ten more as faces, each linked to their page, and counts the rest. <strong>See all</strong> opens the <a class="reference internal" href="../contributors/contributors-tab.html"><span class="std std-doc">Contributors</span></a> tab, and for people who may manage the measurement <strong>Manage</strong> does. With nobody credited it says “No one is credited yet.”</p>
+</section>
 <section id="location">
 <h2>Location<a class="headerlink" href="#location" title="Link to this heading">#</a></h2>
 <p>A card shows where the measurement was made.</p>
@@ -994,30 +1014,6 @@ commentsRunWhenDOMLoaded(addUtterances);
 </ul>
 <p>The coordinates are <strong>Latitude</strong> and <strong>Longitude</strong> to five decimal places, then <strong>Elevation</strong> and <strong>Uncertainty</strong> in metres when they are recorded, in decimal degrees (WGS 84).</p>
 </section>
-<section id="details">
-<h2>Details<a class="headerlink" href="#details" title="Link to this heading">#</a></h2>
-<p>A card headed <strong>Details</strong> has one entry for each of these, in order:</p>
-<ul class="simple">
-<li><p><strong>Project</strong>, when the measurement’s project is visible to you.</p></li>
-<li><p><strong>Dataset</strong>.</p></li>
-<li><p><strong>Licence</strong>, from the dataset. A dataset with no licence shows “None chosen yet” in a warning colour, with the note “Nobody can safely reuse this data until a licence is chosen.”</p></li>
-<li><p><strong>Added</strong> and <strong>Last updated</strong>.</p></li>
-<li><p><strong>For machines</strong>, with a <strong>REST API</strong> button that opens the measurement’s address in the API.</p></li>
-</ul>
-</section>
-<section id="people">
-<h2>People<a class="headerlink" href="#people" title="Link to this heading">#</a></h2>
-<p>A card headed <strong>People</strong> shows the faces of everyone credited, up to 18, with the name on hover. When there are more it says “and” followed by a count and “other contributors”. <strong>See all</strong> opens the <a class="reference internal" href="../contributors/contributors-tab.html"><span class="std std-doc">Contributors</span></a> tab. With nobody credited it reads “No one is credited yet.”</p>
-</section>
-<section id="identifiers">
-<h2>Identifiers<a class="headerlink" href="#identifiers" title="Link to this heading">#</a></h2>
-<p>A card headed <strong>Identifiers</strong> lists each identifier the measurement carries with its type. A DOI that starts with <code class="docutils literal notranslate"><span class="pre">10.</span></code> links to doi.org. Below them are the measurement’s <strong>Local ID</strong>, when it has one, and its <strong>Portal ID</strong>, with a button that copies it. A <strong>Permalink</strong> row beneath the Portal ID shows the measurement’s permanent link with a button that copies the whole link.</p>
-</section>
-<section id="citation">
-<h2>Citation<a class="headerlink" href="#citation" title="Link to this heading">#</a></h2>
-<p>A card headed <strong>Citation</strong> gives the citation as plain text, and a <strong>Copy</strong> button copies it. The measurement is cited by the people credited with the Collection role, the year of its setup date (or the year it was added), its name, its type and the sample, and the DOI link or, with no DOI, the measurement’s permalink.</p>
-<p>A measurement with no DOI reads “Most measurements are cited through their dataset. This citation points at this page.” with a <strong>Cite the dataset</strong> link to the dataset’s Citation card.</p>
-</section>
 <section id="what-you-can-do-here">
 <h2>What you can do here<a class="headerlink" href="#what-you-can-do-here" title="Link to this heading">#</a></h2>
 <ul class="simple">
@@ -1025,14 +1021,14 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><p>Open the type’s description from the type badge.</p></li>
 <li><p>Open the measurement’s sample, dataset and project from the cards, and the other measurements on the sample.</p></li>
 <li><p>See everyone credited with <strong>See all</strong>, and <a class="reference internal" href="../contributors/contributors-tab.html"><span class="std std-doc">change who is credited</span></a>.</p></li>
-<li><p>Choose <strong>Manage</strong>, then one of:</p>
+<li><p>Change the measurement, if you may, from the <strong>Edit</strong> on the panel that shows each part:</p>
 <ul>
-<li><p><strong>Edit details</strong>, described on <a class="reference internal" href="edit-details.html"><span class="std std-doc">Edit details</span></a>.</p></li>
-<li><p><strong>Edit descriptions</strong>, described on <a class="reference internal" href="../editing-a-record/descriptions.html"><span class="std std-doc">Descriptions</span></a>.</p></li>
-<li><p><strong>Keywords</strong>, described on <a class="reference internal" href="../editing-a-record/keywords.html"><span class="std std-doc">Keywords</span></a>.</p></li>
-<li><p><strong>Key dates</strong>, described on <a class="reference internal" href="../editing-a-record/key-dates.html"><span class="std std-doc">Key dates</span></a>.</p></li>
-<li><p><strong>Identifiers</strong>, described on <a class="reference internal" href="../editing-a-record/identifiers.html"><span class="std std-doc">Identifiers</span></a>.</p></li>
-<li><p><strong>Delete</strong>, described on <a class="reference internal" href="../editing-a-record/delete.html"><span class="std std-doc">Delete</span></a>. To do it, see <a class="reference internal" href="delete-a-measurement.html"><span class="std std-doc">How to delete a measurement</span></a>.</p></li>
+<li><p>the header’s <strong>Edit</strong>, described on <a class="reference internal" href="edit-details.html"><span class="std std-doc">Edit details</span></a></p></li>
+<li><p><strong>Edit</strong> on Notes, described on <a class="reference internal" href="../editing-a-record/descriptions.html"><span class="std std-doc">Descriptions</span></a></p></li>
+<li><p><strong>Edit</strong> beside the keywords, described on <a class="reference internal" href="../editing-a-record/keywords.html"><span class="std std-doc">Keywords</span></a></p></li>
+<li><p><strong>Edit</strong> on How it was measured, described on <a class="reference internal" href="../editing-a-record/key-dates.html"><span class="std std-doc">Key dates</span></a></p></li>
+<li><p><strong>Edit</strong> beside Identifiers, described on <a class="reference internal" href="../editing-a-record/identifiers.html"><span class="std std-doc">Identifiers</span></a></p></li>
+<li><p><strong>Delete this measurement</strong>, described on <a class="reference internal" href="../editing-a-record/delete.html"><span class="std std-doc">Delete</span></a>. To do it, see <a class="reference internal" href="delete-a-measurement.html"><span class="std std-doc">How to delete a measurement</span></a>.</p></li>
 </ul>
 </li>
 </ul>
@@ -1095,11 +1091,10 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#notes">Notes</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#measured-on">Measured on</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#other-measurements-on-this-sample">Other measurements on this sample</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#location">Location</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cite">Cite</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#details">Details</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#people">People</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#identifiers">Identifiers</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#citation">Citation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#location">Location</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-you-can-do-here">What you can do here</a></li>
 </ul>
   </nav></div>

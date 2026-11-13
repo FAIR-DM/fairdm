@@ -16,17 +16,16 @@ A measurement whose dataset is not public shows, above the header, "Only people 
 
 ## The header
 
-The header shows:
+The header is a band in the measurement's colour. A measurement with an image shows it filling the header's right-hand side, and on a phone as a banner above the header. Selecting the image opens it at full size. A measurement without one shows the measurement icon on a ruled grid. The header shows:
 
-- The measurement's image, or the measurement icon when it has none.
 - The measurement's type as a badge. When the portal describes the type, the badge is a button headed "About" and the type's name. It opens a dialog with the type's description, its keywords, the authority whose schema it follows and the protocol it cites, and you close it with **Close**.
 - The measurement's name, or its portal ID.
-- Its keywords, as badges. These are keywords chosen from a controlled vocabulary.
-- Three buttons: **Cite**, which jumps to the Citation card, **Share**, and **Manage**.
+- Its keywords, as badges. These are keywords chosen from a controlled vocabulary. People who may change the measurement see **Edit** beside them, or **Add keywords** when there are none.
+- Buttons: **Cite**, which jumps to the Cite panel, **Share**, and for people who may change the measurement **Edit**, which opens [Edit details](edit-details.md).
 
 **Share** opens a menu headed "Share this page" with Facebook, X / Twitter, Reddit, Pinterest, **Email** and **Copy link**. Every choice shares the measurement's permalink, and **Copy link** copies it.
 
-**Manage** opens a menu of the screens for changing the measurement. You see only the entries you may use. If you may use none, the button is left out.
+There is no menu of editing screens. Each part of the measurement is edited from the panel that shows it, and a control appears only for someone who may use its screen.
 
 ## Result
 
@@ -46,13 +45,13 @@ A card headed **How it was measured** lays the procedure out as a timeline. Each
 | Measured | none | Collection | Conditions |
 | Taken down | Tear down date | none | Tear Down |
 
-Steps with a date come first, in date order, and the others follow. A date recorded only to the year or the month is shown as recorded.
+Steps with a date come first, in date order, and the others follow. A date recorded only to the year or the month is shown as recorded. People who may change the measurement see **Edit**, which opens [Key dates](../editing-a-record/key-dates.md).
 
 When nothing is recorded, a person who may change the measurement's dataset reads "Nothing is recorded about how this measurement was made. The setup and conditions are what let someone else judge whether the value is comparable with theirs." Anyone else reads "No details of how this measurement was made have been recorded."
 
 ## Notes
 
-A card headed **Notes** shows the measurement's description of type Other. It is left out when there is none.
+A card headed **Notes** shows the measurement's description of type Other. It is left out when there is none. People who may change the measurement see **Edit**, which opens [Descriptions](../editing-a-record/descriptions.md).
 
 ## Measured on
 
@@ -66,6 +65,29 @@ When the sample is in a different dataset from the measurement, a notice adds "T
 
 A card with this heading lists the other measurements made on the same sample, newest first, with a count in the corner. Each row has the measurement's name, its type, the dataset when it differs from this one, and the date it was added. The card lists the first eight and says "and" followed by a count and "more" for the rest. When you may open the sample, **See all** opens the sample's **Measurements** tab, which lists every one. You see only measurements whose own dataset you may see. The card is left out when there are none.
 
+## Cite
+
+A panel headed **Cite**, at the top of the side column, gives the citation as plain text, and a **Copy** button copies it. The measurement is cited by the people credited with the Collection role, the year of its setup date (or the year it was added), its name, its type and the sample, and the DOI link or, with no DOI, the measurement's permalink.
+
+A measurement with no DOI reads "Most measurements are cited through their dataset. This citation points at this page." with a **Cite the dataset** link to the dataset's Cite panel.
+
+## Details
+
+A panel headed **Details** holds the measurement's facts in sections. A fact with no value shows a dash. People who may change the measurement see **Edit** on it, which opens Edit details. The first section has one row for each of these, in order:
+
+- **Project**, when the measurement's project is visible to you.
+- **Dataset**.
+- **Licence**, from the dataset. A dataset with no licence shows "None chosen yet" in a warning colour, with the note "Nobody can safely reuse this data until a licence is chosen."
+- **Added** and **Last updated**.
+
+**Identifiers** follows. It lists each identifier the measurement carries with its type. A DOI that starts with `10.` links to doi.org. Below them are the measurement's **Local ID**, when it has one, its **Portal ID** and its **Permalink**. Each identifier, the portal ID and the permalink have a button that copies it. People who may change the measurement see **Edit**, which opens [Identifiers](../editing-a-record/identifiers.md).
+
+**For machines** has a **REST API** button that opens the measurement's address in the API. People who may delete the measurement see **Delete this measurement** as the last line, which opens [Delete](../editing-a-record/delete.md).
+
+## People
+
+A panel headed **People** names the first six people credited, each with their roles and the organization they are credited from, then shows up to ten more as faces, each linked to their page, and counts the rest. **See all** opens the [Contributors](../contributors/contributors-tab.md) tab, and for people who may manage the measurement **Manage** does. With nobody credited it says "No one is credited yet."
+
 ## Location
 
 A card shows where the measurement was made.
@@ -76,40 +98,16 @@ A card shows where the measurement was made.
 
 The coordinates are **Latitude** and **Longitude** to five decimal places, then **Elevation** and **Uncertainty** in metres when they are recorded, in decimal degrees (WGS 84).
 
-## Details
-
-A card headed **Details** has one entry for each of these, in order:
-
-- **Project**, when the measurement's project is visible to you.
-- **Dataset**.
-- **Licence**, from the dataset. A dataset with no licence shows "None chosen yet" in a warning colour, with the note "Nobody can safely reuse this data until a licence is chosen."
-- **Added** and **Last updated**.
-- **For machines**, with a **REST API** button that opens the measurement's address in the API.
-
-## People
-
-A card headed **People** shows the faces of everyone credited, up to 18, with the name on hover. When there are more it says "and" followed by a count and "other contributors". **See all** opens the [Contributors](../contributors/contributors-tab.md) tab. With nobody credited it reads "No one is credited yet."
-
-## Identifiers
-
-A card headed **Identifiers** lists each identifier the measurement carries with its type. A DOI that starts with `10.` links to doi.org. Below them are the measurement's **Local ID**, when it has one, and its **Portal ID**, with a button that copies it. A **Permalink** row beneath the Portal ID shows the measurement's permanent link with a button that copies the whole link.
-
-## Citation
-
-A card headed **Citation** gives the citation as plain text, and a **Copy** button copies it. The measurement is cited by the people credited with the Collection role, the year of its setup date (or the year it was added), its name, its type and the sample, and the DOI link or, with no DOI, the measurement's permalink.
-
-A measurement with no DOI reads "Most measurements are cited through their dataset. This citation points at this page." with a **Cite the dataset** link to the dataset's Citation card.
-
 ## What you can do here
 
 - Cite the measurement, copy its citation or share the page.
 - Open the type's description from the type badge.
 - Open the measurement's sample, dataset and project from the cards, and the other measurements on the sample.
 - See everyone credited with **See all**, and [change who is credited](../contributors/contributors-tab.md).
-- Choose **Manage**, then one of:
-    - **Edit details**, described on [Edit details](edit-details.md).
-    - **Edit descriptions**, described on [Descriptions](../editing-a-record/descriptions.md).
-    - **Keywords**, described on [Keywords](../editing-a-record/keywords.md).
-    - **Key dates**, described on [Key dates](../editing-a-record/key-dates.md).
-    - **Identifiers**, described on [Identifiers](../editing-a-record/identifiers.md).
-    - **Delete**, described on [Delete](../editing-a-record/delete.md). To do it, see [How to delete a measurement](delete-a-measurement.md).
+- Change the measurement, if you may, from the **Edit** on the panel that shows each part:
+    - the header's **Edit**, described on [Edit details](edit-details.md)
+    - **Edit** on Notes, described on [Descriptions](../editing-a-record/descriptions.md)
+    - **Edit** beside the keywords, described on [Keywords](../editing-a-record/keywords.md)
+    - **Edit** on How it was measured, described on [Key dates](../editing-a-record/key-dates.md)
+    - **Edit** beside Identifiers, described on [Identifiers](../editing-a-record/identifiers.md)
+    - **Delete this measurement**, described on [Delete](../editing-a-record/delete.md). To do it, see [How to delete a measurement](delete-a-measurement.md).

@@ -765,7 +765,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-start-step-to-a-container.html">How to add a start step to a container</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-transform-for-another-format.html">How to add a transform for another format</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-viewset-to-the-api-router.html">How to add a viewset to the API router</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-an-entry-to-the-manage-menu.html">How to add an entry to the Manage menu</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-an-action-to-an-overview-page.html">How to add an action to an overview page</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-an-environment-override-module.html">How to add an environment override module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-pages-to-a-plugin.html">How to add pages to a plugin</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-queryset-methods-to-a-measurement-type.html">How to add queryset methods to a measurement type</a></li>
@@ -1138,8 +1138,8 @@ True when the page may be shown.</p>
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Overview</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.project.plugins.Overview" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="fairdm.contrib.plugins.mixins.html#fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin" title="fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin</span></code></a>, <a class="reference internal" href="fairdm.core.plugins.html#fairdm.core.plugins.RecordOverviewPlugin" title="fairdm.core.plugins.RecordOverviewPlugin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.core.plugins.RecordOverviewPlugin</span></code></a></p>
 <p>The project’s own page and the root of its collection.</p>
-<p>The editing pages are the shared ones in :mod:<code class="docutils literal notranslate"><span class="pre">fairdm.core.editing</span></code>, reached from the Manage
-menu.</p>
+<p>The editing pages are the shared ones in :mod:<code class="docutils literal notranslate"><span class="pre">fairdm.core.editing</span></code>, each reached from the
+panel that shows what it changes.</p>
 <p><code class="docutils literal notranslate"><span class="pre">PrivateRecordNotFoundMixin</span></code> makes a private project answer a stranger with a 404, since a
 403 or a sign-in redirect would confirm the record exists.</p>
 <p>The page is a landing page, read by someone deciding whether the data is usable to them,
@@ -1294,11 +1294,11 @@ The items, how many are done, the total and the percentage.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="fairdm.core.project.plugins.Overview.get_details">
 <span class="sig-name descname"><span class="pre">get_details</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">licenses</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.project.plugins.Overview.get_details" title="Link to this definition">#</a></dt>
-<dd><p>List the rows of the Details card: organisation, status, licences and dates.</p>
+<dd><p>List the rows of the fact sheet: organisation, status, licences and dates.</p>
 <p>Args:
 licenses: The licence summary from :meth:<code class="docutils literal notranslate"><span class="pre">get_licenses</span></code>.</p>
 <p>Returns:
-The rows, for :class:<code class="docutils literal notranslate"><span class="pre">c-card.details</span></code>.</p>
+The rows, for :class:<code class="docutils literal notranslate"><span class="pre">c-overview.sheet</span></code>.</p>
 </dd></dl>
 
 </dd></dl>

@@ -854,6 +854,26 @@ list.</p></li>
 <h3>Changed<a class="headerlink" href="#changed" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><strong>Every badge is a pill and every keyword a solid pill.</strong> Keywords on project and dataset cards, on the landing page and in a record type’s “About” dialog are pills in a light shade of the primary colour, where they were outlined or grey boxes. An outline badge takes a light fill of its own colour, and the record-type label on a record card and on a page is a pill edged in the record’s colour. The shape is set in <code class="docutils literal notranslate"><span class="pre">css/fairdm-theme.css</span></code> and holds on any theme. Put <code class="docutils literal notranslate"><span class="pre">badge-keyword</span></code> on a badge to show a keyword in a portal’s own templates. See <a class="reference internal" href="developers/how-to/change-the-portal-theme.html#the-result"><span class="std std-ref">How to change the portal theme</span></a>.</p></li>
+<li><p><strong>The project overview page and the page every record shares are redesigned.</strong> The header is a
+band in the record’s colour with its badges, name, people, key facts, keywords, actions and
+headline figures. A record with an image shows it filling the header’s trailing side, opening at
+full size, and a record without one shows its icon on the sign-in pages’ ruled grid. The side
+column runs Cite, one fact sheet (details, identifiers, funding and machine access, a missing value
+shown as a dash), then People named with their roles before their faces. Readiness shows a ring.
+Descriptions fold after a few lines. A project’s records by type are bars in each type’s colour.
+The shared panels are <code class="docutils literal notranslate"><span class="pre">c-overview.*</span></code> components, described in
+<a class="reference internal" href="developers/reference/components.html#overview-page-components"><span class="std std-ref">Components</span></a>, and the page’s
+behaviour is in <code class="docutils literal notranslate"><span class="pre">js/overview.js</span></code>. <code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin</span></code> gains <code class="docutils literal notranslate"><span class="pre">get_primary_identifier()</span></code> and
+<code class="docutils literal notranslate"><span class="pre">get_type_mix()</span></code>, and <code class="docutils literal notranslate"><span class="pre">get_people()</span></code> returns <code class="docutils literal notranslate"><span class="pre">named</span></code>, <code class="docutils literal notranslate"><span class="pre">faces</span></code>, <code class="docutils literal notranslate"><span class="pre">more</span></code> and <code class="docutils literal notranslate"><span class="pre">total</span></code> under
+<code class="docutils literal notranslate"><span class="pre">people_named</span></code> and <code class="docutils literal notranslate"><span class="pre">people_faces</span></code>, which replace <code class="docutils literal notranslate"><span class="pre">people_shown</span></code>. A new thumbnail alias,
+<code class="docutils literal notranslate"><span class="pre">core_cover</span></code>, serves the header image. The development data puts <code class="docutils literal notranslate"><span class="pre">regular.user</span></code> on the showcase
+project’s team, adds <code class="docutils literal notranslate"><span class="pre">regular.user2</span></code> with an empty project, places most showcase samples and names
+measurements the way a laboratory would.</p></li>
+<li><p><strong>Each part of a record is edited from the panel that shows it.</strong> The header’s Edit opens the
+details, the keywords, descriptions, notes, key dates and identifiers each carry an Edit, People
+carries Manage, and Delete is the last line of the Details panel. Publish sits in a dataset’s
+“Ready to publish?” panel. <code class="docutils literal notranslate"><span class="pre">edit_links()</span></code> in <code class="docutils literal notranslate"><span class="pre">fairdm.core.editing</span></code> gives the addresses, keyed by
+each page’s new <code class="docutils literal notranslate"><span class="pre">part</span></code>. See <a class="reference internal" href="adr/0044-each-part-of-a-record-is-edited-from-the-panel-that-shows-it.html"><span class="std std-doc">ADR 0044</span></a>.</p></li>
 <li><p><strong>A sample or measurement collection is headed like a Samples or Measurements tab.</strong> The
 heading is the type’s name, underlined in its kind’s colour, and is itself the menu of the other
 collections of the same kind, each with its count of published records, most first. A sample
@@ -904,6 +924,16 @@ dark version, is withdrawn from <code class="docutils literal notranslate"><span
 <section id="removed">
 <h3>Removed<a class="headerlink" href="#removed" title="Link to this heading">#</a></h3>
 <ul class="simple">
+<li><p><strong>The Manage menu.</strong> <code class="docutils literal notranslate"><span class="pre">manage_menu()</span></code>, <code class="docutils literal notranslate"><span class="pre">MENU_PAGES</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;c-actions.manage&gt;</span></code> and the
+<code class="docutils literal notranslate"><span class="pre">menu_label</span></code> and <code class="docutils literal notranslate"><span class="pre">menu_icon</span></code> attributes of the editing pages are removed. A portal that filled
+<code class="docutils literal notranslate"><span class="pre">overview.manage</span></code> to add an entry puts its own button in that block beside the header’s Edit, or
+an Edit control on the panel its action changes. See
+<a class="reference internal" href="developers/how-to/add-an-action-to-an-overview-page.html"><span class="std std-doc">How to add an action to an overview page</span></a>.</p></li>
+<li><p><strong>The “not yet available” panels for the project’s map, recent activity and exporting a
+citation</strong>, and the dataset’s map. Each comes back as a working panel with its own feature.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">&lt;c-card.citation&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;c-card.descriptions&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;c-card.details&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;c-card.details.entry&gt;</span></code> and
+<code class="docutils literal notranslate"><span class="pre">&lt;c-card.funding&gt;</span></code></strong>, replaced by <code class="docutils literal notranslate"><span class="pre">&lt;c-overview.cite&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;c-overview.descriptions&gt;</span></code> and
+<code class="docutils literal notranslate"><span class="pre">&lt;c-overview.sheet&gt;</span></code>. The project page no longer draws its composition chart.</p></li>
 <li><p><strong>A project’s Export tab.</strong> It held only placeholder text. Its address now answers “not found”.</p></li>
 <li><p><strong>The PNG and ICO exports of the logo.</strong> <code class="docutils literal notranslate"><span class="pre">assets/logo/</span></code> holds the logo kit as SVG only, and
 <code class="docutils literal notranslate"><span class="pre">assets/logo/png/</span></code> and <code class="docutils literal notranslate"><span class="pre">assets/logo/web/</span></code> are removed. Nothing in FairDM loaded them.
