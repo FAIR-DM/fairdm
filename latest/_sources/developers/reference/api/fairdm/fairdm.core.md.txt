@@ -28,6 +28,7 @@ fairdm.core.sample
 fairdm.core.admin
 fairdm.core.models
 fairdm.core.descriptions
+fairdm.core.citation
 fairdm.core.utils
 fairdm.core.image_utils
 fairdm.core.apps

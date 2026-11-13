@@ -19,6 +19,10 @@
   - ```{autodoc2-docstring} fairdm.core.plugins.OverviewPlugin
     :summary:
     ```
+* - {py:obj}`CitationFile <fairdm.core.plugins.CitationFile>`
+  - ```{autodoc2-docstring} fairdm.core.plugins.CitationFile
+    :summary:
+    ```
 * - {py:obj}`RecordOverviewPlugin <fairdm.core.plugins.RecordOverviewPlugin>`
   - ```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin
     :summary:
@@ -89,6 +93,74 @@ Bases: {py:obj}`fairdm.contrib.plugins.Plugin`, {py:obj}`fairdm.views.FairDMTemp
 
 `````
 
+`````{py:class} CitationFile(**kwargs)
+:canonical: fairdm.core.plugins.CitationFile
+
+Bases: {py:obj}`fairdm.contrib.plugins.Plugin`, {py:obj}`django.views.View`
+
+```{autodoc2-docstring} fairdm.core.plugins.CitationFile
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.plugins.CitationFile.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.core.plugins.CitationFile.name
+:value: >
+   'citation'
+
+```{autodoc2-docstring} fairdm.core.plugins.CitationFile.name
+```
+
+````
+
+````{py:attribute} url_path
+:canonical: fairdm.core.plugins.CitationFile.url_path
+:value: >
+   'cite/<str:format>'
+
+```{autodoc2-docstring} fairdm.core.plugins.CitationFile.url_path
+```
+
+````
+
+````{py:method} setup(request, *args, **kwargs)
+:canonical: fairdm.core.plugins.CitationFile.setup
+
+```{autodoc2-docstring} fairdm.core.plugins.CitationFile.setup
+```
+
+````
+
+````{py:method} has_permission()
+:canonical: fairdm.core.plugins.CitationFile.has_permission
+
+```{autodoc2-docstring} fairdm.core.plugins.CitationFile.has_permission
+```
+
+````
+
+````{py:method} handle_no_permission()
+:canonical: fairdm.core.plugins.CitationFile.handle_no_permission
+
+```{autodoc2-docstring} fairdm.core.plugins.CitationFile.handle_no_permission
+```
+
+````
+
+````{py:method} get(request, *args, **kwargs)
+:canonical: fairdm.core.plugins.CitationFile.get
+
+```{autodoc2-docstring} fairdm.core.plugins.CitationFile.get
+```
+
+````
+
+`````
+
 `````{py:class} RecordOverviewPlugin(**kwargs)
 :canonical: fairdm.core.plugins.RecordOverviewPlugin
 
@@ -129,6 +201,16 @@ Bases: {py:obj}`fairdm.core.plugins.OverviewPlugin`
    ()
 
 ```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.resolvable_identifier_types
+```
+
+````
+
+````{py:attribute} extra_views
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.extra_views
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.extra_views
 ```
 
 ````
@@ -200,10 +282,59 @@ Bases: {py:obj}`fairdm.core.plugins.OverviewPlugin`
 
 ````
 
-````{py:method} get_citation(*, authors, year, title, link) -> str
+````{py:method} get_publisher() -> str
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_publisher
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_publisher
+```
+
+````
+
+````{py:method} format_cited_names(names) -> str
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.format_cited_names
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.format_cited_names
+```
+
+````
+
+````{py:method} get_citation(*, authors, year, title, link, publisher=None) -> str
 :canonical: fairdm.core.plugins.RecordOverviewPlugin.get_citation
 
 ```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_citation
+```
+
+````
+
+````{py:method} build_citation(*, authors, year, title, link, publisher=None, types=('misc', 'GEN')) -> fairdm.core.citation.Citation
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.build_citation
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.build_citation
+```
+
+````
+
+````{py:method} get_citation_formats(citation, text) -> list[dict[str, typing.Any]]
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_citation_formats
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_citation_formats
+```
+
+````
+
+````{py:method} get_citation_address(key) -> str | None
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_citation_address
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_citation_address
+```
+
+````
+
+````{py:method} get_cited_details(citation, text) -> dict[str, typing.Any]
+:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_cited_details
+
+```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_cited_details
 ```
 
 ````

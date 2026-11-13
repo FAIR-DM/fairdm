@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="developers/reference/api/fairdm/fairdm.core.plugins.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="Reusable overview plugins for the core record pages. Module Contents: Classes:,, OverviewPlugin, Reusable overview plugin for displaying object details.,, RecordOverviewPlugin, The overview of a pr..." />
-<meta name="description" content="Reusable overview plugins for the core record pages. Module Contents: Classes:,, OverviewPlugin, Reusable overview plugin for displaying object details.,, RecordOverviewPlugin, The overview of a pr..." />
+<meta property="og:description" content="Reusable overview plugins for the core record pages. Module Contents: Classes:,, OverviewPlugin, Reusable overview plugin for displaying object details.,, CitationFile, One format of a record’s cit..." />
+<meta name="description" content="Reusable overview plugins for the core record pages. Module Contents: Classes:,, OverviewPlugin, Reusable overview plugin for displaying object details.,, CitationFile, One format of a record’s cit..." />
 
     <title>fairdm.core.plugins &#8212; fairdm 0.5.0 documentation</title>
   
@@ -968,6 +968,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l4"><a class="reference internal" href="fairdm.core.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.admin</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.core.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.models</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.core.descriptions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.descriptions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.citation.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.citation</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.core.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.utils</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.core.image_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.image_utils</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.core.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.apps</span></code></a></li>
@@ -1095,13 +1096,16 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.core.plugins.OverviewPlugin" title="fairdm.core.plugins.OverviewPlugin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">OverviewPlugin</span></code></a></p></td>
 <td><p>Reusable overview plugin for displaying object details.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.core.plugins.RecordOverviewPlugin" title="fairdm.core.plugins.RecordOverviewPlugin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RecordOverviewPlugin</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.core.plugins.CitationFile" title="fairdm.core.plugins.CitationFile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CitationFile</span></code></a></p></td>
+<td><p>One format of a record’s citation as a file, at <code class="docutils literal notranslate"><span class="pre">&lt;record&gt;/cite/&lt;format&gt;/</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.core.plugins.RecordOverviewPlugin" title="fairdm.core.plugins.RecordOverviewPlugin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RecordOverviewPlugin</span></code></a></p></td>
 <td><p>The overview of a project, dataset, sample or measurement.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.core.plugins.SamplePoints" title="fairdm.core.plugins.SamplePoints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SamplePoints</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.core.plugins.SamplePoints" title="fairdm.core.plugins.SamplePoints"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SamplePoints</span></code></a></p></td>
 <td><p>Answer a record’s located samples as GeoJSON, for its overview page’s map.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.core.plugins.TypedOverviewPlugin" title="fairdm.core.plugins.TypedOverviewPlugin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TypedOverviewPlugin</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.core.plugins.TypedOverviewPlugin" title="fairdm.core.plugins.TypedOverviewPlugin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TypedOverviewPlugin</span></code></a></p></td>
 <td><p>The overview of a record portals subclass: a sample or a measurement.</p></td>
 </tr>
 </tbody>
@@ -1173,6 +1177,69 @@ keyword arguments, and other things.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="fairdm.core.plugins.CitationFile">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">CitationFile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.plugins.CitationFile" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.contrib.plugins.Plugin</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.views.View</span></code></p>
+<p>One format of a record’s citation as a file, at <code class="docutils literal notranslate"><span class="pre">&lt;record&gt;/cite/&lt;format&gt;/</span></code>.</p>
+<p>The record’s overview answers who may open it, and this view asks that overview, so
+a private record answers a stranger as its page does and an unknown record is not
+found. The file is the format’s value on the overview’s own context, so it is the
+one the Cite panel shows.</p>
+<p>A portal plugin that sets its own <code class="docutils literal notranslate"><span class="pre">extra_views</span></code> must list this class to keep the
+addresses.</p>
+<p>Attributes:
+name: The route’s name, <code class="docutils literal notranslate"><span class="pre">&lt;namespace&gt;:overview-citation</span></code>.
+url_path: The route’s last part, <code class="docutils literal notranslate"><span class="pre">cite/&lt;format&gt;</span></code>.</p>
+<p class="rubric">Initialization</p>
+<p>Constructor. Called in the URLconf; can contain helpful extra
+keyword arguments, and other things.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.core.plugins.CitationFile.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#fairdm.core.plugins.CitationFile.name" title="Link to this definition">#</a></dt>
+<dd><p>‘citation’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.core.plugins.CitationFile.url_path">
+<span class="sig-name descname"><span class="pre">url_path</span></span><a class="headerlink" href="#fairdm.core.plugins.CitationFile.url_path" title="Link to this definition">#</a></dt>
+<dd><p>‘cite/<a class="reference external" href="str:format">str:format</a>’</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.plugins.CitationFile.setup">
+<span class="sig-name descname"><span class="pre">setup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.plugins.CitationFile.setup" title="Link to this definition">#</a></dt>
+<dd><p>Build the overview that owns this address, set up for this request.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.plugins.CitationFile.has_permission">
+<span class="sig-name descname"><span class="pre">has_permission</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.plugins.CitationFile.has_permission" title="Link to this definition">#</a></dt>
+<dd><p>Ask the owning overview, so the file opens for whom the page opens for.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.plugins.CitationFile.handle_no_permission">
+<span class="sig-name descname"><span class="pre">handle_no_permission</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.plugins.CitationFile.handle_no_permission" title="Link to this definition">#</a></dt>
+<dd><p>Answer as the owning overview answers.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.plugins.CitationFile.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.plugins.CitationFile.get" title="Link to this definition">#</a></dt>
+<dd><p>Answer with the citation in the format named by the address.</p>
+<p>Args:
+request: The request.
+*args: Positional URL arguments.
+**kwargs: Keyword URL arguments, the record’s and the <code class="docutils literal notranslate"><span class="pre">format</span></code>.</p>
+<p>Returns:
+The file, as an attachment named after the record.</p>
+<p>Raises:
+Http404: The format is not one of <code class="docutils literal notranslate"><span class="pre">FORMATS</span></code>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="fairdm.core.plugins.RecordOverviewPlugin">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">RecordOverviewPlugin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.plugins.RecordOverviewPlugin" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#fairdm.core.plugins.OverviewPlugin" title="fairdm.core.plugins.OverviewPlugin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.core.plugins.OverviewPlugin</span></code></a></p>
@@ -1203,6 +1270,12 @@ keyword arguments, and other things.</p>
 <dt class="sig sig-object py" id="fairdm.core.plugins.RecordOverviewPlugin.resolvable_identifier_types">
 <span class="sig-name descname"><span class="pre">resolvable_identifier_types</span></span><a class="headerlink" href="#fairdm.core.plugins.RecordOverviewPlugin.resolvable_identifier_types" title="Link to this definition">#</a></dt>
 <dd><p>()</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.core.plugins.RecordOverviewPlugin.extra_views">
+<span class="sig-name descname"><span class="pre">extra_views</span></span><a class="headerlink" href="#fairdm.core.plugins.RecordOverviewPlugin.extra_views" title="Link to this definition">#</a></dt>
+<dd><p>None</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1293,16 +1366,87 @@ The first identifier with a <code class="docutils literal notranslate"><span cla
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.plugins.RecordOverviewPlugin.get_publisher">
+<span class="sig-name descname"><span class="pre">get_publisher</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#fairdm.core.plugins.RecordOverviewPlugin.get_publisher" title="Link to this definition">#</a></dt>
+<dd><p>Name the publisher a citation gives: the site’s name.</p>
+<p>Returns:
+The current site’s name, or an empty string when the site has none.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.plugins.RecordOverviewPlugin.format_cited_names">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">format_cited_names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">names</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#fairdm.core.plugins.RecordOverviewPlugin.format_cited_names" title="Link to this definition">#</a></dt>
+<dd><p>Write cited names as a citation lists them, like :func:<code class="docutils literal notranslate"><span class="pre">format_authors</span></code>.</p>
+<p>Args:
+names: The :class:<code class="docutils literal notranslate"><span class="pre">~fairdm.core.citation.CitedName</span></code> values, in order.</p>
+<p>Returns:
+“Keller, A., Oliveira, T. &amp; Brandt, L.”, or an empty string for no names.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="fairdm.core.plugins.RecordOverviewPlugin.get_citation">
-<span class="sig-name descname"><span class="pre">get_citation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">authors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#fairdm.core.plugins.RecordOverviewPlugin.get_citation" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">get_citation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">authors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">publisher</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#fairdm.core.plugins.RecordOverviewPlugin.get_citation" title="Link to this definition">#</a></dt>
 <dd><p>Write the citation in DataCite’s form: Creators (Year). Title. Publisher. Identifier.</p>
 <p>Args:
-authors: The creators to name.
+authors: The creators to name, as contributors or as cited names.
 year: The year of publication.
 title: The record’s title.
-link: Its DOI link, or the address of the page.</p>
+link: Its DOI link, or the address of the page. <code class="docutils literal notranslate"><span class="pre">None</span></code> when it has none.
+publisher: The publisher to name. Defaults to :meth:<code class="docutils literal notranslate"><span class="pre">get_publisher</span></code>.</p>
 <p>Returns:
 The citation as plain text.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.plugins.RecordOverviewPlugin.build_citation">
+<span class="sig-name descname"><span class="pre">build_citation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">authors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">link</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">publisher</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">types</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">('misc',</span> <span class="pre">'GEN')</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="fairdm.core.citation.html#fairdm.core.citation.Citation" title="fairdm.core.citation.Citation"><span class="pre">fairdm.core.citation.Citation</span></a></span></span><a class="headerlink" href="#fairdm.core.plugins.RecordOverviewPlugin.build_citation" title="Link to this definition">#</a></dt>
+<dd><p>Gather the parts of the record’s citation into the value the files use.</p>
+<p>Args:
+authors: The creators, as contributors or as cited names.
+year: The year of publication.
+title: The title.
+link: The link the text ends with, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.
+publisher: The publisher. Defaults to :meth:<code class="docutils literal notranslate"><span class="pre">get_publisher</span></code>.
+types: The BibTeX and RIS types.</p>
+<p>Returns:
+The citation, keyed by the record’s portal ID. Its DOI is set when <code class="docutils literal notranslate"><span class="pre">link</span></code>
+is a doi.org link.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.plugins.RecordOverviewPlugin.get_citation_formats">
+<span class="sig-name descname"><span class="pre">get_citation_formats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">citation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#fairdm.core.plugins.RecordOverviewPlugin.get_citation_formats" title="Link to this definition">#</a></dt>
+<dd><p>List the ways to take the citation, for the Cite panel and the files.</p>
+<p>Args:
+citation: The :class:<code class="docutils literal notranslate"><span class="pre">~fairdm.core.citation.Citation</span></code>.
+text: The citation as text.</p>
+<p>Returns:
+One <code class="docutils literal notranslate"><span class="pre">{&quot;key&quot;,</span> <span class="pre">&quot;label&quot;,</span> <span class="pre">&quot;value&quot;,</span> <span class="pre">&quot;url&quot;,</span> <span class="pre">&quot;download&quot;}</span></code> entry per format, in
+the order of <code class="docutils literal notranslate"><span class="pre">FORMATS</span></code>. <code class="docutils literal notranslate"><span class="pre">url</span></code> is the format’s address beside the
+record’s page, or <code class="docutils literal notranslate"><span class="pre">None</span></code> where the portal’s plugin does not mount
+:class:<code class="docutils literal notranslate"><span class="pre">CitationFile</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.plugins.RecordOverviewPlugin.get_citation_address">
+<span class="sig-name descname"><span class="pre">get_citation_address</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#fairdm.core.plugins.RecordOverviewPlugin.get_citation_address" title="Link to this definition">#</a></dt>
+<dd><p>Give the address of one format of the record’s citation.</p>
+<p>Args:
+key: The format’s key, one of <code class="docutils literal notranslate"><span class="pre">FORMATS</span></code>.</p>
+<p>Returns:
+The address, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when the portal’s plugin does not mount
+:class:<code class="docutils literal notranslate"><span class="pre">CitationFile</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.core.plugins.RecordOverviewPlugin.get_cited_details">
+<span class="sig-name descname"><span class="pre">get_cited_details</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">citation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#fairdm.core.plugins.RecordOverviewPlugin.get_cited_details" title="Link to this definition">#</a></dt>
+<dd><p>Give the two keys every record’s citation card adds to its text.</p>
+<p>Args:
+citation: The :class:<code class="docutils literal notranslate"><span class="pre">~fairdm.core.citation.Citation</span></code>.
+text: The citation as text.</p>
+<p>Returns:
+<code class="docutils literal notranslate"><span class="pre">work</span></code>, the citation, and <code class="docutils literal notranslate"><span class="pre">formats</span></code>, from :meth:<code class="docutils literal notranslate"><span class="pre">get_citation_formats</span></code>.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1569,10 +1713,20 @@ or <code class="docutils literal notranslate"><span class="pre">None</span></cod
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.OverviewPlugin.get_page_title"><code class="docutils literal notranslate"><span class="pre">OverviewPlugin.get_page_title()</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.CitationFile"><code class="docutils literal notranslate"><span class="pre">CitationFile</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.CitationFile.name"><code class="docutils literal notranslate"><span class="pre">CitationFile.name</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.CitationFile.url_path"><code class="docutils literal notranslate"><span class="pre">CitationFile.url_path</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.CitationFile.setup"><code class="docutils literal notranslate"><span class="pre">CitationFile.setup()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.CitationFile.has_permission"><code class="docutils literal notranslate"><span class="pre">CitationFile.has_permission()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.CitationFile.handle_no_permission"><code class="docutils literal notranslate"><span class="pre">CitationFile.handle_no_permission()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.CitationFile.get"><code class="docutils literal notranslate"><span class="pre">CitationFile.get()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.people_named"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.people_named</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.people_faces"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.people_faces</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.resolvable_identifier_types"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.resolvable_identifier_types</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.extra_views"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.extra_views</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_context_data"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_context_data()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_contributions"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_contributions()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_role_uris"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_role_uris()</span></code></a></li>
@@ -1581,7 +1735,13 @@ or <code class="docutils literal notranslate"><span class="pre">None</span></cod
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_people"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_people()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_identifiers"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_identifiers()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_primary_identifier"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_primary_identifier()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_publisher"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_publisher()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.format_cited_names"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.format_cited_names()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_citation"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_citation()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.build_citation"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.build_citation()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_citation_formats"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_citation_formats()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_citation_address"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_citation_address()</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_cited_details"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_cited_details()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_timeline"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_timeline()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_license_entry"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_license_entry()</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.plugins.RecordOverviewPlugin.get_type_mix"><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_type_mix()</span></code></a></li>

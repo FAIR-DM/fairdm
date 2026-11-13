@@ -968,6 +968,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l4"><a class="reference internal" href="fairdm.core.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.admin</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.core.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.models</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.core.descriptions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.descriptions</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.core.citation.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.citation</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.core.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.utils</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.core.image_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.image_utils</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.core.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.apps</span></code></a></li>
@@ -1289,8 +1290,8 @@ datasets carry none.</p>
 <span class="sig-name descname"><span class="pre">get_citation_details</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.project.plugins.Overview.get_citation_details" title="Link to this definition">#</a></dt>
 <dd><p>Write the project’s citation: Creators (Year). Title. Publisher. Identifier.</p>
 <p>Returns:
-The citation text, the link it ends with, whether that link is a DOI and how many
-creators it names.</p>
+The citation text, the link it ends with, whether that link is a DOI, how
+many creators it names, the <code class="docutils literal notranslate"><span class="pre">work</span></code> it is written from and its <code class="docutils literal notranslate"><span class="pre">formats</span></code>.</p>
 </dd></dl>
 
 <dl class="py method">

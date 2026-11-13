@@ -125,11 +125,11 @@ Put it in the `overview.result` block of a measurement type's template.
 
 ### `c-overview.cite`
 
-How to cite the record, with a button that copies the citation. The panel's element id is `cite`, which the Cite button in every page header jumps to. `data-card` is `citation`.
+How to cite the record as Text, BibTeX or RIS. A switch in the panel's head picks the format, Copy copies the format on show, and Download saves BibTeX or RIS from the format's own address. The reader's last choice is remembered in their browser. The panel's element id is `cite`, which the Cite button in every page header jumps to. `data-card` is `citation`.
 
 | Attribute | Type | Default | Accepts |
 |---|---|---|---|
-| `text` | string | | The citation as plain text. |
+| `formats` | list | | The ways to take the citation, as the overview plugin's `get_citation_formats()` returns them: one entry per format with its `key`, `label`, `value`, `url` and `download`. The first entry is shown when the page loads. |
 
 | Slot | Holds |
 |---|---|
