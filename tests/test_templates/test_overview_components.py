@@ -81,7 +81,7 @@ class TestSheet:
 
         page = soup(self.sheet(render_overview, rows=rows))
 
-        assert page.select_one(".ov-pill").get_text(strip=True) == "BADGE-MARKER"
+        assert page.select_one(".badge").get_text(strip=True) == "BADGE-MARKER"
 
     def test_a_row_with_no_value_shows_a_dash_named_for_assistive_technology(
         self, render_overview, soup

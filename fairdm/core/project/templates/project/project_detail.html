@@ -18,9 +18,9 @@
 
 {% block overview.badges %}
   <span class="record-tag record-project"><c-icon name="project" aria-hidden="true" only />{% translate "Project" %}</span>
-  <span class="ov-pill ov-pill--{{ project.status_badge_variant }}"><span class="ov-pill__dot"></span>{{ project.get_status_display }}</span>
+  <span class="badge badge-soft badge-{{ project.status_badge_variant }} badge-sm">{{ project.get_status_display }}</span>
   {% if project.visibility != project.VISIBILITY.PUBLIC %}
-    <span class="ov-pill"><c-icon name="lock" aria-hidden="true" only />{% translate "Private" %}</span>
+    <span class="badge badge-ghost badge-sm"><c-icon name="lock" aria-hidden="true" only />{% translate "Private" %}</span>
   {% endif %}
 {% endblock overview.badges %}
 
