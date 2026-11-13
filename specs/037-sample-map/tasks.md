@@ -21,7 +21,7 @@ with the environment in `/home/sam/projects/worktrees/fairdm-037-env.sh` sourced
 - [x] T002 [US1] `describe_coverage` in `fairdm/core/overview.py`, and `get_sample_points` and
   `get_sample_map` on `RecordOverviewPlugin` in `fairdm/core/plugins.py`, as plan.md "The helpers"
   describes. T001 goes green.
-- [ ] T003 [US1] Tests: `TestOverviewSampleMap` in `tests/test_core/test_project/test_plugins.py`
+- [x] T003 [US1] Tests: `TestOverviewSampleMap` in `tests/test_core/test_project/test_plugins.py`
   and `tests/test_core/test_dataset/test_plugins.py`, and `TestSamplePoints` in
   `tests/test_core/test_plugins.py`, as plan.md "Tests" describes.
 - [ ] T004 [US1] `SamplePoints` in `fairdm/core/plugins.py`, and on the project and dataset

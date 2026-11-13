@@ -8,6 +8,7 @@ from datetime import UTC, date, datetime
 import pytest
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.gis.geos import Point
 from django.test import RequestFactory
 from django.urls import reverse
 from django.utils.formats import date_format
@@ -1765,3 +1766,107 @@ class TestOverviewCardsAlwaysShown:
         response = _page(client, dataset)
 
         assert response.page.select_one('[data-card="readiness"]') is None
+
+
+def loads_map_script(response):
+    """Say whether the page asked for MapLibre: ``has_map`` is set only when it does."""
+    return "has_map" in response.context and bool(response.context["has_map"])
+
+
+class TestOverviewSampleMap:
+    @pytest.fixture
+    def published(self):
+        """A public, published dataset: two located samples and one without a location."""
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        RockSampleFactory(dataset=dataset, location=Point(7.9, 48.9, srid=4326))
+        RockSampleFactory(dataset=dataset, location=Point(8.1, 49.0, srid=4326))
+        RockSampleFactory(dataset=dataset, location=None)
+        return dataset
+
+    def test_a_visitor_to_a_published_dataset_gets_its_samples(self, client, published):
+        sample_map = _page(client, published).context["sample_map"]
+
+        assert sample_map["located"] == 2
+        assert sample_map["missing"] == 1
+        assert sample_map["bounds"] == [7.9, 48.9, 8.1, 49.0]
+
+    def test_a_dataset_does_not_count_its_datasets(self, client, published):
+        sample_map = _page(client, published).context["sample_map"]
+
+        assert "datasets" not in sample_map
+
+    def test_the_points_address_is_the_datasets_own(self, client, published):
+        sample_map = _page(client, published).context["sample_map"]
+
+        assert sample_map["points_url"] == reverse(
+            "dataset:overview-sample-points", kwargs={"uuid": published.uuid}
+        )
+
+    @pytest.mark.parametrize("viewer", ["visitor", "member"])
+    def test_located_and_missing_add_up_to_the_samples_figure_the_page_computes(
+        self, client, published, viewer
+    ):
+        if viewer == "member":
+            client.force_login(_team_member(published))
+
+        response = _page(client, published)
+
+        sample_map = response.context["sample_map"]
+        assert (
+            sample_map["located"] + sample_map["missing"]
+            == response.context["counts"]["samples"]
+        )
+
+    def test_a_visitor_to_a_public_unpublished_dataset_gets_no_map(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        RockSampleFactory(dataset=dataset, location=Point(7.9, 48.9, srid=4326))
+
+        response = _page(client, dataset)
+
+        assert response.context["sample_map"] is None
+        assert not loads_map_script(response)
+
+    def test_the_team_of_an_unpublished_dataset_gets_the_map(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        RockSampleFactory(dataset=dataset, location=Point(7.9, 48.9, srid=4326))
+        client.force_login(_team_member(dataset))
+
+        response = _page(client, dataset)
+
+        assert response.context["sample_map"]["located"] == 1
+        assert loads_map_script(response)
+
+    def test_the_points_address_of_an_unpublished_dataset_gives_a_visitor_nothing(
+        self, client
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        RockSampleFactory(dataset=dataset, location=Point(7.9, 48.9, srid=4326))
+
+        response = client.get(
+            reverse("dataset:overview-sample-points", kwargs={"uuid": dataset.uuid})
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {"type": "FeatureCollection", "features": []}
+
+    def test_a_dataset_with_no_samples_has_no_map(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+
+        response = _page(client, dataset)
+
+        assert response.context["sample_map"] is None
+        assert not loads_map_script(response)
+
+    def test_samples_none_of_which_is_located_give_none_located_and_no_map_script(
+        self, client
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        RockSampleFactory.create_batch(2, dataset=dataset, location=None)
+
+        response = _page(client, dataset)
+
+        assert response.context["sample_map"]["located"] == 0
+        assert not loads_map_script(response)
+
+    def test_has_map_is_true_once_a_sample_is_located(self, client, published):
+        assert loads_map_script(_page(client, published))
