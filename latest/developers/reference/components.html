@@ -1341,6 +1341,43 @@ commentsRunWhenDOMLoaded(addUtterances);
 </div>
 <p>Put the figures in a <code class="docutils literal notranslate"><span class="pre">&lt;div</span> <span class="pre">class=&quot;ov-figures&quot;&gt;</span></code> in the <code class="docutils literal notranslate"><span class="pre">overview.figures</span></code> block.</p>
 </section>
+<section id="c-overview-result">
+<h3><code class="docutils literal notranslate"><span class="pre">c-overview.result</span></code><a class="headerlink" href="#c-overview-result" title="Link to this heading">#</a></h3>
+<p>A measurement’s result along the foot of the header, in the figures’ place: the value large, its unit, and notes beside it. The notes are the slot: a detection limit, an uncertainty or the instrument. With no slot, nothing is drawn beside the value.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Attribute</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Accepts</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">label</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>What the value is, such as Result or Concentration.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">value</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>The value, already formatted.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">unit</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>The value’s unit.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="x">&lt;c-overview.result label="Concentration" value="</span><span class="cp">{{</span> <span class="nv">measurement.concentration_ppm</span><span class="o">|</span><span class="nf">floatformat</span><span class="s1">:'-2'</span> <span class="cp">}}</span><span class="x">" unit="ppm </span><span class="cp">{{</span> <span class="nv">measurement.element</span> <span class="cp">}}</span><span class="x">"&gt;</span>
+<span class="x">  &lt;span&gt;Detection limit </span><span class="cp">{{</span> <span class="nv">measurement.detection_limit_ppm</span> <span class="cp">}}</span><span class="x"> ppm&lt;/span&gt;</span>
+<span class="x">&lt;/c-overview.result&gt;</span>
+</pre></div>
+</div>
+<p>Put it in the <code class="docutils literal notranslate"><span class="pre">overview.result</span></code> block of a measurement type’s template.</p>
+</section>
 <section id="c-overview-cite">
 <h3><code class="docutils literal notranslate"><span class="pre">c-overview.cite</span></code><a class="headerlink" href="#c-overview-cite" title="Link to this heading">#</a></h3>
 <p>How to cite the record, with a button that copies the citation. The panel’s element id is <code class="docutils literal notranslate"><span class="pre">cite</span></code>, which the Cite button in every page header jumps to. <code class="docutils literal notranslate"><span class="pre">data-card</span></code> is <code class="docutils literal notranslate"><span class="pre">citation</span></code>.</p>
@@ -1973,47 +2010,6 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p><code class="docutils literal notranslate"><span class="pre">items</span></code> (dictionaries with <code class="docutils literal notranslate"><span class="pre">label</span></code>, <code class="docutils literal notranslate"><span class="pre">done</span></code>, <code class="docutils literal notranslate"><span class="pre">url</span></code> and <code class="docutils literal notranslate"><span class="pre">required</span></code>, where <code class="docutils literal notranslate"><span class="pre">required</span></code> set to <code class="docutils literal notranslate"><span class="pre">False</span></code> marks a recommended item), <code class="docutils literal notranslate"><span class="pre">done</span></code>, <code class="docutils literal notranslate"><span class="pre">total</span></code> and <code class="docutils literal notranslate"><span class="pre">ready</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">class</span></code></p></td>
-<td><p>string</p></td>
-<td><p></p></td>
-<td><p>Extra classes on the card.</p></td>
-</tr>
-</tbody>
-</table>
-</div>
-</section>
-<section id="c-card-timeline">
-<h3><code class="docutils literal notranslate"><span class="pre">c-card.timeline</span></code><a class="headerlink" href="#c-card-timeline" title="Link to this heading">#</a></h3>
-<p>What happened to a record, in order, on the dataset and measurement pages. The sample page uses <a class="reference internal" href="#c-overview-history"><code class="docutils literal notranslate"><span class="pre">c-overview.history</span></code></a>. Each step shows its label, its date, the people who did it and a note. A date recorded only to the month is shown as the month, and one recorded only to the year as the year. <code class="docutils literal notranslate"><span class="pre">data-card</span></code> is <code class="docutils literal notranslate"><span class="pre">timeline</span></code>.</p>
-<div class="pst-scrollable-table-container"><table class="table">
-<thead>
-<tr class="row-odd"><th class="head"><p>Attribute</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Default</p></th>
-<th class="head"><p>Accepts</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">title</span></code></p></td>
-<td><p>string</p></td>
-<td><p></p></td>
-<td><p>The card’s title.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">steps</span></code></p></td>
-<td><p>list</p></td>
-<td><p></p></td>
-<td><p>Dictionaries with <code class="docutils literal notranslate"><span class="pre">label</span></code>, <code class="docutils literal notranslate"><span class="pre">date</span></code>, <code class="docutils literal notranslate"><span class="pre">day</span></code>, <code class="docutils literal notranslate"><span class="pre">people</span></code> and <code class="docutils literal notranslate"><span class="pre">note</span></code>. <code class="docutils literal notranslate"><span class="pre">day</span></code> is set when the date is a full day. <code class="docutils literal notranslate"><span class="pre">note</span></code> is rendered as markdown.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">empty</span></code></p></td>
-<td><p>string</p></td>
-<td><p></p></td>
-<td><p>What to say when there are no steps.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">edit_url</span></code></p></td>
-<td><p>string</p></td>
-<td><p></p></td>
-<td><p>The key dates’ editing page, drawn as the card’s Edit for someone who may edit them.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">class</span></code></p></td>
 <td><p>string</p></td>
 <td><p></p></td>
 <td><p>Extra classes on the card.</p></td>
@@ -3471,6 +3467,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-edit"><code class="docutils literal notranslate"><span class="pre">c-overview.edit</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-status"><code class="docutils literal notranslate"><span class="pre">c-overview.status</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-figure"><code class="docutils literal notranslate"><span class="pre">c-overview.figure</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-result"><code class="docutils literal notranslate"><span class="pre">c-overview.result</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-cite"><code class="docutils literal notranslate"><span class="pre">c-overview.cite</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-sheet"><code class="docutils literal notranslate"><span class="pre">c-overview.sheet</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-people"><code class="docutils literal notranslate"><span class="pre">c-overview.people</span></code></a></li>
@@ -3489,7 +3486,6 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-card-people"><code class="docutils literal notranslate"><span class="pre">c-card.people</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-card-placeholder"><code class="docutils literal notranslate"><span class="pre">c-card.placeholder</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-card-readiness"><code class="docutils literal notranslate"><span class="pre">c-card.readiness</span></code></a></li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-card-timeline"><code class="docutils literal notranslate"><span class="pre">c-card.timeline</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cards-for-contributor-pages">Cards for contributor pages</a><ul class="nav section-nav flex-column">

@@ -882,6 +882,17 @@ details, the keywords, descriptions, notes, key dates and identifiers each carry
 carries Manage, and Delete is the last line of the Details panel. Publish sits in a dataset’s
 “Ready to publish?” panel. <code class="docutils literal notranslate"><span class="pre">edit_links()</span></code> in <code class="docutils literal notranslate"><span class="pre">fairdm.core.editing</span></code> gives the addresses, keyed by
 each page’s new <code class="docutils literal notranslate"><span class="pre">part</span></code>. See <a class="reference internal" href="adr/0044-each-part-of-a-record-is-edited-from-the-panel-that-shows-it.html"><span class="std std-doc">ADR 0044</span></a>.</p></li>
+<li><p><strong>The measurement overview page is redesigned on the shared page.</strong> The result is the header’s
+headline, drawn by the new <code class="docutils literal notranslate"><span class="pre">&lt;c-overview.result&gt;</span></code> with notes such as a detection limit beside the
+value. The header’s key facts name the sample it was measured on, its dataset and the identifier
+that resolves. The sample sits in a small version of its own header, the other measurements on
+it are a compact table of up to twelve (<code class="docutils literal notranslate"><span class="pre">siblings_shown</span></code>, which was eight), and the location map
+comes straight after the citation, headed “Where it was measured” or “Where the sample was
+taken”, drawn by <code class="docutils literal notranslate"><span class="pre">&lt;c-overview.location&gt;</span></code>. How it was measured is a dated timeline
+(<code class="docutils literal notranslate"><span class="pre">&lt;c-overview.history&gt;</span></code>) and a type’s own fields sit in <code class="docutils literal notranslate"><span class="pre">&lt;c-overview.props&gt;</span></code>. The note that the
+measurement and its sample sit in different datasets shows only when
+the viewer may open the sample. The demo’s XRF page draws its concentration with
+<code class="docutils literal notranslate"><span class="pre">&lt;c-overview.result&gt;</span></code> and its analytical conditions with <code class="docutils literal notranslate"><span class="pre">&lt;c-overview.props&gt;</span></code>.</p></li>
 <li><p><strong>A sample or measurement collection is headed like a Samples or Measurements tab.</strong> The
 heading is the type’s name, underlined in its kind’s colour, and is itself the menu of the other
 collections of the same kind, each with its count of published records, most first. A sample
@@ -939,6 +950,7 @@ an Edit control on the panel its action changes. See
 <a class="reference internal" href="developers/how-to/add-an-action-to-an-overview-page.html"><span class="std std-doc">How to add an action to an overview page</span></a>.</p></li>
 <li><p><strong>The “not yet available” panels for the project’s map, recent activity and exporting a
 citation</strong>, and the dataset’s map. Each comes back as a working panel with its own feature.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">&lt;c-card.timeline&gt;</span></code></strong>, replaced by <code class="docutils literal notranslate"><span class="pre">&lt;c-overview.history&gt;</span></code> on the sample and measurement pages and by the dataset page’s own timeline.</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">&lt;c-card.citation&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;c-card.descriptions&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;c-card.details&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;c-card.details.entry&gt;</span></code> and
 <code class="docutils literal notranslate"><span class="pre">&lt;c-card.funding&gt;</span></code></strong>, replaced by <code class="docutils literal notranslate"><span class="pre">&lt;c-overview.cite&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;c-overview.descriptions&gt;</span></code> and
 <code class="docutils literal notranslate"><span class="pre">&lt;c-overview.sheet&gt;</span></code>. The project page no longer draws its composition chart.</p></li>

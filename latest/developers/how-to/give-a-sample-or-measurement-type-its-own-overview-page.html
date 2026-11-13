@@ -1108,16 +1108,12 @@ commentsRunWhenDOMLoaded(addUtterances);
 </pre></div>
 </div>
 </li>
-<li><p>For a measurement type that records its result in some way other than a single <code class="docutils literal notranslate"><span class="pre">value</span></code>, also fill <code class="docutils literal notranslate"><span class="pre">overview.result</span></code>. A type that declares a <code class="docutils literal notranslate"><span class="pre">value</span></code>, and optionally an <code class="docutils literal notranslate"><span class="pre">uncertainty</span></code>, gets its result shown with no template at all.</p>
+<li><p>For a measurement type that records its result in some way other than a single <code class="docutils literal notranslate"><span class="pre">value</span></code>, also fill <code class="docutils literal notranslate"><span class="pre">overview.result</span></code>. A type that declares a <code class="docutils literal notranslate"><span class="pre">value</span></code>, and optionally an <code class="docutils literal notranslate"><span class="pre">uncertainty</span></code>, gets its result shown with no template at all. <a class="reference internal" href="../reference/components.html#c-overview-result"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">c-overview.result</span></code></span></a> draws it along the foot of the header, with notes such as a detection limit in its slot.</p>
 <div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="c">{# templates/geochem/gasmeasurement_overview.html #}</span>
 <span class="cp">{%</span> <span class="k">extends</span> <span class="s2">"measurement/measurement_overview.html"</span> <span class="cp">%}</span>
 
 <span class="cp">{%</span> <span class="k">block</span> <span class="nv">overview.result</span> <span class="cp">%}</span>
-<span class="x">  &lt;c-mvp.card.wrapper class="bg-base-100"&gt;</span>
-<span class="x">    &lt;div class="card-body gap-3"&gt;</span>
-<span class="x">      &lt;p class="text-4xl font-semibold tabular-nums"&gt;</span><span class="cp">{{</span> <span class="nv">measurement.concentration_ppm</span> <span class="cp">}}</span><span class="x"> ppm&lt;/p&gt;</span>
-<span class="x">    &lt;/div&gt;</span>
-<span class="x">  &lt;/c-mvp.card.wrapper&gt;</span>
+<span class="x">  &lt;c-overview.result label="Concentration" value="</span><span class="cp">{{</span> <span class="nv">measurement.concentration_ppm</span> <span class="cp">}}</span><span class="x">" unit="ppm" /&gt;</span>
 <span class="cp">{%</span> <span class="k">endblock</span> <span class="nv">overview.result</span> <span class="cp">%}</span>
 </pre></div>
 </div>

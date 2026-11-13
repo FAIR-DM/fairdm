@@ -905,10 +905,10 @@ commentsRunWhenDOMLoaded(addUtterances);
                   
   <section id="the-measurement-page">
 <h1>The measurement page<a class="headerlink" href="#the-measurement-page" title="Link to this heading">#</a></h1>
-<p>A measurement’s page gathers what the portal holds about one measurement: its result, how it was made, the sample it was made on and who is credited on it. The heading is the measurement’s name, or its portal ID when it has no name. This page describes what every measurement type’s page shows. It does not describe the screens for changing a measurement, which the <strong>Manage</strong> menu opens.</p>
+<p>A measurement’s page gathers what the portal holds about one measurement: its result, how it was made, the sample it was made on and who is credited on it. The heading is the measurement’s name, or its portal ID when it has no name. This page describes what every measurement type’s page shows. It does not describe the screens for changing a measurement, which the <strong>Edit</strong> on each panel opens.</p>
 <section id="how-to-reach-it">
 <h2>How to reach it<a class="headerlink" href="#how-to-reach-it" title="Link to this heading">#</a></h2>
-<p>Choose a measurement’s name in a <a class="reference internal" href="measurements.html"><span class="std std-doc">measurements table</span></a>, in the <strong>Measurements</strong> card of a <a class="reference internal" href="../samples/sample.html"><span class="std std-doc">sample’s page</span></a>, or in the <strong>Other measurements on this sample</strong> card of another measurement’s page.</p>
+<p>Choose a measurement’s name in a <a class="reference internal" href="measurements.html"><span class="std std-doc">measurements table</span></a>, in the <strong>Measurements</strong> card of a <a class="reference internal" href="../samples/sample.html"><span class="std std-doc">sample’s page</span></a>, or in the <strong>Other measurements on this sample</strong> panel of another measurement’s page.</p>
 <p>The address is <code class="docutils literal notranslate"><span class="pre">/measurements/</span></code> followed by the measurement’s portal ID. The portal ID alone, after the portal’s address, also opens it: <code class="docutils literal notranslate"><span class="pre">/</span></code> followed by the portal ID is the measurement’s permalink. A measurement has two tabs: <strong>Overview</strong>, which this page describes, and <strong>Contributors</strong>, described on <a class="reference internal" href="../contributors/contributors-tab.html"><span class="std std-doc">Contributors</span></a>.</p>
 <p>Who may open the page is explained in <a class="reference internal" href="../../explanation/how-access-to-a-record-is-decided.html"><span class="std std-doc">How access to a record is decided</span></a>.</p>
 </section>
@@ -922,6 +922,13 @@ commentsRunWhenDOMLoaded(addUtterances);
 <ul class="simple">
 <li><p>The measurement’s type as a badge. When the portal describes the type, the badge is a button headed “About” and the type’s name. It opens a dialog with the type’s description, its keywords, the authority whose schema it follows and the protocol it cites, and you close it with <strong>Close</strong>.</p></li>
 <li><p>The measurement’s name, or its portal ID.</p></li>
+<li><p>A line of key facts, each a link:</p>
+<ul>
+<li><p><strong>Measured on</strong>: the sample, when you may open it.</p></li>
+<li><p><strong>Dataset</strong>: the measurement’s dataset.</p></li>
+<li><p>The first identifier that resolves, such as a DOI, labelled with its type.</p></li>
+</ul>
+</li>
 <li><p>Its keywords, as badges. These are keywords chosen from a controlled vocabulary. People who may change the measurement see <strong>Edit</strong> beside them, or <strong>Add keywords</strong> when there are none.</p></li>
 <li><p>Buttons: <strong>Cite</strong>, which jumps to the Cite panel, <strong>Share</strong>, and for people who may change the measurement <strong>Edit</strong>, which opens <a class="reference internal" href="edit-details.html"><span class="std std-doc">Edit details</span></a>.</p></li>
 </ul>
@@ -930,15 +937,15 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="result">
 <h2>Result<a class="headerlink" href="#result" title="Link to this heading">#</a></h2>
-<p>A card headed <strong>Result</strong> shows the measurement’s value, with its uncertainty and units when the type records them. It appears when the measurement’s type defines a value. A type that records its result another way draws it here in its own form. This is where a portal’s own result appears.</p>
+<p>The foot of the header shows the measurement’s result, headed <strong>Result</strong>: the value in large type, with its uncertainty and units when the type records them. It appears when the measurement’s type defines a value. A type that records its result another way draws it here in its own form, with notes such as a detection limit beside the value. This is where a portal’s own result appears.</p>
 </section>
 <section id="your-types-own-content">
 <h2>Your type’s own content<a class="headerlink" href="#your-types-own-content" title="Link to this heading">#</a></h2>
-<p>A measurement type can add cards of its own to the wide column, above the procedure. A type that adds nothing shows nothing here.</p>
+<p>A measurement type can add panels of its own to the wide column, above the procedure. This is where a portal’s own fields appear on the page, usually as a panel of properties, each a label over its value, with a dash where nothing is recorded. People who may change the measurement see <strong>Edit</strong> on it, which opens <a class="reference internal" href="edit-details.html"><span class="std std-doc">Edit details</span></a>. A type that adds nothing shows nothing here.</p>
 </section>
 <section id="how-it-was-measured">
 <h2>How it was measured<a class="headerlink" href="#how-it-was-measured" title="Link to this heading">#</a></h2>
-<p>A card headed <strong>How it was measured</strong> lays the procedure out as a timeline. Each step combines a date, the people credited in the matching role and the matching description:</p>
+<p>A panel headed <strong>How it was measured</strong> lays the procedure out as a timeline, the date on the left of each step. Each step combines a date, the people credited in the matching role and the matching description:</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Step</p></th>
@@ -971,22 +978,32 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="notes">
 <h2>Notes<a class="headerlink" href="#notes" title="Link to this heading">#</a></h2>
-<p>A card headed <strong>Notes</strong> shows the measurement’s description of type Other. It is left out when there is none. People who may change the measurement see <strong>Edit</strong>, which opens <a class="reference internal" href="../editing-a-record/descriptions.html"><span class="std std-doc">Descriptions</span></a>.</p>
+<p>A panel headed <strong>Notes</strong> shows the measurement’s description of type Other. It is left out when there is none. People who may change the measurement see <strong>Edit</strong>, which opens <a class="reference internal" href="../editing-a-record/descriptions.html"><span class="std std-doc">Descriptions</span></a>.</p>
 </section>
 <section id="measured-on">
 <h2>Measured on<a class="headerlink" href="#measured-on" title="Link to this heading">#</a></h2>
-<p>A card headed <strong>Measured on</strong> shows the sample the measurement was made on: its image or icon, its type, its status badge, its name as a link, its local ID, the dataset it belongs to and its keywords.</p>
-<p>When the sample’s dataset is not published you cannot open the sample, and the card reads “The sample this was measured on belongs to a dataset that hasn’t been published yet.”</p>
-<p>When the sample is in a different dataset from the measurement, a notice adds “This measurement and its sample are recorded in different datasets. That’s normal when one group measures specimens another group collected.”</p>
+<p>A panel headed <strong>Measured on</strong> shows the sample the measurement was made on, as a small version of the sample’s own header: its image or icon, its type, its status badge, its name as a link, its local ID and the dataset it belongs to.</p>
+<p>When the sample’s dataset is not published you cannot open the sample, and the panel reads “The sample this was measured on belongs to a dataset that hasn’t been published yet.”</p>
+<p>When you may open the sample and it is in a different dataset from the measurement, a note adds “This measurement and its sample are recorded in different datasets. That’s normal when one group measures specimens another group collected.”</p>
 </section>
 <section id="other-measurements-on-this-sample">
 <h2>Other measurements on this sample<a class="headerlink" href="#other-measurements-on-this-sample" title="Link to this heading">#</a></h2>
-<p>A card with this heading lists the other measurements made on the same sample, newest first, with a count in the corner. Each row has the measurement’s name, its type, the dataset when it differs from this one, and the date it was added. The card lists the first eight and says “and” followed by a count and “more” for the rest. When you may open the sample, <strong>See all</strong> opens the sample’s <strong>Measurements</strong> tab, which lists every one. You see only measurements whose own dataset you may see. The card is left out when there are none.</p>
+<p>A panel with this heading lists the other measurements made on the same sample in a table, newest first, with a count beside the heading. The columns are <strong>Measurement</strong> (its name as a link), <strong>Type</strong>, <strong>Dataset</strong> (“This dataset” when it is the measurement’s own) and <strong>Added</strong>. On a phone each row becomes a short entry, the name above the rest. The table lists the first twelve, and “and” followed by a count and “more” stands for the rest. When you may open the sample, <strong>See all</strong> and that count open the sample’s <strong>Measurements</strong> tab, which lists every one. You see only measurements whose own dataset you may see. The panel is left out when there are none.</p>
 </section>
 <section id="cite">
 <h2>Cite<a class="headerlink" href="#cite" title="Link to this heading">#</a></h2>
 <p>A panel headed <strong>Cite</strong>, at the top of the side column, gives the citation as plain text, and a <strong>Copy</strong> button copies it. The measurement is cited by the people credited with the Collection role, the year of its setup date (or the year it was added), its name, its type and the sample, and the DOI link or, with no DOI, the measurement’s permalink.</p>
 <p>A measurement with no DOI reads “Most measurements are cited through their dataset. This citation points at this page.” with a <strong>Cite the dataset</strong> link to the dataset’s Cite panel.</p>
+</section>
+<section id="location">
+<h2>Location<a class="headerlink" href="#location" title="Link to this heading">#</a></h2>
+<p>A panel straight after <strong>Cite</strong> shows where the measurement was made.</p>
+<ul class="simple">
+<li><p>A measurement with a location of its own gets a panel headed <strong>Where it was measured</strong>, with a map and the coordinates. People who may change the measurement see <strong>Edit</strong> on it, which opens <a class="reference internal" href="edit-details.html"><span class="std std-doc">Edit details</span></a>.</p></li>
+<li><p>A measurement with none shows its sample’s location under <strong>Where the sample was taken</strong>, when you may open the sample and the sample has one.</p></li>
+<li><p>With no location to show, the panel reads “No location has been recorded for the sample.” or, when you may not open the sample, “The sample belongs to a dataset that has not been published, so its location is not shown.”</p></li>
+</ul>
+<p>The coordinates are <strong>Latitude</strong> and <strong>Longitude</strong> to five decimal places, then <strong>Elevation</strong> and <strong>Uncertainty</strong> in metres when they are recorded, in decimal degrees (WGS 84). The map’s tile credits sit behind the (i) button in its corner.</p>
 </section>
 <section id="details">
 <h2>Details<a class="headerlink" href="#details" title="Link to this heading">#</a></h2>
@@ -1003,16 +1020,6 @@ commentsRunWhenDOMLoaded(addUtterances);
 <section id="people">
 <h2>People<a class="headerlink" href="#people" title="Link to this heading">#</a></h2>
 <p>A panel headed <strong>People</strong> names the first six people credited, each with their roles and the organization they are credited from, then shows up to ten more as faces, each linked to their page, and counts the rest. <strong>See all</strong> opens the <a class="reference internal" href="../contributors/contributors-tab.html"><span class="std std-doc">Contributors</span></a> tab, and for people who may manage the measurement <strong>Manage</strong> does. With nobody credited it says “No one is credited yet.”</p>
-</section>
-<section id="location">
-<h2>Location<a class="headerlink" href="#location" title="Link to this heading">#</a></h2>
-<p>A card shows where the measurement was made.</p>
-<ul class="simple">
-<li><p>A measurement with a location of its own gets a card headed <strong>Measurement location</strong>, with a map and the coordinates.</p></li>
-<li><p>A measurement with none shows its sample’s location under <strong>Sample location</strong>, when you may open the sample and the sample has one.</p></li>
-<li><p>With no location to show, the card reads “No location has been recorded for the sample.” or, when you may not open the sample, “The sample belongs to a dataset that has not been published, so its location is not shown.”</p></li>
-</ul>
-<p>The coordinates are <strong>Latitude</strong> and <strong>Longitude</strong> to five decimal places, then <strong>Elevation</strong> and <strong>Uncertainty</strong> in metres when they are recorded, in decimal degrees (WGS 84).</p>
 </section>
 <section id="what-you-can-do-here">
 <h2>What you can do here<a class="headerlink" href="#what-you-can-do-here" title="Link to this heading">#</a></h2>
@@ -1092,9 +1099,9 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#measured-on">Measured on</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#other-measurements-on-this-sample">Other measurements on this sample</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#cite">Cite</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#location">Location</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#details">Details</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#people">People</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#location">Location</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#what-you-can-do-here">What you can do here</a></li>
 </ul>
   </nav></div>
