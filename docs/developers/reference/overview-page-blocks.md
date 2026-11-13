@@ -68,7 +68,7 @@ A block that wraps other blocks (`overview.main`, `overview.side`, `overview.det
 | `edit` | Every Edit control: `overview.keywords`, `overview.manage`, `overview.details`. |
 | `record_kind` | `overview.details`, which names it in the Delete line. |
 | `readiness` | `overview.readiness`. Its `title`, `summary` and `about` are set by the plugin. |
-| `citation` | `overview.cite`: `text`, and optionally `note`, `note_url` and `note_link`. |
+| `citation` | `overview.cite`: `formats`, and optionally `note`, `note_url` and `note_link`. |
 | `details`, `identifiers`, `funding`, `can_manage`, `api_url` | `overview.details`. `funding` set to `None` leaves the Funding section out. |
 | `people`, `people_url`, `can_manage` | `overview.people`. |
 | `json_ld` | The page head. |

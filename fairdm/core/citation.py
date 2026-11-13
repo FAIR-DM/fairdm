@@ -71,7 +71,14 @@ def publication_types(csl_type):
 
 
 def collapse_whitespace(value):
-    """Write every run of whitespace, line breaks included, as one space."""
+    """Write every run of whitespace, line breaks included, as one space.
+
+    Args:
+        value: The text to collapse.
+
+    Returns:
+        The text on one line, with single spaces.
+    """
     return " ".join(value.split())
 
 
@@ -115,6 +122,7 @@ class CitationWriter(BibtexWriter):
     """The BibTeX writer, writing ``doi`` and ``url`` as they are given."""
 
     def _write_field(self, stream, field, value):
+        """Write doi and url unencoded, and every other field as pybtex does."""
         if field in VERBATIM_FIELDS:
             stream.write(f",\n    {field} = {self.quote(value)}")
         else:
@@ -125,6 +133,7 @@ class RisCitationWriter(rispy.RisWriter):
     """The RIS writer with no counter line before the entry, so ``TY`` comes first."""
 
     def set_header(self, count):
+        """Write no counter line before the entry."""
         return ""
 
 
@@ -139,24 +148,47 @@ class CitedName:
 
     @classmethod
     def from_contributor(cls, contributor):
-        """A FairDM contributor: person with a family name or an organisation."""
+        """Read a FairDM contributor as the text citation names it.
+
+        Args:
+            contributor: A person or an organisation credited on the record.
+
+        Returns:
+            Family and given name for a person with both, else the contributor's own
+            name as one literal, as ``fairdm.core.overview.author_name`` writes it.
+        """
         family = getattr(contributor, "last_name", "")
-        if family:
-            return cls(family=family, given=getattr(contributor, "first_name", ""))
+        given = getattr(contributor, "first_name", "")
+        if family and given:
+            return cls(family=family, given=given)
         return cls(literal=str(contributor))
 
     @classmethod
     def from_item_name(cls, name):
-        """Read a ``literature.Name``, the non-dropping particle before the family."""
+        """Read a ``literature.Name`` from a data publication.
+
+        Args:
+            name: The publication's name, as django-literature stores it.
+
+        Returns:
+            The literal name, or the family name with its non-dropping particle in
+            front, the given name with its dropping particle after, and the suffix.
+        """
         if name.literal:
             return cls(literal=name.literal)
         family = " ".join(
             part for part in (name.non_dropping_particle, name.family) if part
         )
-        return cls(family=family, given=name.given, suffix=name.suffix)
+        given = " ".join(part for part in (name.given, name.dropping_particle) if part)
+        return cls(family=family, given=given, suffix=name.suffix)
 
     def to_bibtex_person(self):
-        """Write the name as a pybtex person; a literal is one braced last name."""
+        """Write the name as a pybtex person.
+
+        Returns:
+            A ``pybtex.database.Person``. A literal name is one braced last name, so
+            BibTeX never splits it.
+        """
         if self.literal:
             return Person(last="{" + escape_tex(self.literal) + "}")
         return Person(
@@ -166,7 +198,11 @@ class CitedName:
         )
 
     def to_ris(self):
-        """Write the name as RIS does: "Family, Given, Suffix", or the literal."""
+        """Write the name as an RIS author.
+
+        Returns:
+            "Family, Given, Suffix", or the literal name.
+        """
         if self.literal:
             return collapse_whitespace(self.literal)
         parts = (self.family, self.given, self.suffix)
@@ -188,7 +224,11 @@ class Citation:
     ris_type: str
 
     def to_bibtex(self):
-        """Write the citation as one BibTeX entry."""
+        """Write the citation as one BibTeX entry.
+
+        Returns:
+            The entry, keyed by the record's portal ID.
+        """
         fields = {"title": escape_tex(self.title)}
         if self.year is not None:
             fields["year"] = str(self.year)
@@ -205,7 +245,11 @@ class Citation:
         return CitationWriter().to_string(BibliographyData(entries={self.key: entry}))
 
     def to_ris(self):
-        """Write the citation as one RIS entry."""
+        """Write the citation as one RIS entry.
+
+        Returns:
+            The entry, starting with its ``TY`` line.
+        """
         reference = {"type_of_reference": self.ris_type}
         if self.authors:
             reference["authors"] = [name.to_ris() for name in self.authors]
@@ -221,6 +265,18 @@ class Citation:
         return rispy.dumps([reference], implementation=RisCitationWriter)
 
     def filename(self, extension):
-        """Name the file after the title, else the key: ``seismic-survey.bib``."""
-        stem = slugify(self.title)[:60].strip("-") or self.key
+        """Name the file after the title, else the key: ``seismic-survey.bib``.
+
+        Args:
+            extension: The file's extension, without the dot.
+
+        Returns:
+            An ASCII slug of the title, a slug in the title's own script when it has no
+            Latin letters, or the key, followed by the extension.
+        """
+        stem = (
+            slugify(self.title)[:60].strip("-")
+            or slugify(self.title, allow_unicode=True)[:60].strip("-")
+            or self.key
+        )
         return f"{stem}.{extension}"

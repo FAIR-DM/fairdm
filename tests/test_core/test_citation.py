@@ -67,6 +67,11 @@ class TestCitedName:
 
         assert CitedName.from_contributor(organisation) == CitedName(literal="Acme Lab")
 
+    def test_from_contributor_a_family_name_alone_gives_the_string_form(self):
+        person = Contributor(last_name="Keller", first_name="", label="Keller")
+
+        assert CitedName.from_contributor(person) == CitedName(literal="Keller")
+
     def test_from_item_name_gives_family_and_given(self):
         name = Name(family="Keller", given="Anna")
 
@@ -89,6 +94,13 @@ class TestCitedName:
 
         assert CitedName.from_item_name(name) == CitedName(
             family="van Beethoven", given="Ludwig", suffix="Jr."
+        )
+
+    def test_from_item_name_puts_the_dropping_particle_after_the_given_name(self):
+        name = Name(family="Gogh", given="Vincent", dropping_particle="van")
+
+        assert CitedName.from_item_name(name) == CitedName(
+            family="Gogh", given="Vincent van"
         )
 
 
@@ -250,6 +262,11 @@ class TestCitation:
             citation = build(title="Café Müller: Seismic Survey")
 
             assert citation.filename("bib") == "cafe-muller-seismic-survey.bib"
+
+        def test_a_title_with_no_latin_letters_keeps_its_own_script(self):
+            citation = build(title="Сейсмическая съемка", key="P-123")
+
+            assert citation.filename("bib") == "сейсмическая-съемка.bib"
 
         def test_an_empty_title_gives_the_key(self):
             assert build(title="", key="P-123").filename("ris") == "P-123.ris"

@@ -165,3 +165,13 @@ leave a field alone. `CitationWriter` overrides that one method so `doi` and `ur
 given. The version bound (`<0.27`) and the read-back tests catch a change to it.
 
 **ADR:** none. Local to one writer.
+
+## D17. An organisation in RIS is written as its plain name
+
+RIS has no way to mark a name as an organisation's. Some reference managers read an author holding
+a comma as "Family, Given". An organisation's name is written as it is, which every reference
+manager reads correctly unless the name itself holds a comma. BibTeX braces it, so it stays one name
+there in every case.
+
+**ADR:** none. Local to the RIS writer.
+

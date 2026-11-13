@@ -801,8 +801,9 @@ class TestCitationFile:
 
         assert response.status_code == 200
         assert response["Content-Type"] == fmt.content_type
+        stem = stem_for_citation(kind, public_record)
         assert response["Content-Disposition"] == (
-            f'attachment; filename="{stem_for_citation(kind, public_record)}.{fmt.extension}"'
+            f'attachment; filename="{stem}.{fmt.extension}"'
         )
 
     @pytest.mark.parametrize("fmt", FORMATS, ids=lambda f: f.key)

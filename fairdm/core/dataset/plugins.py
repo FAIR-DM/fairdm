@@ -610,17 +610,19 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         if dataset.reference_id:
             reference = dataset.reference
             names = [CitedName.from_item_name(n) for n in reference.authors]
-            link = reference.doi_url
+            year = reference.year
+            doi = reference.doi
+            link = f"https://doi.org/{doi}" if doi else None
             text = self.get_citation(
                 authors=names,
-                year=reference.year,
+                year=year,
                 title=reference.title,
                 link=link,
                 publisher=reference.publisher,
             )
             work = self.build_citation(
                 authors=names,
-                year=reference.year,
+                year=year,
                 title=reference.title,
                 link=link,
                 publisher=reference.publisher,
@@ -629,7 +631,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             return {
                 "text": text,
                 "link": link,
-                "has_doi": bool(reference.doi),
+                "has_doi": bool(doi),
                 "creators": len(page["team"]["creators"]),
                 "from_reference": True,
                 **self.get_cited_details(work, text),
