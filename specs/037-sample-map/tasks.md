@@ -15,10 +15,12 @@ with the environment in `/home/sam/projects/worktrees/fairdm-037-env.sh` sourced
 
 ### Group 1
 
-- [ ] T001 [US1] Tests in `tests/test_core/test_overview.py`: `TestSamplePoints`, `TestSampleMap`
-  and `TestDescribeCoverage`, as plan.md "Tests" describes.
-- [ ] T002 [US1] `sample_points`, `sample_map` and `describe_coverage` in `fairdm/core/overview.py`,
-  as plan.md "The helpers" describes. T001 goes green.
+- [ ] T001 [US1] Tests: `TestDescribeCoverage` in `tests/test_core/test_overview.py`, and
+  `TestGetSamplePoints` and `TestGetSampleMap` in `tests/test_core/test_plugins.py`, as plan.md
+  "Tests" describes.
+- [ ] T002 [US1] `describe_coverage` in `fairdm/core/overview.py`, and `get_sample_points` and
+  `get_sample_map` on `RecordOverviewPlugin` in `fairdm/core/plugins.py`, as plan.md "The helpers"
+  describes. T001 goes green.
 - [ ] T003 [US1] Tests: `TestOverviewSampleMap` in `tests/test_core/test_project/test_plugins.py`
   and `tests/test_core/test_dataset/test_plugins.py`, and `TestSamplePoints` in
   `tests/test_core/test_plugins.py`, as plan.md "Tests" describes.
@@ -29,7 +31,8 @@ with the environment in `/home/sam/projects/worktrees/fairdm-037-env.sh` sourced
 ### Group 2
 
 - [ ] T005 [US1] Tests: `TestCoverage` in `tests/test_templates/test_overview_components.py`, and
-  the page tests plan.md "Tests" lists.
+  the project and dataset page tests in `tests/test_templates/test_overview_page.py`, as plan.md
+  "Tests" lists.
 - [ ] T006 [US1] `fairdm/templates/cotton/overview/coverage.html`, ported from the prototype, and
   the `overview.map` block in `fairdm/core/project/templates/project/project_detail.html` and
   `fairdm/core/dataset/templates/dataset/dataset_detail.html`, as plan.md "The panel" describes.

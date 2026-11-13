@@ -114,7 +114,8 @@ sample can be opened (FR-011, SC-003).
 | The panel frame, heading, "See all" | this repo | `c-overview.panel` |
 | Number formatting in the legend | Django | `django.contrib.humanize` `intcomma` |
 | The samples list with coordinates | this repo | `project:samples`, `dataset:samples` (specification 023) |
-| Points as GeoJSON features | new code | a helper in `fairdm/core/overview.py`, beside the helpers both pages share |
-| The panel's figures and the area as a sentence | new code | the same module |
+| Points as GeoJSON features | new code | `get_sample_points` on `RecordOverviewPlugin`, beside `get_type_mix` |
+| The panel's figures | new code | `get_sample_map` on `RecordOverviewPlugin` |
+| The area as a sentence | new code | `describe_coverage` in `fairdm/core/overview.py`, beside the other formatters |
 | The coverage panel | ported | prototype `cotton/ov/coverage.html` |
 | Cluster layers and point popup | ported | prototype `initMaps`, `data-points` branch |
