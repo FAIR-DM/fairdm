@@ -1,6 +1,7 @@
 /* FairDM's two themes, `fairdm` and `fairdm-dark`, and the fonts they use. `MVP_CONFIG["theme"]` makes them
  * a portal's default pair. FairDM has no Tailwind build, so this is the plain form of a daisyUI theme:
  * custom properties under `[data-theme]`, read by django-mvp's stylesheet when the page is painted.
+ * The badge rules after the themes set daisyUI's own badge properties, so they hold on any theme.
  *
  * One hue carries the interface. `secondary` is a neutral weight and `accent` is the same blue raised,
  * so neither is a second brand colour. `info` shares `accent`'s value on purpose.
@@ -106,6 +107,26 @@
   --font-sans: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
   --font-heading: "Archivo", "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Badges. Every badge is a pill. The radius is set on the badge alone, since checkboxes and toggles
+ * share `--radius-selector` and keep the small one. An outline badge, which is how a status shows,
+ * takes a light fill of its own colour. A keyword is a solid pill in a light shade of the primary
+ * colour, the same wherever keywords show: put `badge-keyword` on it. */
+
+.badge {
+  --radius-selector: 999px;
+}
+
+.badge-outline {
+  --badge-bg: color-mix(in oklch, currentColor 9%, var(--color-base-100));
+}
+
+.badge-keyword {
+  --badge-bg: color-mix(in oklch, var(--color-primary) 14%, var(--color-base-100));
+  --badge-fg: var(--color-primary-text, var(--color-primary));
+  border: 0;
+  font-weight: 500;
 }
 
 @font-face {

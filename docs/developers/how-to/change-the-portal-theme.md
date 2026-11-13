@@ -51,6 +51,12 @@ To mark something in your own templates, put `record-project`, `record-dataset`,
 <span class="record-tag record-sample"><c-icon name="sample" aria-hidden="true" />{{ sample.verbose_name|capfirst }}</span>
 ```
 
+Every badge is a pill, whichever theme is chosen. An outline badge, which is how a status shows, takes a light fill of its own colour. A keyword is a solid pill in a light shade of the theme's primary colour. To show a keyword in your own templates, put `badge-keyword` on its badge:
+
+```django
+<span class="badge badge-sm badge-keyword">{{ keyword.display_label }}</span>
+```
+
 To replace the logo, add your own `brand/logo.svg`, `brand/logo_dark.svg`, `brand/icon.svg`, `brand/icon_dark.svg` and `brand/favicon.svg` to the portal's static files.
 
 `MVP_CONFIG` is described in [Settings](../reference/settings.md), and the theme keys in django-mvp's documentation. To override a FairDM setting in general, see [How to override a FairDM setting](override-a-fairdm-setting.md). Why a portal is configured this way is explained in [How FairDM configures a portal](../../explanation/how-fairdm-configures-a-portal.md), and the styling stack in [The technology stack](../../explanation/the-technology-stack.md).

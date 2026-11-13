@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Every badge is a pill and every keyword a solid pill.** Keywords on project and dataset cards, on the landing page and in a record type's "About" dialog are pills in a light shade of the primary colour, where they were outlined or grey boxes. An outline badge takes a light fill of its own colour, and the record-type label on a record card and on a page is a pill edged in the record's colour. The shape is set in `css/fairdm-theme.css` and holds on any theme. Put `badge-keyword` on a badge to show a keyword in a portal's own templates. See [How to change the portal theme](developers/how-to/change-the-portal-theme.md#the-result).
 - **A sample or measurement collection is headed like a Samples or Measurements tab.** The
   heading is the type's name, underlined in its kind's colour, and is itself the menu of the other
   collections of the same kind, each with its count of published records, most first. A sample
