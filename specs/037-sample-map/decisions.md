@@ -190,3 +190,11 @@ change rather than being edited here.
 **Why:** they are prose describing what groups 1 and 2 built, with no design content and no code.
 
 **ADR:** none — how this build was carried out.
+
+## D17. SC-004, measured
+
+**Chosen:** a project with 20,000 located samples was measured on the test database. Its page answered in 0.28 s with the panel's counts, and its points address answered all 20,000 points in 1.28 s, 4.5 MB before compression. The page holds no points, so it is readable before they arrive however many there are.
+
+**Why:** the code review asked for the figure the plan promised. Nothing measured asks for a cache or a smaller answer.
+
+**ADR:** none — a measurement of this feature.

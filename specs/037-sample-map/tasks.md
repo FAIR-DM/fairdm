@@ -57,3 +57,4 @@ with the environment in `/home/sam/projects/worktrees/fairdm-037-env.sh` sourced
 - [x] T014 [US1] Mark the compass letters in the area text for translation (code review).
 - [x] T015 [US1] Pin the project's Samples figure and the map's counts to the numbers the test
   seeded, so the test can fail (code review).
+- [x] T016 [US1] Measure SC-004 with 20,000 located samples on one project (code review).
