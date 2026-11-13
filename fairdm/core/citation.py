@@ -17,7 +17,8 @@ from pybtex.database.output.bibtex import Writer as BibtexWriter
 #: encoding its ``_`` or ``#`` would change the identifier a reference manager follows.
 VERBATIM_FIELDS = ("doi", "url")
 
-#: The CSL types django-literature stores, as the BibTeX and RIS types that mean the same.
+#: The CSL types django-literature stores, as the BibTeX and RIS types that mean the
+#: same.
 PUBLICATION_TYPES = {
     "article-journal": ("article", "JOUR"),
     "dataset": ("dataset", "DATA"),
@@ -63,7 +64,8 @@ def publication_types(csl_type):
         csl_type: The CSL type of a publication, such as ``"article-journal"``.
 
     Returns:
-        A ``(bibtex_type, ris_type)`` pair; ``("misc", "GEN")`` for a type with no mapping.
+        A ``(bibtex_type, ris_type)`` pair; ``("misc", "GEN")`` for a type with no
+        mapping.
     """
     return PUBLICATION_TYPES.get(csl_type, FALLBACK_TYPES)
 
@@ -76,11 +78,11 @@ def collapse_whitespace(value):
 def escape_tex(value):
     r"""Write a value so BibTeX reads it back as typed.
 
-    Whitespace runs become one space. ``\``, ``$`` and ``^`` become their TeX commands.
-    Braces are paired by order in one left-to-right pass: a ``{`` closed by a later ``}`` is
-    written ``\{`` and ``\}``, every other brace as ``\textbraceleft{}`` or
-    ``\textbraceright{}``. The characters ``latexcodec`` escapes, inside pybtex's writer,
-    are left to it.
+    Whitespace runs become one space. ``\``, ``$`` and ``^`` become their TeX
+    commands. Braces are paired by order in one left-to-right pass: a ``{`` closed by a
+    later ``}`` is written ``\{`` and ``\}``, every other brace as
+    ``\textbraceleft{}`` or ``\textbraceright{}``. The characters ``latexcodec``
+    escapes, inside pybtex's writer, are left to it.
 
     Args:
         value: The text to escape.
@@ -110,7 +112,7 @@ def escape_tex(value):
 
 
 class CitationWriter(BibtexWriter):
-    """The BibTeX writer, except that ``doi`` and ``url`` are written as they are given."""
+    """The BibTeX writer, writing ``doi`` and ``url`` as they are given."""
 
     def _write_field(self, stream, field, value):
         if field in VERBATIM_FIELDS:
@@ -137,7 +139,7 @@ class CitedName:
 
     @classmethod
     def from_contributor(cls, contributor):
-        """Read a FairDM contributor: a person with a family name, or an organisation."""
+        """A FairDM contributor: person with a family name or an organisation."""
         family = getattr(contributor, "last_name", "")
         if family:
             return cls(family=family, given=getattr(contributor, "first_name", ""))
@@ -145,7 +147,7 @@ class CitedName:
 
     @classmethod
     def from_item_name(cls, name):
-        """Read a ``literature.Name``, putting the non-dropping particle before the family."""
+        """Read a ``literature.Name``, the non-dropping particle before the family."""
         if name.literal:
             return cls(literal=name.literal)
         family = " ".join(

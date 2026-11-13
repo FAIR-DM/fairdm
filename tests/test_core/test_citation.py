@@ -15,7 +15,7 @@ from fairdm.core.citation import FORMATS, Citation, CitedName, publication_types
 
 
 class Contributor(SimpleNamespace):
-    """A contributor stand-in: a person has name parts, an organisation only a string form."""
+    """A contributor stand-in: a person has name parts, an organisation a string."""
 
     def __str__(self):
         return self.label
@@ -58,7 +58,9 @@ class TestCitedName:
     def test_from_contributor_a_person_gives_family_and_given(self):
         person = Contributor(last_name="Keller", first_name="Anna", label="Anna Keller")
 
-        assert CitedName.from_contributor(person) == CitedName(family="Keller", given="Anna")
+        assert CitedName.from_contributor(person) == CitedName(
+            family="Keller", given="Anna"
+        )
 
     def test_from_contributor_an_organisation_gives_its_string_form(self):
         organisation = Contributor(label="Acme Lab")
@@ -68,15 +70,22 @@ class TestCitedName:
     def test_from_item_name_gives_family_and_given(self):
         name = Name(family="Keller", given="Anna")
 
-        assert CitedName.from_item_name(name) == CitedName(family="Keller", given="Anna")
+        assert CitedName.from_item_name(name) == CitedName(
+            family="Keller", given="Anna"
+        )
 
     def test_from_item_name_a_literal_name_stays_one_name(self):
         name = Name(literal="Acme Lab")
 
         assert CitedName.from_item_name(name) == CitedName(literal="Acme Lab")
 
-    def test_from_item_name_puts_the_particle_before_the_family_name_and_keeps_the_suffix(self):
-        name = Name(family="Beethoven", given="Ludwig", non_dropping_particle="van", suffix="Jr.")
+    def test_from_item_name_keeps_the_particle_and_the_suffix(self):
+        name = Name(
+            family="Beethoven",
+            given="Ludwig",
+            non_dropping_particle="van",
+            suffix="Jr.",
+        )
 
         assert CitedName.from_item_name(name) == CitedName(
             family="van Beethoven", given="Ludwig", suffix="Jr."
@@ -99,7 +108,10 @@ class TestCitation:
             entry = read_bibtex(citation.to_bibtex())
 
             assert entry.type == "dataset"
-            assert [(p.last_names, p.first_names, p.lineage_names) for p in entry.persons["author"]] == [
+            assert [
+                (p.last_names, p.first_names, p.lineage_names)
+                for p in entry.persons["author"]
+            ] == [
                 (["Keller"], ["Anna"], []),
                 (["Brandt"], ["Lena"], ["Jr."]),
             ]
@@ -144,12 +156,17 @@ class TestCitation:
 
         def test_letters_outside_english_and_other_scripts_read_back_as_written(self):
             title = "Müller, Søren and 東京 Δ"
-            citation = build(title=title, authors=[CitedName(family="Müller", given="Zoë")])
+            citation = build(
+                title=title, authors=[CitedName(family="Müller", given="Zoë")]
+            )
 
             entry = read_bibtex(citation.to_bibtex())
 
             assert read_field(entry, "title") == title
-            assert codecs.decode(str(entry.persons["author"][0]), "ulatex") == "Müller, Zoë"
+            assert (
+                codecs.decode(str(entry.persons["author"][0]), "ulatex")
+                == "Müller, Zoë"
+            )
 
         @pytest.mark.parametrize(
             ("title", "written"),
@@ -171,7 +188,9 @@ class TestCitation:
 
             assert entry.fields["title"] == written
 
-        def test_a_doi_and_url_holding_underscore_and_hash_read_back_exactly_as_given(self):
+        def test_a_doi_and_url_holding_underscore_and_hash_read_back_exactly_as_given(
+            self,
+        ):
             doi = "10.1000/abc_def#1"
             url = "https://example.org/a_b?x=1#frag_2"
             citation = build(doi=doi, url=url)
@@ -182,7 +201,9 @@ class TestCitation:
             assert entry.fields["url"] == url
 
         def test_a_line_break_reads_back_as_a_space(self):
-            entry = read_bibtex(build(title="First line\r\nsecond\n\n  line").to_bibtex())
+            entry = read_bibtex(
+                build(title="First line\r\nsecond\n\n  line").to_bibtex()
+            )
 
             assert read_field(entry, "title") == "First line second line"
 
@@ -223,7 +244,9 @@ class TestCitation:
             assert entry["title"] == "First line second line"
 
     class TestFilename:
-        def test_a_title_with_spaces_and_accents_gives_an_ascii_slug_with_the_extension(self):
+        def test_a_title_with_spaces_and_accents_gives_an_ascii_slug_with_the_extension(
+            self,
+        ):
             citation = build(title="Café Müller: Seismic Survey")
 
             assert citation.filename("bib") == "cafe-muller-seismic-survey.bib"
