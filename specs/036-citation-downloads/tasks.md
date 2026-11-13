@@ -21,7 +21,7 @@ addresses goes first.
 
 - [x] T001 [US2] Add `pybtex>=0.26,<0.27` and `rispy>=0.10,<0.11` to `[project].dependencies` in
   `pyproject.toml`, and update `uv.lock` with `uv lock`. No test: deptry and the suite cover it.
-- [ ] T002 [US2] `tests/test_core/test_citation.py`: `TestCitedName`, `TestCitation` and
+- [x] T002 [US2] `tests/test_core/test_citation.py`: `TestCitedName`, `TestCitation` and
   `TestPublicationTypes` as plan.md "Tests, US2" describes, built on
   `Citation` and `CitedName` values directly, with no database.
 - [ ] T003 [US2] `fairdm/core/citation.py`: `CitedName` with `from_contributor` and
