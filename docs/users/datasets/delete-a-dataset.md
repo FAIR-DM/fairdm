@@ -8,12 +8,12 @@ Deleting a dataset that holds samples and measurements destroys that data. It ca
 
 ## Before you start
 
-You need the **Can manage** level on the dataset, or on the project above it. Only people who may delete the dataset see **Delete** in the **Manage** menu. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md).
+You need the **Can manage** level on the dataset, or on the project above it. Only people who may delete the dataset see **Delete this dataset** in the **Details** panel. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md).
 
 ## Steps
 
 1. Open [the dataset page](dataset.md).
-2. Open the **Manage** menu and choose **Delete**. It is the last entry, after a divider. The [Delete](../editing-a-record/delete.md) screen opens.
+2. Choose **Delete this dataset**, the last line of the **Details** panel. The [Delete](../editing-a-record/delete.md) screen opens.
 3. Read the messages above the form. When the dataset holds records, the screen lists them under "The following related records will also be permanently deleted:" with a count for each type of sample and measurement. A dataset that holds none shows only the warning that the deletion is permanent.
 4. Under "To confirm, type" followed by the dataset's name, type that name into the box exactly as shown.
 5. Select **Delete**. The button stays disabled until what you typed matches the name.

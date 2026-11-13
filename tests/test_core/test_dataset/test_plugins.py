@@ -1062,12 +1062,12 @@ class TestOverviewWhatAVisitorSeesBeforePublication:
 
         response = _page(client, holding)
 
-        assert response.page.find("progress", attrs={"max": "10"}) is not None
+        assert response.page.select_one('[data-card="readiness"]') is not None
 
     def test_a_visitor_sees_no_checklist(self, client, holding):
         response = _page(client, holding)
 
-        assert response.page.find("progress") is None
+        assert response.page.select_one('[data-card="readiness"]') is None
 
     def test_a_published_dataset_shows_its_team_no_checklist_and_no_notice(
         self, client, holding
@@ -1077,7 +1077,7 @@ class TestOverviewWhatAVisitorSeesBeforePublication:
 
         response = _page(client, holding)
 
-        assert response.page.find("progress") is None
+        assert response.page.select_one('[data-card="readiness"]') is None
         assert response.page.select(".alert") == []
 
 

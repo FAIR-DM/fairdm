@@ -4,7 +4,7 @@ The Keywords screen sets the free keywords a record is found under: words a pers
 
 ## How to reach it
 
-Open the record's page, choose **Manage**, then **Keywords**. The address is the record's own address followed by `keywords/`:
+Open the record's page and choose **Edit** beside its keywords in the header, or **Add keywords** when it has none. The address is the record's own address followed by `keywords/`:
 
 | Record | Address |
 |---|---|

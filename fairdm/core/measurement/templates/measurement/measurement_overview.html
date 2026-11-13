@@ -59,12 +59,13 @@
     {% else %}
       {% translate "No details of how this measurement was made have been recorded." as empty %}
     {% endif %}
-    <c-card.timeline title="{% translate 'How it was measured' %}" :steps="procedure" empty="{{ empty }}" />
+    <c-card.timeline title="{% translate 'How it was measured' %}" :steps="procedure" empty="{{ empty }}" edit_url="{{ edit.dates }}" />
   {% endblock overview.procedure %}
 
   {% block overview.notes %}
     {% if notes %}
       <c-mvp.card title="{% translate 'Notes' %}" class="bg-base-100">
+        <c-slot name="actions">{% if edit.descriptions %}<c-overview.edit href="{{ edit.descriptions }}" label="{% translate 'Edit notes' %}" only />{% endif %}</c-slot>
         <div class="prose max-w-none">{{ notes|safe_markdown }}</div>
       </c-mvp.card>
     {% endif %}
@@ -88,7 +89,7 @@
           <div class="flex flex-col gap-2 min-w-0">
             <div class="flex flex-wrap items-center gap-2">
               <span class="badge badge-primary badge-sm">{{ sample_type }}</span>
-              {% if sample_status %}<span class="badge badge-soft badge-{{ sample_status.variant }} badge-sm">{{ sample_status.label }}</span>{% endif %}
+              {% if sample_status %}<c-overview.status variant="{{ sample_status.variant }}">{{ sample_status.label }}</c-overview.status>{% endif %}
             </div>
             <a href="{{ sample.get_absolute_url }}" class="link link-hover text-xl font-semibold leading-tight break-words">{{ sample }}</a>
             <span class="text-sm text-base-content/70 flex flex-wrap gap-x-3">

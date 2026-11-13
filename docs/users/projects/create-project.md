@@ -24,7 +24,7 @@ The project has no owner organization yet. That, the cover image and the other d
 
 ## What is not on this screen
 
-The form leaves out the cover image and the owner organization, which are on [Edit details](edit-details.md). The project's descriptions, keywords, dates and identifiers have screens of their own, all in the **Manage** menu of [the project page](project.md).
+The form leaves out the cover image and the owner organization, which are on [Edit details](edit-details.md). The project's descriptions, keywords, dates and identifiers have screens of their own, each reached from **Edit** on the panel of [the project page](project.md) that shows it.
 
 ## What you can do here
 

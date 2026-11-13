@@ -33,13 +33,15 @@ page. This specification describes the design that review settled on.
   under `overview.`: `overview.cite` means the same place on a project as on a measurement. A
   developer who has extended one page already knows how to extend the other three.
 - Q: The side-column cards are built separately on each page. Where do the shared ones live? → A:
-  As components under the `card` namespace, such as `c-card.citation` and `c-card.people`. A portal
-  developer uses the same components to build a type's own cards, so they match the rest of the page.
-- Q: Several parts of the pages stand in for capabilities FairDM does not have yet: a project's or
-  dataset's map, a recent activity feed, publishing, importing data, and a full list of a sample's
-  measurements. Do they ship? → A: Yes. They ship, with one treatment across all four pages that
-  makes it plain they are not available yet. Nothing that stands in for a missing capability looks
-  or behaves as if it works.
+  As components under the `overview` namespace, such as `c-overview.cite` and `c-overview.people`. A
+  portal developer uses the same components to build a type's own panels, so they match the rest of
+  the page.
+- Q: Several parts of the pages stand in for capabilities FairDM does not have yet: publishing,
+  importing data and metadata downloads. Do they ship? → A: Yes. They ship, with one treatment
+  across all four pages that makes it plain they are not available yet. Nothing that stands in for
+  a missing capability looks or behaves as if it works. The map of a project's or dataset's
+  samples, recent activity and exporting a citation each come back as a working panel with a
+  feature of its own (FS-037, FS-038 and FS-036), and are not shown until then.
 - Q: Projects, datasets and samples open their overview inside a tabbed detail view that plugins
   add pages to. The measurement page stands alone with no tabs. Does it stay that way? → A: No. The
   measurement page gets the same tab strip, so all four records look and extend alike, and a
@@ -49,9 +51,9 @@ page. This specification describes the design that review settled on.
   samples and measurements it holds? → A: Yes. The counts describe the dataset without revealing
   any of its data, and they tell a reuser that something is coming.
 - Q: Each redesign shipped its own development data command, and each one created its own sign-in
-  accounts. Which accounts does development data use? → A: Three accounts at `example.com`:
-  `regular.user`, `staff.user` and `super.user`, each with the password `password`. The command
-  creates them if they are missing and leaves them alone if they exist.
+  accounts. Which accounts does development data use? → A: Four accounts at `example.com`:
+  `regular.user`, `regular.user2`, `staff.user` and `super.user`, each with the password
+  `password`. The command creates them if they are missing and leaves them alone if they exist.
 - Q: Projects and datasets have no subtypes. Do their pages look for a type's own template the way
   samples and measurements do? → A: No. A portal changes a project or dataset page by overriding
   the template in the usual way and filling the same `overview.` blocks. Choosing a template by
@@ -69,19 +71,19 @@ page. This specification describes the design that review settled on.
   with their avatar and name, linking to their page: a project's leaders and a dataset's creators.
   Samples and measurements have no such row. The parent records, dates and identifiers that sat
   there before now live in the side column only, so no fact is shown twice.
-- Q: How are the side column's facts grouped? → A: One Details card holds what the record belongs
-  to, its licence, its status and its dates, and how a machine reaches it. Every entry in it has
-  the same layout. Identifiers, funding and the citation each have their own card. The entry that
-  said who can see the data is gone: on a sample or measurement the licence implies it, and on a
-  dataset the header's badges and notices already say it.
-- Q: In what order do the side column's cards appear? → A: The readiness checklist (team only),
-  Details, a dataset's timeline, then People, Identifiers, Funding and the citation, then cards
-  particular to the record. Every page follows that order. A card the record's kind of page has is
-  always shown, and says what is missing when there is nothing to show.
-- Q: Who appears in the People card? → A: Everyone credited, including the people named in the
-  header, as a grid of avatars. Each links to the contributor's page and shows their name on hover.
-  After three rows the rest are counted, and the count links to the same full list as the card's
-  own link.
+- Q: How are the side column's facts grouped? → A: One fact sheet, the Details panel, holds what
+  the record belongs to, its licence, its status and its dates, then its identifiers, its funding
+  and how a machine reaches it, each a section of label-and-value rows. A missing value is a dash.
+  The entry that said who can see the data is gone: on a sample or measurement the licence implies
+  it, and on a dataset the header's badges and notices already say it.
+- Q: In what order do the side column's panels appear? → A: The readiness checklist (team only),
+  the citation, the fact sheet, a record's key dates where they sit in the side column, People,
+  then panels particular to the record. Every page follows that order. A panel the record's kind of
+  page has is always shown, and says what is missing when there is nothing to show.
+- Q: Who appears in the People panel? → A: Everyone credited, including the people named in the
+  header. The first six are named with their roles, then up to ten more are shown as faces, each
+  linking to the contributor's page with their name on hover. The rest are counted, and the count
+  links to the same full list as the panel's own link.
 - Q: What replaces the dataset's per-type data tabs? → A: The same two charts the project page
   has: records by type, and how the number of samples and measurements grew over time. The row
   previews, field summaries and value ranges are gone from the page. An empty dataset shows its
@@ -119,21 +121,39 @@ page. This specification describes the design that review settled on.
 - Q: Are cards with nothing to show left out? → A: No. Every card a page has is shown, and says what
   is missing. Only the readiness checklist stays hidden from anyone not on the record's team.
 - Q: How does a sample's team reach its editing pages (edit, descriptions, keywords, key dates)? →
-  A: From a Manage menu in the header, as on a dataset. They are not tabs beside the overview.
+  A: From the panel that shows what each changes, as on every overview page (specification 024).
+  They are not tabs beside the overview.
 - Q: What do the breadcrumbs and heading say for a measurement with no name? → A: Its portal ID.
+
+### Session 2026-11-13: the redesign agreed in https://github.com/FAIR-DM/fairdm/issues/668
+
+- Q: How is the header laid out? → A: As a band in the record's colour carrying the type, status
+  and access badges, the name, the people behind the record by name, a line of key facts, the
+  keywords, the actions, and the headline figures along its foot. The figures lose their icon
+  tiles.
+- Q: How is a record's image shown? → A: It fills the trailing side of the header at full height,
+  and on a phone sits as a 16:9 banner above the header. Selecting it opens it at full size. A
+  record without one shows its icon, with the sign-in pages' ruled grid on the trailing side only,
+  fading out before the text.
+- Q: How does a record's team reach its editing pages? → A: From the panel that shows what each
+  changes. There is no central Manage menu (specification 024).
+- Q: How are a project's records by type drawn? → A: As bars in each type's colour, samples and
+  measurements apart. The growth chart stays.
+- Q: Where does Publish sit on a dataset? → A: In its "Ready to publish?" panel.
 
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A project's page tells a reuser, a citer and its team what they came for (Priority: P1)
 
 Someone arrives at a project from a grant report or a paper. At the top they read what the project
-is, its status, who leads it and its keywords, then four headline figures. The descriptions follow,
-one tab per description type. The five most recently updated datasets are listed, each saying
-whether it is published and which licence it carries. Two charts show what the project holds and how
-it grew. Beside the content, the side column gives the facts a reuser checks before going further:
-the details of the project (its organisation, status, the licences its datasets carry, its dates and
-how far through its timeline it is), everyone else credited on it, its identifiers, who funded it,
-and how to cite it. The project's team also sees a warning when the project is private, and a
+is, its status, who leads it, where and when it runs, its keywords and four headline figures, in one
+band across the page. The descriptions follow, one tab per description type. The five most recently
+updated datasets are listed, each saying whether it is published and which licence it carries. Bars
+of its records by type and a chart of how it grew show what it holds. Beside the content, the side
+column gives the facts a reuser checks before going further: how to cite it, then one fact sheet
+with the details of the project (its organisation, status, the licences its datasets carry, its
+dates and how far through its timeline it is), its identifiers and who funded it, then everyone
+credited on it by name with their roles. Each part the team may change carries its own Edit. The project's team also sees a warning when the project is private, and a
 checklist of what is still missing before the record is complete enough to be found and trusted,
 each gap linking to where it is fixed.
 
@@ -167,9 +187,9 @@ summary count only the datasets they may see.
 7. **Given** a project with one, two and several creators, **When** the citation is shown, **Then**
    the creators are written in the citation style for each count.
 8. **Given** a project with a start and end date, **When** it is opened before, during and after
-   that period, **Then** its timeline in the Details card says where the project stands for each.
+   that period, **Then** its timeline in the fact sheet says where the project stands for each.
 9. **Given** a project with funding, and one without, **When** each is opened by a visitor, **Then**
-   the first shows its funding and the second shows a funding card saying none is recorded.
+   the first shows its funding and the second shows a funding section saying none is recorded.
 10. **Given** any project, **When** its page is rendered, **Then** its schema.org description is in
     the page head.
 11. **Given** a project with no datasets, **When** a member of its team opens it, **Then** the page
@@ -351,31 +371,34 @@ member of its dataset's team, including the one recorded in a different dataset 
 
 **The shared page anatomy**
 
-- **FR-001**: Every overview page MUST have, in order: notices, a header, a figures strip, and then
-  a wide content column beside a narrow side column. Below the `lg` breakpoint the two columns MUST
-  stack with the content first.
-- **FR-002**: The header on every page MUST carry the record's image or icon, its badges, its name,
-  the people behind it where the record names any (FR-025, FR-030), its keywords and its actions, in
-  the same arrangement. Each person named there MUST link to their page.
-- **FR-003**: The side column on every page MUST present its cards in this order. A card the page
+- **FR-001**: Every overview page MUST have, in order: notices, a header with the headline figures
+  along its foot, and then a wide content column beside a narrow side column. Below the `lg`
+  breakpoint the two columns MUST stack with the content first.
+- **FR-002**: The header on every page MUST be a band in the record's colour carrying its badges,
+  its name, the people behind it where the record names any (FR-025, FR-030), a line of key facts
+  where the record has any, its keywords and its actions, in the same arrangement. Each person named
+  there MUST link to their page. A record with an image MUST show it filling the header's trailing
+  side, and on a narrow screen as a banner above the header, and MUST open it at full size when it
+  is selected. A record without an image MUST show its icon, with the sign-in pages' ruled grid on
+  the header's trailing side only.
+- **FR-003**: The side column on every page MUST present its panels in this order. A panel the page
   has MUST always be shown, saying what is missing when it has nothing to show. Only the readiness
   checklist is left out, for anyone not on the record's team:
   1. the readiness checklist (team only, and only where the record has one)
-  2. Details
-  3. the record's timeline of key dates, where it has one
-  4. People
-  5. Identifiers
-  6. Funding
-  7. the citation
-  8. cards particular to the record (related publications, location, related samples)
-- **FR-004**: Each shared card MUST be one component under the `card` namespace, used by every page
-  that shows that card, and usable by a portal developer in a type's own template. The shared cards
-  are the readiness checklist, Details, the timeline, People, Identifiers, Funding, the citation,
-  descriptions, location, and the placeholder for a capability that is not available yet.
+  2. the citation
+  3. the fact sheet: details, identifiers, funding where the record carries it, and how a machine
+     reaches the record
+  4. the record's key dates, where they sit in the side column
+  5. People
+  6. panels particular to the record (related publications, location, related samples)
+- **FR-004**: Each shared panel MUST be one component under the `overview` namespace, used by every
+  page that shows that panel, and usable by a portal developer in a type's own template. The shared
+  panels are the readiness checklist, the citation, the fact sheet, People, descriptions, records by
+  type, a headline figure, a panel with a heading and an Edit control, and the Edit control itself.
 - **FR-005**: Every page MUST expose the same named blocks under the `overview.` prefix for the
-  header's image, badges, people, keywords and actions, the notices, the figures, the wide column,
-  the side column, and each card in the side column. A block that means the same thing on two pages
-  MUST have the same name on both.
+  header's image, badges, people, key facts, keywords and actions, the notices, the figures, the
+  wide column, the side column, and each panel in the side column. A block that means the same
+  thing on two pages MUST have the same name on both.
 - **FR-006**: Blocks that only one kind of record needs, such as the type's own fields on a sample
   or measurement, MUST also sit under the `overview.` prefix.
 - **FR-007**: A block that wraps other blocks MUST let a template add to it and keep its existing
@@ -387,31 +410,38 @@ member of its dataset's team, including the one recorded in a different dataset 
 
 **The shared cards**
 
-- **FR-010**: The Details card MUST hold, as entries of one layout: the records this one belongs to
-  (linked, and left out when the viewer may not see them), its licence (linked to the licence's
-  text, or saying none is chosen), its status where it has one, its dates, and how a machine reaches
-  it (its API address, and metadata downloads as not yet available). A record MAY add entries of the
-  same layout.
-- **FR-011**: The People card MUST show everyone credited on the record, including anyone named in
-  the header. Each MUST link to the contributor's page, and their name MUST be available on hover and
-  to assistive technology. It MUST show at most eighteen, then count the rest, with a link to the
-  full list of contributors where the record has one. With nobody credited, it MUST say so.
-- **FR-012**: The Identifiers card MUST list every identifier the record carries, the team's own ID
-  where there is one, and the record's portal ID with a way to copy it. DOIs and IGSNs MUST link to
-  their resolver.
-- **FR-013**: The Funding card MUST list each award with its funder, title and number, linked where
-  the award records a link. When none is recorded, it MUST say so.
-- **FR-014**: The citation card MUST give the record's citation with a way to copy it, and say when
-  the citation points at the page because the record has no DOI.
-- **FR-015**: The descriptions card MUST show each description the record has, the abstract first.
-  With more than one, each MUST be reachable from a tab in the card's header. With none, it MUST
-  show the record's first-run state.
+- **FR-010**: The fact sheet's details section MUST hold, as rows of one layout: the records this
+  one belongs to (linked, and left out when the viewer may not see them), its licence (linked to the
+  licence's text, or saying none is chosen), its status where it has one, and its dates. A row with
+  no value MUST show a dash. A record MAY add rows of the same layout. The fact sheet MUST end with
+  how a machine reaches the record (its API address, and metadata downloads as not yet available).
+- **FR-011**: The People panel MUST show everyone credited on the record, including anyone named in
+  the header. It MUST name the first six with their roles, then show up to ten more as faces, then
+  count the rest, with a link to the full list of contributors where the record has one. Each MUST
+  link to the contributor's page, and a face's name MUST be available on hover and to assistive
+  technology. With nobody credited, it MUST say so.
+- **FR-012**: The fact sheet's identifiers section MUST list every identifier the record carries,
+  the team's own ID where there is one, the record's portal ID and its permalink, each with a way to
+  copy it. DOIs and IGSNs MUST link to their resolver.
+- **FR-013**: The fact sheet's funding section MUST list each award with its funder, title and
+  number, linked where the award records a link. When none is recorded, it MUST say so.
+- **FR-014**: The citation panel MUST give the record's citation with a way to copy it, and say when
+  the citation points at the page because the record has no DOI. The header's Cite MUST lead to it.
+- **FR-015**: The descriptions panel MUST show each description the record has, the abstract first.
+  With more than one, each MUST be reachable from a tab in the panel's heading. Long text MUST fold
+  after a few lines with a way to read the rest. With none, it MUST show the record's first-run
+  state.
+- **FR-015a**: Each part of the record MUST be edited from the panel that shows it, for someone who
+  may use its editing page (specification 024): the header and the fact sheet for the details, the
+  keywords, the descriptions and notes, the key dates, the identifiers, Delete as the fact sheet's
+  last line, and Manage on People for who is credited.
 
 **Capabilities that are not available yet**
 
-- **FR-016**: The pages MUST ship with these capabilities shown as not yet available: the map of a
-  project's or dataset's samples, recent activity, publishing a dataset, importing data, exporting a
-  citation, and metadata downloads. The full list of a sample's measurements is the sample's
+- **FR-016**: The pages MUST ship with these capabilities shown as not yet available: publishing a
+  dataset, importing data and metadata downloads. The map of a project's or dataset's samples,
+  recent activity and exporting a citation are not shown until their own features add them
+  (FS-037, FS-038 and FS-036). The full list of a sample's measurements is the sample's
   Measurements tab (specification 023, US-4). A sample's Measurements figure and card MUST lead to
   it, and so MUST a measurement's list of other measurements on the same sample, wherever the
   viewer may open that sample.
@@ -440,17 +470,19 @@ member of its dataset's team, including the one recorded in a different dataset 
 
 **The project page**
 
-- **FR-025**: The project page's header MUST carry its status and, when private, its visibility as
-  badges, name its leaders, and offer Cite, Share, Add dataset and a Manage menu as actions.
+- **FR-025**: The project page's header MUST carry its type, its status and, when private, its
+  visibility as badges, name its leaders, give its organisation, when it runs and its DOI as key
+  facts, and offer Cite, Share and, for its team, Edit as actions.
 - **FR-026**: Its figures MUST be datasets, samples, measurements and contributors.
 - **FR-027**: Its content column MUST carry the descriptions card, the five most recently updated
   datasets (each saying whether it is published, its licence, its record counts and its last
-  update, with a way to the full list), a chart of records by type, a chart of the running total of
-  samples and measurements by month, and the map and recent activity as not yet available.
+  update, with a way to the full list and, for its team, Add dataset), its records by type as bars
+  in each type's colour, and a chart of the running total of samples and measurements by month.
 - **FR-028**: Its side column MUST carry the readiness checklist of ten items taken from DataCite's
-  required and recommended properties, and a Details card holding its organisation, status, the
-  licences of its datasets, when it was added and last updated, and its timeline from start to end
-  with how far through it the project is. People, Identifiers, Funding and the citation follow.
+  required and recommended properties, the citation, and a fact sheet holding its organisation,
+  status, the licences of its datasets, when it was added and last updated, and its timeline from
+  start to end with how far through it the project is, then its identifiers and funding. People
+  follows.
 - **FR-029**: The page head MUST carry the project's schema.org description.
 
 **The dataset page**
@@ -459,14 +491,14 @@ member of its dataset's team, including the one recorded in a different dataset 
   its licence, as badges, and name its creators.
 - **FR-031**: Its figures MUST be samples, measurements, contributors and related publications.
 - **FR-032**: Its content column MUST carry the descriptions card, a chart of records by type, a
-  chart of the running total of samples and measurements by month, and the map as not yet
-  available. An empty dataset MUST show its first-run state in place of the charts.
+  chart of the running total of samples and measurements by month. An empty dataset MUST show its
+  first-run state in place of the charts.
 - **FR-033**: Its side column MUST carry the "Ready to publish?" checklist of seven required and
-  three recommended items, a Details card holding its project (with how many other datasets the
-  project has), its licence and when it was last updated, and a timeline card of its key dates:
-  collected, added to the portal, submitted, published, available from and withdrawn, in the order
-  they happened. People, Identifiers and the citation follow, then related publications worded
-  from the publication's side.
+  three recommended items with Publish beneath it, the citation, a fact sheet holding its project
+  (with how many other datasets the project has), its licence and when it was last updated, then
+  its identifiers, and a timeline of its key dates: collected, added to the portal, submitted,
+  published, available from and withdrawn, in the order they happened. People follows, then related
+  publications worded from the publication's side.
 - **FR-034**: The page head MUST carry a schema.org `Dataset` description including the variables
   measured.
 
@@ -475,9 +507,9 @@ member of its dataset's team, including the one recorded in a different dataset 
 - **FR-035**: The sample page MUST read only the base `Sample` model and what the registry says
   about the sample's type.
 - **FR-036**: Its header MUST carry the type and the status as badges. Where the registry describes
-  the type, the type badge MUST open that description in a dialog. Its actions MUST include, for
-  the dataset's team, a Manage menu leading to the sample's editing pages (edit, descriptions,
-  keywords, key dates), which MUST NOT appear as tabs beside the overview. Its figures MUST be
+  the type, the type badge MUST open that description in a dialog. Its editing pages (edit,
+  descriptions, keywords, key dates) MUST be reached from the panels that show what each changes,
+  for the dataset's team (FR-015a), and MUST NOT appear as tabs beside the overview. Its figures MUST be
   measurements, related samples and people credited.
 - **FR-037**: Its content column MUST carry, in order: the type's own fields (left empty for the
   type to fill), notes, the history timeline, and the measurements made on it as one list, most
@@ -485,11 +517,11 @@ member of its dataset's team, including the one recorded in a different dataset 
 - **FR-038**: The history timeline MUST join the sample's dates, contributor roles and descriptions
   for each step in the specimen's life into one entry per step, in date order, showing each date as
   precisely as it was recorded.
-- **FR-039**: Its side column MUST carry a Details card holding its project, dataset, licence, status
-  with what it means for re-examining the specimen, and when it was added and last updated. People,
-  Identifiers and the citation (in DataCite's form for a physical object, with the IGSN where there
-  is one) follow, then its location on a map with its coordinates, then its related samples as one
-  list, each saying how it relates to this sample.
+- **FR-039**: Its side column MUST carry the citation (in DataCite's form for a physical object, with
+  the IGSN where there is one), a fact sheet holding its project, dataset, licence, status with what
+  it means for re-examining the specimen, and when it was added and last updated, then its
+  identifiers. People follows, then its location on a map with its coordinates, then its related
+  samples as one list, each saying how it relates to this sample.
 
 **The measurement page**
 
@@ -498,7 +530,7 @@ member of its dataset's team, including the one recorded in a different dataset 
 - **FR-041**: The measurement page MUST stay at the measurement's permanent address,
   `/measurements/<uuid>/`.
 - **FR-042**: Where the type declares a value, the page MUST show the result, with its uncertainty
-  where there is one, in the figures strip's place.
+  where there is one, in the figures' place along the foot of the header.
 - **FR-043**: Its header MUST carry the type as a badge. Where the registry describes the type, the
   badge MUST open that description, its keywords, the schema's maintainer and the protocol citation
   in a dialog.
@@ -508,10 +540,10 @@ member of its dataset's team, including the one recorded in a different dataset 
   same sample.
 - **FR-045**: The procedure timeline MUST follow the same rules as FR-038, for set-up, measurement
   and take-down.
-- **FR-046**: Its side column MUST carry a Details card holding its project, dataset, licence, and
-  when it was added and last updated. People, Identifiers and the citation (suggesting the dataset
-  instead when the measurement has no DOI) follow, then its own location on a map, or its sample's
-  where the measurement has none and the sample has one and may be seen.
+- **FR-046**: Its side column MUST carry the citation (suggesting the dataset instead when the
+  measurement has no DOI), a fact sheet holding its project, dataset, licence, and when it was added
+  and last updated, then its identifiers. People follows, then its own location on a map, or its
+  sample's where the measurement has none and the sample has one and may be seen.
 - **FR-047**: Its breadcrumbs MUST lead from the list of measurements to the measurement, the same
   way a sample's do. A measurement with no name MUST be called by its portal ID in the breadcrumbs
   and the heading.
@@ -529,10 +561,13 @@ member of its dataset's team, including the one recorded in a different dataset 
 
 - **FR-051**: One command MUST load development data that reaches every state described in this
   specification, on all four pages, including contributors credited with each role the pages read.
-- **FR-052**: The command MUST create, when they are missing, three development accounts:
-  `regular.user@example.com`, `staff.user@example.com` and `super.user@example.com`, each with the
-  password `password`. `staff.user` MUST be on the team of the seeded records that have one, and
-  `regular.user` MUST be on none.
+- **FR-052**: The command MUST create, when they are missing, four development accounts:
+  `regular.user@example.com`, `regular.user2@example.com`, `staff.user@example.com` and
+  `super.user@example.com`, each with the password `password`. `staff.user` MUST be on the team of
+  the seeded records that have one. `regular.user` MUST be on the team of the fully described
+  project only, and `regular.user2` on that of an empty project with one empty dataset. Most of the
+  fully described project's samples MUST have a location and some none, and its measurements MUST
+  carry names a laboratory would give them.
 - **FR-053**: The command MUST be safe to run again, replacing only the records it created.
 
 **Documentation**
@@ -552,7 +587,7 @@ member of its dataset's team, including the one recorded in a different dataset 
 
 | Story | Requirements |
 |---|---|
-| US-1: the project page, and the shared anatomy | FR-001 to FR-018, FR-021, FR-024 to FR-029, FR-051 to FR-057 |
+| US-1: the project page, and the shared anatomy | FR-001 to FR-018 (with FR-015a), FR-021, FR-024 to FR-029, FR-051 to FR-057 |
 | US-2: the dataset page | FR-022, FR-030 to FR-034 |
 | US-3: the sample page, and extending by type | FR-019, FR-023, FR-035 to FR-039, FR-048 to FR-050 |
 | US-4: the measurement page | FR-020, FR-040 to FR-047 |
@@ -564,8 +599,8 @@ page, and uses the anatomy, cards and blocks from US-1 without redefining them.
 
 - **Overview page**: The first tab of a project's, dataset's, sample's or measurement's detail
   view. It describes the record to someone deciding whether to reuse, cite or complete it.
-- **Card**: One box on an overview page, such as Details or the citation. A shared card is one
-  component and looks and behaves the same on every page.
+- **Card**: One box on an overview page, such as the fact sheet or the citation, also called a
+  panel. A shared one is one component and looks and behaves the same on every page.
 - **Overview block**: A named part of an overview page (`overview.cite`, `overview.people`) that a
   template can add to or replace.
 - **Type template**: A sample or measurement type's own overview template. It extends the shared

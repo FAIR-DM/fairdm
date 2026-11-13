@@ -69,24 +69,34 @@ class RecordOverviewPlugin(OverviewPlugin):
     """The overview of a project, dataset, sample or measurement.
 
     Holds what every one of those pages works out the same way: who is credited, the People
-    card, identifiers, citation, timeline, licence entry and the two charts. A portal changes one
+    panel, identifiers, citation, timeline, licence entry, records by type and the charts. A portal changes one
     piece of a page by subclassing that page's plugin and overriding one of these methods.
 
     Attributes:
-        people_shown: How many faces the People card draws before it counts the rest.
+        people_named: How many credits the People panel names, with their roles.
+        people_faces: How many faces it draws after them before it counts the rest.
         resolvable_identifier_types: The identifier types that link to doi.org.
     """
 
-    people_shown = 18
+    people_named = 6
+    people_faces = 10
     resolvable_identifier_types = (DOI, IGSN)
 
     def get_context_data(self, **kwargs):
-        """Lead the People card to the record's Contributors tab and add the Manage menu."""
-        from fairdm.core.editing import manage_menu
+        """Add what the shared page reads on every record.
 
+        The People panel's link to the Contributors tab, each panel's Edit link, the word for the
+        record's kind, and the record's image, which fills the header's trailing side.
+        """
+        from fairdm.contrib.contributors.access import RecordAccess
+        from fairdm.core.editing import edit_links
+
+        record = self.base_object
         context = super().get_context_data(**kwargs)
-        context["people_url"] = plugin_reverse(self.base_object, "contribution-list")
-        context["manage_menu"] = manage_menu(self.request, self.base_object)
+        context["people_url"] = plugin_reverse(record, "contribution-list")
+        context["edit"] = edit_links(self.request, record)
+        context["record_kind"] = RecordAccess(record).kind
+        context["cover_image"] = record.image or None
         return context
 
     def get_contributions(self) -> list[Contribution]:
@@ -159,26 +169,43 @@ class RecordOverviewPlugin(OverviewPlugin):
         ]
 
     def get_people(self, entries=None) -> dict[str, Any]:
-        """Work out what the People card shows.
+        """Work out what the People panel shows: names with roles first, then faces.
 
         Args:
             entries: The record's credits, when the caller already has them. Defaults to
                 :meth:`get_credits`.
 
         Returns:
-            The first ``people_shown`` faces, how many more there are and the total.
+            ``named``: the first ``people_named`` credits, each with its ``contributor``, its
+            first two ``roles``, how many ``more_roles`` it holds and its ``affiliation``.
+            ``faces``: the next ``people_faces`` contributors. ``more``: how many are left after
+            those. ``total``: everyone credited.
         """
         if entries is None:
             entries = self.get_credits()
-        everyone = [entry["contributor"] for entry in entries]
+        named = [
+            {
+                "contributor": entry["contributor"],
+                "roles": [
+                    sentence_case(label) for label in list(entry["roles"].values())[:2]
+                ],
+                "more_roles": max(len(entry["roles"]) - 2, 0),
+                "affiliation": entry["affiliation"],
+            }
+            for entry in entries[: self.people_named]
+        ]
+        last_face = self.people_named + self.people_faces
         return {
-            "shown": everyone[: self.people_shown],
-            "more": max(len(everyone) - self.people_shown, 0),
-            "total": len(everyone),
+            "named": named,
+            "faces": [
+                entry["contributor"] for entry in entries[self.people_named : last_face]
+            ],
+            "more": max(len(entries) - last_face, 0),
+            "total": len(entries),
         }
 
     def get_identifiers(self) -> list[dict[str, Any]]:
-        """List the record's identifiers for the Identifiers card.
+        """List the record's identifiers for the fact sheet.
 
         A DOI or an IGSN links to doi.org, since an IGSN is a DataCite DOI since 2023. A legacy
         IGSN handle, which does not start with ``10.``, does not resolve there and stays unlinked.
@@ -198,6 +225,18 @@ class RecordOverviewPlugin(OverviewPlugin):
             }
             for identifier in self.base_object.identifiers.select_related("type")
         ]
+
+    @staticmethod
+    def get_primary_identifier(identifiers) -> dict[str, Any] | None:
+        """Pick the identifier a reader looks for first: the first one that resolves.
+
+        Args:
+            identifiers: The record's identifiers, from :meth:`get_identifiers`.
+
+        Returns:
+            The first identifier with a ``link``, or ``None`` when none resolves.
+        """
+        return next((i for i in identifiers if i["link"]), None)
 
     def get_citation(self, *, authors, year, title, link) -> str:
         """Write the citation in DataCite's form: Creators (Year). Title. Publisher. Identifier.
@@ -260,14 +299,14 @@ class RecordOverviewPlugin(OverviewPlugin):
         return dated + [s for s in result if not s["date"]]
 
     def get_license_entry(self, licence, note=None) -> dict[str, Any]:
-        """Write the Details card's licence entry: the licence linked to its text, or a warning.
+        """Write the fact sheet's licence entry: the licence linked to its text, or a warning.
 
         Args:
             licence: The licence, or ``None`` when none is chosen.
             note: A line to show under the licence.
 
         Returns:
-            An entry for :class:`c-card.details`.
+            An entry for :class:`c-overview.sheet`.
         """
         if licence is None:
             return {
@@ -335,6 +374,29 @@ class RecordOverviewPlugin(OverviewPlugin):
             "description": "; ".join(
                 f"{label}: {count}" for label, count in reversed(items)
             ),
+        }
+
+    def get_type_mix(self, samples, measurements) -> dict[str, Any] | None:
+        """Count the records by type for the bars in each type's colour.
+
+        Args:
+            samples: The samples to count.
+            measurements: The measurements to count.
+
+        Returns:
+            ``samples`` and ``measurements``, each ``[(plural type name, count)]`` largest first,
+            and ``max``, the largest count, which every bar is drawn against. ``None`` when there
+            is nothing to count.
+        """
+        by_sample = self._type_counts(samples)
+        by_measurement = self._type_counts(measurements)
+        counts = [n for _label, n in by_sample + by_measurement]
+        if not counts:
+            return None
+        return {
+            "samples": by_sample,
+            "measurements": by_measurement,
+            "max": max(counts),
         }
 
     def get_growth_chart(self, samples, measurements) -> dict[str, Any] | None:

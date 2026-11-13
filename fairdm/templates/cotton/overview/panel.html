@@ -1,0 +1,34 @@
+{# @description A section of an overview page: a heading with an optional count, the panel's own Edit control and a link to the full list, then its content. #}
+{# @prop title:text | description:"The heading." #}
+{# @prop count:text | description:"A count beside the heading." #}
+{# @prop edit_url:text | description:"The editing page for what the panel shows, for someone who may edit it." #}
+{# @prop edit_text:text | default:"Edit" | description:"The Edit control's text." #}
+{# @prop edit_icon:text | default:"edit" | description:"The Edit control's icon." #}
+{# @prop edit_label:text | description:"The Edit control's accessible name." #}
+{# @prop more_url:text | description:"The full list, linked as See all." #}
+{# @prop more_text:text | default:"See all" | description:"The full list link's text." #}
+{# @prop sub:text | description:"A line under the heading." #}
+{# @prop side:boolean | description:"A side-column panel, which is tighter." #}
+{# @prop id:text | description:"The section's id." #}
+{# @prop class:text | description:"Extra classes on the section." #}
+{# @slot <p>Panel content</p> — The content. #}
+{# @slot:head <button>Filter</button> — Extra controls in the heading row. #}
+{% load i18n %}
+<c-vars title count edit_url edit_text edit_icon edit_label more_url more_text sub side=False class id head />
+<section class="ov-panel{% if side %} ov-panel--side{% endif %} {{ class }}"{% if id %} id="{{ id }}"{% endif %} {{ attrs }}>
+  {% if title or head %}
+    <div class="ov-panel__head">
+      {% if title %}<h2 class="ov-panel__title">{{ title }}</h2>{% endif %}
+      {% if count is not None and count != "" %}<span class="ov-count">{{ count }}</span>{% endif %}
+      {{ head }}
+      {% if edit_url or more_url %}
+        <div class="ov-panel__tools">
+          <c-overview.edit href="{{ edit_url }}" text="{{ edit_text }}" icon="{{ edit_icon }}" label="{{ edit_label }}" only />
+          {% if more_url %}<a href="{{ more_url }}" class="ov-panel__more">{{ more_text|default:_("See all") }}<c-icon name="chevron-right" aria-hidden="true" only /></a>{% endif %}
+        </div>
+      {% endif %}
+      {% if sub %}<p class="ov-panel__sub">{{ sub }}</p>{% endif %}
+    </div>
+  {% endif %}
+  {{ slot }}
+</section>

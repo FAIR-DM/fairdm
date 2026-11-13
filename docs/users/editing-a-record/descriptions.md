@@ -4,7 +4,7 @@ The Descriptions screen is where the prose about a record is written: a set of l
 
 ## How to reach it
 
-Open the record's page, choose **Manage**, then **Edit descriptions**. The address is the record's own address followed by `descriptions/`:
+Open the record's page and choose **Edit** on its descriptions panel, or on the **Notes** panel of a sample or measurement. The address is the record's own address followed by `descriptions/`:
 
 | Record | Address |
 |---|---|

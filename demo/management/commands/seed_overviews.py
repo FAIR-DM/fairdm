@@ -1,9 +1,10 @@
 """Development data for the four overview pages.
 
 One command reaches every state the project, dataset, sample and measurement overview pages have
-to answer for, and signs them in through ``regular.user``, ``staff.user`` and ``super.user`` at
-``example.com`` (password ``password``). It refuses outside development, and running it again
-replaces only the records it created.
+to answer for, and signs them in through ``regular.user``, ``regular.user2``, ``staff.user`` and
+``super.user`` at ``example.com`` (password ``password``). ``regular.user`` is on the showcase
+project's team and ``regular.user2`` on an empty project's. It refuses outside development, and
+running it again replaces only the records it created.
 
     DJANGO_ENV=development python manage.py seed_overviews
 

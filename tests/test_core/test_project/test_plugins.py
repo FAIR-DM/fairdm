@@ -702,16 +702,11 @@ def _page(client, project, language=None):
 
 def _figures(page):
     """The values of the four figures, in the order they are drawn."""
-    return [figure.get_text(strip=True) for figure in page.select(".stat-value")]
+    return [figure.get_text(strip=True) for figure in page.select(".ov-figure__value")]
 
 
 def _json_ld(page):
     return json.loads(page.head.find("script", type="application/ld+json").string)
-
-
-def _card_holding(page, tag):
-    """The card that holds the first ``tag`` in the page."""
-    return page.find(tag).find_parent(class_="card")
 
 
 @pytest.mark.django_db
@@ -739,26 +734,26 @@ class TestOverviewFiguresAndChartsCountWhatTheViewerMaySee:
 
         assert _figures(response.page)[3] == "22"
 
-    def test_a_visitors_composition_chart_leaves_out_the_types_only_private_datasets_hold(
+    def test_a_visitors_records_by_type_leave_out_the_types_only_private_datasets_hold(
         self, client, overview_showcase
     ):
         response = _page(client, overview_showcase.project)
 
-        description = response.page.find(id="project-composition-description")
-        assert "Rock" in description.get_text()
-        assert "Soil" not in description.get_text()
-        assert "ICP" not in description.get_text()
+        bars = response.page.select_one(".ov-mix").get_text()
+        assert "Rock" in bars
+        assert "Soil" not in bars
+        assert "ICP" not in bars
 
-    def test_the_teams_composition_chart_includes_them(
+    def test_the_teams_records_by_type_include_them(
         self, client, overview_showcase, project_team_member
     ):
         client.force_login(project_team_member)
 
         response = _page(client, overview_showcase.project)
 
-        description = response.page.find(id="project-composition-description")
-        assert "Soil" in description.get_text()
-        assert "ICP" in description.get_text()
+        bars = response.page.select_one(".ov-mix").get_text()
+        assert "Soil" in bars
+        assert "ICP" in bars
 
     def test_a_visitors_growth_chart_counts_the_visible_records_only(
         self, client, overview_showcase
@@ -829,7 +824,7 @@ class TestOverviewReadinessChecklistIsForTheTeam:
         response = _page(client, overview_showcase.project)
 
         assert "readiness" not in response.context
-        assert response.page.find("progress", attrs={"max": "10"}) is None
+        assert response.page.select_one('[data-card="readiness"]') is None
 
     def test_the_team_sees_every_item_and_a_link_to_each_fix_that_has_a_page(
         self, client, overview_showcase, project_team_member
@@ -841,7 +836,7 @@ class TestOverviewReadinessChecklistIsForTheTeam:
 
         readiness = response.context["readiness"]
         assert (readiness["done"], readiness["total"]) == (5, 10)
-        card = _card_holding(response.page, "progress")
+        card = response.page.select_one('[data-card="readiness"]')
         assert len(card.select("ul > li")) == 10
         links = {a["href"] for a in card.select("ul a")}
         assert links == {
@@ -940,7 +935,7 @@ class TestOverviewPeople:
     ):
         response = _page(client, overview_showcase.project)
 
-        header = response.page.find("h1").find_parent(class_="card")
+        header = response.page.find("h1").find_parent("header")
         for leader in overview_showcase.leaders:
             assert header.find("a", href=leader.get_absolute_url()) is not None
 
@@ -966,7 +961,9 @@ class TestOverviewPeople:
     ):
         response = _page(client, overview_showcase.project)
 
-        shown = {c.pk for c in response.context["people"]["shown"]}
+        people = response.context["people"]
+        shown = {row["contributor"].pk for row in people["named"]}
+        shown |= {c.pk for c in people["faces"]}
         assert shown & {p.pk for p in overview_showcase.leaders} == {
             p.pk for p in overview_showcase.leaders
         }
@@ -974,17 +971,18 @@ class TestOverviewPeople:
             overview_showcase.leaders
         ) + len(overview_showcase.others)
 
-    def test_the_card_draws_eighteen_faces_and_counts_the_rest(
+    def test_the_panel_names_six_then_draws_ten_faces_and_counts_the_rest(
         self, client, overview_showcase
     ):
         response = _page(client, overview_showcase.project)
 
-        tiles = response.page.select("li[data-tip]")
-        assert len(tiles) == 18
+        panel = response.page.select_one('[data-card="people"]')
+        assert len(panel.select(".ov-people > li")) == 6
+        assert len(panel.select(".ov-faces a[aria-label]")) == 10
         assert (
             response.context["people"]["more"],
             response.context["people"]["total"],
-        ) == (4, 22)
+        ) == (6, 22)
 
     def test_the_count_links_to_the_full_list_of_contributors(
         self, client, overview_showcase
@@ -999,7 +997,7 @@ class TestOverviewPeople:
         counted = [
             a
             for a in response.page.find_all("a", href=contributors_url)
-            if "4" in a.get_text()
+            if "6" in a.get_text()
         ]
         assert counted
 
@@ -1008,8 +1006,10 @@ class TestOverviewPeople:
     ):
         response = _page(client, overview_showcase.project)
 
-        for tile in response.page.select("li[data-tip]"):
-            assert tile.find("a")["aria-label"] == tile["data-tip"]
+        faces = response.page.select(".ov-faces a[title]")
+        assert faces
+        for face in faces:
+            assert face["aria-label"] == face["title"]
 
     def test_a_leader_is_listed_in_the_people_card(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
@@ -1020,8 +1020,10 @@ class TestOverviewPeople:
 
         response = _page(client, project)
 
-        assert [c.pk for c in response.context["people"]["shown"]] == [leader.pk]
-        assert len(response.page.select("li[data-tip]")) == 1
+        named = response.context["people"]["named"]
+        assert [row["contributor"].pk for row in named] == [leader.pk]
+        panel = response.page.select_one('[data-card="people"]')
+        assert panel.find("a", href=leader.get_absolute_url()) is not None
 
     def test_with_nobody_credited_the_people_card_still_shows(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
@@ -1042,7 +1044,8 @@ class TestOverviewPeople:
 
         response = _page(client, project)
 
-        assert response.page.find("li", attrs={"data-tip": "Institute"}) is not None
+        panel = response.page.select_one('[data-card="people"]')
+        assert panel.find("a", string="Institute") is not None
 
 
 @pytest.mark.django_db
@@ -1141,7 +1144,7 @@ class TestOverviewTimeline:
                 value=PartialDate.fromisoformat(day.isoformat()),
             )
         response = _page(client, project)
-        return response, response.page.find("progress")
+        return response, response.page.find(role="progressbar")
 
     def test_before_the_start_it_has_not_begun(self, client):
         today = timezone.localdate()
@@ -1151,7 +1154,7 @@ class TestOverviewTimeline:
             client, project, today + timedelta(days=30), today + timedelta(days=400)
         )
 
-        assert bar["value"] == "0"
+        assert bar["aria-valuenow"] == "0"
         assert response.context["timeline"]["not_started"] is True
 
     def test_during_the_project_it_says_how_far_through_it_is(self, client):
@@ -1162,7 +1165,7 @@ class TestOverviewTimeline:
             client, project, today - timedelta(days=100), today + timedelta(days=100)
         )
 
-        assert bar["value"] == "50"
+        assert bar["aria-valuenow"] == "50"
         timeline = response.context["timeline"]
         assert not timeline["finished"]
         assert not timeline["not_started"]
@@ -1175,7 +1178,7 @@ class TestOverviewTimeline:
             client, project, today - timedelta(days=800), today - timedelta(days=100)
         )
 
-        assert bar["value"] == "100"
+        assert bar["aria-valuenow"] == "100"
         assert response.context["timeline"]["finished"] is True
 
     def test_a_project_with_no_start_date_draws_no_timeline(self, client):
@@ -1183,7 +1186,7 @@ class TestOverviewTimeline:
 
         response = _page(client, project)
 
-        assert response.page.find("progress") is None
+        assert response.page.find(role="progressbar") is None
 
     def test_a_project_with_a_start_and_no_end_is_shown_as_ongoing_with_no_bar(
         self, client
@@ -1197,7 +1200,7 @@ class TestOverviewTimeline:
 
         response = _page(client, project)
 
-        assert response.page.find("progress") is None
+        assert response.page.find(role="progressbar") is None
         assert response.context["timeline"]["end"] is None
 
     def test_the_start_and_end_are_shown_as_precisely_as_they_were_recorded(
@@ -1253,13 +1256,8 @@ class TestOverviewFunding:
             visibility=Visibility.PUBLIC, funding=[{**self.AWARD, **award}]
         )
         response = _page(client, project)
-        title = next(
-            h
-            for h in response.page.select("h2.card-title")
-            if h.get_text(strip=True) == "Funding"
-        )
-        card = title.find_parent(class_="card")
-        return response, card.find_all("a")
+        section = response.page.select_one('[data-card="funding"]')
+        return response, section.find_all("a")
 
     @pytest.mark.parametrize(
         "identifier", ["javascript:alert(1)", "10.13039/501100001659"]
@@ -1386,7 +1384,7 @@ class TestOverviewFirstRun:
         add_url = f"{reverse('dataset-create')}?project={project.uuid}"
         assert response.page.find("a", href=add_url) is not None
         assert response.page.find(attrs={"data-mvp-chart": True}) is None
-        assert response.context["composition_chart"] is None
+        assert response.context["mix"] is None
         assert response.context["growth_chart"] is None
 
     def test_a_visitor_to_a_project_with_no_datasets_is_offered_no_way_to_add_one(
@@ -1409,33 +1407,38 @@ class TestOverviewFirstRun:
 
 @pytest.mark.django_db
 class TestOverviewCharts:
-    """SC-006: each chart states in text what it shows."""
+    """SC-006: each chart states in text what it shows, and records by type are counted."""
 
     def test_each_chart_is_named_and_points_at_its_text_alternative(
         self, client, overview_showcase
     ):
         response = _page(client, overview_showcase.project)
 
-        for chart_id in ("project-composition", "project-growth"):
+        for chart_id in ("project-growth",):
             surface = response.page.find(id=chart_id).find(attrs={"role": "img"})
             assert surface["aria-label"]
             described_by = surface["aria-describedby"].split()
             assert f"{chart_id}-description" in described_by
             assert response.page.find(id=f"{chart_id}-description").get_text(strip=True)
 
-    def test_the_composition_text_lists_every_type_with_its_count(
+    def test_the_records_by_type_list_every_type_with_its_count(
         self, client, overview_showcase, project_team_member
     ):
         client.force_login(project_team_member)
 
         response = _page(client, overview_showcase.project)
 
-        text = response.page.find(id="project-composition-description").get_text()
-        assert "Rock Samples: 2" in text
-        assert "Water Samples: 1" in text
-        assert "XRF Measurements: 2" in text
+        rows = {
+            row.select_one(".ov-mix__label").get_text(strip=True): row.select_one(
+                ".ov-mix__n"
+            ).get_text(strip=True)
+            for row in response.page.select(".ov-mix li:has(.ov-mix__n)")
+        }
+        assert rows["Rock Samples"] == "2"
+        assert rows["Water Samples"] == "1"
+        assert rows["XRF Measurements"] == "2"
 
-    def test_a_type_the_registry_no_longer_holds_is_left_out_of_the_composition(
+    def test_a_type_the_registry_no_longer_holds_is_left_out_of_the_records_by_type(
         self, client, overview_showcase, monkeypatch
     ):
         from demo.factories import ExampleMeasurementFactory, RockSampleFactory
@@ -1455,7 +1458,7 @@ class TestOverviewCharts:
 
         response = _page(client, overview_showcase.project)
 
-        text = response.page.find(id="project-composition-description").get_text()
+        text = response.page.select_one(".ov-mix").get_text()
         assert "Example" not in text
         assert "Rock Samples" in text
 
@@ -1472,7 +1475,7 @@ class TestOverviewCharts:
 
         response = _page(client, overview_showcase.project)
 
-        text = response.page.find(id="project-composition-description").get_text()
+        text = response.page.select_one(".ov-mix").get_text()
         assert "Rock Samples" in text
 
 
@@ -1567,7 +1570,7 @@ class TestOverviewManageMenu:
 
 @pytest.mark.django_db
 class TestOverviewNotAvailableYet:
-    """FR-016, FR-017 and SC-005: what is not available yet is announced and does nothing."""
+    """SC-005: what is not available yet is announced and does nothing."""
 
     def test_every_disabled_button_says_why(self, client, overview_showcase):
         response = _page(client, overview_showcase.project)
@@ -1576,22 +1579,6 @@ class TestOverviewNotAvailableYet:
         assert disabled
         for button in disabled:
             assert button["title"]
-
-    def test_a_card_standing_in_for_a_missing_capability_carries_no_link_or_button(
-        self, client, overview_showcase
-    ):
-        response = _page(client, overview_showcase.project)
-
-        placeholders = [
-            card
-            for card in response.page.select(".card")
-            if card.select_one(".card.bg-base-300")
-            and card.select_one(".card.bg-base-300") is not card
-        ]
-        assert len(placeholders) == 2
-        for card in placeholders:
-            assert card.find("a") is None
-            assert card.find("button") is None
 
 
 @pytest.mark.django_db

@@ -1,6 +1,6 @@
 # ADR 0026: A record's editing pages are six shared pages
 
-**Status:** accepted
+**Status:** accepted. Superseded in part by [ADR 0044](0044-each-part-of-a-record-is-edited-from-the-panel-that-shows-it.md), which reaches the pages from the panels that show what they change, in place of the Manage menu.
 
 ## Decision
 

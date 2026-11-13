@@ -1,6 +1,6 @@
 # Edit details
 
-The Edit details screen changes a dataset's own fields: its cover image, name, licence and data publication and, for managers, its project and visibility. Open [the dataset page](dataset.md), choose **Manage** and then **Edit details**. The **Change visibility** button in the private-dataset notice opens the same screen. The entry appears only for people who may change the dataset. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md) for who that is.
+The Edit details screen changes a dataset's own fields: its cover image, name, licence and data publication and, for managers, its project and visibility. Open [the dataset page](dataset.md), and choose **Edit** in its header. The **Change visibility** button in the private-dataset notice opens the same screen. The entry appears only for people who may change the dataset. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md) for who that is.
 
 ## The form
 
@@ -10,7 +10,7 @@ The form has these fields, in this order:
 - **Name.** Required, up to 300 characters.
 - **Project.** Optional. The project the dataset belongs to, chosen by typing to search the projects you hold at least the **Can edit** level on. Only a manager sees this field.
 - **License.** Required. The licence the dataset's data is published under.
-- **Data Publication.** Optional. The paper, report or other literature that describes the dataset, chosen by typing to search the literature in the portal. The help text reads "Link to the primary data publication (paper, report, or other literature) that describes this dataset." When it is set, the Citation card on the dataset page cites this publication.
+- **Data Publication.** Optional. The paper, report or other literature that describes the dataset, chosen by typing to search the literature in the portal. The help text reads "Link to the primary data publication (paper, report, or other literature) that describes this dataset." When it is set, the Cite panel on the dataset page cites this publication.
 - **Visibility.** Two options, **Private** and **Public**. The help text reads "Whether this dataset's metadata may be read by anyone using the portal. The data held beneath the dataset is governed separately." Only a manager sees this field.
 
 A manager is someone who holds the **Can manage** level on the dataset or on the project above it, or holds a portal role that can change every dataset, such as Data Curator. If you hold only **Can edit**, the form shows the first four fields. The two hidden fields change who has rights over the dataset, which is why they stay with managers. See [Contributors](../contributors/contributors-tab.md) for the levels.

@@ -4,7 +4,7 @@ The Delete screen removes a record from the portal for good, after showing what 
 
 ## How to reach it
 
-Open the record's page, choose **Manage**, then **Delete**. It is the last entry in the menu, set apart from the others by a divider and drawn in red. The address is the record's own address followed by `delete/`:
+Open the record's page and choose **Delete this** followed by the record's kind, the last line of the **Details** panel in the side column, drawn in red. The address is the record's own address followed by `delete/`:
 
 | Record | Address |
 |---|---|
@@ -13,7 +13,7 @@ Open the record's page, choose **Manage**, then **Delete**. It is the last entry
 | Sample | `/samples/<portal ID>/delete/` |
 | Measurement | `/measurements/<portal ID>/delete/` |
 
-You see the entry when you may delete the record, which needs more than the right to change it. Someone who can only edit the record sees the other **Manage** entries and no **Delete**. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md) for who may delete, and for what you are told when you ask for the screen without that right.
+You see the entry when you may delete the record, which needs more than the right to change it. Someone who can only edit the record sees the other **Edit** controls and no **Delete** line. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md) for who may delete, and for what you are told when you ask for the screen without that right.
 
 ## The warning
 

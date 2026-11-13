@@ -26,6 +26,16 @@ def render_card(request_):
 
 
 @pytest.fixture
+def render_overview(request_):
+    """Render one ``c-overview.*`` component with the given attributes and return its HTML."""
+
+    def render(name, **attributes):
+        return render_component(request_, f"overview.{name}", **attributes)
+
+    return render
+
+
+@pytest.fixture
 def render_template(request_):
     """Render a template by name with a context and return its HTML."""
 

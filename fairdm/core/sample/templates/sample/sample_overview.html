@@ -25,9 +25,9 @@
 {% block overview.badges %}
   {% include "overview/includes/type_badge.html" with kind="sample" label=sample_type info=type_info id="about-sample-type" %}
   {% if status.variant %}
-    <span class="badge badge-soft badge-{{ status.variant }} badge-sm">{{ status.label }}</span>
+    <c-overview.status variant="{{ status.variant }}" title="{{ status.meaning }}">{{ status.label }}</c-overview.status>
   {% else %}
-    <span class="badge badge-outline badge-sm">{% translate "Status unknown" %}</span>
+    <c-overview.status title="{{ status.meaning }}">{% translate "Status unknown" %}</c-overview.status>
   {% endif %}
 {% endblock overview.badges %}
 
@@ -58,6 +58,7 @@
   {% block overview.notes %}
     {% if notes %}
       <c-mvp.card title="{% translate 'Notes' %}" class="bg-base-100">
+        <c-slot name="actions">{% if edit.descriptions %}<c-overview.edit href="{{ edit.descriptions }}" label="{% translate 'Edit notes' %}" only />{% endif %}</c-slot>
         <div class="prose max-w-none">{{ notes|safe_markdown }}</div>
       </c-mvp.card>
     {% endif %}
@@ -69,7 +70,7 @@
     {% else %}
       {% translate "No history has been recorded for this specimen." as empty %}
     {% endif %}
-    <c-card.timeline title="{% translate 'History' %}" :steps="lifecycle" empty="{{ empty }}" />
+    <c-card.timeline title="{% translate 'History' %}" :steps="lifecycle" empty="{{ empty }}" edit_url="{{ edit.dates }}" />
   {% endblock overview.history %}
 
   {% block overview.measurements %}

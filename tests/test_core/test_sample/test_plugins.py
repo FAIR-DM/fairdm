@@ -611,8 +611,8 @@ class TestOverviewCardsAlwaysShown:
 
 
 @pytest.mark.django_db
-class TestOverviewManageMenu:
-    """FR-036: the sample's editing pages are reached from a Manage menu, not from tabs."""
+class TestOverviewEditingLinks:
+    """FR-036: the sample's editing pages are reached from the page, not from tabs."""
 
     EDITING_PAGES = ["edit", "descriptions", "keywords", "key-dates", "identifiers"]
 
@@ -642,32 +642,35 @@ class TestOverviewManageMenu:
         assert reverse("sample:overview", kwargs={"uuid": rock.uuid}) in hrefs
         assert not set(hrefs) & set(self._addresses(rock))
 
-    def test_a_user_who_may_change_the_sample_sees_a_manage_menu_with_the_editing_pages(
+    def test_a_user_who_may_change_the_sample_reaches_the_editing_pages_from_its_panels(
         self, client, rock, released
     ):
         client.force_login(self._editor(released))
 
         response = _page(client, rock)
 
-        menu = response.page.select_one('[data-menu="manage"]')
-        assert menu is not None
-        assert [a["href"] for a in menu.select("a")] == self._addresses(rock)
+        page_hrefs = {a.get("href") for a in response.page.select("a")}
+        shown = {
+            reverse(f"sample:{name}", kwargs={"uuid": rock.uuid})
+            for name in ("edit", "keywords", "key-dates", "identifiers")
+        }
+        assert shown <= page_hrefs
 
-    def test_a_visitor_sees_no_manage_menu_and_no_editing_link(self, client, rock):
+    def test_a_visitor_sees_no_editing_link(self, client, rock):
         response = _page(client, rock)
 
-        assert response.page.select_one('[data-menu="manage"]') is None
         page_hrefs = {a.get("href") for a in response.page.select("a")}
         assert not page_hrefs & set(self._addresses(rock))
 
-    def test_a_user_who_may_only_view_the_sample_sees_no_manage_menu(
+    def test_a_user_who_may_only_view_the_sample_sees_no_editing_link(
         self, client, rock, released
     ):
         client.force_login(_team_member(released))
 
         response = _page(client, rock)
 
-        assert response.page.select_one('[data-menu="manage"]') is None
+        page_hrefs = {a.get("href") for a in response.page.select("a")}
+        assert not page_hrefs & set(self._addresses(rock))
 
     def test_the_editing_pages_keep_their_addresses(self, rock):
         assert self._addresses(rock) == [

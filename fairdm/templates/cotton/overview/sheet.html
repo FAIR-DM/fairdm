@@ -1,0 +1,113 @@
+{# @description The record's facts in one panel: details, identifiers, funding and how a machine reaches it, each a section of label-and-value rows, with Delete last for whoever may. A row with no value shows a dash. #}
+{# @prop rows:list | description:"The details: [{label, text, url, record, icon, date, until, note, badge, badge_variant, warning}]." #}
+{# @prop edit:dict | description:"The editing pages the viewer may open, by the part each changes." #}
+{# @prop kind:text | description:"The word for the record's kind, named in the Delete line." #}
+{# @prop identifiers:list | description:"[{type, value, link}]." #}
+{# @prop portal_id:text | description:"The record's portal ID." #}
+{# @prop permalink:text | description:"Its permanent address." #}
+{# @prop local_id:text | description:"The team's own ID." #}
+{# @prop funding:list | description:"The awards. None leaves the section out." #}
+{# @prop can_manage:boolean | description:"The viewer is on the team. With no funding, it then says why it matters." #}
+{# @prop api_url:text | description:"The record's REST API address." #}
+{# @slot <div><dt>Instrument</dt><dd>Bruker S8 Tiger</dd></div> — Rows added to the details section. #}
+{% load i18n %}
+<c-vars rows identifiers portal_id permalink local_id funding can_manage api_url edit kind />
+<section class="ov-panel ov-panel--side" aria-labelledby="sheet-heading" data-card="details">
+  <div class="ov-panel__head">
+    <h2 class="ov-panel__title" id="sheet-heading">{% translate "Details" %}</h2>
+    {% if edit.details %}<div class="ov-panel__tools"><c-overview.edit href="{{ edit.details }}" label="{% translate 'Edit details' %}" only /></div>{% endif %}
+  </div>
+  <div class="ov-sheet">
+    <div class="ov-sheet__section">
+      <dl class="ov-dl">
+        {% for row in rows %}
+          <div>
+            <dt>{{ row.label }}</dt>
+            <dd{% if row.warning %} class="text-warning"{% endif %}>
+              {% if row.record %}
+                <a href="{{ row.record.get_absolute_url }}" class="ov-crumb record-{{ row.icon }}">{{ row.record }}</a>
+              {% elif row.badge %}
+                <c-overview.status variant="{{ row.badge_variant }}">{{ row.badge }}</c-overview.status>
+              {% elif row.date %}
+                {{ row.date|date:"SHORT_DATE_FORMAT" }}{% if row.until %} – {{ row.until|date:"SHORT_DATE_FORMAT" }}{% endif %}
+              {% elif row.url %}
+                <a href="{{ row.url }}">{{ row.text }}</a>
+              {% elif row.text %}
+                {{ row.text }}
+              {% else %}
+                <span aria-hidden="true">—</span><span class="sr-only">{% translate "Not recorded" %}</span>
+              {% endif %}
+              {% if row.note %}<span class="ov-sub">{{ row.note }}</span>{% endif %}
+            </dd>
+          </div>
+        {% endfor %}
+        {{ slot }}
+      </dl>
+    </div>
+
+    <div class="ov-sheet__section" data-card="identifiers">
+      <h3 class="ov-sheet__heading">{% translate "Identifiers" %}<c-overview.edit href="{{ edit.identifiers }}" label="{% translate 'Edit identifiers' %}" only /></h3>
+      <dl class="ov-dl">
+        {% for identifier in identifiers %}
+          <div>
+            <dt>{{ identifier.type }}</dt>
+            <dd class="ov-id">
+              {% if identifier.link %}<a href="{{ identifier.link }}" class="ov-id__value" title="{{ identifier.value }}">{{ identifier.value }}</a>{% else %}<code title="{{ identifier.value }}">{{ identifier.value }}</code>{% endif %}
+              <button type="button" class="ov-copy" data-copy="{{ identifier.link|default:identifier.value }}" aria-label="{% blocktranslate with kind=identifier.type %}Copy {{ kind }}{% endblocktranslate %}" title="{% translate 'Copy' %}"><c-icon name="copy" aria-hidden="true" only /></button>
+            </dd>
+          </div>
+        {% endfor %}
+        {% if local_id %}
+          <div><dt>{% translate "Local ID" %}</dt><dd class="ov-id"><code title="{{ local_id }}">{{ local_id }}</code></dd></div>
+        {% endif %}
+        {% if portal_id %}
+          <div>
+            <dt>{% translate "Portal ID" %}</dt>
+            <dd class="ov-id"><code title="{{ portal_id }}">{{ portal_id }}</code><button type="button" class="ov-copy" data-copy="{{ portal_id }}" aria-label="{% translate 'Copy portal ID' %}" title="{% translate 'Copy' %}"><c-icon name="copy" aria-hidden="true" only /></button></dd>
+          </div>
+        {% endif %}
+        {% if permalink %}
+          <div>
+            <dt>{% translate "Permalink" %}</dt>
+            <dd class="ov-id"><a href="{{ permalink }}" class="ov-id__value" title="{{ permalink }}">{{ permalink }}</a><button type="button" class="ov-copy" data-copy="{{ permalink }}" aria-label="{% translate 'Copy permalink' %}" title="{% translate 'Copy' %}"><c-icon name="copy" aria-hidden="true" only /></button></dd>
+          </div>
+        {% endif %}
+      </dl>
+    </div>
+
+    {% if funding is not None %}
+      <div class="ov-sheet__section" data-card="funding">
+        <h3 class="ov-sheet__heading">{% translate "Funding" %}</h3>
+        {% if funding %}
+          <ul class="ov-awards">
+            {% for award in funding %}
+              <li>
+                {% if award.funderIdentifier|slice:":4" == "http" %}<a href="{{ award.funderIdentifier }}">{{ award.funderName }}</a>{% else %}<span>{{ award.funderName }}</span>{% endif %}
+                {% if award.awardTitle %}<span class="ov-awards__title">{{ award.awardTitle }}</span>{% endif %}
+                {% if award.awardNumber %}<span class="ov-awards__number">{% if award.awardURI|slice:":4" == "http" %}<a href="{{ award.awardURI }}">{{ award.awardNumber }}</a>{% else %}{{ award.awardNumber }}{% endif %}</span>{% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="ov-empty">{% if can_manage %}{% translate "No funding recorded. Funders are part of the metadata data repositories expect." %}{% else %}{% translate "No funding has been recorded." %}{% endif %}</p>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <div class="ov-sheet__section">
+      <h3 class="ov-sheet__heading">{% translate "For machines" %}</h3>
+      <div class="ov-machine">
+        {% if api_url %}<a href="{{ api_url }}" class="btn btn-xs btn-outline"><c-icon name="api" aria-hidden="true" only />{% translate "REST API" %}</a>{% endif %}
+        {% translate "Metadata downloads" as downloads %}
+        {% translate "The DataCite JSON and schema.org JSON-LD records, served from this address." as reason %}
+        <c-actions.pending label="{{ downloads }}" icon="download" reason="{{ reason }}" size="xs" only />
+      </div>
+    </div>
+
+    {% if edit.delete %}
+      <div class="ov-sheet__section">
+        <a href="{{ edit.delete }}" class="ov-danger"><c-icon name="delete" aria-hidden="true" only />{% blocktranslate %}Delete this {{ kind }}{% endblocktranslate %}</a>
+      </div>
+    {% endif %}
+  </div>
+</section>

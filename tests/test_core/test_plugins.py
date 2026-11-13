@@ -196,9 +196,9 @@ class TestRecordOverviewPluginOrder:
     def test_the_people_card_follows_the_same_order(self, reordered):
         project, people, organizations = reordered
 
-        shown = _plugin_for(project).get_people()["shown"]
+        named = _plugin_for(project).get_people()["named"]
 
-        assert [c.pk for c in shown] == [
+        assert [row["contributor"].pk for row in named] == [
             contributor.pk for contributor in (*people, *organizations)
         ]
 
@@ -229,3 +229,99 @@ class TestRecordOverviewPluginAffiliation:
         assert {e["contributor"].pk: e["affiliation"] for e in entries}[
             person.pk
         ] == organization
+
+
+@pytest.mark.django_db
+class TestRecordOverviewPluginPeople:
+    @pytest.fixture
+    def plugin(self):
+        plugin = _plugin_for(ProjectFactory())
+        plugin.people_named = 2
+        plugin.people_faces = 3
+        return plugin
+
+    @staticmethod
+    def entries(n, roles=("Creator",)):
+        return [
+            {
+                "contributor": f"contributor {i}",
+                "roles": {f"role-{r}": r for r in roles},
+                "affiliation": None,
+            }
+            for i in range(n)
+        ]
+
+    def test_the_first_credits_are_named_then_faces_then_a_count(self, plugin):
+        people = plugin.get_people(self.entries(7))
+
+        assert [row["contributor"] for row in people["named"]] == [
+            "contributor 0",
+            "contributor 1",
+        ]
+        assert people["faces"] == ["contributor 2", "contributor 3", "contributor 4"]
+        assert (people["more"], people["total"]) == (2, 7)
+
+    def test_a_named_credit_shows_two_roles_and_counts_the_rest(self, plugin):
+        people = plugin.get_people(self.entries(1, roles=("creator", "editor", "x")))
+
+        [row] = people["named"]
+        assert row["roles"] == ["Creator", "Editor"]
+        assert row["more_roles"] == 1
+
+    def test_with_nobody_credited_there_is_nothing_to_show(self, plugin):
+        assert plugin.get_people([]) == {
+            "named": [],
+            "faces": [],
+            "more": 0,
+            "total": 0,
+        }
+
+
+class TestRecordOverviewPluginPrimaryIdentifier:
+    def test_the_first_identifier_that_resolves_is_the_primary_one(self):
+        identifiers = [
+            {"type": "grant", "value": "G-1", "link": None},
+            {"type": "doi", "value": "10.1/a", "link": "https://doi.org/10.1/a"},
+            {"type": "igsn", "value": "10.2/b", "link": "https://doi.org/10.2/b"},
+        ]
+
+        primary = RecordOverviewPlugin.get_primary_identifier(identifiers)
+
+        assert primary["value"] == "10.1/a"
+
+    def test_a_record_with_no_resolving_identifier_has_none(self):
+        identifiers = [{"type": "grant", "value": "G-1", "link": None}]
+
+        assert RecordOverviewPlugin.get_primary_identifier(identifiers) is None
+
+
+@pytest.mark.django_db
+class TestRecordOverviewPluginTypeMix:
+    def test_samples_and_measurements_are_counted_apart_with_the_largest_count(self):
+        from demo.factories import RockSampleFactory, XRFMeasurementFactory
+        from fairdm.core.measurement.models import Measurement
+        from fairdm.core.sample.models import Sample
+
+        dataset = DatasetFactory()
+        rocks = RockSampleFactory.create_batch(3, dataset=dataset)
+        XRFMeasurementFactory(sample=rocks[0], dataset=dataset)
+
+        mix = _plugin_for(dataset).get_type_mix(
+            Sample.objects.filter(dataset=dataset),
+            Measurement.objects.filter(dataset=dataset),
+        )
+
+        assert [n for _label, n in mix["samples"]] == [3]
+        assert [n for _label, n in mix["measurements"]] == [1]
+        assert mix["max"] == 3
+
+    def test_with_no_records_there_is_no_mix(self):
+        from fairdm.core.measurement.models import Measurement
+        from fairdm.core.sample.models import Sample
+
+        assert (
+            _plugin_for(DatasetFactory()).get_type_mix(
+                Sample.objects.none(), Measurement.objects.none()
+            )
+            is None
+        )

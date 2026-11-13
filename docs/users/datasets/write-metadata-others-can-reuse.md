@@ -9,7 +9,7 @@ You need the **Can edit** level on the dataset. [Create the dataset](create-a-da
 ## Steps
 
 1. Name the dataset for what it holds, where and when, for example "River water chemistry, Site B, 2024". Avoid a bare abbreviation or a number. Enter it in **Name** on [Edit details](edit-details.md).
-2. Write the abstract. Open **Edit descriptions** in the **Manage** menu and fill in the **Abstract** area with what the data is, why it was collected and what it covers. Write it so that someone outside your field can tell whether the data is useful to them.
+2. Write the abstract. Choose **Edit** on the dataset's descriptions panel and fill in the **Abstract** area with what the data is, why it was collected and what it covers. Write it so that someone outside your field can tell whether the data is useful to them.
 3. Write the methods in the **Methods** area of the same screen. Name each instrument by make and model, and give its calibration, the processing steps and the software you used. "pH meter" tells a reader nothing. "Hach HQ40d handheld meter, calibrated with pH 4.0, 7.0 and 10.0 buffers before each measurement" tells them whether their data are comparable. See [Descriptions](../editing-a-record/descriptions.md).
 4. Give units wherever a description states a number. Use standard abbreviations such as `mg/L` and `°C`, and use the same unit throughout. Do not switch between units without saying so.
 5. Record the collection period. Open **Key dates** and enter the **Collection Start Date** and **Collection End Date**. Enter each date as precisely as you know it, as a year, a month or a day. See [Key dates](../editing-a-record/key-dates.md).

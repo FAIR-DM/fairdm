@@ -522,3 +522,750 @@ button.record-tag:focus-visible {
   background-color: var(--record-tint);
   box-shadow: inset 3px 0 0 var(--record);
 }
+
+/* ---------------------------------------------------------------------------
+ * Overview pages
+ * ------------------------------------------------------------------------- */
+
+/* The overview pages of projects, datasets, samples and measurements, drawn by
+ * `overview/page.html` and the `c-overview.*` components. Every class starts `ov-`. The values come
+ * from the theme's own properties, so the pages hold in the light and dark themes. The record's
+ * colour comes from its `record-<type>` class (--record, --record-tint) and is only ever a line or
+ * a surface, never the colour of words. */
+
+.ov {
+  --ov-line: var(--color-fairdm-line, var(--color-base-300));
+  --ov-muted: color-mix(in oklch, var(--color-base-content) 68%, transparent);
+  --ov-faint: color-mix(in oklch, var(--color-base-content) 52%, transparent);
+  --ov-link: var(--color-primary-text, var(--color-primary));
+  --ov-radius: var(--radius-box, 0.75rem);
+  --ov-pad: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+  width: 100%;
+}
+
+@media (max-width: 639px) {
+  .ov { --ov-pad: 1rem; gap: 1rem; }
+}
+
+.ov a.ov-link,
+.ov .ov-link {
+  color: var(--ov-link);
+  text-decoration: none;
+}
+
+.ov a.ov-link:hover { text-decoration: underline; }
+
+.ov-notices { display: flex; flex-direction: column; gap: 0.75rem; }
+
+/* ------------------------------------------------------------------------------------------------
+ * The header: the record's identity, its people, its key facts and its figures in one band.
+ * --------------------------------------------------------------------------------------------- */
+
+.ov-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--ov-line);
+  border-radius: var(--ov-radius);
+  background:
+    linear-gradient(120deg, var(--record-tint) 0%, color-mix(in srgb, var(--record-tint) 40%, var(--color-base-100)) 40%, var(--color-base-100) 75%);
+}
+
+/* Behind a header with no image: the ruled grid the sign-in pages use, in the record's colour. */
+
+.ov-hero__grid {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  width: min(55%, 40rem);
+  z-index: -1;
+  color: var(--record);
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to left, #000 0%, rgba(0, 0, 0, 0.55) 35%, transparent 90%);
+  mask-image: linear-gradient(to left, #000 0%, rgba(0, 0, 0, 0.55) 35%, transparent 90%);
+}
+
+@media (max-width: 639px) {
+  /* No side to spare on a phone: the grid keeps to the top trailing corner, clear of the text. */
+  .ov-hero__grid {
+    inset-inline-end: 0; width: 60%; height: 9rem; inset-block-end: auto;
+    -webkit-mask-image: linear-gradient(to left, #000, transparent 85%), linear-gradient(to bottom, #000, transparent);
+    -webkit-mask-composite: source-in;
+    mask-image: linear-gradient(to left, #000, transparent 85%), linear-gradient(to bottom, #000, transparent);
+    mask-composite: intersect;
+  }
+}
+
+.ov-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: var(--record);
+}
+
+.ov-hero__inner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "media badges actions" "media text text";
+  gap: 0.625rem 1.5rem;
+  padding: calc(var(--ov-pad) + 0.5rem) var(--ov-pad) var(--ov-pad);
+  align-items: start;
+}
+
+.ov-hero__media { grid-area: media; }
+
+.ov-hero__text { grid-area: text; display: flex; flex-direction: column; gap: 0.625rem; min-width: 0; }
+
+.ov-hero__inner > .ov-badges { grid-area: badges; align-self: center; }
+
+.ov-hero__actions { grid-area: actions; display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: flex-end; }
+
+@media (max-width: 1023px) {
+  .ov-hero__inner {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas: "media badges" "media text" "actions actions";
+  }
+  .ov-hero__actions { justify-content: flex-start; }
+}
+
+@media (max-width: 639px) {
+  .ov-hero__inner {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "media" "badges" "text" "actions";
+    gap: 0.875rem;
+  }
+}
+
+.ov-tile {
+  display: grid;
+  place-items: center;
+  width: 6rem;
+  aspect-ratio: 1;
+  border-radius: calc(var(--ov-radius) * 0.85);
+  background: var(--record-tint);
+  border: 1px solid color-mix(in srgb, var(--record) 40%, transparent);
+  color: var(--color-base-content);
+  font-size: 2.25rem;
+  overflow: hidden;
+  box-shadow: 0 1px 0 color-mix(in oklch, var(--color-base-content) 6%, transparent);
+}
+
+.ov-tile img { width: 100%; height: 100%; object-fit: cover; }
+
+@media (max-width: 639px) {
+  .ov-tile { width: 3.5rem; font-size: 1.5rem; }
+}
+
+.ov-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 0.375rem 0.5rem; }
+
+/* A status or access chip: the theme's pill badge with a dot and a light fill in its status colour. */
+.ov-status {
+  --ov-status: var(--ov-faint);
+  --badge-bg: color-mix(in oklch, var(--ov-status) 14%, var(--color-base-100));
+  --badge-fg: var(--color-base-content);
+  gap: 0.375rem;
+  border: 0;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.ov-status__dot { flex: none; width: 0.5rem; height: 0.5rem; border-radius: 999px; background: var(--ov-status); }
+
+.ov-status--success { --ov-status: var(--color-success); }
+
+.ov-status--warning { --ov-status: var(--color-warning); }
+
+.ov-status--error { --ov-status: var(--color-error); }
+
+.ov-status--info { --ov-status: var(--color-info); }
+
+.ov-title {
+  margin: 0;
+  font-size: clamp(1.5rem, 1.05rem + 1.5vw, 2.25rem);
+  line-height: 1.15;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.ov-byline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 1rem;
+  font-size: 0.9375rem;
+}
+
+.ov-byline a { display: inline-flex; align-items: center; gap: 0.5rem; color: inherit; text-decoration: none; }
+
+.ov-byline a:hover span { text-decoration: underline; }
+
+.ov-byline .ov-byline__more { color: var(--ov-link); font-size: 0.875rem; }
+
+.ov-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.5rem;
+  font-size: 0.875rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ov-facts li { display: inline-flex; align-items: baseline; gap: 0.4rem; min-width: 0; }
+
+.ov-facts__label { color: var(--ov-faint); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; white-space: nowrap; }
+
+.ov-facts a { color: var(--ov-link); text-decoration: none; overflow-wrap: anywhere; }
+
+.ov-facts a:hover { text-decoration: underline; }
+
+.ov-facts .ov-mono { font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.8125rem; }
+
+.ov-keywords { display: flex; flex-wrap: wrap; gap: 0.375rem; margin: 0; padding: 0; list-style: none; }
+
+/* The figures along the foot of the header. */
+
+.ov-figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  border-top: 1px solid var(--ov-line);
+  background: color-mix(in oklch, var(--color-base-100) 82%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+.ov-figure {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.875rem var(--ov-pad);
+  color: inherit;
+  text-decoration: none;
+  border-inline-start: 1px solid var(--ov-line);
+  margin-inline-start: -1px;
+  min-width: 0;
+}
+
+a.ov-figure:hover { background: color-mix(in oklch, var(--record, var(--color-primary)) 7%, transparent); }
+
+a.ov-figure:focus-visible { outline: 2px solid var(--color-primary); outline-offset: -2px; }
+
+.ov-figure__value { font-size: 1.625rem; font-weight: 650; line-height: 1.2; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+
+.ov-figure__label { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8125rem; color: var(--ov-muted); }
+
+.ov-figure__label::before {
+  content: "";
+  flex: none;
+  width: 0.5rem; height: 0.5rem; border-radius: 2px;
+  background: var(--record, transparent);
+  display: var(--ov-swatch, none);
+}
+
+.ov-figure:is(.record-project, .record-dataset, .record-sample, .record-measurement) { --ov-swatch: inline-block; }
+
+.ov-figure__note { font-size: 0.75rem; color: var(--ov-faint); }
+
+@media (max-width: 639px) {
+  .ov-figures { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ov-figures:has(> :nth-child(3):last-child) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ov-figures:has(> :nth-child(3):last-child) .ov-figure { padding-inline: 0.75rem; }
+  .ov-figure { padding: 0.75rem 1rem; border-top: 1px solid var(--ov-line); margin-top: -1px; }
+  .ov-figure__value { font-size: 1.375rem; }
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * The body: content beside the facts.
+ * --------------------------------------------------------------------------------------------- */
+
+.ov-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .ov-body { grid-template-columns: minmax(0, 1fr) 21rem; }
+}
+
+@media (min-width: 1280px) {
+  .ov-body { grid-template-columns: minmax(0, 1fr) 23.5rem; gap: 1.75rem; }
+}
+
+@media (max-width: 639px) {
+  .ov-body { gap: 1rem; }
+}
+
+.ov-main, .ov-side { display: flex; flex-direction: column; gap: 1.5rem; min-width: 0; }
+
+@media (max-width: 639px) {
+  .ov-main, .ov-side { gap: 1rem; }
+}
+
+.ov-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem var(--ov-pad) var(--ov-pad);
+  border: 1px solid var(--ov-line);
+  border-radius: var(--ov-radius);
+  background: var(--color-base-100);
+  min-width: 0;
+  scroll-margin-top: 6rem;
+}
+
+.ov-panel--side { padding: 1rem 1.25rem 1.25rem; gap: 0.875rem; }
+
+.ov-panel--flush { padding: 0; gap: 0; overflow: hidden; }
+
+.ov-panel--flush > .ov-panel__head { padding: 1rem 1.25rem 0.75rem; }
+
+.ov-panel__head { display: flex; align-items: center; gap: 0.5rem; min-width: 0; flex-wrap: wrap; }
+
+.ov-panel__title { margin: 0; font-size: 1.0625rem; font-weight: 620; line-height: 1.4; }
+
+.ov-panel--side .ov-panel__title { font-size: 0.9375rem; }
+
+.ov-panel__sub { width: 100%; margin: -0.5rem 0 0; font-size: 0.8125rem; color: var(--ov-muted); }
+
+.ov-panel__tools { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 0.75rem; }
+
+.ov-panel__more {
+  display: inline-flex; align-items: center; gap: 0.25rem;
+  font-size: 0.875rem; font-weight: 500;
+  color: var(--ov-link); text-decoration: none; white-space: nowrap;
+}
+
+.ov-panel__more:hover { text-decoration: underline; }
+
+.ov-count {
+  display: inline-block;
+  min-width: 1.5rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--color-base-200);
+  color: var(--ov-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.ov-empty { margin: 0; font-size: 0.875rem; color: var(--ov-muted); }
+
+.ov-empty-block { display: flex; flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+
+.ov-note { margin: 0; font-size: 0.75rem; color: var(--ov-faint); }
+
+/* ------------------------------------------------------------------------------------------------
+ * Descriptions: tabs in the head, folded after a few lines.
+ * --------------------------------------------------------------------------------------------- */
+
+.ov-tabs { display: flex; gap: 1.25rem; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--ov-line); margin-top: -0.25rem; }
+
+.ov-tabs::-webkit-scrollbar { display: none; }
+
+.ov-tab {
+  appearance: none; border: 0; background: none; cursor: pointer;
+  padding: 0.25rem 0 0.625rem;
+  font: inherit; font-size: 1.0625rem; font-weight: 620; color: var(--ov-faint);
+  white-space: nowrap;
+  box-shadow: inset 0 -2px 0 transparent;
+}
+
+.ov-tab[aria-selected="true"] { color: var(--color-base-content); box-shadow: inset 0 -3px 0 var(--record, var(--color-primary)); }
+
+.ov-tab:hover { color: var(--color-base-content); }
+
+.ov-tab:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; border-radius: 2px; }
+
+.ov-prose { font-size: 0.9375rem; line-height: 1.7; max-width: 72ch; }
+
+.ov-prose p { margin: 0 0 0.875em; }
+
+.ov-prose p:last-child { margin-bottom: 0; }
+
+.ov-prose a { color: var(--ov-link); }
+
+.ov-fold { position: relative; }
+
+.ov-fold[data-folded="true"] .ov-fold__body { max-height: 11.5rem; overflow: hidden; }
+
+.ov-fold[data-folded="true"] .ov-fold__body::after {
+  content: ""; position: absolute; inset: auto 0 2.25rem 0; height: 4rem;
+  background: linear-gradient(to bottom, transparent, var(--color-base-100));
+  pointer-events: none;
+}
+
+.ov-fold__toggle {
+  display: none;
+  margin-top: 0.5rem;
+  appearance: none; border: 0; background: none; padding: 0; cursor: pointer;
+  font: inherit; font-size: 0.875rem; font-weight: 550; color: var(--ov-link);
+}
+
+.ov-fold[data-overflowing="true"] .ov-fold__toggle, .ov-fold[data-opened="true"] .ov-fold__toggle { display: inline-flex; align-items: center; gap: 0.25rem; }
+
+.ov-fold:not([data-overflowing="true"]) .ov-fold__body::after { display: none; }
+
+/* ------------------------------------------------------------------------------------------------
+ * Rows: a list of records, one mark each, the facts as a quiet line.
+ * --------------------------------------------------------------------------------------------- */
+
+.ov-rows { list-style: none; margin: 0; padding: 0; }
+
+.ov-rows > li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.8125rem 0;
+  border-top: 1px solid var(--ov-line);
+}
+
+.ov-rows > li:first-child { border-top: 0; padding-top: 0.25rem; }
+
+.ov-rows > li[hidden] { display: none; }
+
+.ov-mark {
+  display: grid; place-items: center;
+  width: 2.25rem; height: 2.25rem;
+  border-radius: var(--radius-field, 0.5rem);
+  background: var(--record-tint);
+  box-shadow: inset 3px 0 0 var(--record);
+  font-size: 1rem;
+  overflow: hidden;
+}
+
+.ov-mark img { width: 100%; height: 100%; object-fit: cover; }
+
+.ov-row__main { display: flex; flex-direction: column; gap: 0.125rem; min-width: 0; }
+
+.ov-row__title { font-weight: 560; color: inherit; text-decoration: none; overflow-wrap: anywhere; line-height: 1.35; }
+
+a.ov-row__title:hover { text-decoration: underline; }
+
+.ov-row__meta { display: flex; flex-wrap: wrap; font-size: 0.8125rem; color: var(--ov-muted); }
+
+.ov-row__meta > * + *::before { content: "·"; margin-inline: 0.45rem; color: var(--ov-faint); }
+
+.ov-row__meta a { color: inherit; }
+
+.ov-row__end { font-size: 0.8125rem; color: var(--ov-muted); white-space: nowrap; text-align: end; font-variant-numeric: tabular-nums; }
+
+.ov-row__end strong { font-size: 0.9375rem; color: var(--color-base-content); font-weight: 600; }
+
+.ov-row__end .ov-sub { display: block; }
+
+.ov-state { display: inline-flex; align-items: center; gap: 0.35rem; }
+
+.ov-state::before { content: ""; width: 0.45rem; height: 0.45rem; border-radius: 999px; background: var(--ov-faint); }
+
+.ov-state--published::before { background: var(--color-success); }
+
+.ov-rows__more { margin-top: 0.25rem; font-size: 0.875rem; }
+
+@media (max-width: 639px) {
+  .ov-rows > li { grid-template-columns: auto minmax(0, 1fr); row-gap: 0.25rem; align-items: start; }
+  .ov-rows > li > .ov-mark { grid-row: span 2; }
+  .ov-row__end { grid-column: 2; text-align: start; }
+  .ov-row__end strong { font-size: 0.8125rem; }
+  .ov-row__end .ov-sub { display: inline; }
+  .ov-row__end .ov-sub::before { content: " · "; }
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * The side column.
+ * --------------------------------------------------------------------------------------------- */
+
+/* Cite: the citation, and a button that copies it. */
+
+.ov-cite__text {
+  margin: 0;
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-field, 0.5rem);
+  background: var(--color-base-200);
+  border-inline-start: 3px solid var(--record, var(--color-primary));
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 16rem;
+  overflow: auto;
+}
+
+.ov-cite__actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+
+.ov-copied { font-size: 0.8125rem; color: var(--color-success); }
+
+/* The fact sheet: one panel, sections divided by a rule, label beside value. */
+
+.ov-sheet { display: flex; flex-direction: column; }
+
+.ov-sheet__section { padding: 0.875rem 0; border-top: 1px solid var(--ov-line); }
+
+.ov-sheet__section:first-of-type { border-top: 0; padding-top: 0; }
+
+.ov-sheet__section:last-child { padding-bottom: 0; }
+
+.ov-sheet__heading { margin: 0 0 0.5rem; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 650; color: var(--ov-faint); }
+
+.ov-dl { margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+
+.ov-dl > div { display: grid; grid-template-columns: 6.75rem minmax(0, 1fr); gap: 0.75rem; align-items: baseline; }
+
+.ov-dl dt { font-size: 0.8125rem; color: var(--ov-muted); }
+
+.ov-dl dd { margin: 0; font-size: 0.875rem; overflow-wrap: anywhere; min-width: 0; }
+
+.ov-dl dd a { color: var(--ov-link); text-decoration: none; }
+
+.ov-dl dd a:hover { text-decoration: underline; }
+
+.ov-dl .ov-sub { display: block; font-size: 0.75rem; color: var(--ov-faint); margin-top: 0.125rem; }
+
+.ov-id { display: flex; align-items: center; gap: 0.25rem; min-width: 0; }
+
+.ov-id code, .ov-id a.ov-id__value { font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.78rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.ov-copy {
+  appearance: none; border: 0; background: none; cursor: pointer; flex: none;
+  display: inline-grid; place-items: center; width: 1.75rem; height: 1.75rem;
+  border-radius: var(--radius-field, 0.375rem); color: var(--ov-faint);
+}
+
+.ov-copy:hover { background: var(--color-base-200); color: var(--color-base-content); }
+
+.ov-copy[data-copied="true"] { color: var(--color-success); }
+
+.ov-copy:focus-visible { outline: 2px solid var(--color-primary); }
+
+.ov-crumb::before {
+  content: ""; display: inline-block; width: 0.55rem; height: 0.55rem; border-radius: 2px;
+  margin-inline-end: 0.4rem; background: var(--record); vertical-align: 0.05em;
+}
+
+.ov-bar { height: 0.375rem; border-radius: 999px; background: var(--color-base-300); overflow: hidden; margin-top: 0.375rem; }
+
+.ov-bar > span { display: block; height: 100%; background: var(--color-primary); border-radius: inherit; }
+
+.ov-machine { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+/* People: names and roles first, faces after. */
+
+.ov-people { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.75rem; }
+
+.ov-people li { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.75rem; align-items: center; }
+
+.ov-people a { color: inherit; text-decoration: none; font-weight: 560; font-size: 0.9rem; overflow-wrap: anywhere; }
+
+.ov-people a:hover { text-decoration: underline; }
+
+.ov-people__role { display: block; font-size: 0.75rem; color: var(--ov-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.ov-faces { display: flex; flex-wrap: wrap; align-items: center; padding-inline-start: 0.375rem; }
+
+.ov-faces a { margin-inline-start: -0.375rem; border-radius: 999px; box-shadow: 0 0 0 2px var(--color-base-100); display: inline-flex; }
+
+.ov-faces a:hover { z-index: 1; }
+
+.ov-faces__more { margin-inline-start: 0.625rem; font-size: 0.8125rem; color: var(--ov-link); text-decoration: none; }
+
+/* Readiness: a ring and what is missing; what is done folds away. */
+
+.ov-ready { border-color: color-mix(in oklch, var(--color-primary) 45%, var(--ov-line)); background: linear-gradient(180deg, color-mix(in oklch, var(--color-primary) 5%, var(--color-base-100)), var(--color-base-100) 5rem); }
+
+.ov-ready__top { display: flex; gap: 0.875rem; align-items: center; }
+
+.ov-ring {
+  --p: 0;
+  flex: none; width: 3.25rem; aspect-ratio: 1; border-radius: 999px;
+  display: grid; place-items: center;
+  background: conic-gradient(var(--ov-ring, var(--color-primary)) calc(var(--p) * 1%), var(--color-base-300) 0);
+  position: relative; font-size: 0.75rem; font-weight: 650; font-variant-numeric: tabular-nums;
+}
+
+.ov-ring::before { content: ""; position: absolute; inset: 5px; border-radius: inherit; background: var(--color-base-100); }
+
+.ov-ring span { position: relative; }
+
+.ov-ring--done { --ov-ring: var(--color-success); }
+
+.ov-ready__summary { font-weight: 600; font-size: 0.9375rem; }
+
+.ov-ready__about { font-size: 0.75rem; color: var(--ov-muted); margin: 0.125rem 0 0; }
+
+.ov-todo { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.375rem; font-size: 0.8125rem; }
+
+.ov-todo li { display: flex; gap: 0.5rem; align-items: baseline; }
+
+.ov-todo li::before { content: ""; flex: none; width: 0.5rem; height: 0.5rem; border-radius: 999px; border: 2px solid var(--color-warning); transform: translateY(0.05rem); }
+
+.ov-todo li.is-optional::before { border-color: var(--ov-faint); }
+
+.ov-todo li.is-done { color: var(--ov-muted); }
+
+.ov-todo li.is-done::before { background: var(--color-success); border-color: var(--color-success); }
+
+.ov-todo a { margin-inline-start: auto; color: var(--ov-link); text-decoration: none; font-weight: 550; }
+
+.ov-todo__label { flex: 1; }
+
+.ov-done summary { cursor: pointer; font-size: 0.8125rem; color: var(--ov-muted); list-style: none; display: inline-flex; gap: 0.25rem; align-items: center; }
+
+.ov-done summary::-webkit-details-marker { display: none; }
+
+.ov-done summary::before { content: "▸"; font-size: 0.7rem; transition: transform 0.15s; }
+
+.ov-done[open] summary::before { transform: rotate(90deg); }
+
+.ov-done .ov-todo { margin-top: 0.5rem; }
+
+/* ------------------------------------------------------------------------------------------------
+ * Charts, funding, records by type.
+ * --------------------------------------------------------------------------------------------- */
+
+.ov-charts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+
+@media (min-width: 1536px) {
+  .ov-charts { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2rem; }
+}
+
+.ov-chart { display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
+
+.ov-chart__title { margin: 0; font-size: 0.8125rem; font-weight: 600; color: var(--ov-muted); }
+
+.ov-chart figcaption, .ov-chart .chart-caption { font-size: 0.75rem; color: var(--ov-faint); }
+
+.ov-pulse { animation: ov-pulse 1.4s ease-out; }
+
+@keyframes ov-pulse { 0% { box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-primary) 45%, transparent); } 100% { box-shadow: 0 0 0 14px transparent; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-pulse { animation: none; }
+}
+
+/* Funding: one award per entry, the funder first. */
+
+.ov-awards { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.875rem; }
+
+.ov-awards li { display: flex; flex-direction: column; gap: 0.0625rem; min-width: 0; }
+
+.ov-awards a { color: var(--ov-link); text-decoration: none; }
+
+.ov-awards a:hover { text-decoration: underline; }
+
+.ov-awards__title { color: var(--ov-muted); font-size: 0.8125rem; }
+
+.ov-awards__number { font-family: var(--font-mono, ui-monospace, monospace); font-size: 0.75rem; color: var(--ov-muted); }
+
+/* Records by type: one bar per type, in the type's colour, longest first. */
+
+.ov-mix { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.625rem; }
+
+.ov-mix li { display: grid; grid-template-columns: minmax(6rem, 10rem) minmax(4rem, 1fr) 3rem; gap: 0.75rem; align-items: center; font-size: 0.8125rem; }
+
+.ov-mix__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.ov-mix__track { display: block; height: 0.625rem; border-radius: 999px; background: var(--color-base-200); overflow: hidden; }
+
+.ov-mix__track span { display: block; height: 100%; border-radius: inherit; background: var(--record); min-width: 3px; }
+
+.ov-mix__n { text-align: end; font-variant-numeric: tabular-nums; font-weight: 600; }
+
+.ov-mix li.ov-mix__group { display: block; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 650; color: var(--ov-faint); margin-top: 0.25rem; }
+
+/* A record with an image: the image fills the header's trailing side, full height, and opens at
+ * full size. The icon tile is left out, since the image already says what the record is. */
+
+.ov-hero__top { position: relative; }
+
+.ov-hero--cover .ov-hero__top { padding-inline-end: min(40%, 30rem); min-height: 15rem; }
+
+.ov-hero--cover .ov-hero__inner {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "badges" "text" "actions";
+}
+
+.ov-hero--cover .ov-hero__actions { justify-content: flex-start; padding-top: 0.25rem; }
+
+.ov-cover {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: min(40%, 30rem);
+  margin: 0; padding: 0; border: 0;
+  background: var(--record-tint);
+  cursor: zoom-in;
+  overflow: hidden;
+  border-inline-start: 1px solid var(--ov-line);
+}
+
+.ov-cover img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s ease; }
+
+.ov-cover:hover img { transform: scale(1.025); }
+
+.ov-cover:focus-visible { outline: 3px solid var(--color-primary); outline-offset: -3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ov-cover img { transition: none; }
+  .ov-cover:hover img { transform: none; }
+}
+
+@media (max-width: 1023px) {
+  .ov-hero--cover .ov-hero__top { padding-inline-end: 36%; }
+  .ov-cover { width: 36%; }
+}
+
+@media (max-width: 639px) {
+  .ov-hero--cover .ov-hero__top { padding-inline-end: 0; min-height: 0; }
+  .ov-cover { position: relative; inset: auto; width: 100%; aspect-ratio: 16 / 9; display: block; border-inline-start: 0; border-bottom: 1px solid var(--ov-line); }
+  .ov-hero--cover .ov-hero__inner { grid-template-columns: minmax(0, 1fr); grid-template-areas: "badges" "text" "actions"; padding-top: var(--ov-pad); }
+}
+
+.ov-lightbox .modal-box { width: auto; max-width: min(92vw, 80rem); max-height: 90vh; padding: 0; overflow: hidden; background: var(--color-base-100); }
+
+.ov-lightbox img { display: block; max-width: min(92vw, 80rem); max-height: 90vh; object-fit: contain; }
+
+/* A panel's own edit control: quiet until pointed at, so the reading view stays the reading view. */
+
+.ov-edit {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.125rem 0.5rem; margin-block: -0.125rem;
+  border-radius: var(--radius-field, 0.375rem);
+  font-size: 0.8125rem; font-weight: 550; color: var(--ov-muted); text-decoration: none; white-space: nowrap;
+}
+
+.ov-edit:hover { background: var(--color-base-200); color: var(--color-base-content); }
+
+.ov-edit:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 1px; }
+
+.ov-edit--add { color: var(--ov-link); }
+
+.ov-sheet__heading { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+
+.ov-sheet__heading .ov-edit { font-size: 0.75rem; text-transform: none; letter-spacing: 0; }
+
+.ov-keywords .ov-edit { font-size: 0.75rem; padding-block: 0.0625rem; }
+
+.ov-danger { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8125rem; color: var(--color-error); text-decoration: none; }
+
+.ov-danger:hover { text-decoration: underline; }
+
+.ov-tabs-row { display: flex; align-items: flex-end; gap: 1rem; border-bottom: 1px solid var(--ov-line); margin-top: -0.25rem; }
+
+.ov-tabs-row .ov-tabs { border-bottom: 0; margin-top: 0; flex: 1; min-width: 0; }
+
+.ov-tabs-row .ov-edit { margin-bottom: 0.5rem; }
+
+.ov-count--end { margin-inline-start: auto; }
+.ov-todo__optional { color: var(--ov-muted); }
+.ov-lightbox__close { position: absolute; inset-inline-end: 0.75rem; top: 0.75rem; }

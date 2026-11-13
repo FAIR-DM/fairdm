@@ -25,24 +25,27 @@ It holds what every record overview works out the same way. A portal changes one
 
 | Attribute | Default | What it sets |
 |---|---|---|
-| `people_shown` | `18` | How many faces the People card draws before it counts the rest. |
+| `people_named` | `6` | How many credits the People panel names, with their roles. |
+| `people_faces` | `10` | How many faces it draws after them before it counts the rest. |
 | `resolvable_identifier_types` | `(DOI, IGSN)`, the addresses from `fairdm.core.vocabularies` | The identifier types that link to doi.org. A value links only when it starts with `10.`. |
 
 ### Methods
 
 | Method | Returns |
 |---|---|
-| `get_context_data(**kwargs)` | The context with `people_url` (the record's Contributors tab) and `manage_menu` added. |
+| `get_context_data(**kwargs)` | The context with `people_url` (the record's Contributors tab), `edit` (the [edit links](record-editing-pages.md#the-edit-links)), `record_kind` (the word for the record's kind) and `cover_image` (the record's image, or `None`) added. |
 | `get_contributions()` | The record's credits, people first and then organizations, each in the order set on the Contributors tab, each with its real contributor and roles loaded. |
 | `get_role_uris(contribution)` | The set of the addresses of the roles held on one credit. |
 | `get_contributors_with_role(entries, role)` | The contributors of every entry in `get_credits()` that holds the role, given by its address. |
 | `get_credits()` | One dictionary per credit, in the order of `get_contributions()`: `contributor`, `roles` (a dictionary of role address to label) and `affiliation` (the organization recorded on the credit, or `None`). |
-| `get_people(entries=None)` | What the People card shows: `shown` (up to `people_shown`), `more` and `total`. |
+| `get_people(entries=None)` | What the People panel shows: `named` (up to `people_named` credits, each with `contributor`, its first two `roles`, `more_roles`, how many more it holds, and `affiliation`), `faces` (the next `people_faces` contributors), `more` (how many are left) and `total`. |
 | `get_identifiers()` | One dictionary per identifier: `type`, the identifier type's concept, `value` and `link`. |
+| `get_primary_identifier(identifiers)` | The first identifier from `get_identifiers()` with a `link`, the one a reader looks for first, or `None`. The project page shows it among the header's key facts. |
 | `get_citation(*, authors, year, title, link)` | The citation as text: `Creators (Year). Title. Publisher. Identifier.` The publisher is the current site's name. |
 | `get_timeline(steps, dates, descriptions, entries)` | One dictionary per step that has a date, a person or a note, with `label`, `date`, `day`, `people` and `note`. Dated steps come first. `steps` is a list of `(date_type, role, description_type, label)`, each type and role given by its address. |
-| `get_license_entry(licence, note=None)` | A row for [`c-card.details`](components.md#c-carddetails), or a warning row when no licence is chosen. |
-| `get_composition_chart(samples, measurements)` | A dictionary of `chart`, `height` and `description`, counting records by registered type, or `None` when there is nothing to count. |
+| `get_license_entry(licence, note=None)` | A row for [`c-overview.sheet`](components.md#c-overviewsheet), or a warning row when no licence is chosen. |
+| `get_type_mix(samples, measurements)` | The records by registered type for [`c-overview.mix`](components.md#c-overviewmix): `samples` and `measurements`, each a list of `(type name, count)` largest first, and `max`, the largest count. `None` when there is nothing to count. |
+| `get_composition_chart(samples, measurements)` | A dictionary of `chart`, `height` and `description`, counting records by registered type, or `None` when there is nothing to count. The dataset page draws it. |
 | `get_growth_chart(samples, measurements)` | A dictionary of `chart` and `description` for the running total by month, or `None` when the records span fewer than two months. |
 
 ```python
@@ -50,7 +53,7 @@ from fairdm.core.plugins import RecordOverviewPlugin
 
 
 class Summary(RecordOverviewPlugin):
-    people_shown = 8
+    people_named = 3
 ```
 
 ## `TypedOverviewPlugin`
@@ -85,10 +88,10 @@ It subclasses `RecordOverviewPlugin` for the records portals subclass: samples a
 | `get_licenses(datasets)` | `items` (licence name and count, most common first) and `unlicensed`, over the public datasets. |
 | `get_citation_details()` | `text`, `link`, `has_doi` and `creators`. |
 | `get_readiness(page)` | The checklist: `items`, `done`, `total` and `percent`. The project checklist has ten items. |
-| `get_details(licenses)` | The rows of the Details card. |
+| `get_details(licenses)` | The rows of the fact sheet. |
 | `get_shared_context(page)` | The entries every overview provides. |
 
-Context entries: `project`, `can_manage`, `descriptions`, `timeline` (from `get_progress()`), `team`, `funding`, `counts`, `datasets_preview`, `licenses`, `composition_chart`, `growth_chart`, `citation`, `json_ld`, `api_url`, `urls`, and for the team `readiness`, plus the shared entries.
+Context entries: `project`, `can_manage`, `descriptions`, `timeline` (from `get_progress()`), `team`, `funding`, `counts`, `datasets_preview`, `licenses`, `mix` (from `get_type_mix()`), `growth_chart`, `citation`, `json_ld`, `api_url`, `urls`, and for the team `readiness`, plus the shared entries, which on the project page include `primary_identifier`.
 
 `project_is_visible(request, obj)` in the same module is the plugin's `check`: a public project is visible to all and a private one to holders of `project.view_project`.
 
@@ -112,7 +115,7 @@ Context entries: `project`, `can_manage`, `descriptions`, `timeline` (from `get_
 | `get_citation_details(page)` | `text`, `link`, `has_doi`, `from_reference` and `creators`. |
 | `get_schema_org(page)` | The schema.org `Dataset` description for the page head. |
 | `get_readiness(page)` | The checklist: `items`, `done`, `total`, `percent`, `ready` and `missing_required`. It has seven required and three recommended items. |
-| `get_details(project_info)` | The rows of the Details card. |
+| `get_details(project_info)` | The rows of the fact sheet. |
 | `get_shared_context(page)` | The entries every overview provides. |
 
 Context entries: `dataset`, `can_manage`, `access`, `descriptions`, `dates`, `team`, `literature`, `data_types`, `counts`, `composition_chart`, `growth_chart`, `project_info`, `api_url`, `urls`, `citation`, `json_ld`, `lifecycle`, and for the team, while the dataset's data is not public, `readiness`, plus the shared entries.
@@ -135,7 +138,7 @@ Context entries: `dataset`, `can_manage`, `access`, `descriptions`, `dates`, `te
 | `get_related_samples()` | `items`, `parents`, `children` and `hidden`, the number of relations the viewer may not see. |
 | `get_relations_summary(relations)` | A caption such as "1 parent · 2 subsamples", or "None recorded". |
 | `get_citation_details(entries, dates, identifiers)` | `title` and `text`, with a `note` when the sample has no IGSN. |
-| `get_details(project, status)` | The rows of the Details card. `project` is `None` when the viewer may not see it. |
+| `get_details(project, status)` | The rows of the fact sheet. `project` is `None` when the viewer may not see it. |
 
 Context entries: `sample`, `record`, `can_manage`, `sample_type`, `status`, `lifecycle`, `notes`, `measurements`, `relations`, `location`, `project`, `counts`, `citation`, `identifiers`, `api_url`, `type_info`, `people` and `details`.
 
@@ -152,7 +155,7 @@ Context entries: `sample`, `record`, `can_manage`, `sample_type`, `status`, `lif
 | `get_sample_status()` | The sample's status `label` and `variant`, or `None` when it records none. |
 | `get_siblings()` | The other measurements on the same sample that the viewer may see: `rows`, `more` and `total`. |
 | `get_citation_details(entries, dates, identifiers, sample)` | `title` and `text`, with `note`, `note_url` and `note_link` when there is no DOI. `sample` is `None` when the viewer may not see it. |
-| `get_details(project)` | The rows of the Details card. |
+| `get_details(project)` | The rows of the fact sheet. |
 | `get_page_title()` | The measurement's name, else its portal ID. |
 
 Context entries: `measurement`, `record`, `record_title`, `can_manage`, `measurement_type`, `result`, `type_info`, `procedure`, `notes`, `sample`, `sample_type`, `sample_status`, `sample_visible`, `effective_location` (from `Measurement.effective_location_for(user)`, with `point`, `elevation`, `uncertainty` and `source`), `other_dataset`, `siblings`, `project`, `citation`, `identifiers`, `api_url`, `people` and `details`.

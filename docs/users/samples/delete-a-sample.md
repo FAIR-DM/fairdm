@@ -4,14 +4,14 @@ Deleting a sample removes it from the portal for good, together with its descrip
 
 ## Before you start
 
-You need to be able to manage the sample, which means holding the **Can manage** level on it or on the record above it. Someone who can only edit the sample does not see **Delete**. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md).
+You need to be able to manage the sample, which means holding the **Can manage** level on it or on the record above it. Someone who can only edit the sample does not see **Delete this sample**. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md).
 
 Deletion cannot be undone. The sample's measurements are not deleted with it. A sample that has measurements cannot be deleted until they are gone.
 
 ## Steps
 
-1. Open the sample's page and choose **Manage**.
-2. Choose **Delete**, the last entry, set apart from the others by a divider.
+1. Open the sample's page and find the **Details** panel in the side column.
+2. Choose **Delete this sample**, its last line, drawn in red.
 3. Read what the page lists under "The following related records will also be permanently deleted:". Those rows are deleted with the sample.
 4. If the page says "This record cannot be deleted.", stop. It lists the measurements in the way. Delete each of them, as described in [How to delete a measurement](../measurements/delete-a-measurement.md), and return to this page. A measurement can belong to a dataset you have no access to. The page names only the measurements you may see and counts the rest, for example "One more measurement you do not have access to also stops this deletion."
 5. Type the sample's name in the field headed "Type the name to confirm". It must match exactly. The **Delete** button stays off until it does.

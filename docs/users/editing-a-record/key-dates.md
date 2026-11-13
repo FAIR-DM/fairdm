@@ -4,7 +4,7 @@ The Key dates screen records the dates that matter in a record's life, such as w
 
 ## How to reach it
 
-Open the record's page, choose **Manage**, then **Key dates**. The address is the record's own address followed by `key-dates/`:
+Open the record's page and choose **Edit** on the panel that shows its key dates: the timeline row of a project's **Details** panel, or the timeline panel of a dataset, sample or measurement. The address is the record's own address followed by `key-dates/`:
 
 | Record | Address |
 |---|---|
