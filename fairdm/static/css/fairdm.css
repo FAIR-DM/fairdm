@@ -119,7 +119,6 @@
   align-items: center;
   gap: 0.25rem;
   border: 1px solid color-mix(in oklch, var(--record-accent) 55%, transparent);
-  border-radius: 999px;
   background-color: var(--record-tint);
   color: var(--color-base-content);
   font-weight: 600;
