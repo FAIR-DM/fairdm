@@ -48,3 +48,7 @@ with the environment in `/home/sam/projects/worktrees/fairdm-037-env.sh` sourced
 - [ ] T009 [US1] Edit `specs/018-overview-pages/spec.md` and `specs/030-geospatial-locations/spec.md`
   as plan.md "Specifications edited" describes.
 - [ ] T010 [US1] Documentation and `CHANGELOG.md`, as plan.md "Documentation" describes.
+
+### Found after planning
+
+- [x] T011 [US1] Wrap the lines group 1 added to 88 characters.
