@@ -185,7 +185,9 @@ def cover_image(name, width=1600, height=1000):
     for y in range(height):
         share = y / height
         top, bottom = (188, 208, 222), (58, 74, 52)
-        colour = tuple(round(a + (b - a) * share) for a, b in zip(top, bottom))
+        colour = tuple(
+            round(a + (b - a) * share) for a, b in zip(top, bottom, strict=True)
+        )
         draw.line([(0, y), (width, y)], fill=colour)
     for n, shade in enumerate(((96, 112, 120), (74, 90, 80), (52, 64, 50))):
         base = height * (0.45 + 0.12 * n)
