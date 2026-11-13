@@ -184,6 +184,63 @@ How many records of each type there are, as bars in the type's colour, samples a
 |---|---|---|---|
 | `mix` | dict | | `samples` and `measurements`, each a list of `(type name, count)`, and `max`, from `get_type_mix()`. |
 
+### `c-overview.history`
+
+The steps in a record's life, oldest first, as a dated timeline: the date on the leading side, then what happened, who did it and a note. A date recorded only to the month is shown as the month, and one recorded only to the year as the year. `data-card` is `timeline`.
+
+| Attribute | Type | Default | Accepts |
+|---|---|---|---|
+| `title` | string | | The heading, such as History. |
+| `steps` | list | | Dictionaries with `label`, `date`, `day`, `people` and `note`, from `get_timeline()`. `day` is set when the date is a full day. `note` is rendered as markdown. |
+| `empty` | string | | What to say when there are no steps. |
+| `edit_url` | string | | The key dates' editing page, drawn as the panel's Edit for someone who may edit them. |
+
+### `c-overview.props` and `c-overview.prop`
+
+The fields a sample or measurement type adds, label over value in a grid. `c-overview.props` is the panel and `c-overview.prop` is one field in it. A field with no value shows a dash. `data-card` is `properties`.
+
+| `c-overview.props` attribute | Type | Default | Accepts |
+|---|---|---|---|
+| `title` | string | | The heading, such as Rock properties. |
+| `edit_url` | string | | The editing page for these fields. |
+
+| `c-overview.prop` attribute | Type | Default | Accepts |
+|---|---|---|---|
+| `label` | string | | The field's name. |
+| `value` | string | | The value. Without one the slot is drawn, and without either a dash. |
+| `wide` | boolean | `False` | Spans the whole grid. |
+| `text` | boolean | `False` | A longer piece of writing, set as text rather than a figure. |
+
+```html
+{% block overview.properties %}
+  <c-overview.props title="Rock properties" edit_url="{{ edit.details }}">
+    <c-overview.prop label="Rock type" value="{{ sample.rock_type|capfirst }}" />
+    <c-overview.prop label="Mineral content" value="{{ sample.mineral_content }}" wide text />
+  </c-overview.props>
+{% endblock overview.properties %}
+```
+
+### `c-overview.location`
+
+Where a sample was taken or a measurement made: a map with the point marked, and the coordinates written out as decimal degrees in WGS 84 to five places. `data-card` is `location`. The map is drawn by `js/overview.js` with MapLibre, which `overview/page.html` loads in its `overview.map_library` block when the context sets `has_map`.
+
+| Attribute | Type | Default | Accepts |
+|---|---|---|---|
+| `location` | point | | A point with `x` (longitude) and `y` (latitude). |
+| `elevation` | number | | Metres above sea level. Left out when not given. |
+| `uncertainty` | number | | Metres. Left out when not given. |
+| `title` | string | `Location` | The heading. |
+| `label` | string | | The map's accessible name. Defaults to a sentence about where the sample was taken, with the coordinates. |
+| `empty` | string | | What to say when there is no location. Without it and without a location, nothing is drawn. |
+| `edit_url` | string | | The editing page for the location. |
+| `id` | string | | The panel's id, which a link in the header can point at. |
+
+### Maps and filters in `js/overview.js`
+
+The script every overview page loads draws a map in each element marked `data-map` with `data-lon` and `data-lat`, with a marker in the record type's colour. Each map has zoom buttons, scrolls with the page until the reader means to move it, and keeps the tile credits closed behind their (i) button.
+
+A group of buttons marked `data-filter-chips="<list id>"` filters the list with that id: each button shows only the rows whose `data-type` is its `data-value`, and an empty `data-value` shows them all. A link marked `data-filter-more="<list id>"` is hidden while a type is chosen.
+
 ## Cards for record and contributor pages
 
 Every card is a `<c-card.NAME>` tag. Each carries a `data-card` attribute that tests and scripts can find it by. The dataset, sample and measurement pages, and the person and organization pages, draw these beside the `c-overview.*` panels.
@@ -202,7 +259,7 @@ Every identifier the record carries as a small table, then the team's own ID and
 
 ### `c-card.location`
 
-Where a sample was taken: a map with the point marked, and the coordinates written out as decimal degrees in WGS 84 to five places. The map is drawn by the script in `overview/includes/map_library.html`, which the page includes in its `extra_js` block when it has a location. `data-card` is `location`.
+Where something is: a map with the point marked, and the coordinates written out as decimal degrees in WGS 84 to five places. The organization page draws it. The map is drawn by `js/overview.js`, like [`c-overview.location`](#c-overviewlocation)'s, when the page's context sets `has_map`. `data-card` is `location`.
 
 | Attribute | Type | Default | Accepts |
 |---|---|---|---|
@@ -253,7 +310,7 @@ For the record's team only: what is still missing before the record can be found
 
 ### `c-card.timeline`
 
-What happened to a record, in order. Each step shows its label, its date, the people who did it and a note. A date recorded only to the month is shown as the month, and one recorded only to the year as the year. `data-card` is `timeline`.
+What happened to a record, in order, on the dataset and measurement pages. The sample page uses [`c-overview.history`](#c-overviewhistory). Each step shows its label, its date, the people who did it and a note. A date recorded only to the month is shown as the month, and one recorded only to the year as the year. `data-card` is `timeline`.
 
 | Attribute | Type | Default | Accepts |
 |---|---|---|---|

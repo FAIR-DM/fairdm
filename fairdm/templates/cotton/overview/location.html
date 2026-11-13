@@ -1,0 +1,28 @@
+{# @description Where a sample was taken, or a measurement made: a map with the point marked, and the coordinates as recorded. The page sets has_map in its context so MapLibre is loaded. #}
+{# @prop location:object | description:"A point with x (longitude) and y (latitude) in WGS 84, or nothing." #}
+{# @prop elevation:text | description:"Metres above sea level." #}
+{# @prop uncertainty:text | description:"Metres." #}
+{# @prop title:text | default:"Location" | description:"The heading." #}
+{# @prop label:text | description:"The map's accessible name. Defaults to where the sample was taken." #}
+{# @prop empty:text | description:"What to say when there is no location. With none given, the panel is left out." #}
+{# @prop edit_url:text | description:"The editing page for the location, for someone who may edit it." #}
+{# @prop id:text | description:"The panel's id, which the header's coordinates link to." #}
+{% load i18n %}
+<c-vars location elevation uncertainty title label empty edit_url id />
+{% if location or empty %}
+  <c-overview.panel side title="{{ title|default:_('Location') }}" id="{{ id }}" edit_url="{{ edit_url }}" edit_label="{% translate 'Edit the location' %}" data-card="location">
+    {% if location %}
+      <div class="ov-map ov-map--side" role="img" data-map data-lon="{{ location.x|stringformat:'s' }}" data-lat="{{ location.y|stringformat:'s' }}"
+           aria-label="{% if label %}{{ label }}{% else %}{% blocktranslate with x=location.x y=location.y %}Map of where the sample was taken, at longitude {{ x }} and latitude {{ y }}{% endblocktranslate %}{% endif %}"></div>
+      <dl class="ov-coords">
+        <div><dt>{% translate "Latitude" %}</dt><dd>{{ location.y|floatformat:5 }}</dd></div>
+        <div><dt>{% translate "Longitude" %}</dt><dd>{{ location.x|floatformat:5 }}</dd></div>
+        {% if elevation is not None and elevation != "" %}<div><dt>{% translate "Elevation" %}</dt><dd>{{ elevation|floatformat:"-1" }} m</dd></div>{% endif %}
+        {% if uncertainty is not None and uncertainty != "" %}<div><dt>{% translate "Uncertainty" %}</dt><dd>± {{ uncertainty|floatformat:"-1" }} m</dd></div>{% endif %}
+      </dl>
+      <p class="ov-note">{% translate "Decimal degrees, WGS 84" %}</p>
+    {% else %}
+      <p class="ov-empty">{{ empty }}</p>
+    {% endif %}
+  </c-overview.panel>
+{% endif %}

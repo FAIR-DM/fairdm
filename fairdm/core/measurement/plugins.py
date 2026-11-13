@@ -107,6 +107,7 @@ class Overview(TypedOverviewPlugin):
         if project is not None and not project_is_visible(self.request, project):
             project = None
         identifiers = self.get_identifiers()
+        effective_location = measurement.effective_location_for(self.request.user)
 
         context["measurement"] = measurement
         context.update(
@@ -128,9 +129,8 @@ class Overview(TypedOverviewPlugin):
                 "sample_type": sentence_case(type(sample)._meta.verbose_name),
                 "sample_status": self.get_sample_status(),
                 "sample_visible": sample_visible,
-                "effective_location": measurement.effective_location_for(
-                    self.request.user
-                ),
+                "effective_location": effective_location,
+                "has_map": effective_location is not None,
                 "other_dataset": sample.dataset_id != measurement.dataset_id,
                 "siblings": self.get_siblings(),
                 "sample_measurements_url": safe_reverse(

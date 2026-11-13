@@ -160,8 +160,3 @@
     {% endif %}
   {% endblock overview.location %}
 {% endblock overview.record_facts %}
-
-{% block extra_js %}
-  {{ block.super }}
-  {% if effective_location %}{% include "overview/includes/map_library.html" %}{% endif %}
-{% endblock extra_js %}

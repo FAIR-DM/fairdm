@@ -1,0 +1,12 @@
+{# @description One field a type adds: its label and its value, or a dash when nothing is recorded. #}
+{# @prop label:text | description:"The field's name." #}
+{# @prop value:text | description:"The value. Without one the slot is drawn, and without either a dash." #}
+{# @prop wide:boolean | description:"Spans the whole grid." #}
+{# @prop text:boolean | description:"A longer piece of writing, set as text rather than a figure." #}
+{# @slot <a href="…">A value with a link</a> — The value, when it needs markup. #}
+{% load i18n %}
+<c-vars label value wide=False text=False />
+<div{% if wide %} class="is-wide"{% endif %}>
+  <dt>{{ label }}</dt>
+  <dd{% if text %} class="ov-props__text"{% endif %}>{% if value %}{{ value }}{% elif slot %}{{ slot }}{% else %}<span aria-hidden="true">—</span><span class="sr-only">{% translate "Not recorded" %}</span>{% endif %}</dd>
+</div>
