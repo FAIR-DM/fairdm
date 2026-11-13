@@ -41,7 +41,7 @@ addresses goes first.
   writes its text from the publication (decisions D13). T004 goes green. Every existing citation
   test stays as it is except the one pinning `str(reference)` in
   `tests/test_core/test_dataset/test_plugins.py`, which T004 changes to the full citation.
-- [ ] T006 [US2] `TestCitationFile` in `tests/test_core/test_plugins.py`, as plan.md "Tests, US2"
+- [x] T006 [US2] `TestCitationFile` in `tests/test_core/test_plugins.py`, as plan.md "Tests, US2"
   describes.
 - [ ] T007 [US2] `CitationFile` in `fairdm/core/plugins.py`, `RecordOverviewPlugin.extra_views`,
   and `CitationFile` added to the sample overview's `extra_views`, as plan.md "The address"
