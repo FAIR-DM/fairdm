@@ -191,6 +191,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             "citation": {
                 "title": gettext("Citation"),
                 "text": page["citation"]["text"],
+                "work": page["citation"]["work"],
+                "formats": page["citation"]["formats"],
             },
             "identifiers": identifiers,
             "primary_identifier": self.get_primary_identifier(identifiers),
@@ -400,8 +402,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         """Write the project's citation: Creators (Year). Title. Publisher. Identifier.
 
         Returns:
-            The citation text, the link it ends with, whether that link is a DOI and how many
-            creators it names.
+            The citation text, the link it ends with, whether that link is a DOI, how many
+            creators it names, the ``work`` it is written from and its ``formats``.
         """
         project = self.base_object
         creators = [
@@ -415,13 +417,18 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             (i.value for i in project.identifiers.all() if i.type_id == DOI), None
         )
         link = f"https://doi.org/{doi}" if doi else get_permalink(project, self.request)
+        text = self.get_citation(
+            authors=creators, year=year, title=project.name, link=link
+        )
+        work = self.build_citation(
+            authors=creators, year=year, title=project.name, link=link
+        )
         return {
-            "text": self.get_citation(
-                authors=creators, year=year, title=project.name, link=link
-            ),
+            "text": text,
             "link": link,
             "has_doi": bool(doi),
             "creators": len(creators),
+            **self.get_cited_details(work, text),
         }
 
     def get_readiness(self, page):

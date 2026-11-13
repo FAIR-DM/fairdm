@@ -9,7 +9,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, Q
 from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils.formats import date_format
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
@@ -20,6 +20,7 @@ from pyecharts.charts import Line
 from fairdm.contrib.contributors.models import Contribution, Contributor
 from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins import reverse as plugin_reverse
+from fairdm.core.citation import FORMATS, Citation, CitedName
 from fairdm.core.overview import describe_coverage, format_authors, sentence_case
 from fairdm.core.vocabularies import DOI, IGSN
 from fairdm.views import FairDMTemplateView
@@ -240,27 +241,153 @@ class RecordOverviewPlugin(OverviewPlugin):
         """
         return next((i for i in identifiers if i["link"]), None)
 
-    def get_citation(self, *, authors, year, title, link) -> str:
+    def get_publisher(self) -> str:
+        """Name the publisher a citation gives: the site's name.
+
+        Returns:
+            The current site's name, or an empty string when the site has none.
+        """
+        return getattr(getattr(self.request, "site", None), "name", "") or ""
+
+    @staticmethod
+    def format_cited_names(names) -> str:
+        """Write cited names as a citation lists them, like :func:`format_authors`.
+
+        Args:
+            names: The :class:`~fairdm.core.citation.CitedName` values, in order.
+
+        Returns:
+            "Keller, A., Oliveira, T. & Brandt, L.", or an empty string for no names.
+        """
+        written = [
+            f"{name.family}, {name.given[0]}."
+            if name.family and name.given
+            else name.family or name.literal
+            for name in names
+        ]
+        if len(written) > 1:
+            return ", ".join(written[:-1]) + " & " + written[-1]
+        return written[0] if written else ""
+
+    def get_citation(self, *, authors, year, title, link, publisher=None) -> str:
         """Write the citation in DataCite's form: Creators (Year). Title. Publisher. Identifier.
 
         Args:
-            authors: The creators to name.
+            authors: The creators to name, as contributors or as cited names.
             year: The year of publication.
             title: The record's title.
-            link: Its DOI link, or the address of the page.
+            link: Its DOI link, or the address of the page. ``None`` when it has none.
+            publisher: The publisher to name. Defaults to :meth:`get_publisher`.
 
         Returns:
             The citation as plain text.
         """
-        names = format_authors(authors)
-        publisher = getattr(getattr(self.request, "site", None), "name", "") or ""
+        if publisher is None:
+            publisher = self.get_publisher()
+        if authors and all(isinstance(a, CitedName) for a in authors):
+            names = self.format_cited_names(authors)
+        else:
+            names = format_authors(authors)
+        year = gettext("n.d.") if year is None else year
         parts = [
             f"{names} ({year})." if names else f"({year}).",
             f"{title}.",
             f"{publisher}.",
             link,
         ]
-        return " ".join(part for part in parts if part.strip(". "))
+        return " ".join(part for part in parts if part and part.strip(". "))
+
+    def build_citation(
+        self, *, authors, year, title, link, publisher=None, types=("misc", "GEN")
+    ) -> Citation:
+        """Gather the parts of the record's citation into the value the files are written from.
+
+        Args:
+            authors: The creators, as contributors or as cited names.
+            year: The year of publication.
+            title: The title.
+            link: The link the text ends with, or ``None``.
+            publisher: The publisher. Defaults to :meth:`get_publisher`.
+            types: The BibTeX and RIS types.
+
+        Returns:
+            The citation, keyed by the record's portal ID. Its DOI is set when ``link`` is a
+            doi.org link.
+        """
+        prefix = "https://doi.org/"
+        bibtex_type, ris_type = types
+        return Citation(
+            key=str(self.base_object.uuid),
+            authors=[
+                a if isinstance(a, CitedName) else CitedName.from_contributor(a)
+                for a in authors
+            ],
+            year=year,
+            title=title,
+            publisher=self.get_publisher() if publisher is None else publisher,
+            doi=link.removeprefix(prefix) if link and link.startswith(prefix) else None,
+            url=link,
+            bibtex_type=bibtex_type,
+            ris_type=ris_type,
+        )
+
+    def get_citation_formats(self, citation, text) -> list[dict[str, Any]]:
+        """List the ways to take the citation, for the Cite panel and the files.
+
+        Args:
+            citation: The :class:`~fairdm.core.citation.Citation`.
+            text: The citation as text.
+
+        Returns:
+            One ``{"key", "label", "value", "url", "download"}`` entry per format, in the
+            order of ``FORMATS``. ``url`` is the format's address beside the record's page, or
+            ``None`` where the portal's plugin does not mount :class:`CitationFile`.
+        """
+        values = {
+            "text": text,
+            "bibtex": citation.to_bibtex(),
+            "ris": citation.to_ris(),
+        }
+        return [
+            {
+                "key": f.key,
+                "label": f.label,
+                "value": values[f.key],
+                "url": self.get_citation_address(f.key),
+                "download": f.downloadable,
+            }
+            for f in FORMATS
+        ]
+
+    def get_citation_address(self, key) -> str | None:
+        """Give the address of one format of the record's citation.
+
+        Args:
+            key: The format's key, one of ``FORMATS``.
+
+        Returns:
+            The address, or ``None`` when the portal's plugin does not mount
+            :class:`CitationFile`.
+        """
+        try:
+            return plugin_reverse(self.base_object, "overview-citation", format=key)
+        except NoReverseMatch:
+            return None
+
+    def get_cited_details(self, citation, text) -> dict[str, Any]:
+        """Give the two keys every record's citation card adds to its text.
+
+        Args:
+            citation: The :class:`~fairdm.core.citation.Citation`.
+            text: The citation as text.
+
+        Returns:
+            ``work``, the citation, and ``formats``, from :meth:`get_citation_formats`.
+        """
+        return {
+            "work": citation,
+            "formats": self.get_citation_formats(citation, text),
+        }
 
     def get_timeline(self, steps, dates, descriptions, entries) -> list[dict[str, Any]]:
         """Join the three ways the vocabularies describe a step in a record's life.

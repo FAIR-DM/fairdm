@@ -30,11 +30,11 @@ addresses goes first.
 
 ### Group 2
 
-- [ ] T004 [US2] `TestOverviewCitationFormats` in each of
+- [x] T004 [US2] `TestOverviewCitationFormats` in each of
   `tests/test_core/test_project/test_plugins.py`, `tests/test_core/test_dataset/test_plugins.py`,
   `tests/test_core/test_sample/test_plugins.py` and
   `tests/test_core/test_measurement/test_plugins.py`, as plan.md "Tests, US2" describes.
-- [ ] T005 [US2] `fairdm/core/plugins.py`: `get_publisher` and `get_citation_formats` on
+- [x] T005 [US2] `fairdm/core/plugins.py`: `get_publisher` and `get_citation_formats` on
   `RecordOverviewPlugin`, `get_citation` reading the publisher from `get_publisher`. Each record's
   `get_citation_details` builds its `Citation` and returns `work` and `formats` beside what it
   returns today, as plan.md "The plugins" describes. The dataset cited as its data publication

@@ -252,15 +252,19 @@ class Overview(TypedOverviewPlugin):
         sample = self.base_object
         igsn = next((i for i in identifiers if i["type"].uri == IGSN), None)
         collected = dates.get(f"{DATE_TYPES}/collected")
-        text = self.get_citation(
-            authors=self.get_contributors_with_role(
-                entries, f"{CONTRIBUTOR_ROLES}/collection"
-            ),
-            year=getattr(collected, "year", None) or sample.added.year,
-            title=f"{sample.name} [{type(sample)._meta.verbose_name}]",
-            link=igsn["link"] if igsn else get_permalink(sample, self.request),
+        authors = self.get_contributors_with_role(
+            entries, f"{CONTRIBUTOR_ROLES}/collection"
         )
-        citation = {"title": gettext("Citation"), "text": text}
+        year = getattr(collected, "year", None) or sample.added.year
+        title = f"{sample.name} [{type(sample)._meta.verbose_name}]"
+        link = igsn["link"] if igsn else get_permalink(sample, self.request)
+        text = self.get_citation(authors=authors, year=year, title=title, link=link)
+        work = self.build_citation(authors=authors, year=year, title=title, link=link)
+        citation = {
+            "title": gettext("Citation"),
+            "text": text,
+            **self.get_cited_details(work, text),
+        }
         if not igsn:
             citation["note"] = gettext(
                 "This sample has no IGSN, so the citation points at this page. An IGSN gives the "

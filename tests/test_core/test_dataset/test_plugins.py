@@ -1187,7 +1187,7 @@ class TestOverviewCitation:
     def test_a_data_publication_is_cited_in_place_of_the_dataset(self, client):
         reference = LiteratureItemFactory(
             title="Deep drilling records of the Rhine graben",
-            doi="10.1/pub",
+            doi="10.1234/pub",
             year=2020,
             authors=(("Brandt", "Lena"), ("Weiss", "Jan")),
         )
@@ -1195,7 +1195,7 @@ class TestOverviewCitation:
 
         assert self._citation(client, dataset) == (
             "Brandt, L. & Weiss, J. (2020). Deep drilling records of the Rhine "
-            "graben. https://doi.org/10.1/pub"
+            "graben. https://doi.org/10.1234/pub"
         )
 
     def test_creators_are_named_in_the_order_credited_people_before_organizations(
@@ -2022,7 +2022,7 @@ class TestOverviewCitationFormats:
         reference = LiteratureItemFactory(
             title=title,
             type="article-journal",
-            doi="10.1/pub_x",
+            doi="10.1234/pub_x",
             year=2020,
             authors=(("Brandt", "Lena"), ("Weiss", "Jan")),
         )
@@ -2035,7 +2035,7 @@ class TestOverviewCitationFormats:
 
         assert formats["text"] == (
             f"Brandt, L. & Weiss, J. (2020). {title}. Journal of Rhine Studies. "
-            "https://doi.org/10.1/pub_x"
+            "https://doi.org/10.1234/pub_x"
         )
         assert [(p.last_names, p.first_names) for p in entry.persons["author"]] == [
             (["Brandt"], ["Lena"]),
@@ -2049,8 +2049,8 @@ class TestOverviewCitationFormats:
             codecs.decode(entry.fields["publisher"], "ulatex")
             == "Journal of Rhine Studies"
         )
-        assert entry.fields["doi"] == "10.1/pub_x"
-        assert entry.fields["url"] == "https://doi.org/10.1/pub_x"
+        assert entry.fields["doi"] == "10.1234/pub_x"
+        assert entry.fields["url"] == "https://doi.org/10.1234/pub_x"
         assert ris["type_of_reference"] == "JOUR"
         assert ris["authors"] == ["Brandt, Lena", "Weiss, Jan"]
         assert (ris["year"], ris["title"], ris["publisher"]) == (
@@ -2058,7 +2058,7 @@ class TestOverviewCitationFormats:
             title,
             "Journal of Rhine Studies",
         )
-        assert ris["doi"] == "10.1/pub_x"
+        assert ris["doi"] == "10.1234/pub_x"
 
     def test_each_format_has_an_address_beside_the_page(self, client):
         dataset = self._dataset()
