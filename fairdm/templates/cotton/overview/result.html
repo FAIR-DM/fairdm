@@ -1,0 +1,13 @@
+{# @description A measurement's result along the foot of an overview page's header: the value large, its unit, and notes beside it. #}
+{# @prop label:text | description:"What the value is, such as Result or Concentration." #}
+{# @prop value:text | description:"The value, already formatted." #}
+{# @prop unit:text | description:"The value's unit." #}
+{# @slot <span>Detection limit 5 ppm</span> — Notes beside the value: a detection limit, an uncertainty, the instrument. #}
+<c-vars label value unit />
+<div class="ov-result">
+  <div>
+    <div class="ov-result__label">{{ label }}</div>
+    <div class="ov-result__value"><span class="ov-result__number">{{ value }}</span>{% if unit %}<span class="ov-result__unit">{{ unit }}</span>{% endif %}</div>
+  </div>
+  {% if slot %}<div class="ov-result__aside">{{ slot }}</div>{% endif %}
+</div>

@@ -75,6 +75,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   carries Manage, and Delete is the last line of the Details panel. Publish sits in a dataset's
   "Ready to publish?" panel. `edit_links()` in `fairdm.core.editing` gives the addresses, keyed by
   each page's new `part`. See [ADR 0044](adr/0044-each-part-of-a-record-is-edited-from-the-panel-that-shows-it.md).
+- **The measurement overview page is redesigned on the shared page.** The result is the header's
+  headline, drawn by the new `<c-overview.result>` with notes such as a detection limit beside the
+  value. The header's key facts name the sample it was measured on, its dataset and the identifier
+  that resolves. The sample sits in a small version of its own header, the other measurements on
+  it are a compact table of up to twelve (`siblings_shown`, which was eight), and the location map
+  comes straight after the citation, headed "Where it was measured" or "Where the sample was
+  taken". The note that the measurement and its sample sit in different datasets shows only when
+  the viewer may open the sample. The demo's XRF page draws its concentration with
+  `<c-overview.result>`.
 - **A sample or measurement collection is headed like a Samples or Measurements tab.** The
   heading is the type's name, underlined in its kind's colour, and is itself the menu of the other
   collections of the same kind, each with its count of published records, most first. A sample

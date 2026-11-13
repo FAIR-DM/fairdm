@@ -35,18 +35,14 @@ You need a registered sample or measurement type. This guide uses a sample type 
    {% endblock overview.properties %}
    ```
 
-4. For a measurement type that records its result in some way other than a single `value`, also fill `overview.result`. A type that declares a `value`, and optionally an `uncertainty`, gets its result shown with no template at all.
+4. For a measurement type that records its result in some way other than a single `value`, also fill `overview.result`. A type that declares a `value`, and optionally an `uncertainty`, gets its result shown with no template at all. [`c-overview.result`](../reference/components.md#c-overviewresult) draws it along the foot of the header, with notes such as a detection limit in its slot.
 
    ```django
    {# templates/geochem/gasmeasurement_overview.html #}
    {% extends "measurement/measurement_overview.html" %}
 
    {% block overview.result %}
-     <c-mvp.card.wrapper class="bg-base-100">
-       <div class="card-body gap-3">
-         <p class="text-4xl font-semibold tabular-nums">{{ measurement.concentration_ppm }} ppm</p>
-       </div>
-     </c-mvp.card.wrapper>
+     <c-overview.result label="Concentration" value="{{ measurement.concentration_ppm }}" unit="ppm" />
    {% endblock overview.result %}
    ```
 

@@ -113,7 +113,7 @@ page. This specification describes the design that review settled on.
   type badge in the header, and the card is gone. A sample's type badge works the same way, since
   both read the same registry description. A type the registry does not describe has a plain badge.
 - Q: How does a measurement show the sample it was made on? → A: As a smaller version of the
-  sample's own header: its image or icon, type and status, name, local ID, dataset and keywords.
+  sample's own header: its image or icon, type and status, name, local ID and dataset.
 - Q: What do a measurement's breadcrumbs say? → A: The same as a sample's: the list of that kind of
   record, then this record. The trail no longer walks down through the project, dataset and sample,
   which the Details card already names.
@@ -144,6 +144,12 @@ page. This specification describes the design that review settled on.
 - Q: How are a project's records by type drawn? → A: As bars in each type's colour, samples and
   measurements apart. The growth chart stays.
 - Q: Where does Publish sit on a dataset? → A: In its "Ready to publish?" panel.
+- Q: What does a measurement's header carry? → A: The result as its headline, the value large with
+  its unit and notes such as a detection limit beside it. Its key facts are the sample it was
+  measured on, its dataset and the identifier that resolves.
+- Q: How are the other measurements on a sample shown on a measurement? → A: As a compact table of
+  name, type, dataset and date added, up to twelve, which becomes a list on a phone.
+- Q: Where does a measurement's map go? → A: Straight after the citation, as on a sample.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -561,20 +567,24 @@ member of its dataset's team, including the one recorded in a different dataset 
 - **FR-041**: The measurement page MUST stay at the measurement's permanent address,
   `/measurements/<uuid>/`.
 - **FR-042**: Where the type declares a value, the page MUST show the result, with its uncertainty
-  where there is one, in the figures' place along the foot of the header.
+  where there is one, in the figures' place along the foot of the header. A type that records its
+  result another way MUST be able to draw it there with the same component, with notes beside the
+  value.
 - **FR-043**: Its header MUST carry the type as a badge. Where the registry describes the type, the
   badge MUST open that description, its keywords, the schema's maintainer and the protocol citation
-  in a dialog.
+  in a dialog. Its key facts MUST be the sample it was measured on (where the viewer may open it),
+  its dataset and its first identifier that resolves, each linked.
 - **FR-044**: Its content column MUST carry, in order: the type's own fields (left empty for the
   type to fill), the procedure timeline, notes, the sample it was made on (with its image or icon,
-  type, status, name, local ID, dataset and keywords), and up to eight other measurements on the
-  same sample.
+  type, status, name, local ID and dataset, and a note when the viewer may open it and it sits in
+  another dataset), and up to twelve other measurements on the same sample as a table of name,
+  type, dataset and date added.
 - **FR-045**: The procedure timeline MUST follow the same rules as FR-038, for set-up, measurement
   and take-down.
 - **FR-046**: Its side column MUST carry the citation (suggesting the dataset instead when the
-  measurement has no DOI), a fact sheet holding its project, dataset, licence, and when it was added
-  and last updated, then its identifiers. People follows, then its own location on a map, or its
-  sample's where the measurement has none and the sample has one and may be seen.
+  measurement has no DOI), then its own location on a map, or its sample's where the measurement has
+  none and the sample has one and may be seen, then a fact sheet holding its project, dataset,
+  licence, and when it was added and last updated, then its identifiers. People follows.
 - **FR-047**: Its breadcrumbs MUST lead from the list of measurements to the measurement, the same
   way a sample's do. A measurement with no name MUST be called by its portal ID in the breadcrumbs
   and the heading.

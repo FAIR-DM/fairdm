@@ -780,6 +780,28 @@ a.ov-figure:focus-visible { outline: 2px solid var(--color-primary); outline-off
   .ov-figure__value { font-size: 1.375rem; }
 }
 
+/* A measurement's result, in the figures' place. */
+
+.ov-result {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem 2.5rem;
+  padding: 1rem var(--ov-pad) 1.125rem;
+  border-top: 1px solid var(--ov-line);
+  background: color-mix(in oklch, var(--color-base-100) 85%, transparent);
+}
+
+.ov-result__label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; color: var(--ov-faint); }
+
+.ov-result__value { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 0.625rem; }
+
+.ov-result__number { font-size: clamp(2rem, 1.4rem + 2vw, 3rem); font-weight: 650; letter-spacing: -0.02em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+
+.ov-result__unit { font-size: 1.125rem; color: var(--ov-muted); }
+
+.ov-result__aside { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.875rem; color: var(--ov-muted); padding-bottom: 0.375rem; }
+
 /* ------------------------------------------------------------------------------------------------
  * The body: content beside the facts.
  * --------------------------------------------------------------------------------------------- */
@@ -980,6 +1002,68 @@ a.ov-row__title:hover { text-decoration: underline; }
   .ov-row__end strong { font-size: 0.8125rem; }
   .ov-row__end .ov-sub { display: inline; }
   .ov-row__end .ov-sub::before { content: " · "; }
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * A measurement's sample and the other measurements on it.
+ * --------------------------------------------------------------------------------------------- */
+
+/* The specimen a measurement was made on: a small version of the sample's own header. */
+
+.ov-specimen {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1rem;
+  align-items: center;
+  padding: 0.875rem;
+  border-radius: var(--radius-field, 0.5rem);
+  background: color-mix(in oklch, var(--record-tint) 55%, var(--color-base-100));
+  border: 1px solid color-mix(in oklch, var(--record) 30%, var(--ov-line));
+}
+
+.ov-specimen .ov-tile { width: 4rem; font-size: 1.5rem; }
+
+.ov-specimen .ov-row__main { gap: 0.375rem; }
+
+.ov-specimen__name { font-size: 1.125rem; font-weight: 620; color: inherit; text-decoration: none; overflow-wrap: anywhere; line-height: 1.3; }
+
+.ov-specimen__name:hover { text-decoration: underline; }
+
+/* A compact table, a list on a phone. */
+
+.ov-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+
+.ov-table th {
+  text-align: start;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  color: var(--ov-faint);
+  padding: 0 0.75rem 0.5rem 0;
+  border-bottom: 1px solid var(--ov-line);
+}
+
+.ov-table td { padding: 0.625rem 0.75rem 0.625rem 0; border-bottom: 1px solid var(--ov-line); vertical-align: top; }
+
+.ov-table tr:last-child td { border-bottom: 0; }
+
+.ov-table td:first-child a { font-weight: 550; color: inherit; text-decoration: none; overflow-wrap: anywhere; }
+
+.ov-table td:first-child a:hover { text-decoration: underline; }
+
+.ov-table .ov-num { text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.ov-table .ov-dim { color: var(--ov-muted); }
+
+@media (max-width: 639px) {
+  .ov-table thead { display: none; }
+  .ov-table tr { display: flex; flex-wrap: wrap; gap: 0 0.75rem; padding: 0.625rem 0; border-bottom: 1px solid var(--ov-line); }
+  .ov-table tr:last-child { border-bottom: 0; }
+  .ov-table td { padding: 0; border: 0; }
+  .ov-table td:first-child { width: 100%; }
+  .ov-table td:not(:first-child) { font-size: 0.8125rem; color: var(--ov-muted); }
+  .ov-table .ov-num { text-align: start; }
 }
 
 /* ------------------------------------------------------------------------------------------------

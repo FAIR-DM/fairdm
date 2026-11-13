@@ -105,6 +105,24 @@ One headline figure along the foot of the header, linked to its list when `href`
 
 Put the figures in a `<div class="ov-figures">` in the `overview.figures` block.
 
+### `c-overview.result`
+
+A measurement's result along the foot of the header, in the figures' place: the value large, its unit, and notes beside it. The notes are the slot: a detection limit, an uncertainty or the instrument. With no slot, nothing is drawn beside the value.
+
+| Attribute | Type | Default | Accepts |
+|---|---|---|---|
+| `label` | string | | What the value is, such as Result or Concentration. |
+| `value` | string | | The value, already formatted. |
+| `unit` | string | | The value's unit. |
+
+```django
+<c-overview.result label="Concentration" value="{{ measurement.concentration_ppm|floatformat:'-2' }}" unit="ppm {{ measurement.element }}">
+  <span>Detection limit {{ measurement.detection_limit_ppm }} ppm</span>
+</c-overview.result>
+```
+
+Put it in the `overview.result` block of a measurement type's template.
+
 ### `c-overview.cite`
 
 How to cite the record, with a button that copies the citation. The panel's element id is `cite`, which the Cite button in every page header jumps to. `data-card` is `citation`.
