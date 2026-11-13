@@ -27,7 +27,7 @@
               {% if row.record %}
                 <a href="{{ row.record.get_absolute_url }}" class="ov-crumb record-{{ row.icon }}">{{ row.record }}</a>
               {% elif row.badge %}
-                <span class="badge badge-soft badge-{{ row.badge_variant|default:'neutral' }} badge-sm">{{ row.badge }}</span>
+                <c-overview.status variant="{{ row.badge_variant }}">{{ row.badge }}</c-overview.status>
               {% elif row.date %}
                 {{ row.date|date:"SHORT_DATE_FORMAT" }}{% if row.until %} – {{ row.until|date:"SHORT_DATE_FORMAT" }}{% endif %}
               {% elif row.url %}

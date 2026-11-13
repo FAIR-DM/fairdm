@@ -18,9 +18,9 @@
 
 {% block overview.badges %}
   <span class="record-tag record-project"><c-icon name="project" aria-hidden="true" only />{% translate "Project" %}</span>
-  <span class="badge badge-soft badge-{{ project.status_badge_variant }} badge-sm">{{ project.get_status_display }}</span>
+  <c-overview.status variant="{{ project.status_badge_variant }}">{{ project.get_status_display }}</c-overview.status>
   {% if project.visibility != project.VISIBILITY.PUBLIC %}
-    <span class="badge badge-ghost badge-sm"><c-icon name="lock" aria-hidden="true" only />{% translate "Private" %}</span>
+    <c-overview.status icon="lock">{% translate "Private" %}</c-overview.status>
   {% endif %}
 {% endblock overview.badges %}
 

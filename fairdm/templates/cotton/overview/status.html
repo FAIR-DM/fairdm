@@ -1,0 +1,7 @@
+{# @description A status or access chip in an overview page's header or fact sheet: a pill with a dot and a light fill in its status colour. #}
+{# @prop variant:select['success','warning','error','info','neutral'] | default:"neutral" | description:"The status colour." #}
+{# @prop icon:text | description:"An icon drawn in place of the dot." #}
+{# @prop title:text | description:"What the status means, shown on hover." #}
+{# @slot Concept — The status. #}
+<c-vars variant icon title />
+<span class="badge badge-sm ov-status ov-status--{{ variant|default:'neutral' }}"{% if title %} title="{{ title }}"{% endif %}>{% if icon %}<c-icon name="{{ icon }}" aria-hidden="true" only />{% else %}<span class="ov-status__dot" aria-hidden="true"></span>{% endif %}{{ slot }}</span>

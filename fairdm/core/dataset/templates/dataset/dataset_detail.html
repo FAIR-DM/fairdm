@@ -18,11 +18,11 @@
 {% block overview.badges %}
   <span class="record-tag record-dataset"><c-icon name="dataset" aria-hidden="true" only />{% translate "Dataset" %}</span>
   {% if access.state == "published" %}
-    <span class="badge badge-soft badge-success badge-sm"><c-icon name="success" aria-hidden="true" />{{ access.label }}</span>
+    <c-overview.status variant="success">{{ access.label }}</c-overview.status>
   {% elif access.state == "public" %}
-    <span class="badge badge-soft badge-neutral badge-sm">{{ access.label }}</span>
+    <c-overview.status variant="info">{{ access.label }}</c-overview.status>
   {% else %}
-    <span class="badge badge-ghost badge-sm"><c-icon name="lock" aria-hidden="true" />{{ access.label }}</span>
+    <c-overview.status icon="lock">{{ access.label }}</c-overview.status>
   {% endif %}
   {% if dataset.license %}
     <span class="badge badge-outline badge-sm" title="{% translate 'Licence' %}"><c-icon name="license" aria-hidden="true" />{{ dataset.license.name }}</span>

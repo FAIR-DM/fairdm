@@ -663,6 +663,27 @@ button.record-tag:focus-visible {
 
 .ov-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 0.375rem 0.5rem; }
 
+/* A status or access chip: the theme's pill badge with a dot and a light fill in its status colour. */
+.ov-status {
+  --ov-status: var(--ov-faint);
+  --badge-bg: color-mix(in oklch, var(--ov-status) 14%, var(--color-base-100));
+  --badge-fg: var(--color-base-content);
+  gap: 0.375rem;
+  border: 0;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.ov-status__dot { flex: none; width: 0.5rem; height: 0.5rem; border-radius: 999px; background: var(--ov-status); }
+
+.ov-status--success { --ov-status: var(--color-success); }
+
+.ov-status--warning { --ov-status: var(--color-warning); }
+
+.ov-status--error { --ov-status: var(--color-error); }
+
+.ov-status--info { --ov-status: var(--color-info); }
+
 .ov-title {
   margin: 0;
   font-size: clamp(1.5rem, 1.05rem + 1.5vw, 2.25rem);

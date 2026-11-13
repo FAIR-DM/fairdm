@@ -77,6 +77,20 @@ The small Edit control a panel carries for the part of the record it shows. It d
 <c-overview.edit href="{{ edit.identifiers }}" label="Edit identifiers" />
 ```
 
+### `c-overview.status`
+
+A status or access chip in an overview page's header or fact sheet: a pill with a dot and a light fill in its status colour.
+
+| Attribute | Type | Default | Accepts |
+|---|---|---|---|
+| `variant` | string | `neutral` | `success`, `warning`, `error`, `info` or `neutral`. |
+| `icon` | string | | An icon drawn in place of the dot. |
+| `title` | string | | What the status means, shown on hover. |
+
+```django
+<c-overview.status variant="{{ project.status_badge_variant }}">{{ project.get_status_display }}</c-overview.status>
+```
+
 ### `c-overview.figure`
 
 One headline figure along the foot of the header, linked to its list when `href` is set.
