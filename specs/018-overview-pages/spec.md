@@ -39,10 +39,10 @@ page. This specification describes the design that review settled on.
 - Q: Several parts of the pages stand in for capabilities FairDM does not have yet: publishing,
   importing data and metadata downloads. Do they ship? → A: Yes. They ship, with one treatment
   across all four pages that makes it plain they are not available yet. Nothing that stands in for
-  a missing capability looks or behaves as if it works. Recent activity and exporting a citation
-  each come back as a working panel with a feature of its own (FS-038 and FS-036), and are not
-  shown until then. The map of a project's or dataset's samples is the panel specification 037
-  adds.
+  a missing capability looks or behaves as if it works. Recent activity comes back as a working
+  panel with a feature of its own (FS-038), and is not shown until then. The map of a project's or
+  dataset's samples is the panel specification 037 adds. Exporting a citation is part of the
+  citation panel (FS-036).
 - Q: Projects, datasets and samples open their overview inside a tabbed detail view that plugins
   add pages to. The measurement page stands alone with no tabs. Does it stay that way? → A: No. The
   measurement page gets the same tab strip, so all four records look and extend alike, and a
@@ -453,8 +453,10 @@ member of its dataset's team, including the one recorded in a different dataset 
   copy it. DOIs and IGSNs MUST link to their resolver.
 - **FR-013**: The fact sheet's funding section MUST list each award with its funder, title and
   number, linked where the award records a link. When none is recorded, it MUST say so.
-- **FR-014**: The citation panel MUST give the record's citation with a way to copy it, and say when
-  the citation points at the page because the record has no DOI. The header's Cite MUST lead to it.
+- **FR-014**: The citation panel MUST offer the record's citation as Text, BibTeX and RIS, with a way
+  to copy the format on show and to download BibTeX and RIS as files, and say when the citation
+  points at the page because the record has no DOI. The format the reader chose MUST be remembered
+  for their next visit. The header's Cite MUST lead to it.
 - **FR-015**: The descriptions panel MUST show each description the record has, the abstract first.
   With more than one, each MUST be reachable from a tab in the panel's heading. Long text MUST fold
   after a few lines with a way to read the rest. With none, it MUST show the record's first-run
@@ -467,11 +469,12 @@ member of its dataset's team, including the one recorded in a different dataset 
 **Capabilities that are not available yet**
 
 - **FR-016**: The pages MUST ship with these capabilities shown as not yet available: publishing a
-  dataset, importing data and metadata downloads. Recent activity and exporting a citation are
-  not shown until their own features add them (FS-038 and FS-036). The project and dataset pages
-  show where their samples come from, as specification 037 describes. The full list of a sample's measurements is the sample's
-  Measurements tab (specification 023, US-4). A sample's Measurements panel MUST lead to it, and so MUST a measurement's list of other measurements on the same sample, wherever the
-  viewer may open that sample.
+  dataset, importing data and metadata downloads. Recent activity is not shown until its own
+  feature adds it (FS-038). The project and dataset pages show where their samples come from, as
+  specification 037 describes. The full list of a sample's measurements is the sample's
+  Measurements tab (specification 023, US-4). A sample's Measurements panel MUST lead to it, and
+  so MUST a measurement's list of other measurements on the same sample, wherever the viewer may
+  open that sample.
 - **FR-017**: Each item in FR-016 MUST share one treatment across all four pages. It MUST say that
   the capability is not available yet, and it MUST NOT look or behave as if it works. A button
   standing in for a missing action MUST be disabled and say why.
