@@ -921,9 +921,9 @@ commentsRunWhenDOMLoaded(addUtterances);
 <p>The header is a band in the dataset’s colour. It shows:</p>
 <ul class="simple">
 <li><p>a badge for its state: <strong>Published</strong>, <strong>Unpublished</strong> (public, but its data is not published) or <strong>Private</strong></p></li>
-<li><p>a badge with the licence’s name, when a licence is chosen</p></li>
 <li><p>the dataset’s name</p></li>
 <li><p>the dataset’s creators, each linked to their page. These are the people credited as Creator.</p></li>
+<li><p>a line of key facts: its <strong>Project</strong>, linked to its page (left out when the dataset has none or you may not see it), its <strong>Licence</strong> (a dash when none is chosen) and its DOI, linked to doi.org, when it has one</p></li>
 <li><p>the dataset’s keywords</p></li>
 <li><p>a <strong>Cite</strong> button, which jumps to the Cite panel</p></li>
 <li><p>a <strong>Share</strong> menu, which shares the dataset’s permalink</p></li>
@@ -942,15 +942,16 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="the-figures">
 <h2>The figures<a class="headerlink" href="#the-figures" title="Link to this heading">#</a></h2>
-<p>Four figures sit along the foot of the header: <strong>Samples</strong>, <strong>Measurements</strong>, <strong>Contributors</strong> and <strong>Related publications</strong>. Under the sample and measurement counts the page gives the number of types, or <strong>None yet</strong>. The sample and measurement figures link to the <strong>Samples</strong> and <strong>Measurements</strong> tabs and count the records you may see. If you may not see the dataset’s records, the page leaves those two figures out. The page never lists a sample or measurement itself.</p>
+<p>Four figures sit along the foot of the header: <strong>Samples</strong>, <strong>Measurements</strong>, <strong>Contributors</strong> and <strong>Related publications</strong>. The sample and measurement figures link to the <strong>Samples</strong> and <strong>Measurements</strong> tabs and count the records you may see. <strong>Contributors</strong> links to the Contributors tab, and <strong>Related publications</strong> to the panel of that name. If you may not see the dataset’s records, the page leaves those two figures out. The page never lists a sample or measurement itself.</p>
 </section>
 <section id="the-content-column">
 <h2>The content column<a class="headerlink" href="#the-content-column" title="Link to this heading">#</a></h2>
 <p>The wide column holds these cards, from the top:</p>
 <ul class="simple">
 <li><p><strong>Descriptions.</strong> With several descriptions, the panel has a tab for each type. With one, the panel is titled with that type. Long text folds after a few lines behind <strong>Read more</strong>. People who may change the dataset see <strong>Edit</strong>, which opens <a class="reference internal" href="../editing-a-record/descriptions.html"><span class="std std-doc">Descriptions</span></a>. With none, the panel is titled <strong>About</strong>. It tells people who may change the dataset that nobody has described it yet and offers a <strong>Write a description</strong> button. It tells everyone else “No description has been added yet.”</p></li>
-<li><p><strong>Data types.</strong> This card appears only while the dataset holds no samples or measurements. It says so. Once the dataset holds records, the card gives way to the charts.</p></li>
-<li><p><strong>Data types</strong> and <strong>Progress</strong> charts. A bar chart of the records by sample and measurement type, and a line chart of the running total of samples and measurements by month. Each has a text description. A chart is left out when there is nothing to draw, and the line chart needs records from at least two months. Both charts are left out when you may not see the dataset’s records.</p></li>
+<li><p><strong>Timeline</strong>, the dataset’s key dates across the page in the order they happened, and down it on a phone. The steps are Collected (with its end date, or “ongoing”), Added to the portal, Submitted, Published, Available from and Withdrawn. A step with no date is left out, and Added to the portal is always there. Until a publication date is recorded, <strong>Published</strong> is still shown: as “Not yet” while the data is not published, and with a dash once it is. A withdrawal always comes last. A date appears as precisely as it was entered: a day, a month and year, or a year. People who may change the dataset see <strong>Edit</strong>, which opens <a class="reference internal" href="../editing-a-record/key-dates.html"><span class="std std-doc">Key dates</span></a>.</p></li>
+<li><p><strong>What it holds</strong>, while the dataset holds no samples or measurements. It says so, and offers people who may change the dataset an <strong>Import data</strong> button, disabled until importing is available.</p></li>
+<li><p><strong>What it holds</strong>, once it holds records: <strong>Records by type</strong>, a bar for each sample and measurement type in the type’s colour, samples and measurements apart, and <strong>Growth</strong>, a line chart of the running total of samples and measurements by month with a text description. The line chart needs records from at least two months. Both are left out when you may not see the dataset’s records.</p></li>
 </ul>
 </section>
 <section id="the-side-column">
@@ -981,9 +982,8 @@ commentsRunWhenDOMLoaded(addUtterances);
 People who may change the dataset see <strong>Edit</strong> on the panel, which opens Edit details.</p></li>
 </ul>
 </li>
-<li><p><strong>Timeline</strong>, the dataset’s key dates in the order they happened. The steps are Collected (with its end date, or “ongoing”), Added to the portal, Submitted, Published, Available from and Withdrawn. A step with no date is left out, and Added to the portal is always there. A date appears as precisely as it was entered: a day, a month and year, or a year. People who may change the dataset see <strong>Edit</strong>, which opens <a class="reference internal" href="../editing-a-record/key-dates.html"><span class="std std-doc">Key dates</span></a>.</p></li>
 <li><p><strong>People</strong>, everyone credited on the dataset. The first six are named with their roles and the organization they are credited from, then up to ten more are shown as faces, each linked to their page, and a link counts the rest. <strong>See all</strong> opens the Contributors tab, and for people who may manage the dataset <strong>Manage</strong> does. With nobody credited it says “No one is credited yet.”</p></li>
-<li><p><strong>Related publications</strong>, each with a badge for how it relates to the dataset, such as “Describes this dataset”, its title linked to its DOI and its year. With none, people who may change the dataset see “No publications linked. The paper that describes this data is the one reusers look for first.” Everyone else sees “No publications are linked to this dataset.” None of the editing screens changes this list.</p></li>
+<li><p><strong>Related publications</strong>, with their count. Each says how it relates to the dataset, such as “Describes this dataset”, and its year, then its title linked to its DOI. With none, people who may change the dataset see “No publications linked. The paper that describes this data is the one reusers look for first.” Everyone else sees “No publications are linked to this dataset.” None of the editing screens changes this list.</p></li>
 </ul>
 </section>
 <section id="what-you-can-do-here">

@@ -854,6 +854,14 @@ list.</p></li>
 <h3>Changed<a class="headerlink" href="#changed" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><strong>Every badge is a pill and every keyword a solid pill.</strong> Keywords on project and dataset cards, on the landing page and in a record type’s “About” dialog are pills in a light shade of the primary colour, where they were outlined or grey boxes. An outline badge takes a light fill of its own colour, and the record-type label on a record card and on a page is a pill edged in the record’s colour. The shape is set in <code class="docutils literal notranslate"><span class="pre">css/fairdm-theme.css</span></code> and holds on any theme. Put <code class="docutils literal notranslate"><span class="pre">badge-keyword</span></code> on a badge to show a keyword in a portal’s own templates. See <a class="reference internal" href="developers/how-to/change-the-portal-theme.html#the-result"><span class="std std-ref">How to change the portal theme</span></a>.</p></li>
+<li><p><strong>The dataset overview page is redesigned on the shared page.</strong> Its project, licence and DOI
+are key facts in the header, where the licence was a badge. Its key dates run as a timeline
+across the page under the descriptions, where they were a card in the side column, and the
+timeline ends on publication until the dataset is published. Its records by type are bars in
+each type’s colour beside the growth chart, and its related publications sit in the side column
+with their count. The Contributors figure links to the Contributors tab and the Related
+publications figure to its panel. The dataset <code class="docutils literal notranslate"><span class="pre">Overview</span></code> plugin’s context carries <code class="docutils literal notranslate"><span class="pre">mix</span></code> and
+<code class="docutils literal notranslate"><span class="pre">primary_identifier</span></code>, and <code class="docutils literal notranslate"><span class="pre">get_lifecycle()</span></code> gives each step <code class="docutils literal notranslate"><span class="pre">done</span></code> and <code class="docutils literal notranslate"><span class="pre">alert</span></code>.</p></li>
 <li><p><strong>The project overview page and the page every record shares are redesigned.</strong> The header is a
 band in the record’s colour with its badges, name, people, key facts, keywords, actions and
 headline figures. A record with an image shows it filling the header’s trailing side, opening at
@@ -934,6 +942,9 @@ citation</strong>, and the dataset’s map. Each comes back as a working panel w
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">&lt;c-card.citation&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;c-card.descriptions&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;c-card.details&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;c-card.details.entry&gt;</span></code> and
 <code class="docutils literal notranslate"><span class="pre">&lt;c-card.funding&gt;</span></code></strong>, replaced by <code class="docutils literal notranslate"><span class="pre">&lt;c-overview.cite&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;c-overview.descriptions&gt;</span></code> and
 <code class="docutils literal notranslate"><span class="pre">&lt;c-overview.sheet&gt;</span></code>. The project page no longer draws its composition chart.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">RecordOverviewPlugin.get_composition_chart()</span></code>.</strong> The dataset page, its last user, draws
+its records by type with <code class="docutils literal notranslate"><span class="pre">get_type_mix()</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;c-overview.mix&gt;</span></code>, and its <code class="docutils literal notranslate"><span class="pre">composition_chart</span></code>
+context entry is gone.</p></li>
 <li><p><strong>A project’s Export tab.</strong> It held only placeholder text. Its address now answers “not found”.</p></li>
 <li><p><strong>The PNG and ICO exports of the logo.</strong> <code class="docutils literal notranslate"><span class="pre">assets/logo/</span></code> holds the logo kit as SVG only, and
 <code class="docutils literal notranslate"><span class="pre">assets/logo/png/</span></code> and <code class="docutils literal notranslate"><span class="pre">assets/logo/web/</span></code> are removed. Nothing in FairDM loaded them.

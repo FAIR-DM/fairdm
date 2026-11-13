@@ -1170,14 +1170,14 @@ True when the tabs may be shown.</p>
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Overview</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.dataset.plugins.Overview" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="fairdm.contrib.plugins.mixins.html#fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin" title="fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin</span></code></a>, <a class="reference internal" href="fairdm.core.plugins.html#fairdm.core.plugins.RecordOverviewPlugin" title="fairdm.core.plugins.RecordOverviewPlugin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.core.plugins.RecordOverviewPlugin</span></code></a></p>
 <p>The dataset’s own page and the root of its collection.</p>
-<p>The editing pages are the shared ones in :mod:<code class="docutils literal notranslate"><span class="pre">fairdm.core.editing</span></code>, reached from the Manage
-menu.</p>
+<p>The editing pages are the shared ones in :mod:<code class="docutils literal notranslate"><span class="pre">fairdm.core.editing</span></code>, each reached
+from the panel that shows what it changes.</p>
 <p>A dataset is the unit a portal cites and distributes. Its page answers a reuser’s questions:
 what it is, whether its data is published, what it holds and how it grew, when each step of its
 life happened, how to cite it and who made it. Two gates decide what a visitor sees.
 Visibility governs the page and <code class="docutils literal notranslate"><span class="pre">published</span></code> governs the records, so a public, unpublished
-dataset shows its description to everyone but its counts, charts and spatial coverage only to
-those who may see its records. Everything drawn from the records is counted through
+dataset shows its description to everyone but its counts and charts only to those
+who may see its records. Everything drawn from the records is counted through
 <code class="docutils literal notranslate"><span class="pre">visible_to</span></code>, so the figures always equal the Samples and Measurements tabs. The page
 lists no record. Nothing here is written for a particular portal’s types.</p>
 <p>Attributes:
@@ -1228,8 +1228,9 @@ keyword arguments, and other things.</p>
 <p>Args:
 page: The page context gathered so far.</p>
 <p>Returns:
-The record, its icon, the header’s people, the citation, People, Identifiers and
-Details cards, the timeline and, for the team, the readiness checklist.</p>
+The record, its icon, the header’s people, the citation, People, the
+identifiers and the one that resolves, the Details rows, the timeline and,
+for the team, the readiness checklist.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1245,11 +1246,17 @@ The rows as <code class="docutils literal notranslate"><span class="pre">c-overv
 <dl class="py method">
 <dt class="sig sig-object py" id="fairdm.core.dataset.plugins.Overview.get_lifecycle">
 <span class="sig-name descname"><span class="pre">get_lifecycle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dates</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.core.dataset.plugins.Overview.get_lifecycle" title="Link to this definition">#</a></dt>
-<dd><p>List the dataset’s key dates in the order they happened.</p>
+<dd><p>List the dataset’s key dates in the order they happened, with publication.</p>
+<p>Every recorded date is a step that has happened. With no Published date,
+publication is still a step: done and undated when the data is public, still to
+come when it is not. It sits before a withdrawal, which always ends the
+timeline.</p>
 <p>Args:
 dates: The dataset’s dates as returned by :meth:<code class="docutils literal notranslate"><span class="pre">get_dates</span></code>.</p>
 <p>Returns:
-The steps as <code class="docutils literal notranslate"><span class="pre">c-card.timeline</span></code> draws them.</p>
+The steps, each with its <code class="docutils literal notranslate"><span class="pre">label</span></code>, its <code class="docutils literal notranslate"><span class="pre">date</span></code> as recorded, its <code class="docutils literal notranslate"><span class="pre">day</span></code>
+when recorded to the day, whether it is <code class="docutils literal notranslate"><span class="pre">done</span></code> and whether it is an
+<code class="docutils literal notranslate"><span class="pre">alert</span></code>.</p>
 </dd></dl>
 
 <dl class="py method">

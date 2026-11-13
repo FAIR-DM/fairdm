@@ -40,12 +40,11 @@ It holds what every record overview works out the same way. A portal changes one
 | `get_credits()` | One dictionary per credit, in the order of `get_contributions()`: `contributor`, `roles` (a dictionary of role address to label) and `affiliation` (the organization recorded on the credit, or `None`). |
 | `get_people(entries=None)` | What the People panel shows: `named` (up to `people_named` credits, each with `contributor`, its first two `roles`, `more_roles`, how many more it holds, and `affiliation`), `faces` (the next `people_faces` contributors), `more` (how many are left) and `total`. |
 | `get_identifiers()` | One dictionary per identifier: `type`, the identifier type's concept, `value` and `link`. |
-| `get_primary_identifier(identifiers)` | The first identifier from `get_identifiers()` with a `link`, the one a reader looks for first, or `None`. The project page shows it among the header's key facts. |
+| `get_primary_identifier(identifiers)` | The first identifier from `get_identifiers()` with a `link`, the one a reader looks for first, or `None`. The project and dataset pages show it among the header's key facts. |
 | `get_citation(*, authors, year, title, link)` | The citation as text: `Creators (Year). Title. Publisher. Identifier.` The publisher is the current site's name. |
 | `get_timeline(steps, dates, descriptions, entries)` | One dictionary per step that has a date, a person or a note, with `label`, `date`, `day`, `people` and `note`. Dated steps come first. `steps` is a list of `(date_type, role, description_type, label)`, each type and role given by its address. |
 | `get_license_entry(licence, note=None)` | A row for [`c-overview.sheet`](components.md#c-overviewsheet), or a warning row when no licence is chosen. |
 | `get_type_mix(samples, measurements)` | The records by registered type for [`c-overview.mix`](components.md#c-overviewmix): `samples` and `measurements`, each a list of `(type name, count)` largest first, and `max`, the largest count. `None` when there is nothing to count. |
-| `get_composition_chart(samples, measurements)` | A dictionary of `chart`, `height` and `description`, counting records by registered type, or `None` when there is nothing to count. The dataset page draws it. |
 | `get_growth_chart(samples, measurements)` | A dictionary of `chart` and `description` for the running total by month, or `None` when the records span fewer than two months. |
 
 ```python
@@ -106,7 +105,7 @@ Context entries: `project`, `can_manage`, `descriptions`, `timeline` (from `get_
 | `get_access()` | `state` (`private`, `public` or `published`) and its `label`. |
 | `get_descriptions()` | The descriptions the dataset has text for, in the vocabulary's order. |
 | `get_dates()` | `collection_start`, `collection_end`, `available`, `submitted`, `published` and `withdrawn`, each `None` or a partial date, and `withdrawn_text`. |
-| `get_lifecycle(dates)` | The timeline's steps, in the order they happened. |
+| `get_lifecycle(dates)` | The timeline's steps in the order they happened, each with `label`, `date`, `day`, `done` and `alert`. Without a Published date, publication is a step of its own: done and undated once the data is public, still to come before. It sits before a withdrawal. |
 | `get_team()` | `creators`, `has_contact` and `total`. |
 | `get_literature()` | `items`, each with `relation` (worded from the publication's side), `item`, `doi` and `year`. |
 | `get_record_types(samples, measurements)` | One dictionary per registered type the dataset holds, with `kind`, `label` and the labels of its `fields`. |
@@ -118,7 +117,7 @@ Context entries: `project`, `can_manage`, `descriptions`, `timeline` (from `get_
 | `get_details(project_info)` | The rows of the fact sheet. |
 | `get_shared_context(page)` | The entries every overview provides. |
 
-Context entries: `dataset`, `can_manage`, `access`, `descriptions`, `dates`, `team`, `literature`, `data_types`, `counts`, `composition_chart`, `growth_chart`, `project_info`, `api_url`, `urls`, `citation`, `json_ld`, `lifecycle`, and for the team, while the dataset's data is not public, `readiness`, plus the shared entries.
+Context entries: `dataset`, `can_manage`, `access`, `descriptions`, `dates`, `team`, `literature`, `data_types`, `counts`, `mix` (from `get_type_mix()`), `growth_chart`, `project_info`, `api_url`, `urls`, `citation`, `json_ld`, `lifecycle`, and for the team, while the dataset's data is not public, `readiness`, plus the shared entries, which on the dataset page include `primary_identifier`.
 
 `dataset_is_visible(request, obj)` is the plugin's `check`.
 

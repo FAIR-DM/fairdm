@@ -220,14 +220,6 @@ Bases: {py:obj}`fairdm.core.plugins.OverviewPlugin`
 
 ````
 
-````{py:method} get_composition_chart(samples, measurements) -> dict[str, typing.Any] | None
-:canonical: fairdm.core.plugins.RecordOverviewPlugin.get_composition_chart
-
-```{autodoc2-docstring} fairdm.core.plugins.RecordOverviewPlugin.get_composition_chart
-```
-
-````
-
 ````{py:method} get_type_mix(samples, measurements) -> dict[str, typing.Any] | None
 :canonical: fairdm.core.plugins.RecordOverviewPlugin.get_type_mix
 
