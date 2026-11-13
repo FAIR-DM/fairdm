@@ -1733,9 +1733,11 @@ class TestOverviewSampleMap:
         assert sample_map["located"] == 5
         assert sample_map["missing"] == 1
 
-    @pytest.mark.parametrize("viewer", ["visitor", "dataset member", "team"])
+    @pytest.mark.parametrize(
+        ("viewer", "seeded"), [("visitor", 3), ("dataset member", 5), ("team", 6)]
+    )
     def test_located_and_missing_add_up_to_the_samples_figure_the_page_shows(
-        self, client, mapped, viewer
+        self, client, mapped, viewer, seeded
     ):
         if viewer == "dataset member":
             client.force_login(_member(mapped.private, ContributionLevel.VIEW))
@@ -1745,10 +1747,8 @@ class TestOverviewSampleMap:
         response = _page(client, mapped.project)
 
         sample_map = response.context["sample_map"]
-        assert (
-            sample_map["located"] + sample_map["missing"]
-            == response.context["counts"]["samples"]
-        )
+        assert response.context["counts"]["samples"] == seeded
+        assert sample_map["located"] + sample_map["missing"] == seeded
 
     def test_datasets_counts_the_datasets_the_mapped_samples_come_from(
         self, client, mapped
