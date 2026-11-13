@@ -298,6 +298,35 @@ class TestChartLibrary:
         assert "echarts@" not in html
 
 
+@pytest.mark.django_db
+class TestMapLibrary:
+    def test_the_page_loads_the_map_library_only_when_it_has_a_map(
+        self, render_template, page_context
+    ):
+        without = render_template("overview/page.html", page_context)
+        with_map = render_template(
+            "overview/page.html", {**page_context, "has_map": True}
+        )
+
+        assert "maplibre-gl@" not in without
+        assert "maplibre-gl@" in with_map
+
+    def test_a_template_can_serve_the_map_library_itself(
+        self, child_template, render_template, page_context
+    ):
+        name = child_template(
+            """{% extends "overview/page.html" %}
+            {% block overview.map_library %}
+              <script src="/own/maplibre.js"></script>
+            {% endblock %}"""
+        )
+
+        html = render_template(name, {**page_context, "has_map": True})
+
+        assert "/own/maplibre.js" in html
+        assert "maplibre-gl@" not in html
+
+
 def _public_dataset():
     return DatasetFactory(
         project=ProjectFactory(visibility=Visibility.PUBLIC),

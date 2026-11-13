@@ -98,11 +98,13 @@ page. This specification describes the design that review settled on.
 - Q: What is a sample's "custody" status? → A: It is the sample's status field (available, in use,
   stored, destroyed), and the page calls it by that field's name.
 - Q: How does a sample show its measurements and related samples? → A: Measurements as one list,
-  most recent first, each naming its type and marked when recorded in another dataset, with no
-  tabs per type. Related samples go in the side column as one list, each entry saying how that
-  sample relates to this one (parent sample or subsample).
-- Q: Does a sample's location get a map? → A: Yes, an interactive map in the side column with the
-  point marked and the coordinates listed with it. A measurement shows its own location on the
+  most recent first, each naming its type and marked when recorded in another dataset. When they
+  are of more than one type, a row of filter buttons above the list shows one type at a time.
+  Related samples go in the side column as one list, each entry saying how that sample relates to
+  this one (parent sample or subsample).
+- Q: Does a sample's location get a map? → A: Yes, an interactive map in the side column, straight
+  after the citation, with the point marked and the coordinates listed with it. The tile credits
+  start closed behind their (i) button. A measurement shows its own location on the
   same kind of map, or its sample's when it has none of its own, the sample has one and the viewer
   may see the sample.
 - Q: Where does a measurement's "About this type" content go? → A: Into a dialog that opens from the
@@ -251,10 +253,11 @@ A researcher opens a sample to decide whether to re-examine it or cite it. They 
 status, and what that status means for re-examining it. They see a timeline of what happened to the
 specimen: when it was collected, prepared and stored, by whom and how. They see the measurements
 made on it, including measurements another team recorded in its own dataset. In the side column
-they see where it sits (project and dataset), its licence, the people credited, its identifiers, a
-citation in DataCite's form for a physical object, a map of where it was taken, and the samples it
-is related to, each saying how. Opening the type badge shows what the registry says about that kind
-of sample. A portal that defines a rock sample type adds a card of rock properties and a rock-type
+they see a citation in DataCite's form for a physical object, a map of where it was taken, where it
+sits (project and dataset), its licence, its identifiers, the samples it is related to, each saying
+how, and the people credited. The header names its dataset, its IGSN and where it was taken, and the
+measurements can be narrowed to one type. Opening the type badge shows what the registry says about that kind
+of sample. A portal that defines a rock sample type adds a panel of rock properties and a rock-type
 badge by providing one template. It fills the blocks it wants and keeps everything else.
 
 **Why this priority**: Samples are the first record type portals extend. This story proves the
@@ -295,6 +298,11 @@ its dataset's team. Open a rock sample and a sample type with no template of its
     does not describe, **Then** the badge opens nothing.
 12. **Given** a destroyed sample, **When** anyone opens it, **Then** a notice says the specimen no
     longer exists and that its record and measurements are kept.
+13. **Given** a sample with measurements of more than one type, **When** it is opened, **Then** the
+    list can be narrowed to the measurements of one type, each type counted among the measurements
+    the viewer may see. **Given** measurements of one type only, **Then** there is nothing to filter.
+14. **Given** a sample with an IGSN and a location, **When** it is opened, **Then** the header names
+    its dataset, its IGSN linked to doi.org and where it was taken, which leads to the location.
 
 ---
 
@@ -391,10 +399,15 @@ member of its dataset's team, including the one recorded in a different dataset 
   4. the record's key dates, where they sit in the side column
   5. People
   6. panels particular to the record (related publications, location, related samples)
+
+  The sample page places its own panels among these (FR-039): its location straight after the
+  citation, and its related samples before People.
 - **FR-004**: Each shared panel MUST be one component under the `overview` namespace, used by every
   page that shows that panel, and usable by a portal developer in a type's own template. The shared
   panels are the readiness checklist, the citation, the fact sheet, People, descriptions, records by
-  type, a headline figure, a panel with a heading and an Edit control, and the Edit control itself.
+  type, a headline figure, a panel with a heading and an Edit control, the Edit control itself, a
+  dated history, a type's own properties, and a location on a map. Every map on the overview pages
+  MUST be drawn by one shared script.
 - **FR-005**: Every page MUST expose the same named blocks under the `overview.` prefix for the
   header's image, badges, people, key facts, keywords and actions, the notices, the figures, the
   wide column, the side column, and each panel in the side column. A block that means the same
@@ -442,8 +455,7 @@ member of its dataset's team, including the one recorded in a different dataset 
   dataset, importing data and metadata downloads. The map of a project's or dataset's samples,
   recent activity and exporting a citation are not shown until their own features add them
   (FS-037, FS-038 and FS-036). The full list of a sample's measurements is the sample's
-  Measurements tab (specification 023, US-4). A sample's Measurements figure and card MUST lead to
-  it, and so MUST a measurement's list of other measurements on the same sample, wherever the
+  Measurements tab (specification 023, US-4). A sample's Measurements panel MUST lead to it, and so MUST a measurement's list of other measurements on the same sample, wherever the
   viewer may open that sample.
 - **FR-017**: Each item in FR-016 MUST share one treatment across all four pages. It MUST say that
   the capability is not available yet, and it MUST NOT look or behave as if it works. A button
@@ -509,19 +521,25 @@ member of its dataset's team, including the one recorded in a different dataset 
 - **FR-036**: Its header MUST carry the type and the status as badges. Where the registry describes
   the type, the type badge MUST open that description in a dialog. Its editing pages (edit,
   descriptions, keywords, key dates) MUST be reached from the panels that show what each changes,
-  for the dataset's team (FR-015a), and MUST NOT appear as tabs beside the overview. Its figures MUST be
-  measurements, related samples and people credited.
+  for the dataset's team (FR-015a), and MUST NOT appear as tabs beside the overview. Its line of key
+  facts MUST name its dataset, its local ID, its first identifier that resolves and, where it has a
+  location, where it was taken, leading to the location panel. Its figures MUST be measurements and
+  related samples, each leading to its panel, and people credited, leading to the Contributors tab.
 - **FR-037**: Its content column MUST carry, in order: the type's own fields (left empty for the
-  type to fill), notes, the history timeline, and the measurements made on it as one list, most
-  recent first, each naming its type and marked when recorded in another dataset.
+  type to fill, as label-over-value properties), notes, the history timeline, and the measurements
+  made on it as one list of up to thirty, most recent first, each naming its type and marked when
+  recorded in another dataset. When the measurements the viewer may see are of more than one type,
+  buttons above the list MUST narrow it to one type, each with how many of that type there are, the
+  most measured first.
 - **FR-038**: The history timeline MUST join the sample's dates, contributor roles and descriptions
   for each step in the specimen's life into one entry per step, in date order, showing each date as
-  precisely as it was recorded.
-- **FR-039**: Its side column MUST carry the citation (in DataCite's form for a physical object, with
-  the IGSN where there is one), a fact sheet holding its project, dataset, licence, status with what
-  it means for re-examining the specimen, and when it was added and last updated, then its
-  identifiers. People follows, then its location on a map with its coordinates, then its related
-  samples as one list, each saying how it relates to this sample.
+  precisely as it was recorded. It MUST be drawn as a dated timeline, the date beside each step.
+- **FR-039**: Its side column MUST carry, in order: the citation (in DataCite's form for a physical
+  object, with the IGSN where there is one); its location on a map with its coordinates, with its
+  tile credits closed behind their (i) button; a fact sheet holding its project, dataset, licence,
+  status with what it means for re-examining the specimen, and when it was added and last updated,
+  then its identifiers; its related samples as one list, each saying how it relates to this sample;
+  then People.
 
 **The measurement page**
 

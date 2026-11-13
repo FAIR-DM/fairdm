@@ -129,18 +129,20 @@ Context entries: `dataset`, `can_manage`, `access`, `descriptions`, `dates`, `te
 | `lifecycle` | a list of steps | The steps of a sample's history, each `(date_type, role, description_type, label)`, by address. Replace it in a subclass. |
 | `status_variants` | a dictionary | The badge colour of each custody status. |
 | `status_meanings` | a dictionary | What each status means for re-examining the specimen. |
-| `measurements_shown` | `10` | Measurements listed before the rest are counted. |
+| `measurements_shown` | `30` | Measurements listed before the rest are counted. The page filters the list by type, so it holds enough of each. |
 
 | Method | Returns |
 |---|---|
 | `get_status()` | `value`, `label`, `variant` and `meaning`. |
-| `get_measurements()` | The measurements the viewer may see: `items`, `total` and `more`. Each item has `measurement`, `type` and `elsewhere`. |
+| `get_visible_measurements()` | The measurements made on the sample that the viewer may see, each checked against its own dataset. |
+| `get_measurements()` | The measurements the viewer may see, most recent first: `items`, `total` and `more`. Each item has `measurement`, `type`, `type_key` and `elsewhere`. |
+| `get_measurement_types()` | One dictionary per measurement type among them, the most measured first, for the filter above the list: `key` (the model's label, which each item carries as `type_key`), `label` and `n`. |
 | `get_related_samples()` | `items`, `parents`, `children` and `hidden`, the number of relations the viewer may not see. |
 | `get_relations_summary(relations)` | A caption such as "1 parent · 2 subsamples", or "None recorded". |
 | `get_citation_details(entries, dates, identifiers)` | `title` and `text`, with a `note` when the sample has no IGSN. |
 | `get_details(project, status)` | The rows of the fact sheet. `project` is `None` when the viewer may not see it. |
 
-Context entries: `sample`, `record`, `can_manage`, `sample_type`, `status`, `lifecycle`, `notes`, `measurements`, `relations`, `location`, `project`, `counts`, `citation`, `identifiers`, `api_url`, `type_info`, `people` and `details`.
+Context entries: `sample`, `record`, `can_manage`, `sample_type`, `status`, `lifecycle`, `notes`, `measurements`, `measurement_types`, `relations`, `location`, `has_map` (set when the sample has a location), `primary_identifier` (the first identifier that resolves, shown in the header), `project`, `counts`, `citation`, `identifiers`, `api_url`, `type_info`, `people` and `details`.
 
 ## Measurement `Overview`
 
@@ -158,7 +160,7 @@ Context entries: `sample`, `record`, `can_manage`, `sample_type`, `status`, `lif
 | `get_details(project)` | The rows of the fact sheet. |
 | `get_page_title()` | The measurement's name, else its portal ID. |
 
-Context entries: `measurement`, `record`, `record_title`, `can_manage`, `measurement_type`, `result`, `type_info`, `procedure`, `notes`, `sample`, `sample_type`, `sample_status`, `sample_visible`, `effective_location` (from `Measurement.effective_location_for(user)`, with `point`, `elevation`, `uncertainty` and `source`), `other_dataset`, `siblings`, `project`, `citation`, `identifiers`, `api_url`, `people` and `details`.
+Context entries: `measurement`, `record`, `record_title`, `can_manage`, `measurement_type`, `result`, `type_info`, `procedure`, `notes`, `sample`, `sample_type`, `sample_status`, `sample_visible`, `effective_location` (from `Measurement.effective_location_for(user)`, with `point`, `elevation`, `uncertainty` and `source`), `has_map` (set when there is an `effective_location`), `other_dataset`, `siblings`, `project`, `citation`, `identifiers`, `api_url`, `people` and `details`.
 
 ## Contributor `Overview`
 

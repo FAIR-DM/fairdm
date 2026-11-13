@@ -16,7 +16,12 @@ from django.urls import reverse
 from partial_dates import PartialDate
 from pytest_django.asserts import assertContains, assertNotContains, assertRedirects
 
-from demo.factories import RockSampleFactory, WaterSampleFactory, XRFMeasurementFactory
+from demo.factories import (
+    ICP_MS_MeasurementFactory,
+    RockSampleFactory,
+    WaterSampleFactory,
+    XRFMeasurementFactory,
+)
 from demo.models import RockSample
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.plugins.access import can_open
@@ -275,36 +280,110 @@ class TestOverviewMeasurements:
 
         assert [e["elsewhere"] for e in items] == [True]
 
-    def test_the_list_shows_the_ten_most_recent_and_counts_the_rest(self, client, rock):
+    def test_the_list_shows_the_thirty_most_recent_and_counts_the_rest(
+        self, client, rock
+    ):
         measurements = XRFMeasurementFactory.create_batch(
-            12, dataset=rock.dataset, sample=rock
+            32, dataset=rock.dataset, sample=rock
         )
-        for day, measurement in enumerate(measurements, start=1):
+        for minute, measurement in enumerate(measurements):
             Measurement.objects.filter(pk=measurement.pk).update(
-                added=datetime(2026, 1, day, tzinfo=UTC)
+                added=datetime(2026, 1, 1, 0, minute, tzinfo=UTC)
             )
 
         summary = _page(client, rock).context["measurements"]
 
-        assert summary["total"] == 12
+        assert summary["total"] == 32
         assert summary["more"] == 2
         assert [e["measurement"].pk for e in summary["items"]] == [
             m.pk for m in reversed(measurements[2:])
         ]
 
-    def test_the_figure_and_the_card_lead_to_the_measurements_tab(self, client, rock):
+    def test_the_figure_leads_to_the_panel_and_the_panel_to_the_measurements_tab(
+        self, client, rock
+    ):
         XRFMeasurementFactory(dataset=rock.dataset, sample=rock)
         tab = reverse("sample:measurements", kwargs={"uuid": rock.uuid})
 
+        page = _page(client, rock).page
+
+        panel = page.find(id="measurements")
+        assert panel.find("a", href=tab) is not None
+        assert page.select_one(".ov-figures").find("a", href="#measurements")
+
+
+@pytest.mark.django_db
+class TestOverviewMeasurementTypes:
+    """FR-037 and US-3 scenario 13."""
+
+    def test_each_type_is_counted_among_the_visible_measurements_most_first(
+        self, client, rock
+    ):
+        XRFMeasurementFactory.create_batch(2, dataset=rock.dataset, sample=rock)
+        ICP_MS_MeasurementFactory(dataset=rock.dataset, sample=rock)
+        ICP_MS_MeasurementFactory(dataset=_dataset(published=False), sample=rock)
+
+        types = _page(client, rock).context["measurement_types"]
+
+        assert [(t["key"], t["n"]) for t in types] == [
+            ("demo.xrfmeasurement", 2),
+            ("demo.icp_ms_measurement", 1),
+        ]
+
+    def test_each_listed_measurement_carries_the_key_of_its_type(self, client, rock):
+        ICP_MS_MeasurementFactory(dataset=rock.dataset, sample=rock)
+
+        items = _page(client, rock).context["measurements"]["items"]
+
+        assert [e["type_key"] for e in items] == ["demo.icp_ms_measurement"]
+
+    def test_with_two_types_the_list_can_be_narrowed_to_either(self, client, rock):
+        XRFMeasurementFactory(dataset=rock.dataset, sample=rock)
+        ICP_MS_MeasurementFactory(dataset=rock.dataset, sample=rock)
+
+        page = _page(client, rock).page
+
+        group = page.select_one("[data-filter-chips]")
+        rows = page.find(id=group["data-filter-chips"]).select("li[data-type]")
+        values = [b["data-value"] for b in group.select("button")]
+        assert values[0] == ""
+        assert sorted(values[1:]) == sorted(r["data-type"] for r in rows)
+
+    def test_with_one_type_there_is_nothing_to_filter(self, client, rock):
+        XRFMeasurementFactory.create_batch(2, dataset=rock.dataset, sample=rock)
+
+        assert _page(client, rock).page.select_one("[data-filter-chips]") is None
+
+
+@pytest.mark.django_db
+class TestOverviewHeaderFacts:
+    """FR-036 and US-3 scenario 14."""
+
+    def test_the_header_links_to_the_dataset(self, client, rock):
+        page = _page(client, rock).page
+
+        facts = page.select_one(".ov-facts")
+        assert facts.find("a", href=rock.dataset.get_absolute_url()) is not None
+
+    def test_the_igsn_is_the_identifier_the_header_gives(self, client, rock):
+        SampleIdentifierFactory(related=rock, type=IGSN, value="10.58052/IGSN0001")
+
         response = _page(client, rock)
 
-        hrefs = [
-            a["href"]
-            for a in BeautifulSoup(response.content, "html.parser").find_all(
-                "a", href=True
-            )
-        ]
-        assert hrefs.count(tab) >= 2
+        assert response.context["primary_identifier"]["value"] == "10.58052/IGSN0001"
+        assert response.page.select_one(".ov-facts").find(
+            "a", href="https://doi.org/10.58052/IGSN0001"
+        )
+
+    def test_where_it_was_taken_leads_to_the_location_panel(self, client, released):
+        sample = RockSampleFactory(
+            dataset=released, location=GEOSPoint(12.3, 45.6, srid=4326)
+        )
+
+        page = _page(client, sample).page
+
+        assert page.select_one(".ov-facts").find("a", href="#location")
+        assert page.find(id="location") is not None
 
 
 @pytest.mark.django_db
@@ -438,12 +517,12 @@ class TestOverviewLocation:
         response = _page(client, sample)
 
         sample.refresh_from_db()
-        marker = response.page.select_one(".overview-map")
+        marker = response.page.select_one("[data-map]")
         assert (marker["data-lon"], marker["data-lat"]) == (
             str(sample.location.x),
             str(sample.location.y),
         )
-        assert len(response.page.select("dd.font-mono")) >= 2
+        assert response.context["has_map"] is True
 
     def test_latitude_and_longitude_are_given_to_five_places_with_elevation_and_uncertainty(
         self, client, released
@@ -481,7 +560,8 @@ class TestOverviewLocation:
         response = _page(client, rock)
 
         assert response.context["location"] is None
-        assert response.page.select_one(".overview-map") is None
+        assert response.context["has_map"] is False
+        assert response.page.select_one("[data-map]") is None
 
 
 @pytest.mark.django_db

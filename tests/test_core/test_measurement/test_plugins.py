@@ -274,6 +274,17 @@ class TestOverviewSample:
     def test_a_sample_with_no_location_draws_no_map(self, client, xrf):
         assert _page(client, xrf).page.select_one(".overview-map") is None
 
+    def test_the_page_loads_the_map_library_only_when_it_draws_a_map(
+        self, client, released, xrf
+    ):
+        sample = RockSampleFactory(
+            dataset=released, location=GEOSPoint(12.3, 45.6, srid=4326)
+        )
+        mapped = XRFMeasurementFactory(dataset=released, sample=sample)
+
+        assert _page(client, mapped).context["has_map"] is True
+        assert _page(client, xrf).context["has_map"] is False
+
 
 @pytest.mark.django_db
 class TestOverviewResult:

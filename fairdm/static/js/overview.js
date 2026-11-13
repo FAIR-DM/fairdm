@@ -1,5 +1,6 @@
 // The overview pages' behaviour: description tabs, folding long text, copy buttons, the header's
-// Cite button and the full-size view of the record's image. Linked from `overview/page.html`.
+// Cite button, the full-size view of the record's image, filter chips and maps. Linked from
+// `overview/page.html`.
 (function () {
   "use strict";
 
@@ -141,11 +142,91 @@
     });
   }
 
+  // Filter chips: a group with data-filter-chips names a list, and each chip shows only the rows
+  // whose data-type is its data-value (an empty value shows them all). The list's "and n more"
+  // link, marked data-filter-more with the same name, counts every type, so it hides while a
+  // type is chosen.
+  function initChips(root) {
+    root.querySelectorAll("[data-filter-chips]").forEach(function (group) {
+      var name = group.dataset.filterChips;
+      var list = document.getElementById(name);
+      var chips = group.querySelectorAll(".ov-chip");
+      var more = document.querySelector("[data-filter-more='" + name + "']");
+      if (!list) return;
+      chips.forEach(function (chip) {
+        chip.addEventListener("click", function () {
+          var value = chip.dataset.value;
+          chips.forEach(function (other) {
+            other.setAttribute("aria-pressed", other === chip ? "true" : "false");
+          });
+          list.querySelectorAll("li[data-type]").forEach(function (row) {
+            row.hidden = Boolean(value) && row.dataset.type !== value;
+          });
+          if (more) more.hidden = Boolean(value);
+        });
+      });
+    });
+  }
+
+  // Maps, drawn with MapLibre, which the page loads when it has one. Tiles from OpenFreeMap, which
+  // needs no key.
+  function cssVar(el, name) {
+    return getComputedStyle(el).getPropertyValue(name).trim();
+  }
+
+  // The tiles' credits, closed behind their (i) button until someone opens them. MapLibre opens
+  // the compact control on a wide map, so it is closed again once the map has drawn.
+  function addAttribution(map) {
+    map.addControl(new maplibregl.AttributionControl({ compact: true }), "bottom-right");
+    function close() {
+      map.getContainer().querySelectorAll(".maplibregl-ctrl-attrib").forEach(function (el) {
+        el.classList.remove("maplibregl-compact-show");
+        el.removeAttribute("open");
+      });
+    }
+    close();
+    map.once("load", close);
+    map.once("idle", close);
+  }
+
+  // A map in el with the controls every map on these pages carries: zoom buttons, the credits
+  // behind (i), and a page that scrolls past it until someone means to move the map. The options
+  // are MapLibre's own, such as a center and zoom or bounds to fit.
+  function startMap(el, options) {
+    var map = new maplibregl.Map(Object.assign({
+      container: el,
+      style: "https://tiles.openfreemap.org/styles/liberty",
+      attributionControl: false,
+      cooperativeGestures: true,
+    }, options));
+    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+    addAttribution(map);
+    return map;
+  }
+
+  // The colour a map draws its points in: the record type's, else the theme's primary.
+  function mapColour(el) {
+    return cssVar(el, "--record") || cssVar(el, "--color-primary") || undefined;
+  }
+
+  // Every element marked data-map: one point at its data-lon and data-lat, with a marker.
+  function initMaps(root) {
+    if (!window.maplibregl) return;
+    root.querySelectorAll("[data-map]").forEach(function (el) {
+      if (!el.dataset.lon || !el.dataset.lat) return;
+      var point = [parseFloat(el.dataset.lon), parseFloat(el.dataset.lat)];
+      var map = startMap(el, { center: point, zoom: 9 });
+      new maplibregl.Marker({ color: mapColour(el) }).setLngLat(point).addTo(map);
+    });
+  }
+
   onReady(function () {
     initTabs(document);
     initFolds(document);
     initCopy(document);
     initJumpToCite(document);
     initDialogs(document);
+    initChips(document);
+    initMaps(document);
   });
 })();

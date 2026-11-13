@@ -1,0 +1,9 @@
+{# @description The fields a sample or measurement type adds, label over value in a grid. Fill it with c-overview.prop entries. #}
+{# @prop title:text | description:"The heading, such as Rock properties." #}
+{# @prop edit_url:text | description:"The editing page for these fields, for someone who may edit them." #}
+{# @slot <c-overview.prop label="Rock type" value="Basalt" /> — The fields. #}
+{% load i18n %}
+<c-vars title edit_url />
+<c-overview.panel title="{{ title }}" edit_url="{{ edit_url }}" edit_label="{% blocktranslate %}Edit {{ title }}{% endblocktranslate %}" data-card="properties">
+  <dl class="ov-props">{{ slot }}</dl>
+</c-overview.panel>
