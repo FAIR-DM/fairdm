@@ -39,7 +39,7 @@ class Overview(TypedOverviewPlugin):
             role that performs it, the description type that explains it, and what the page calls
             it. The measurement vocabularies describe the same procedure three ways, so the page
             puts them back together.
-        siblings_shown: Rows shown in the list of other measurements made on the same sample.
+        siblings_shown: Rows in the table of other measurements made on the same sample.
     """
 
     base_model = Measurement
@@ -68,7 +68,7 @@ class Overview(TypedOverviewPlugin):
             _("Taken down"),
         ),
     ]
-    siblings_shown = 8
+    siblings_shown = 12
 
     def get_page_title(self):
         """Title the page with the measurement's name, or its portal ID when it has none."""
@@ -131,7 +131,8 @@ class Overview(TypedOverviewPlugin):
                 "sample_visible": sample_visible,
                 "effective_location": effective_location,
                 "has_map": effective_location is not None,
-                "other_dataset": sample.dataset_id != measurement.dataset_id,
+                "other_dataset": sample_visible
+                and sample.dataset_id != measurement.dataset_id,
                 "siblings": self.get_siblings(),
                 "sample_measurements_url": safe_reverse(
                     "sample:measurements", uuid=sample.uuid
@@ -143,6 +144,7 @@ class Overview(TypedOverviewPlugin):
                     entries, dates, identifiers, sample if sample_visible else None
                 ),
                 "identifiers": identifiers,
+                "primary_identifier": self.get_primary_identifier(identifiers),
                 "api_url": safe_reverse(
                     "api:measurement-detail", uuid=measurement.uuid
                 ),

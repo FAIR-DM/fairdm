@@ -412,3 +412,27 @@ class TestMix:
 
         widths = [s["style"] for s in page.select(".ov-mix__track span")]
         assert widths == ["width: 100%", "width: 50%"]
+
+
+class TestResult:
+    def test_the_value_is_shown_with_its_unit(self, render_overview, soup):
+        page = soup(render_overview("result", label="L", value="12.5", unit="ppm Fe"))
+
+        value = page.select_one(".ov-result__value").get_text(" ", strip=True)
+        assert value == "12.5 ppm Fe"
+
+    def test_notes_given_in_the_slot_sit_beside_the_value(
+        self, child_template, render_template, soup
+    ):
+        name = child_template(
+            """<c-overview.result label="L" value="1">NOTE-MARKER</c-overview.result>"""
+        )
+
+        page = soup(render_template(name))
+
+        assert "NOTE-MARKER" in page.select_one(".ov-result__aside").get_text()
+
+    def test_without_notes_no_aside_is_drawn(self, render_overview, soup):
+        page = soup(render_overview("result", label="L", value="1"))
+
+        assert page.select_one(".ov-result__aside") is None

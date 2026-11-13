@@ -228,7 +228,7 @@ class TestOverviewSample:
     ):
         _, response = hidden_sample_page
 
-        assert response.page.select_one(".overview-map") is None
+        assert response.page.select_one("[data-map]") is None
 
     def test_a_sample_the_visitor_may_see_is_named_and_linked(self, client, xrf):
         response = _page(client, xrf)
@@ -252,6 +252,13 @@ class TestOverviewSample:
 
         assert _page(client, measurement).context["other_dataset"] is True
 
+    def test_a_hidden_sample_in_another_dataset_is_not_said_to_be_elsewhere(
+        self, hidden_sample_page
+    ):
+        _, response = hidden_sample_page
+
+        assert response.context["other_dataset"] is False
+
     def test_a_measurement_in_its_samples_dataset_does_not(self, client, xrf):
         assert _page(client, xrf).context["other_dataset"] is False
 
@@ -265,14 +272,14 @@ class TestOverviewSample:
         response = _page(client, measurement)
 
         sample.refresh_from_db()
-        marker = response.page.select_one(".overview-map")
+        marker = response.page.select_one("[data-map]")
         assert (marker["data-lon"], marker["data-lat"]) == (
             str(sample.location.x),
             str(sample.location.y),
         )
 
     def test_a_sample_with_no_location_draws_no_map(self, client, xrf):
-        assert _page(client, xrf).page.select_one(".overview-map") is None
+        assert _page(client, xrf).page.select_one("[data-map]") is None
 
     def test_the_page_loads_the_map_library_only_when_it_draws_a_map(
         self, client, released, xrf
@@ -284,6 +291,38 @@ class TestOverviewSample:
 
         assert _page(client, mapped).context["has_map"] is True
         assert _page(client, xrf).context["has_map"] is False
+
+
+@pytest.mark.django_db
+class TestOverviewHeader:
+    """FR-043: the header's key facts name the sample, dataset and identifier."""
+
+    def test_the_sample_the_viewer_may_open_is_linked_from_the_header(
+        self, client, xrf
+    ):
+        facts = _page(client, xrf).page.select_one(".ov-facts")
+
+        assert facts.find("a", href=xrf.sample.get_absolute_url()) is not None
+        assert facts.find("a", href=xrf.dataset.get_absolute_url()) is not None
+
+    def test_the_identifier_that_resolves_is_linked_from_the_header(
+        self, client, xrf
+    ):
+        from fairdm.core.measurement.models import MeasurementIdentifier
+
+        MeasurementIdentifier.objects.create(
+            related=xrf, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.1234/meas.1"
+        )
+
+        response = _page(client, xrf)
+
+        link = response.context["primary_identifier"]["link"]
+        assert response.page.select_one(".ov-facts").find("a", href=link) is not None
+
+    def test_a_measurement_with_no_identifier_that_resolves_names_none(
+        self, client, xrf
+    ):
+        assert _page(client, xrf).context["primary_identifier"] is None
 
 
 @pytest.mark.django_db
@@ -415,11 +454,11 @@ class TestOverviewSiblings:
         assert response.context["siblings"]["total"] == 1
         assertNotContains(response, tab)
 
-    def test_the_list_shows_the_eight_most_recent_and_counts_the_rest(
+    def test_the_list_shows_the_twelve_most_recent_and_counts_the_rest(
         self, client, xrf
     ):
         others = XRFMeasurementFactory.create_batch(
-            10, dataset=xrf.dataset, sample=xrf.sample
+            14, dataset=xrf.dataset, sample=xrf.sample
         )
         for day, measurement in enumerate(others, start=1):
             Measurement.objects.filter(pk=measurement.pk).update(
@@ -428,11 +467,21 @@ class TestOverviewSiblings:
 
         siblings = _page(client, xrf).context["siblings"]
 
-        assert siblings["total"] == 10
+        assert siblings["total"] == 14
         assert siblings["more"] == 2
         assert [r["measurement"].pk for r in siblings["rows"]] == [
             m.pk for m in reversed(others[2:])
         ]
+
+    def test_the_count_of_the_rest_leads_to_the_samples_measurements_tab(
+        self, client, xrf
+    ):
+        XRFMeasurementFactory.create_batch(13, dataset=xrf.dataset, sample=xrf.sample)
+        tab = reverse("sample:measurements", kwargs={"uuid": xrf.sample.uuid})
+
+        page = _page(client, xrf).page
+
+        assert page.select_one(".ov-rows__more")["href"] == tab
 
 
 @pytest.mark.django_db
@@ -516,7 +565,7 @@ class TestOverviewCardsAlwaysShown:
         response = _page(client, measurement)
 
         assert response.page.select_one('[data-card="location"]') is not None
-        assert response.page.select_one(".overview-map") is None
+        assert response.page.select_one("[data-map]") is None
         assertNotContains(response, "12.5")
 
 
@@ -579,7 +628,7 @@ class TestOverviewLocation:
 
         response = _page(client, measurement)
 
-        marker = response.page.select_one(".overview-map")
+        marker = response.page.select_one("[data-map]")
         assert (marker["data-lon"], marker["data-lat"]) == ("8.4318", "49.09495")
         shown = response.context["effective_location"]
         assert shown.source == "own"
@@ -594,7 +643,7 @@ class TestOverviewLocation:
 
         response = _page(client, measurement)
 
-        marker = response.page.select_one(".overview-map")
+        marker = response.page.select_one("[data-map]")
         assert (marker["data-lon"], marker["data-lat"]) == ("12.5", "41.5")
         shown = response.context["effective_location"]
         assert shown.source == "sample"
@@ -608,7 +657,7 @@ class TestOverviewLocation:
         response = _page(client, measurement)
 
         assert response.context["effective_location"] is None
-        assert response.page.select_one(".overview-map") is None
+        assert response.page.select_one("[data-map]") is None
         assertNotContains(response, "12.5")
 
     def test_the_own_location_is_shown_even_when_the_sample_is_hidden(
@@ -623,7 +672,7 @@ class TestOverviewLocation:
 
         response = _page(client, measurement)
 
-        marker = response.page.select_one(".overview-map")
+        marker = response.page.select_one("[data-map]")
         assert (marker["data-lon"], marker["data-lat"]) == ("8.4318", "49.09495")
         assertNotContains(response, "12.5")
 
@@ -638,5 +687,5 @@ class TestOverviewLocation:
         response = _page(client, measurement)
 
         assert response.context["effective_location"].source == "sample"
-        marker = response.page.select_one(".overview-map")
+        marker = response.page.select_one("[data-map]")
         assert (marker["data-lon"], marker["data-lat"]) == ("12.5", "41.5")

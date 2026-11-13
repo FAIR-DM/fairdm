@@ -148,7 +148,7 @@ Context entries: `sample`, `record`, `can_manage`, `sample_type`, `status`, `lif
 | Attribute | Default | What it sets |
 |---|---|---|
 | `procedure_steps` | a list of steps | The steps of how a measurement was made, each `(date_type, role, description_type, label)`, by address. Replace it in a subclass. |
-| `siblings_shown` | `8` | Rows in the list of other measurements on the same sample. |
+| `siblings_shown` | `12` | Rows in the table of other measurements on the same sample. |
 
 | Method | Returns |
 |---|---|
@@ -159,7 +159,7 @@ Context entries: `sample`, `record`, `can_manage`, `sample_type`, `status`, `lif
 | `get_details(project)` | The rows of the fact sheet. |
 | `get_page_title()` | The measurement's name, else its portal ID. |
 
-Context entries: `measurement`, `record`, `record_title`, `can_manage`, `measurement_type`, `result`, `type_info`, `procedure`, `notes`, `sample`, `sample_type`, `sample_status`, `sample_visible`, `effective_location` (from `Measurement.effective_location_for(user)`, with `point`, `elevation`, `uncertainty` and `source`), `has_map` (set when there is an `effective_location`), `other_dataset`, `siblings`, `project`, `citation`, `identifiers`, `api_url`, `people` and `details`.
+Context entries: `measurement`, `record`, `record_title`, `can_manage`, `measurement_type`, `result`, `type_info`, `procedure`, `notes`, `sample`, `sample_type`, `sample_status`, `sample_visible`, `effective_location` (from `Measurement.effective_location_for(user)`, with `point`, `elevation`, `uncertainty` and `source`), `has_map` (set when there is an `effective_location`), `other_dataset` (true when the viewer may open the sample and it is in another dataset), `siblings`, `project`, `citation`, `identifiers`, `primary_identifier` (from `get_primary_identifier()`, shown in the header's key facts), `api_url`, `people` and `details`.
 
 ## Contributor `Overview`
 
