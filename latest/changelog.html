@@ -887,6 +887,10 @@ variable.</strong> <code class="docutils literal notranslate"><span class="pre">
 <section id="fixed">
 <h3>Fixed<a class="headerlink" href="#fixed" title="Link to this heading">#</a></h3>
 <ul class="simple">
+<li><p><strong>A record type’s About dialog opens.</strong> On a sample or measurement page, the type badge’s
+button named its dialog by a bare id such as <code class="docutils literal notranslate"><span class="pre">about-sample-type</span></code>, which JavaScript reads as a
+subtraction, so clicking it threw an error and the dialog never opened. The button now looks
+the dialog up with <code class="docutils literal notranslate"><span class="pre">document.getElementById</span></code>.</p></li>
 <li><p><strong>The FairDM logo is no longer clipped at the top.</strong> The horizontal logo in the portal header
 (<code class="docutils literal notranslate"><span class="pre">brand/logo.svg</span></code> and <code class="docutils literal notranslate"><span class="pre">brand/logo_dark.svg</span></code>) and in the documentation’s navigation bar drew its
 symbol 17% too tall, so the top of the symbol fell outside the image. Both now use the redrawn
