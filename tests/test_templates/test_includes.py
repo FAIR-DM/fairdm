@@ -1,5 +1,7 @@
 """Tests for the includes the overview pages share: pending actions and the type badge."""
 
+import re
+
 import pytest
 from django_cotton import render_component
 
@@ -58,6 +60,16 @@ class TestTypeBadge:
         assert button["aria-haspopup"] == "dialog"
         assert "type-info" in button["onclick"]
         assert "DESCRIPTION-MARKER" in dialog.get_text()
+
+    def test_the_button_looks_the_dialog_up_by_its_id(self, render_template, soup):
+        # A hyphenated id written as a bare expression reads as a subtraction and
+        # throws, so the handler has to pass the id to getElementById as a string.
+        button = soup(self._render(render_template)).find("button")
+
+        assert re.search(
+            r"document\.getElementById\((['\"])type-info\1\)\.showModal\(\)",
+            button["onclick"],
+        )
 
     def test_the_dialog_is_named_for_assistive_technology(self, render_template, soup):
         page = soup(self._render(render_template))
