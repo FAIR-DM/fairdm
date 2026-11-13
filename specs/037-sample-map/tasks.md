@@ -33,7 +33,7 @@ with the environment in `/home/sam/projects/worktrees/fairdm-037-env.sh` sourced
 - [x] T005 [US1] Tests: `TestCoverage` in `tests/test_templates/test_overview_components.py`, and
   the project and dataset page tests in `tests/test_templates/test_overview_page.py`, as plan.md
   "Tests" lists.
-- [ ] T006 [US1] `fairdm/templates/cotton/overview/coverage.html`, ported from the prototype, and
+- [x] T006 [US1] `fairdm/templates/cotton/overview/coverage.html`, ported from the prototype, and
   the `overview.map` block in `fairdm/core/project/templates/project/project_detail.html` and
   `fairdm/core/dataset/templates/dataset/dataset_detail.html`, as plan.md "The panel" describes.
   T005 goes green.
