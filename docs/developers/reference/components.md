@@ -328,7 +328,7 @@ For the record's team only: what is still missing before the record can be found
 
 ### `c-card.timeline`
 
-What happened to a record, in order, on the dataset and measurement pages. The sample page uses [`c-overview.history`](#c-overviewhistory). Each step shows its label, its date, the people who did it and a note. A date recorded only to the month is shown as the month, and one recorded only to the year as the year. `data-card` is `timeline`.
+What happened to a record, in order, on the dataset page. The sample and measurement pages use [`c-overview.history`](#c-overviewhistory). Each step shows its label, its date, the people who did it and a note. A date recorded only to the month is shown as the month, and one recorded only to the year as the year. `data-card` is `timeline`.
 
 | Attribute | Type | Default | Accepts |
 |---|---|---|---|

@@ -228,7 +228,7 @@ class TestOverviewSample:
     ):
         _, response = hidden_sample_page
 
-        assert response.page.select_one(".overview-map") is None
+        assert response.page.select_one("[data-map]") is None
 
     def test_a_sample_the_visitor_may_see_is_named_and_linked(self, client, xrf):
         response = _page(client, xrf)
@@ -272,14 +272,14 @@ class TestOverviewSample:
         response = _page(client, measurement)
 
         sample.refresh_from_db()
-        marker = response.page.select_one(".overview-map")
+        marker = response.page.select_one("[data-map]")
         assert (marker["data-lon"], marker["data-lat"]) == (
             str(sample.location.x),
             str(sample.location.y),
         )
 
     def test_a_sample_with_no_location_draws_no_map(self, client, xrf):
-        assert _page(client, xrf).page.select_one(".overview-map") is None
+        assert _page(client, xrf).page.select_one("[data-map]") is None
 
     def test_the_page_loads_the_map_library_only_when_it_draws_a_map(
         self, client, released, xrf
@@ -565,7 +565,7 @@ class TestOverviewCardsAlwaysShown:
         response = _page(client, measurement)
 
         assert response.page.select_one('[data-card="location"]') is not None
-        assert response.page.select_one(".overview-map") is None
+        assert response.page.select_one("[data-map]") is None
         assertNotContains(response, "12.5")
 
 
@@ -628,7 +628,7 @@ class TestOverviewLocation:
 
         response = _page(client, measurement)
 
-        marker = response.page.select_one(".overview-map")
+        marker = response.page.select_one("[data-map]")
         assert (marker["data-lon"], marker["data-lat"]) == ("8.4318", "49.09495")
         shown = response.context["effective_location"]
         assert shown.source == "own"
@@ -643,7 +643,7 @@ class TestOverviewLocation:
 
         response = _page(client, measurement)
 
-        marker = response.page.select_one(".overview-map")
+        marker = response.page.select_one("[data-map]")
         assert (marker["data-lon"], marker["data-lat"]) == ("12.5", "41.5")
         shown = response.context["effective_location"]
         assert shown.source == "sample"
@@ -657,7 +657,7 @@ class TestOverviewLocation:
         response = _page(client, measurement)
 
         assert response.context["effective_location"] is None
-        assert response.page.select_one(".overview-map") is None
+        assert response.page.select_one("[data-map]") is None
         assertNotContains(response, "12.5")
 
     def test_the_own_location_is_shown_even_when_the_sample_is_hidden(
@@ -672,7 +672,7 @@ class TestOverviewLocation:
 
         response = _page(client, measurement)
 
-        marker = response.page.select_one(".overview-map")
+        marker = response.page.select_one("[data-map]")
         assert (marker["data-lon"], marker["data-lat"]) == ("8.4318", "49.09495")
         assertNotContains(response, "12.5")
 
@@ -687,5 +687,5 @@ class TestOverviewLocation:
         response = _page(client, measurement)
 
         assert response.context["effective_location"].source == "sample"
-        marker = response.page.select_one(".overview-map")
+        marker = response.page.select_one("[data-map]")
         assert (marker["data-lon"], marker["data-lat"]) == ("12.5", "41.5")

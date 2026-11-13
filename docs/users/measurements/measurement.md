@@ -37,11 +37,11 @@ The foot of the header shows the measurement's result, headed **Result**: the va
 
 ## Your type's own content
 
-A measurement type can add cards of its own to the wide column, above the procedure. A type that adds nothing shows nothing here.
+A measurement type can add panels of its own to the wide column, above the procedure. This is where a portal's own fields appear on the page, usually as a panel of properties, each a label over its value, with a dash where nothing is recorded. People who may change the measurement see **Edit** on it, which opens [Edit details](edit-details.md). A type that adds nothing shows nothing here.
 
 ## How it was measured
 
-A panel headed **How it was measured** lays the procedure out as a timeline. Each step combines a date, the people credited in the matching role and the matching description:
+A panel headed **How it was measured** lays the procedure out as a timeline, the date on the left of each step. Each step combines a date, the people credited in the matching role and the matching description:
 
 | Step | Date | Role | Description |
 |---|---|---|---|
@@ -79,11 +79,11 @@ A measurement with no DOI reads "Most measurements are cited through their datas
 
 A panel straight after **Cite** shows where the measurement was made.
 
-- A measurement with a location of its own gets a panel headed **Where it was measured**, with a map and the coordinates.
+- A measurement with a location of its own gets a panel headed **Where it was measured**, with a map and the coordinates. People who may change the measurement see **Edit** on it, which opens [Edit details](edit-details.md).
 - A measurement with none shows its sample's location under **Where the sample was taken**, when you may open the sample and the sample has one.
 - With no location to show, the panel reads "No location has been recorded for the sample." or, when you may not open the sample, "The sample belongs to a dataset that has not been published, so its location is not shown."
 
-The coordinates are **Latitude** and **Longitude** to five decimal places, then **Elevation** and **Uncertainty** in metres when they are recorded, in decimal degrees (WGS 84).
+The coordinates are **Latitude** and **Longitude** to five decimal places, then **Elevation** and **Uncertainty** in metres when they are recorded, in decimal degrees (WGS 84). The map's tile credits sit behind the (i) button in its corner.
 
 ## Details
 

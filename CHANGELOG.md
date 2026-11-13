@@ -81,9 +81,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that resolves. The sample sits in a small version of its own header, the other measurements on
   it are a compact table of up to twelve (`siblings_shown`, which was eight), and the location map
   comes straight after the citation, headed "Where it was measured" or "Where the sample was
-  taken". The note that the measurement and its sample sit in different datasets shows only when
+  taken", drawn by `<c-overview.location>`. How it was measured is a dated timeline
+  (`<c-overview.history>`) and a type's own fields sit in `<c-overview.props>`. The note that the
+  measurement and its sample sit in different datasets shows only when
   the viewer may open the sample. The demo's XRF page draws its concentration with
-  `<c-overview.result>`.
+  `<c-overview.result>` and its analytical conditions with `<c-overview.props>`.
 - **A sample or measurement collection is headed like a Samples or Measurements tab.** The
   heading is the type's name, underlined in its kind's colour, and is itself the menu of the other
   collections of the same kind, each with its count of published records, most first. A sample
