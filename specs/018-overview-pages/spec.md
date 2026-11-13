@@ -39,9 +39,10 @@ page. This specification describes the design that review settled on.
 - Q: Several parts of the pages stand in for capabilities FairDM does not have yet: publishing,
   importing data and metadata downloads. Do they ship? → A: Yes. They ship, with one treatment
   across all four pages that makes it plain they are not available yet. Nothing that stands in for
-  a missing capability looks or behaves as if it works. The map of a project's or dataset's
-  samples, recent activity and exporting a citation each come back as a working panel with a
-  feature of its own (FS-037, FS-038 and FS-036), and are not shown until then.
+  a missing capability looks or behaves as if it works. Recent activity and exporting a citation
+  each come back as a working panel with a feature of its own (FS-038 and FS-036), and are not
+  shown until then. The map of a project's or dataset's samples is the panel specification 037
+  adds.
 - Q: Projects, datasets and samples open their overview inside a tabbed detail view that plugins
   add pages to. The measurement page stands alone with no tabs. Does it stay that way? → A: No. The
   measurement page gets the same tab strip, so all four records look and extend alike, and a
@@ -466,9 +467,9 @@ member of its dataset's team, including the one recorded in a different dataset 
 **Capabilities that are not available yet**
 
 - **FR-016**: The pages MUST ship with these capabilities shown as not yet available: publishing a
-  dataset, importing data and metadata downloads. The map of a project's or dataset's samples,
-  recent activity and exporting a citation are not shown until their own features add them
-  (FS-037, FS-038 and FS-036). The full list of a sample's measurements is the sample's
+  dataset, importing data and metadata downloads. Recent activity and exporting a citation are
+  not shown until their own features add them (FS-038 and FS-036). The project and dataset pages
+  show where their samples come from, as specification 037 describes. The full list of a sample's measurements is the sample's
   Measurements tab (specification 023, US-4). A sample's Measurements panel MUST lead to it, and so MUST a measurement's list of other measurements on the same sample, wherever the
   viewer may open that sample.
 - **FR-017**: Each item in FR-016 MUST share one treatment across all four pages. It MUST say that

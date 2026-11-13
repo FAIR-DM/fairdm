@@ -238,6 +238,22 @@ The fields a sample or measurement type adds, label over value in a grid. `c-ove
 {% endblock overview.properties %}
 ```
 
+### `c-overview.coverage`
+
+Where a project's or dataset's samples were taken: every located sample the viewer may open on one map, clustered where they crowd, with the counts, the area covered and a "See all" link to the samples list beneath. `data-card` is `coverage`. With no located sample, it says there is nothing to map yet and draws no map. The map element carries `data-points-url` and `data-bounds`, and `js/overview.js` fetches the points once the page has drawn. The page sets `has_map` so MapLibre is loaded.
+
+| Attribute | Type | Default | Accepts |
+|---|---|---|---|
+| `map` | dictionary | | The page's `sample_map`: `located`, `missing`, `bounds`, `area`, `points_url` and, on a project, `datasets`. |
+| `id` | string | | The panel's id. |
+| `title` | string | `Where the samples come from` | The heading. |
+| `more_url` | string | | The samples list, linked as See all. |
+| `empty` | string | | What to say when no sample has a location. |
+
+```html
+<c-overview.coverage :map="sample_map" id="coverage" more_url="{{ urls.samples }}" />
+```
+
 ### `c-overview.location`
 
 Where a sample was taken or a measurement made: a map with the point marked, and the coordinates written out as decimal degrees in WGS 84 to five places. `data-card` is `location`. The map is drawn by `js/overview.js` with MapLibre, which `overview/page.html` loads in its `overview.map_library` block when the context sets `has_map`.
@@ -255,7 +271,7 @@ Where a sample was taken or a measurement made: a map with the point marked, and
 
 ### Maps and filters in `js/overview.js`
 
-The script every overview page loads draws a map in each element marked `data-map` with `data-lon` and `data-lat`, with a marker in the record type's colour. Each map has zoom buttons, scrolls with the page until the reader means to move it, and keeps the tile credits closed behind their (i) button.
+The script every overview page loads draws a map in each element marked `data-map` with `data-lon` and `data-lat`, with a marker in the record type's colour. An element marked `data-map` with `data-points-url` and `data-bounds` instead opens on the bounds, fetches GeoJSON points from the address and draws them clustered: selecting a cluster zooms in, and selecting a point opens a popup listing every sample at that spot, each linking to its page. Each map has zoom buttons, scrolls with the page until the reader means to move it, and keeps the tile credits closed behind their (i) button.
 
 A group of buttons marked `data-filter-chips="<list id>"` filters the list with that id: each button shows only the rows whose `data-type` is its `data-value`, and an empty `data-value` shows them all. A link marked `data-filter-more="<list id>"` is hidden while a type is chosen.
 

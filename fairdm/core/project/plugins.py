@@ -21,7 +21,7 @@ from fairdm.core.overview import (
     json_ld,
     safe_reverse,
 )
-from fairdm.core.plugins import RecordOverviewPlugin
+from fairdm.core.plugins import RecordOverviewPlugin, SamplePoints
 from fairdm.core.sample.models import Sample
 from fairdm.core.vocabularies import (
     ABSTRACT,
@@ -94,6 +94,21 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
     dataset_preview = 5
     lead_roles = [PROJECT_LEADER, f"{CONTRIBUTOR_ROLES}/project-manager"]
 
+    @classmethod
+    def get_extra_views(cls):
+        """Keep the shared overview's views and add the address of the map's points."""
+        return [*super().get_extra_views(), SamplePoints]
+
+    def get_map_samples(self):
+        """Give the samples the page's Samples figure counts, which the map draws.
+
+        Returns:
+            The project's samples the viewer may see.
+        """
+        return Sample.objects.filter(dataset__project=self.base_object).visible_to(
+            self.request.user
+        )
+
     def get_context_data(self, **kwargs):
         """Add the project and everything the overview page draws.
 
@@ -105,7 +120,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
 
         user = self.request.user
         datasets = Dataset.all_objects.filter(project=project).visible_to(user)
-        samples = Sample.objects.filter(dataset__project=project).visible_to(user)
+        samples = self.get_map_samples()
         measurements = Measurement.objects.filter(dataset__project=project).visible_to(
             user
         )
@@ -141,6 +156,14 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
                 "add_dataset": safe_reverse("dataset-create"),
             },
         }
+        page["sample_map"] = self.get_sample_map(
+            samples,
+            project.spatial_coverage(user),
+            safe_reverse("project:overview-sample-points", uuid=project.uuid),
+            count_datasets=True,
+        )
+        if page["sample_map"] and page["sample_map"]["located"]:
+            page["has_map"] = True
         if can_manage:
             page["readiness"] = self.get_readiness(page)
         page.update(self.get_shared_context(page))

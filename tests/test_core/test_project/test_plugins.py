@@ -7,6 +7,7 @@ from datetime import UTC, date, datetime, timedelta
 import pytest
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.gis.geos import Point
 from django.test import RequestFactory
 from django.urls import reverse
 from django.utils import timezone, translation
@@ -1648,3 +1649,148 @@ class TestDatasetsTabListsWhatTheViewerMaySee:
         listed = self._listed(client, project)[0]
 
         assert (listed.sample_count, listed.measurement_count) == (1, 1)
+
+
+@pytest.fixture
+def mapped():
+    """A public project with samples in a published, unpublished and private dataset.
+
+    The published dataset holds two located samples and one without a location. The
+    unpublished dataset holds one located sample and the private dataset two.
+    """
+    from types import SimpleNamespace
+
+    from demo.factories import RockSampleFactory, SoilSampleFactory
+
+    project = ProjectFactory(visibility=Visibility.PUBLIC)
+    published = DatasetFactory(
+        project=project, visibility=Visibility.PUBLIC, published=True
+    )
+    unpublished = DatasetFactory(
+        project=project, visibility=Visibility.PUBLIC, published=False
+    )
+    private = DatasetFactory(
+        project=project, visibility=Visibility.PRIVATE, published=False
+    )
+    RockSampleFactory(dataset=published, location=Point(7.9, 48.9, srid=4326))
+    RockSampleFactory(dataset=published, location=Point(8.1, 49.0, srid=4326))
+    RockSampleFactory(dataset=published, location=None)
+    RockSampleFactory(dataset=unpublished, location=Point(20.0, 10.0, srid=4326))
+    SoilSampleFactory(dataset=private, location=Point(-70.0, -33.0, srid=4326))
+    SoilSampleFactory(dataset=private, location=Point(-70.5, -33.5, srid=4326))
+    return SimpleNamespace(
+        project=project, published=published, unpublished=unpublished, private=private
+    )
+
+
+def loads_map_script(response):
+    """Say whether the page asked for MapLibre: ``has_map`` is set only when it does."""
+    return "has_map" in response.context and bool(response.context["has_map"])
+
+
+def _member(record, level):
+    """Return a signed-in-ready user credited on the record at the given level."""
+    user = UserFactory()
+    ContributionFactory(content_object=record, contributor=user, level=level)
+    return user
+
+
+@pytest.mark.django_db
+class TestOverviewSampleMap:
+    def test_a_visitors_map_counts_only_the_published_datasets_samples(
+        self, client, mapped
+    ):
+        response = _page(client, mapped.project)
+
+        sample_map = response.context["sample_map"]
+        assert sample_map["located"] == 2
+        assert sample_map["missing"] == 1
+        assert sample_map["bounds"] == [7.9, 48.9, 8.1, 49.0]
+
+    def test_a_private_datasets_samples_add_to_neither_count_nor_bounds_for_a_visitor(
+        self, client, mapped
+    ):
+        sample_map = _page(client, mapped.project).context["sample_map"]
+
+        assert sample_map["located"] + sample_map["missing"] == 3
+        assert sample_map["bounds"][0] > 0
+        assert sample_map["bounds"][1] > 0
+
+    def test_a_member_of_the_private_dataset_gets_its_samples_too(self, client, mapped):
+        client.force_login(_member(mapped.private, ContributionLevel.VIEW))
+
+        sample_map = _page(client, mapped.project).context["sample_map"]
+
+        assert sample_map["located"] == 4
+        assert sample_map["missing"] == 1
+        assert sample_map["bounds"] == [-70.5, -33.5, 8.1, 49.0]
+
+    def test_the_projects_team_gets_every_sample(self, client, mapped):
+        client.force_login(_member(mapped.project, ContributionLevel.EDIT))
+
+        sample_map = _page(client, mapped.project).context["sample_map"]
+
+        assert sample_map["located"] == 5
+        assert sample_map["missing"] == 1
+
+    @pytest.mark.parametrize(
+        ("viewer", "seeded"), [("visitor", 3), ("dataset member", 5), ("team", 6)]
+    )
+    def test_located_and_missing_add_up_to_the_samples_figure_the_page_shows(
+        self, client, mapped, viewer, seeded
+    ):
+        if viewer == "dataset member":
+            client.force_login(_member(mapped.private, ContributionLevel.VIEW))
+        elif viewer == "team":
+            client.force_login(_member(mapped.project, ContributionLevel.EDIT))
+
+        response = _page(client, mapped.project)
+
+        sample_map = response.context["sample_map"]
+        assert response.context["counts"]["samples"] == seeded
+        assert sample_map["located"] + sample_map["missing"] == seeded
+
+    def test_datasets_counts_the_datasets_the_mapped_samples_come_from(
+        self, client, mapped
+    ):
+        visitor = _page(client, mapped.project).context["sample_map"]
+        client.force_login(_member(mapped.project, ContributionLevel.EDIT))
+        team = _page(client, mapped.project).context["sample_map"]
+
+        assert visitor["datasets"] == 1
+        assert team["datasets"] == 3
+
+    def test_the_points_address_is_the_projects_own(self, client, mapped):
+        sample_map = _page(client, mapped.project).context["sample_map"]
+
+        assert sample_map["points_url"] == reverse(
+            "project:overview-sample-points", kwargs={"uuid": mapped.project.uuid}
+        )
+
+    def test_a_project_with_no_samples_has_no_map(self, client):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+
+        response = _page(client, project)
+
+        assert response.context["sample_map"] is None
+        assert not loads_map_script(response)
+
+    def test_samples_none_of_which_is_located_give_a_map_of_none_and_no_map_script(
+        self, client
+    ):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
+        RockSampleFactory.create_batch(2, dataset=dataset, location=None)
+
+        response = _page(client, project)
+
+        assert response.context["sample_map"]["located"] == 0
+        assert response.context["sample_map"]["missing"] == 2
+        assert not loads_map_script(response)
+
+    def test_has_map_is_true_once_a_sample_is_located(self, client, mapped):
+        response = _page(client, mapped.project)
+
+        assert loads_map_script(response)

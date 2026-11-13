@@ -42,9 +42,9 @@ After this feature:
 - **Running FairDM on PostgreSQL with PostGIS**, in development, in the test suite and in CI, is
   #500. This feature builds on it.
 - **Tagging records with the areas their location falls in** is #496.
-- **Showing records on maps**, including a map of a dataset's spatial coverage and any filter drawn
-  on a map, is #497. The maps that sample, measurement and organization pages already show keep
-  working here.
+- **Showing records on maps**: the map of a project's or dataset's samples is specification 037.
+  The community map of organizations and any filter drawn on a map are #497. The maps that sample,
+  measurement and organization pages already show keep working here.
 - **Lines, areas and depth intervals** are not part of the core. A location is a point. A borehole
   is a point, and a sample type that needs a depth interval declares fields of its own.
 - **Showing a sensitive location less precisely** to the public is not part of this feature.

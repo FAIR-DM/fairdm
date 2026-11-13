@@ -6,8 +6,10 @@ from datetime import date
 from typing import Any
 
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.db.models.functions import TruncMonth
+from django.http import JsonResponse
+from django.urls import reverse
 from django.utils.formats import date_format
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
@@ -18,7 +20,7 @@ from pyecharts.charts import Line
 from fairdm.contrib.contributors.models import Contribution, Contributor
 from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins import reverse as plugin_reverse
-from fairdm.core.overview import format_authors, sentence_case
+from fairdm.core.overview import describe_coverage, format_authors, sentence_case
 from fairdm.core.vocabularies import DOI, IGSN
 from fairdm.views import FairDMTemplateView
 
@@ -349,6 +351,98 @@ class RecordOverviewPlugin(OverviewPlugin):
             "max": max(counts),
         }
 
+    def get_sample_points(self, samples) -> dict[str, Any]:
+        """Give the located samples as GeoJSON for the map to draw.
+
+        The rows are read with ``values()``, never as model instances, so the answer
+        costs one query however many samples there are.
+
+        Args:
+            samples: The samples to draw. Those without a location are left out.
+
+        Returns:
+            A ``FeatureCollection`` with one ``Point`` feature per located sample,
+            ordered by name. Each feature's properties are ``name``, ``type`` (the
+            sample type's name, empty when the type's model no longer exists),
+            ``dataset`` (the dataset's name) and ``url`` (the sample's page).
+        """
+        rows = (
+            samples.filter(location__isnull=False)
+            .order_by("name", "uuid")
+            .values("uuid", "name", "location", "polymorphic_ctype", "dataset__name")
+        )
+        labels: dict[int, str] = {}
+        features = []
+        for row in rows:
+            ctype = row["polymorphic_ctype"]
+            if ctype not in labels:
+                model = ContentType.objects.get_for_id(ctype).model_class()
+                labels[ctype] = (
+                    sentence_case(model._meta.verbose_name) if model is not None else ""
+                )
+            point = row["location"]
+            features.append(
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [round(point.x, 5), round(point.y, 5)],
+                    },
+                    "properties": {
+                        "name": row["name"],
+                        "type": labels[ctype],
+                        "dataset": row["dataset__name"],
+                        "url": reverse("sample:overview", kwargs={"uuid": row["uuid"]}),
+                    },
+                }
+            )
+        return {"type": "FeatureCollection", "features": features}
+
+    def get_sample_map(
+        self, samples, coverage, points_url, *, count_datasets=False
+    ) -> dict[str, Any] | None:
+        """Work out what the map panel shows: how many samples are located and where.
+
+        One aggregate query counts the samples, no rows are read.
+
+        Args:
+            samples: The samples the page counts.
+            coverage: The smallest box holding their locations, or ``None``.
+            points_url: The address that answers the located samples as GeoJSON.
+            count_datasets: Whether to count the datasets the located samples come from.
+
+        Returns:
+            ``located``, ``missing`` (the samples without a location), ``bounds`` (the
+            coverage as ``[west, south, east, north]``, with ``east`` carried past 180
+            when the box crosses the 180th meridian so MapLibre fits the narrow box),
+            ``area`` (the coverage as text) and ``points_url``, plus ``datasets`` when
+            asked. With no located sample, ``bounds`` and ``area`` are ``None``.
+            ``None`` when ``samples`` is empty.
+        """
+        located_only = Q(location__isnull=False)
+        counts = samples.aggregate(
+            total=Count("pk"),
+            located=Count("pk", filter=located_only),
+            datasets=Count("dataset", distinct=True, filter=located_only),
+        )
+        if not counts["total"]:
+            return None
+        located = counts["located"]
+        result = {
+            "located": located,
+            "missing": counts["total"] - located,
+            "bounds": None,
+            "area": None,
+            "points_url": points_url,
+        }
+        if count_datasets:
+            result["datasets"] = counts["datasets"]
+        if located and coverage is not None:
+            west, south, east, north = coverage
+            result["bounds"] = [west, south, east + 360 if west > east else east, north]
+            result["area"] = describe_coverage(coverage)
+        return result
+
     def get_growth_chart(self, samples, measurements) -> dict[str, Any] | None:
         """Draw the cumulative samples and measurements by month, two series on one count axis.
 
@@ -475,6 +569,42 @@ class RecordOverviewPlugin(OverviewPlugin):
             .annotate(n=Count("pk"))
             .order_by("month")
         )
+
+
+class SamplePoints(Plugin):
+    """Answer a record's located samples as GeoJSON, for its overview page's map.
+
+    It decides nothing itself. The owning overview plugin says who may open the record
+    and which of its samples the viewer sees, so this address answers exactly as the
+    record's page does: a private record is "not found", and the points are the samples
+    the page counts.
+
+    The owner is built with this mount's model. A plugin built without it resolves no
+    record, and a plugin that resolves none lets everyone in.
+
+    Attributes:
+        owner: The overview plugin that owns this address, set when access is decided.
+    """
+
+    name = "sample-points"
+    url_path = "sample-points"
+    owner = None
+
+    def has_permission(self) -> bool:
+        """Ask the owning overview plugin whether the viewer may open its record."""
+        self.owner = self.plugin_class(
+            registered_model=self.registered_model, menu=self.menu
+        )
+        self.owner.setup(self.request, *self.args, **self.kwargs)
+        return self.owner.has_permission()
+
+    def handle_no_permission(self):
+        """Refuse as the overview does, so a private record answers "not found"."""
+        return self.owner.handle_no_permission()
+
+    def get(self, request, *args, **kwargs):
+        """Give the samples the page counts that have a location, as GeoJSON."""
+        return JsonResponse(self.owner.get_sample_points(self.owner.get_map_samples()))
 
 
 def _visible_through(base_model):

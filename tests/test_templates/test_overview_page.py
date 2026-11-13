@@ -4,6 +4,7 @@ from urllib.parse import quote
 
 import pytest
 from bs4 import BeautifulSoup
+from django.contrib.gis.geos import Point
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.core.vocabularies import IDENTIFIER_TYPES
@@ -386,3 +387,46 @@ class TestPermalinkOnEveryOverviewPage:
         for choice in choices:
             address = choice.get("href", "") + choice.get("onclick", "")
             assert permalink in address or quote(permalink) in address
+
+
+@pytest.mark.django_db
+class TestSampleMapOnTheOverviewPage:
+    @pytest.fixture(params=["project", "dataset"])
+    def kind(self, request):
+        return request.param
+
+    def page_of(self, kind, client, *, located):
+        """Open a public record's overview; its dataset holds one sample if asked."""
+        dataset = _public_dataset()
+        record = dataset.project if kind == "project" else dataset
+        if located is not None:
+            RockSampleFactory(
+                dataset=dataset,
+                location=Point(7.9, 48.9, srid=4326) if located else None,
+            )
+        response = client.get(record.get_absolute_url())
+        assert response.status_code == 200
+        return BeautifulSoup(response.content, "html.parser"), record
+
+    def test_a_record_without_samples_shows_no_coverage_panel(self, kind, client):
+        page, _ = self.page_of(kind, client, located=None)
+
+        assert page.select_one("[data-card=coverage]") is None
+
+    def test_located_samples_give_the_map_and_load_the_map_library(self, kind, client):
+        page, record = self.page_of(kind, client, located=True)
+
+        element = page.select_one("[data-card=coverage] [data-map]")
+        assert (
+            element["data-points-url"] == f"{record.get_absolute_url()}sample-points/"
+        )
+        assert any("maplibre-gl@" in (s.get("src") or "") for s in page("script"))
+
+    def test_samples_none_of_which_is_located_give_the_panel_without_a_map(
+        self, kind, client
+    ):
+        page, _ = self.page_of(kind, client, located=False)
+
+        assert page.select_one("[data-card=coverage]") is not None
+        assert page.select_one("[data-map]") is None
+        assert not any("maplibre-gl@" in (s.get("src") or "") for s in page("script"))

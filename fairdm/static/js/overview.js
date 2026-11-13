@@ -209,10 +209,97 @@
     return cssVar(el, "--record") || cssVar(el, "--color-primary") || undefined;
   }
 
-  // Every element marked data-map: one point at its data-lon and data-lat, with a marker.
+  // Every sample under data-points-url on one map: clustered where they crowd, a cluster zooms in
+  // when selected, and the samples under a selected point open in one popup. When the points
+  // cannot be fetched the map stays empty: the panel's text already says everything it holds.
+  function startSampleMap(el) {
+    var colour = mapColour(el) || "#17517D";
+    var b = JSON.parse(el.dataset.bounds);
+    var map = startMap(el, {
+      style: "https://tiles.openfreemap.org/styles/positron",
+      bounds: [[b[0], b[1]], [b[2], b[3]]],
+      fitBoundsOptions: { padding: 48, maxZoom: 10 },
+    });
+    map.on("load", function () {
+      fetch(el.dataset.pointsUrl, { credentials: "same-origin", headers: { Accept: "application/json" } })
+        .then(function (response) { return response.ok ? response.json() : null; })
+        .then(function (data) {
+          if (data) drawSamples(map, data, colour);
+        })
+        .catch(function () {});
+    });
+  }
+
+  function drawSamples(map, data, colour) {
+    map.addSource("samples", { type: "geojson", data: data, cluster: true, clusterRadius: 38, clusterMaxZoom: 11 });
+    map.addLayer({
+      id: "clusters", type: "circle", source: "samples", filter: ["has", "point_count"],
+      paint: {
+        "circle-color": colour, "circle-opacity": 0.9,
+        "circle-radius": ["step", ["get", "point_count"], 14, 10, 18, 50, 24],
+        "circle-stroke-width": 3, "circle-stroke-color": "rgba(255,255,255,0.85)",
+      },
+    });
+    map.addLayer({
+      id: "cluster-count", type: "symbol", source: "samples", filter: ["has", "point_count"],
+      layout: { "text-field": ["get", "point_count_abbreviated"], "text-size": 12, "text-font": ["Noto Sans Bold"] },
+      paint: { "text-color": "#111820" },
+    });
+    map.addLayer({
+      id: "points", type: "circle", source: "samples", filter: ["!", ["has", "point_count"]],
+      paint: { "circle-color": colour, "circle-radius": 6, "circle-stroke-width": 2, "circle-stroke-color": "#ffffff" },
+    });
+    map.on("click", "clusters", function (e) {
+      var feature = map.queryRenderedFeatures(e.point, { layers: ["clusters"] })[0];
+      map.getSource("samples").getClusterExpansionZoom(feature.properties.cluster_id).then(function (zoom) {
+        map.easeTo({ center: feature.geometry.coordinates, zoom: zoom });
+      });
+    });
+    map.on("click", "points", function (e) {
+      var features = map.queryRenderedFeatures(e.point, { layers: ["points"] });
+      if (!features.length) return;
+      new maplibregl.Popup({ offset: 10 })
+        .setLngLat(features[0].geometry.coordinates)
+        .setDOMContent(samplesPopup(features))
+        .addTo(map);
+    });
+    ["clusters", "points"].forEach(function (layer) {
+      map.on("mouseenter", layer, function () { map.getCanvas().style.cursor = "pointer"; });
+      map.on("mouseleave", layer, function () { map.getCanvas().style.cursor = ""; });
+    });
+  }
+
+  // One entry per sample: its name as a link to its page, its type and dataset beneath. Several
+  // samples at one spot are a list.
+  function samplesPopup(features) {
+    function entry(p) {
+      var box = document.createElement("div");
+      var link = document.createElement("a");
+      link.href = p.url;
+      link.textContent = p.name;
+      var meta = document.createElement("span");
+      meta.textContent = [p.type, p.dataset].filter(Boolean).join(" \u00b7 ");
+      box.appendChild(link);
+      box.appendChild(meta);
+      return box;
+    }
+    if (features.length === 1) return entry(features[0].properties);
+    var list = document.createElement("ul");
+    list.className = "ov-map-samples";
+    features.forEach(function (feature) {
+      var item = document.createElement("li");
+      item.appendChild(entry(feature.properties));
+      list.appendChild(item);
+    });
+    return list;
+  }
+
+  // Every element marked data-map: the samples of a page under data-points-url, or one point at
+  // its data-lon and data-lat, with a marker.
   function initMaps(root) {
     if (!window.maplibregl) return;
     root.querySelectorAll("[data-map]").forEach(function (el) {
+      if (el.dataset.pointsUrl) return startSampleMap(el);
       if (!el.dataset.lon || !el.dataset.lat) return;
       var point = [parseFloat(el.dataset.lon), parseFloat(el.dataset.lat)];
       var map = startMap(el, { center: point, zoom: 9 });

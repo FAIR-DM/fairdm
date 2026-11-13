@@ -137,6 +137,12 @@
       </c-overview.panel>
     {% endif %}
   {% endblock overview.charts %}
+
+  {% block overview.map %}
+    {% if sample_map %}
+      <c-overview.coverage :map="sample_map" id="coverage" more_url="{{ urls.samples }}" />
+    {% endif %}
+  {% endblock overview.map %}
 {% endblock overview.main %}
 
 
