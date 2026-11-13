@@ -1815,7 +1815,7 @@ def portal_name(db):
 class TestOverviewCitationFormats:
     """The project's citation as BibTeX and RIS, as the Cite panel offers it."""
 
-    def _project(self):
+    def make_project(self):
         project = ProjectFactory(visibility=Visibility.PUBLIC, name="Seismic survey")
         for first, last in (("Anna", "Keller"), ("Tomas", "Oliveira")):
             project.add_contributor(
@@ -1829,11 +1829,11 @@ class TestOverviewCitationFormats:
         )
         return project
 
-    def _formats(self, client, project):
+    def formats_of(self, client, project):
         citation = _page(client, project).context["citation"]
         return {entry["key"]: entry["value"] for entry in citation["formats"]}
 
-    def _entry(self, formats):
+    def entry_of(self, formats):
         data = parse_string(formats["bibtex"], "bibtex")
         assert len(data.entries) == 1
         key, entry = next(iter(data.entries.items()))
@@ -1842,10 +1842,10 @@ class TestOverviewCitationFormats:
     def test_the_text_and_both_files_give_the_same_people_year_title_and_publisher(
         self, client, portal_name
     ):
-        project = self._project()
+        project = self.make_project()
 
-        formats = self._formats(client, project)
-        key, entry, ris = self._entry(formats)
+        formats = self.formats_of(client, project)
+        key, entry, ris = self.entry_of(formats)
 
         assert formats["text"].startswith("Keller, A. & Oliveira, T. (2021). ")
         assert "Seismic survey. Acme Data Portal." in formats["text"]
@@ -1865,11 +1865,11 @@ class TestOverviewCitationFormats:
         )
 
     def test_without_a_doi_the_files_give_the_permalink_and_no_doi(self, client):
-        project = self._project()
+        project = self.make_project()
         permalink = f"http://testserver/{project.uuid}/"
 
-        formats = self._formats(client, project)
-        _key, entry, ris = self._entry(formats)
+        formats = self.formats_of(client, project)
+        key, entry, ris = self.entry_of(formats)
 
         assert formats["text"].endswith(permalink)
         assert entry.fields["url"] == permalink
@@ -1878,13 +1878,13 @@ class TestOverviewCitationFormats:
         assert "doi" not in ris
 
     def test_with_a_doi_the_files_give_the_doi_and_its_link(self, client):
-        project = self._project()
+        project = self.make_project()
         ProjectIdentifierFactory(
             related=project, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.5555/cited_1"
         )
 
-        formats = self._formats(client, project)
-        _key, entry, ris = self._entry(formats)
+        formats = self.formats_of(client, project)
+        key, entry, ris = self.entry_of(formats)
 
         assert formats["text"].endswith("https://doi.org/10.5555/cited_1")
         assert entry.fields["doi"] == "10.5555/cited_1"
@@ -1893,8 +1893,8 @@ class TestOverviewCitationFormats:
         assert ris["urls"] == ["https://doi.org/10.5555/cited_1"]
 
     def test_a_project_is_a_misc_entry_and_a_general_reference(self, client):
-        formats = self._formats(client, self._project())
-        _key, entry, ris = self._entry(formats)
+        formats = self.formats_of(client, self.make_project())
+        key, entry, ris = self.entry_of(formats)
 
         assert entry.type == "misc"
         assert ris["type_of_reference"] == "GEN"
@@ -1902,15 +1902,15 @@ class TestOverviewCitationFormats:
     def test_with_nobody_credited_no_author_is_given(self, client):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
 
-        formats = self._formats(client, project)
-        _key, entry, ris = self._entry(formats)
+        formats = self.formats_of(client, project)
+        key, entry, ris = self.entry_of(formats)
 
         assert "author" not in entry.persons
         assert "authors" not in ris
         assert formats["text"].startswith("(")
 
     def test_each_format_has_an_address_beside_the_page(self, client):
-        project = self._project()
+        project = self.make_project()
 
         citation = _page(client, project).context["citation"]
 

@@ -702,21 +702,21 @@ class TestSamplePoints:
         assert views == [Citation, SamplePoints]
 
 
-def _public_dataset():
+def public_dataset_for_citation():
     return DatasetFactory(visibility=Visibility.PUBLIC, published=True)
 
 
-def _private_dataset():
+def private_dataset_for_citation():
     return DatasetFactory(visibility=Visibility.PRIVATE, published=False)
 
 
-def _sample(dataset):
+def sample_for_citation(dataset):
     return RockSampleFactory(dataset=dataset, name="Zq-4471 rift core")
 
 
-def _measurement(dataset):
+def measurement_for_citation(dataset):
     return XRFMeasurementFactory(
-        dataset=dataset, sample=_sample(dataset), name="Zq-9902 scan"
+        dataset=dataset, sample=sample_for_citation(dataset), name="Zq-9902 scan"
     )
 
 
@@ -730,27 +730,27 @@ KINDS = {
         "seismic-survey",
     ),
     "dataset": ("dataset", lambda dataset: dataset, None),
-    "sample": ("sample", _sample, "zq-4471-rift-core-rock-sample"),
+    "sample": ("sample", sample_for_citation, "zq-4471-rift-core-rock-sample"),
     "measurement": (
         "measurement",
-        _measurement,
+        measurement_for_citation,
         "zq-9902-scan-xrf-measurement-of-zq-4471-rift-core",
     ),
 }
 
 
-def _address(kind, record, key):
+def address_for_citation(kind, record, key):
     return reverse(
         f"{KINDS[kind][0]}:overview-citation",
         kwargs={"uuid": record.uuid, "format": key},
     )
 
 
-def _page_address(kind, record):
+def page_address_for_citation(kind, record):
     return reverse(f"{KINDS[kind][0]}:overview", kwargs={"uuid": record.uuid})
 
 
-def _team_member_of(kind, record):
+def team_member_of_for_citation(kind, record):
     """A user with view access to the record, through its own team or its dataset's."""
     user = PersonFactory(is_active=True)
     held = record if kind in ("project", "dataset") else record.dataset
@@ -767,7 +767,7 @@ def kind(request):
 
 @pytest.fixture
 def public_record(kind):
-    dataset = _public_dataset()
+    dataset = public_dataset_for_citation()
     record = KINDS[kind][1](dataset)
     if kind == "dataset":
         record.name = "Borehole logs"
@@ -777,7 +777,7 @@ def public_record(kind):
 
 @pytest.fixture
 def private_record(kind):
-    dataset = _private_dataset()
+    dataset = private_dataset_for_citation()
     record = KINDS[kind][1](dataset)
     if kind == "dataset":
         record.name = "Borehole logs"
@@ -785,7 +785,7 @@ def private_record(kind):
     return record
 
 
-def _stem(kind, record):
+def stem_for_citation(kind, record):
     return KINDS[kind][2] or "borehole-logs"
 
 
@@ -797,41 +797,41 @@ class TestCitationFile:
     def test_each_format_answers_with_its_content_type_and_a_named_attachment(
         self, client, kind, public_record, fmt
     ):
-        response = client.get(_address(kind, public_record, fmt.key))
+        response = client.get(address_for_citation(kind, public_record, fmt.key))
 
         assert response.status_code == 200
         assert response["Content-Type"] == fmt.content_type
         assert response["Content-Disposition"] == (
-            f'attachment; filename="{_stem(kind, public_record)}.{fmt.extension}"'
+            f'attachment; filename="{stem_for_citation(kind, public_record)}.{fmt.extension}"'
         )
 
     @pytest.mark.parametrize("fmt", FORMATS, ids=lambda f: f.key)
     def test_the_body_is_the_formats_value_on_the_pages_context(
         self, client, kind, public_record, fmt
     ):
-        page = client.get(_page_address(kind, public_record))
+        page = client.get(page_address_for_citation(kind, public_record))
         values = {f["key"]: f["value"] for f in page.context["citation"]["formats"]}
 
-        response = client.get(_address(kind, public_record, fmt.key))
+        response = client.get(address_for_citation(kind, public_record, fmt.key))
 
         assert response.content.decode() == values[fmt.key]
 
     def test_a_stranger_gets_the_not_found_the_page_gives_for_a_private_record(
         self, client, kind, private_record
     ):
-        page = client.get(_page_address(kind, private_record))
+        page = client.get(page_address_for_citation(kind, private_record))
 
         for fmt in FORMATS:
-            response = client.get(_address(kind, private_record, fmt.key))
+            response = client.get(address_for_citation(kind, private_record, fmt.key))
             assert response.status_code == page.status_code == 404
 
     @pytest.mark.parametrize("fmt", FORMATS, ids=lambda f: f.key)
     def test_a_team_member_gets_the_file_for_a_private_record(
         self, client, kind, private_record, fmt
     ):
-        client.force_login(_team_member_of(kind, private_record))
+        client.force_login(team_member_of_for_citation(kind, private_record))
 
-        response = client.get(_address(kind, private_record, fmt.key))
+        response = client.get(address_for_citation(kind, private_record, fmt.key))
 
         assert response.status_code == 200
         assert response["Content-Type"] == fmt.content_type
@@ -839,17 +839,26 @@ class TestCitationFile:
     def test_an_unknown_record_is_not_found(self, client, kind, public_record):
         unknown = SimpleNamespace(uuid=uuid.uuid4())
 
-        assert client.get(_address(kind, unknown, "bibtex")).status_code == 404
+        assert (
+            client.get(address_for_citation(kind, unknown, "bibtex")).status_code == 404
+        )
 
     def test_an_unknown_format_is_not_found(self, client, kind, public_record):
-        assert client.get(_address(kind, public_record, "csl")).status_code == 404
+        assert (
+            client.get(address_for_citation(kind, public_record, "csl")).status_code
+            == 404
+        )
 
     def test_a_site_with_no_name_gives_no_publisher(self, client, kind, public_record):
         Site.objects.filter(pk=Site.objects.get_current().pk).update(name="")
         Site.objects.clear_cache()
 
-        bibtex = client.get(_address(kind, public_record, "bibtex")).content.decode()
-        ris = client.get(_address(kind, public_record, "ris")).content.decode()
+        bibtex = client.get(
+            address_for_citation(kind, public_record, "bibtex")
+        ).content.decode()
+        ris = client.get(
+            address_for_citation(kind, public_record, "ris")
+        ).content.decode()
 
         [entry] = parse_string(bibtex, "bibtex").entries.values()
         assert "publisher" not in entry.fields
@@ -858,11 +867,11 @@ class TestCitationFile:
     def test_the_address_costs_no_more_queries_than_the_page(
         self, client, kind, public_record
     ):
-        client.get(_page_address(kind, public_record))
+        client.get(page_address_for_citation(kind, public_record))
         with CaptureQueriesContext(connection) as page:
-            client.get(_page_address(kind, public_record))
+            client.get(page_address_for_citation(kind, public_record))
         with CaptureQueriesContext(connection) as file:
-            client.get(_address(kind, public_record, "bibtex"))
+            client.get(address_for_citation(kind, public_record, "bibtex"))
 
         assert len(file) <= len(page)
 

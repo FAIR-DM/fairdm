@@ -798,7 +798,7 @@ def portal_name(db):
 class TestOverviewCitationFormats:
     """The sample's citation as BibTeX and RIS, as the Cite panel offers it."""
 
-    def _collected(self, sample):
+    def collect(self, sample):
         for first, last in (("Anna", "Keller"), ("Tomas", "Oliveira")):
             sample.add_contributor(
                 PersonFactory(first_name=first, last_name=last, is_active=True),
@@ -811,11 +811,11 @@ class TestOverviewCitationFormats:
         )
         return sample
 
-    def _formats(self, client, sample):
+    def formats_of(self, client, sample):
         citation = _page(client, sample).context["citation"]
         return {entry["key"]: entry["value"] for entry in citation["formats"]}
 
-    def _entry(self, formats):
+    def entry_of(self, formats):
         data = parse_string(formats["bibtex"], "bibtex")
         assert len(data.entries) == 1
         key, entry = next(iter(data.entries.items()))
@@ -824,10 +824,10 @@ class TestOverviewCitationFormats:
     def test_the_text_and_both_files_give_the_same_people_year_title_and_publisher(
         self, client, rock, portal_name
     ):
-        self._collected(rock)
+        self.collect(rock)
 
-        formats = self._formats(client, rock)
-        key, entry, ris = self._entry(formats)
+        formats = self.formats_of(client, rock)
+        key, entry, ris = self.entry_of(formats)
 
         title = "Zq-4471 rift core [Rock Sample]"
         assert formats["text"].startswith("Keller, A. & Oliveira, T. (2023). ")
@@ -852,8 +852,8 @@ class TestOverviewCitationFormats:
     ):
         permalink = f"http://testserver/{rock.uuid}/"
 
-        formats = self._formats(client, rock)
-        _key, entry, ris = self._entry(formats)
+        formats = self.formats_of(client, rock)
+        key, entry, ris = self.entry_of(formats)
 
         assert formats["text"].endswith(permalink)
         assert entry.fields["url"] == permalink
@@ -864,8 +864,8 @@ class TestOverviewCitationFormats:
     def test_with_an_igsn_the_files_give_it_as_the_doi_and_its_link(self, client, rock):
         SampleIdentifierFactory(related=rock, type=IGSN, value="10.58052/IGSN_1")
 
-        formats = self._formats(client, rock)
-        _key, entry, ris = self._entry(formats)
+        formats = self.formats_of(client, rock)
+        key, entry, ris = self.entry_of(formats)
 
         assert formats["text"].endswith("https://doi.org/10.58052/IGSN_1")
         assert entry.fields["doi"] == "10.58052/IGSN_1"
@@ -878,8 +878,8 @@ class TestOverviewCitationFormats:
     ):
         SampleIdentifierFactory(related=rock, type=IGSN, value="AU1101")
 
-        formats = self._formats(client, rock)
-        _key, entry, ris = self._entry(formats)
+        formats = self.formats_of(client, rock)
+        key, entry, ris = self.entry_of(formats)
 
         assert "http" not in formats["text"]
         assert "doi" not in entry.fields
@@ -888,15 +888,15 @@ class TestOverviewCitationFormats:
         assert "urls" not in ris
 
     def test_a_sample_is_a_misc_entry_and_a_general_reference(self, client, rock):
-        formats = self._formats(client, rock)
-        _key, entry, ris = self._entry(formats)
+        formats = self.formats_of(client, rock)
+        key, entry, ris = self.entry_of(formats)
 
         assert entry.type == "misc"
         assert ris["type_of_reference"] == "GEN"
 
     def test_with_nobody_credited_no_author_is_given(self, client, rock):
-        formats = self._formats(client, rock)
-        _key, entry, ris = self._entry(formats)
+        formats = self.formats_of(client, rock)
+        key, entry, ris = self.entry_of(formats)
 
         assert "author" not in entry.persons
         assert "authors" not in ris
@@ -907,7 +907,7 @@ class TestOverviewCitationFormats:
 
         citation = _page(client, sample).context["citation"]
         formats = {entry["key"]: entry["value"] for entry in citation["formats"]}
-        _key, entry, ris = self._entry(formats)
+        key, entry, ris = self.entry_of(formats)
 
         assert list(formats) == ["text", "bibtex", "ris"]
         assert "Portal core [concrete sample]" in formats["text"]

@@ -1918,7 +1918,7 @@ def portal_name(db):
 class TestOverviewCitationFormats:
     """The dataset's citation as BibTeX and RIS, as the Cite panel offers it."""
 
-    def _dataset(self, **kwargs):
+    def make_dataset(self, **kwargs):
         dataset = DatasetFactory(
             visibility=Visibility.PUBLIC, name="Borehole logs", **kwargs
         )
@@ -1934,11 +1934,11 @@ class TestOverviewCitationFormats:
         )
         return dataset
 
-    def _formats(self, client, dataset):
+    def formats_of(self, client, dataset):
         citation = _page(client, dataset).context["citation"]
         return {entry["key"]: entry["value"] for entry in citation["formats"]}
 
-    def _entry(self, formats):
+    def entry_of(self, formats):
         data = parse_string(formats["bibtex"], "bibtex")
         assert len(data.entries) == 1
         key, entry = next(iter(data.entries.items()))
@@ -1947,10 +1947,10 @@ class TestOverviewCitationFormats:
     def test_the_text_and_both_files_give_the_same_people_year_title_and_publisher(
         self, client, portal_name
     ):
-        dataset = self._dataset()
+        dataset = self.make_dataset()
 
-        formats = self._formats(client, dataset)
-        key, entry, ris = self._entry(formats)
+        formats = self.formats_of(client, dataset)
+        key, entry, ris = self.entry_of(formats)
 
         assert formats["text"].startswith("Keller, A. & Oliveira, T. (2022). ")
         assert "Borehole logs. Acme Data Portal." in formats["text"]
@@ -1970,11 +1970,11 @@ class TestOverviewCitationFormats:
         )
 
     def test_without_a_doi_the_files_give_the_permalink_and_no_doi(self, client):
-        dataset = self._dataset()
+        dataset = self.make_dataset()
         permalink = f"http://testserver/{dataset.uuid}/"
 
-        formats = self._formats(client, dataset)
-        _key, entry, ris = self._entry(formats)
+        formats = self.formats_of(client, dataset)
+        key, entry, ris = self.entry_of(formats)
 
         assert formats["text"].endswith(permalink)
         assert entry.fields["url"] == permalink
@@ -1983,11 +1983,11 @@ class TestOverviewCitationFormats:
         assert "doi" not in ris
 
     def test_with_a_doi_the_files_give_the_doi_and_its_link(self, client):
-        dataset = self._dataset()
+        dataset = self.make_dataset()
         DatasetIdentifierFactory(related=dataset, value="10.5555/ds_1")
 
-        formats = self._formats(client, dataset)
-        _key, entry, ris = self._entry(formats)
+        formats = self.formats_of(client, dataset)
+        key, entry, ris = self.entry_of(formats)
 
         assert formats["text"].endswith("https://doi.org/10.5555/ds_1")
         assert entry.fields["doi"] == "10.5555/ds_1"
@@ -1996,8 +1996,8 @@ class TestOverviewCitationFormats:
         assert ris["urls"] == ["https://doi.org/10.5555/ds_1"]
 
     def test_a_dataset_is_a_dataset_entry_and_a_data_reference(self, client):
-        formats = self._formats(client, self._dataset())
-        _key, entry, ris = self._entry(formats)
+        formats = self.formats_of(client, self.make_dataset())
+        key, entry, ris = self.entry_of(formats)
 
         assert entry.type == "dataset"
         assert ris["type_of_reference"] == "DATA"
@@ -2005,8 +2005,8 @@ class TestOverviewCitationFormats:
     def test_with_nobody_credited_no_author_is_given(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
 
-        formats = self._formats(client, dataset)
-        _key, entry, ris = self._entry(formats)
+        formats = self.formats_of(client, dataset)
+        key, entry, ris = self.entry_of(formats)
 
         assert "author" not in entry.persons
         assert "authors" not in ris
@@ -2028,10 +2028,10 @@ class TestOverviewCitationFormats:
         )
         reference.publisher = "Journal of Rhine Studies"
         reference.save()
-        dataset = self._dataset(reference=reference)
+        dataset = self.make_dataset(reference=reference)
 
-        formats = self._formats(client, dataset)
-        key, entry, ris = self._entry(formats)
+        formats = self.formats_of(client, dataset)
+        key, entry, ris = self.entry_of(formats)
 
         assert formats["text"] == (
             f"Brandt, L. & Weiss, J. (2020). {title}. Journal of Rhine Studies. "
@@ -2061,7 +2061,7 @@ class TestOverviewCitationFormats:
         assert ris["doi"] == "10.1234/pub_x"
 
     def test_each_format_has_an_address_beside_the_page(self, client):
-        dataset = self._dataset()
+        dataset = self.make_dataset()
 
         citation = _page(client, dataset).context["citation"]
 
