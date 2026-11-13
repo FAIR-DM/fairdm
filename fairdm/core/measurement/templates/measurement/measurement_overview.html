@@ -57,12 +57,12 @@
     {% else %}
       {% translate "No details of how this measurement was made have been recorded." as empty %}
     {% endif %}
-    <c-ov.history title="{% translate 'How it was measured' %}" :steps="procedure" empty="{{ empty }}" />
+    <c-ov.history title="{% translate 'How it was measured' %}" :steps="procedure" empty="{{ empty }}" edit_url="{{ edit.dates }}" />
   {% endblock overview.procedure %}
 
   {% block overview.notes %}
     {% if notes %}
-      <c-ov.panel title="{% translate 'Notes' %}">
+      <c-ov.panel title="{% translate 'Notes' %}" edit_url="{{ edit.descriptions }}" edit_label="{% translate 'Edit the notes' %}">
         <div class="ov-prose">{{ notes|safe_markdown }}</div>
       </c-ov.panel>
     {% endif %}
@@ -126,6 +126,7 @@
   {% block overview.location %}
     {% if effective_location.source == "own" %}
       <c-ov.location :location="effective_location.point" :elevation="effective_location.elevation" :uncertainty="effective_location.uncertainty"
+                     edit_url="{{ edit.details }}"
                      title="{% translate 'Where it was measured' %}"
                      label="{% blocktranslate with x=effective_location.point.x y=effective_location.point.y %}Map of where the measurement was made, at longitude {{ x }} and latitude {{ y }}{% endblocktranslate %}" />
     {% elif effective_location %}

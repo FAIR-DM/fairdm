@@ -19,7 +19,7 @@
     overview.byline         header: the people behind the record, by name
     overview.facts          header: a line of key facts, label then value
     overview.keywords       header: keywords
-    overview.actions        header: Cite, Share, then the Manage menu
+    overview.actions        header: Cite, Share, then Edit for the header's own details
       overview.manage
     overview.figures        header foot: the headline figures, or a measurement's result
     overview.main           the wide column
@@ -66,6 +66,9 @@
           <form method="dialog" class="modal-backdrop"><button aria-label="{% translate 'Close' %}">{% translate "Close" %}</button></form>
         </dialog>
       {% endif %}
+      {% if not record.image %}
+        <div class="ov-hero__grid" aria-hidden="true"><c-background.grid size="2.5" intensity="0.16" /></div>
+      {% endif %}
       <div class="ov-hero__inner">
         {% block overview.image %}
           {% if not record.image %}
@@ -100,9 +103,10 @@
 
           {% block overview.keywords %}
             {% with keywords=record.keywords.all %}
-              {% if keywords %}
+              {% if keywords or edit.keywords %}
                 <ul class="ov-keywords" aria-label="{% translate 'Keywords' %}">
                   {% for keyword in keywords %}<li class="ov-keyword">{{ keyword.display_label }}</li>{% endfor %}
+                  {% if edit.keywords %}<li>{% if keywords %}<c-ov.edit href="{{ edit.keywords }}" label="{% translate 'Edit keywords' %}" />{% else %}<c-ov.edit href="{{ edit.keywords }}" text="{% translate 'Add keywords' %}" icon="add" />{% endif %}</li>{% endif %}
                 </ul>
               {% endif %}
             {% endwith %}
@@ -115,7 +119,8 @@
             {% permalink record as permalink %}
             <c-mvp.addons.share-dropdown size="sm" url="{{ permalink }}" />
             {% block overview.manage %}
-              <c-actions.manage :entries="manage_menu" />
+              {% comment %} The header's own edit: the name, status and the other details it shows. Every other part of the record is edited from the panel that shows it. {% endcomment %}
+              {% if edit.details %}<a href="{{ edit.details }}" class="btn btn-sm"><c-icon name="edit" aria-hidden="true" only />{% translate "Edit" %}</a>{% endif %}
             {% endblock overview.manage %}
           {% endblock overview.actions %}
         </div>
@@ -148,6 +153,8 @@
           {% block overview.details %}
             {% permalink record as permalink %}
             <c-ov.sheet :rows="details"
+                        :edit="edit"
+                        kind="{{ overview_icon }}"
                         :identifiers="identifiers"
                         portal_id="{{ record.uuid }}"
                         permalink="{{ permalink }}"
@@ -160,7 +167,7 @@
           {% block overview.timeline %}{% endblock overview.timeline %}
 
           {% block overview.people %}
-            <c-ov.people :credits="credits" all_url="{{ people_url|default:'' }}" />
+            <c-ov.people :credits="credits" all_url="{{ people_url|default:'' }}" manage_url="{% if can_manage %}{{ people_url|default:'' }}{% endif %}" />
           {% endblock overview.people %}
 
           {% block overview.record_facts %}{% endblock overview.record_facts %}

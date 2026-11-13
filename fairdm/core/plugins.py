@@ -101,6 +101,7 @@ class RecordOverviewPlugin(OverviewPlugin):
         )
         context["credits"] = overview_proto.credits_for_panel(credits)
         context["primary_id"] = overview_proto.primary_identifier(context.get("identifiers"))
+        context["edit"] = overview_proto.edit_links(self.request, self.base_object)
         return super().render_to_response(context, **response_kwargs)
 
     def get_contributions(self) -> list[Contribution]:

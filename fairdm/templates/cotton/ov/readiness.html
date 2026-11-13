@@ -5,6 +5,7 @@
 {% endcomment %}
 {% load i18n %}
 <c-vars readiness />
+{# Slot: an action the checklist leads to, such as Publish. #}
 <section class="ov-panel ov-panel--side ov-ready" aria-labelledby="ready-heading" data-card="readiness">
   <div class="ov-panel__head">
     <h2 class="ov-panel__title" id="ready-heading">{{ readiness.title }}</h2>
@@ -29,6 +30,7 @@
       {% endfor %}
     </ul>
   {% endif %}
+  {% if slot %}<div class="ov-cite__actions">{{ slot }}</div>{% endif %}
   {% if readiness.done %}
     <details class="ov-done">
       <summary>{% blocktranslate count counter=readiness.done %}{{ counter }} in place{% plural %}{{ counter }} in place{% endblocktranslate %}</summary>

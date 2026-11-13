@@ -15,7 +15,7 @@
 
 {# The block the base page leaves empty for exactly this: the type's own fields. #}
 {% block overview.properties %}
-  <c-ov.props title="Rock properties">
+  <c-ov.props title="Rock properties" edit_url="{{ edit.details }}">
     <c-ov.prop label="Rock type" value="{{ sample.rock_type|capfirst }}" />
     <c-ov.prop label="Collection date" value="{{ sample.collection_date|date:'SHORT_DATE_FORMAT' }}" />
     <c-ov.prop label="Weight" value="{% if sample.weight_grams %}{{ sample.weight_grams|floatformat:1 }} g{% endif %}" />

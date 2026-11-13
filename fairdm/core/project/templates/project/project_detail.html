@@ -27,16 +27,6 @@
   {% if primary_id %}<li><span class="ov-facts__label">{{ primary_id.type }}</span><a href="{{ primary_id.link }}" class="ov-mono">{{ primary_id.value }}</a></li>{% endif %}
 {% endblock overview.facts %}
 
-{% block overview.manage %}
-  {% if can_manage and urls.add_dataset %}
-    <c-button href="{{ urls.add_dataset }}?project={{ project.uuid }}"
-              text="{% translate 'Add dataset' %}"
-              icon="add"
-              size="sm"
-              variant="primary" />
-  {% endif %}
-  <c-actions.manage :entries="manage_menu" />
-{% endblock overview.manage %}
 
 {% block overview.notices %}
   {% if can_manage and project.visibility != project.VISIBILITY.PUBLIC %}
@@ -66,7 +56,7 @@
 
 {% block overview.main %}
   {% block overview.about %}
-    <c-ov.descriptions :descriptions="descriptions" group="project-about">
+    <c-ov.descriptions :descriptions="descriptions" group="project-about" edit_url="{{ edit.descriptions }}">
       {% if can_manage %}
         <div class="ov-empty-block">
           <p class="ov-empty">{% translate "Nobody has described this project yet. An abstract is the first thing visitors and search engines read, and the first thing a data repository asks for." %}</p>
@@ -79,7 +69,7 @@
   {% endblock overview.about %}
 
   {% block overview.datasets %}
-    <c-ov.panel title="{% translate 'Datasets' %}" count="{% if counts.datasets %}{{ counts.datasets }}{% endif %}" more_url="{% if counts.datasets %}{{ urls.datasets }}{% endif %}" data-card="datasets">
+    <c-ov.panel title="{% translate 'Datasets' %}" count="{% if counts.datasets %}{{ counts.datasets }}{% endif %}" more_url="{% if counts.datasets %}{{ urls.datasets }}{% endif %}" edit_url="{% if can_manage and urls.add_dataset and datasets_preview.rows %}{{ urls.add_dataset }}?project={{ project.uuid }}{% endif %}" edit_text="{% translate 'Add dataset' %}" edit_icon="add" data-card="datasets">
       {% if datasets_preview.rows %}
         <ul class="ov-rows" aria-label="{% translate 'Most recently updated datasets' %}">
           {% for dataset in datasets_preview.rows %}
@@ -163,12 +153,14 @@
     <dd>
       {% if timeline.start_date %}
         {{ timeline.start_text }} – {% if timeline.end_date %}{{ timeline.end_text }}{% else %}{% translate "ongoing" %}{% endif %}
+        {% if edit.dates %}<c-ov.edit href="{{ edit.dates }}" label="{% translate 'Edit the project dates' %}" />{% endif %}
         {% if timeline.percent is not None %}
           <span class="ov-sub">{{ timeline.label }}</span>
           <div class="ov-bar" role="progressbar" aria-valuenow="{{ timeline.percent }}" aria-valuemin="0" aria-valuemax="100" aria-label="{{ timeline.label }}"><span style="width: {{ timeline.percent }}%"></span></div>
         {% endif %}
       {% else %}
         <span aria-hidden="true">—</span><span class="sr-only">{% translate "No start or end date has been recorded." %}</span>
+        {% if edit.dates %}<c-ov.edit href="{{ edit.dates }}" text="{% translate 'Add dates' %}" icon="add" />{% endif %}
       {% endif %}
     </dd>
   </div>

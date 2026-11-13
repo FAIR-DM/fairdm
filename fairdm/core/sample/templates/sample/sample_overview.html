@@ -64,7 +64,7 @@
 
   {% block overview.notes %}
     {% if notes %}
-      <c-ov.panel title="{% translate 'Notes' %}">
+      <c-ov.panel title="{% translate 'Notes' %}" edit_url="{{ edit.descriptions }}" edit_label="{% translate 'Edit the notes' %}">
         <div class="ov-prose">{{ notes|safe_markdown }}</div>
       </c-ov.panel>
     {% endif %}
@@ -76,7 +76,7 @@
     {% else %}
       {% translate "No history has been recorded for this specimen." as empty %}
     {% endif %}
-    <c-ov.history title="{% translate 'History' %}" :steps="lifecycle" empty="{{ empty }}" />
+    <c-ov.history title="{% translate 'History' %}" :steps="lifecycle" empty="{{ empty }}" edit_url="{{ edit.dates }}" />
   {% endblock overview.history %}
 
   {% block overview.measurements %}
@@ -121,7 +121,7 @@
   {% block overview.cite %}{{ block.super }}{% endblock overview.cite %}
 
   {% block overview.location %}
-    <c-ov.location id="location" :location="location" :elevation="sample.location_elevation" :uncertainty="sample.location_uncertainty" empty="{% translate 'No location has been recorded for this sample.' %}" />
+    <c-ov.location id="location" edit_url="{{ edit.details }}" :location="location" :elevation="sample.location_elevation" :uncertainty="sample.location_uncertainty" empty="{% translate 'No location has been recorded for this sample.' %}" />
   {% endblock overview.location %}
 
   {% block overview.details %}{{ block.super }}{% endblock overview.details %}

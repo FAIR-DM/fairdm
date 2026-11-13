@@ -26,7 +26,7 @@
 {% endblock overview.result %}
 
 {% block overview.properties %}
-  <c-ov.props title="Analytical conditions">
+  <c-ov.props title="Analytical conditions" edit_url="{{ edit.details }}">
     <c-ov.prop label="Instrument" value="{{ measurement.instrument_model }}" />
     <c-ov.prop label="Element" value="{{ measurement.element }}" />
     <c-ov.prop label="Conditions" value="{{ measurement.measurement_conditions }}" wide text />

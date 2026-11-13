@@ -242,3 +242,25 @@ def mix(samples, measurements):
     if not counts:
         return None
     return {"samples": sample_rows, "measurements": measurement_rows, "max": max(counts)}
+
+
+def edit_links(request, record):
+    """The editing pages the viewer may open, keyed by what each edits, for the panel that shows it."""
+    from fairdm.contrib.plugins import reverse as plugin_reverse
+    from fairdm.contrib.plugins.access import can_open
+    from fairdm.core import editing
+
+    keys = {
+        editing.EditDetails: "details",
+        editing.EditDescriptions: "descriptions",
+        editing.EditKeywords: "keywords",
+        editing.EditKeyDates: "dates",
+        editing.EditIdentifiers: "identifiers",
+        editing.DeleteRecord: "delete",
+    }
+    may_see = can_open(editing.RecordEditingPage.overview_for(record), request, record)
+    return {
+        keys[page]: plugin_reverse(record, page.get_name())
+        for page in editing.MENU_PAGES
+        if page in keys and page.may_be_used_by(request, record, may_see)
+    }

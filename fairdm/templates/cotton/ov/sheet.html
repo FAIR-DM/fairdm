@@ -1,14 +1,18 @@
 {% comment %}
   <c-ov.sheet> — the record's facts in one panel: details, identifiers, funding and how a machine
   reaches it, each a section of label-and-value rows.
-  Attributes: rows (the Details rows), identifiers, portal_id, permalink, local_id, funding (None
+  Attributes: rows (the Details rows), edit (the editing pages the viewer may open, by what each
+  edits), kind (the record's kind, for the delete link), identifiers, portal_id, permalink, local_id, funding (None
   leaves the section out), can_manage, api_url. Slot: rows added to the details section, written as
   <div><dt>…</dt><dd>…</dd></div>.
 {% endcomment %}
 {% load i18n %}
-<c-vars rows identifiers portal_id permalink local_id funding can_manage api_url />
+<c-vars rows identifiers portal_id permalink local_id funding can_manage api_url edit kind />
 <section class="ov-panel ov-panel--side" aria-labelledby="sheet-heading" data-card="details">
-  <div class="ov-panel__head"><h2 class="ov-panel__title" id="sheet-heading">{% translate "Details" %}</h2></div>
+  <div class="ov-panel__head">
+    <h2 class="ov-panel__title" id="sheet-heading">{% translate "Details" %}</h2>
+    {% if edit.details %}<div class="ov-panel__tools"><c-ov.edit href="{{ edit.details }}" label="{% translate 'Edit details' %}" /></div>{% endif %}
+  </div>
   <div class="ov-sheet">
     <div class="ov-sheet__section">
       <dl class="ov-dl">
@@ -38,7 +42,7 @@
     </div>
 
     <div class="ov-sheet__section">
-      <h3 class="ov-sheet__heading">{% translate "Identifiers" %}</h3>
+      <h3 class="ov-sheet__heading">{% translate "Identifiers" %}{% if edit.identifiers %}<c-ov.edit href="{{ edit.identifiers }}" label="{% translate 'Edit identifiers' %}" />{% endif %}</h3>
       <dl class="ov-dl">
         {% for identifier in identifiers %}
           <div>
@@ -95,5 +99,11 @@
         <c-actions.pending label="{{ downloads }}" icon="download" reason="{{ reason }}" size="xs" only />
       </div>
     </div>
+
+    {% if edit.delete %}
+      <div class="ov-sheet__section">
+        <a href="{{ edit.delete }}" class="ov-danger"><c-icon name="delete" aria-hidden="true" only />{% blocktranslate %}Delete this {{ kind }}{% endblocktranslate %}</a>
+      </div>
+    {% endif %}
   </div>
 </section>

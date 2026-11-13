@@ -1,10 +1,10 @@
 {% comment %}
   <c-ov.history> — the steps in a record's life, oldest first: when, what, who and a note.
-  Attributes: title, steps ([{label, date, day, people, note}]), empty.
+  Attributes: title, steps ([{label, date, day, people, note}]), empty, edit_url.
 {% endcomment %}
 {% load i18n fairdm %}
-<c-vars title steps empty />
-<c-ov.panel title="{{ title }}" data-card="timeline">
+<c-vars title steps empty edit_url />
+<c-ov.panel title="{{ title }}" edit_url="{{ edit_url }}" edit_label="{% translate 'Edit dates' %}" data-card="timeline">
   {% if steps %}
     <ol class="ov-history">
       {% for step in steps %}

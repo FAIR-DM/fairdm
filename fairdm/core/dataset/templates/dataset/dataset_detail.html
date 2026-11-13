@@ -29,14 +29,17 @@
   {% if primary_id %}<li><span class="ov-facts__label">{{ primary_id.type }}</span><a href="{{ primary_id.link }}" class="ov-mono">{{ primary_id.value }}</a></li>{% endif %}
 {% endblock overview.facts %}
 
-{% block overview.manage %}
-  {% if can_manage and not dataset.data_is_public %}
-    {% translate "Publish" as label %}
-    {% translate "Checks the list under Ready to publish? and releases the data." as reason %}
-    <c-actions.pending label="{{ label }}" icon="upload" reason="{{ reason }}" variant="primary" />
+{% block overview.readiness %}
+  {% if readiness %}
+    <c-ov.readiness :readiness="readiness">
+      {% if can_manage and not dataset.data_is_public %}
+        {% translate "Publish" as label %}
+        {% translate "Checks the list under Ready to publish? and releases the data." as reason %}
+        <c-actions.pending label="{{ label }}" icon="upload" reason="{{ reason }}" variant="primary" size="sm" />
+      {% endif %}
+    </c-ov.readiness>
   {% endif %}
-  <c-actions.manage :entries="manage_menu" />
-{% endblock overview.manage %}
+{% endblock overview.readiness %}
 
 {% block overview.notices %}
   {% if access.state == "private" and can_manage %}
@@ -75,7 +78,7 @@
 
 {% block overview.main %}
   {% block overview.about %}
-    <c-ov.descriptions :descriptions="descriptions" group="dataset-about">
+    <c-ov.descriptions :descriptions="descriptions" group="dataset-about" edit_url="{{ edit.descriptions }}">
       {% if can_manage %}
         <div class="ov-empty-block">
           <p class="ov-empty">{% translate "Nobody has described this dataset yet. An abstract and a methods section are what a reuser reads first, and both are needed before it can be published." %}</p>
@@ -88,7 +91,7 @@
   {% endblock overview.about %}
 
   {% block overview.lifecycle %}
-    <c-ov.panel title="{% translate 'Timeline' %}" data-card="timeline" more_url="{% if can_manage %}{{ urls.key_dates }}{% endif %}" more_text="{% translate 'Edit dates' %}">
+    <c-ov.panel title="{% translate 'Timeline' %}" data-card="timeline" edit_url="{{ edit.dates }}" edit_label="{% translate 'Edit the key dates' %}">
       <ol class="ov-steps">
         {% for step in lifecycle %}
           <li class="ov-step is-done{% if step.label == _('Withdrawn') %} is-alert{% endif %}">

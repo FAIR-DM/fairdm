@@ -1,0 +1,9 @@
+{% comment %}
+  <c-ov.edit> — the small "Edit" control a panel carries for the part of the record it shows. Drawn
+  only when `href` is set, which the page does only for someone who may edit that part.
+  Attributes: href, text (default "Edit"), icon (default "edit"), label (the accessible name, when
+  the text alone doesn't say what is edited).
+{% endcomment %}
+{% load i18n %}
+<c-vars href text icon label />
+{% if href %}<a href="{{ href }}" class="ov-edit"{% if label %} aria-label="{{ label }}" title="{{ label }}"{% endif %}><c-icon name="{{ icon|default:'edit' }}" aria-hidden="true" only /><span>{{ text|default:_("Edit") }}</span></a>{% endif %}

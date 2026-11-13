@@ -2,11 +2,12 @@
   <c-ov.people> — everyone credited: the first few by name with their roles, then faces, then a
   link to the full list.
   Attributes: credits ({named: [{contributor, roles, affiliation}], faces, more, total}), all_url,
+  manage_url (where the team changes who is credited, shown as Manage),
   title, empty.
 {% endcomment %}
 {% load i18n %}
-<c-vars credits all_url title empty />
-<c-ov.panel side title="{{ title|default:_('People') }}" count="{{ credits.total }}" more_url="{% if credits.total %}{{ all_url }}{% endif %}" data-card="people">
+<c-vars credits all_url manage_url title empty />
+<c-ov.panel side title="{{ title|default:_('People') }}" count="{{ credits.total }}" more_url="{% if credits.total and not manage_url %}{{ all_url }}{% endif %}" edit_url="{{ manage_url }}" edit_text="{% translate 'Manage' %}" edit_icon="people" edit_label="{% translate 'Manage who is credited' %}" data-card="people">
   {% if credits.named %}
     <ul class="ov-people">
       {% for row in credits.named %}
