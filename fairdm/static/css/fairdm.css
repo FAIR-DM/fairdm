@@ -1184,6 +1184,48 @@ a.ov-row__title:hover { text-decoration: underline; }
 
 .ov-mix li.ov-mix__group { display: block; font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 650; color: var(--ov-faint); margin-top: 0.25rem; }
 
+/* A dataset's life: across the page on a wide screen, down it on a phone. Each step that has
+ * happened is a filled dot in the record's colour, and a withdrawal is a dot in the error colour. */
+
+.ov-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+
+.ov-step { position: relative; display: flex; flex-direction: column; gap: 0.25rem; padding-top: 1.5rem; padding-inline-end: 0.75rem; min-width: 0; }
+
+.ov-step::before { content: ""; position: absolute; top: 0.3125rem; inset-inline: 0.75rem 0; height: 2px; background: var(--ov-line); }
+
+.ov-step:last-child::before { display: none; }
+
+.ov-step::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  inset-inline-start: 0;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 999px;
+  border: 2px solid var(--ov-faint);
+  background: var(--color-base-100);
+}
+
+.ov-step.is-done::after { background: var(--record); border-color: var(--record); }
+
+.ov-step.is-done::before { background: color-mix(in oklch, var(--record) 55%, var(--ov-line)); }
+
+.ov-step.is-alert::after { background: var(--color-error); border-color: var(--color-error); }
+
+.ov-step__label { font-size: 0.8125rem; font-weight: 600; }
+
+.ov-step__date { font-size: 0.8125rem; color: var(--ov-muted); font-variant-numeric: tabular-nums; }
+
+.ov-step:not(.is-done) .ov-step__label { color: var(--ov-muted); font-weight: 500; }
+
+@media (max-width: 767px) {
+  .ov-steps { grid-auto-flow: row; gap: 0.875rem; }
+  .ov-step { padding-top: 0; padding-inline-start: 1.5rem; flex-direction: row; gap: 0.75rem; align-items: baseline; }
+  .ov-step::before { top: 1rem; bottom: -0.875rem; inset-inline-start: 0.3125rem; inset-inline-end: auto; width: 2px; height: auto; }
+  .ov-step::after { top: 0.25rem; }
+}
+
 /* A record with an image: the image fills the header's trailing side, full height, and opens at
  * full size. The icon tile is left out, since the image already says what the record is. */
 

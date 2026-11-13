@@ -17,9 +17,9 @@ The dataset has these tabs:
 The header is a band in the dataset's colour. It shows:
 
 - a badge for its state: **Published**, **Unpublished** (public, but its data is not published) or **Private**
-- a badge with the licence's name, when a licence is chosen
 - the dataset's name
 - the dataset's creators, each linked to their page. These are the people credited as Creator.
+- a line of key facts: its **Project**, linked to its page (left out when the dataset has none or you may not see it), its **Licence** (a dash when none is chosen) and its DOI, linked to doi.org, when it has one
 - the dataset's keywords
 - a **Cite** button, which jumps to the Cite panel
 - a **Share** menu, which shares the dataset's permalink
@@ -38,15 +38,16 @@ Notices appear above the header.
 
 ## The figures
 
-Four figures sit along the foot of the header: **Samples**, **Measurements**, **Contributors** and **Related publications**. Under the sample and measurement counts the page gives the number of types, or **None yet**. The sample and measurement figures link to the **Samples** and **Measurements** tabs and count the records you may see. If you may not see the dataset's records, the page leaves those two figures out. The page never lists a sample or measurement itself.
+Four figures sit along the foot of the header: **Samples**, **Measurements**, **Contributors** and **Related publications**. The sample and measurement figures link to the **Samples** and **Measurements** tabs and count the records you may see. **Contributors** links to the Contributors tab, and **Related publications** to the panel of that name. If you may not see the dataset's records, the page leaves those two figures out. The page never lists a sample or measurement itself.
 
 ## The content column
 
 The wide column holds these cards, from the top:
 
 - **Descriptions.** With several descriptions, the panel has a tab for each type. With one, the panel is titled with that type. Long text folds after a few lines behind **Read more**. People who may change the dataset see **Edit**, which opens [Descriptions](../editing-a-record/descriptions.md). With none, the panel is titled **About**. It tells people who may change the dataset that nobody has described it yet and offers a **Write a description** button. It tells everyone else "No description has been added yet."
-- **Data types.** This card appears only while the dataset holds no samples or measurements. It says so. Once the dataset holds records, the card gives way to the charts.
-- **Data types** and **Progress** charts. A bar chart of the records by sample and measurement type, and a line chart of the running total of samples and measurements by month. Each has a text description. A chart is left out when there is nothing to draw, and the line chart needs records from at least two months. Both charts are left out when you may not see the dataset's records.
+- **Timeline**, the dataset's key dates across the page in the order they happened, and down it on a phone. The steps are Collected (with its end date, or "ongoing"), Added to the portal, Submitted, Published, Available from and Withdrawn. A step with no date is left out, and Added to the portal is always there. Until a publication date is recorded, **Published** is still shown: as "Not yet" while the data is not published, and with a dash once it is. A withdrawal always comes last. A date appears as precisely as it was entered: a day, a month and year, or a year. People who may change the dataset see **Edit**, which opens [Key dates](../editing-a-record/key-dates.md).
+- **What it holds**, while the dataset holds no samples or measurements. It says so, and offers people who may change the dataset an **Import data** button, disabled until importing is available.
+- **What it holds**, once it holds records: **Records by type**, a bar for each sample and measurement type in the type's colour, samples and measurements apart, and **Growth**, a line chart of the running total of samples and measurements by month with a text description. The line chart needs records from at least two months. Both are left out when you may not see the dataset's records.
 
 ## The side column
 
@@ -70,9 +71,8 @@ The narrow column holds these cards, from the top:
     - **For machines**, with a **REST API** button that opens the dataset in the API. See [API documentation](../api/api-docs.md).
     - People who may delete the dataset see **Delete this dataset** as the last line, which opens [Delete](../editing-a-record/delete.md).
     People who may change the dataset see **Edit** on the panel, which opens Edit details.
-- **Timeline**, the dataset's key dates in the order they happened. The steps are Collected (with its end date, or "ongoing"), Added to the portal, Submitted, Published, Available from and Withdrawn. A step with no date is left out, and Added to the portal is always there. A date appears as precisely as it was entered: a day, a month and year, or a year. People who may change the dataset see **Edit**, which opens [Key dates](../editing-a-record/key-dates.md).
 - **People**, everyone credited on the dataset. The first six are named with their roles and the organization they are credited from, then up to ten more are shown as faces, each linked to their page, and a link counts the rest. **See all** opens the Contributors tab, and for people who may manage the dataset **Manage** does. With nobody credited it says "No one is credited yet."
-- **Related publications**, each with a badge for how it relates to the dataset, such as "Describes this dataset", its title linked to its DOI and its year. With none, people who may change the dataset see "No publications linked. The paper that describes this data is the one reusers look for first." Everyone else sees "No publications are linked to this dataset." None of the editing screens changes this list.
+- **Related publications**, with their count. Each says how it relates to the dataset, such as "Describes this dataset", and its year, then its title linked to its DOI. With none, people who may change the dataset see "No publications linked. The paper that describes this data is the one reusers look for first." Everyone else sees "No publications are linked to this dataset." None of the editing screens changes this list.
 
 ## What you can do here
 

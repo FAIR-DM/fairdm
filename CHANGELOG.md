@@ -47,6 +47,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Every badge is a pill and every keyword a solid pill.** Keywords on project and dataset cards, on the landing page and in a record type's "About" dialog are pills in a light shade of the primary colour, where they were outlined or grey boxes. An outline badge takes a light fill of its own colour, and the record-type label on a record card and on a page is a pill edged in the record's colour. The shape is set in `css/fairdm-theme.css` and holds on any theme. Put `badge-keyword` on a badge to show a keyword in a portal's own templates. See [How to change the portal theme](developers/how-to/change-the-portal-theme.md#the-result).
+- **The dataset overview page is redesigned on the shared page.** Its project, licence and DOI
+  are key facts in the header, where the licence was a badge. Its key dates run as a timeline
+  across the page under the descriptions, where they were a card in the side column, and the
+  timeline ends on publication until the dataset is published. Its records by type are bars in
+  each type's colour beside the growth chart, and its related publications sit in the side column
+  with their count. The Contributors figure links to the Contributors tab and the Related
+  publications figure to its panel. The dataset `Overview` plugin's context carries `mix` and
+  `primary_identifier`, and `get_lifecycle()` gives each step `done` and `alert`.
 - **The project overview page and the page every record shares are redesigned.** The header is a
   band in the record's colour with its badges, name, people, key facts, keywords, actions and
   headline figures. A record with an image shows it filling the header's trailing side, opening at
@@ -123,6 +131,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`<c-card.citation>`, `<c-card.descriptions>`, `<c-card.details>`, `<c-card.details.entry>` and
   `<c-card.funding>`**, replaced by `<c-overview.cite>`, `<c-overview.descriptions>` and
   `<c-overview.sheet>`. The project page no longer draws its composition chart.
+- **`RecordOverviewPlugin.get_composition_chart()`.** The dataset page, its last user, draws
+  its records by type with `get_type_mix()` and `<c-overview.mix>`, and its `composition_chart`
+  context entry is gone.
 - **A project's Export tab.** It held only placeholder text. Its address now answers "not found".
 - **The PNG and ICO exports of the logo.** `assets/logo/` holds the logo kit as SVG only, and
   `assets/logo/png/` and `assets/logo/web/` are removed. Nothing in FairDM loaded them.

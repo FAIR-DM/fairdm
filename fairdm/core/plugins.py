@@ -13,7 +13,7 @@ from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 from partial_dates import Precision
 from pyecharts import options as opts
-from pyecharts.charts import Bar, Line
+from pyecharts.charts import Line
 
 from fairdm.contrib.contributors.models import Contribution, Contributor
 from fairdm.contrib.plugins import Plugin
@@ -324,56 +324,6 @@ class RecordOverviewPlugin(OverviewPlugin):
             "text": licence.name,
             "url": licence.canonical_url or "",
             "note": note,
-        }
-
-    def get_composition_chart(self, samples, measurements) -> dict[str, Any] | None:
-        """Draw the records by type, largest first, in one hue since the bars compare magnitude.
-
-        Args:
-            samples: The samples to count.
-            measurements: The measurements to count.
-
-        Returns:
-            The chart, its height and its text alternative, or ``None`` when there is nothing to
-            count.
-        """
-        items = self._type_counts(samples) + self._type_counts(measurements)
-        if not items:
-            return None
-        # ECharts draws the first category at the bottom.
-        items.sort(key=lambda item: item[1])
-        chart = (
-            Bar()
-            .add_xaxis([label for label, _count in items])
-            .add_yaxis(
-                gettext("Records"),
-                [count for _label, count in items],
-                bar_max_width=18,
-                label_opts=opts.LabelOpts(is_show=True, position="right"),
-                itemstyle_opts=opts.ItemStyleOpts(border_radius=[0, 4, 4, 0]),
-            )
-            .reversal_axis()
-            .set_global_opts(
-                legend_opts=opts.LegendOpts(is_show=False),
-                tooltip_opts=opts.TooltipOpts(trigger="axis"),
-                xaxis_opts=opts.AxisOpts(
-                    splitline_opts=opts.SplitLineOpts(is_show=True)
-                ),
-            )
-        )
-        chart.options["grid"] = {
-            "left": 8,
-            "right": 40,
-            "top": 8,
-            "bottom": 8,
-            "containLabel": True,
-        }
-        return {
-            "chart": chart,
-            "height": f"{max(len(items) * 44 + 32, 160)}px",
-            "description": "; ".join(
-                f"{label}: {count}" for label, count in reversed(items)
-            ),
         }
 
     def get_type_mix(self, samples, measurements) -> dict[str, Any] | None:

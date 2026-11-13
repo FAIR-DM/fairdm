@@ -80,7 +80,7 @@ A block that wraps other blocks (`overview.main`, `overview.side`, `overview.det
 | Page | Fills | Adds, in the wide column | Adds, in the side column |
 |---|---|---|---|
 | Project | `overview.badges`, `overview.facts`, `overview.notices`, `overview.figures`, `overview.main`, `overview.details_extra` | `overview.about`, `overview.datasets`, `overview.charts` | |
-| Dataset | `overview.badges`, `overview.readiness`, `overview.notices`, `overview.figures`, `overview.main`, `overview.timeline`, `overview.record_facts` | `overview.about`, `overview.data`, `overview.charts` | `overview.publications`, inside `overview.record_facts` |
+| Dataset | `overview.badges`, `overview.facts`, `overview.readiness`, `overview.notices`, `overview.figures`, `overview.main`, `overview.record_facts` | `overview.about`, `overview.lifecycle`, `overview.data`, `overview.charts` | `overview.publications`, inside `overview.record_facts` |
 | Sample | `overview.badges`, `overview.facts`, `overview.notices`, `overview.figures`, `overview.main`, `overview.side` | `overview.properties`, `overview.notes`, `overview.history`, `overview.measurements` | `overview.location` after `overview.cite`, and `overview.samples` after `overview.details` |
 | Measurement | `overview.badges`, `overview.notices`, `overview.figures`, `overview.main`, `overview.record_facts` | `overview.properties`, `overview.procedure`, `overview.notes`, `overview.sample`, `overview.siblings` | `overview.location`, inside `overview.record_facts` |
 | Person | `overview.notices`, `overview.image`, `overview.badges`, `overview.name`, `overview.byline`, `overview.actions`, `overview.figures`, `overview.main`, `overview.side` | `overview.about`, `overview.records`, `overview.roles`, `overview.future` | |
@@ -97,7 +97,7 @@ The person and organization pages define `overview.side` themselves and put thes
 
 The person page's `overview.future` holds the publications and map cards and the organization page's holds its members map. The activity blocks hold [`c-card.placeholder`](components.md#c-cardplaceholder) cards.
 
-The project page's datasets panel carries Add dataset beside "See all" for the team, and its timeline row in the fact sheet carries the key dates' Edit. The dataset page's readiness panel carries Publish.
+The project page's datasets panel carries Add dataset beside "See all" for the team, and its timeline row in the fact sheet carries the key dates' Edit. The dataset page's timeline panel carries the key dates' Edit and its readiness panel carries Publish.
 
 ## Tasks
 

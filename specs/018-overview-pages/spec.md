@@ -84,13 +84,15 @@ page. This specification describes the design that review settled on.
   header. The first six are named with their roles, then up to ten more are shown as faces, each
   linking to the contributor's page with their name on hover. The rest are counted, and the count
   links to the same full list as the panel's own link.
-- Q: What replaces the dataset's per-type data tabs? → A: The same two charts the project page
-  has: records by type, and how the number of samples and measurements grew over time. The row
-  previews, field summaries and value ranges are gone from the page. An empty dataset shows its
-  first-run state in their place.
-- Q: Where do a dataset's key dates go? → A: A timeline card of its own in the side column:
+- Q: What replaces the dataset's per-type data tabs? → A: What the project page shows: its records
+  by type as bars in each type's colour, and a chart of how the number of samples and measurements
+  grew over time. The row previews, field summaries and value ranges are gone from the page. An
+  empty dataset shows its first-run state in their place.
+- Q: Where do a dataset's key dates go? → A: A timeline across the page, under the descriptions:
   collected, added to the portal, submitted, published, available from and withdrawn, in the order
-  they happened. The Details card keeps only when the record was last updated.
+  they happened. Until a Published date is recorded, publication is still a step, shown as not
+  yet happened, or as done with no date once the data is public. The fact sheet keeps only when the
+  record was last updated.
 - Q: Does the dataset keep a versions card? → A: No. Versioning is not planned soon, so the page
   does not announce it.
 - Q: How are a record's descriptions shown? → A: With more than one, the tabs stand in the card's
@@ -203,11 +205,12 @@ summary count only the datasets they may see.
 
 A reuser opens a dataset and learns what it is, whether its data is published and under which
 licence, who created it, what it holds and how it grew, when each step of its life happened, how to
-cite it, and which publications relate to it. The header names its creators. Two charts show its
-records by type and how the number of its samples and measurements grew. A timeline card in the side
-column lists its key dates in the order they happened. Its related publications are worded from the
-reader's side ("Describes this dataset"). Its team sees what still stands between the dataset and
-publication.
+cite it, and which publications relate to it. The header names its creators and gives its project,
+licence and DOI. A timeline across the page lists its key dates in the order they happened, ending
+on publication until it is published. Bars of its records by type and a chart of how the number of
+its samples and measurements grew show what it holds. Its related publications, in the side
+column, are worded from the reader's side ("Describes this dataset"). Its team sees what still
+stands between the dataset and publication.
 
 **Why this priority**: The dataset is the unit a portal cites and distributes. It is the page a
 reuser decides on.
@@ -228,9 +231,9 @@ what each sees against FR-022 and FR-024.
 4. **Given** a dataset with a data publication set, **When** the citation is shown, **Then** it is
    that publication's citation. **Given** none, **Then** it is built from the dataset, with the year
    taken from the Published date, else the Available date, else the date the record was added.
-5. **Given** a dataset holding samples or measurements, **When** it is opened, **Then** a chart of
-   records by type is shown, and once its records span more than one month, a chart of how they
-   grew.
+5. **Given** a dataset holding samples or measurements, **When** it is opened, **Then** its
+   records by type are shown, samples and measurements apart, and once its records span more than
+   one month, a chart of how they grew.
 6. **Given** a dataset holding no samples or measurements, **When** a member of its team opens it,
    **Then** the page shows the first-run state with a way to add data, and no empty chart.
 7. **Given** a dataset holding a record type that is no longer registered, **When** it is opened,
@@ -244,6 +247,11 @@ what each sees against FR-022 and FR-024.
     is worded from the publication's side and the relations a reuser cares about most come first.
 11. **Given** a dataset whose project the viewer may not see, **When** it is opened, **Then** the
     project is neither named nor linked.
+12. **Given** a dataset with no Published date, **When** its timeline is shown, **Then** it ends on
+    publication: not yet happened while its data is not public, done and undated once it is, and
+    before a withdrawal when there is one.
+13. **Given** any dataset, **When** it is opened, **Then** the contributors figure links to its
+    Contributors tab and the related publications figure to its Related publications panel.
 
 ---
 
@@ -499,18 +507,23 @@ member of its dataset's team, including the one recorded in a different dataset 
 
 **The dataset page**
 
-- **FR-030**: The dataset page's header MUST carry whether it is published, public or private, and
-  its licence, as badges, and name its creators.
-- **FR-031**: Its figures MUST be samples, measurements, contributors and related publications.
-- **FR-032**: Its content column MUST carry the descriptions card, a chart of records by type, a
-  chart of the running total of samples and measurements by month. An empty dataset MUST show its
-  first-run state in place of the charts.
+- **FR-030**: The dataset page's header MUST carry its type and whether it is published, public or
+  private as badges, name its creators, and give its project (where the viewer may see it), its
+  licence (a dash when none is chosen) and its DOI as key facts.
+- **FR-031**: Its figures MUST be samples, measurements, contributors and related publications. The
+  contributors figure MUST link to its Contributors tab and the related publications figure to its
+  Related publications panel.
+- **FR-032**: Its content column MUST carry, in order, the descriptions card, a timeline across the
+  page of its key dates (collected, added to the portal, submitted, published, available from and
+  withdrawn, in the order they happened, with publication shown as still to come until it has
+  happened), its records by type as bars in each type's colour, samples and measurements apart,
+  and a chart of the running total of samples and measurements by month. An empty dataset MUST
+  show its first-run state in place of the records by type and the chart.
 - **FR-033**: Its side column MUST carry the "Ready to publish?" checklist of seven required and
   three recommended items with Publish beneath it, the citation, a fact sheet holding its project
   (with how many other datasets the project has), its licence and when it was last updated, then
-  its identifiers, and a timeline of its key dates: collected, added to the portal, submitted,
-  published, available from and withdrawn, in the order they happened. People follows, then related
-  publications worded from the publication's side.
+  its identifiers. People follows, then related publications worded from the publication's side,
+  with their count.
 - **FR-034**: The page head MUST carry a schema.org `Dataset` description including the variables
   measured.
 
