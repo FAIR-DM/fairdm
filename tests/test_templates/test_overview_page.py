@@ -444,6 +444,7 @@ class TestSampleMapOnTheOverviewPage:
         assert not any("maplibre-gl@" in (s.get("src") or "") for s in page("script"))
 
 
+@pytest.mark.django_db
 class TestCitePanelOnEveryRecordPage:
     @pytest.fixture(params=["project", "dataset", "sample", "measurement"])
     def shown(self, request, client):

@@ -1801,6 +1801,7 @@ class TestOverviewSampleMap:
         assert loads_map_script(response)
 
 
+@pytest.fixture
 def portal_name(db):
     """Name the site, which a citation gives as its publisher."""
     Site.objects.filter(pk=Site.objects.get_current().pk).update(
