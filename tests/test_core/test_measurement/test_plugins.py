@@ -295,7 +295,7 @@ class TestOverviewSample:
 
 @pytest.mark.django_db
 class TestOverviewHeader:
-    """FR-002: the header's key facts name the sample, the dataset and the identifier."""
+    """FR-043: the header's key facts name the sample, dataset and identifier."""
 
     def test_the_sample_the_viewer_may_open_is_linked_from_the_header(
         self, client, xrf
