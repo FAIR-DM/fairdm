@@ -196,7 +196,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         result = {
             "record": dataset,
             "overview_icon": "dataset",
-            "has_charts": bool(page["mix"] or page["growth_chart"]),
+            "has_charts": bool(page["growth_chart"]),
             "citation": {"title": gettext("Citation"), "text": citation["text"]},
             "identifiers": identifiers,
             "primary_identifier": self.get_primary_identifier(identifiers),
