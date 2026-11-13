@@ -72,7 +72,7 @@ A sample type can add panels of its own to the wide column, above Notes. This is
 
 ## Cite
 
-A panel headed **Cite**, at the top of the side column, gives the citation as plain text, and a **Copy** button copies it. The sample is cited by the people credited as Collector, the year of its collection date (or the year it was added), its name and type, and the IGSN link or, with no IGSN, the sample's permalink.
+A panel headed **Cite**, at the top of the side column, gives the citation as **Text**, **BibTeX** or **RIS**, chosen with the switch in the panel's heading. **Copy** copies the format on show, and for BibTeX and RIS a **Download** link saves it as a file named after the sample. The panel keeps the format you chose for your next visit. The sample is cited by the people credited as Collector, the year of its collection date (or the year it was added), its name and type, and the IGSN link or, with no IGSN, the sample's permalink.
 
 A sample with no IGSN reads "This sample has no IGSN, so the citation points at this page. An IGSN gives the physical specimen an identifier that outlives the portal."
 

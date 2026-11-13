@@ -54,26 +54,26 @@ addresses goes first.
 
 ### Group 3
 
-- [ ] T009 [US1] Tests in `tests/test_templates/test_overview_components.py` and
+- [x] T009 [US1] Tests in `tests/test_templates/test_overview_components.py` and
   `tests/test_templates/test_overview_page.py`, as plan.md "Tests, US1" describes. Change the
   existing cite-component and page tests that pass `text` only where they must now pass
   `formats`, and say which in the report.
-- [ ] T010 [US1] `fairdm/templates/cotton/overview/cite.html` and the `overview.cite` block of
+- [x] T010 [US1] `fairdm/templates/cotton/overview/cite.html` and the `overview.cite` block of
   `fairdm/templates/overview/page.html`, ported from the prototype as plan.md "The panel"
   describes, with the component's gallery annotations kept and `@prop formats` in place of
   `@prop text`. Read the prototype with
   `git show origin/prototype-overview-pages:fairdm/templates/cotton/ov/cite.html`. T009 goes green.
-- [ ] T011 [US1] `fairdm/static/js/overview.js`: `initCite` ported from the prototype's
+- [x] T011 [US1] `fairdm/static/js/overview.js`: `initCite` ported from the prototype's
   `overview.js` (`git show origin/prototype-overview-pages:fairdm/static/js/overview.js`, lines
   110 to 157), `initTabs` skipping the switch, and `initJumpToCite` focusing the selected format, as
   plan.md "The script" describes. No test
   (plan.md "What is not built").
-- [ ] T012 [US1] `fairdm/static/css/fairdm.css`: the `.ov-seg` rules and the BibTeX and RIS rule
+- [x] T012 [US1] `fairdm/static/css/fairdm.css`: the `.ov-seg` rules and the BibTeX and RIS rule
   ported from the prototype's `fairdm/static/css/overview.css` (lines 435 to 443 and 458), beside
   `.ov-cite__text`. No test.
-- [ ] T013 [US1] `specs/018-overview-pages/spec.md`: FR-014 and FR-016, and any scenario that names
+- [x] T013 [US1] `specs/018-overview-pages/spec.md`: FR-014 and FR-016, and any scenario that names
   the citation as text only, rewritten as plan.md "Specification 018" describes (FR-012).
-- [ ] T014 [US1] Documentation: the Cite panel in `docs/users/projects/project.md`,
+- [x] T014 [US1] Documentation: the Cite panel in `docs/users/projects/project.md`,
   `docs/users/datasets/dataset.md`, `docs/users/samples/sample.md` and
   `docs/users/measurements/measurement.md`, and a `CHANGELOG.md` entry under `[Unreleased]`.
 
