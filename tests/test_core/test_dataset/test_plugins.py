@@ -964,7 +964,7 @@ def _page(client, dataset):
 
 def _figures(page):
     """The values of the four figures, in the order they are drawn."""
-    return [figure.get_text(strip=True) for figure in page.select(".stat-value")]
+    return [figure.get_text(strip=True) for figure in page.select(".ov-figure__value")]
 
 
 def _tab_figures(page, dataset):
@@ -972,10 +972,9 @@ def _tab_figures(page, dataset):
     figures = {}
     for kind in ("samples", "measurements"):
         url = reverse(f"dataset:{kind}", kwargs={"uuid": dataset.uuid})
-        link = page.select_one(f'.stat-title a[href="{url}"]')
-        if link is not None:
-            figure = link.find_parent(class_="stat")
-            figures[kind] = figure.select_one(".stat-value").get_text(strip=True)
+        figure = page.select_one(f'a.ov-figure[href="{url}"]')
+        if figure is not None:
+            figures[kind] = figure.select_one(".ov-figure__value").get_text(strip=True)
     return figures
 
 
@@ -1032,7 +1031,7 @@ class TestOverviewWhatAVisitorSeesBeforePublication:
         response = _page(client, holding)
 
         assert _figures(response.page)[:2] == ["2", "2"]
-        assert response.page.find(id="dataset-composition") is not None
+        assert response.page.select_one(".ov-mix") is not None
         assert response.page.find(id="dataset-growth") is not None
         assert len(response.page.select(".alert")) == 1
 
@@ -1040,7 +1039,7 @@ class TestOverviewWhatAVisitorSeesBeforePublication:
         response = _page(client, holding)
 
         assert _tab_figures(response.page, holding) == {}
-        assert response.page.find(id="dataset-composition") is None
+        assert response.page.select_one(".ov-mix") is None
         assert response.page.find(id="dataset-growth") is None
         assert len(response.page.select(".alert")) == 1
 
@@ -1236,16 +1235,16 @@ class TestOverviewCitation:
 class TestOverviewCharts:
     """US-2 scenarios 5 to 7."""
 
-    def test_the_composition_text_lists_every_type_with_its_count(
+    def test_the_records_by_type_count_every_type_samples_and_measurements_apart(
         self, client, holding
     ):
         client.force_login(_team_member(holding))
 
         response = _page(client, holding)
 
-        text = response.page.find(id="dataset-composition-description").get_text()
-        assert "Rock Samples: 2" in text
-        assert "XRF Measurements: 2" in text
+        mix = response.context["mix"]
+        assert mix["samples"] == [("Rock Samples", 2)]
+        assert mix["measurements"] == [("XRF Measurements", 2)]
 
     def test_records_within_one_month_draw_no_growth_chart(self, client, holding):
         from datetime import UTC, datetime
@@ -1259,7 +1258,7 @@ class TestOverviewCharts:
 
         response = _page(client, holding)
 
-        assert response.page.find(id="dataset-composition") is not None
+        assert response.page.select_one(".ov-mix") is not None
         assert response.page.find(id="dataset-growth") is None
 
     def test_a_type_the_registry_no_longer_holds_is_left_out(
@@ -1278,9 +1277,57 @@ class TestOverviewCharts:
 
         response = _page(client, holding)
 
-        text = response.page.find(id="dataset-composition-description").get_text()
-        assert "XRF" not in text
-        assert "Rock Samples" in text
+        mix = response.context["mix"]
+        assert mix["measurements"] == []
+        assert mix["samples"] == [("Rock Samples", 2)]
+
+
+class TestOverviewHeaderFacts:
+    """FR-030: the licence and the resolving identifier are key facts in the header."""
+
+    def header_of(self, client, dataset):
+        return _page(client, dataset).page.find("h1").find_parent("header")
+
+    def test_the_licence_is_named_and_the_doi_linked(self, client):
+        licence = License.objects.first()
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, license=licence)
+        DatasetIdentifierFactory(related=dataset, value="10.1/ds")
+
+        header = self.header_of(client, dataset)
+
+        assert licence.name in header.get_text()
+        assert header.find("a", href="https://doi.org/10.1/ds") is not None
+
+    def test_a_dataset_with_no_licence_shows_a_dash_and_no_identifier(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, license=None)
+
+        facts = self.header_of(client, dataset).select_one(".ov-facts")
+
+        assert "—" in facts.get_text()
+        assert facts.find("a", href=re.compile("doi.org")) is None
+
+
+class TestOverviewFiguresLeadToTheirLists:
+    """FR-031: the contributors figure leads to the contributors tab.
+
+    The publications figure leads to the Related publications panel.
+    """
+
+    def test_the_contributors_figure_links_to_the_contributors_tab(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        url = reverse("dataset:contribution-list", kwargs={"uuid": dataset.uuid})
+
+        page = _page(client, dataset).page
+
+        assert page.select_one(f'a.ov-figure[href="{url}"]') is not None
+
+    def test_the_publications_figure_links_to_the_publications_panel(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+
+        page = _page(client, dataset).page
+
+        assert page.select_one('a.ov-figure[href="#publications"]') is not None
+        assert page.find(id="publications")["data-card"] == "publications"
 
 
 class TestOverviewFiguresLeadToTheTabs:
@@ -1322,7 +1369,7 @@ class TestOverviewFiguresLeadToTheTabs:
         page = _page(client, holding).page
 
         assert _tab_figures(page, holding) == {"samples": "2", "measurements": "2"}
-        assert page.find(id="dataset-composition") is not None
+        assert page.select_one(".ov-mix") is not None
         assert page.find(id="dataset-growth") is not None
 
     def test_on_a_public_unpublished_dataset_a_visitor_gets_nothing_from_its_records(
@@ -1332,7 +1379,7 @@ class TestOverviewFiguresLeadToTheTabs:
 
         assert _tab_figures(page, holding) == {}
         assert page.find(attrs={"data-mvp-chart": True}) is None
-        assert page.find(id="dataset-composition") is None
+        assert page.select_one(".ov-mix") is None
         assert page.find(id="dataset-growth") is None
 
 
@@ -1361,7 +1408,7 @@ class TestOverviewFirstRun:
         response = _page(client, dataset)
 
         assert response.page.find(attrs={"data-mvp-chart": True}) is None
-        assert response.page.find(id="dataset-composition") is None
+        assert response.page.select_one(".ov-mix") is None
         assert response.page.find(id="dataset-growth") is None
 
     def test_a_visitor_to_an_empty_dataset_is_offered_no_first_step(
@@ -1380,10 +1427,10 @@ class TestOverviewTimeline:
 
     def _steps(self, page):
         """The date each timeline step shows, in the order they are drawn."""
-        card = page.find("ol", class_="timeline").find_parent(class_="card")
+        panel = page.select_one('[data-card="timeline"]')
         return [
-            item.select_one(".text-sm").get_text(strip=True)
-            for item in card.select("ol > li")
+            item.select_one(".ov-step__date").get_text(strip=True)
+            for item in panel.select("ol > li")
         ]
 
     def test_the_dates_are_listed_in_the_order_they_happened(self, client):
@@ -1466,6 +1513,49 @@ class TestOverviewTimeline:
         assert date_format(date(2999, 1, 1), "SHORT_DATE_FORMAT") not in notice
         assert self._steps(response.page)[-1] == "2999"
 
+    def test_an_unpublished_dataset_ends_on_a_publication_still_to_come(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+
+        last = _page(client, dataset).context["lifecycle"][-1]
+
+        assert (last["done"], last["date"]) == (False, None)
+
+    def test_a_published_dataset_with_no_published_date_has_the_step_done_and_undated(
+        self, client
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+
+        response = _page(client, dataset)
+
+        last = response.context["lifecycle"][-1]
+        assert (last["done"], last["date"]) == (True, None)
+        assert self._steps(response.page)[-1].startswith("—")
+
+    def test_a_recorded_published_date_is_the_only_publication_step(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        DatasetDateFactory(
+            related=dataset,
+            type_id=f"{DATE_TYPES}/published",
+            value=PartialDate.fromisoformat("2025-05-01"),
+        )
+
+        steps = _page(client, dataset).context["lifecycle"]
+
+        assert [step["done"] for step in steps] == [True, True]
+
+    def test_an_undated_publication_comes_before_a_withdrawal(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        DatasetDateFactory(
+            related=dataset,
+            type_id=f"{DATE_TYPES}/withdrawn",
+            value=PartialDate.fromisoformat("2999-01-01"),
+        )
+
+        steps = _page(client, dataset).context["lifecycle"]
+
+        assert [step["date"] is None for step in steps] == [False, True, False]
+        assert [step["alert"] for step in steps] == [False, False, True]
+
 
 class TestOverviewRelatedPublications:
     """US-2 scenario 10."""
@@ -1485,10 +1575,8 @@ class TestOverviewRelatedPublications:
 
         response = _page(client, dataset)
 
-        card = response.page.find(string=str(items["IsDescribedBy"])).find_parent(
-            class_="card"
-        )
-        listed = card.select("ul > li")
+        panel = response.page.select_one('[data-card="publications"]')
+        listed = panel.select("ul > li")
         order = [
             next(name for name, item in items.items() if str(item) in li.get_text())
             for li in listed
@@ -1496,7 +1584,8 @@ class TestOverviewRelatedPublications:
         assert order == ["IsDescribedBy", "IsCitedBy", "Cites"]
         for name, li in zip(order, listed, strict=True):
             dataset_side = DatasetLiteratureRelation(relationship_type=name)
-            assert li.select_one(".badge").get_text(strip=True) != (
+            relation = li.select_one(".ov-awards__title").get_text(strip=True)
+            assert relation.split(" · ")[0] != (
                 dataset_side.get_relationship_type_display()
             )
 

@@ -358,7 +358,7 @@ The dataset's and the project's overviews count their records with `visible_to`,
 and Measurements figures, which link to the tabs, always equal the tabs' totals. A project's
 Datasets figure counts the datasets the viewer may see, so a member of a private dataset counts it
 and a visitor does not. On a dataset whose records the viewer may not see, the figures, the
-composition and growth charts and the spatial coverage are left out of the page.
+records by type and the growth chart are left out of the page.
 
 ### A sample's Measurements tab
 

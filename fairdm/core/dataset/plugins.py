@@ -97,15 +97,15 @@ def dataset_records_visible(request, obj):
 class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
     """The dataset's own page and the root of its collection.
 
-    The editing pages are the shared ones in :mod:`fairdm.core.editing`, reached from the Manage
-    menu.
+    The editing pages are the shared ones in :mod:`fairdm.core.editing`, each reached
+    from the panel that shows what it changes.
 
     A dataset is the unit a portal cites and distributes. Its page answers a reuser's questions:
     what it is, whether its data is published, what it holds and how it grew, when each step of its
     life happened, how to cite it and who made it. Two gates decide what a visitor sees.
     Visibility governs the page and ``published`` governs the records, so a public, unpublished
-    dataset shows its description to everyone but its counts, charts and spatial coverage only to
-    those who may see its records. Everything drawn from the records is counted through
+    dataset shows its description to everyone but its counts and charts only to those
+    who may see its records. Everything drawn from the records is counted through
     ``visible_to``, so the figures always equal the Samples and Measurements tabs. The page
     lists no record. Nothing here is written for a particular portal's types.
 
@@ -151,10 +151,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             "data_types": data_types,
             "counts": self.get_counts(samples, measurements, data_types),
             "shows_records": shows_records,
-            "composition_chart": (
-                shows_records and self.get_composition_chart(samples, measurements)
-            )
-            or None,
+            "mix": (shows_records and self.get_type_mix(samples, measurements)) or None,
             "growth_chart": (
                 shows_records and self.get_growth_chart(samples, measurements)
             )
@@ -188,18 +185,21 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             page: The page context gathered so far.
 
         Returns:
-            The record, its icon, the header's people, the citation, People, Identifiers and
-            Details cards, the timeline and, for the team, the readiness checklist.
+            The record, its icon, the header's people, the citation, People, the
+            identifiers and the one that resolves, the Details rows, the timeline and,
+            for the team, the readiness checklist.
         """
         dataset = self.base_object
         citation = page["citation"]
         creators = [entry["contributor"] for entry in page["team"]["creators"]]
+        identifiers = self.get_identifiers()
         result = {
             "record": dataset,
             "overview_icon": "dataset",
-            "has_charts": bool(page["composition_chart"] or page["growth_chart"]),
+            "has_charts": bool(page["growth_chart"]),
             "citation": {"title": gettext("Citation"), "text": citation["text"]},
-            "identifiers": self.get_identifiers(),
+            "identifiers": identifiers,
+            "primary_identifier": self.get_primary_identifier(identifiers),
             "people": self.get_people(),
             "header_people": creators,
             "header_people_label": gettext("Creators"),
@@ -264,13 +264,20 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         return rows
 
     def get_lifecycle(self, dates):
-        """List the dataset's key dates in the order they happened.
+        """List the dataset's key dates in the order they happened, with publication.
+
+        Every recorded date is a step that has happened. With no Published date,
+        publication is still a step: done and undated when the data is public, still to
+        come when it is not. It sits before a withdrawal, which always ends the
+        timeline.
 
         Args:
             dates: The dataset's dates as returned by :meth:`get_dates`.
 
         Returns:
-            The steps as ``c-card.timeline`` draws them.
+            The steps, each with its ``label``, its ``date`` as recorded, its ``day``
+            when recorded to the day, whether it is ``done`` and whether it is an
+            ``alert``.
         """
         dataset = self.base_object
         steps = []
@@ -282,6 +289,9 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
                     "sort": as_date(dates["collection_start"]),
                     "date": f"{format_partial_date(dates['collection_start'])} \u2013 "
                     + (format_partial_date(end) if end else gettext("ongoing")),
+                    "day": None,
+                    "done": True,
+                    "alert": False,
                 }
             )
         steps.append(
@@ -290,6 +300,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
                 "sort": dataset.added.date(),
                 "day": dataset.added,
                 "date": dataset.added,
+                "done": True,
+                "alert": False,
             }
         )
         for key, label in (
@@ -307,9 +319,26 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
                         if dates[key].precision is Precision.DAY
                         else None,
                         "date": dates[key],
+                        "done": True,
+                        "alert": key == "withdrawn",
                     }
                 )
-        return sorted(steps, key=lambda step: step["sort"])
+        steps.sort(key=lambda step: step["sort"])
+        if not dates["published"]:
+            position = next(
+                (n for n, step in enumerate(steps) if step["alert"]), len(steps)
+            )
+            steps.insert(
+                position,
+                {
+                    "label": gettext("Published"),
+                    "day": None,
+                    "date": None,
+                    "done": dataset.data_is_public,
+                    "alert": False,
+                },
+            )
+        return steps
 
     def get_access(self):
         """Name the dataset's access state, in the words the page uses for it everywhere.
