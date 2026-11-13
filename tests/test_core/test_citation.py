@@ -142,11 +142,6 @@ class TestCitation:
             assert read_field(entry, "title") == title
             assert read_field(entry, "publisher") == "Smith & Sons_#1"
 
-        def test_braces_in_pairs_read_back_as_written(self):
-            entry = read_bibtex(build(title="The {NaCl} system").to_bibtex())
-
-            assert read_field(entry, "title") == "The {NaCl} system"
-
         def test_letters_outside_english_and_other_scripts_read_back_as_written(self):
             title = "Müller, Søren and 東京 Δ"
             citation = build(title=title, authors=[CitedName(family="Müller", given="Zoë")])

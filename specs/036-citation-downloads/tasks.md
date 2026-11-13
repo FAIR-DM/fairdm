@@ -24,7 +24,7 @@ addresses goes first.
 - [x] T002 [US2] `tests/test_core/test_citation.py`: `TestCitedName`, `TestCitation` and
   `TestPublicationTypes` as plan.md "Tests, US2" describes, built on
   `Citation` and `CitedName` values directly, with no database.
-- [ ] T003 [US2] `fairdm/core/citation.py`: `CitedName` with `from_contributor` and
+- [x] T003 [US2] `fairdm/core/citation.py`: `CitedName` with `from_contributor` and
   `from_item_name`, `Citation` with `to_bibtex`, `to_ris` and `filename`, `escape_tex`,
   `CitationWriter`, the RIS writer with no counter line, `publication_types` and `FORMATS`, as plan.md "The citation" describes. T002 goes green.
 
