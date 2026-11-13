@@ -326,18 +326,6 @@ For the record's team only: what is still missing before the record can be found
 | `readiness` | dict | | `items` (dictionaries with `label`, `done`, `url` and `required`, where `required` set to `False` marks a recommended item), `done`, `total` and `ready`. |
 | `class` | string | | Extra classes on the card. |
 
-### `c-card.timeline`
-
-What happened to a record, in order, on the dataset page. The sample and measurement pages use [`c-overview.history`](#c-overviewhistory). Each step shows its label, its date, the people who did it and a note. A date recorded only to the month is shown as the month, and one recorded only to the year as the year. `data-card` is `timeline`.
-
-| Attribute | Type | Default | Accepts |
-|---|---|---|---|
-| `title` | string | | The card's title. |
-| `steps` | list | | Dictionaries with `label`, `date`, `day`, `people` and `note`. `day` is set when the date is a full day. `note` is rendered as markdown. |
-| `empty` | string | | What to say when there are no steps. |
-| `edit_url` | string | | The key dates' editing page, drawn as the card's Edit for someone who may edit them. |
-| `class` | string | | Extra classes on the card. |
-
 ## Cards for contributor pages
 
 ### `c-card.affiliations`

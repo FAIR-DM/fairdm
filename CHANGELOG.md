@@ -139,6 +139,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   [How to add an action to an overview page](developers/how-to/add-an-action-to-an-overview-page.md).
 - **The "not yet available" panels for the project's map, recent activity and exporting a
   citation**, and the dataset's map. Each comes back as a working panel with its own feature.
+- **`<c-card.timeline>`**, replaced by `<c-overview.history>` on the sample and measurement pages and by the dataset page's own timeline.
 - **`<c-card.citation>`, `<c-card.descriptions>`, `<c-card.details>`, `<c-card.details.entry>` and
   `<c-card.funding>`**, replaced by `<c-overview.cite>`, `<c-overview.descriptions>` and
   `<c-overview.sheet>`. The project page no longer draws its composition chart.

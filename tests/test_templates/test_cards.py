@@ -5,13 +5,9 @@ what it delivers: the data it was given, the links it draws and the names it car
 assistive technology. Wording is never asserted.
 """
 
-from datetime import date
 
 import pytest
 from django.contrib.gis.geos import Point as GEOSPoint
-from django.utils import translation
-from django.utils.formats import date_format
-from partial_dates import PartialDate
 
 from fairdm.core.vocabularies import IDENTIFIER_TYPES
 from fairdm.factories import PersonFactory
@@ -145,90 +141,6 @@ class TestIdentifiersCard:
         )
 
         assert page.find("table").find("caption").get_text(strip=True)
-
-
-@pytest.mark.django_db
-class TestTimelineCard:
-    def test_each_step_is_listed_in_the_order_given(self, render_card, soup):
-        steps = [
-            {"label": "FIRST", "date": PartialDate.fromisoformat("2020"), "day": None},
-            {
-                "label": "SECOND",
-                "date": PartialDate.fromisoformat("2021-05-06"),
-                "day": date(2021, 5, 6),
-            },
-        ]
-
-        page = soup(render_card("timeline", title="History", steps=steps, empty=""))
-
-        items = [li.get_text(" ", strip=True) for li in page.select("ol > li")]
-        assert "FIRST" in items[0]
-        assert "SECOND" in items[1]
-
-    def test_a_date_recorded_only_to_the_year_is_shown_as_recorded(self, render_card):
-        steps = [
-            {"label": "Step", "date": PartialDate.fromisoformat("2020"), "day": None}
-        ]
-
-        html = render_card("timeline", title="History", steps=steps, empty="")
-
-        assert "2020" in html
-        assert "Jan" not in html
-
-    def test_a_date_recorded_only_to_the_month_follows_the_active_locale(
-        self, render_card
-    ):
-        steps = [
-            {"label": "Step", "date": PartialDate.fromisoformat("2021-05"), "day": None}
-        ]
-        with translation.override("de"):
-            html = render_card("timeline", title="History", steps=steps, empty="")
-            expected = date_format(date(2021, 5, 1), "YEAR_MONTH_FORMAT")
-
-        assert expected in html
-
-    def test_a_full_day_follows_the_active_locale(self, render_card):
-        when = date(2021, 5, 6)
-        steps = [
-            {
-                "label": "Step",
-                "date": PartialDate.fromisoformat("2021-05-06"),
-                "day": when,
-            }
-        ]
-
-        with translation.override("de"):
-            html = render_card("timeline", title="History", steps=steps, empty="")
-            expected = date_format(when, "SHORT_DATE_FORMAT")
-
-        assert expected in html
-
-    def test_each_person_credited_on_a_step_links_to_their_page(
-        self, render_card, soup
-    ):
-        person = PersonFactory()
-        steps = [
-            {"label": "Step", "date": None, "day": None, "people": [person]},
-        ]
-
-        page = soup(render_card("timeline", title="History", steps=steps, empty=""))
-
-        assert page.find("a", href=person.get_absolute_url()) is not None
-
-    def test_a_step_note_is_rendered(self, render_card):
-        steps = [{"label": "Step", "date": None, "day": None, "note": "NOTE-MARKER"}]
-
-        assert "NOTE-MARKER" in render_card(
-            "timeline", title="History", steps=steps, empty=""
-        )
-
-    def test_with_no_steps_the_card_says_what_it_was_told_to(self, render_card, soup):
-        page = soup(
-            render_card("timeline", title="History", steps=[], empty="EMPTY-MARKER")
-        )
-
-        assert page.find("ol") is None
-        assert "EMPTY-MARKER" in page.get_text()
 
 
 @pytest.mark.django_db
