@@ -11,7 +11,7 @@ from datetime import date
 
 from django.urls import NoReverseMatch, reverse
 from django.utils.formats import date_format
-from django.utils.translation import gettext
+from django.utils.translation import gettext, pgettext
 from partial_dates import Precision
 
 
@@ -152,10 +152,14 @@ def describe_coverage(coverage):
     def degrees(value, positive, negative):
         return f"{abs(value):.2f}° {positive if value >= 0 else negative}"
 
-    south = degrees(coverage.south, "N", "S")
-    north = degrees(coverage.north, "N", "S")
-    west = degrees(coverage.west, "E", "W")
-    east = degrees(coverage.east, "E", "W")
+    north_letter = pgettext("compass point", "N")
+    south_letter = pgettext("compass point", "S")
+    east_letter = pgettext("compass point", "E")
+    west_letter = pgettext("compass point", "W")
+    south = degrees(coverage.south, north_letter, south_letter)
+    north = degrees(coverage.north, north_letter, south_letter)
+    west = degrees(coverage.west, east_letter, west_letter)
+    east = degrees(coverage.east, east_letter, west_letter)
     if coverage.south == coverage.north and coverage.west == coverage.east:
         return gettext("%(latitude)s, %(longitude)s") % {
             "latitude": south,
