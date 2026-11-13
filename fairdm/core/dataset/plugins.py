@@ -268,7 +268,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
 
         Every recorded date is a step that has happened. With no Published date,
         publication is still a step: done and undated when the data is public, still to
-        come when it is not. It sits before a withdrawal, which always ends the timeline.
+        come when it is not. It sits before a withdrawal, which always ends the
+        timeline.
 
         Args:
             dates: The dataset's dates as returned by :meth:`get_dates`.
