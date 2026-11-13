@@ -23,7 +23,7 @@ from fairdm.core.overview import (
     safe_reverse,
     sentence_case,
 )
-from fairdm.core.plugins import RecordOverviewPlugin
+from fairdm.core.plugins import RecordOverviewPlugin, SamplePoints
 from fairdm.core.sample.models import Sample
 from fairdm.core.vocabularies import (
     ABSTRACT,
@@ -128,6 +128,23 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         "options",
     }
 
+    @classmethod
+    def get_extra_views(cls):
+        """Keep the views the shared overview declares and add the address of the map's points."""
+        return [*super().get_extra_views(), SamplePoints]
+
+    def get_map_samples(self):
+        """Give the samples the map draws: those the page counts, none where it counts none.
+
+        Returns:
+            The dataset's samples the viewer may see, or none when the viewer is not offered the
+            dataset's records.
+        """
+        dataset = self.base_object
+        if not dataset_records_visible(self.request, dataset):
+            return Sample.objects.none()
+        return Sample.objects.filter(dataset=dataset).visible_to(self.request.user)
+
     def get_context_data(self, **kwargs):
         """Add the dataset and everything the overview page draws."""
         context = super().get_context_data(**kwargs)
@@ -167,6 +184,13 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
                 "keywords": safe_reverse("dataset:keywords", uuid=dataset.uuid),
             },
         }
+        page["sample_map"] = self.get_sample_map(
+            self.get_map_samples(),
+            dataset.spatial_coverage(user),
+            safe_reverse("dataset:overview-sample-points", uuid=dataset.uuid),
+        )
+        if page["sample_map"] and page["sample_map"]["located"]:
+            page["has_map"] = True
         page["counts"]["publications"] = len(page["literature"]["items"])
         page["citation"] = self.get_citation_details(page)
         page["json_ld"] = json_ld(self.get_schema_org(page))

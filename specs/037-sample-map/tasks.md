@@ -24,7 +24,7 @@ with the environment in `/home/sam/projects/worktrees/fairdm-037-env.sh` sourced
 - [x] T003 [US1] Tests: `TestOverviewSampleMap` in `tests/test_core/test_project/test_plugins.py`
   and `tests/test_core/test_dataset/test_plugins.py`, and `TestSamplePoints` in
   `tests/test_core/test_plugins.py`, as plan.md "Tests" describes.
-- [ ] T004 [US1] `SamplePoints` in `fairdm/core/plugins.py`, and on the project and dataset
+- [x] T004 [US1] `SamplePoints` in `fairdm/core/plugins.py`, and on the project and dataset
   `Overview`: `get_map_samples`, `sample_map` and `has_map` in the context, and
   `get_extra_views`, as plan.md "The plugins" and "The address" describe. T003 goes green.
 

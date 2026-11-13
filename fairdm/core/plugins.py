@@ -8,6 +8,7 @@ from typing import Any
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count, Q
 from django.db.models.functions import TruncMonth
+from django.http import JsonResponse
 from django.urls import reverse
 from django.utils.formats import date_format
 from django.utils.translation import gettext
@@ -567,6 +568,41 @@ class RecordOverviewPlugin(OverviewPlugin):
             .annotate(n=Count("pk"))
             .order_by("month")
         )
+
+
+class SamplePoints(Plugin):
+    """Answer a record's located samples as GeoJSON, for the map on its overview page.
+
+    It decides nothing itself. The owning overview plugin says who may open the record and which
+    of its samples the viewer sees, so this address answers exactly as the record's page does: a
+    private record is "not found", and the points are the samples the page counts.
+
+    The owner is built with this mount's model. A plugin built without it resolves no record, and
+    a plugin that resolves none lets everyone in.
+
+    Attributes:
+        owner: The overview plugin that owns this address, set when access is decided.
+    """
+
+    name = "sample-points"
+    url_path = "sample-points"
+    owner = None
+
+    def has_permission(self) -> bool:
+        """Ask the overview plugin that owns this address whether the viewer may open its record."""
+        self.owner = self.plugin_class(
+            registered_model=self.registered_model, menu=self.menu
+        )
+        self.owner.setup(self.request, *self.args, **self.kwargs)
+        return self.owner.has_permission()
+
+    def handle_no_permission(self):
+        """Refuse as the overview does, so a private record answers "not found"."""
+        return self.owner.handle_no_permission()
+
+    def get(self, request, *args, **kwargs):
+        """Give the samples the page counts that have a location, as GeoJSON."""
+        return JsonResponse(self.owner.get_sample_points(self.owner.get_map_samples()))
 
 
 def _visible_through(base_model):
