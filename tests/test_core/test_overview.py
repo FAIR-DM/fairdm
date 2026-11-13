@@ -1,13 +1,15 @@
 """Tests for the pure helpers the overview pages share."""
 
 import json
+import re
 from datetime import date
 
 import pytest
 from partial_dates import PartialDate
 
-from fairdm.core.overview import as_date, format_authors, json_ld
+from fairdm.core.overview import as_date, describe_coverage, format_authors, json_ld
 from fairdm.factories import OrganizationFactory, PersonFactory
+from fairdm.utils.location.coverage import Coverage
 
 
 @pytest.mark.django_db
@@ -93,3 +95,42 @@ class TestAsDate:
 
     def test_a_plain_date_passes_through(self):
         assert as_date(date(2020, 3, 4)) == date(2020, 3, 4)
+
+
+class TestDescribeCoverage:
+    @staticmethod
+    def numbers(text):
+        return re.findall(r"\d+\.\d+", text)
+
+    @staticmethod
+    def hemispheres(text):
+        return re.findall(r"°\s*([NSEW])", text)
+
+    def test_a_box_in_the_north_east_gives_both_corners_with_two_decimals(self):
+        text = describe_coverage(Coverage(west=7.8, south=48.8, east=8.7, north=49.2))
+
+        assert self.numbers(text) == ["48.80", "49.20", "7.80", "8.70"]
+        assert self.hemispheres(text) == ["N", "N", "E", "E"]
+
+    def test_a_box_in_the_south_west_gives_the_size_of_each_bound_and_south_and_west(
+        self,
+    ):
+        text = describe_coverage(
+            Coverage(west=-70.5, south=-33.0, east=-70.0, north=-32.5)
+        )
+
+        assert self.numbers(text) == ["33.00", "32.50", "70.50", "70.00"]
+        assert self.hemispheres(text) == ["S", "S", "W", "W"]
+
+    def test_a_box_across_the_equator_and_the_prime_meridian_reads_both_hemispheres(
+        self,
+    ):
+        text = describe_coverage(Coverage(west=-1.5, south=-2.25, east=3.0, north=4.0))
+
+        assert self.hemispheres(text) == ["S", "N", "W", "E"]
+
+    def test_a_single_spot_reads_as_one_point(self):
+        text = describe_coverage(Coverage(west=7.8, south=48.8, east=7.8, north=48.8))
+
+        assert self.numbers(text) == ["48.80", "7.80"]
+        assert self.hemispheres(text) == ["N", "E"]

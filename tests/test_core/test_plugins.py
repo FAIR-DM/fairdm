@@ -1,6 +1,8 @@
 """Tests for the plugin base classes the core record pages share."""
 
 import pytest
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.gis.geos import Point
 
 from fairdm.contrib.contributors.models import Organization, Person
 from fairdm.contrib.contributors.services.crediting import Crediting
@@ -15,6 +17,7 @@ from fairdm.factories import (
     ProjectIdentifierFactory,
     SampleIdentifierFactory,
 )
+from fairdm.utils.location.coverage import Coverage
 
 
 def _plugin_for(record):
@@ -325,3 +328,190 @@ class TestRecordOverviewPluginTypeMix:
             )
             is None
         )
+
+
+@pytest.mark.django_db
+class TestGetSamplePoints:
+    def test_each_located_sample_is_one_point_and_an_unlocated_one_is_left_out(self):
+        from demo.factories import RockSampleFactory
+        from fairdm.core.sample.models import Sample
+
+        dataset = DatasetFactory()
+        RockSampleFactory.create_batch(
+            2, dataset=dataset, location=Point(7.9, 48.9, srid=4326)
+        )
+        RockSampleFactory.create_batch(3, dataset=dataset, location=None)
+
+        points = _plugin_for(dataset).get_sample_points(
+            Sample.objects.filter(dataset=dataset)
+        )
+
+        assert points["type"] == "FeatureCollection"
+        assert len(points["features"]) == 2
+
+    def test_a_feature_carries_the_samples_place_name_type_dataset_and_address(self):
+        from django.urls import reverse
+
+        from demo.factories import RockSampleFactory
+        from fairdm.core.sample.models import Sample
+
+        dataset = DatasetFactory(name="Black Forest cores")
+        sample = RockSampleFactory(
+            name="Basalt", dataset=dataset, location=Point(7.912345678, 48.9, srid=4326)
+        )
+
+        [feature] = _plugin_for(dataset).get_sample_points(
+            Sample.objects.filter(dataset=dataset)
+        )["features"]
+
+        assert feature["type"] == "Feature"
+        assert feature["geometry"] == {"type": "Point", "coordinates": [7.91235, 48.9]}
+        assert feature["properties"] == {
+            "name": "Basalt",
+            "type": "Rock Sample",
+            "dataset": "Black Forest cores",
+            "url": reverse("sample:overview", kwargs={"uuid": sample.uuid}),
+        }
+
+    def test_the_features_come_in_the_order_of_the_sample_names(self):
+        from demo.factories import RockSampleFactory
+        from fairdm.core.sample.models import Sample
+
+        dataset = DatasetFactory()
+        for name in ("Cobalt", "Alder", "Basalt"):
+            RockSampleFactory(
+                name=name, dataset=dataset, location=Point(7.9, 48.9, srid=4326)
+            )
+
+        points = _plugin_for(dataset).get_sample_points(
+            Sample.objects.filter(dataset=dataset)
+        )
+
+        assert [f["properties"]["name"] for f in points["features"]] == [
+            "Alder",
+            "Basalt",
+            "Cobalt",
+        ]
+
+    def test_a_type_whose_model_no_longer_exists_has_an_empty_label(self, monkeypatch):
+        from demo.factories import RockSampleFactory
+        from fairdm.core.sample.models import Sample
+
+        dataset = DatasetFactory()
+        RockSampleFactory(dataset=dataset, location=Point(7.9, 48.9, srid=4326))
+        monkeypatch.setattr(ContentType, "model_class", lambda self: None)
+
+        [feature] = _plugin_for(dataset).get_sample_points(
+            Sample.objects.filter(dataset=dataset)
+        )["features"]
+
+        assert feature["properties"]["type"] == ""
+
+    def test_no_samples_give_an_empty_collection(self):
+        from fairdm.core.sample.models import Sample
+
+        points = _plugin_for(DatasetFactory()).get_sample_points(Sample.objects.none())
+
+        assert points == {"type": "FeatureCollection", "features": []}
+
+
+@pytest.mark.django_db
+class TestGetSampleMap:
+    POINTS_URL = "/points/"
+
+    def test_no_samples_give_no_map(self):
+        from fairdm.core.sample.models import Sample
+
+        assert (
+            _plugin_for(DatasetFactory()).get_sample_map(
+                Sample.objects.none(), None, self.POINTS_URL
+            )
+            is None
+        )
+
+    def test_located_and_missing_are_counted_from_what_was_seeded(self):
+        from demo.factories import RockSampleFactory
+        from fairdm.core.sample.models import Sample
+
+        dataset = DatasetFactory()
+        RockSampleFactory.create_batch(
+            2, dataset=dataset, location=Point(7.9, 48.9, srid=4326)
+        )
+        RockSampleFactory.create_batch(3, dataset=dataset, location=None)
+        coverage = Coverage(west=7.9, south=48.9, east=7.9, north=48.9)
+
+        result = _plugin_for(dataset).get_sample_map(
+            Sample.objects.filter(dataset=dataset), coverage, self.POINTS_URL
+        )
+
+        assert result["located"] == 2
+        assert result["missing"] == 3
+        assert result["points_url"] == self.POINTS_URL
+
+    def test_datasets_are_counted_only_when_asked(self):
+        from demo.factories import RockSampleFactory
+        from fairdm.core.sample.models import Sample
+
+        first, second = DatasetFactory(), DatasetFactory()
+        RockSampleFactory(dataset=first, location=Point(7.9, 48.9, srid=4326))
+        RockSampleFactory(dataset=first, location=Point(8.1, 49.0, srid=4326))
+        RockSampleFactory(dataset=second, location=Point(8.2, 49.1, srid=4326))
+        RockSampleFactory(dataset=DatasetFactory(), location=None)
+        samples = Sample.objects.all()
+        coverage = Coverage(west=7.9, south=48.9, east=8.2, north=49.1)
+        plugin = _plugin_for(first)
+
+        asked = plugin.get_sample_map(
+            samples, coverage, self.POINTS_URL, count_datasets=True
+        )
+        not_asked = plugin.get_sample_map(samples, coverage, self.POINTS_URL)
+
+        assert asked["datasets"] == 2
+        assert "datasets" not in not_asked
+
+    def test_the_bounds_are_the_coverage_as_west_south_east_north(self):
+        from demo.factories import RockSampleFactory
+        from fairdm.core.sample.models import Sample
+
+        dataset = DatasetFactory()
+        RockSampleFactory(dataset=dataset, location=Point(7.9, 48.9, srid=4326))
+        coverage = Coverage(west=7.8, south=48.8, east=8.7, north=49.2)
+
+        result = _plugin_for(dataset).get_sample_map(
+            Sample.objects.filter(dataset=dataset), coverage, self.POINTS_URL
+        )
+
+        assert result["bounds"] == [7.8, 48.8, 8.7, 49.2]
+        assert "48.80" in result["area"]
+        assert "8.70" in result["area"]
+
+    def test_a_box_across_the_180th_meridian_gets_east_plus_360(self):
+        from demo.factories import RockSampleFactory
+        from fairdm.core.sample.models import Sample
+
+        dataset = DatasetFactory()
+        RockSampleFactory(dataset=dataset, location=Point(179.0, 10.0, srid=4326))
+        RockSampleFactory(dataset=dataset, location=Point(-179.0, 20.0, srid=4326))
+        coverage = Coverage(west=179.0, south=10.0, east=-179.0, north=20.0)
+
+        result = _plugin_for(dataset).get_sample_map(
+            Sample.objects.filter(dataset=dataset), coverage, self.POINTS_URL
+        )
+
+        assert result["bounds"] == [179.0, 10.0, 181.0, 20.0]
+
+    def test_with_no_located_sample_there_are_no_bounds_and_no_area(self):
+        from demo.factories import RockSampleFactory
+        from fairdm.core.sample.models import Sample
+
+        dataset = DatasetFactory()
+        RockSampleFactory.create_batch(2, dataset=dataset, location=None)
+
+        result = _plugin_for(dataset).get_sample_map(
+            Sample.objects.filter(dataset=dataset), None, self.POINTS_URL
+        )
+
+        assert result["located"] == 0
+        assert result["missing"] == 2
+        assert result["bounds"] is None
+        assert result["area"] is None

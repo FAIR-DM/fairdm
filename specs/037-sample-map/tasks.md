@@ -15,7 +15,7 @@ with the environment in `/home/sam/projects/worktrees/fairdm-037-env.sh` sourced
 
 ### Group 1
 
-- [ ] T001 [US1] Tests: `TestDescribeCoverage` in `tests/test_core/test_overview.py`, and
+- [x] T001 [US1] Tests: `TestDescribeCoverage` in `tests/test_core/test_overview.py`, and
   `TestGetSamplePoints` and `TestGetSampleMap` in `tests/test_core/test_plugins.py`, as plan.md
   "Tests" describes.
 - [ ] T002 [US1] `describe_coverage` in `fairdm/core/overview.py`, and `get_sample_points` and
