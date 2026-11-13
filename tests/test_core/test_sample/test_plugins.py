@@ -1,11 +1,15 @@
 """Access control on the sample record's editing surfaces."""
 
+import codecs
 from datetime import UTC, datetime
 
+import latexcodec  # noqa: F401  (registers the "ulatex" codec)
 import pytest
+import rispy
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point as GEOSPoint
+from django.contrib.sites.models import Site
 from django.db import models
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -14,6 +18,7 @@ from django.test import RequestFactory
 from django.test.utils import isolate_apps
 from django.urls import reverse
 from partial_dates import PartialDate
+from pybtex.database import parse_string
 from pytest_django.asserts import assertContains, assertNotContains, assertRedirects
 
 from demo.factories import (
@@ -49,6 +54,7 @@ from fairdm.factories import (
 from fairdm.registry import registry
 from fairdm.registry.config import Citation
 from fairdm.utils.choices import Visibility
+from tests.factories import ConcreteSampleFactory
 
 
 def _request_for(user):
@@ -775,3 +781,144 @@ class TestOverviewCitationAddress:
 
         assert citation.endswith("https://doi.org/10.58052/IGSN0001")
         assert str(rock.uuid) not in citation
+
+
+@pytest.fixture
+def portal_name(db):
+    """Name the site, which a citation gives as its publisher."""
+    Site.objects.filter(pk=Site.objects.get_current().pk).update(
+        name="Acme Data Portal"
+    )
+    Site.objects.clear_cache()
+    yield "Acme Data Portal"
+    Site.objects.clear_cache()
+
+
+@pytest.mark.django_db
+class TestOverviewCitationFormats:
+    """The sample's citation as BibTeX and RIS, as the Cite panel offers it."""
+
+    def _collected(self, sample):
+        for first, last in (("Anna", "Keller"), ("Tomas", "Oliveira")):
+            sample.add_contributor(
+                PersonFactory(first_name=first, last_name=last, is_active=True),
+                with_roles=[f"{CONTRIBUTOR_ROLES}/collection"],
+            )
+        SampleDate.objects.create(
+            related=sample,
+            type_id=f"{DATE_TYPES}/collected",
+            value=PartialDate.fromisoformat("2023-04-05"),
+        )
+        return sample
+
+    def _formats(self, client, sample):
+        citation = _page(client, sample).context["citation"]
+        return {entry["key"]: entry["value"] for entry in citation["formats"]}
+
+    def _entry(self, formats):
+        data = parse_string(formats["bibtex"], "bibtex")
+        assert len(data.entries) == 1
+        key, entry = next(iter(data.entries.items()))
+        return key, entry, rispy.loads(formats["ris"])[0]
+
+    def test_the_text_and_both_files_give_the_same_people_year_title_and_publisher(
+        self, client, rock, portal_name
+    ):
+        self._collected(rock)
+
+        formats = self._formats(client, rock)
+        key, entry, ris = self._entry(formats)
+
+        title = "Zq-4471 rift core [Rock Sample]"
+        assert formats["text"].startswith("Keller, A. & Oliveira, T. (2023). ")
+        assert f"{title}. Acme Data Portal." in formats["text"]
+        assert [(p.last_names, p.first_names) for p in entry.persons["author"]] == [
+            (["Keller"], ["Anna"]),
+            (["Oliveira"], ["Tomas"]),
+        ]
+        assert entry.fields["year"] == "2023"
+        assert codecs.decode(entry.fields["title"], "ulatex") == title
+        assert codecs.decode(entry.fields["publisher"], "ulatex") == portal_name
+        assert key == str(rock.uuid)
+        assert ris["authors"] == ["Keller, Anna", "Oliveira, Tomas"]
+        assert (ris["year"], ris["title"], ris["publisher"]) == (
+            "2023",
+            title,
+            portal_name,
+        )
+
+    def test_without_an_igsn_the_files_give_the_permalink_and_no_doi(
+        self, client, rock
+    ):
+        permalink = f"http://testserver/{rock.uuid}/"
+
+        formats = self._formats(client, rock)
+        _key, entry, ris = self._entry(formats)
+
+        assert formats["text"].endswith(permalink)
+        assert entry.fields["url"] == permalink
+        assert "doi" not in entry.fields
+        assert ris["urls"] == [permalink]
+        assert "doi" not in ris
+
+    def test_with_an_igsn_the_files_give_it_as_the_doi_and_its_link(self, client, rock):
+        SampleIdentifierFactory(related=rock, type=IGSN, value="10.58052/IGSN_1")
+
+        formats = self._formats(client, rock)
+        _key, entry, ris = self._entry(formats)
+
+        assert formats["text"].endswith("https://doi.org/10.58052/IGSN_1")
+        assert entry.fields["doi"] == "10.58052/IGSN_1"
+        assert entry.fields["url"] == "https://doi.org/10.58052/IGSN_1"
+        assert ris["doi"] == "10.58052/IGSN_1"
+        assert ris["urls"] == ["https://doi.org/10.58052/IGSN_1"]
+
+    def test_a_legacy_igsn_that_does_not_resolve_gives_no_link_and_no_doi(
+        self, client, rock
+    ):
+        SampleIdentifierFactory(related=rock, type=IGSN, value="AU1101")
+
+        formats = self._formats(client, rock)
+        _key, entry, ris = self._entry(formats)
+
+        assert "http" not in formats["text"]
+        assert "doi" not in entry.fields
+        assert "url" not in entry.fields
+        assert "doi" not in ris
+        assert "urls" not in ris
+
+    def test_a_sample_is_a_misc_entry_and_a_general_reference(self, client, rock):
+        formats = self._formats(client, rock)
+        _key, entry, ris = self._entry(formats)
+
+        assert entry.type == "misc"
+        assert ris["type_of_reference"] == "GEN"
+
+    def test_with_nobody_credited_no_author_is_given(self, client, rock):
+        formats = self._formats(client, rock)
+        _key, entry, ris = self._entry(formats)
+
+        assert "author" not in entry.persons
+        assert "authors" not in ris
+        assert formats["text"].startswith("(")
+
+    def test_a_portal_sample_type_gets_all_three_formats(self, client, released):
+        sample = ConcreteSampleFactory(dataset=released, name="Portal core")
+
+        citation = _page(client, sample).context["citation"]
+        formats = {entry["key"]: entry["value"] for entry in citation["formats"]}
+        _key, entry, ris = self._entry(formats)
+
+        assert list(formats) == ["text", "bibtex", "ris"]
+        assert "Portal core [concrete sample]" in formats["text"]
+        assert codecs.decode(entry.fields["title"], "ulatex") == (
+            "Portal core [concrete sample]"
+        )
+        assert ris["title"] == "Portal core [concrete sample]"
+        assert [e["url"] for e in citation["formats"]] == [
+            reverse(
+                "sample:overview-citation",
+                kwargs={"uuid": sample.uuid, "format": key},
+            )
+            for key in ("text", "bibtex", "ris")
+        ]

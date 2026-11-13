@@ -1,20 +1,25 @@
 """Tests for the dataset's registered pages: update, descriptions, deletion, menu and links."""
 
+import codecs
 import json
 import re
 import warnings
 from datetime import UTC, date, datetime
 
+import latexcodec  # noqa: F401  (registers the "ulatex" codec)
 import pytest
+import rispy
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point
+from django.contrib.sites.models import Site
 from django.test import RequestFactory
 from django.urls import reverse
 from django.utils.formats import date_format
 from licensing.models import License
 from mvp.warnings import MVPDeprecationWarning
 from partial_dates import PartialDate
+from pybtex.database import parse_string
 from pytest_django.asserts import assertContains, assertNotContains
 
 from demo.factories import RockSampleFactory
@@ -1180,10 +1185,18 @@ class TestOverviewCitation:
         assert str(dataset.uuid) not in citation
 
     def test_a_data_publication_is_cited_in_place_of_the_dataset(self, client):
-        reference = LiteratureItemFactory()
+        reference = LiteratureItemFactory(
+            title="Deep drilling records of the Rhine graben",
+            doi="10.1/pub",
+            year=2020,
+            authors=(("Brandt", "Lena"), ("Weiss", "Jan")),
+        )
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, reference=reference)
 
-        assert self._citation(client, dataset) == str(reference)
+        assert self._citation(client, dataset) == (
+            "Brandt, L. & Weiss, J. (2020). Deep drilling records of the Rhine "
+            "graben. https://doi.org/10.1/pub"
+        )
 
     def test_creators_are_named_in_the_order_credited_people_before_organizations(
         self, client
@@ -1889,3 +1902,173 @@ class TestOverviewSampleMap:
 
     def test_has_map_is_true_once_a_sample_is_located(self, client, published):
         assert loads_map_script(_page(client, published))
+
+
+@pytest.fixture
+def portal_name(db):
+    """Name the site, which a citation gives as its publisher."""
+    Site.objects.filter(pk=Site.objects.get_current().pk).update(
+        name="Acme Data Portal"
+    )
+    Site.objects.clear_cache()
+    yield "Acme Data Portal"
+    Site.objects.clear_cache()
+
+
+class TestOverviewCitationFormats:
+    """The dataset's citation as BibTeX and RIS, as the Cite panel offers it."""
+
+    def _dataset(self, **kwargs):
+        dataset = DatasetFactory(
+            visibility=Visibility.PUBLIC, name="Borehole logs", **kwargs
+        )
+        for first, last in (("Anna", "Keller"), ("Tomas", "Oliveira")):
+            dataset.add_contributor(
+                PersonFactory(first_name=first, last_name=last, is_active=True),
+                with_roles=[f"{CONTRIBUTOR_ROLES}/creator"],
+            )
+        DatasetDateFactory(
+            related=dataset,
+            type_id=f"{DATE_TYPES}/published",
+            value=PartialDate.fromisoformat("2022-06-09"),
+        )
+        return dataset
+
+    def _formats(self, client, dataset):
+        citation = _page(client, dataset).context["citation"]
+        return {entry["key"]: entry["value"] for entry in citation["formats"]}
+
+    def _entry(self, formats):
+        data = parse_string(formats["bibtex"], "bibtex")
+        assert len(data.entries) == 1
+        key, entry = next(iter(data.entries.items()))
+        return key, entry, rispy.loads(formats["ris"])[0]
+
+    def test_the_text_and_both_files_give_the_same_people_year_title_and_publisher(
+        self, client, portal_name
+    ):
+        dataset = self._dataset()
+
+        formats = self._formats(client, dataset)
+        key, entry, ris = self._entry(formats)
+
+        assert formats["text"].startswith("Keller, A. & Oliveira, T. (2022). ")
+        assert "Borehole logs. Acme Data Portal." in formats["text"]
+        assert [(p.last_names, p.first_names) for p in entry.persons["author"]] == [
+            (["Keller"], ["Anna"]),
+            (["Oliveira"], ["Tomas"]),
+        ]
+        assert entry.fields["year"] == "2022"
+        assert codecs.decode(entry.fields["title"], "ulatex") == "Borehole logs"
+        assert codecs.decode(entry.fields["publisher"], "ulatex") == portal_name
+        assert key == str(dataset.uuid)
+        assert ris["authors"] == ["Keller, Anna", "Oliveira, Tomas"]
+        assert (ris["year"], ris["title"], ris["publisher"]) == (
+            "2022",
+            "Borehole logs",
+            portal_name,
+        )
+
+    def test_without_a_doi_the_files_give_the_permalink_and_no_doi(self, client):
+        dataset = self._dataset()
+        permalink = f"http://testserver/{dataset.uuid}/"
+
+        formats = self._formats(client, dataset)
+        _key, entry, ris = self._entry(formats)
+
+        assert formats["text"].endswith(permalink)
+        assert entry.fields["url"] == permalink
+        assert "doi" not in entry.fields
+        assert ris["urls"] == [permalink]
+        assert "doi" not in ris
+
+    def test_with_a_doi_the_files_give_the_doi_and_its_link(self, client):
+        dataset = self._dataset()
+        DatasetIdentifierFactory(related=dataset, value="10.5555/ds_1")
+
+        formats = self._formats(client, dataset)
+        _key, entry, ris = self._entry(formats)
+
+        assert formats["text"].endswith("https://doi.org/10.5555/ds_1")
+        assert entry.fields["doi"] == "10.5555/ds_1"
+        assert entry.fields["url"] == "https://doi.org/10.5555/ds_1"
+        assert ris["doi"] == "10.5555/ds_1"
+        assert ris["urls"] == ["https://doi.org/10.5555/ds_1"]
+
+    def test_a_dataset_is_a_dataset_entry_and_a_data_reference(self, client):
+        formats = self._formats(client, self._dataset())
+        _key, entry, ris = self._entry(formats)
+
+        assert entry.type == "dataset"
+        assert ris["type_of_reference"] == "DATA"
+
+    def test_with_nobody_credited_no_author_is_given(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+
+        formats = self._formats(client, dataset)
+        _key, entry, ris = self._entry(formats)
+
+        assert "author" not in entry.persons
+        assert "authors" not in ris
+        assert formats["text"].startswith("(")
+
+    def test_a_data_publication_gives_its_own_citation_in_text_and_both_files(
+        self, client
+    ):
+        title = (
+            "Deep drilling records of the Rhine graben, with the borehole logs, "
+            "cores and fluid samples taken between 2015 and 2019"
+        )
+        reference = LiteratureItemFactory(
+            title=title,
+            type="article-journal",
+            doi="10.1/pub_x",
+            year=2020,
+            authors=(("Brandt", "Lena"), ("Weiss", "Jan")),
+        )
+        reference.publisher = "Journal of Rhine Studies"
+        reference.save()
+        dataset = self._dataset(reference=reference)
+
+        formats = self._formats(client, dataset)
+        key, entry, ris = self._entry(formats)
+
+        assert formats["text"] == (
+            f"Brandt, L. & Weiss, J. (2020). {title}. Journal of Rhine Studies. "
+            "https://doi.org/10.1/pub_x"
+        )
+        assert [(p.last_names, p.first_names) for p in entry.persons["author"]] == [
+            (["Brandt"], ["Lena"]),
+            (["Weiss"], ["Jan"]),
+        ]
+        assert entry.type == "article"
+        assert key == str(dataset.uuid)
+        assert entry.fields["year"] == "2020"
+        assert codecs.decode(entry.fields["title"], "ulatex") == title
+        assert (
+            codecs.decode(entry.fields["publisher"], "ulatex")
+            == "Journal of Rhine Studies"
+        )
+        assert entry.fields["doi"] == "10.1/pub_x"
+        assert entry.fields["url"] == "https://doi.org/10.1/pub_x"
+        assert ris["type_of_reference"] == "JOUR"
+        assert ris["authors"] == ["Brandt, Lena", "Weiss, Jan"]
+        assert (ris["year"], ris["title"], ris["publisher"]) == (
+            "2020",
+            title,
+            "Journal of Rhine Studies",
+        )
+        assert ris["doi"] == "10.1/pub_x"
+
+    def test_each_format_has_an_address_beside_the_page(self, client):
+        dataset = self._dataset()
+
+        citation = _page(client, dataset).context["citation"]
+
+        assert [e["url"] for e in citation["formats"]] == [
+            reverse(
+                "dataset:overview-citation",
+                kwargs={"uuid": dataset.uuid, "format": key},
+            )
+            for key in ("text", "bibtex", "ris")
+        ]

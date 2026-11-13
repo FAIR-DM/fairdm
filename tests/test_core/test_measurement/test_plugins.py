@@ -1,14 +1,19 @@
 """The measurement's overview page: what it opens for, what it draws and what it leaves out."""
 
+import codecs
 from datetime import UTC, datetime
 
+import latexcodec  # noqa: F401  (registers the "ulatex" codec)
 import pytest
+import rispy
 from bs4 import BeautifulSoup
 from django.contrib.gis.geos import Point as GEOSPoint
+from django.contrib.sites.models import Site
 from django.db import models
 from django.template.loader import select_template
 from django.test.utils import isolate_apps
 from django.urls import reverse
+from pybtex.database import parse_string
 from pytest_django.asserts import assertContains, assertNotContains
 
 from demo.factories import (
@@ -21,7 +26,12 @@ from fairdm import plugins
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.measurement.models import Measurement, MeasurementDate
 from fairdm.core.measurement.plugins import Overview
-from fairdm.core.vocabularies import DATE_TYPES, IDENTIFIER_TYPES, SAMPLE_STATUS
+from fairdm.core.vocabularies import (
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    IDENTIFIER_TYPES,
+    SAMPLE_STATUS,
+)
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
@@ -29,6 +39,7 @@ from fairdm.factories import (
 )
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
+from tests.factories import ConcreteMeasurementFactory, ConcreteSampleFactory
 
 
 # Development data reaches every state; `DatasetFactory()` alone gives a private, unpublished one.
@@ -689,3 +700,154 @@ class TestOverviewLocation:
         assert response.context["effective_location"].source == "sample"
         marker = response.page.select_one("[data-map]")
         assert (marker["data-lon"], marker["data-lat"]) == ("12.5", "41.5")
+
+
+@pytest.fixture
+def portal_name(db):
+    """Name the site, which a citation gives as its publisher."""
+    Site.objects.filter(pk=Site.objects.get_current().pk).update(
+        name="Acme Data Portal"
+    )
+    Site.objects.clear_cache()
+    yield "Acme Data Portal"
+    Site.objects.clear_cache()
+
+
+@pytest.mark.django_db
+class TestOverviewCitationFormats:
+    """The measurement's citation as BibTeX and RIS, as the Cite panel offers it."""
+
+    def _credited(self, measurement):
+        for first, last in (("Anna", "Keller"), ("Tomas", "Oliveira")):
+            measurement.add_contributor(
+                PersonFactory(first_name=first, last_name=last, is_active=True),
+                with_roles=[f"{CONTRIBUTOR_ROLES}/measurement-collection"],
+            )
+        MeasurementDate.objects.create(
+            related=measurement,
+            type_id=f"{DATE_TYPES}/setup",
+            value="2024-01-15",
+        )
+        return measurement
+
+    def _formats(self, response):
+        return {
+            entry["key"]: entry["value"]
+            for entry in response.context["citation"]["formats"]
+        }
+
+    def _entry(self, formats):
+        data = parse_string(formats["bibtex"], "bibtex")
+        assert len(data.entries) == 1
+        key, entry = next(iter(data.entries.items()))
+        return key, entry, rispy.loads(formats["ris"])[0]
+
+    def test_the_text_and_both_files_give_the_same_people_year_title_and_publisher(
+        self, client, xrf, portal_name
+    ):
+        self._credited(xrf)
+
+        formats = self._formats(_page(client, xrf))
+        key, entry, ris = self._entry(formats)
+
+        title = "Zq-9902 scan [XRF Measurement] of Zq-4471 rift core"
+        assert formats["text"].startswith("Keller, A. & Oliveira, T. (2024). ")
+        assert f"{title}. Acme Data Portal." in formats["text"]
+        assert [(p.last_names, p.first_names) for p in entry.persons["author"]] == [
+            (["Keller"], ["Anna"]),
+            (["Oliveira"], ["Tomas"]),
+        ]
+        assert entry.fields["year"] == "2024"
+        assert codecs.decode(entry.fields["title"], "ulatex") == title
+        assert codecs.decode(entry.fields["publisher"], "ulatex") == portal_name
+        assert key == str(xrf.uuid)
+        assert ris["authors"] == ["Keller, Anna", "Oliveira, Tomas"]
+        assert (ris["year"], ris["title"], ris["publisher"]) == (
+            "2024",
+            title,
+            portal_name,
+        )
+
+    def test_without_a_doi_the_files_give_the_permalink_and_no_doi(self, client, xrf):
+        permalink = f"http://testserver/{xrf.uuid}/"
+
+        formats = self._formats(_page(client, xrf))
+        _key, entry, ris = self._entry(formats)
+
+        assert formats["text"].endswith(permalink)
+        assert entry.fields["url"] == permalink
+        assert "doi" not in entry.fields
+        assert ris["urls"] == [permalink]
+        assert "doi" not in ris
+
+    def test_with_a_doi_the_files_give_the_doi_and_its_link(self, client, xrf):
+        from fairdm.core.measurement.models import MeasurementIdentifier
+
+        MeasurementIdentifier.objects.create(
+            related=xrf, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.1234/meas_1"
+        )
+
+        formats = self._formats(_page(client, xrf))
+        _key, entry, ris = self._entry(formats)
+
+        assert formats["text"].endswith("https://doi.org/10.1234/meas_1")
+        assert entry.fields["doi"] == "10.1234/meas_1"
+        assert entry.fields["url"] == "https://doi.org/10.1234/meas_1"
+        assert ris["doi"] == "10.1234/meas_1"
+        assert ris["urls"] == ["https://doi.org/10.1234/meas_1"]
+
+    def test_a_measurement_is_a_dataset_entry_and_a_data_reference(self, client, xrf):
+        formats = self._formats(_page(client, xrf))
+        _key, entry, ris = self._entry(formats)
+
+        assert entry.type == "dataset"
+        assert ris["type_of_reference"] == "DATA"
+
+    def test_with_nobody_credited_no_author_is_given(self, client, xrf):
+        formats = self._formats(_page(client, xrf))
+        _key, entry, ris = self._entry(formats)
+
+        assert "author" not in entry.persons
+        assert "authors" not in ris
+        assert formats["text"].startswith("(")
+
+    def test_a_sample_the_viewer_may_not_see_is_an_unpublished_sample_in_every_format(
+        self, client, released
+    ):
+        sample = RockSampleFactory(
+            dataset=_dataset(published=False), name="Hidden-3318 core"
+        )
+        measurement = XRFMeasurementFactory(dataset=released, sample=sample)
+
+        formats = self._formats(_page(client, measurement))
+        _key, entry, ris = self._entry(formats)
+
+        assert "of an unpublished sample" in formats["text"]
+        assert codecs.decode(entry.fields["title"], "ulatex").endswith(
+            "of an unpublished sample"
+        )
+        assert ris["title"].endswith("of an unpublished sample")
+        assert "Hidden-3318" not in "".join(formats.values())
+
+    def test_a_portal_measurement_type_gets_all_three_formats(self, client, released):
+        sample = ConcreteSampleFactory(dataset=released, name="Portal core")
+        measurement = ConcreteMeasurementFactory(
+            dataset=released, sample=sample, name="Portal reading"
+        )
+
+        response = _page(client, measurement)
+        formats = self._formats(response)
+        _key, entry, ris = self._entry(formats)
+
+        title = "Portal reading [concrete measurement] of Portal core"
+        assert list(formats) == ["text", "bibtex", "ris"]
+        assert title in formats["text"]
+        assert codecs.decode(entry.fields["title"], "ulatex") == title
+        assert ris["title"] == title
+        assert [e["url"] for e in response.context["citation"]["formats"]] == [
+            reverse(
+                "measurement:overview-citation",
+                kwargs={"uuid": measurement.uuid, "format": key},
+            )
+            for key in ("text", "bibtex", "ris")
+        ]
