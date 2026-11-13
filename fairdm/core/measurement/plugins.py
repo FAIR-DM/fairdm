@@ -39,7 +39,7 @@ class Overview(TypedOverviewPlugin):
             role that performs it, the description type that explains it, and what the page calls
             it. The measurement vocabularies describe the same procedure three ways, so the page
             puts them back together.
-        siblings_shown: Rows shown in the list of other measurements made on the same sample.
+        siblings_shown: Rows in the table of other measurements made on the same sample.
     """
 
     base_model = Measurement
