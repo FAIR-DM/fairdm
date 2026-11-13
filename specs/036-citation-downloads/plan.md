@@ -16,14 +16,15 @@ and adds the prototype's format switch and Download to the Cite panel that #685 
   with no build step.
 - **New runtime dependencies**: `pybtex>=0.26,<0.27` (BibTeX writer, brings `latexcodec`) and
   `rispy>=0.10,<0.11` (RIS writer). Research N6.
-- **New development dependency**: `pylatexenc>=2.10,<3` (reads BibTeX values back in tests).
+- **No new development dependency**: tests read BibTeX values back with `latexcodec`, which
+  `pybtex` brings.
 - **Storage**: none. Nothing is stored and there is no migration.
 - **Testing**: pytest with pytest-django, against PostGIS. Tests are grouped in `Test<Subject>`
   classes in the module that mirrors the source file.
 
 ## Constitution Check
 
-- **Simplicity**: one dataclass, two writer functions and one view class. No setting, no registry,
+- **Simplicity**: two dataclasses whose methods write the formats, and one view class. No setting, no registry,
   no hook for portals beyond overriding the plugin methods that already exist.
 - **Dependencies**: two runtime packages, both maintained and MIT-licensed, each replacing code
   that is easy to get wrong (TeX escaping, RIS tag rules). Named in `pyproject.toml` with bounds.
@@ -40,6 +41,7 @@ and adds the prototype's format switch and Download to the Cite panel that #685 
 class CitedName:
     family: str = ""
     given: str = ""
+    suffix: str = ""
     literal: str = ""   # an organisation, or a person with no family and given name
 
 @dataclass(frozen=True)
@@ -55,30 +57,40 @@ class Citation:
     ris_type: str       # "GEN", "DATA" or the publication's own
 ```
 
-Module functions:
+The writers are methods of the value they write (constitution Article X):
 
-- `cited_name(contributor) -> CitedName`: a person with a family name gives `family`/`given`
-  (`last_name`, `first_name`), anything else gives `literal=str(contributor)`.
-- `cited_name_from_item_name(name) -> CitedName`: a `literature.Name` gives `family`/`given`, or
-  `literal` when it has one.
-- `to_bibtex(citation) -> str`: one entry, written with `pybtex.database.BibliographyData` and
-  `Entry`. Persons go in `persons["author"]` as `pybtex.database.Person(last=…, first=…)`; a
-  literal name is written as one braced last name so BibTeX never splits it. Fields: `title`,
-  `year`, `publisher`, `doi` when there is one, `url` when there is one. No author field when
-  there is nobody. Every value first goes through `escape_tex` (decisions D10).
-- `escape_tex(value) -> str`: collapses every run of whitespace, line breaks included, to one
-  space, then writes `\` as `\textbackslash{}`, `$` as `\$`, `^` as `\textasciicircum{}`, and each
-  brace as `\{` or `\}` when it has a partner in the value, `\textbraceleft{}` or
-  `\textbraceright{}` when it does not. `latexcodec`, inside `pybtex`'s writer, escapes the rest.
-- `to_ris(citation) -> str`: one entry through `rispy`: `type_of_reference`, one `authors` entry
+- `CitedName.from_contributor(contributor)` (classmethod): a person with a family name gives
+  `family`/`given` (`last_name`, `first_name`), anything else gives `literal=str(contributor)`.
+- `CitedName.from_item_name(name)` (classmethod): a `literature.Name` gives `family`/`given`, or
+  `literal` when it has one. The non-dropping particle goes in front of the family name, and the
+  suffix is kept in a `suffix` field (BibTeX `lineage`, RIS "Family, Given, Suffix").
+- `Citation.to_bibtex() -> str`: one entry, written with `pybtex.database.BibliographyData` and
+  `Entry`. Persons go in `persons["author"]` as `pybtex.database.Person(last=…, first=…,
+  lineage=…)`; a literal name is written as one braced last name so BibTeX never splits it.
+  Fields: `title`, `year`, `publisher`, `doi` when there is one, `url` when there is one. No
+  author field when there is nobody. Every value except `doi` and `url` first goes through
+  `escape_tex` (decisions D10). The entry is written by `CitationWriter`, a subclass of pybtex's
+  BibTeX `Writer` whose `_write_field` writes `doi` and `url` without `latexcodec`'s encoding, so a
+  DOI holding `_` or `#` reads back as typed (brace checking still applies).
+- `escape_tex(value) -> str` (module helper of `to_bibtex`): collapses every run of whitespace,
+  line breaks included, to one space, then writes `\` as `\textbackslash{}`, `$` as `\$`, `^` as
+  `\textasciicircum{}`. Braces are paired by order, in one left-to-right pass with a counter: a `{`
+  closed by a later `}` is written `\{` … `\}`, and every other brace (a `}` with no open `{`
+  before it, a `{` never closed) as `\textbraceright{}` or `\textbraceleft{}`. `latexcodec`,
+  inside `pybtex`'s writer, escapes the rest.
+- `Citation.to_ris() -> str`: one entry through `rispy`: `type_of_reference`, one `authors` entry
   per person ("Family, Given", or the literal name), `title`, `year`, `publisher`, `doi`, `urls`.
   Whitespace runs collapse to one space, since a RIS value cannot hold a line break. No counter
-  line before the entry.
-- `citation_filename(citation, extension) -> str`: `slugify(title)[:60]`, else the key, then
-  `.extension`.
-- `publication_types(csl_type) -> tuple[str, str]`: the BibTeX and RIS types for a CSL type, read
-  in reverse from `django-literature`'s `ENTRY_TYPE_TABLE` and `REFERENCE_TYPE_TABLE` (research,
-  "Entry types"), else `("misc", "GEN")`.
+  line before the entry: written by a `rispy.RisWriter` subclass whose `set_header` returns `""`.
+- `Citation.filename(extension) -> str`: `slugify(title)[:60]`, else the key, then `.extension`.
+- `publication_types(csl_type) -> tuple[str, str]`: the BibTeX and RIS types for a CSL type, from
+  an explicit mapping in `citation.py` for the CSL types `django-literature` stores
+  (`article-journal` → `article`/`JOUR`, `dataset` → `dataset`/`DATA`, `book` → `book`/`BOOK`,
+  `chapter` → `incollection`/`CHAP`, `paper-conference` → `inproceedings`/`CPAPER`, `report` →
+  `techreport`/`RPRT`, `thesis` → `phdthesis`/`THES`, `webpage` → `online`/`ELEC`, `software` →
+  `software`/`COMP`), else `("misc", "GEN")`. Reading the import tables in reverse gives wrong RIS
+  types (`ABST` for a journal article, `AGGR` for a dataset), so the tables are the test's
+  independent check instead.
 
 `FORMATS`, a module constant, describes the three formats in order: key (`text`, `bibtex`, `ris`),
 label (`Text` translated, `BibTeX`, `RIS`), content type (`text/plain`,
@@ -88,21 +100,29 @@ extension (`txt`, `bib`, `ris`), and whether Download is offered (not for `text`
 ### The plugins (`fairdm/core/plugins.py` and the four record `plugins.py`)
 
 - `RecordOverviewPlugin.get_publisher()` returns `request.site.name` or `""`. `get_citation` reads
-  it from there instead of inline. `get_citation` keeps its signature, so a portal that overrides
-  it keeps working.
+  it from there instead of inline, and takes an optional `publisher` keyword that defaults to
+  `get_publisher()`, so a portal that overrides it keeps working.
 - `RecordOverviewPlugin.get_citation_formats(citation, text) -> list[dict]`: one entry per format
-  in `FORMATS`: `key`, `label`, `value` (the text, `to_bibtex(citation)`, `to_ris(citation)`),
+  in `FORMATS`: `key`, `label`, `value` (the text, `citation.to_bibtex()`, `citation.to_ris()`),
   `url` (the format's address, see below, from
   `plugin_reverse(record, "overview-citation", format=key)`) and `download` (bool).
 - Each record's `get_citation_details` keeps its arguments. It now builds a `Citation` from the
   parts it already gathers, writes the text from the same parts as before, and adds two keys to
   the dict it returns: `work` (the `Citation`) and `formats` (from `get_citation_formats`). The
-  text stays exactly what it is today, so every existing citation test stays as it is.
+  text stays exactly what it is today, so every existing citation test stays as it is, with one
+  exception: the dataset cited as its data publication (below, decisions D13).
   - Project: `bibtex_type="misc"`, `ris_type="GEN"`. `doi` the DOI identifier's value.
   - Dataset: `"dataset"`, `"DATA"`. With a data publication (`dataset.reference_id`), the
     `Citation` is the publication's: `Item.authors`, `Item.year`, the full `Item.title` (not
     `str(item)`, which cuts it at 80 characters), `Item.publisher`, `Item.doi`, `Item.doi_url`,
     and the types from `publication_types(item.type)`. The key stays the dataset's portal ID.
+    Its text is written from that same publication through `get_citation` (the publication's
+    authors, `Item.year`, the full `Item.title`, `publisher=Item.publisher`, `Item.doi_url` as the
+    link), in place of today's `str(reference)`, which names nobody and cuts the title at 80
+    characters. `format_authors` reads `last_name`/`first_name`, so the publication's names are
+    given to it as `CitedName` values through a branch of their own. The one test pinning
+    `str(reference)` (`tests/test_core/test_dataset/test_plugins.py`, about line 1186) is changed
+    to the full citation.
   - Sample: `"misc"`, `"GEN"`. `doi` the IGSN's value when its link is a doi.org link.
   - Measurement: `"dataset"`, `"DATA"`. `doi` the DOI's value.
   - `url` is the link the text ends with in every case, so a legacy IGSN that does not resolve
@@ -124,10 +144,12 @@ A plugin view mounted as an additional view of every record overview plugin:
   `has_permission()`. `handle_no_permission()` returns the owner's. So a stranger gets the page's
   own 404 for a private record, and an unknown record the page's not-found (FR-010, SC-004).
   Nothing about access is repeated in the view.
+- The owner is built once, in `setup()`, and used by `has_permission`, `handle_no_permission` and
+  `get()`, so its cached `base_object` is read once.
 - `get()`: a format key outside `FORMATS` is a 404. Otherwise it asks the owner for its
   `get_context_data()` and takes `citation["formats"]` from it, so the file is the one the panel
   shows, by construction (US2 AS 1, FR-011). The answer is an `HttpResponse` with the format's
-  content type and `Content-Disposition: attachment` named by `citation_filename`, written with
+  content type and `Content-Disposition: attachment` named by `Citation.filename`, written with
   `content_disposition_header`.
 - Reading the whole page context for a file costs the page's queries. Decisions D12 records why
   that is accepted.
@@ -136,7 +158,9 @@ A plugin view mounted as an additional view of every record overview plugin:
 
 Ported from the prototype's `cotton/ov/cite.html`:
 
-- The component takes `formats` (the list from `get_citation_formats`) in place of `text`. The
+- The component takes `formats` (the list from `get_citation_formats`) in place of `text`. Its
+  `{# @description #}` and `{# @slot #}` annotations stay, and `@prop text` becomes `@prop
+  formats`, describing the list of `key`, `label`, `value`, `url` and `download`. The
   `<section>` gains `data-cite`. `{{ formats|json_script:"cite-formats" }}` carries the formats to
   the script.
 - In the panel's head after the title: `<div class="ov-seg" role="tablist" aria-label="Citation
@@ -162,6 +186,8 @@ Ported from the prototype's `cotton/ov/cite.html`:
 - `initTabs` skips the switch: its selector becomes `.ov [role=tablist]:not(.ov-seg)`. Otherwise it
   would treat the three buttons as tabs over three panels and hide the citation.
 - Copy needs no change: it copies the `<pre>`'s text, which is the format on show.
+- As in the prototype, the header's Cite button (`initJumpToCite`) moves focus to the selected
+  format's button.
 
 ### The styles (`fairdm/static/css/fairdm.css`)
 
@@ -189,25 +215,35 @@ the citation as text only is read and brought into line.
 ### US2: the formats and their addresses
 
 - `tests/test_core/test_citation.py` (new, mirrors `fairdm/core/citation.py`):
-  - `TestToBibtex`: one entry read back by `pybtex`'s parser, with the type, key, authors in
-    order (family and given), year, title, publisher, DOI and URL. No author field for nobody. An
-    organisation stays one name. Values holding `& % # _ ~ $`, braces in pairs, letters outside
-    English and other scripts read back as written through `pylatexenc`. A backslash, a caret and
-    an unpaired brace: the entry still parses as one, and the value is written with the LaTeX
-    command for that character. A line break reads back as a space.
-  - `TestToRis`: read back by `rispy.loads` as one entry with the type, authors in order, title,
-    year, publisher, DOI and URL. No `AU` line for nobody. The first line is the `TY` line. A line
-    break reads back as a space.
-  - `TestPublicationTypes`: a CSL `article-journal` gives `article` and `JOUR`, `dataset` gives
-    `dataset` and `DATA`, an unknown type gives `misc` and `GEN`.
-  - `TestCitationFilename`: a title with spaces and accents gives an ASCII slug with the extension;
-    an empty title gives the key.
+  - `TestCitedName`: `from_contributor` for a person and an organisation; `from_item_name` for a
+    name with family and given, a literal name, and one with a particle and a suffix.
+  - `TestCitation`, grouped by method:
+    - `to_bibtex`: one entry read back by `pybtex`'s parser, with the type, key, authors in order
+      (family and given, suffix as lineage), year, title, publisher, DOI and URL. No author field
+      for nobody. An organisation stays one name. Values holding `& % # _ ~`, braces in pairs,
+      letters outside English and other scripts read back as written through `latexcodec`
+      (`codecs.decode(value, "ulatex")`). A backslash, a dollar, a caret and an unpaired brace,
+      including a `}` that comes before a `{`: the entry still parses as one, and the value is
+      written with the LaTeX command for that character, asserted by its written form. A DOI and
+      URL holding `_` and `#` read back by `pybtex`'s parser alone exactly as given. A line break
+      reads back as a space.
+    - `to_ris`: read back by `rispy.loads` as one entry with the type, authors in order, title,
+      year, publisher, DOI and URL. No `AU` line for nobody. The first line is the `TY` line. A
+      line break reads back as a space.
+    - `filename`: a title with spaces and accents gives an ASCII slug with the extension; an
+      empty title gives the key.
+  - `TestPublicationTypes`: every mapped CSL type's BibTeX and RIS types import back through
+    `django-literature`'s `ENTRY_TYPE_TABLE` and `REFERENCE_TYPE_TABLE` as that same CSL type (the
+    independent check), and an unknown type gives `misc` and `GEN`.
 - `tests/test_core/test_<kind>/test_plugins.py`, one class per kind, `TestOverviewCitationFormats`:
-  the `work` in `get_citation_details` names the same people in the same order, year, title,
-  publisher and link as the text, and the BibTeX and RIS read back give them (US1 AS 5). A record
+  the expected people, year, title, publisher and identifier come from the fixtures the test
+  creates (named contributors with known roles, a set date, a DOI), never from `work`. The text
+  and the BibTeX and RIS read back each give them, in the same order (US1 AS 5). A record
   with no DOI or IGSN gives its permalink and no DOI; with one, the identifier and its doi.org link
-  (AS 6). Entry types per kind (FR-007). Dataset: a data publication gives the publication's
-  authors, full title, year, publisher, DOI and type (AS 7). Nobody credited gives no author
+  (AS 6). A sample with a legacy IGSN that does not resolve gives no link and no DOI in any
+  format, following the text (decisions D14). Entry types per kind (FR-007). Dataset: a data
+  publication gives the publication's authors, full title, year, publisher, DOI and type, in the
+  text and in both formats (AS 7). Nobody credited gives no author
   (AS 8). A portal sample or measurement type (`tests/registry_models`) gets all three formats
   (AS 10, FR-008). A measurement whose sample the viewer may not see keeps the text's wording of
   the sample in its title.
@@ -237,6 +273,8 @@ the citation as text only is read and brought into line.
 - A section on citations in `docs/developers/reference/overview-plugins.md`, the page that already
   documents the overview plugins' methods: the address of each format, what it answers and to
   whom, the entry types, and which plugin methods a portal overrides to change a citation (US2).
+  It says that a portal plugin setting its own `extra_views` must include `CitationFile` to keep
+  the addresses.
 - `CHANGELOG.md` under `[Unreleased]`, one entry per story.
 
 ## Risks

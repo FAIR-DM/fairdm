@@ -37,8 +37,8 @@ note. The publication carries its own type, people and identifier, so its BibTeX
 
 RIS has a type for data (`DATA`), and so does BibLaTeX (`@dataset`), which the common reference
 managers read in BibTeX files. It fits a dataset and a measurement. The build confirms the BibTeX
-type against the reference managers it tests with. Neither has a type for a research project or a physical sample, so both take the
-general type (`@misc`, `GEN`), as the prototype does. A dataset cited as its data publication takes
+type against the reference managers it tests with. Neither has a type for a research project or a
+physical sample, so both take the general type (`@misc`, `GEN`), as the prototype does. A dataset cited as its data publication takes
 the publication's own type.
 
 **ADR:** none. A mapping between two published vocabularies with no choice of note in it.
@@ -119,3 +119,37 @@ citation's inputs would need each kind of record to compute them twice, once for
 for the file, and keep the two in step by hand.
 
 **ADR:** none. **Revisit if** a reference manager or a harvester fetches the addresses in bulk.
+
+## D13. A dataset cited as its data publication gets the publication's full citation as text
+
+Today that text is the publication's title, cut at 80 characters, naming nobody. Specification 018
+says such a dataset's citation is the publication's citation, and FR-004 asks the BibTeX and RIS to
+give the same people, year, title, publisher and DOI as the text and to cite the publication. Both
+can only hold if the text is the publication's citation too, so it is written from the same
+publication as the formats: its authors, year, full title, publisher and DOI. This brings the text
+to the rule specification 018 already sets, so the feature's boundary (the wording follows 018)
+stands. One existing test that pinned the shortened title changes.
+
+**ADR:** none. It follows from specification 018 and changes one case of one plugin.
+
+## D14. A legacy IGSN that does not resolve gives no link in any format
+
+A sample whose IGSN is not a doi.org identifier gets no link in its text today, and no permalink
+in its place. FR-004 asks the formats to follow the text and FR-005 asks them to give the IGSN.
+The formats follow the text: no DOI and no URL. A test holds it so the choice is kept on purpose.
+
+**ADR:** none. Local to this feature.
+
+## D15. Design review, carried as watch items
+
+The plan was reviewed before any code was written. Its three blocking findings were fixed in the
+plan: the dataset's publication case (D13), braces paired by order in the BibTeX escaping, and the
+writers grouped as methods of the citation they write. These were also taken into the plan:
+explicit publication types instead of reading the import tables in reverse, DOI and URL written
+unencoded in BibTeX, a name's particle and suffix kept, the component's gallery annotations kept,
+the owning plugin built once per request in the address's view, `latexcodec` in place of a second
+TeX decoder in tests, and the plan's citation tests taking their expected values from their own
+fixtures. Implementers are told: no test may derive its expected people or title from `work`.
+
+**ADR:** none. Review record.
+

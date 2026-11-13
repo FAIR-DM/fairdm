@@ -70,10 +70,19 @@ keeps its place and the element its position.
   managers use. Its writer puts a counter line (`1.`) before each entry, which the build turns off
   through the writer's own option or a subclass.
 - **Reading back in tests.** BibTeX: `pybtex`'s parser for the entry and its fields, then
-  `pylatexenc` (a development dependency) to turn the field values back into text. `pylatexenc`
+  `latexcodec` (`codecs.decode(value, "ulatex")`, installed with `pybtex`) to turn the field values
+  back into text. It decodes `& % # _ ~` and letters outside English as `pylatexenc` does, and
+  leaves `\textbackslash{}` and `\$` as written, so those, the caret and the brace commands are
+  asserted by their written form. No `pylatexenc`. (Tried earlier: `pylatexenc`
   decodes every escape the writer uses except `\textasciicircum{}`, which it reads as the modifier
   letter `ˆ`, and `\textbraceleft{}` and `\textbraceright{}`, which it drops. Those three are
-  asserted by their written form. RIS: `rispy.loads`.
+  asserted by their written form.) RIS: `rispy.loads`.
+- **DOI and URL in BibTeX.** `pybtex`'s writer encodes every field, so a DOI holding `_` or `#` is
+  written as `\_` or `\#` and read back so. `doi` and `url` are written unencoded by a subclass of
+  its `Writer` (`CitationWriter`).
+- **No counter line in RIS.** `rispy` 0.10 has no option for it. A `RisWriter` subclass whose
+  `set_header` returns `""` drops it (`rispy/writer.py`, `BaseWriter._format_reference` skips an
+  empty header).
 
 ## Entry types
 
@@ -86,10 +95,11 @@ keeps its place and the element its position.
 | Dataset cited as its data publication | the publication's own type | the publication's own type |
 
 `@dataset` is BibLaTeX's type. Zotero, JabRef and biber read it from a `.bib` file. The
-publication's own type comes from its CSL type, mapped back through `django-literature`'s import
-tables (`ENTRY_TYPE_TABLE` in `literature/importers/bibtex.py`, `REFERENCE_TYPE_TABLE` in
-`literature/importers/ris.py`): the first BibTeX or RIS type that imports as that CSL type, in a
-fixed order, else `@misc` and `GEN`.
+publication's own type comes from its CSL type through an explicit mapping in `citation.py`, else
+`@misc` and `GEN`. Reading `django-literature`'s import tables in reverse was tried and gives wrong
+types: `REFERENCE_TYPE_TABLE` lists `ABST` before `JOUR` and `AGGR` before `DATA`, and
+`ENTRY_TYPE_TABLE` gives `bookinbook` for a chapter. The tables are the test's independent check
+instead: each mapped type imports back as the same CSL type.
 
 ## Access
 
@@ -111,7 +121,7 @@ address").
 | BibTeX writer | A maintained package | `pybtex` |
 | RIS writer | A maintained package | `rispy` |
 | Escaping TeX's special characters | An installed package, partly | `latexcodec`, inside `pybtex`, escapes `& % # _ ~`. The five it leaves alone (`\ { } $ ^`) are new code: a mapping of five characters |
-| BibTeX and RIS entry types for a publication | An installed package | `django-literature`'s import tables, read in reverse |
+| BibTeX and RIS entry types for a publication | New code | A mapping of nine CSL types, checked against `django-literature`'s import tables |
 | Who may fetch a format | This repo | The owning overview plugin's `has_permission` and `handle_no_permission` |
 | Mounting an address beside the record's page | This repo | `Plugin.extra_views` and the `plugin_class` binding |
 | `Content-Disposition` with a non-ASCII name | Django | `django.utils.http.content_disposition_header` |
@@ -121,5 +131,7 @@ address").
 | The format switch | The prototype | `initCite`, ported |
 | Keeping the reader's chosen format | The browser | `localStorage`, as the prototype does |
 | Saving a format's answer as a file | The browser | An `<a download>` pointing at the format's address |
-| Reading BibTeX back in tests | A maintained package | `pybtex`'s parser and `pylatexenc` |
+| Reading BibTeX back in tests | An installed package | `pybtex`'s parser and `latexcodec` |
+| BibTeX without encoding a DOI or URL | New code | A `pybtex` `Writer` subclass overriding one method |
+| RIS with no counter line | New code | A `rispy` `RisWriter` subclass overriding `set_header` |
 | Reading RIS back in tests | A maintained package | `rispy` |

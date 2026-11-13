@@ -19,15 +19,14 @@ addresses goes first.
 
 ### Group 1
 
-- [ ] T001 [US2] Add `pybtex>=0.26,<0.27` and `rispy>=0.10,<0.11` to `[project].dependencies` and
-  `pylatexenc>=2.10,<3` to the `dev` dependency group in `pyproject.toml`, and update `uv.lock`
-  with `uv lock`. No test: deptry and the suite cover it.
-- [ ] T002 [US2] `tests/test_core/test_citation.py`: `TestToBibtex`, `TestToRis`,
-  `TestPublicationTypes` and `TestCitationFilename` as plan.md "Tests, US2" describes, built on
+- [ ] T001 [US2] Add `pybtex>=0.26,<0.27` and `rispy>=0.10,<0.11` to `[project].dependencies` in
+  `pyproject.toml`, and update `uv.lock` with `uv lock`. No test: deptry and the suite cover it.
+- [ ] T002 [US2] `tests/test_core/test_citation.py`: `TestCitedName`, `TestCitation` and
+  `TestPublicationTypes` as plan.md "Tests, US2" describes, built on
   `Citation` and `CitedName` values directly, with no database.
-- [ ] T003 [US2] `fairdm/core/citation.py`: `CitedName`, `Citation`, `cited_name`,
-  `cited_name_from_item_name`, `escape_tex`, `to_bibtex`, `to_ris`, `citation_filename`,
-  `publication_types` and `FORMATS`, as plan.md "The citation" describes. T002 goes green.
+- [ ] T003 [US2] `fairdm/core/citation.py`: `CitedName` with `from_contributor` and
+  `from_item_name`, `Citation` with `to_bibtex`, `to_ris` and `filename`, `escape_tex`,
+  `CitationWriter`, the RIS writer with no counter line, `publication_types` and `FORMATS`, as plan.md "The citation" describes. T002 goes green.
 
 ### Group 2
 
@@ -38,8 +37,10 @@ addresses goes first.
 - [ ] T005 [US2] `fairdm/core/plugins.py`: `get_publisher` and `get_citation_formats` on
   `RecordOverviewPlugin`, `get_citation` reading the publisher from `get_publisher`. Each record's
   `get_citation_details` builds its `Citation` and returns `work` and `formats` beside what it
-  returns today, as plan.md "The plugins" describes. T004 goes green. Every existing citation test
-  stays as it is.
+  returns today, as plan.md "The plugins" describes. The dataset cited as its data publication
+  writes its text from the publication (decisions D13). T004 goes green. Every existing citation
+  test stays as it is except the one pinning `str(reference)` in
+  `tests/test_core/test_dataset/test_plugins.py`, which T004 changes to the full citation.
 - [ ] T006 [US2] `TestCitationFile` in `tests/test_core/test_plugins.py`, as plan.md "Tests, US2"
   describes.
 - [ ] T007 [US2] `CitationFile` in `fairdm/core/plugins.py`, `RecordOverviewPlugin.extra_views`,
@@ -59,11 +60,13 @@ addresses goes first.
   `formats`, and say which in the report.
 - [ ] T010 [US1] `fairdm/templates/cotton/overview/cite.html` and the `overview.cite` block of
   `fairdm/templates/overview/page.html`, ported from the prototype as plan.md "The panel"
-  describes. Read the prototype with
+  describes, with the component's gallery annotations kept and `@prop formats` in place of
+  `@prop text`. Read the prototype with
   `git show origin/prototype-overview-pages:fairdm/templates/cotton/ov/cite.html`. T009 goes green.
 - [ ] T011 [US1] `fairdm/static/js/overview.js`: `initCite` ported from the prototype's
   `overview.js` (`git show origin/prototype-overview-pages:fairdm/static/js/overview.js`, lines
-  110 to 157), and `initTabs` skipping the switch, as plan.md "The script" describes. No test
+  110 to 157), `initTabs` skipping the switch, and `initJumpToCite` focusing the selected format, as
+  plan.md "The script" describes. No test
   (plan.md "What is not built").
 - [ ] T012 [US1] `fairdm/static/css/fairdm.css`: the `.ov-seg` rules and the BibTeX and RIS rule
   ported from the prototype's `fairdm/static/css/overview.css` (lines 435 to 443 and 458), beside
