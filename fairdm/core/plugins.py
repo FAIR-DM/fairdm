@@ -71,12 +71,12 @@ class OverviewPlugin(Plugin, FairDMTemplateView):
 
 
 class CitationFile(Plugin, View):
-    """One format of a record's citation, as a file, at ``<record address>cite/<format>/``.
+    """One format of a record's citation as a file, at ``<record>/cite/<format>/``.
 
-    The record's overview answers who may open it, and this view asks that overview, so a
-    private record answers a stranger as its page does and an unknown record is not found. The
-    file is the format's value on the overview's own context, so it is the one the Cite panel
-    shows.
+    The record's overview answers who may open it, and this view asks that overview, so
+    a private record answers a stranger as its page does and an unknown record is not
+    found. The file is the format's value on the overview's own context, so it is the
+    one the Cite panel shows.
 
     A portal plugin that sets its own ``extra_views`` must list this class to keep the
     addresses.
@@ -364,7 +364,7 @@ class RecordOverviewPlugin(OverviewPlugin):
     def build_citation(
         self, *, authors, year, title, link, publisher=None, types=("misc", "GEN")
     ) -> Citation:
-        """Gather the parts of the record's citation into the value the files are written from.
+        """Gather the parts of the record's citation into the value the files use.
 
         Args:
             authors: The creators, as contributors or as cited names.
@@ -375,8 +375,8 @@ class RecordOverviewPlugin(OverviewPlugin):
             types: The BibTeX and RIS types.
 
         Returns:
-            The citation, keyed by the record's portal ID. Its DOI is set when ``link`` is a
-            doi.org link.
+            The citation, keyed by the record's portal ID. Its DOI is set when ``link``
+            is a doi.org link.
         """
         prefix = "https://doi.org/"
         bibtex_type, ris_type = types
@@ -403,9 +403,10 @@ class RecordOverviewPlugin(OverviewPlugin):
             text: The citation as text.
 
         Returns:
-            One ``{"key", "label", "value", "url", "download"}`` entry per format, in the
-            order of ``FORMATS``. ``url`` is the format's address beside the record's page, or
-            ``None`` where the portal's plugin does not mount :class:`CitationFile`.
+            One ``{"key", "label", "value", "url", "download"}`` entry per format, in
+            the order of ``FORMATS``. ``url`` is the format's address beside the
+            record's page, or ``None`` where the portal's plugin does not mount
+            :class:`CitationFile`.
         """
         values = {
             "text": text,

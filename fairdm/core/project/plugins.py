@@ -402,8 +402,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         """Write the project's citation: Creators (Year). Title. Publisher. Identifier.
 
         Returns:
-            The citation text, the link it ends with, whether that link is a DOI, how many
-            creators it names, the ``work`` it is written from and its ``formats``.
+            The citation text, the link it ends with, whether that link is a DOI, how
+            many creators it names, the ``work`` it is written from and its ``formats``.
         """
         project = self.base_object
         creators = [
