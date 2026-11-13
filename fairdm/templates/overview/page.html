@@ -66,8 +66,10 @@
           <form method="dialog" class="modal-backdrop"><button aria-label="{% translate 'Close' %}">{% translate "Close" %}</button></form>
         </dialog>
       {% endif %}
-      {% comment %} The sign-in pages' ruled grid, on the trailing side only and fading out before the text, so the text sits on a plain ground. With an image it runs up to the image's edge. {% endcomment %}
-      <div class="ov-hero__grid" aria-hidden="true"><c-background.grid size="2.5" intensity="0.2" flat /></div>
+      {% if not record.image %}
+        {% comment %} The sign-in pages' ruled grid, on the trailing side only and fading out before the text, so the text sits on a plain ground. A record with an image shows the image there instead. {% endcomment %}
+        <div class="ov-hero__grid" aria-hidden="true"><c-background.grid size="2.5" intensity="0.2" flat /></div>
+      {% endif %}
       <div class="ov-hero__inner">
         {% block overview.image %}
           {% if not record.image %}
