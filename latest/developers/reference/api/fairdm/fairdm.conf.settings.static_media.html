@@ -11,8 +11,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="developers/reference/api/fairdm/fairdm.conf.settings.static_media.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="Static and media file settings: WhiteNoise, storages and thumbnails. Owns static serving via WhiteNoise and media storage. Media storage is the local filesystem, switching to S3 when S3_ACCESS_KEY_..." />
-<meta name="description" content="Static and media file settings: WhiteNoise, storages and thumbnails. Owns static serving via WhiteNoise and media storage. Media storage is the local filesystem, switching to S3 when S3_ACCESS_KEY_..." />
+<meta property="og:description" content="Static and media file settings: WhiteNoise, storages and thumbnails. Owns static serving via WhiteNoise, with hashed file names, and media storage. Media storage is the local filesystem, switching ..." />
+<meta name="description" content="Static and media file settings: WhiteNoise, storages and thumbnails. Owns static serving via WhiteNoise, with hashed file names, and media storage. Media storage is the local filesystem, switching ..." />
 
     <title>fairdm.conf.settings.static_media &#8212; fairdm 0.5.0 documentation</title>
   
@@ -103,7 +103,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.5.0" />
-    <meta name="docbuild:last-update" content="Nov 13, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 14, 2026"/>
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -1090,11 +1090,13 @@ commentsRunWhenDOMLoaded(addUtterances);
   <section id="module-fairdm.conf.settings.static_media">
 <span id="fairdm-conf-settings-static-media"></span><h1><a class="reference internal" href="#module-fairdm.conf.settings.static_media" title="fairdm.conf.settings.static_media"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.settings.static_media</span></code></a><a class="headerlink" href="#module-fairdm.conf.settings.static_media" title="Link to this heading">#</a></h1>
 <p>Static and media file settings: WhiteNoise, storages and thumbnails.</p>
-<p>Owns static serving via WhiteNoise and media storage. Media storage is the local filesystem,
-switching to S3 when <code class="docutils literal notranslate"><span class="pre">S3_ACCESS_KEY_ID</span></code>, <code class="docutils literal notranslate"><span class="pre">S3_SECRET_ACCESS_KEY</span></code> and <code class="docutils literal notranslate"><span class="pre">S3_BUCKET_NAME</span></code>
-are all present. Backups follow the media: the local backup directory, or the media bucket under
-<code class="docutils literal notranslate"><span class="pre">backups</span></code> (<code class="docutils literal notranslate"><span class="pre">BACKUP_S3_BUCKET_NAME</span></code> names another bucket). A portal supplies thumbnail
-aliases beyond the four core content types, and any STORAGES entry it wants to add.</p>
+<p>Owns static serving via WhiteNoise, with hashed file names, and media storage.
+Media storage is the local filesystem, switching to S3 when <code class="docutils literal notranslate"><span class="pre">S3_ACCESS_KEY_ID</span></code>,
+<code class="docutils literal notranslate"><span class="pre">S3_SECRET_ACCESS_KEY</span></code> and <code class="docutils literal notranslate"><span class="pre">S3_BUCKET_NAME</span></code> are all present. Static files stay
+with WhiteNoise either way. Backups follow the media: the local backup directory, or
+the media bucket under <code class="docutils literal notranslate"><span class="pre">backups</span></code> (<code class="docutils literal notranslate"><span class="pre">BACKUP_S3_BUCKET_NAME</span></code> names another
+bucket). A portal supplies thumbnail aliases beyond the four core content types, and
+any STORAGES entry it wants to add.</p>
 <section id="module-contents">
 <h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading">#</a></h2>
 <section id="data">

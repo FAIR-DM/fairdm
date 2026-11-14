@@ -91,16 +91,6 @@ Bases: {py:obj}`fairdm.views.FairDMListView`
 
 ````
 
-````{py:attribute} image
-:canonical: fairdm.core.project.views.ProjectListView.image
-:value: >
-   'static(...)'
-
-```{autodoc2-docstring} fairdm.core.project.views.ProjectListView.image
-```
-
-````
-
 ````{py:attribute} show_list_action
 :canonical: fairdm.core.project.views.ProjectListView.show_list_action
 :value: >

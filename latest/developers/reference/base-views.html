@@ -103,7 +103,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.5.0" />
-    <meta name="docbuild:last-update" content="Nov 13, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 14, 2026"/>
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1213,6 +1213,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </table>
 </div>
 <p>The mixin has more attributes, such as <code class="docutils literal notranslate"><span class="pre">url</span></code>, <code class="docutils literal notranslate"><span class="pre">object_type</span></code>, <code class="docutils literal notranslate"><span class="pre">site_name</span></code> and <code class="docutils literal notranslate"><span class="pre">schema</span></code>, and a <code class="docutils literal notranslate"><span class="pre">get_meta_*</span></code> method for each. They are described in the <a class="reference external" href="https://django-meta.readthedocs.io/">django-meta documentation</a>.</p>
+<p>For a share image among the portal’s static files, override <code class="docutils literal notranslate"><span class="pre">get_meta_image()</span></code> and return <code class="docutils literal notranslate"><span class="pre">static(...)</span></code> from it. Never set <code class="docutils literal notranslate"><span class="pre">image</span> <span class="pre">=</span> <span class="pre">static(...)</span></code> in the class body: that runs as the module is imported, before <code class="docutils literal notranslate"><span class="pre">collectstatic</span></code> has written the hashed names, and stops <code class="docutils literal notranslate"><span class="pre">collectstatic</span></code> in production. See <a class="reference internal" href="settings.html#storages"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">STORAGES</span></code></span></a>.</p>
 <p>To output the tags, include django-meta’s template in the <code class="docutils literal notranslate"><span class="pre">&lt;head&gt;</span></code> of your base template:</p>
 <div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">include</span> <span class="s2">"meta/meta.html"</span> <span class="k">with</span> <span class="nv">meta</span><span class="o">=</span><span class="nv">meta</span> <span class="cp">%}</span>
 </pre></div>

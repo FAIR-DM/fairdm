@@ -103,7 +103,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.5.0" />
-    <meta name="docbuild:last-update" content="Nov 13, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 14, 2026"/>
   
     
     <script src="../_static/searchtools.js"></script>
@@ -845,7 +845,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="static-and-media-files">
 <h2>Static and media files<a class="headerlink" href="#static-and-media-files" title="Link to this heading">#</a></h2>
-<p>Static files are collected with <code class="docutils literal notranslate"><span class="pre">collectstatic</span></code> and served by WhiteNoise, with no extra web server for assets. FairDM does not bundle or minify them with django-compressor. A portal that wants django-compressor installs it and adds its own start step. The reasoning is in <a class="reference internal" href="../adr/0035-fairdm-does-not-compress-static-files.html"><span class="std std-doc">ADR 0035</span></a>.</p>
+<p>Static files are collected with <code class="docutils literal notranslate"><span class="pre">collectstatic</span></code> and served by WhiteNoise, with no extra web server for assets. In production each collected file carries a hash of its content in its name, so a deploy gives every changed file a new address and browsers can cache static files indefinitely without ever showing a stale one. The cost is that every <code class="docutils literal notranslate"><span class="pre">{%</span> <span class="pre">static</span> <span class="pre">%}</span></code> path must name a file that exists, which the <a class="reference internal" href="../developers/reference/settings.html#storages"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">STORAGES</span></code></span></a> setting describes. FairDM does not bundle or minify them with django-compressor. A portal that wants django-compressor installs it and adds its own start step. The reasoning is in <a class="reference internal" href="../adr/0035-fairdm-does-not-compress-static-files.html"><span class="std std-doc">ADR 0035</span></a>.</p>
 <p>Uploaded files are stored on the local filesystem by default. When an access key, a secret key and a bucket name are all set, they go to S3 object storage instead.</p>
 </section>
 <section id="container-images-and-the-platform">
