@@ -108,7 +108,7 @@ The volume is the `my-portal-backups` volume of step 6, which Docker created whe
 
 ## The result
 
-The container applies the database migrations, collects the static files and starts gunicorn on port 8000. If a step fails, the container exits with that step's status and names what is missing. The log lines of the start sequence are in [Container images](../reference/container-images.md#start-sequence).
+The container applies the database migrations, collects the static files and starts gunicorn on port 8000. If a step fails, the container exits with that step's status and names what is missing. Collecting the static files fails when a stylesheet points at a file that is not there, or when a module calls `static()` as it is imported, because each file is written under a hashed name (see [`STORAGES`](../reference/settings.md#storages)). The log lines of the start sequence are in [Container images](../reference/container-images.md#start-sequence).
 
 `check --deploy` exits with `0` when every check passes and `1` when it finds an error. It reports `fairdm.W601` until you tell the portal how many proxies stand in front of it. See [How to count API callers behind a proxy](count-api-callers-behind-a-proxy.md). Each check and its fix is in [Configuration checks](../../administrators/reference/configuration-checks.md).
 

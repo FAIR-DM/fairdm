@@ -61,6 +61,8 @@ The context holds a `page` dict with the keys `title`, `subtitle`, `class`, `bre
 
 The mixin has more attributes, such as `url`, `object_type`, `site_name` and `schema`, and a `get_meta_*` method for each. They are described in the [django-meta documentation](https://django-meta.readthedocs.io/).
 
+For a share image among the portal's static files, override `get_meta_image()` and return `static(...)` from it. Never set `image = static(...)` in the class body: that runs as the module is imported, before `collectstatic` has written the hashed names, and stops `collectstatic` in production. See [`STORAGES`](settings.md#storages).
+
 To output the tags, include django-meta's template in the `<head>` of your base template:
 
 ```django

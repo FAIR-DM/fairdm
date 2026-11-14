@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Production static files have hashed names.** This changes production behaviour for every portal. `collectstatic` now writes each file under a name carrying a hash of its content, such as `css/fairdm.3f2a91c0b7d4.css`, and `{% static %}` gives that name, so a deploy gives every changed stylesheet and script a new address and browsers no longer keep a stale one. WhiteNoise lets browsers cache these files for good. The static storage is `whitenoise.storage.CompressedManifestStaticFilesStorage`, with `WHITENOISE_MANIFEST_STRICT` still off, and S3 media does not change it. Development keeps plain storage. A portal must now reference only static files that exist: a `{% static %}` or `static()` path to a missing file stops the page with an error where it used to give a broken link, a `static()` call made as a module is imported stops `collectstatic`, and so does a stylesheet whose `url()` names a missing file. In a container, a failed `collectstatic` stops the start. See [`STORAGES`](developers/reference/settings.md#storages).
 - **Every badge is a pill and every keyword a solid pill.** Keywords on project and dataset cards, on the landing page and in a record type's "About" dialog are pills in a light shade of the primary colour, where they were outlined or grey boxes. An outline badge takes a light fill of its own colour, and the record-type label on a record card and on a page is a pill edged in the record's colour. The shape is set in `css/fairdm-theme.css` and holds on any theme. Put `badge-keyword` on a badge to show a keyword in a portal's own templates. See [How to change the portal theme](developers/how-to/change-the-portal-theme.md#the-result).
 - **The dataset overview page is redesigned on the shared page.** Its project, licence and DOI
   are key facts in the header, where the licence was a badge. Its key dates run as a timeline
@@ -132,6 +133,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Two links to static files that FairDM no longer shipped are fixed.** The project list gave `img/stock/project.jpg`, a removed file, as its sharing image, and now gives none of its own. `cotton/components/object_card.html` drew `fairdm/img/placeholder-3x2.png` for a record with no image, and that file had also been removed. It is back. Both links were broken, and with hashed static names the first would stop `collectstatic` and the second would stop the page.
 - **A record type's About dialog opens.** On a sample or measurement page, the type badge's
   button named its dialog by a bare id such as `about-sample-type`, which JavaScript reads as a
   subtraction, so clicking it threw an error and the dialog never opened. The button now looks

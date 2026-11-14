@@ -3,7 +3,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import QuerySet
 from django.http import HttpResponse
-from django.templatetags.static import static
 from django.utils.translation import gettext_lazy as _
 
 from fairdm.contrib.contributors.services.crediting import Crediting
@@ -24,7 +23,6 @@ class ProjectListView(FairDMListView):
     list_item_template = "project/project_card.html"
     grid = {"cols": 1, "gap": 4}
     toolbar_filters = ["q", "status"]
-    image = static("img/stock/project.jpg")
     show_list_action = True
 
     def show_create_action(self, user):
