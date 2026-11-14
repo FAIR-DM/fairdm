@@ -1,14 +1,19 @@
 """The measurement's overview page: what it opens for, what it draws and what it leaves out."""
 
+import codecs
 from datetime import UTC, datetime
 
+import latexcodec  # noqa: F401  (registers the "ulatex" codec)
 import pytest
+import rispy
 from bs4 import BeautifulSoup
 from django.contrib.gis.geos import Point as GEOSPoint
+from django.contrib.sites.models import Site
 from django.db import models
 from django.template.loader import select_template
 from django.test.utils import isolate_apps
 from django.urls import reverse
+from pybtex.database import parse_string
 from pytest_django.asserts import assertContains, assertNotContains
 
 from demo.factories import (
@@ -21,7 +26,12 @@ from fairdm import plugins
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.measurement.models import Measurement, MeasurementDate
 from fairdm.core.measurement.plugins import Overview
-from fairdm.core.vocabularies import DATE_TYPES, IDENTIFIER_TYPES, SAMPLE_STATUS
+from fairdm.core.vocabularies import (
+    CONTRIBUTOR_ROLES,
+    DATE_TYPES,
+    IDENTIFIER_TYPES,
+    SAMPLE_STATUS,
+)
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
@@ -29,6 +39,7 @@ from fairdm.factories import (
 )
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
+from tests.factories import ConcreteMeasurementFactory, ConcreteSampleFactory
 
 
 # Development data reaches every state; `DatasetFactory()` alone gives a private, unpublished one.
@@ -228,7 +239,7 @@ class TestOverviewSample:
     ):
         _, response = hidden_sample_page
 
-        assert response.page.select_one(".overview-map") is None
+        assert response.page.select_one("[data-map]") is None
 
     def test_a_sample_the_visitor_may_see_is_named_and_linked(self, client, xrf):
         response = _page(client, xrf)
@@ -252,6 +263,13 @@ class TestOverviewSample:
 
         assert _page(client, measurement).context["other_dataset"] is True
 
+    def test_a_hidden_sample_in_another_dataset_is_not_said_to_be_elsewhere(
+        self, hidden_sample_page
+    ):
+        _, response = hidden_sample_page
+
+        assert response.context["other_dataset"] is False
+
     def test_a_measurement_in_its_samples_dataset_does_not(self, client, xrf):
         assert _page(client, xrf).context["other_dataset"] is False
 
@@ -265,14 +283,57 @@ class TestOverviewSample:
         response = _page(client, measurement)
 
         sample.refresh_from_db()
-        marker = response.page.select_one(".overview-map")
+        marker = response.page.select_one("[data-map]")
         assert (marker["data-lon"], marker["data-lat"]) == (
             str(sample.location.x),
             str(sample.location.y),
         )
 
     def test_a_sample_with_no_location_draws_no_map(self, client, xrf):
-        assert _page(client, xrf).page.select_one(".overview-map") is None
+        assert _page(client, xrf).page.select_one("[data-map]") is None
+
+    def test_the_page_loads_the_map_library_only_when_it_draws_a_map(
+        self, client, released, xrf
+    ):
+        sample = RockSampleFactory(
+            dataset=released, location=GEOSPoint(12.3, 45.6, srid=4326)
+        )
+        mapped = XRFMeasurementFactory(dataset=released, sample=sample)
+
+        assert _page(client, mapped).context["has_map"] is True
+        assert _page(client, xrf).context["has_map"] is False
+
+
+@pytest.mark.django_db
+class TestOverviewHeader:
+    """FR-043: the header's key facts name the sample, dataset and identifier."""
+
+    def test_the_sample_the_viewer_may_open_is_linked_from_the_header(
+        self, client, xrf
+    ):
+        facts = _page(client, xrf).page.select_one(".ov-facts")
+
+        assert facts.find("a", href=xrf.sample.get_absolute_url()) is not None
+        assert facts.find("a", href=xrf.dataset.get_absolute_url()) is not None
+
+    def test_the_identifier_that_resolves_is_linked_from_the_header(
+        self, client, xrf
+    ):
+        from fairdm.core.measurement.models import MeasurementIdentifier
+
+        MeasurementIdentifier.objects.create(
+            related=xrf, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.1234/meas.1"
+        )
+
+        response = _page(client, xrf)
+
+        link = response.context["primary_identifier"]["link"]
+        assert response.page.select_one(".ov-facts").find("a", href=link) is not None
+
+    def test_a_measurement_with_no_identifier_that_resolves_names_none(
+        self, client, xrf
+    ):
+        assert _page(client, xrf).context["primary_identifier"] is None
 
 
 @pytest.mark.django_db
@@ -404,11 +465,11 @@ class TestOverviewSiblings:
         assert response.context["siblings"]["total"] == 1
         assertNotContains(response, tab)
 
-    def test_the_list_shows_the_eight_most_recent_and_counts_the_rest(
+    def test_the_list_shows_the_twelve_most_recent_and_counts_the_rest(
         self, client, xrf
     ):
         others = XRFMeasurementFactory.create_batch(
-            10, dataset=xrf.dataset, sample=xrf.sample
+            14, dataset=xrf.dataset, sample=xrf.sample
         )
         for day, measurement in enumerate(others, start=1):
             Measurement.objects.filter(pk=measurement.pk).update(
@@ -417,11 +478,21 @@ class TestOverviewSiblings:
 
         siblings = _page(client, xrf).context["siblings"]
 
-        assert siblings["total"] == 10
+        assert siblings["total"] == 14
         assert siblings["more"] == 2
         assert [r["measurement"].pk for r in siblings["rows"]] == [
             m.pk for m in reversed(others[2:])
         ]
+
+    def test_the_count_of_the_rest_leads_to_the_samples_measurements_tab(
+        self, client, xrf
+    ):
+        XRFMeasurementFactory.create_batch(13, dataset=xrf.dataset, sample=xrf.sample)
+        tab = reverse("sample:measurements", kwargs={"uuid": xrf.sample.uuid})
+
+        page = _page(client, xrf).page
+
+        assert page.select_one(".ov-rows__more")["href"] == tab
 
 
 @pytest.mark.django_db
@@ -505,7 +576,7 @@ class TestOverviewCardsAlwaysShown:
         response = _page(client, measurement)
 
         assert response.page.select_one('[data-card="location"]') is not None
-        assert response.page.select_one(".overview-map") is None
+        assert response.page.select_one("[data-map]") is None
         assertNotContains(response, "12.5")
 
 
@@ -568,7 +639,7 @@ class TestOverviewLocation:
 
         response = _page(client, measurement)
 
-        marker = response.page.select_one(".overview-map")
+        marker = response.page.select_one("[data-map]")
         assert (marker["data-lon"], marker["data-lat"]) == ("8.4318", "49.09495")
         shown = response.context["effective_location"]
         assert shown.source == "own"
@@ -583,7 +654,7 @@ class TestOverviewLocation:
 
         response = _page(client, measurement)
 
-        marker = response.page.select_one(".overview-map")
+        marker = response.page.select_one("[data-map]")
         assert (marker["data-lon"], marker["data-lat"]) == ("12.5", "41.5")
         shown = response.context["effective_location"]
         assert shown.source == "sample"
@@ -597,7 +668,7 @@ class TestOverviewLocation:
         response = _page(client, measurement)
 
         assert response.context["effective_location"] is None
-        assert response.page.select_one(".overview-map") is None
+        assert response.page.select_one("[data-map]") is None
         assertNotContains(response, "12.5")
 
     def test_the_own_location_is_shown_even_when_the_sample_is_hidden(
@@ -612,7 +683,7 @@ class TestOverviewLocation:
 
         response = _page(client, measurement)
 
-        marker = response.page.select_one(".overview-map")
+        marker = response.page.select_one("[data-map]")
         assert (marker["data-lon"], marker["data-lat"]) == ("8.4318", "49.09495")
         assertNotContains(response, "12.5")
 
@@ -627,5 +698,156 @@ class TestOverviewLocation:
         response = _page(client, measurement)
 
         assert response.context["effective_location"].source == "sample"
-        marker = response.page.select_one(".overview-map")
+        marker = response.page.select_one("[data-map]")
         assert (marker["data-lon"], marker["data-lat"]) == ("12.5", "41.5")
+
+
+@pytest.fixture
+def portal_name(db):
+    """Name the site, which a citation gives as its publisher."""
+    Site.objects.filter(pk=Site.objects.get_current().pk).update(
+        name="Acme Data Portal"
+    )
+    Site.objects.clear_cache()
+    yield "Acme Data Portal"
+    Site.objects.clear_cache()
+
+
+@pytest.mark.django_db
+class TestOverviewCitationFormats:
+    """The measurement's citation as BibTeX and RIS, as the Cite panel offers it."""
+
+    def credit(self, measurement):
+        for first, last in (("Anna", "Keller"), ("Tomas", "Oliveira")):
+            measurement.add_contributor(
+                PersonFactory(first_name=first, last_name=last, is_active=True),
+                with_roles=[f"{CONTRIBUTOR_ROLES}/measurement-collection"],
+            )
+        MeasurementDate.objects.create(
+            related=measurement,
+            type_id=f"{DATE_TYPES}/setup",
+            value="2024-01-15",
+        )
+        return measurement
+
+    def formats_of(self, response):
+        return {
+            entry["key"]: entry["value"]
+            for entry in response.context["citation"]["formats"]
+        }
+
+    def entry_of(self, formats):
+        data = parse_string(formats["bibtex"], "bibtex")
+        assert len(data.entries) == 1
+        key, entry = next(iter(data.entries.items()))
+        return key, entry, rispy.loads(formats["ris"])[0]
+
+    def test_the_text_and_both_files_give_the_same_people_year_title_and_publisher(
+        self, client, xrf, portal_name
+    ):
+        self.credit(xrf)
+
+        formats = self.formats_of(_page(client, xrf))
+        key, entry, ris = self.entry_of(formats)
+
+        title = "Zq-9902 scan [XRF Measurement] of Zq-4471 rift core"
+        assert formats["text"].startswith("Keller, A. & Oliveira, T. (2024). ")
+        assert f"{title}. Acme Data Portal." in formats["text"]
+        assert [(p.last_names, p.first_names) for p in entry.persons["author"]] == [
+            (["Keller"], ["Anna"]),
+            (["Oliveira"], ["Tomas"]),
+        ]
+        assert entry.fields["year"] == "2024"
+        assert codecs.decode(entry.fields["title"], "ulatex") == title
+        assert codecs.decode(entry.fields["publisher"], "ulatex") == portal_name
+        assert key == str(xrf.uuid)
+        assert ris["authors"] == ["Keller, Anna", "Oliveira, Tomas"]
+        assert (ris["year"], ris["title"], ris["publisher"]) == (
+            "2024",
+            title,
+            portal_name,
+        )
+
+    def test_without_a_doi_the_files_give_the_permalink_and_no_doi(self, client, xrf):
+        permalink = f"http://testserver/{xrf.uuid}/"
+
+        formats = self.formats_of(_page(client, xrf))
+        entry, ris = self.entry_of(formats)[1:]
+
+        assert formats["text"].endswith(permalink)
+        assert entry.fields["url"] == permalink
+        assert "doi" not in entry.fields
+        assert ris["urls"] == [permalink]
+        assert "doi" not in ris
+
+    def test_with_a_doi_the_files_give_the_doi_and_its_link(self, client, xrf):
+        from fairdm.core.measurement.models import MeasurementIdentifier
+
+        MeasurementIdentifier.objects.create(
+            related=xrf, type_id=f"{IDENTIFIER_TYPES}/doi", value="10.1234/meas_1"
+        )
+
+        formats = self.formats_of(_page(client, xrf))
+        entry, ris = self.entry_of(formats)[1:]
+
+        assert formats["text"].endswith("https://doi.org/10.1234/meas_1")
+        assert entry.fields["doi"] == "10.1234/meas_1"
+        assert entry.fields["url"] == "https://doi.org/10.1234/meas_1"
+        assert ris["doi"] == "10.1234/meas_1"
+        assert ris["urls"] == ["https://doi.org/10.1234/meas_1"]
+
+    def test_a_measurement_is_a_dataset_entry_and_a_data_reference(self, client, xrf):
+        formats = self.formats_of(_page(client, xrf))
+        entry, ris = self.entry_of(formats)[1:]
+
+        assert entry.type == "dataset"
+        assert ris["type_of_reference"] == "DATA"
+
+    def test_with_nobody_credited_no_author_is_given(self, client, xrf):
+        formats = self.formats_of(_page(client, xrf))
+        entry, ris = self.entry_of(formats)[1:]
+
+        assert "author" not in entry.persons
+        assert "authors" not in ris
+        assert formats["text"].startswith("(")
+
+    def test_a_sample_the_viewer_may_not_see_is_an_unpublished_sample_in_every_format(
+        self, client, released
+    ):
+        sample = RockSampleFactory(
+            dataset=_dataset(published=False), name="Hidden-3318 core"
+        )
+        measurement = XRFMeasurementFactory(dataset=released, sample=sample)
+
+        formats = self.formats_of(_page(client, measurement))
+        entry, ris = self.entry_of(formats)[1:]
+
+        assert "of an unpublished sample" in formats["text"]
+        assert codecs.decode(entry.fields["title"], "ulatex").endswith(
+            "of an unpublished sample"
+        )
+        assert ris["title"].endswith("of an unpublished sample")
+        assert "Hidden-3318" not in "".join(formats.values())
+
+    def test_a_portal_measurement_type_gets_all_three_formats(self, client, released):
+        sample = ConcreteSampleFactory(dataset=released, name="Portal core")
+        measurement = ConcreteMeasurementFactory(
+            dataset=released, sample=sample, name="Portal reading"
+        )
+
+        response = _page(client, measurement)
+        formats = self.formats_of(response)
+        entry, ris = self.entry_of(formats)[1:]
+
+        title = "Portal reading [concrete measurement] of Portal core"
+        assert list(formats) == ["text", "bibtex", "ris"]
+        assert title in formats["text"]
+        assert codecs.decode(entry.fields["title"], "ulatex") == title
+        assert ris["title"] == title
+        assert [e["url"] for e in response.context["citation"]["formats"]] == [
+            reverse(
+                "measurement:overview-citation",
+                kwargs={"uuid": measurement.uuid, "format": key},
+            )
+            for key in ("text", "bibtex", "ris")
+        ]

@@ -1242,12 +1242,12 @@ class TestNonCollectionPagesIgnorePublished:
         titles = [
             t.get_text(strip=True)
             for t in BeautifulSoup(unpublished.content, "html.parser").select(
-                ".stat-title"
+                ".ov-figure__label"
             )
         ]
         assert "Samples" not in titles
         page = BeautifulSoup(published.content, "html.parser")
-        assert page.select(".stat-value")[0].get_text(strip=True) == "1"
+        assert page.select(".ov-figure__value")[0].get_text(strip=True) == "1"
         assert (
             len(BeautifulSoup(unpublished.content, "html.parser").select(".alert")) == 1
         )

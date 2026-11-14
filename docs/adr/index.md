@@ -50,4 +50,5 @@ do not restate earlier ones, only build past them.
 0041-backups-are-encrypted-to-a-public-key
 0042-a-records-permalink-is-its-portal-id-at-the-root
 0043-the-operations-dashboard-is-for-superusers-only
+0044-each-part-of-a-record-is-edited-from-the-panel-that-shows-it
 ```

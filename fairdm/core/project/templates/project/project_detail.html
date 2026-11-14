@@ -5,33 +5,31 @@
   website or a paper.
 
   Read by someone deciding whether the data is usable to them, someone who has to cite the
-  project, and the team keeping the record complete. A visitor never sees a figure that only a
-  private record explains. The anatomy and the facts column come from `overview/page.html`; this
-  template fills the project's own blocks. Its context is gathered by the
-  `Overview` plugin in `fairdm/core/project/plugins.py`.
+  project, and the team keeping the record complete. The header says what it is, who leads it,
+  where and when, and what it holds. The content runs description, datasets and what the data is.
 
-  Project blocks in the wide column: overview.about, overview.datasets, overview.charts,
-  overview.map, overview.activity. The timeline sits in overview.details_extra.
+  The anatomy and the side column come from `overview/page.html`. This template fills the
+  project's own blocks, from the context the `Overview` plugin in `fairdm/core/project/plugins.py`
+  gathers.
+
+  Project blocks in the wide column: overview.about, overview.datasets, overview.charts. The
+  timeline is a row of the fact sheet (overview.details_extra).
 {% endcomment %}
 
 {% block overview.badges %}
   <span class="record-tag record-project"><c-icon name="project" aria-hidden="true" only />{% translate "Project" %}</span>
-  <span class="badge badge-soft badge-{{ project.status_badge_variant }} badge-sm">{{ project.get_status_display }}</span>
+  <c-overview.status variant="{{ project.status_badge_variant }}">{{ project.get_status_display }}</c-overview.status>
   {% if project.visibility != project.VISIBILITY.PUBLIC %}
-    <span class="badge badge-ghost badge-sm"><c-icon name="lock" aria-hidden="true" />{% translate "Private" %}</span>
+    <c-overview.status icon="lock">{% translate "Private" %}</c-overview.status>
   {% endif %}
 {% endblock overview.badges %}
 
-{% block overview.manage %}
-  {% if can_manage and urls.add_dataset %}
-    <c-button href="{{ urls.add_dataset }}?project={{ project.uuid }}"
-              text="{% translate 'Add dataset' %}"
-              icon="add"
-              size="sm"
-              variant="primary" />
-  {% endif %}
-  <c-actions.manage :entries="manage_menu" />
-{% endblock overview.manage %}
+{% block overview.facts %}
+  {% if project.owner %}<li><span class="ov-facts__label">{% translate "Organisation" %}</span><a href="{{ project.owner.get_absolute_url }}">{{ project.owner }}</a></li>{% endif %}
+  {% if timeline.start_date %}<li><span class="ov-facts__label">{% translate "Runs" %}</span><span>{{ timeline.start_text }} – {% if timeline.end_date %}{{ timeline.end_text }}{% else %}{% translate "ongoing" %}{% endif %}</span></li>{% endif %}
+  {% if primary_identifier %}<li><span class="ov-facts__label">{{ primary_identifier.type }}</span><a href="{{ primary_identifier.link }}" class="ov-mono">{{ primary_identifier.value }}</a></li>{% endif %}
+{% endblock overview.facts %}
+
 
 {% block overview.notices %}
   {% if can_manage and project.visibility != project.VISIBILITY.PUBLIC %}
@@ -51,144 +49,118 @@
 {% endblock overview.notices %}
 
 {% block overview.figures %}
-  <c-stats cols="2" lg="4" aria-label="{% translate 'Project at a glance' %}">
-    <c-stats.item title="{% translate 'Datasets' %}" value="{{ counts.datasets|intcomma }}" href="{{ urls.datasets }}" record="dataset" icon="dataset" />
-    <c-stats.item title="{% translate 'Samples' %}" value="{{ counts.samples|intcomma }}" href="{{ urls.samples }}" record="sample" icon="sample" />
-    <c-stats.item title="{% translate 'Measurements' %}" value="{{ counts.measurements|intcomma }}" href="{{ urls.measurements }}" record="measurement" icon="measurement" />
-    <c-stats.item title="{% translate 'Contributors' %}" value="{{ team.total }}" href="{{ urls.contributors }}" icon="people" />
-  </c-stats>
+  <div class="ov-figures" aria-label="{% translate 'Project at a glance' %}" role="group">
+    <c-overview.figure value="{{ counts.datasets|intcomma }}" label="{% translate 'Datasets' %}" href="{{ urls.datasets }}" record="dataset" />
+    <c-overview.figure value="{{ counts.samples|intcomma }}" label="{% translate 'Samples' %}" href="{{ urls.samples }}" record="sample" />
+    <c-overview.figure value="{{ counts.measurements|intcomma }}" label="{% translate 'Measurements' %}" href="{{ urls.measurements }}" record="measurement" />
+    <c-overview.figure value="{{ team.total }}" label="{% translate 'Contributors' %}" href="{{ urls.contributors }}" />
+  </div>
 {% endblock overview.figures %}
 
 {% block overview.main %}
   {% block overview.about %}
-    <c-card.descriptions :descriptions="descriptions" group="project-about">
+    <c-overview.descriptions :descriptions="descriptions" group="project-about" edit_url="{{ edit.descriptions }}">
       {% if can_manage %}
-        <div class="flex flex-col items-start gap-3">
-          <p class="text-base-content/70">{% translate "Nobody has described this project yet. An abstract is the first thing visitors and search engines read, and the first thing a data repository asks for." %}</p>
+        <div class="ov-empty-block">
+          <p class="ov-empty">{% translate "Nobody has described this project yet. An abstract is the first thing visitors and search engines read, and the first thing a data repository asks for." %}</p>
           <c-button href="{{ urls.descriptions }}" text="{% translate 'Write an abstract' %}" icon="description" size="sm" variant="primary" />
         </div>
       {% else %}
-        <p class="text-base-content/70">{% translate "No description has been added yet." %}</p>
+        <p class="ov-empty">{% translate "No description has been added yet." %}</p>
       {% endif %}
-    </c-card.descriptions>
+    </c-overview.descriptions>
   {% endblock overview.about %}
 
   {% block overview.datasets %}
-    <c-mvp.card title="{% translate 'Datasets' %}" class="bg-base-100">
-      <c-slot name="badges">
-        {% if counts.datasets %}<span class="badge badge-ghost badge-sm">{{ counts.datasets }}</span>{% endif %}
-      </c-slot>
-      <c-slot name="actions">
-        {% if counts.datasets and urls.datasets %}
-          <c-button href="{{ urls.datasets }}" text="{% translate 'View all' %}" size="sm" />
-        {% endif %}
-      </c-slot>
+    <c-overview.panel title="{% translate 'Datasets' %}" count="{% if counts.datasets %}{{ counts.datasets }}{% endif %}" more_url="{% if counts.datasets %}{{ urls.datasets }}{% endif %}" edit_url="{% if can_manage and urls.add_dataset and datasets_preview.rows %}{{ urls.add_dataset }}?project={{ project.uuid }}{% endif %}" edit_text="{% translate 'Add dataset' %}" edit_icon="add" data-card="datasets">
       {% if datasets_preview.rows %}
-        <c-list label="{% translate 'Most recently updated datasets' %}">
+        <ul class="ov-rows" aria-label="{% translate 'Most recently updated datasets' %}">
           {% for dataset in datasets_preview.rows %}
-            <c-list.row class="px-0">
-              <div class="list-col-grow min-w-0 flex flex-col gap-1">
-                <a href="{{ dataset.get_absolute_url }}" class="link link-hover font-medium break-words">{{ dataset.name }}</a>
-                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-base-content/70">
+            <li class="record-dataset">
+              <span class="ov-mark" aria-hidden="true"><c-icon name="dataset" only /></span>
+              <div class="ov-row__main">
+                <a href="{{ dataset.get_absolute_url }}" class="ov-row__title">{{ dataset.name }}</a>
+                <div class="ov-row__meta">
                   {% if dataset.data_is_public %}
-                    <span class="badge badge-soft badge-success badge-xs">{% translate "Published" %}</span>
+                    <span class="ov-state ov-state--published">{% translate "Published" %}</span>
                   {% else %}
-                    <span class="badge badge-soft badge-neutral badge-xs">{% translate "Unpublished" %}</span>
+                    <span class="ov-state">{% translate "Unpublished" %}</span>
                   {% endif %}
-                  {% if dataset.license %}
-                    <span class="badge badge-outline badge-xs" title="{% translate 'Licence' %}">{{ dataset.license.name }}</span>
-                  {% else %}
-                    <span class="badge badge-soft badge-warning badge-xs">{% translate "No licence" %}</span>
-                  {% endif %}
-                  <span class="tabular-nums">
-                    {% blocktranslate count counter=dataset.n_samples %}{{ counter }} sample{% plural %}{{ counter }} samples{% endblocktranslate %}
-                    · {% blocktranslate count counter=dataset.n_measurements %}{{ counter }} measurement{% plural %}{{ counter }} measurements{% endblocktranslate %}
-                  </span>
-                  <span>{% blocktranslate with when=dataset.modified|naturalday:"SHORT_DATE_FORMAT" %}Last updated {{ when }}{% endblocktranslate %}</span>
+                  <span>{% if dataset.license %}{{ dataset.license.name }}{% else %}{% translate "No licence" %}{% endif %}</span>
+                  <span>{% blocktranslate with when=dataset.modified|naturalday:"SHORT_DATE_FORMAT" %}Updated {{ when }}{% endblocktranslate %}</span>
                 </div>
               </div>
-            </c-list.row>
+              <div class="ov-row__end">
+                <strong>{{ dataset.n_samples|intcomma }}</strong> {% blocktranslate count counter=dataset.n_samples %}sample{% plural %}samples{% endblocktranslate %}
+                <span class="ov-sub">{% blocktranslate count counter=dataset.n_measurements with n=dataset.n_measurements|intcomma %}{{ n }} measurement{% plural %}{{ n }} measurements{% endblocktranslate %}</span>
+              </div>
+            </li>
           {% endfor %}
-        </c-list>
+        </ul>
         {% if datasets_preview.more %}
-          <div>
-            <a href="{{ urls.datasets }}" class="link link-primary text-sm">
-              {% blocktranslate count counter=datasets_preview.more %}and {{ counter }} more dataset{% plural %}and {{ counter }} more datasets{% endblocktranslate %}
-            </a>
-          </div>
+          <a href="{{ urls.datasets }}" class="ov-link ov-rows__more">
+            {% blocktranslate count counter=datasets_preview.more %}and {{ counter }} more dataset{% plural %}and {{ counter }} more datasets{% endblocktranslate %}
+          </a>
         {% endif %}
       {% else %}
-        <div class="flex flex-col items-start gap-3">
+        <div class="ov-empty-block">
           {% if can_manage %}
-            <p class="text-base-content/70">{% translate "Datasets hold this project's samples and measurements, and are what other researchers cite and reuse. Add the first one to start sharing data." %}</p>
+            <p class="ov-empty">{% translate "Datasets hold this project's samples and measurements, and are what other researchers cite and reuse. Add the first one to start sharing data." %}</p>
             {% if urls.add_dataset %}
               <c-button href="{{ urls.add_dataset }}?project={{ project.uuid }}" text="{% translate 'Add dataset' %}" icon="add" size="sm" variant="primary" />
             {% endif %}
           {% else %}
-            <p class="text-base-content/70">{% translate "No datasets have been shared from this project yet." %}</p>
+            <p class="ov-empty">{% translate "No datasets have been shared from this project yet." %}</p>
           {% endif %}
         </div>
       {% endif %}
-    </c-mvp.card>
+    </c-overview.panel>
   {% endblock overview.datasets %}
 
   {% block overview.charts %}
-    {% if composition_chart or growth_chart %}
-      <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
-        {% if composition_chart %}
-          <c-mvp.card title="{% translate 'Data types' %}" class="bg-base-100 min-w-0">
-            <c-chart :chart="composition_chart.chart"
-                     id="project-composition"
-                     height="{{ composition_chart.height }}"
-                     name="{% translate 'Records by type' %}"
-                     caption="{% translate 'Records by sample and measurement type.' %}"
-                     description="{{ composition_chart.description }}" />
-          </c-mvp.card>
-        {% endif %}
-        {% if growth_chart %}
-          <c-mvp.card title="{% translate 'Progress' %}" class="bg-base-100 min-w-0">
-            <c-chart :chart="growth_chart.chart"
-                     id="project-growth"
-                     aspect-ratio="16/9"
-                     name="{% translate 'Samples and measurements added over time' %}"
-                     caption="{% translate 'Running total, by month added to the portal.' %}"
-                     description="{{ growth_chart.description }}" />
-          </c-mvp.card>
-        {% endif %}
-      </div>
+    {% if mix or growth_chart %}
+      <c-overview.panel title="{% translate 'What it holds' %}" data-card="charts">
+        <div class="ov-charts">
+          {% if mix %}<c-overview.mix :mix="mix" />{% endif %}
+          {% if growth_chart %}
+            <div class="ov-chart">
+              <h3 class="ov-chart__title">{% translate "Growth" %}</h3>
+              <c-chart :chart="growth_chart.chart"
+                       id="project-growth"
+                       aspect-ratio="16/9"
+                       name="{% translate 'Samples and measurements added over time' %}"
+                       caption="{% translate 'Running total, by the month each record was added.' %}"
+                       description="{{ growth_chart.description }}" />
+            </div>
+          {% endif %}
+        </div>
+      </c-overview.panel>
     {% endif %}
   {% endblock overview.charts %}
 
   {% block overview.map %}
-    <c-card.placeholder title="{% translate 'Spatial coverage' %}"
-                        icon="map"
-                        wide
-                        message="{% translate "A map of every sample with a location, so you can see the project's spatial coverage before opening a dataset." %}" />
+    {% if sample_map %}
+      <c-overview.coverage :map="sample_map" id="coverage" more_url="{{ urls.samples }}" />
+    {% endif %}
   {% endblock overview.map %}
-
-  {% block overview.activity %}
-    <c-card.placeholder title="{% translate 'Recent activity' %}"
-                        icon="activity"
-                        wide
-                        message="{% translate 'The latest changes to this project and its datasets: new samples, published datasets, people joining.' %}" />
-  {% endblock overview.activity %}
 {% endblock overview.main %}
 
 
 {% block overview.details_extra %}
-  {% if timeline.start_date %}
-    <c-card.details.entry label="{% translate 'Timeline' %}" icon="timeline" data-card="progress">
-      <span class="flex justify-between gap-3">
-        <span>{{ timeline.start_text }} – {% if timeline.end_date %}{{ timeline.end_text }}{% else %}{% translate "ongoing" %}{% endif %}</span>
-        {% if timeline.percent is not None %}<span class="text-base-content/70">{{ timeline.label }}</span>{% endif %}
-      </span>
-      {% if timeline.percent is not None %}
-        <c-progress value="{{ timeline.percent }}" max="100" label="{{ timeline.label }}" class="mt-1" />
+  <div data-card="progress">
+    <dt>{% translate "Timeline" %}</dt>
+    <dd>
+      {% if timeline.start_date %}
+        {{ timeline.start_text }} – {% if timeline.end_date %}{{ timeline.end_text }}{% else %}{% translate "ongoing" %}{% endif %}
+        {% if edit.dates %}<c-overview.edit href="{{ edit.dates }}" label="{% translate 'Edit the project dates' %}" only />{% endif %}
+        {% if timeline.percent is not None %}
+          <span class="ov-sub">{{ timeline.label }}</span>
+          <div class="ov-bar" role="progressbar" aria-valuenow="{{ timeline.percent }}" aria-valuemin="0" aria-valuemax="100" aria-label="{{ timeline.label }}"><span style="width: {{ timeline.percent }}%"></span></div>
+        {% endif %}
+      {% else %}
+        <span aria-hidden="true">—</span><span class="sr-only">{% translate "No start or end date has been recorded." %}</span>
+        {% if edit.dates %}<c-overview.edit href="{{ edit.dates }}" text="{% translate 'Add dates' %}" icon="add" only />{% endif %}
       {% endif %}
-    </c-card.details.entry>
-  {% elif not timeline.end_date %}
-    <c-card.details.entry label="{% translate 'Timeline' %}" icon="timeline" data-card="progress">
-      <span class="text-base-content/70">{% translate "No start or end date has been recorded." %}</span>
-    </c-card.details.entry>
-  {% endif %}
+    </dd>
+  </div>
 {% endblock overview.details_extra %}

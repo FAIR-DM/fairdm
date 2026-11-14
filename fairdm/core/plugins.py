@@ -6,19 +6,24 @@ from datetime import date
 from typing import Any
 
 from django.contrib.contenttypes.models import ContentType
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.db.models.functions import TruncMonth
+from django.http import Http404, HttpResponse, JsonResponse
+from django.urls import NoReverseMatch, reverse
 from django.utils.formats import date_format
+from django.utils.http import content_disposition_header
 from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
+from django.views import View
 from partial_dates import Precision
 from pyecharts import options as opts
-from pyecharts.charts import Bar, Line
+from pyecharts.charts import Line
 
 from fairdm.contrib.contributors.models import Contribution, Contributor
 from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins import reverse as plugin_reverse
-from fairdm.core.overview import format_authors, sentence_case
+from fairdm.core.citation import FORMATS, Citation, CitedName
+from fairdm.core.overview import describe_coverage, format_authors, sentence_case
 from fairdm.core.vocabularies import DOI, IGSN
 from fairdm.views import FairDMTemplateView
 
@@ -65,28 +70,100 @@ class OverviewPlugin(Plugin, FairDMTemplateView):
         return str(self.base_object)
 
 
+class CitationFile(Plugin, View):
+    """One format of a record's citation as a file, at ``<record>/cite/<format>/``.
+
+    The record's overview answers who may open it, and this view asks that overview, so
+    a private record answers a stranger as its page does and an unknown record is not
+    found. The file is the format's value on the overview's own context, so it is the
+    one the Cite panel shows.
+
+    A portal plugin that sets its own ``extra_views`` must list this class to keep the
+    addresses.
+
+    Attributes:
+        name: The route's name, ``<namespace>:overview-citation``.
+        url_path: The route's last part, ``cite/<format>``.
+    """
+
+    name = "citation"
+    url_path = "cite/<str:format>"
+
+    def setup(self, request, *args, **kwargs):
+        """Build the overview that owns this address, set up for this request."""
+        super().setup(request, *args, **kwargs)
+        self.owner = self.plugin_class(
+            registered_model=self.registered_model, menu=self.menu
+        )
+        self.owner.setup(request, *args, **kwargs)
+
+    def has_permission(self):
+        """Ask the owning overview, so the file opens for whom the page opens for."""
+        return self.owner.has_permission()
+
+    def handle_no_permission(self):
+        """Answer as the owning overview answers."""
+        return self.owner.handle_no_permission()
+
+    def get(self, request, *args, **kwargs):
+        """Answer with the citation in the format named by the address.
+
+        Args:
+            request: The request.
+            *args: Positional URL arguments.
+            **kwargs: Keyword URL arguments, the record's and the ``format``.
+
+        Returns:
+            The file, as an attachment named after the record.
+
+        Raises:
+            Http404: The format is not one of ``FORMATS``.
+        """
+        chosen = next((f for f in FORMATS if f.key == kwargs["format"]), None)
+        if chosen is None:
+            raise Http404(_("No such citation format."))
+        citation = self.owner.get_context_data()["citation"]
+        value = next(f["value"] for f in citation["formats"] if f["key"] == chosen.key)
+        response = HttpResponse(value, content_type=chosen.content_type)
+        response["Content-Disposition"] = content_disposition_header(
+            True, citation["work"].filename(chosen.extension)
+        )
+        return response
+
+
 class RecordOverviewPlugin(OverviewPlugin):
     """The overview of a project, dataset, sample or measurement.
 
     Holds what every one of those pages works out the same way: who is credited, the People
-    card, identifiers, citation, timeline, licence entry and the two charts. A portal changes one
+    panel, identifiers, citation, timeline, licence entry, records by type and the charts. A portal changes one
     piece of a page by subclassing that page's plugin and overriding one of these methods.
 
     Attributes:
-        people_shown: How many faces the People card draws before it counts the rest.
+        people_named: How many credits the People panel names, with their roles.
+        people_faces: How many faces it draws after them before it counts the rest.
         resolvable_identifier_types: The identifier types that link to doi.org.
     """
 
-    people_shown = 18
+    people_named = 6
+    people_faces = 10
     resolvable_identifier_types = (DOI, IGSN)
+    extra_views = [CitationFile]
 
     def get_context_data(self, **kwargs):
-        """Lead the People card to the record's Contributors tab and add the Manage menu."""
-        from fairdm.core.editing import manage_menu
+        """Add what the shared page reads on every record.
 
+        The People panel's link to the Contributors tab, each panel's Edit link, the word for the
+        record's kind, and the record's image, which fills the header's trailing side.
+        """
+        from fairdm.contrib.contributors.access import RecordAccess
+        from fairdm.core.editing import edit_links
+
+        record = self.base_object
         context = super().get_context_data(**kwargs)
-        context["people_url"] = plugin_reverse(self.base_object, "contribution-list")
-        context["manage_menu"] = manage_menu(self.request, self.base_object)
+        context["people_url"] = plugin_reverse(record, "contribution-list")
+        context["edit"] = edit_links(self.request, record)
+        context["record_kind"] = RecordAccess(record).kind
+        context["cover_image"] = record.image or None
         return context
 
     def get_contributions(self) -> list[Contribution]:
@@ -159,26 +236,43 @@ class RecordOverviewPlugin(OverviewPlugin):
         ]
 
     def get_people(self, entries=None) -> dict[str, Any]:
-        """Work out what the People card shows.
+        """Work out what the People panel shows: names with roles first, then faces.
 
         Args:
             entries: The record's credits, when the caller already has them. Defaults to
                 :meth:`get_credits`.
 
         Returns:
-            The first ``people_shown`` faces, how many more there are and the total.
+            ``named``: the first ``people_named`` credits, each with its ``contributor``, its
+            first two ``roles``, how many ``more_roles`` it holds and its ``affiliation``.
+            ``faces``: the next ``people_faces`` contributors. ``more``: how many are left after
+            those. ``total``: everyone credited.
         """
         if entries is None:
             entries = self.get_credits()
-        everyone = [entry["contributor"] for entry in entries]
+        named = [
+            {
+                "contributor": entry["contributor"],
+                "roles": [
+                    sentence_case(label) for label in list(entry["roles"].values())[:2]
+                ],
+                "more_roles": max(len(entry["roles"]) - 2, 0),
+                "affiliation": entry["affiliation"],
+            }
+            for entry in entries[: self.people_named]
+        ]
+        last_face = self.people_named + self.people_faces
         return {
-            "shown": everyone[: self.people_shown],
-            "more": max(len(everyone) - self.people_shown, 0),
-            "total": len(everyone),
+            "named": named,
+            "faces": [
+                entry["contributor"] for entry in entries[self.people_named : last_face]
+            ],
+            "more": max(len(entries) - last_face, 0),
+            "total": len(entries),
         }
 
     def get_identifiers(self) -> list[dict[str, Any]]:
-        """List the record's identifiers for the Identifiers card.
+        """List the record's identifiers for the fact sheet.
 
         A DOI or an IGSN links to doi.org, since an IGSN is a DataCite DOI since 2023. A legacy
         IGSN handle, which does not start with ``10.``, does not resolve there and stays unlinked.
@@ -199,27 +293,166 @@ class RecordOverviewPlugin(OverviewPlugin):
             for identifier in self.base_object.identifiers.select_related("type")
         ]
 
-    def get_citation(self, *, authors, year, title, link) -> str:
+    @staticmethod
+    def get_primary_identifier(identifiers) -> dict[str, Any] | None:
+        """Pick the identifier a reader looks for first: the first one that resolves.
+
+        Args:
+            identifiers: The record's identifiers, from :meth:`get_identifiers`.
+
+        Returns:
+            The first identifier with a ``link``, or ``None`` when none resolves.
+        """
+        return next((i for i in identifiers if i["link"]), None)
+
+    def get_publisher(self) -> str:
+        """Name the publisher a citation gives: the site's name.
+
+        Returns:
+            The current site's name, or an empty string when the site has none.
+        """
+        return getattr(getattr(self.request, "site", None), "name", "") or ""
+
+    @staticmethod
+    def format_cited_names(names) -> str:
+        """Write cited names as a citation lists them, like :func:`format_authors`.
+
+        Args:
+            names: The :class:`~fairdm.core.citation.CitedName` values, in order.
+
+        Returns:
+            "Keller, A., Oliveira, T. & Brandt, L.", or an empty string for no names.
+        """
+        written = [
+            f"{name.family}, {name.given[0]}."
+            if name.family and name.given
+            else name.family or name.literal
+            for name in names
+        ]
+        if len(written) > 1:
+            return ", ".join(written[:-1]) + " & " + written[-1]
+        return written[0] if written else ""
+
+    def get_citation(self, *, authors, year, title, link, publisher=None) -> str:
         """Write the citation in DataCite's form: Creators (Year). Title. Publisher. Identifier.
 
         Args:
-            authors: The creators to name.
+            authors: The creators to name, as contributors or as cited names.
             year: The year of publication.
             title: The record's title.
-            link: Its DOI link, or the address of the page.
+            link: Its DOI link, or the address of the page. ``None`` when it has none.
+            publisher: The publisher to name. Defaults to :meth:`get_publisher`.
 
         Returns:
             The citation as plain text.
         """
-        names = format_authors(authors)
-        publisher = getattr(getattr(self.request, "site", None), "name", "") or ""
+        if publisher is None:
+            publisher = self.get_publisher()
+        if authors and all(isinstance(a, CitedName) for a in authors):
+            names = self.format_cited_names(authors)
+        else:
+            names = format_authors(authors)
+        year = gettext("n.d.") if year is None else year
         parts = [
             f"{names} ({year})." if names else f"({year}).",
             f"{title}.",
             f"{publisher}.",
             link,
         ]
-        return " ".join(part for part in parts if part.strip(". "))
+        return " ".join(part for part in parts if part and part.strip(". "))
+
+    def build_citation(
+        self, *, authors, year, title, link, publisher=None, types=("misc", "GEN")
+    ) -> Citation:
+        """Gather the parts of the record's citation into the value the files use.
+
+        Args:
+            authors: The creators, as contributors or as cited names.
+            year: The year of publication.
+            title: The title.
+            link: The link the text ends with, or ``None``.
+            publisher: The publisher. Defaults to :meth:`get_publisher`.
+            types: The BibTeX and RIS types.
+
+        Returns:
+            The citation, keyed by the record's portal ID. Its DOI is set when ``link``
+            is a doi.org link.
+        """
+        prefix = "https://doi.org/"
+        bibtex_type, ris_type = types
+        return Citation(
+            key=str(self.base_object.uuid),
+            authors=[
+                a if isinstance(a, CitedName) else CitedName.from_contributor(a)
+                for a in authors
+            ],
+            year=year,
+            title=title,
+            publisher=self.get_publisher() if publisher is None else publisher,
+            doi=link.removeprefix(prefix) if link and link.startswith(prefix) else None,
+            url=link,
+            bibtex_type=bibtex_type,
+            ris_type=ris_type,
+        )
+
+    def get_citation_formats(self, citation, text) -> list[dict[str, Any]]:
+        """List the ways to take the citation, for the Cite panel and the files.
+
+        Args:
+            citation: The :class:`~fairdm.core.citation.Citation`.
+            text: The citation as text.
+
+        Returns:
+            One ``{"key", "label", "value", "url", "download"}`` entry per format, in
+            the order of ``FORMATS``. ``url`` is the format's address beside the
+            record's page, or ``None`` where the portal's plugin does not mount
+            :class:`CitationFile`.
+        """
+        values = {
+            "text": text,
+            "bibtex": citation.to_bibtex(),
+            "ris": citation.to_ris(),
+        }
+        return [
+            {
+                "key": f.key,
+                "label": f.label,
+                "value": values[f.key],
+                "url": self.get_citation_address(f.key),
+                "download": f.downloadable,
+            }
+            for f in FORMATS
+        ]
+
+    def get_citation_address(self, key) -> str | None:
+        """Give the address of one format of the record's citation.
+
+        Args:
+            key: The format's key, one of ``FORMATS``.
+
+        Returns:
+            The address, or ``None`` when the portal's plugin does not mount
+            :class:`CitationFile`.
+        """
+        try:
+            return plugin_reverse(self.base_object, "overview-citation", format=key)
+        except NoReverseMatch:
+            return None
+
+    def get_cited_details(self, citation, text) -> dict[str, Any]:
+        """Give the two keys every record's citation card adds to its text.
+
+        Args:
+            citation: The :class:`~fairdm.core.citation.Citation`.
+            text: The citation as text.
+
+        Returns:
+            ``work``, the citation, and ``formats``, from :meth:`get_citation_formats`.
+        """
+        return {
+            "work": citation,
+            "formats": self.get_citation_formats(citation, text),
+        }
 
     def get_timeline(self, steps, dates, descriptions, entries) -> list[dict[str, Any]]:
         """Join the three ways the vocabularies describe a step in a record's life.
@@ -260,14 +493,14 @@ class RecordOverviewPlugin(OverviewPlugin):
         return dated + [s for s in result if not s["date"]]
 
     def get_license_entry(self, licence, note=None) -> dict[str, Any]:
-        """Write the Details card's licence entry: the licence linked to its text, or a warning.
+        """Write the fact sheet's licence entry: the licence linked to its text, or a warning.
 
         Args:
             licence: The licence, or ``None`` when none is chosen.
             note: A line to show under the licence.
 
         Returns:
-            An entry for :class:`c-card.details`.
+            An entry for :class:`c-overview.sheet`.
         """
         if licence is None:
             return {
@@ -287,55 +520,120 @@ class RecordOverviewPlugin(OverviewPlugin):
             "note": note,
         }
 
-    def get_composition_chart(self, samples, measurements) -> dict[str, Any] | None:
-        """Draw the records by type, largest first, in one hue since the bars compare magnitude.
+    def get_type_mix(self, samples, measurements) -> dict[str, Any] | None:
+        """Count the records by type for the bars in each type's colour.
 
         Args:
             samples: The samples to count.
             measurements: The measurements to count.
 
         Returns:
-            The chart, its height and its text alternative, or ``None`` when there is nothing to
-            count.
+            ``samples`` and ``measurements``, each ``[(plural type name, count)]`` largest first,
+            and ``max``, the largest count, which every bar is drawn against. ``None`` when there
+            is nothing to count.
         """
-        items = self._type_counts(samples) + self._type_counts(measurements)
-        if not items:
+        by_sample = self._type_counts(samples)
+        by_measurement = self._type_counts(measurements)
+        counts = [n for _label, n in by_sample + by_measurement]
+        if not counts:
             return None
-        # ECharts draws the first category at the bottom.
-        items.sort(key=lambda item: item[1])
-        chart = (
-            Bar()
-            .add_xaxis([label for label, _count in items])
-            .add_yaxis(
-                gettext("Records"),
-                [count for _label, count in items],
-                bar_max_width=18,
-                label_opts=opts.LabelOpts(is_show=True, position="right"),
-                itemstyle_opts=opts.ItemStyleOpts(border_radius=[0, 4, 4, 0]),
-            )
-            .reversal_axis()
-            .set_global_opts(
-                legend_opts=opts.LegendOpts(is_show=False),
-                tooltip_opts=opts.TooltipOpts(trigger="axis"),
-                xaxis_opts=opts.AxisOpts(
-                    splitline_opts=opts.SplitLineOpts(is_show=True)
-                ),
-            )
-        )
-        chart.options["grid"] = {
-            "left": 8,
-            "right": 40,
-            "top": 8,
-            "bottom": 8,
-            "containLabel": True,
-        }
         return {
-            "chart": chart,
-            "height": f"{max(len(items) * 44 + 32, 160)}px",
-            "description": "; ".join(
-                f"{label}: {count}" for label, count in reversed(items)
-            ),
+            "samples": by_sample,
+            "measurements": by_measurement,
+            "max": max(counts),
         }
+
+    def get_sample_points(self, samples) -> dict[str, Any]:
+        """Give the located samples as GeoJSON for the map to draw.
+
+        The rows are read with ``values()``, never as model instances, so the answer
+        costs one query however many samples there are.
+
+        Args:
+            samples: The samples to draw. Those without a location are left out.
+
+        Returns:
+            A ``FeatureCollection`` with one ``Point`` feature per located sample,
+            ordered by name. Each feature's properties are ``name``, ``type`` (the
+            sample type's name, empty when the type's model no longer exists),
+            ``dataset`` (the dataset's name) and ``url`` (the sample's page).
+        """
+        rows = (
+            samples.filter(location__isnull=False)
+            .order_by("name", "uuid")
+            .values("uuid", "name", "location", "polymorphic_ctype", "dataset__name")
+        )
+        labels: dict[int, str] = {}
+        features = []
+        for row in rows:
+            ctype = row["polymorphic_ctype"]
+            if ctype not in labels:
+                model = ContentType.objects.get_for_id(ctype).model_class()
+                labels[ctype] = (
+                    sentence_case(model._meta.verbose_name) if model is not None else ""
+                )
+            point = row["location"]
+            features.append(
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [round(point.x, 5), round(point.y, 5)],
+                    },
+                    "properties": {
+                        "name": row["name"],
+                        "type": labels[ctype],
+                        "dataset": row["dataset__name"],
+                        "url": reverse("sample:overview", kwargs={"uuid": row["uuid"]}),
+                    },
+                }
+            )
+        return {"type": "FeatureCollection", "features": features}
+
+    def get_sample_map(
+        self, samples, coverage, points_url, *, count_datasets=False
+    ) -> dict[str, Any] | None:
+        """Work out what the map panel shows: how many samples are located and where.
+
+        One aggregate query counts the samples, no rows are read.
+
+        Args:
+            samples: The samples the page counts.
+            coverage: The smallest box holding their locations, or ``None``.
+            points_url: The address that answers the located samples as GeoJSON.
+            count_datasets: Whether to count the datasets the located samples come from.
+
+        Returns:
+            ``located``, ``missing`` (the samples without a location), ``bounds`` (the
+            coverage as ``[west, south, east, north]``, with ``east`` carried past 180
+            when the box crosses the 180th meridian so MapLibre fits the narrow box),
+            ``area`` (the coverage as text) and ``points_url``, plus ``datasets`` when
+            asked. With no located sample, ``bounds`` and ``area`` are ``None``.
+            ``None`` when ``samples`` is empty.
+        """
+        located_only = Q(location__isnull=False)
+        counts = samples.aggregate(
+            total=Count("pk"),
+            located=Count("pk", filter=located_only),
+            datasets=Count("dataset", distinct=True, filter=located_only),
+        )
+        if not counts["total"]:
+            return None
+        located = counts["located"]
+        result = {
+            "located": located,
+            "missing": counts["total"] - located,
+            "bounds": None,
+            "area": None,
+            "points_url": points_url,
+        }
+        if count_datasets:
+            result["datasets"] = counts["datasets"]
+        if located and coverage is not None:
+            west, south, east, north = coverage
+            result["bounds"] = [west, south, east + 360 if west > east else east, north]
+            result["area"] = describe_coverage(coverage)
+        return result
 
     def get_growth_chart(self, samples, measurements) -> dict[str, Any] | None:
         """Draw the cumulative samples and measurements by month, two series on one count axis.
@@ -463,6 +761,42 @@ class RecordOverviewPlugin(OverviewPlugin):
             .annotate(n=Count("pk"))
             .order_by("month")
         )
+
+
+class SamplePoints(Plugin):
+    """Answer a record's located samples as GeoJSON, for its overview page's map.
+
+    It decides nothing itself. The owning overview plugin says who may open the record
+    and which of its samples the viewer sees, so this address answers exactly as the
+    record's page does: a private record is "not found", and the points are the samples
+    the page counts.
+
+    The owner is built with this mount's model. A plugin built without it resolves no
+    record, and a plugin that resolves none lets everyone in.
+
+    Attributes:
+        owner: The overview plugin that owns this address, set when access is decided.
+    """
+
+    name = "sample-points"
+    url_path = "sample-points"
+    owner = None
+
+    def has_permission(self) -> bool:
+        """Ask the owning overview plugin whether the viewer may open its record."""
+        self.owner = self.plugin_class(
+            registered_model=self.registered_model, menu=self.menu
+        )
+        self.owner.setup(self.request, *self.args, **self.kwargs)
+        return self.owner.has_permission()
+
+    def handle_no_permission(self):
+        """Refuse as the overview does, so a private record answers "not found"."""
+        return self.owner.handle_no_permission()
+
+    def get(self, request, *args, **kwargs):
+        """Give the samples the page counts that have a location, as GeoJSON."""
+        return JsonResponse(self.owner.get_sample_points(self.owner.get_map_samples()))
 
 
 def _visible_through(base_model):

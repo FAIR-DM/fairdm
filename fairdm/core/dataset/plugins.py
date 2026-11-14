@@ -15,6 +15,7 @@ from fairdm.contrib.plugins.access import has_perm
 from fairdm.contrib.plugins.mixins import (
     PrivateRecordNotFoundMixin,
 )
+from fairdm.core.citation import CitedName, publication_types
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.overview import (
     as_date,
@@ -23,7 +24,7 @@ from fairdm.core.overview import (
     safe_reverse,
     sentence_case,
 )
-from fairdm.core.plugins import RecordOverviewPlugin
+from fairdm.core.plugins import RecordOverviewPlugin, SamplePoints
 from fairdm.core.sample.models import Sample
 from fairdm.core.vocabularies import (
     ABSTRACT,
@@ -97,15 +98,15 @@ def dataset_records_visible(request, obj):
 class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
     """The dataset's own page and the root of its collection.
 
-    The editing pages are the shared ones in :mod:`fairdm.core.editing`, reached from the Manage
-    menu.
+    The editing pages are the shared ones in :mod:`fairdm.core.editing`, each reached
+    from the panel that shows what it changes.
 
     A dataset is the unit a portal cites and distributes. Its page answers a reuser's questions:
     what it is, whether its data is published, what it holds and how it grew, when each step of its
     life happened, how to cite it and who made it. Two gates decide what a visitor sees.
     Visibility governs the page and ``published`` governs the records, so a public, unpublished
-    dataset shows its description to everyone but its counts, charts and spatial coverage only to
-    those who may see its records. Everything drawn from the records is counted through
+    dataset shows its description to everyone but its counts and charts only to those
+    who may see its records. Everything drawn from the records is counted through
     ``visible_to``, so the figures always equal the Samples and Measurements tabs. The page
     lists no record. Nothing here is written for a particular portal's types.
 
@@ -127,6 +128,23 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         "modified",
         "options",
     }
+
+    @classmethod
+    def get_extra_views(cls):
+        """Keep the shared overview's views and add the address of the map's points."""
+        return [*super().get_extra_views(), SamplePoints]
+
+    def get_map_samples(self):
+        """Give the samples the map draws: those the page counts, or none.
+
+        Returns:
+            The dataset's samples the viewer may see, or none when the viewer is not
+            offered the dataset's records.
+        """
+        dataset = self.base_object
+        if not dataset_records_visible(self.request, dataset):
+            return Sample.objects.none()
+        return Sample.objects.filter(dataset=dataset).visible_to(self.request.user)
 
     def get_context_data(self, **kwargs):
         """Add the dataset and everything the overview page draws."""
@@ -151,10 +169,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             "data_types": data_types,
             "counts": self.get_counts(samples, measurements, data_types),
             "shows_records": shows_records,
-            "composition_chart": (
-                shows_records and self.get_composition_chart(samples, measurements)
-            )
-            or None,
+            "mix": (shows_records and self.get_type_mix(samples, measurements)) or None,
             "growth_chart": (
                 shows_records and self.get_growth_chart(samples, measurements)
             )
@@ -170,6 +185,13 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
                 "keywords": safe_reverse("dataset:keywords", uuid=dataset.uuid),
             },
         }
+        page["sample_map"] = self.get_sample_map(
+            self.get_map_samples(),
+            dataset.spatial_coverage(user),
+            safe_reverse("dataset:overview-sample-points", uuid=dataset.uuid),
+        )
+        if page["sample_map"] and page["sample_map"]["located"]:
+            page["has_map"] = True
         page["counts"]["publications"] = len(page["literature"]["items"])
         page["citation"] = self.get_citation_details(page)
         page["json_ld"] = json_ld(self.get_schema_org(page))
@@ -188,18 +210,26 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             page: The page context gathered so far.
 
         Returns:
-            The record, its icon, the header's people, the citation, People, Identifiers and
-            Details cards, the timeline and, for the team, the readiness checklist.
+            The record, its icon, the header's people, the citation, People, the
+            identifiers and the one that resolves, the Details rows, the timeline and,
+            for the team, the readiness checklist.
         """
         dataset = self.base_object
         citation = page["citation"]
         creators = [entry["contributor"] for entry in page["team"]["creators"]]
+        identifiers = self.get_identifiers()
         result = {
             "record": dataset,
             "overview_icon": "dataset",
-            "has_charts": bool(page["composition_chart"] or page["growth_chart"]),
-            "citation": {"title": gettext("Citation"), "text": citation["text"]},
-            "identifiers": self.get_identifiers(),
+            "has_charts": bool(page["growth_chart"]),
+            "citation": {
+                "title": gettext("Citation"),
+                "text": citation["text"],
+                "work": citation["work"],
+                "formats": citation["formats"],
+            },
+            "identifiers": identifiers,
+            "primary_identifier": self.get_primary_identifier(identifiers),
             "people": self.get_people(),
             "header_people": creators,
             "header_people_label": gettext("Creators"),
@@ -240,7 +270,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             project_info: The project the viewer may see with its other datasets, or ``None``.
 
         Returns:
-            The rows as ``c-card.details`` draws them.
+            The rows as ``c-overview.sheet`` draws them.
         """
         dataset = self.base_object
         rows = []
@@ -264,13 +294,20 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         return rows
 
     def get_lifecycle(self, dates):
-        """List the dataset's key dates in the order they happened.
+        """List the dataset's key dates in the order they happened, with publication.
+
+        Every recorded date is a step that has happened. With no Published date,
+        publication is still a step: done and undated when the data is public, still to
+        come when it is not. It sits before a withdrawal, which always ends the
+        timeline.
 
         Args:
             dates: The dataset's dates as returned by :meth:`get_dates`.
 
         Returns:
-            The steps as ``c-card.timeline`` draws them.
+            The steps, each with its ``label``, its ``date`` as recorded, its ``day``
+            when recorded to the day, whether it is ``done`` and whether it is an
+            ``alert``.
         """
         dataset = self.base_object
         steps = []
@@ -282,6 +319,9 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
                     "sort": as_date(dates["collection_start"]),
                     "date": f"{format_partial_date(dates['collection_start'])} \u2013 "
                     + (format_partial_date(end) if end else gettext("ongoing")),
+                    "day": None,
+                    "done": True,
+                    "alert": False,
                 }
             )
         steps.append(
@@ -290,6 +330,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
                 "sort": dataset.added.date(),
                 "day": dataset.added,
                 "date": dataset.added,
+                "done": True,
+                "alert": False,
             }
         )
         for key, label in (
@@ -307,9 +349,26 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
                         if dates[key].precision is Precision.DAY
                         else None,
                         "date": dates[key],
+                        "done": True,
+                        "alert": key == "withdrawn",
                     }
                 )
-        return sorted(steps, key=lambda step: step["sort"])
+        steps.sort(key=lambda step: step["sort"])
+        if not dates["published"]:
+            position = next(
+                (n for n, step in enumerate(steps) if step["alert"]), len(steps)
+            )
+            steps.insert(
+                position,
+                {
+                    "label": gettext("Published"),
+                    "day": None,
+                    "date": None,
+                    "done": dataset.data_is_public,
+                    "alert": False,
+                },
+            )
+        return steps
 
     def get_access(self):
         """Name the dataset's access state, in the words the page uses for it everywhere.
@@ -544,18 +603,38 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
 
         Returns:
             The citation ``text`` and ``link`` and whether it ``has_doi``, ``from_reference`` and
-            how many ``creators`` it names.
+            how many ``creators`` it names, with the ``work`` it is written from and its
+            ``formats``.
         """
         dataset = self.base_object
         if dataset.reference_id:
             reference = dataset.reference
+            names = [CitedName.from_item_name(n) for n in reference.authors]
+            year = reference.year
             doi = reference.doi
+            link = f"https://doi.org/{doi}" if doi else None
+            text = self.get_citation(
+                authors=names,
+                year=year,
+                title=reference.title,
+                link=link,
+                publisher=reference.publisher,
+            )
+            work = self.build_citation(
+                authors=names,
+                year=year,
+                title=reference.title,
+                link=link,
+                publisher=reference.publisher,
+                types=publication_types(reference.type),
+            )
             return {
-                "text": str(reference),
-                "link": f"https://doi.org/{doi}" if doi else None,
+                "text": text,
+                "link": link,
                 "has_doi": bool(doi),
                 "creators": len(page["team"]["creators"]),
                 "from_reference": True,
+                **self.get_cited_details(work, text),
             }
         creators = [entry["contributor"] for entry in page["team"]["creators"]]
         when = as_date(page["dates"]["published"] or page["dates"]["available"])
@@ -564,14 +643,23 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             (i.value for i in dataset.identifiers.all() if i.type_id == DOI), None
         )
         link = f"https://doi.org/{doi}" if doi else get_permalink(dataset, self.request)
+        text = self.get_citation(
+            authors=creators, year=year, title=dataset.name, link=link
+        )
+        work = self.build_citation(
+            authors=creators,
+            year=year,
+            title=dataset.name,
+            link=link,
+            types=("dataset", "DATA"),
+        )
         return {
-            "text": self.get_citation(
-                authors=creators, year=year, title=dataset.name, link=link
-            ),
+            "text": text,
             "link": link,
             "has_doi": bool(doi),
             "creators": len(creators),
             "from_reference": False,
+            **self.get_cited_details(work, text),
         }
 
     def get_schema_org(self, page):

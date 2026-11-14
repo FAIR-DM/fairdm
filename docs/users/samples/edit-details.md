@@ -4,7 +4,7 @@ The Edit details screen changes a sample's own fields, such as its name, its ima
 
 ## How to reach it
 
-Open the sample's page, choose **Manage**, then **Edit details**. The address is `/samples/` followed by the sample's portal ID and `/edit/`.
+Open the sample's page and choose **Edit** in its header. The address is `/samples/` followed by the sample's portal ID and `/edit/`.
 
 You see the entry when you may change the sample. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md) for who that is, and for what you are told when you ask for the screen without that right.
 

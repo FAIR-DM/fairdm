@@ -4,14 +4,14 @@ A project, a dataset, a sample and a measurement are edited through the same six
 
 ## The pages
 
-| Class | Plugin name | Menu label | Icon | `access` |
-|---|---|---|---|---|
-| `EditDetails` | `edit` | Edit details | `edit` | `change` |
-| `EditDescriptions` | `descriptions` | Edit descriptions | `description` | `change` |
-| `EditKeywords` | `keywords` | Keywords | `keywords` | `change` |
-| `EditKeyDates` | `key-dates` | Key dates | `date` | `change` |
-| `EditIdentifiers` | `identifiers` | Identifiers | `identifier` | `change` |
-| `DeleteRecord` | `delete` | Delete | `delete` | `delete` |
+| Class | Plugin name | `part` | `access` |
+|---|---|---|---|
+| `EditDetails` | `edit` | `details` | `change` |
+| `EditDescriptions` | `descriptions` | `descriptions` | `change` |
+| `EditKeywords` | `keywords` | `keywords` | `change` |
+| `EditKeyDates` | `key-dates` | `dates` | `change` |
+| `EditIdentifiers` | `identifiers` | `identifiers` | `change` |
+| `DeleteRecord` | `delete` | `delete` | `delete` |
 
 The plugin name is the last segment of the page's address and its URL name in the namespace of the record's kind. For a sample, `reverse("sample:key-dates", kwargs={"uuid": sample.uuid})` gives the key dates address whatever type the sample is. The kinds' namespaces are `project`, `dataset`, `sample` and `measurement`.
 
@@ -37,8 +37,7 @@ The class every page inherits. It holds who may open a page and where the page l
 | Attribute | Default | What it sets |
 |---|---|---|
 | `access` | `"change"` | `"change"` for the pages that edit the record, `"delete"` for the one that removes it. |
-| `menu_label` | `""` | The page's entry in the Manage menu. |
-| `menu_icon` | `"edit"` | The icon beside that entry. |
+| `part` | `""` | The part of the record the page changes, which keys its link in `edit_links`. |
 | `PERMISSIONS` | a dictionary | For each `access`, the permission name for each of the four core models, such as `project.change_project`. |
 
 | Method | Returns |
@@ -64,9 +63,22 @@ Every request is answered in this order, on a view and again on a save:
 
 A person whose level is removed while a page is open is refused when they save.
 
-## The Manage menu
+## The edit links
 
-`manage_menu(request, record)` returns one entry for each page the viewer may open, in the order edit details, descriptions, keywords, key dates, identifiers and delete. Each entry has `label`, `icon`, `url` and `destructive`, which is true only for delete. `RecordOverviewPlugin` adds the list to every overview's context as `manage_menu`. [`c-actions.manage`](components.md#c-actionsmanage) draws it, in the `overview.manage` block, and draws nothing when there are no entries and the slot is empty.
+There is no central editing menu. Each page is reached from an Edit control on the overview panel that shows what it changes.
+
+`edit_links(request, record)` returns the address of each page the viewer may open, keyed by the page's `part`: `details`, `descriptions`, `keywords`, `dates`, `identifiers` and `delete`. A page the viewer may not open is left out, so a visitor gets an empty dictionary. `RecordOverviewPlugin` adds it to every overview's context as `edit`. `EDITING_PAGES` lists the six pages it asks.
+
+| Part | Where the overview page draws it |
+|---|---|
+| `details` | The header's Edit, and the Edit on the Details panel. |
+| `keywords` | Beside the keywords in the header: Edit, or Add keywords when there are none. |
+| `descriptions` | The descriptions panel, and a sample's or measurement's Notes. |
+| `dates` | The project's timeline row, and the dataset's, sample's and measurement's key dates panel. |
+| `identifiers` | The Identifiers section of the Details panel. |
+| `delete` | The last line of the Details panel. |
+
+The People panel's Manage leads to the record's Contributors tab, for its team. [`c-overview.edit`](components.md#c-overviewedit) draws a control, and draws nothing when its address is empty.
 
 ## Edit details
 
@@ -183,5 +195,5 @@ Every editing page returns to the record's own page and adds a message saying wh
 
 ## Tasks
 
-- [How to add an entry to the Manage menu](../how-to/add-an-entry-to-the-manage-menu.md)
+- [How to add an action to an overview page](../how-to/add-an-action-to-an-overview-page.md)
 - [How to change what the edit details page offers](../how-to/change-what-the-edit-details-page-offers.md)

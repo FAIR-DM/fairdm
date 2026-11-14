@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Project and dataset pages map where their samples come from.** A "Where the samples come
+  from" panel shows every sample the viewer may open that has a location, clustered where they
+  crowd, opening on the record's spatial coverage. Selecting a cluster zooms in and selecting a
+  point lists every sample at that spot with a link to its page. Beneath the map are how many
+  samples are mapped, how many have no location, on a project how many datasets they come from,
+  the area they cover and a link to the samples list, so the page says everything the map shows
+  without it. The page does not wait for the points: the map fetches them from the record's
+  address followed by `sample-points/`, which answers as the record's page does. The panel is
+  drawn by `<c-overview.coverage>` in the new `overview.map` block, and a portal changes the
+  points by overriding `get_sample_points()` or `get_map_samples()` on the overview plugin. See
+  [Overview plugins](developers/reference/overview-plugins.md) and
+  [Components](developers/reference/components.md#c-overviewcoverage).
+- **The Cite panel offers the citation as Text, BibTeX or RIS.** A switch in the panel's heading on the project, dataset, sample and measurement overviews chooses the format. Copy copies the format on show, and BibTeX and RIS have a Download link to the format's file. The panel remembers the reader's choice in the browser and falls back to Text. The `c-overview.cite` component takes `formats`, the list `get_citation_formats()` returns, in place of `text`.
+- **A record's citation can be taken as BibTeX or RIS.** The project, dataset, sample and measurement overviews write the citation as a BibTeX entry and as an RIS record as well as text, and each format has an address beside the record's page, `<record address>cite/<format>/` with `text`, `bibtex` or `ris`, named `<namespace>:overview-citation`. The address answers as the page does: a private record gives a visitor who may not open it the page's own 404. A dataset cited as its data publication now gives the publication's authors, full title, year, publisher and DOI in the text, not the publication's string form. `RecordOverviewPlugin` gains `get_publisher()`, `get_citation_formats()` and `build_citation()`, and `get_citation()` takes an optional `publisher`. A portal plugin that sets its own `extra_views` must include `fairdm.core.plugins.CitationFile` to keep the addresses. See [Overview plugins](developers/reference/overview-plugins.md#citations).
 - **A control room in the administration interface.** Superusers can open a Django Control Room dashboard with panels for Redis, the cache and the Celery workers, at `dj-control-room/` under the administration address. Staff who are not superusers and holders of a portal role are refused. The Redis panel is read-only, the panels send no requests from the portal and the agent interface is off. A portal changes any of this through `DJ_CONTROL_ROOM_SETTINGS` and the panel settings dictionaries described in [Settings](developers/reference/settings.md#operations-dashboard), and removes the dashboard by removing its apps from `INSTALLED_APPS`. Under `DJANGO_ENV=development`, a portal that has installed `dj-urls-panel` and `dj-signals-panel` as development dependencies also gets a URL panel and a signal panel, open to superusers only; the URL panel sends no requests. See [How to change who can open the control room](developers/how-to/change-who-can-open-the-control-room.md).
 - **A record's portal ID opens the record.** A project, dataset, sample, measurement, person or
   organization opens at the portal's root followed by its portal ID, for example `/p3xK…Wq/`. The
@@ -46,6 +60,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Every badge is a pill and every keyword a solid pill.** Keywords on project and dataset cards, on the landing page and in a record type's "About" dialog are pills in a light shade of the primary colour, where they were outlined or grey boxes. An outline badge takes a light fill of its own colour, and the record-type label on a record card and on a page is a pill edged in the record's colour. The shape is set in `css/fairdm-theme.css` and holds on any theme. Put `badge-keyword` on a badge to show a keyword in a portal's own templates. See [How to change the portal theme](developers/how-to/change-the-portal-theme.md#the-result).
+- **The dataset overview page is redesigned on the shared page.** Its project, licence and DOI
+  are key facts in the header, where the licence was a badge. Its key dates run as a timeline
+  across the page under the descriptions, where they were a card in the side column, and the
+  timeline ends on publication until the dataset is published. Its records by type are bars in
+  each type's colour beside the growth chart, and its related publications sit in the side column
+  with their count. The Contributors figure links to the Contributors tab and the Related
+  publications figure to its panel. The dataset `Overview` plugin's context carries `mix` and
+  `primary_identifier`, and `get_lifecycle()` gives each step `done` and `alert`.
+- **The project overview page and the page every record shares are redesigned.** The header is a
+  band in the record's colour with its badges, name, people, key facts, keywords, actions and
+  headline figures. A record with an image shows it filling the header's trailing side, opening at
+  full size, and a record without one shows its icon on the sign-in pages' ruled grid. The side
+  column runs Cite, one fact sheet (details, identifiers, funding and machine access, a missing value
+  shown as a dash), then People named with their roles before their faces. Readiness shows a ring.
+  Descriptions fold after a few lines. A project's records by type are bars in each type's colour.
+  The shared panels are `c-overview.*` components, described in
+  [Components](developers/reference/components.md#overview-page-components), and the page's
+  behaviour is in `js/overview.js`. `RecordOverviewPlugin` gains `get_primary_identifier()` and
+  `get_type_mix()`, and `get_people()` returns `named`, `faces`, `more` and `total` under
+  `people_named` and `people_faces`, which replace `people_shown`. A new thumbnail alias,
+  `core_cover`, serves the header image. The development data puts `regular.user` on the showcase
+  project's team, adds `regular.user2` with an empty project, places most showcase samples and names
+  measurements the way a laboratory would.
+- **Each part of a record is edited from the panel that shows it.** The header's Edit opens the
+  details, the keywords, descriptions, notes, key dates and identifiers each carry an Edit, People
+  carries Manage, and Delete is the last line of the Details panel. Publish sits in a dataset's
+  "Ready to publish?" panel. `edit_links()` in `fairdm.core.editing` gives the addresses, keyed by
+  each page's new `part`. See [ADR 0044](adr/0044-each-part-of-a-record-is-edited-from-the-panel-that-shows-it.md).
+- **The measurement overview page is redesigned on the shared page.** The result is the header's
+  headline, drawn by the new `<c-overview.result>` with notes such as a detection limit beside the
+  value. The header's key facts name the sample it was measured on, its dataset and the identifier
+  that resolves. The sample sits in a small version of its own header, the other measurements on
+  it are a compact table of up to twelve (`siblings_shown`, which was eight), and the location map
+  comes straight after the citation, headed "Where it was measured" or "Where the sample was
+  taken", drawn by `<c-overview.location>`. How it was measured is a dated timeline
+  (`<c-overview.history>`) and a type's own fields sit in `<c-overview.props>`. The note that the
+  measurement and its sample sit in different datasets shows only when
+  the viewer may open the sample. The demo's XRF page draws its concentration with
+  `<c-overview.result>` and its analytical conditions with `<c-overview.props>`.
 - **A sample or measurement collection is headed like a Samples or Measurements tab.** The
   heading is the type's name, underlined in its kind's colour, and is itself the menu of the other
   collections of the same kind, each with its count of published records, most first. A sample
@@ -78,6 +132,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **A record type's About dialog opens.** On a sample or measurement page, the type badge's
+  button named its dialog by a bare id such as `about-sample-type`, which JavaScript reads as a
+  subtraction, so clicking it threw an error and the dialog never opened. The button now looks
+  the dialog up with `document.getElementById`.
 - **The FairDM logo is no longer clipped at the top.** The horizontal logo in the portal header
   (`brand/logo.svg` and `brand/logo_dark.svg`) and in the documentation's navigation bar drew its
   symbol 17% too tall, so the top of the symbol fell outside the image. Both now use the redrawn
@@ -88,6 +146,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **The Manage menu.** `manage_menu()`, `MENU_PAGES`, `<c-actions.manage>` and the
+  `menu_label` and `menu_icon` attributes of the editing pages are removed. A portal that filled
+  `overview.manage` to add an entry puts its own button in that block beside the header's Edit, or
+  an Edit control on the panel its action changes. See
+  [How to add an action to an overview page](developers/how-to/add-an-action-to-an-overview-page.md).
+- **The "not yet available" panels for the project's map, recent activity and exporting a
+  citation**, and the dataset's map. Each comes back as a working panel with its own feature.
+- **`<c-card.timeline>`**, replaced by `<c-overview.history>` on the sample and measurement pages and by the dataset page's own timeline.
+- **`<c-card.citation>`, `<c-card.descriptions>`, `<c-card.details>`, `<c-card.details.entry>` and
+  `<c-card.funding>`**, replaced by `<c-overview.cite>`, `<c-overview.descriptions>` and
+  `<c-overview.sheet>`. The project page no longer draws its composition chart.
+- **`RecordOverviewPlugin.get_composition_chart()`.** The dataset page, its last user, draws
+  its records by type with `get_type_mix()` and `<c-overview.mix>`, and its `composition_chart`
+  context entry is gone.
 - **A project's Export tab.** It held only placeholder text. Its address now answers "not found".
 - **The PNG and ICO exports of the logo.** `assets/logo/` holds the logo kit as SVG only, and
   `assets/logo/png/` and `assets/logo/web/` are removed. Nothing in FairDM loaded them.

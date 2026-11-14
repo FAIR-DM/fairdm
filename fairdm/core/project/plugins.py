@@ -21,7 +21,7 @@ from fairdm.core.overview import (
     json_ld,
     safe_reverse,
 )
-from fairdm.core.plugins import RecordOverviewPlugin
+from fairdm.core.plugins import RecordOverviewPlugin, SamplePoints
 from fairdm.core.sample.models import Sample
 from fairdm.core.vocabularies import (
     ABSTRACT,
@@ -67,8 +67,8 @@ def project_is_visible(request, obj):
 class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
     """The project's own page and the root of its collection.
 
-    The editing pages are the shared ones in :mod:`fairdm.core.editing`, reached from the Manage
-    menu.
+    The editing pages are the shared ones in :mod:`fairdm.core.editing`, each reached from the
+    panel that shows what it changes.
 
     ``PrivateRecordNotFoundMixin`` makes a private project answer a stranger with a 404, since a
     403 or a sign-in redirect would confirm the record exists.
@@ -94,6 +94,21 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
     dataset_preview = 5
     lead_roles = [PROJECT_LEADER, f"{CONTRIBUTOR_ROLES}/project-manager"]
 
+    @classmethod
+    def get_extra_views(cls):
+        """Keep the shared overview's views and add the address of the map's points."""
+        return [*super().get_extra_views(), SamplePoints]
+
+    def get_map_samples(self):
+        """Give the samples the page's Samples figure counts, which the map draws.
+
+        Returns:
+            The project's samples the viewer may see.
+        """
+        return Sample.objects.filter(dataset__project=self.base_object).visible_to(
+            self.request.user
+        )
+
     def get_context_data(self, **kwargs):
         """Add the project and everything the overview page draws.
 
@@ -105,7 +120,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
 
         user = self.request.user
         datasets = Dataset.all_objects.filter(project=project).visible_to(user)
-        samples = Sample.objects.filter(dataset__project=project).visible_to(user)
+        samples = self.get_map_samples()
         measurements = Measurement.objects.filter(dataset__project=project).visible_to(
             user
         )
@@ -119,7 +134,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             "counts": self.get_counts(datasets, samples, measurements, can_manage),
             "datasets_preview": self.get_datasets_preview(datasets),
             "licenses": self.get_licenses(datasets),
-            "composition_chart": self.get_composition_chart(samples, measurements),
+            "mix": self.get_type_mix(samples, measurements),
             "growth_chart": self.get_growth_chart(samples, measurements),
             "citation": self.get_citation_details(),
             "json_ld": json_ld(to_json_ld(project)),
@@ -141,6 +156,14 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
                 "add_dataset": safe_reverse("dataset-create"),
             },
         }
+        page["sample_map"] = self.get_sample_map(
+            samples,
+            project.spatial_coverage(user),
+            safe_reverse("project:overview-sample-points", uuid=project.uuid),
+            count_datasets=True,
+        )
+        if page["sample_map"] and page["sample_map"]["located"]:
+            page["has_map"] = True
         if can_manage:
             page["readiness"] = self.get_readiness(page)
         page.update(self.get_shared_context(page))
@@ -160,15 +183,19 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             the Details rows and, for the team, the readiness checklist.
         """
         leads = [entry["contributor"] for entry in page["team"]["leads"]]
+        identifiers = self.get_identifiers()
         result = {
             "record": self.base_object,
             "overview_icon": "project",
-            "has_charts": bool(page["composition_chart"] or page["growth_chart"]),
+            "has_charts": bool(page["growth_chart"]),
             "citation": {
                 "title": gettext("Citation"),
                 "text": page["citation"]["text"],
+                "work": page["citation"]["work"],
+                "formats": page["citation"]["formats"],
             },
-            "identifiers": self.get_identifiers(),
+            "identifiers": identifiers,
+            "primary_identifier": self.get_primary_identifier(identifiers),
             "people": self.get_people(),
             "people_url": page["urls"]["contributors"],
             "header_people": leads,
@@ -375,8 +402,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         """Write the project's citation: Creators (Year). Title. Publisher. Identifier.
 
         Returns:
-            The citation text, the link it ends with, whether that link is a DOI and how many
-            creators it names.
+            The citation text, the link it ends with, whether that link is a DOI, how
+            many creators it names, the ``work`` it is written from and its ``formats``.
         """
         project = self.base_object
         creators = [
@@ -390,13 +417,18 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             (i.value for i in project.identifiers.all() if i.type_id == DOI), None
         )
         link = f"https://doi.org/{doi}" if doi else get_permalink(project, self.request)
+        text = self.get_citation(
+            authors=creators, year=year, title=project.name, link=link
+        )
+        work = self.build_citation(
+            authors=creators, year=year, title=project.name, link=link
+        )
         return {
-            "text": self.get_citation(
-                authors=creators, year=year, title=project.name, link=link
-            ),
+            "text": text,
             "link": link,
             "has_doi": bool(doi),
             "creators": len(creators),
+            **self.get_cited_details(work, text),
         }
 
     def get_readiness(self, page):
@@ -479,13 +511,13 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         }
 
     def get_details(self, licenses):
-        """List the rows of the Details card: organisation, status, licences and dates.
+        """List the rows of the fact sheet: organisation, status, licences and dates.
 
         Args:
             licenses: The licence summary from :meth:`get_licenses`.
 
         Returns:
-            The rows, for :class:`c-card.details`.
+            The rows, for :class:`c-overview.sheet`.
         """
         project = self.base_object
         rows = []

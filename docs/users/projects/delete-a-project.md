@@ -8,13 +8,13 @@ Deleting a project destroys every dataset, sample and measurement in it. It cann
 
 ## Before you start
 
-- You need the **Can manage** level on the project. Only people who may delete the project see **Delete** in the **Manage** menu. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md).
+- You need the **Can manage** level on the project. Only people who may delete the project see **Delete this project** in the **Details** panel. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md).
 - Every dataset in the project must be private. A project with a public dataset cannot be deleted. If one is public, make it private first, as described in [How to restrict a dataset to specific people](../datasets/restrict-a-dataset-to-specific-people.md), or delete the dataset.
 
 ## Steps
 
 1. Open [the project page](project.md).
-2. Open the **Manage** menu and choose **Delete**. It is the last entry, after a divider. The [Delete](../editing-a-record/delete.md) screen opens.
+2. Choose **Delete this project**, the last line of the **Details** panel. The [Delete](../editing-a-record/delete.md) screen opens.
 3. Read the messages above the form. Under "The following related records will also be permanently deleted:" the screen lists the datasets, samples and measurements that go with the project, with a count for each type.
 4. Under "To confirm, type" followed by the project's name, type that name into the box exactly as shown.
 5. Select **Delete**. The button stays disabled until what you typed matches the name.

@@ -192,8 +192,3 @@
                         message="{% translate 'The latest from its members: published datasets, new projects, people joining.' %}" />
   {% endblock overview.activity %}
 {% endblock overview.side %}
-
-{% block extra_js %}
-  {{ block.super }}
-  {% if has_map %}{% include "overview/includes/map_library.html" %}{% endif %}
-{% endblock extra_js %}

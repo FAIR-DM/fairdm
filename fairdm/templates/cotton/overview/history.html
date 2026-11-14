@@ -1,0 +1,25 @@
+{# @description The steps in a record's life, oldest first: when, what, who and a note. A date recorded only to the year or the month is shown as recorded. #}
+{# @prop title:text | description:"The heading, such as History." #}
+{# @prop steps:list | description:"[{label, date, day, people, note}]; day is set when the date is a full day." #}
+{# @prop empty:text | description:"What to say when no step is recorded." #}
+{# @prop edit_url:text | description:"The key dates' editing page, for someone who may edit them." #}
+{% load i18n fairdm %}
+<c-vars title steps empty edit_url />
+<c-overview.panel title="{{ title }}" edit_url="{{ edit_url }}" edit_label="{% translate 'Edit key dates' %}" data-card="timeline">
+  {% if steps %}
+    <ol class="ov-history">
+      {% for step in steps %}
+        <li>
+          <span class="ov-history__when">{% if step.day %}{{ step.day|date:"SHORT_DATE_FORMAT" }}{% elif step.date.precision == "month" %}{{ step.date.start|date:"YEAR_MONTH_FORMAT" }}{% elif step.date %}{{ step.date }}{% else %}<span aria-hidden="true">—</span><span class="sr-only">{% translate "date not recorded" %}</span>{% endif %}</span>
+          <div class="ov-history__what">
+            <span class="ov-history__label">{{ step.label }}</span>
+            {% if step.people %}<span class="ov-history__who">{% for person in step.people %}<a href="{{ person.get_absolute_url }}">{{ person }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}</span>{% endif %}
+            {% if step.note %}<div class="ov-history__note">{{ step.note|safe_markdown }}</div>{% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    </ol>
+  {% else %}
+    <p class="ov-empty">{{ empty }}</p>
+  {% endif %}
+</c-overview.panel>

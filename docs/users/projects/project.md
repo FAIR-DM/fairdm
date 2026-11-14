@@ -15,31 +15,24 @@ The project has these tabs:
 
 ## The header
 
-The header shows:
+The header is a band in the project's colour. It shows:
 
-- the project's image, or an icon when it has none
-- a badge for the project's status, and a **Private** badge when the project is private
+- a **Project** badge, a badge for the project's status, and a **Private** badge when the project is private
 - the project's name
-- the project's leaders, each linked to their page. These are the people credited as Project Leader, then those credited as Project Manager.
+- the project's leaders, each linked to their page. These are the people credited as Project Leader, then those credited as Project Manager. The first four are named, and a link counts the rest.
+- a line of key facts: the owning **Organisation**, linked to its page, when **Runs** from its start to its end (or "ongoing"), and its DOI, linked to doi.org
 - the project's keywords
-- a **Cite** button, which jumps to the Citation card
+- a **Cite** button, which jumps to the Cite panel
 - a **Share** menu, which shares the project's permalink
+
+A project with an image shows it filling the header's right-hand side, and on a phone as a banner above the header. Selecting the image opens it at full size. A project without an image shows the project icon on a ruled grid.
 
 People who may change the project also see:
 
-- an **Add dataset** button, which opens [Create a Dataset](../datasets/create-dataset.md)
-- a **Manage** menu
+- an **Edit** button, which opens [Edit details](edit-details.md)
+- **Edit** beside the keywords, or **Add keywords** when there are none, which opens [Keywords](../editing-a-record/keywords.md)
 
-The **Manage** menu lists the editing screens you may use, in this order:
-
-1. **Edit details**, described in [Edit details](edit-details.md).
-2. **Edit descriptions**, described in [Descriptions](../editing-a-record/descriptions.md).
-3. **Keywords**, described in [Keywords](../editing-a-record/keywords.md).
-4. **Key dates**, described in [Key dates](../editing-a-record/key-dates.md).
-5. **Identifiers**, described in [Identifiers](../editing-a-record/identifiers.md).
-6. **Delete**, described in [Delete](../editing-a-record/delete.md). It comes last, after a divider, and only people who may delete the project see it.
-
-The menu does not appear when nothing is in it.
+There is no menu of editing screens. Each part of the project is edited from the panel that shows it, and a control appears only for someone who may use its screen.
 
 ## The notices
 
@@ -50,28 +43,29 @@ Notices appear above the header.
 
 ## The figures
 
-A strip of four figures sits under the header:
+Four figures sit along the foot of the header:
 
 - **Datasets**, linked to the Dataset List tab
-- **Samples**
-- **Measurements**
+- **Samples**, linked to the Samples tab
+- **Measurements**, linked to the Measurements tab
 - **Contributors**, linked to the Contributors tab
 
-A visitor's figures count only the project's public datasets and the samples and measurements in them. The figures of people who may change the project count every dataset. Under the dataset count, the page gives how many datasets are published, or **None yet**. When some datasets are private, people who may change the project see how many are public and how many are private instead. Under the sample and measurement counts the page gives the number of types, or **None yet**.
+A visitor's figures count only the project's public datasets and the samples and measurements in them. The figures of people who may change the project count every dataset.
 
 ## The content column
 
-The wide column holds these cards, from the top:
+The wide column holds these panels, from the top:
 
-- **Descriptions.** With several descriptions, the card has a tab for each type. With one, the card is titled with that type. With none, the card is titled **About**. It tells people who may change the project that nobody has described it yet and offers a **Write an abstract** button. It tells everyone else "No description has been added yet."
-- **Datasets.** The five datasets updated most recently. Each shows whether it is **Published** or **Unpublished**, its licence (or **No licence**), how many samples and measurements it holds and when it was last updated. A link under the list counts the rest, and a **View all** button opens the Dataset List tab. With no datasets, the card says "No datasets have been shared from this project yet." People who may change the project see an explanation and an **Add dataset** button instead.
-- **Data types** and **Progress**. A bar chart of the records by sample and measurement type, and a line chart of the running total of samples and measurements by month. Each has a text description. A chart is left out when there is nothing to draw, and the line chart needs records from at least two months.
+- **Descriptions.** With several descriptions, the panel has a tab for each type. With one, the panel is titled with that type. Long text folds after a few lines behind **Read more**. With none, the panel is titled **About**. It tells people who may change the project that nobody has described it yet and offers a **Write an abstract** button. It tells everyone else "No description has been added yet." People who may change the project see **Edit**, which opens [Descriptions](../editing-a-record/descriptions.md).
+- **Datasets.** The five datasets updated most recently. Each shows whether it is **Published** or **Unpublished**, its licence (or **No licence**), when it was last updated, and how many samples and measurements it holds. A link under the list counts the rest, and **See all** opens the Dataset List tab. People who may change the project see **Add dataset** beside it. With no datasets, the panel says "No datasets have been shared from this project yet." People who may change the project see an explanation and an **Add dataset** button instead.
+- **What it holds.** **Records by type**, a bar for each sample and measurement type in its type's colour, with its count, and **Growth**, a line chart of the running total of samples and measurements by month with a text description. The panel is left out when there is nothing to draw, and the line chart needs records from at least two months.
+- **Where the samples come from.** A map of every sample you may open that has a location, grouped into numbered clusters where they crowd. Select a cluster to zoom in and a point to see the sample's name, type and dataset with a link to its page. Several samples at one spot are listed together. Scroll the page past the map, and hold Ctrl (⌘ on a Mac) while scrolling to zoom it. Beneath the map are how many samples are mapped, how many have no location, how many datasets they come from and the area they cover. **See all** opens the Samples tab, which gives each sample's latitude and longitude. When none of the samples has a location, the panel says so. With no samples, it is left out.
 
 ## The side column
 
-The narrow column holds these cards, from the top:
+The narrow column holds these panels, from the top:
 
-- **Metadata readiness**, for people who may change the project. It says how many of ten items are in place, with a progress bar, and lists the missing ones first. Each missing item with a **Fix** link opens the screen that fixes it. The items are:
+- **Metadata readiness**, for people who may change the project. A ring shows how many of ten items are in place. The missing ones are listed, and each with a **Fix** link opens the screen that fixes it. The items in place are folded away under a count. The items are:
     - An abstract describes the project (**Fix** opens Descriptions)
     - At least one creator is credited (opens Contributors)
     - Someone is named as the contact (opens Contributors)
@@ -82,17 +76,15 @@ The narrow column holds these cards, from the top:
     - At least one dataset is public (opens the Dataset List tab)
     - Every public dataset has a licence (opens the Dataset List tab)
     - The project is public (opens Edit details)
-- **Details**, a list of facts:
-    - **Organisation**, the owner, linked to its page. The row is left out when the project has no owner.
-    - **Status**
-    - **Licences**, each licence held by the public datasets with a count, or "No public datasets yet". A note counts public datasets that have no licence.
-    - **Added** and **Last updated**
-    - **Timeline**, the start and end dates as recorded, or "ongoing" when there is no end. With both dates it adds a progress bar and a label such as "Year 2 of 4", "Not started yet" or "Finished". With neither it says "No start or end date has been recorded."
+- **Cite**, the citation written as Creators (Year). Title. Publisher. Identifier. The year is the start year, or the year the project was added when it has no start date. The identifier is the DOI link, or the project's permalink. When there is no DOI, a note says the citation points at the page. A switch in the panel's heading sets the format to **Text**, **BibTeX** or **RIS**. **Copy** copies the format on show, and for BibTeX and RIS a **Download** link saves it as a file named after the project. The panel keeps the format you chose for your next visit. Reference managers read the BibTeX and RIS files.
+- **Details**, one panel of facts in sections. A fact with no value shows a dash.
+    - The details: **Organisation**, the owner, linked to its page, which is left out when the project has no owner, then **Status**, **Licences**, each licence held by the public datasets with a count, or "No public datasets yet", with a note that counts public datasets that have no licence, then **Added** and **Last updated**, and **Timeline**: the start and end dates as recorded, or "ongoing" when there is no end. With both dates it adds a bar and a label such as "Year 2 of 4", "Not started yet" or "Finished". People who may change the project see **Edit** beside it, or **Add dates** when there are none, which opens [Key dates](../editing-a-record/key-dates.md).
+    - **Identifiers**: the project's identifiers by type, with a DOI linked to doi.org, the **Portal ID** and the **Permalink**, the project's permanent link. Each has a button that copies it. People who may change the project see **Edit**, which opens [Identifiers](../editing-a-record/identifiers.md).
+    - **Funding**: the awards recorded for the project with the funder, the award title and number. With none it says "No funding has been recorded." People who may change the project see a longer note. None of the editing screens changes funding.
     - **For machines**, with a **REST API** button that opens the project in the API. See [API documentation](../api/api-docs.md).
-- **People**, a grid of faces with the name on hover, each linked to the person's page. A **See all** button opens the Contributors tab, and a line counts those not shown. With nobody credited it says "No one is credited yet."
-- **Identifiers**, a table of the project's identifiers by type, with a DOI linked to doi.org, and the **Portal ID** with a button that copies it. A **Permalink** row beneath it shows the project's permanent link with a button that copies the whole link.
-- **Funding**, the awards recorded for the project with the funder, the award title and number. With none it says "No funding has been recorded." People who may change the project see a longer note. None of the editing screens changes funding.
-- **Citation**, the citation written as Creators (Year). Title. Publisher. Identifier. The year is the start year, or the year the project was added when it has no start date. The identifier is the DOI link, or the project's permalink. When there is no DOI, a note says the citation points at the page. A **Copy** button copies the text.
+    - People who may delete the project see **Delete this project** as the last line, which opens [Delete](../editing-a-record/delete.md).
+    People who may change the project see **Edit** on the panel, which opens Edit details.
+- **People**, everyone credited on the project. The first six are named with their roles and the organization they are credited from, then up to ten more are shown as faces, each linked to their page, and a link counts the rest. **See all** opens the Contributors tab, and for people who may manage the project **Manage** does. With nobody credited it says "No one is credited yet."
 
 ## What you can do here
 

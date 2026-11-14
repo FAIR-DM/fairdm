@@ -11,6 +11,7 @@ from datetime import date
 
 from django.urls import NoReverseMatch, reverse
 from django.utils.formats import date_format
+from django.utils.translation import gettext, pgettext
 from partial_dates import Precision
 
 
@@ -132,3 +133,38 @@ def json_ld(data):
         .replace(">", "\\u003e")
         .replace("&", "\\u0026")
     )
+
+
+def describe_coverage(coverage):
+    """Write the area a box covers as text, for the panel and the map's label.
+
+    Latitudes read N or S and longitudes E or W from their sign, to two decimal places.
+    A box that is a single spot reads as one point.
+
+    Args:
+        coverage: A ``Coverage``, in WGS 84 degrees.
+
+    Returns:
+        For instance "48.80° N to 49.20° N, 7.80° E to 8.70° E", or "48.80° N, 7.80° E"
+        for a single spot.
+    """
+
+    def degrees(value, positive, negative):
+        return f"{abs(value):.2f}° {positive if value >= 0 else negative}"
+
+    north_letter = pgettext("compass point", "N")
+    south_letter = pgettext("compass point", "S")
+    east_letter = pgettext("compass point", "E")
+    west_letter = pgettext("compass point", "W")
+    south = degrees(coverage.south, north_letter, south_letter)
+    north = degrees(coverage.north, north_letter, south_letter)
+    west = degrees(coverage.west, east_letter, west_letter)
+    east = degrees(coverage.east, east_letter, west_letter)
+    if coverage.south == coverage.north and coverage.west == coverage.east:
+        return gettext("%(latitude)s, %(longitude)s") % {
+            "latitude": south,
+            "longitude": west,
+        }
+    return gettext(
+        "%(south)s to %(north)s, %(west)s to %(east)s",
+    ) % {"south": south, "north": north, "west": west, "east": east}

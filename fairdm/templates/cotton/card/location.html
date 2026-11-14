@@ -1,8 +1,8 @@
 {% load i18n %}
 {% comment %}
-  <c-card.location> — where a sample was taken: a map with the point marked, and the coordinates
-  as recorded. The map is drawn by `overview/includes/map_library.html`, which the page includes
-  once in `extra_js` when it has a location to show.
+  <c-card.location> — where something is: a map with the point marked, and the coordinates as
+  recorded. The map is drawn by `js/overview.js`, from MapLibre, which `overview/page.html` loads
+  when the page's context sets `has_map`.
 
   Attributes:
     location    – a location with x (longitude) and y (latitude) in WGS 84, or nothing
@@ -17,7 +17,7 @@
 {% if location or empty %}
   <c-mvp.card title="{{ title|default:_('Location') }}" class="bg-base-100 {{ class }}" data-card="location" only>
     {% if location %}
-      <div class="overview-map bg-base-300" role="img"
+      <div class="overview-map bg-base-300" role="img" data-map
            aria-label="{% if label %}{{ label }}{% else %}{% blocktranslate with x=location.x y=location.y %}Map of where the sample was taken, at longitude {{ x }} and latitude {{ y }}{% endblocktranslate %}{% endif %}"
            data-lon="{{ location.x|stringformat:'s' }}" data-lat="{{ location.y|stringformat:'s' }}"></div>
       <dl class="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">

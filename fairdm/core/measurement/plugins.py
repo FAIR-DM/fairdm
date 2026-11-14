@@ -39,7 +39,7 @@ class Overview(TypedOverviewPlugin):
             role that performs it, the description type that explains it, and what the page calls
             it. The measurement vocabularies describe the same procedure three ways, so the page
             puts them back together.
-        siblings_shown: Rows shown in the list of other measurements made on the same sample.
+        siblings_shown: Rows in the table of other measurements made on the same sample.
     """
 
     base_model = Measurement
@@ -68,7 +68,7 @@ class Overview(TypedOverviewPlugin):
             _("Taken down"),
         ),
     ]
-    siblings_shown = 8
+    siblings_shown = 12
 
     def get_page_title(self):
         """Title the page with the measurement's name, or its portal ID when it has none."""
@@ -107,6 +107,7 @@ class Overview(TypedOverviewPlugin):
         if project is not None and not project_is_visible(self.request, project):
             project = None
         identifiers = self.get_identifiers()
+        effective_location = measurement.effective_location_for(self.request.user)
 
         context["measurement"] = measurement
         context.update(
@@ -128,10 +129,10 @@ class Overview(TypedOverviewPlugin):
                 "sample_type": sentence_case(type(sample)._meta.verbose_name),
                 "sample_status": self.get_sample_status(),
                 "sample_visible": sample_visible,
-                "effective_location": measurement.effective_location_for(
-                    self.request.user
-                ),
-                "other_dataset": sample.dataset_id != measurement.dataset_id,
+                "effective_location": effective_location,
+                "has_map": effective_location is not None,
+                "other_dataset": sample_visible
+                and sample.dataset_id != measurement.dataset_id,
                 "siblings": self.get_siblings(),
                 "sample_measurements_url": safe_reverse(
                     "sample:measurements", uuid=sample.uuid
@@ -143,6 +144,7 @@ class Overview(TypedOverviewPlugin):
                     entries, dates, identifiers, sample if sample_visible else None
                 ),
                 "identifiers": identifiers,
+                "primary_identifier": self.get_primary_identifier(identifiers),
                 "api_url": safe_reverse(
                     "api:measurement-detail", uuid=measurement.uuid
                 ),
@@ -238,16 +240,23 @@ class Overview(TypedOverviewPlugin):
             if sample is not None
             else gettext("an unpublished sample"),
         }
+        authors = self.get_contributors_with_role(
+            entries, f"{CONTRIBUTOR_ROLES}/measurement-collection"
+        )
+        year = getattr(setup, "year", None) or measurement.added.year
+        link = doi["link"] if doi else get_permalink(measurement, self.request)
+        text = self.get_citation(authors=authors, year=year, title=title, link=link)
+        work = self.build_citation(
+            authors=authors,
+            year=year,
+            title=title,
+            link=link,
+            types=("dataset", "DATA"),
+        )
         citation = {
             "title": gettext("Citation"),
-            "text": self.get_citation(
-                authors=self.get_contributors_with_role(
-                    entries, f"{CONTRIBUTOR_ROLES}/measurement-collection"
-                ),
-                year=getattr(setup, "year", None) or measurement.added.year,
-                title=title,
-                link=doi["link"] if doi else get_permalink(measurement, self.request),
-            ),
+            "text": text,
+            **self.get_cited_details(work, text),
         }
         if not doi:
             citation["note"] = gettext(
@@ -258,13 +267,13 @@ class Overview(TypedOverviewPlugin):
         return citation
 
     def get_details(self, project):
-        """Write the Details card's entries: where the measurement sits, its licence and dates.
+        """Write the fact sheet's entries: where the measurement sits, its licence and dates.
 
         Args:
             project: The parent project, or ``None`` when there is none or the viewer may not see it.
 
         Returns:
-            The entries for :class:`c-card.details`.
+            The entries for :class:`c-overview.sheet`.
         """
         measurement = self.base_object
         parents = []

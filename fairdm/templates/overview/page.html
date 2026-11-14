@@ -3,41 +3,45 @@
 {% comment %}
   The overview page every core record shares: project, dataset, sample and measurement.
 
-  One anatomy on all four, so a reader finds the same fact in the same place: notices, the header
-  (badges, name, a line placing the record, keywords, actions), a strip of figures, then the
-  content in a wide column with the facts a reuser checks in a narrow column beside it. Below
-  `lg` the columns stack, content first.
+  One anatomy on all four, so a reader finds the same fact in the same place. A header band in the
+  record's colour says what it is, who made it, its key facts and its headline figures. Beneath it
+  the content sits in a wide column, and the facts a reuser checks before going further sit beside
+  it: how to cite it first, then one fact sheet, then the people credited, then what is particular
+  to the record. Below `lg` the columns stack, content first.
+
+  A record with an image shows it filling the header's trailing side, opening at full size. A
+  record without one shows its icon, with the sign-in pages' ruled grid on the trailing side.
+
+  There is no central editing menu. Each part of the record is edited from the panel that shows it,
+  through the `edit` links (`fairdm.core.editing.edit_links`), drawn only for someone who may.
 
   Each record's own template extends this one and fills blocks. A sample or measurement type
   extends its record's template the same way, using `{{ block.super }}` to add to a block and keep
   what is there. Blocks, in page order:
 
     overview.notices        alerts above the header, so they are read first
-    overview.image          header: the record's image, or its icon
-    overview.badges         header: status badges
+    overview.image          header: the record's icon, shown when it has no image
+    overview.badges         header: type, status and access
     overview.name           header: the name inside the heading
-    overview.byline         header: the people behind the record (a project's leads, a
-                            dataset's creators), avatar and name, no caption
-    overview.keywords       header: keywords
-    overview.actions        header: buttons (Cite and Share by default, then the Manage menu)
-      overview.manage         the Manage menu, drawn by `<c-actions.manage>`; fill it to add
-                              entries through the component's slot, and put any button that
-                              belongs before the menu in front of it
-    overview.figures        the figures strip
+    overview.byline         header: the people behind the record, by name
+    overview.facts          header: a line of key facts, label then value, as <li> items
+    overview.keywords       header: keywords, with their own Edit
+    overview.actions        header: Cite and Share, then the header's own Edit
+      overview.manage         the header's Edit, which opens the details; fill it to add buttons
+    overview.figures        header foot: the headline figures, or a measurement's result
     overview.main           the wide column; each record fills it with its own blocks
     overview.side           the facts column, which holds, in this order:
       overview.readiness      what the team still has to add (team only)
-      overview.details        what it belongs to, licence, status, dates, how machines reach it
-        overview.details_extra  sections inside Details, e.g. a project's timeline
-      overview.timeline       key dates in the record's life, where they have their own card
-      overview.people         everyone credited, the people named in the header included
-      overview.identifiers    DOI, IGSN and the rest, the team's own ID and the portal ID
-      overview.funding        funding awards, on records that carry them
       overview.cite           how to cite it
-      overview.record_facts   cards particular to the record (a dataset's publications)
+      overview.details        the fact sheet: details, identifiers, funding, machine access
+        overview.details_extra  rows added to the details section
+      overview.timeline       key dates, where a record shows them beside the content
+      overview.people         everyone credited, by name with their roles
+      overview.record_facts   what is particular to the record (a dataset's publications)
     overview.chart_library  the ECharts script; replace it to serve ECharts yourself
+    overview.map_library    MapLibre, loaded when the page has a map; replace it to serve it yourself
 
-  The facts-column blocks draw the shared `c-card.*` components from the context every overview
+  The side-column blocks draw the shared `c-overview.*` components from the context every overview
   plugin provides, so a record's template only overrides them to change what they say.
 {% endcomment %}
 
@@ -54,133 +58,139 @@
 {% endblock head %}
 
 {% block page.title %}
-  {% block overview.notices %}{% endblock overview.notices %}
+  <div class="ov ov--head record-{{ overview_icon }}">
+    <div class="ov-notices">{% block overview.notices %}{% endblock overview.notices %}</div>
 
-  {# record-<icon> gives a core record's header its colour along the top; a person or organization has none. #}
-  <c-mvp.card.wrapper class="bg-base-100 record-header record-{{ overview_icon }}">
-    <div class="card-body gap-4">
-      <div class="flex flex-col md:flex-row gap-4 md:items-start">
-        <div class="hidden md:block shrink-0">
-          {% block overview.image %}
-            {% if record.image %}
-              <img src="{{ record.image|thumbnail_url:'core_small' }}" alt="" class="w-24 rounded-box object-cover" />
-            {% else %}
-              <div class="avatar avatar-placeholder">
-                <div class="w-24 rounded-box bg-base-300 text-base-content/60 text-4xl">
-                  <c-icon name="{{ overview_icon }}" aria-hidden="true" />
-                </div>
-              </div>
-            {% endif %}
-          {% endblock overview.image %}
-        </div>
+    <header class="ov-hero record-{{ overview_icon }}{% if cover_image %} ov-hero--cover{% endif %}">
+      <div class="ov-hero__top">
+        {% if cover_image %}
+          <button type="button" class="ov-cover" data-opens="ov-cover-full" aria-haspopup="dialog" aria-label="{% translate 'View the image at full size' %}">
+            <img src="{{ cover_image|thumbnail_url:'core_cover' }}" alt="" />
+          </button>
+          <dialog id="ov-cover-full" class="modal ov-lightbox" aria-label="{{ record_title|default:record.name }}">
+            <div class="modal-box">
+              <img src="{{ cover_image.url }}" alt="" />
+              <form method="dialog"><button class="btn btn-sm btn-circle ov-lightbox__close" aria-label="{% translate 'Close' %}"><c-icon name="close" aria-hidden="true" only /></button></form>
+            </div>
+            <form method="dialog" class="modal-backdrop"><button>{% translate "Close" %}</button></form>
+          </dialog>
+        {% else %}
+          <div class="ov-hero__grid" aria-hidden="true"><c-background.grid size="2.5" intensity="0.2" flat only /></div>
+        {% endif %}
+        <div class="ov-hero__inner">
+          {% if not cover_image %}
+            <div class="ov-hero__media">
+              {% block overview.image %}
+                <div class="ov-tile" aria-hidden="true"><c-icon name="{{ overview_icon }}" only /></div>
+              {% endblock overview.image %}
+            </div>
+          {% endif %}
 
-        <div class="flex flex-col gap-2 flex-1 min-w-0">
-          <div class="flex flex-wrap items-center gap-2">
-            {% block overview.badges %}{% endblock overview.badges %}
-          </div>
+          <div class="ov-badges">{% block overview.badges %}{% endblock overview.badges %}</div>
 
-          <h1 class="text-2xl lg:text-3xl font-semibold leading-tight break-words">{% block overview.name %}{{ record_title|default:record.name }}{% endblock overview.name %}</h1>
+          <div class="ov-hero__text">
+            <h1 class="ov-title">{% block overview.name %}{{ record_title|default:record.name }}{% endblock overview.name %}</h1>
 
-          {% block overview.byline %}
-            {% if header_people %}
-              <ul class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm" aria-label="{{ header_people_label }}">
-                {% for person in header_people %}
-                  <li>
-                    <a href="{{ person.get_absolute_url }}" class="flex items-center gap-2 link link-hover">
-                      <c-mvp.avatar :for="person" alt="" size="xs" />
-                      <span>{{ person }}</span>
-                    </a>
-                  </li>
-                {% endfor %}
-              </ul>
-            {% endif %}
-          {% endblock overview.byline %}
-
-          {% block overview.keywords %}
-            {% with keywords=record.keywords.all %}
-              {% if keywords %}
-                <ul class="flex flex-wrap gap-1" aria-label="{% translate 'Keywords' %}">
-                  {% for keyword in keywords %}
-                    <li class="badge badge-primary badge-sm">{{ keyword.display_label }}</li>
+            {% block overview.byline %}
+              {% if header_people %}
+                <ul class="ov-byline" aria-label="{{ header_people_label }}">
+                  {% for person in header_people|slice:":4" %}
+                    <li>
+                      <a href="{{ person.get_absolute_url }}">
+                        <c-mvp.avatar :for="person" alt="" size="xs" only />
+                        <span>{{ person }}</span>
+                      </a>
+                    </li>
                   {% endfor %}
+                  {% if header_people|length > 4 %}
+                    <li><a href="{{ people_url }}" class="ov-byline__more">{% blocktranslate count counter=header_people|length|add:"-4" %}and {{ counter }} more{% plural %}and {{ counter }} more{% endblocktranslate %}</a></li>
+                  {% endif %}
                 </ul>
               {% endif %}
-            {% endwith %}
-          {% endblock overview.keywords %}
-        </div>
+            {% endblock overview.byline %}
 
-        <div class="flex flex-wrap gap-2 md:justify-end shrink-0">
-          {% block overview.actions %}
-            <c-button href="#cite" text="{% translate 'Cite' %}" icon="cite" size="sm" />
-            {% permalink record as permalink %}
-            <c-mvp.addons.share-dropdown size="sm" url="{{ permalink }}" />
-            {% block overview.manage %}
-              <c-actions.manage :entries="manage_menu" />
-            {% endblock overview.manage %}
-          {% endblock overview.actions %}
+            <ul class="ov-facts">{% block overview.facts %}{% endblock overview.facts %}</ul>
+
+            {% block overview.keywords %}
+              {% with keywords=record.keywords.all %}
+                {% if keywords or edit.keywords %}
+                  <ul class="ov-keywords" aria-label="{% translate 'Keywords' %}">
+                    {% for keyword in keywords %}<li class="badge badge-sm badge-keyword">{{ keyword.display_label }}</li>{% endfor %}
+                    {% if edit.keywords %}
+                      <li>
+                        {% if keywords %}
+                          <c-overview.edit href="{{ edit.keywords }}" label="{% translate 'Edit keywords' %}" only />
+                        {% else %}
+                          <c-overview.edit href="{{ edit.keywords }}" text="{% translate 'Add keywords' %}" icon="add" only />
+                        {% endif %}
+                      </li>
+                    {% endif %}
+                  </ul>
+                {% endif %}
+              {% endwith %}
+            {% endblock overview.keywords %}
+          </div>
+
+          <div class="ov-hero__actions">
+            {% block overview.actions %}
+              <a href="#cite" class="btn btn-sm" data-jump-cite><c-icon name="cite" aria-hidden="true" only />{% translate "Cite" %}</a>
+              {% permalink record as permalink %}
+              <c-mvp.addons.share-dropdown size="sm" url="{{ permalink }}" />
+              {% block overview.manage %}
+                {% if edit.details %}<a href="{{ edit.details }}" class="btn btn-sm"><c-icon name="edit" aria-hidden="true" only />{% translate "Edit" %}</a>{% endif %}
+              {% endblock overview.manage %}
+            {% endblock overview.actions %}
+          </div>
         </div>
       </div>
-    </div>
-  </c-mvp.card.wrapper>
+
+      {% block overview.figures %}{% endblock overview.figures %}
+    </header>
+  </div>
 {% endblock page.title %}
 
 {% block page.content %}
-  {% block overview.figures %}{% endblock overview.figures %}
+  <div class="ov record-{{ overview_icon }}">
+    <div class="ov-body">
+      <div class="ov-main">
+        {% block overview.main %}{% endblock overview.main %}
+      </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
-    <div class="lg:col-span-2 flex flex-col gap-4 lg:gap-6 min-w-0">
-      {% block overview.main %}{% endblock overview.main %}
-    </div>
+      <aside class="ov-side" aria-label="{% translate 'About this record' %}">
+        {% block overview.side %}
 
-    <div class="flex flex-col gap-4 lg:gap-6 min-w-0">
-      {% block overview.side %}
+          {% block overview.readiness %}
+            {% if readiness %}<c-overview.readiness :readiness="readiness" />{% endif %}
+          {% endblock overview.readiness %}
 
-        {% block overview.readiness %}
-          {% if readiness %}
-            <c-card.readiness :readiness="readiness"
-                              title="{{ readiness.title }}"
-                              summary="{{ readiness.summary }}"
-                              about="{{ readiness.about }}" />
-          {% endif %}
-        {% endblock overview.readiness %}
+          {% block overview.cite %}
+            <c-overview.cite :formats="citation.formats">{{ citation.note }}{% if citation.note_url %} <a href="{{ citation.note_url }}" class="ov-link">{{ citation.note_link }}</a>{% endif %}</c-overview.cite>
+          {% endblock overview.cite %}
 
-        {% block overview.details %}
-          <c-card.details :rows="details" api_url="{{ api_url|default:'' }}">
-            {% block overview.details_extra %}{% endblock overview.details_extra %}
-          </c-card.details>
-        {% endblock overview.details %}
-
-        {% block overview.timeline %}{% endblock overview.timeline %}
-
-
-        {% block overview.people %}
-          <c-card.people :people="people" all_url="{{ people_url|default:'' }}" />
-        {% endblock overview.people %}
-
-        {% block overview.identifiers %}
-          {% permalink record as permalink %}
-          <c-card.identifiers :identifiers="identifiers"
+          {% block overview.details %}
+            {% permalink record as permalink %}
+            <c-overview.sheet :rows="details"
+                              :edit="edit"
+                              kind="{{ record_kind }}"
+                              :identifiers="identifiers"
                               portal_id="{{ record.uuid }}"
                               permalink="{{ permalink }}"
-                              local_id="{{ record.local_id|default:'' }}" />
-        {% endblock overview.identifiers %}
+                              local_id="{{ record.local_id|default:'' }}"
+                              :funding="funding"
+                              :can_manage="can_manage"
+                              api_url="{{ api_url|default:'' }}">{% block overview.details_extra %}{% endblock overview.details_extra %}</c-overview.sheet>
+          {% endblock overview.details %}
 
-        {% block overview.funding %}
-          {% if funding is not None %}
-            <c-card.funding :funding="funding" :can_manage="can_manage" />
-          {% endif %}
-        {% endblock overview.funding %}
+          {% block overview.timeline %}{% endblock overview.timeline %}
 
-        {% block overview.cite %}
-          <c-card.citation title="{{ citation.title }}" text="{{ citation.text }}">
-            {{ citation.note }}
-            {% if citation.note_url %}<a href="{{ citation.note_url }}" class="link link-primary">{{ citation.note_link }}</a>{% endif %}
-          </c-card.citation>
-        {% endblock overview.cite %}
+          {% block overview.people %}
+            <c-overview.people :people="people" all_url="{{ people_url|default:'' }}" manage_url="{% if can_manage %}{{ people_url|default:'' }}{% endif %}" />
+          {% endblock overview.people %}
 
-        {% block overview.record_facts %}{% endblock overview.record_facts %}
+          {% block overview.record_facts %}{% endblock overview.record_facts %}
 
-      {% endblock overview.side %}
+        {% endblock overview.side %}
+      </aside>
     </div>
   </div>
 {% endblock page.content %}
@@ -197,4 +207,15 @@
     <script src="{% static 'js/chart-theme.js' %}"></script>
     <script defer src="{% static 'mvp_charts/js/mvp-charts.js' %}"></script>
   {% endif %}
+  {% if has_map %}
+    {% block overview.map_library %}
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css"
+            integrity="sha384-uTttxo/aOKbdE5RlD/SPzSDoDmNvGlUYPjONi2MN/b7c9HPSvW07OIuyP7uL6jxK"
+            crossorigin="anonymous" referrerpolicy="no-referrer" />
+      <script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"
+              integrity="sha384-5+cfbwT0iiub6VsQAdn6yz16nr6sDiQoHx6tm4O8OVYXHYOxcffFmCJBL0dgdvGp"
+              crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    {% endblock overview.map_library %}
+  {% endif %}
+  <script src="{% static 'js/overview.js' %}"></script>
 {% endblock extra_js %}

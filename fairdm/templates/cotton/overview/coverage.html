@@ -1,0 +1,25 @@
+{# @description Where a project's or dataset's samples were taken: every sample with a location on one map, clustered where they crowd, each opening to its sample. The page sets has_map in its context so MapLibre is loaded. #}
+{# @prop map:object | description:"The page's sample_map: located, missing, bounds, area, points_url and, on a project, datasets." #}
+{# @prop id:text | description:"The panel's id." #}
+{# @prop title:text | default:"Where the samples come from" | description:"The heading." #}
+{# @prop more_url:text | description:"The samples list, linked as See all." #}
+{# @prop empty:text | description:"What to say when no sample has a location." #}
+{% load i18n humanize %}
+<c-vars map id title more_url empty />
+<c-overview.panel title="{{ title|default:_('Where the samples come from') }}" id="{{ id }}" more_url="{{ more_url }}" data-card="coverage">
+  {% if map.located %}
+    {% if map.bounds %}
+      <div class="ov-map record-sample" role="img" data-map data-points-url="{{ map.points_url }}" data-bounds="[{{ map.bounds|join:',' }}]"
+           aria-label="{% blocktranslate count counter=map.located with n=map.located|intcomma area=map.area %}Map of {{ n }} sample location, covering {{ area }}{% plural %}Map of {{ n }} sample locations, covering {{ area }}{% endblocktranslate %}"></div>
+    {% endif %}
+    <div class="ov-map-legend">
+      <span>{% blocktranslate count counter=map.located with n=map.located|intcomma %}<strong>{{ n }}</strong> sample with a location{% plural %}<strong>{{ n }}</strong> samples with a location{% endblocktranslate %}</span>
+      {% if map.missing %}<span>{% blocktranslate count counter=map.missing with n=map.missing|intcomma %}<strong>{{ n }}</strong> without one{% plural %}<strong>{{ n }}</strong> without one{% endblocktranslate %}</span>{% endif %}
+      {% if map.datasets %}<span>{% blocktranslate count counter=map.datasets with n=map.datasets|intcomma %}from <strong>{{ n }}</strong> dataset{% plural %}from <strong>{{ n }}</strong> datasets{% endblocktranslate %}</span>{% endif %}
+      {% if map.area %}<span>{{ map.area }}</span>{% endif %}
+      {% if map.bounds %}<span>{% translate "Select a cluster to zoom in, or a point to open its sample." %}</span>{% endif %}
+    </div>
+  {% else %}
+    <p class="ov-empty">{{ empty|default:_("None of the samples has a location yet, so there is nothing to map.") }}</p>
+  {% endif %}
+</c-overview.panel>

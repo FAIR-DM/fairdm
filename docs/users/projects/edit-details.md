@@ -1,6 +1,6 @@
 # Edit details
 
-The Edit details screen changes a project's own fields: its image, name, status and, for managers, its visibility and owner. Open [the project page](project.md), choose **Manage** and then **Edit details**. The **Change visibility** button in the private-project notice opens the same screen. The entry appears only for people who may change the project. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md) for who that is.
+The Edit details screen changes a project's own fields: its image, name, status and, for managers, its visibility and owner. Open [the project page](project.md), and choose **Edit** in its header. The **Change visibility** button in the private-project notice opens the same screen. The entry appears only for people who may change the project. See [How access to a record is decided](../../explanation/how-access-to-a-record-is-decided.md) for who that is.
 
 ## The form
 

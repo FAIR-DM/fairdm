@@ -18,8 +18,8 @@ carry their own, samples use a third generic set, and measurements have none. A 
 not reach the others, and a measurement cannot be edited through the portal beyond what its create
 form offered. There should be one set of six pages (edit details, descriptions, keywords, key dates,
 identifiers and delete), registered on projects, datasets, samples and measurements alike, and
-reached from the Manage menu, not from tabs. Each is shown only to someone who may use it, and
-refused to anyone else.
+each reached from an Edit control on the overview panel that shows what it changes, not from tabs.
+Each control is shown only to someone who may use its page, and the page is refused to anyone else.
 
 ## Clarifications
 
@@ -42,7 +42,7 @@ maintainer should confirm.
   area per description type the record's vocabulary offers.
 - Q: Keyword editing is to be rebuilt in #298. What does this feature ship? → A: The keywords page
   as it works today, registered on all four record types. #298 replaces what is inside it and
-  inherits the registration, the Manage menu entry and the access rule from this feature.
+  inherits the registration, the keywords' Edit control and the access rule from this feature.
 - Q: What does the details page edit on a sample or a measurement? → A: The fields its registered
   type offers for editing, which are the same ones offered when a record of that type is created. It
   does not offer moving a sample to another dataset or a measurement to another sample or dataset.
@@ -51,34 +51,39 @@ maintainer should confirm.
 - Q: Do the addresses of the existing editing pages keep working? → A: Each record's own address
   does not move. The editing pages take one address pattern across all four record types, and the
   old addresses of the pages being replaced are not kept.
-- Q: Can an addon add its own entry to the Manage menu? → A: Not through this feature. It covers the
-  six entries above and leaves alone whatever else the menu carries.
+- Q: Can an addon add its own action to a record's page? → A: Not through this feature. It covers the
+  six pages above and leaves alone whatever else the page carries.
+- Q: Where is each page reached from? → A: From the panel that shows what it changes (settled on
+  https://github.com/FAIR-DM/fairdm/issues/668): the header's Edit and the Details panel's Edit for
+  the details, an Edit beside the keywords (Add keywords when there are none), an Edit on the
+  descriptions, the notes, the key dates and the identifiers, and Delete as the last line of the
+  Details panel. There is no central Manage menu.
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - A record's team edits its details and descriptions from the Manage menu (Priority: P1)
+### User Story 1 - A record's team edits its details and descriptions from its page (Priority: P1)
 
 A researcher on a dataset's team opens one of its measurements and sees that the value was entered
-wrongly and that nothing is written about how it was made. They open the Manage menu in the page
-header, choose to edit the details, correct the value, and save. They return through the same menu
-to the descriptions page, where each description type the measurement's vocabulary offers has its
-own area, and write up the conditions. The same two entries, leading to the same two pages, are in
-the Manage menu of the sample the measurement was made on, of the dataset, and of its project.
+wrongly and that nothing is written about how it was made. They choose Edit in the page header,
+correct the value, and save. Back on the page, they choose Edit on the panel that shows the
+measurement's notes, where each description type the measurement's vocabulary offers has its own
+area, and write up the conditions. The same two controls, leading to the same two pages, are on the
+page of the sample the measurement was made on, of the dataset, and of its project.
 
 **Why this priority**: A measurement cannot be corrected through the portal at all today, and the
 details and descriptions pages are the two a team uses most. Delivered alone, this story already
 gives all four record types one place to reach editing and one behaviour once there.
 
 **Independent Test**: Load development data. Sign in as someone on a dataset's team. On the
-dataset's project, the dataset, one of its samples and one of its measurements, open the Manage
-menu, edit the details and the descriptions, and save each. Then sign in as someone with no rights
+dataset's project, the dataset, one of its samples and one of its measurements, choose the
+header's Edit and the descriptions' Edit, edit the details and the descriptions, and save each. Then sign in as someone with no rights
 over the dataset and request the same pages.
 
 **Acceptance Scenarios**:
 
 1. **Given** someone who may change a project, a dataset, a sample or a measurement, **When** they
-   open that record's page, **Then** its Manage menu offers an entry for editing its details and an
-   entry for editing its descriptions, and each leads to a working page.
+   open that record's page, **Then** its header and its Details panel offer an Edit for its details,
+   the panel that shows its descriptions offers an Edit for them, and each leads to a working page.
 2. **Given** any of the four record types, **When** its page is shown, **Then** none of the editing
    pages appears as a tab beside the overview.
 3. **Given** someone editing a record's details, **When** they change a field and save, **Then**
@@ -91,7 +96,7 @@ over the dataset and request the same pages.
    **Then** it offers the fields that type offers when a record of it is created, with their current
    values, and no field for moving the record to another dataset or sample.
 6. **Given** a portal developer who registers a new sample or measurement type, **When** a record
-   of that type is opened by someone who may change it, **Then** the Manage menu and the editing
+   of that type is opened by someone who may change it, **Then** the Edit controls and the editing
    pages are there with no further work by the developer.
 7. **Given** someone editing a record's descriptions, **When** the page is shown, **Then** it
    carries one area for each description type that record's vocabulary offers, filled with what is
@@ -116,24 +121,25 @@ over the dataset and request the same pages.
 ### User Story 2 - Key dates and identifiers each have a page of their own (Priority: P2)
 
 A researcher has a sample that was collected in 2019, prepared a year later and has since been
-given an IGSN. From the sample's Manage menu they open the key dates page, record the two dates
-against the date types the sample vocabulary offers, and save. They go back to the menu, open the
-identifiers page and add the IGSN. The project the sample sits under has the same two entries, and
-its start and end dates and its grant identifier are edited the same way.
+given an IGSN. From the Edit on the sample's history they open the key dates page, record the two
+dates against the date types the sample vocabulary offers, and save. Back on the page, the Edit
+beside its identifiers opens the identifiers page, where they add the IGSN. The project the sample
+sits under has the same two controls, and its start and end dates and its grant identifier are
+edited the same way.
 
 **Why this priority**: Dates and identifiers are what a citation and a repository record are built
 from. They can be edited on a project and a dataset today, on a sample only in part, and on a
 measurement not at all.
 
 **Independent Test**: Sign in as someone on a dataset's team. On a project, a dataset, a sample and
-a measurement, open the key dates page and the identifiers page from the Manage menu, add an entry
+a measurement, open the key dates page and the identifiers page from their Edit controls, add an entry
 on each, change one, remove one, and save. Check the record's own page after each.
 
 **Acceptance Scenarios**:
 
-1. **Given** someone who may change a record of any of the four types, **When** they open its
-   Manage menu, **Then** it offers an entry for key dates and an entry for identifiers, each leading
-   to a working page.
+1. **Given** someone who may change a record of any of the four types, **When** they open its page,
+   **Then** the panel that shows its key dates and the Identifiers section of its Details panel each
+   offer an Edit leading to a working page.
 2. **Given** someone on the key dates page, **When** it is shown, **Then** it offers the date types
    that record's vocabulary defines and shows the dates already recorded.
 3. **Given** someone on the key dates page, **When** they add a date, change one or remove one and
@@ -155,10 +161,10 @@ on each, change one, remove one, and save. Check the record's own page after eac
 
 ---
 
-### User Story 3 - A record's team deletes it from the Manage menu (Priority: P2)
+### User Story 3 - A record's team deletes it from its page (Priority: P2)
 
-A researcher entered a measurement against the wrong sample and wants it gone. From the
-measurement's Manage menu they choose to delete it. The page says what will be removed with it and
+A researcher entered a measurement against the wrong sample and wants it gone. They choose Delete,
+the last line of the measurement's Details panel. The page says what will be removed with it and
 asks them to confirm. They confirm and land on the dataset the measurement belonged to. Later they
 try to delete a sample that still has measurements made on it. The page says the sample cannot be
 deleted and names what is in the way.
@@ -170,14 +176,14 @@ administration interface removes it.
 **Independent Test**: Sign in as someone who may delete records in a dataset. Delete a measurement,
 then a sample with no measurements, then try a sample that has measurements and a project that has
 a public dataset. Sign in as someone who may change the dataset's records and may not delete them,
-and look for the entry.
+and look for the Delete line.
 
 **Acceptance Scenarios**:
 
-1. **Given** someone who may delete a record of any of the four types, **When** they open its
-   Manage menu, **Then** it offers an entry for deleting the record.
-2. **Given** someone who may change a record and may not delete it, **When** they open its Manage
-   menu, **Then** the editing entries are offered and the delete entry is not. **When** they request
+1. **Given** someone who may delete a record of any of the four types, **When** they open its page,
+   **Then** its Details panel ends with a line for deleting the record.
+2. **Given** someone who may change a record and may not delete it, **When** they open its page,
+   **Then** the Edit controls are offered and the Delete line is not. **When** they request
    the delete page directly, **Then** they are refused and nothing is deleted.
 3. **Given** someone on a record's delete page, **When** it is shown, **Then** it says what else
    will be removed with the record and nothing is deleted until they confirm.
@@ -201,7 +207,7 @@ and look for the entry.
 ### User Story 4 - Keywords are edited the same way on every record type (Priority: P3)
 
 A researcher wants a project to be found under the same keywords as its datasets. From the
-project's Manage menu they open the keywords page, choose the keywords and save. The page they used
+Edit beside the project's keywords they open the keywords page, choose the keywords and save. The page they used
 is the one a dataset, a sample and a measurement offer.
 
 **Why this priority**: Keywords matter for discovery, but only a sample has a page for them today
@@ -210,13 +216,13 @@ every record type so the rebuild has one page to replace. It comes last because 
 not improved here.
 
 **Independent Test**: Sign in as someone on a dataset's team. On a project, a dataset, a sample and
-a measurement, open the keywords page from the Manage menu, add a keyword, remove one, and save.
+a measurement, open the keywords page from the keywords' Edit, add a keyword, remove one, and save.
 Check the record's own page after each.
 
 **Acceptance Scenarios**:
 
-1. **Given** someone who may change a record of any of the four types, **When** they open its
-   Manage menu, **Then** it offers an entry for keywords leading to a working page.
+1. **Given** someone who may change a record of any of the four types, **When** they open its page,
+   **Then** its keywords carry an Edit, or Add keywords when it has none, leading to a working page.
 2. **Given** someone on the keywords page, **When** it is shown, **Then** the keywords the record
    already carries are shown as chosen.
 3. **Given** someone on the keywords page, **When** they add keywords, remove keywords and save,
@@ -237,8 +243,8 @@ Check the record's own page after each.
   record that does not exist.
 - A record is made private while someone without rights over it has its page open. Their next
   request for an editing page answers as for a record that does not exist.
-- A person may use none of the six pages and nothing else the Manage menu carries. The menu is not
-  shown at all, so it never opens empty.
+- A person may use none of the six pages. No Edit control is shown on the page at all, so it reads
+  as it does to a visitor.
 - A person holds a portal role that lets them change every record of a kind without being on any
   team. They are offered the pages on every record of that kind they may see, as 017 rules.
 - A measurement belongs to a different dataset than the sample it was made on. Rights over the
@@ -273,17 +279,18 @@ Check the record's own page after each.
 - **FR-005**: Each record's own address MUST stay where it is. The six pages MUST follow one
   address pattern across all four record types.
 
-**Reached from the Manage menu**
+**Reached from the panel that shows what each page changes**
 
-- **FR-006**: The page of a project, a dataset, a sample and a measurement MUST carry a Manage menu
-  with an entry for each of the six pages the viewer may use, in the same order on every record
-  type.
+- **FR-006**: The page of a project, a dataset, a sample and a measurement MUST reach each of the six
+  pages the viewer may use from the place that shows what it changes: the header and the Details
+  panel for the details, the keywords, the panel that shows the descriptions, the panel that shows
+  the key dates, the Identifiers section of the Details panel, and the last line of the Details
+  panel for deleting. There is no central menu of editing pages.
 - **FR-007**: The six pages MUST NOT appear as tabs beside the overview or as entries among the
   actions open to any visitor.
-- **FR-008**: An entry MUST be shown only to someone who may use the page it leads to. Where a
-  viewer may use nothing the Manage menu carries, the menu MUST NOT be shown.
-- **FR-009**: Whatever else the Manage menu carries on a record, such as importing data on a
-  dataset, MUST remain in the menu and keep working.
+- **FR-008**: An Edit control MUST be shown only to someone who may use the page it leads to.
+- **FR-009**: Whatever other action a record's page carries, such as publishing a dataset, MUST
+  keep working where the page puts it.
 - **FR-010**: Every prompt and checklist item on a record's page that leads its team to an editing
   page MUST lead to the shared page for that record.
 
@@ -367,9 +374,9 @@ Check the record's own page after each.
   every type a portal registers.
 - **Editing page**: one of the six pages. It is a plugin registered against all four record types
   and is not listed beside the overview.
-- **Manage menu**: the menu in a record's page header, shown only to people with rights over the
-  record. It is distinct from the tabs beside the overview, from the actions open to any visitor,
-  and from the cards on the overview.
+- **Edit control**: the link on an overview panel to the editing page for what the panel shows,
+  shown only to people who may use that page. It is distinct from the tabs beside the overview and
+  from the actions open to any visitor.
 - **Description, date, identifier**: the typed entries a record carries, each drawn from that
   record type's own vocabulary.
 - **Keyword**: a term attached to a record for discovery.
@@ -379,7 +386,7 @@ Check the record's own page after each.
 ### Measurable Outcomes
 
 - **SC-001**: On each of the four record types, someone with full rights over a record reaches all
-  six pages from its Manage menu: 24 of 24 combinations.
+  six pages from its page: 24 of 24 combinations.
 - **SC-002**: A measurement's details, descriptions, keywords, key dates and identifiers can all be
   changed, and the measurement deleted, without opening the administration interface.
 - **SC-003**: No editing page is listed beside the overview on any of the four record types.
@@ -395,12 +402,10 @@ Check the record's own page after each.
 
 ## Assumptions
 
-- The Manage menu specified in 018 for the sample page, and already present on project and dataset
-  pages, is the menu meant by the request. A measurement's page gains one.
 - The rights checked are those the portal defines today. On a sample and a measurement they are
   inherited from the record's dataset. #402 may change how rights are granted, and these pages
   follow whatever it settles without being specified again.
-- Entries the Manage menu carries beyond these six, such as importing data or reviewing and
+- Actions a record's page carries beyond these six, such as importing data or reviewing and
   publishing a dataset, belong to other features.
 - People and organizations are not covered. Their editing pages are specified in 020.
 - An addon cannot remove or replace one of these pages on a record type. #401, which would have

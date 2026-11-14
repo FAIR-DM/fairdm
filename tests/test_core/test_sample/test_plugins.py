@@ -1,11 +1,15 @@
 """Access control on the sample record's editing surfaces."""
 
+import codecs
 from datetime import UTC, datetime
 
+import latexcodec  # noqa: F401  (registers the "ulatex" codec)
 import pytest
+import rispy
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.gis.geos import Point as GEOSPoint
+from django.contrib.sites.models import Site
 from django.db import models
 from django.http import Http404
 from django.shortcuts import get_object_or_404
@@ -14,9 +18,15 @@ from django.test import RequestFactory
 from django.test.utils import isolate_apps
 from django.urls import reverse
 from partial_dates import PartialDate
+from pybtex.database import parse_string
 from pytest_django.asserts import assertContains, assertNotContains, assertRedirects
 
-from demo.factories import RockSampleFactory, WaterSampleFactory, XRFMeasurementFactory
+from demo.factories import (
+    ICP_MS_MeasurementFactory,
+    RockSampleFactory,
+    WaterSampleFactory,
+    XRFMeasurementFactory,
+)
 from demo.models import RockSample
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.plugins.access import can_open
@@ -44,6 +54,7 @@ from fairdm.factories import (
 from fairdm.registry import registry
 from fairdm.registry.config import Citation
 from fairdm.utils.choices import Visibility
+from tests.factories import ConcreteSampleFactory
 
 
 def _request_for(user):
@@ -275,36 +286,110 @@ class TestOverviewMeasurements:
 
         assert [e["elsewhere"] for e in items] == [True]
 
-    def test_the_list_shows_the_ten_most_recent_and_counts_the_rest(self, client, rock):
+    def test_the_list_shows_the_thirty_most_recent_and_counts_the_rest(
+        self, client, rock
+    ):
         measurements = XRFMeasurementFactory.create_batch(
-            12, dataset=rock.dataset, sample=rock
+            32, dataset=rock.dataset, sample=rock
         )
-        for day, measurement in enumerate(measurements, start=1):
+        for minute, measurement in enumerate(measurements):
             Measurement.objects.filter(pk=measurement.pk).update(
-                added=datetime(2026, 1, day, tzinfo=UTC)
+                added=datetime(2026, 1, 1, 0, minute, tzinfo=UTC)
             )
 
         summary = _page(client, rock).context["measurements"]
 
-        assert summary["total"] == 12
+        assert summary["total"] == 32
         assert summary["more"] == 2
         assert [e["measurement"].pk for e in summary["items"]] == [
             m.pk for m in reversed(measurements[2:])
         ]
 
-    def test_the_figure_and_the_card_lead_to_the_measurements_tab(self, client, rock):
+    def test_the_figure_leads_to_the_panel_and_the_panel_to_the_measurements_tab(
+        self, client, rock
+    ):
         XRFMeasurementFactory(dataset=rock.dataset, sample=rock)
         tab = reverse("sample:measurements", kwargs={"uuid": rock.uuid})
 
+        page = _page(client, rock).page
+
+        panel = page.find(id="measurements")
+        assert panel.find("a", href=tab) is not None
+        assert page.select_one(".ov-figures").find("a", href="#measurements")
+
+
+@pytest.mark.django_db
+class TestOverviewMeasurementTypes:
+    """FR-037 and US-3 scenario 13."""
+
+    def test_each_type_is_counted_among_the_visible_measurements_most_first(
+        self, client, rock
+    ):
+        XRFMeasurementFactory.create_batch(2, dataset=rock.dataset, sample=rock)
+        ICP_MS_MeasurementFactory(dataset=rock.dataset, sample=rock)
+        ICP_MS_MeasurementFactory(dataset=_dataset(published=False), sample=rock)
+
+        types = _page(client, rock).context["measurement_types"]
+
+        assert [(t["key"], t["n"]) for t in types] == [
+            ("demo.xrfmeasurement", 2),
+            ("demo.icp_ms_measurement", 1),
+        ]
+
+    def test_each_listed_measurement_carries_the_key_of_its_type(self, client, rock):
+        ICP_MS_MeasurementFactory(dataset=rock.dataset, sample=rock)
+
+        items = _page(client, rock).context["measurements"]["items"]
+
+        assert [e["type_key"] for e in items] == ["demo.icp_ms_measurement"]
+
+    def test_with_two_types_the_list_can_be_narrowed_to_either(self, client, rock):
+        XRFMeasurementFactory(dataset=rock.dataset, sample=rock)
+        ICP_MS_MeasurementFactory(dataset=rock.dataset, sample=rock)
+
+        page = _page(client, rock).page
+
+        group = page.select_one("[data-filter-chips]")
+        rows = page.find(id=group["data-filter-chips"]).select("li[data-type]")
+        values = [b["data-value"] for b in group.select("button")]
+        assert values[0] == ""
+        assert sorted(values[1:]) == sorted(r["data-type"] for r in rows)
+
+    def test_with_one_type_there_is_nothing_to_filter(self, client, rock):
+        XRFMeasurementFactory.create_batch(2, dataset=rock.dataset, sample=rock)
+
+        assert _page(client, rock).page.select_one("[data-filter-chips]") is None
+
+
+@pytest.mark.django_db
+class TestOverviewHeaderFacts:
+    """FR-036 and US-3 scenario 14."""
+
+    def test_the_header_links_to_the_dataset(self, client, rock):
+        page = _page(client, rock).page
+
+        facts = page.select_one(".ov-facts")
+        assert facts.find("a", href=rock.dataset.get_absolute_url()) is not None
+
+    def test_the_igsn_is_the_identifier_the_header_gives(self, client, rock):
+        SampleIdentifierFactory(related=rock, type=IGSN, value="10.58052/IGSN0001")
+
         response = _page(client, rock)
 
-        hrefs = [
-            a["href"]
-            for a in BeautifulSoup(response.content, "html.parser").find_all(
-                "a", href=True
-            )
-        ]
-        assert hrefs.count(tab) >= 2
+        assert response.context["primary_identifier"]["value"] == "10.58052/IGSN0001"
+        assert response.page.select_one(".ov-facts").find(
+            "a", href="https://doi.org/10.58052/IGSN0001"
+        )
+
+    def test_where_it_was_taken_leads_to_the_location_panel(self, client, released):
+        sample = RockSampleFactory(
+            dataset=released, location=GEOSPoint(12.3, 45.6, srid=4326)
+        )
+
+        page = _page(client, sample).page
+
+        assert page.select_one(".ov-facts").find("a", href="#location")
+        assert page.find(id="location") is not None
 
 
 @pytest.mark.django_db
@@ -438,12 +523,12 @@ class TestOverviewLocation:
         response = _page(client, sample)
 
         sample.refresh_from_db()
-        marker = response.page.select_one(".overview-map")
+        marker = response.page.select_one("[data-map]")
         assert (marker["data-lon"], marker["data-lat"]) == (
             str(sample.location.x),
             str(sample.location.y),
         )
-        assert len(response.page.select("dd.font-mono")) >= 2
+        assert response.context["has_map"] is True
 
     def test_latitude_and_longitude_are_given_to_five_places_with_elevation_and_uncertainty(
         self, client, released
@@ -481,7 +566,8 @@ class TestOverviewLocation:
         response = _page(client, rock)
 
         assert response.context["location"] is None
-        assert response.page.select_one(".overview-map") is None
+        assert response.context["has_map"] is False
+        assert response.page.select_one("[data-map]") is None
 
 
 @pytest.mark.django_db
@@ -611,8 +697,8 @@ class TestOverviewCardsAlwaysShown:
 
 
 @pytest.mark.django_db
-class TestOverviewManageMenu:
-    """FR-036: the sample's editing pages are reached from a Manage menu, not from tabs."""
+class TestOverviewEditingLinks:
+    """FR-036: the sample's editing pages are reached from the page, not from tabs."""
 
     EDITING_PAGES = ["edit", "descriptions", "keywords", "key-dates", "identifiers"]
 
@@ -642,32 +728,35 @@ class TestOverviewManageMenu:
         assert reverse("sample:overview", kwargs={"uuid": rock.uuid}) in hrefs
         assert not set(hrefs) & set(self._addresses(rock))
 
-    def test_a_user_who_may_change_the_sample_sees_a_manage_menu_with_the_editing_pages(
+    def test_a_user_who_may_change_the_sample_reaches_the_editing_pages_from_its_panels(
         self, client, rock, released
     ):
         client.force_login(self._editor(released))
 
         response = _page(client, rock)
 
-        menu = response.page.select_one('[data-menu="manage"]')
-        assert menu is not None
-        assert [a["href"] for a in menu.select("a")] == self._addresses(rock)
+        page_hrefs = {a.get("href") for a in response.page.select("a")}
+        shown = {
+            reverse(f"sample:{name}", kwargs={"uuid": rock.uuid})
+            for name in ("edit", "keywords", "key-dates", "identifiers")
+        }
+        assert shown <= page_hrefs
 
-    def test_a_visitor_sees_no_manage_menu_and_no_editing_link(self, client, rock):
+    def test_a_visitor_sees_no_editing_link(self, client, rock):
         response = _page(client, rock)
 
-        assert response.page.select_one('[data-menu="manage"]') is None
         page_hrefs = {a.get("href") for a in response.page.select("a")}
         assert not page_hrefs & set(self._addresses(rock))
 
-    def test_a_user_who_may_only_view_the_sample_sees_no_manage_menu(
+    def test_a_user_who_may_only_view_the_sample_sees_no_editing_link(
         self, client, rock, released
     ):
         client.force_login(_team_member(released))
 
         response = _page(client, rock)
 
-        assert response.page.select_one('[data-menu="manage"]') is None
+        page_hrefs = {a.get("href") for a in response.page.select("a")}
+        assert not page_hrefs & set(self._addresses(rock))
 
     def test_the_editing_pages_keep_their_addresses(self, rock):
         assert self._addresses(rock) == [
@@ -692,3 +781,144 @@ class TestOverviewCitationAddress:
 
         assert citation.endswith("https://doi.org/10.58052/IGSN0001")
         assert str(rock.uuid) not in citation
+
+
+@pytest.fixture
+def portal_name(db):
+    """Name the site, which a citation gives as its publisher."""
+    Site.objects.filter(pk=Site.objects.get_current().pk).update(
+        name="Acme Data Portal"
+    )
+    Site.objects.clear_cache()
+    yield "Acme Data Portal"
+    Site.objects.clear_cache()
+
+
+@pytest.mark.django_db
+class TestOverviewCitationFormats:
+    """The sample's citation as BibTeX and RIS, as the Cite panel offers it."""
+
+    def collect(self, sample):
+        for first, last in (("Anna", "Keller"), ("Tomas", "Oliveira")):
+            sample.add_contributor(
+                PersonFactory(first_name=first, last_name=last, is_active=True),
+                with_roles=[f"{CONTRIBUTOR_ROLES}/collection"],
+            )
+        SampleDate.objects.create(
+            related=sample,
+            type_id=f"{DATE_TYPES}/collected",
+            value=PartialDate.fromisoformat("2023-04-05"),
+        )
+        return sample
+
+    def formats_of(self, client, sample):
+        citation = _page(client, sample).context["citation"]
+        return {entry["key"]: entry["value"] for entry in citation["formats"]}
+
+    def entry_of(self, formats):
+        data = parse_string(formats["bibtex"], "bibtex")
+        assert len(data.entries) == 1
+        key, entry = next(iter(data.entries.items()))
+        return key, entry, rispy.loads(formats["ris"])[0]
+
+    def test_the_text_and_both_files_give_the_same_people_year_title_and_publisher(
+        self, client, rock, portal_name
+    ):
+        self.collect(rock)
+
+        formats = self.formats_of(client, rock)
+        key, entry, ris = self.entry_of(formats)
+
+        title = "Zq-4471 rift core [Rock Sample]"
+        assert formats["text"].startswith("Keller, A. & Oliveira, T. (2023). ")
+        assert f"{title}. Acme Data Portal." in formats["text"]
+        assert [(p.last_names, p.first_names) for p in entry.persons["author"]] == [
+            (["Keller"], ["Anna"]),
+            (["Oliveira"], ["Tomas"]),
+        ]
+        assert entry.fields["year"] == "2023"
+        assert codecs.decode(entry.fields["title"], "ulatex") == title
+        assert codecs.decode(entry.fields["publisher"], "ulatex") == portal_name
+        assert key == str(rock.uuid)
+        assert ris["authors"] == ["Keller, Anna", "Oliveira, Tomas"]
+        assert (ris["year"], ris["title"], ris["publisher"]) == (
+            "2023",
+            title,
+            portal_name,
+        )
+
+    def test_without_an_igsn_the_files_give_the_permalink_and_no_doi(
+        self, client, rock
+    ):
+        permalink = f"http://testserver/{rock.uuid}/"
+
+        formats = self.formats_of(client, rock)
+        entry, ris = self.entry_of(formats)[1:]
+
+        assert formats["text"].endswith(permalink)
+        assert entry.fields["url"] == permalink
+        assert "doi" not in entry.fields
+        assert ris["urls"] == [permalink]
+        assert "doi" not in ris
+
+    def test_with_an_igsn_the_files_give_it_as_the_doi_and_its_link(self, client, rock):
+        SampleIdentifierFactory(related=rock, type=IGSN, value="10.58052/IGSN_1")
+
+        formats = self.formats_of(client, rock)
+        entry, ris = self.entry_of(formats)[1:]
+
+        assert formats["text"].endswith("https://doi.org/10.58052/IGSN_1")
+        assert entry.fields["doi"] == "10.58052/IGSN_1"
+        assert entry.fields["url"] == "https://doi.org/10.58052/IGSN_1"
+        assert ris["doi"] == "10.58052/IGSN_1"
+        assert ris["urls"] == ["https://doi.org/10.58052/IGSN_1"]
+
+    def test_a_legacy_igsn_that_does_not_resolve_gives_no_link_and_no_doi(
+        self, client, rock
+    ):
+        SampleIdentifierFactory(related=rock, type=IGSN, value="AU1101")
+
+        formats = self.formats_of(client, rock)
+        entry, ris = self.entry_of(formats)[1:]
+
+        assert "http" not in formats["text"]
+        assert "doi" not in entry.fields
+        assert "url" not in entry.fields
+        assert "doi" not in ris
+        assert "urls" not in ris
+
+    def test_a_sample_is_a_misc_entry_and_a_general_reference(self, client, rock):
+        formats = self.formats_of(client, rock)
+        entry, ris = self.entry_of(formats)[1:]
+
+        assert entry.type == "misc"
+        assert ris["type_of_reference"] == "GEN"
+
+    def test_with_nobody_credited_no_author_is_given(self, client, rock):
+        formats = self.formats_of(client, rock)
+        entry, ris = self.entry_of(formats)[1:]
+
+        assert "author" not in entry.persons
+        assert "authors" not in ris
+        assert formats["text"].startswith("(")
+
+    def test_a_portal_sample_type_gets_all_three_formats(self, client, released):
+        sample = ConcreteSampleFactory(dataset=released, name="Portal core")
+
+        citation = _page(client, sample).context["citation"]
+        formats = {entry["key"]: entry["value"] for entry in citation["formats"]}
+        entry, ris = self.entry_of(formats)[1:]
+
+        assert list(formats) == ["text", "bibtex", "ris"]
+        assert "Portal core [concrete sample]" in formats["text"]
+        assert codecs.decode(entry.fields["title"], "ulatex") == (
+            "Portal core [concrete sample]"
+        )
+        assert ris["title"] == "Portal core [concrete sample]"
+        assert [e["url"] for e in citation["formats"]] == [
+            reverse(
+                "sample:overview-citation",
+                kwargs={"uuid": sample.uuid, "format": key},
+            )
+            for key in ("text", "bibtex", "ris")
+        ]

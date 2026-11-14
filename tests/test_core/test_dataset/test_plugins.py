@@ -1,19 +1,25 @@
 """Tests for the dataset's registered pages: update, descriptions, deletion, menu and links."""
 
+import codecs
 import json
 import re
 import warnings
 from datetime import UTC, date, datetime
 
+import latexcodec  # noqa: F401  (registers the "ulatex" codec)
 import pytest
+import rispy
 from bs4 import BeautifulSoup
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.gis.geos import Point
+from django.contrib.sites.models import Site
 from django.test import RequestFactory
 from django.urls import reverse
 from django.utils.formats import date_format
 from licensing.models import License
 from mvp.warnings import MVPDeprecationWarning
 from partial_dates import PartialDate
+from pybtex.database import parse_string
 from pytest_django.asserts import assertContains, assertNotContains
 
 from demo.factories import RockSampleFactory
@@ -964,7 +970,7 @@ def _page(client, dataset):
 
 def _figures(page):
     """The values of the four figures, in the order they are drawn."""
-    return [figure.get_text(strip=True) for figure in page.select(".stat-value")]
+    return [figure.get_text(strip=True) for figure in page.select(".ov-figure__value")]
 
 
 def _tab_figures(page, dataset):
@@ -972,10 +978,9 @@ def _tab_figures(page, dataset):
     figures = {}
     for kind in ("samples", "measurements"):
         url = reverse(f"dataset:{kind}", kwargs={"uuid": dataset.uuid})
-        link = page.select_one(f'.stat-title a[href="{url}"]')
-        if link is not None:
-            figure = link.find_parent(class_="stat")
-            figures[kind] = figure.select_one(".stat-value").get_text(strip=True)
+        figure = page.select_one(f'a.ov-figure[href="{url}"]')
+        if figure is not None:
+            figures[kind] = figure.select_one(".ov-figure__value").get_text(strip=True)
     return figures
 
 
@@ -1032,7 +1037,7 @@ class TestOverviewWhatAVisitorSeesBeforePublication:
         response = _page(client, holding)
 
         assert _figures(response.page)[:2] == ["2", "2"]
-        assert response.page.find(id="dataset-composition") is not None
+        assert response.page.select_one(".ov-mix") is not None
         assert response.page.find(id="dataset-growth") is not None
         assert len(response.page.select(".alert")) == 1
 
@@ -1040,7 +1045,7 @@ class TestOverviewWhatAVisitorSeesBeforePublication:
         response = _page(client, holding)
 
         assert _tab_figures(response.page, holding) == {}
-        assert response.page.find(id="dataset-composition") is None
+        assert response.page.select_one(".ov-mix") is None
         assert response.page.find(id="dataset-growth") is None
         assert len(response.page.select(".alert")) == 1
 
@@ -1062,12 +1067,12 @@ class TestOverviewWhatAVisitorSeesBeforePublication:
 
         response = _page(client, holding)
 
-        assert response.page.find("progress", attrs={"max": "10"}) is not None
+        assert response.page.select_one('[data-card="readiness"]') is not None
 
     def test_a_visitor_sees_no_checklist(self, client, holding):
         response = _page(client, holding)
 
-        assert response.page.find("progress") is None
+        assert response.page.select_one('[data-card="readiness"]') is None
 
     def test_a_published_dataset_shows_its_team_no_checklist_and_no_notice(
         self, client, holding
@@ -1077,7 +1082,7 @@ class TestOverviewWhatAVisitorSeesBeforePublication:
 
         response = _page(client, holding)
 
-        assert response.page.find("progress") is None
+        assert response.page.select_one('[data-card="readiness"]') is None
         assert response.page.select(".alert") == []
 
 
@@ -1180,10 +1185,18 @@ class TestOverviewCitation:
         assert str(dataset.uuid) not in citation
 
     def test_a_data_publication_is_cited_in_place_of_the_dataset(self, client):
-        reference = LiteratureItemFactory()
+        reference = LiteratureItemFactory(
+            title="Deep drilling records of the Rhine graben",
+            doi="10.1234/pub",
+            year=2020,
+            authors=(("Brandt", "Lena"), ("Weiss", "Jan")),
+        )
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, reference=reference)
 
-        assert self._citation(client, dataset) == str(reference)
+        assert self._citation(client, dataset) == (
+            "Brandt, L. & Weiss, J. (2020). Deep drilling records of the Rhine "
+            "graben. https://doi.org/10.1234/pub"
+        )
 
     def test_creators_are_named_in_the_order_credited_people_before_organizations(
         self, client
@@ -1236,16 +1249,16 @@ class TestOverviewCitation:
 class TestOverviewCharts:
     """US-2 scenarios 5 to 7."""
 
-    def test_the_composition_text_lists_every_type_with_its_count(
+    def test_the_records_by_type_count_every_type_samples_and_measurements_apart(
         self, client, holding
     ):
         client.force_login(_team_member(holding))
 
         response = _page(client, holding)
 
-        text = response.page.find(id="dataset-composition-description").get_text()
-        assert "Rock Samples: 2" in text
-        assert "XRF Measurements: 2" in text
+        mix = response.context["mix"]
+        assert mix["samples"] == [("Rock Samples", 2)]
+        assert mix["measurements"] == [("XRF Measurements", 2)]
 
     def test_records_within_one_month_draw_no_growth_chart(self, client, holding):
         from datetime import UTC, datetime
@@ -1259,7 +1272,7 @@ class TestOverviewCharts:
 
         response = _page(client, holding)
 
-        assert response.page.find(id="dataset-composition") is not None
+        assert response.page.select_one(".ov-mix") is not None
         assert response.page.find(id="dataset-growth") is None
 
     def test_a_type_the_registry_no_longer_holds_is_left_out(
@@ -1278,9 +1291,57 @@ class TestOverviewCharts:
 
         response = _page(client, holding)
 
-        text = response.page.find(id="dataset-composition-description").get_text()
-        assert "XRF" not in text
-        assert "Rock Samples" in text
+        mix = response.context["mix"]
+        assert mix["measurements"] == []
+        assert mix["samples"] == [("Rock Samples", 2)]
+
+
+class TestOverviewHeaderFacts:
+    """FR-030: the licence and the resolving identifier are key facts in the header."""
+
+    def header_of(self, client, dataset):
+        return _page(client, dataset).page.find("h1").find_parent("header")
+
+    def test_the_licence_is_named_and_the_doi_linked(self, client):
+        licence = License.objects.first()
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, license=licence)
+        DatasetIdentifierFactory(related=dataset, value="10.1/ds")
+
+        header = self.header_of(client, dataset)
+
+        assert licence.name in header.get_text()
+        assert header.find("a", href="https://doi.org/10.1/ds") is not None
+
+    def test_a_dataset_with_no_licence_shows_a_dash_and_no_identifier(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, license=None)
+
+        facts = self.header_of(client, dataset).select_one(".ov-facts")
+
+        assert "—" in facts.get_text()
+        assert facts.find("a", href=re.compile("doi.org")) is None
+
+
+class TestOverviewFiguresLeadToTheirLists:
+    """FR-031: the contributors figure leads to the contributors tab.
+
+    The publications figure leads to the Related publications panel.
+    """
+
+    def test_the_contributors_figure_links_to_the_contributors_tab(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        url = reverse("dataset:contribution-list", kwargs={"uuid": dataset.uuid})
+
+        page = _page(client, dataset).page
+
+        assert page.select_one(f'a.ov-figure[href="{url}"]') is not None
+
+    def test_the_publications_figure_links_to_the_publications_panel(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+
+        page = _page(client, dataset).page
+
+        assert page.select_one('a.ov-figure[href="#publications"]') is not None
+        assert page.find(id="publications")["data-card"] == "publications"
 
 
 class TestOverviewFiguresLeadToTheTabs:
@@ -1322,7 +1383,7 @@ class TestOverviewFiguresLeadToTheTabs:
         page = _page(client, holding).page
 
         assert _tab_figures(page, holding) == {"samples": "2", "measurements": "2"}
-        assert page.find(id="dataset-composition") is not None
+        assert page.select_one(".ov-mix") is not None
         assert page.find(id="dataset-growth") is not None
 
     def test_on_a_public_unpublished_dataset_a_visitor_gets_nothing_from_its_records(
@@ -1332,7 +1393,7 @@ class TestOverviewFiguresLeadToTheTabs:
 
         assert _tab_figures(page, holding) == {}
         assert page.find(attrs={"data-mvp-chart": True}) is None
-        assert page.find(id="dataset-composition") is None
+        assert page.select_one(".ov-mix") is None
         assert page.find(id="dataset-growth") is None
 
 
@@ -1361,7 +1422,7 @@ class TestOverviewFirstRun:
         response = _page(client, dataset)
 
         assert response.page.find(attrs={"data-mvp-chart": True}) is None
-        assert response.page.find(id="dataset-composition") is None
+        assert response.page.select_one(".ov-mix") is None
         assert response.page.find(id="dataset-growth") is None
 
     def test_a_visitor_to_an_empty_dataset_is_offered_no_first_step(
@@ -1380,10 +1441,10 @@ class TestOverviewTimeline:
 
     def _steps(self, page):
         """The date each timeline step shows, in the order they are drawn."""
-        card = page.find("ol", class_="timeline").find_parent(class_="card")
+        panel = page.select_one('[data-card="timeline"]')
         return [
-            item.select_one(".text-sm").get_text(strip=True)
-            for item in card.select("ol > li")
+            item.select_one(".ov-step__date").get_text(strip=True)
+            for item in panel.select("ol > li")
         ]
 
     def test_the_dates_are_listed_in_the_order_they_happened(self, client):
@@ -1466,6 +1527,49 @@ class TestOverviewTimeline:
         assert date_format(date(2999, 1, 1), "SHORT_DATE_FORMAT") not in notice
         assert self._steps(response.page)[-1] == "2999"
 
+    def test_an_unpublished_dataset_ends_on_a_publication_still_to_come(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+
+        last = _page(client, dataset).context["lifecycle"][-1]
+
+        assert (last["done"], last["date"]) == (False, None)
+
+    def test_a_published_dataset_with_no_published_date_has_the_step_done_and_undated(
+        self, client
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+
+        response = _page(client, dataset)
+
+        last = response.context["lifecycle"][-1]
+        assert (last["done"], last["date"]) == (True, None)
+        assert self._steps(response.page)[-1].startswith("—")
+
+    def test_a_recorded_published_date_is_the_only_publication_step(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        DatasetDateFactory(
+            related=dataset,
+            type_id=f"{DATE_TYPES}/published",
+            value=PartialDate.fromisoformat("2025-05-01"),
+        )
+
+        steps = _page(client, dataset).context["lifecycle"]
+
+        assert [step["done"] for step in steps] == [True, True]
+
+    def test_an_undated_publication_comes_before_a_withdrawal(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        DatasetDateFactory(
+            related=dataset,
+            type_id=f"{DATE_TYPES}/withdrawn",
+            value=PartialDate.fromisoformat("2999-01-01"),
+        )
+
+        steps = _page(client, dataset).context["lifecycle"]
+
+        assert [step["date"] is None for step in steps] == [False, True, False]
+        assert [step["alert"] for step in steps] == [False, False, True]
+
 
 class TestOverviewRelatedPublications:
     """US-2 scenario 10."""
@@ -1485,10 +1589,8 @@ class TestOverviewRelatedPublications:
 
         response = _page(client, dataset)
 
-        card = response.page.find(string=str(items["IsDescribedBy"])).find_parent(
-            class_="card"
-        )
-        listed = card.select("ul > li")
+        panel = response.page.select_one('[data-card="publications"]')
+        listed = panel.select("ul > li")
         order = [
             next(name for name, item in items.items() if str(item) in li.get_text())
             for li in listed
@@ -1496,7 +1598,8 @@ class TestOverviewRelatedPublications:
         assert order == ["IsDescribedBy", "IsCitedBy", "Cites"]
         for name, li in zip(order, listed, strict=True):
             dataset_side = DatasetLiteratureRelation(relationship_type=name)
-            assert li.select_one(".badge").get_text(strip=True) != (
+            relation = li.select_one(".ov-awards__title").get_text(strip=True)
+            assert relation.split(" · ")[0] != (
                 dataset_side.get_relationship_type_display()
             )
 
@@ -1676,3 +1779,296 @@ class TestOverviewCardsAlwaysShown:
         response = _page(client, dataset)
 
         assert response.page.select_one('[data-card="readiness"]') is None
+
+
+def loads_map_script(response):
+    """Say whether the page asked for MapLibre: ``has_map`` is set only when it does."""
+    return "has_map" in response.context and bool(response.context["has_map"])
+
+
+class TestOverviewSampleMap:
+    @pytest.fixture
+    def published(self):
+        """A public, published dataset: two located samples and one with no location."""
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        RockSampleFactory(dataset=dataset, location=Point(7.9, 48.9, srid=4326))
+        RockSampleFactory(dataset=dataset, location=Point(8.1, 49.0, srid=4326))
+        RockSampleFactory(dataset=dataset, location=None)
+        return dataset
+
+    def test_a_visitor_to_a_published_dataset_gets_its_samples(self, client, published):
+        sample_map = _page(client, published).context["sample_map"]
+
+        assert sample_map["located"] == 2
+        assert sample_map["missing"] == 1
+        assert sample_map["bounds"] == [7.9, 48.9, 8.1, 49.0]
+
+    def test_a_dataset_does_not_count_its_datasets(self, client, published):
+        sample_map = _page(client, published).context["sample_map"]
+
+        assert "datasets" not in sample_map
+
+    def test_the_points_address_is_the_datasets_own(self, client, published):
+        sample_map = _page(client, published).context["sample_map"]
+
+        assert sample_map["points_url"] == reverse(
+            "dataset:overview-sample-points", kwargs={"uuid": published.uuid}
+        )
+
+    @pytest.mark.parametrize("viewer", ["visitor", "member"])
+    def test_located_and_missing_add_up_to_the_samples_figure_the_page_computes(
+        self, client, published, viewer
+    ):
+        if viewer == "member":
+            client.force_login(_team_member(published))
+
+        response = _page(client, published)
+
+        sample_map = response.context["sample_map"]
+        assert (
+            sample_map["located"] + sample_map["missing"]
+            == response.context["counts"]["samples"]
+        )
+
+    def test_a_visitor_to_a_public_unpublished_dataset_gets_no_map(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        RockSampleFactory(dataset=dataset, location=Point(7.9, 48.9, srid=4326))
+
+        response = _page(client, dataset)
+
+        assert response.context["sample_map"] is None
+        assert not loads_map_script(response)
+
+    def test_the_team_of_an_unpublished_dataset_gets_the_map(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        RockSampleFactory(dataset=dataset, location=Point(7.9, 48.9, srid=4326))
+        client.force_login(_team_member(dataset))
+
+        response = _page(client, dataset)
+
+        assert response.context["sample_map"]["located"] == 1
+        assert loads_map_script(response)
+
+    def test_a_level_on_one_sample_of_an_unpublished_dataset_maps_nothing(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        sample = RockSampleFactory(
+            dataset=dataset, location=Point(7.9, 48.9, srid=4326)
+        )
+        user = UserFactory()
+        ContributionFactory(
+            content_object=sample, contributor=user, level=ContributionLevel.VIEW
+        )
+        client.force_login(user)
+
+        page = _page(client, dataset)
+        points = client.get(
+            reverse("dataset:overview-sample-points", kwargs={"uuid": dataset.uuid})
+        )
+
+        assert page.context["sample_map"] is None
+        assert points.json()["features"] == []
+
+    def test_the_points_address_of_an_unpublished_dataset_gives_a_visitor_nothing(
+        self, client
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        RockSampleFactory(dataset=dataset, location=Point(7.9, 48.9, srid=4326))
+
+        response = client.get(
+            reverse("dataset:overview-sample-points", kwargs={"uuid": dataset.uuid})
+        )
+
+        assert response.status_code == 200
+        assert response.json() == {"type": "FeatureCollection", "features": []}
+
+    def test_a_dataset_with_no_samples_has_no_map(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+
+        response = _page(client, dataset)
+
+        assert response.context["sample_map"] is None
+        assert not loads_map_script(response)
+
+    def test_samples_none_of_which_is_located_give_none_located_and_no_map_script(
+        self, client
+    ):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        RockSampleFactory.create_batch(2, dataset=dataset, location=None)
+
+        response = _page(client, dataset)
+
+        assert response.context["sample_map"]["located"] == 0
+        assert not loads_map_script(response)
+
+    def test_has_map_is_true_once_a_sample_is_located(self, client, published):
+        assert loads_map_script(_page(client, published))
+
+
+@pytest.fixture
+def portal_name(db):
+    """Name the site, which a citation gives as its publisher."""
+    Site.objects.filter(pk=Site.objects.get_current().pk).update(
+        name="Acme Data Portal"
+    )
+    Site.objects.clear_cache()
+    yield "Acme Data Portal"
+    Site.objects.clear_cache()
+
+
+class TestOverviewCitationFormats:
+    """The dataset's citation as BibTeX and RIS, as the Cite panel offers it."""
+
+    def make_dataset(self, **kwargs):
+        dataset = DatasetFactory(
+            visibility=Visibility.PUBLIC, name="Borehole logs", **kwargs
+        )
+        for first, last in (("Anna", "Keller"), ("Tomas", "Oliveira")):
+            dataset.add_contributor(
+                PersonFactory(first_name=first, last_name=last, is_active=True),
+                with_roles=[f"{CONTRIBUTOR_ROLES}/creator"],
+            )
+        DatasetDateFactory(
+            related=dataset,
+            type_id=f"{DATE_TYPES}/published",
+            value=PartialDate.fromisoformat("2022-06-09"),
+        )
+        return dataset
+
+    def formats_of(self, client, dataset):
+        citation = _page(client, dataset).context["citation"]
+        return {entry["key"]: entry["value"] for entry in citation["formats"]}
+
+    def entry_of(self, formats):
+        data = parse_string(formats["bibtex"], "bibtex")
+        assert len(data.entries) == 1
+        key, entry = next(iter(data.entries.items()))
+        return key, entry, rispy.loads(formats["ris"])[0]
+
+    def test_the_text_and_both_files_give_the_same_people_year_title_and_publisher(
+        self, client, portal_name
+    ):
+        dataset = self.make_dataset()
+
+        formats = self.formats_of(client, dataset)
+        key, entry, ris = self.entry_of(formats)
+
+        assert formats["text"].startswith("Keller, A. & Oliveira, T. (2022). ")
+        assert "Borehole logs. Acme Data Portal." in formats["text"]
+        assert [(p.last_names, p.first_names) for p in entry.persons["author"]] == [
+            (["Keller"], ["Anna"]),
+            (["Oliveira"], ["Tomas"]),
+        ]
+        assert entry.fields["year"] == "2022"
+        assert codecs.decode(entry.fields["title"], "ulatex") == "Borehole logs"
+        assert codecs.decode(entry.fields["publisher"], "ulatex") == portal_name
+        assert key == str(dataset.uuid)
+        assert ris["authors"] == ["Keller, Anna", "Oliveira, Tomas"]
+        assert (ris["year"], ris["title"], ris["publisher"]) == (
+            "2022",
+            "Borehole logs",
+            portal_name,
+        )
+
+    def test_without_a_doi_the_files_give_the_permalink_and_no_doi(self, client):
+        dataset = self.make_dataset()
+        permalink = f"http://testserver/{dataset.uuid}/"
+
+        formats = self.formats_of(client, dataset)
+        entry, ris = self.entry_of(formats)[1:]
+
+        assert formats["text"].endswith(permalink)
+        assert entry.fields["url"] == permalink
+        assert "doi" not in entry.fields
+        assert ris["urls"] == [permalink]
+        assert "doi" not in ris
+
+    def test_with_a_doi_the_files_give_the_doi_and_its_link(self, client):
+        dataset = self.make_dataset()
+        DatasetIdentifierFactory(related=dataset, value="10.5555/ds_1")
+
+        formats = self.formats_of(client, dataset)
+        entry, ris = self.entry_of(formats)[1:]
+
+        assert formats["text"].endswith("https://doi.org/10.5555/ds_1")
+        assert entry.fields["doi"] == "10.5555/ds_1"
+        assert entry.fields["url"] == "https://doi.org/10.5555/ds_1"
+        assert ris["doi"] == "10.5555/ds_1"
+        assert ris["urls"] == ["https://doi.org/10.5555/ds_1"]
+
+    def test_a_dataset_is_a_dataset_entry_and_a_data_reference(self, client):
+        formats = self.formats_of(client, self.make_dataset())
+        entry, ris = self.entry_of(formats)[1:]
+
+        assert entry.type == "dataset"
+        assert ris["type_of_reference"] == "DATA"
+
+    def test_with_nobody_credited_no_author_is_given(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+
+        formats = self.formats_of(client, dataset)
+        entry, ris = self.entry_of(formats)[1:]
+
+        assert "author" not in entry.persons
+        assert "authors" not in ris
+        assert formats["text"].startswith("(")
+
+    def test_a_data_publication_gives_its_own_citation_in_text_and_both_files(
+        self, client
+    ):
+        title = (
+            "Deep drilling records of the Rhine graben, with the borehole logs, "
+            "cores and fluid samples taken between 2015 and 2019"
+        )
+        reference = LiteratureItemFactory(
+            title=title,
+            type="article-journal",
+            doi="10.1234/pub_x",
+            year=2020,
+            authors=(("Brandt", "Lena"), ("Weiss", "Jan")),
+        )
+        reference.publisher = "Journal of Rhine Studies"
+        reference.save()
+        dataset = self.make_dataset(reference=reference)
+
+        formats = self.formats_of(client, dataset)
+        key, entry, ris = self.entry_of(formats)
+
+        assert formats["text"] == (
+            f"Brandt, L. & Weiss, J. (2020). {title}. Journal of Rhine Studies. "
+            "https://doi.org/10.1234/pub_x"
+        )
+        assert [(p.last_names, p.first_names) for p in entry.persons["author"]] == [
+            (["Brandt"], ["Lena"]),
+            (["Weiss"], ["Jan"]),
+        ]
+        assert entry.type == "article"
+        assert key == str(dataset.uuid)
+        assert entry.fields["year"] == "2020"
+        assert codecs.decode(entry.fields["title"], "ulatex") == title
+        assert (
+            codecs.decode(entry.fields["publisher"], "ulatex")
+            == "Journal of Rhine Studies"
+        )
+        assert entry.fields["doi"] == "10.1234/pub_x"
+        assert entry.fields["url"] == "https://doi.org/10.1234/pub_x"
+        assert ris["type_of_reference"] == "JOUR"
+        assert ris["authors"] == ["Brandt, Lena", "Weiss, Jan"]
+        assert (ris["year"], ris["title"], ris["publisher"]) == (
+            "2020",
+            title,
+            "Journal of Rhine Studies",
+        )
+        assert ris["doi"] == "10.1234/pub_x"
+
+    def test_each_format_has_an_address_beside_the_page(self, client):
+        dataset = self.make_dataset()
+
+        citation = _page(client, dataset).context["citation"]
+
+        assert [e["url"] for e in citation["formats"]] == [
+            reverse(
+                "dataset:overview-citation",
+                kwargs={"uuid": dataset.uuid, "format": key},
+            )
+            for key in ("text", "bibtex", "ris")
+        ]

@@ -2,6 +2,8 @@
 
 from typing import Any
 
+from django.contrib.contenttypes.models import ContentType
+from django.db.models import Count
 from django.utils.translation import gettext, ngettext
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import RedirectView
@@ -11,7 +13,7 @@ from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins.access import has_perm
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.overview import safe_reverse, sentence_case
-from fairdm.core.plugins import TypedOverviewPlugin
+from fairdm.core.plugins import CitationFile, TypedOverviewPlugin
 from fairdm.core.vocabularies import (
     CONTRIBUTOR_ROLES,
     DATE_TYPES,
@@ -64,6 +66,8 @@ class Overview(TypedOverviewPlugin):
             warning to a reuser; the rest report where the specimen is.
         status_meanings: What each status means to someone hoping to re-examine the specimen.
         measurements_shown: How many measurements are listed before the rest are counted.
+            The list is filtered by type in the page, so it holds enough of each to
+            filter.
     """
 
     # The overview edits no fields, so it declares no fieldsets.
@@ -73,7 +77,7 @@ class Overview(TypedOverviewPlugin):
     # The root of the sample's address, as the other overviews are. Left unset the plugin base
     # would mount it at `overview/`, and the record's own address would answer 404.
     url_path = None
-    extra_views = [OverviewRedirect]
+    extra_views = [OverviewRedirect, CitationFile]
 
     lifecycle = [
         (f"{DATE_TYPES}/created", None, None, _("Created")),
@@ -126,7 +130,7 @@ class Overview(TypedOverviewPlugin):
         SAMPLE_STATUS_DESTROYED: _("The specimen no longer exists. Its data remains."),
         SAMPLE_STATUS_UNKNOWN: _("Where the specimen is now has not been recorded."),
     }
-    measurements_shown = 10
+    measurements_shown = 30
 
     def get_context_data(self, **kwargs):
         """Add the sample and everything the overview page draws."""
@@ -160,8 +164,11 @@ class Overview(TypedOverviewPlugin):
                 ),
                 "notes": descriptions.get(f"{DESCRIPTION_TYPES}/other"),
                 "measurements": measurements,
+                "measurement_types": self.get_measurement_types(),
                 "relations": relations,
                 "location": sample.location,
+                "has_map": sample.location is not None,
+                "primary_identifier": self.get_primary_identifier(identifiers),
                 "project": project,
                 "counts": {
                     "measurements": measurements["total"],
@@ -200,14 +207,14 @@ class Overview(TypedOverviewPlugin):
         }
 
     def get_details(self, project, status):
-        """Write the Details card's entries: where the sample sits, its licence, status and dates.
+        """Write the fact sheet's entries: where the sample sits, its licence, status and dates.
 
         Args:
             project: The parent project, or ``None`` when there is none or the viewer may not see it.
             status: The sample's status, from :meth:`get_status`.
 
         Returns:
-            The entries for :class:`c-card.details`.
+            The entries for :class:`c-overview.sheet`.
         """
         sample = self.base_object
         parents = []
@@ -245,15 +252,19 @@ class Overview(TypedOverviewPlugin):
         sample = self.base_object
         igsn = next((i for i in identifiers if i["type"].uri == IGSN), None)
         collected = dates.get(f"{DATE_TYPES}/collected")
-        text = self.get_citation(
-            authors=self.get_contributors_with_role(
-                entries, f"{CONTRIBUTOR_ROLES}/collection"
-            ),
-            year=getattr(collected, "year", None) or sample.added.year,
-            title=f"{sample.name} [{type(sample)._meta.verbose_name}]",
-            link=igsn["link"] if igsn else get_permalink(sample, self.request),
+        authors = self.get_contributors_with_role(
+            entries, f"{CONTRIBUTOR_ROLES}/collection"
         )
-        citation = {"title": gettext("Citation"), "text": text}
+        year = getattr(collected, "year", None) or sample.added.year
+        title = f"{sample.name} [{type(sample)._meta.verbose_name}]"
+        link = igsn["link"] if igsn else get_permalink(sample, self.request)
+        text = self.get_citation(authors=authors, year=year, title=title, link=link)
+        work = self.build_citation(authors=authors, year=year, title=title, link=link)
+        citation = {
+            "title": gettext("Citation"),
+            "text": text,
+            **self.get_cited_details(work, text),
+        }
         if not igsn:
             citation["note"] = gettext(
                 "This sample has no IGSN, so the citation points at this page. An IGSN gives the "
@@ -261,28 +272,38 @@ class Overview(TypedOverviewPlugin):
             )
         return citation
 
-    def get_measurements(self):
-        """Read the measurements made on this sample, most recent first.
+    def get_visible_measurements(self):
+        """Select the measurements made on this sample that the viewer may see.
 
         A measurement can belong to a different dataset than its sample, which is how one team
         measures another team's specimens. Each is shown only if the viewer may see its own
         dataset, and being on the sample's dataset team opens nothing else.
 
         Returns:
-            The measurements shown, how many the viewer may see and how many are left over.
+            The measurements, as a queryset.
+        """
+        return Measurement.objects.filter(sample=self.base_object).visible_to(
+            self.request.user
+        )
+
+    def get_measurements(self):
+        """Read the measurements made on this sample, most recent first.
+
+        Returns:
+            The measurements shown, how many the viewer may see and how many are left
+            over. Each shown entry carries its type's name and ``type_key``, the key its
+            type has in :meth:`get_measurement_types`.
         """
         sample = self.base_object
         queryset = (
-            Measurement.objects.filter(sample=sample)
-            .visible_to(self.request.user)
-            .select_related("dataset")
-            .order_by("-added")
+            self.get_visible_measurements().select_related("dataset").order_by("-added")
         )
         total = queryset.count()
         items = [
             {
                 "measurement": m,
                 "type": sentence_case(type(m)._meta.verbose_name),
+                "type_key": type(m)._meta.label_lower,
                 "elsewhere": m.dataset_id != sample.dataset_id,
             }
             for m in queryset[: self.measurements_shown]
@@ -292,6 +313,35 @@ class Overview(TypedOverviewPlugin):
             "total": total,
             "more": max(total - self.measurements_shown, 0),
         }
+
+    def get_measurement_types(self):
+        """Count the visible measurements on this sample by type, for the type filter.
+
+        Returns:
+            One ``{"key", "label", "n"}`` entry per type, the most measured first.
+            ``key`` is the model's label, which each listed measurement carries as
+            ``type_key``.
+        """
+        rows = (
+            self.get_visible_measurements()
+            .values("polymorphic_ctype")
+            .annotate(n=Count("pk"))
+            .order_by("-n", "polymorphic_ctype")
+        )
+        types = []
+        for row in rows:
+            model = ContentType.objects.get_for_id(
+                row["polymorphic_ctype"]
+            ).model_class()
+            if model is not None:
+                types.append(
+                    {
+                        "key": model._meta.label_lower,
+                        "label": sentence_case(model._meta.verbose_name_plural),
+                        "n": row["n"],
+                    }
+                )
+        return types
 
     def get_related_samples(self):
         """Read the sample's parents and subsamples.
