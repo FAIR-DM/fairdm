@@ -1,6 +1,7 @@
 """Tests for image field behaviour across all four core model forms."""
 
 import io
+import re
 
 import pytest
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -164,6 +165,35 @@ class TestImageFieldWidgetAndValidation:
             "object_card template should render the local placeholder image when 'image' is falsy. Got:\n"
             + html[:500]
         )
+
+
+    @pytest.mark.slow
+    @pytest.mark.django_db
+    def test_placeholder_renders_under_the_production_static_storage(
+        self, tmp_path, settings
+    ):
+        from django.core.management import call_command
+
+        from fairdm.factories import ProjectFactory
+
+        # Production storage: {% static %} raises for a file FairDM does not ship.
+        settings.STATIC_ROOT = str(tmp_path)
+        settings.STORAGES = {
+            **settings.STORAGES,
+            "staticfiles": {
+                "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+            },
+        }
+        settings.WHITENOISE_MANIFEST_STRICT = False
+        call_command("collectstatic", interactive=False, verbosity=0)
+        project = ProjectFactory()
+
+        html = render_to_string(
+            "cotton/components/object_card.html",
+            {"image": None, "title": "Test Project", "object": project},
+        )
+
+        assert re.search(r"/static/fairdm/img/placeholder-3x2\.[0-9a-f]{12}\.png", html)
 
 
 class TestImageThumbnailAliases:

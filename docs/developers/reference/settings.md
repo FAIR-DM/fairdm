@@ -617,8 +617,8 @@ django-dbbackup 5 refuses the two storage settings of the 4.x series, so FairDM 
 ### `STORAGES`
 
 - **Type**: `dict`
-- **Default**: Production: `default` is `FileSystemStorage` at `BASE_DIR / "media"`, and `staticfiles` is `whitenoise.storage.CompressedStaticFilesStorage`. When `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` and `S3_BUCKET_NAME` are all set, `default` is `storages.backends.s3boto3.S3Boto3Storage`. Development: Django's plain file storage for both, and no S3. `dbbackup` is `FileSystemStorage` at the directory in `BACKUP_DIR`, or at `BASE_DIR / "backups"` when `BACKUP_DIR` is empty. When the three `S3_*` variables are set, `dbbackup` is `S3Boto3Storage` in the bucket `BACKUP_S3_BUCKET_NAME`, or in `S3_BUCKET_NAME` when that is empty, under the location `backups`.
-- **What it does**: The storage for uploaded files (`default`), collected static files (`staticfiles`) and backups (`dbbackup`). FairDM does not compress or fingerprint static files.
+- **Default**: Production: `default` is `FileSystemStorage` at `BASE_DIR / "media"`, and `staticfiles` is `whitenoise.storage.CompressedManifestStaticFilesStorage`, which S3 does not change. When `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` and `S3_BUCKET_NAME` are all set, `default` is `storages.backends.s3boto3.S3Boto3Storage`. Development: Django's plain file storage for both, and no S3. `dbbackup` is `FileSystemStorage` at the directory in `BACKUP_DIR`, or at `BASE_DIR / "backups"` when `BACKUP_DIR` is empty. When the three `S3_*` variables are set, `dbbackup` is `S3Boto3Storage` in the bucket `BACKUP_S3_BUCKET_NAME`, or in `S3_BUCKET_NAME` when that is empty, under the location `backups`.
+- **What it does**: The storage for uploaded files (`default`), collected static files (`staticfiles`) and backups (`dbbackup`). In production, `collectstatic` writes each static file under a name that carries a hash of its content, such as `css/fairdm.3f2a91c0b7d4.css`, with a compressed copy beside it, and `{% static %}` gives that name. A changed file gets a new address on every deploy, so browsers never keep a stale stylesheet or script, and WhiteNoise lets them cache each file for good. The names come from the manifest `collectstatic` writes, so `{% static %}` and `static()` must name a file that exists, and must not run as a module is imported. A path to a missing file stops the page with an error, and a `static()` call at import time stops `collectstatic`. A stylesheet whose `url()` points at a missing file stops `collectstatic` too. Development uses plain storage, so a test needs no collected files.
 - **Accepts**: The format Django reads. Add a storage by assigning an item, such as `STORAGES["exports"] = {...}`. Replace where backups go by assigning `STORAGES["dbbackup"]`. The `BACKUP_DIR` container image variable sets the directory the container writes backups to; see [Container images](container-images.md). Backups kept on local disk are lost with the server, and production reports [`fairdm.W700`](../../administrators/reference/configuration-checks.md#fairdm-w700-backups-are-kept-on-the-local-disk) for them.
 
 ### `THUMBNAIL_ALIASES`
@@ -667,7 +667,7 @@ django-dbbackup 5 refuses the two storage settings of the 4.x series, so FairDM 
 
 - **Type**: `bool`
 - **Default**: `False`
-- **What it does**: WhiteNoise's setting for a missing manifest entry. FairDM does not use a manifest storage, so the setting changes nothing unless a portal does.
+- **What it does**: What the production static storage does with a file the manifest does not list. Off, a file that is in `STATIC_ROOT` is hashed when a page asks for it. On, it is an error. A path to a file that does not exist is an error either way.
 - **Accepts**: `True` or `False`.
 
 ## Background tasks

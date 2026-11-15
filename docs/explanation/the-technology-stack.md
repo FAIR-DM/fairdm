@@ -44,7 +44,7 @@ The API is built on Django REST Framework, with a generated schema and interacti
 
 ## Static and media files
 
-Static files are collected with `collectstatic` and served by WhiteNoise, with no extra web server for assets. FairDM does not bundle or minify them with django-compressor. A portal that wants django-compressor installs it and adds its own start step. The reasoning is in [ADR 0035](../adr/0035-fairdm-does-not-compress-static-files.md).
+Static files are collected with `collectstatic` and served by WhiteNoise, with no extra web server for assets. In production each collected file carries a hash of its content in its name, so a deploy gives every changed file a new address and browsers can cache static files indefinitely without ever showing a stale one. The cost is that every `{% static %}` path must name a file that exists, which the [`STORAGES`](../developers/reference/settings.md#storages) setting describes. FairDM does not bundle or minify them with django-compressor. A portal that wants django-compressor installs it and adds its own start step. The reasoning is in [ADR 0035](../adr/0035-fairdm-does-not-compress-static-files.md).
 
 Uploaded files are stored on the local filesystem by default. When an access key, a secret key and a bucket name are all set, they go to S3 object storage instead.
 

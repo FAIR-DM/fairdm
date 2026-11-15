@@ -208,6 +208,25 @@ web=$started
 wait_for_200 "$web" 8000
 pass "the portal migrated, collected static files and answered 200 on port 8000"
 
+# Every static file the home page links has a hashed name and is served, so a deploy never leaves
+# a browser with a stale stylesheet or script.
+static_check=$("$docker" exec "$web" python -c "
+import re, urllib.request
+def get(path):
+    request = urllib.request.Request('http://localhost:8000' + path, headers={'X-Forwarded-Proto': 'https'})
+    return urllib.request.urlopen(request, timeout=10)
+links = set(re.findall(r'(?:src|href)=\"(/static/[^\"?#]+)', get('/').read().decode()))
+if not links:
+    print('the home page links no static files')
+for link in sorted(links):
+    if not re.search(r'\.[0-9a-f]{12}\.[A-Za-z0-9]+$', link):
+        print('not hashed: ' + link)
+    elif get(link).status != 200:
+        print('not served: ' + link)
+" 2>&1) || fail "the static file check could not run: $static_check" "$web"
+[ -z "$static_check" ] || fail "$static_check" "$web"
+pass "every static file the home page links has a hashed name and is served"
+
 web_log=$("$docker" logs "$web" 2>&1)
 step_line=$(printf '%s\n' "$web_log" | grep -n "start step: django_migrations exists" | head -1 | cut -d: -f1 || true)
 server_line=$(printf '%s\n' "$web_log" | grep -n "Listening at" | head -1 | cut -d: -f1 || true)

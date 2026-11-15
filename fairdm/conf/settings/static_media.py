@@ -1,10 +1,12 @@
 """Static and media file settings: WhiteNoise, storages and thumbnails.
 
-Owns static serving via WhiteNoise and media storage. Media storage is the local filesystem,
-switching to S3 when ``S3_ACCESS_KEY_ID``, ``S3_SECRET_ACCESS_KEY`` and ``S3_BUCKET_NAME``
-are all present. Backups follow the media: the local backup directory, or the media bucket under
-``backups`` (``BACKUP_S3_BUCKET_NAME`` names another bucket). A portal supplies thumbnail
-aliases beyond the four core content types, and any STORAGES entry it wants to add.
+Owns static serving via WhiteNoise, with hashed file names, and media storage.
+Media storage is the local filesystem, switching to S3 when ``S3_ACCESS_KEY_ID``,
+``S3_SECRET_ACCESS_KEY`` and ``S3_BUCKET_NAME`` are all present. Static files stay
+with WhiteNoise either way. Backups follow the media: the local backup directory, or
+the media bucket under ``backups`` (``BACKUP_S3_BUCKET_NAME`` names another
+bucket). A portal supplies thumbnail aliases beyond the four core content types, and
+any STORAGES entry it wants to add.
 """
 
 import logging
@@ -34,12 +36,16 @@ MEDIA_ROOT = str(BASE_DIR / "media")
 
 MEDIA_URL = "/media/"
 
+# A file in STATIC_ROOT that the manifest does not list is hashed when asked for,
+# not refused. A path to a file that does not exist raises either way.
 WHITENOISE_MANIFEST_STRICT = False
 
 STORAGES = {
     "staticfiles": {
-        # CompressedManifestStaticFilesStorage is more trouble than it is worth.
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        # Hashed names, so a deploy never leaves a browser a stale stylesheet or
+        # script. Each static path must name a file that exists, and static() must
+        # not run at import time, or pages and collectstatic fail.
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",
