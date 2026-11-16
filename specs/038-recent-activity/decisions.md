@@ -127,3 +127,29 @@ panel follows the same rule for the dataset alone.
 The maintainer's list for the project panel names its datasets' creation and not the project's own.
 His rule is "only project-level and dataset-level events", and a project being created is one, so it
 stays, as the first line of a project's history. It is one line, at most, in a project's life.
+
+## D16 — Additions are counted from when each record was added
+
+Samples and measurements added, and projects and datasets created, are worked out from each
+record's own `added` time, as the prototype does. Only the events that leave no other trace are
+recorded as actions: a dataset published, details edited, a contributor added.
+
+Counting from `added` counts only what still exists (FR-015), shows an upgraded portal's past with
+no migration (FR-016, SC-005), and adds nothing to an import (SC-003). Recording an action for each
+sample would need all three solved again.
+
+## D17 — The look comes through FairDM's overrides of the package's list and row
+
+The package's list draws its rows inside a card, and each row as a person's avatar, a sentence and
+a time. The prototype's panel is a list of days, each with its lines, inside FairDM's own panel.
+FairDM overrides `cotton/mvp_community/activity/feed.html` to group the lines it is handed by day,
+and `cotton/mvp_community/activity/entry.html` to draw one line, both of which the package documents
+as templates a project may override. FairDM includes none of the package's pages, so nothing else
+draws through them.
+
+## D18 — Sample and measurement counts follow who may see the records
+
+A line counting samples or measurements added to a dataset counts only the records the viewer may
+see, by the same rule as the page's own Samples and Measurements figures. A visitor reading a
+public dataset whose data is not yet published sees the dataset's other lines and no counts, as
+the page shows them no samples.
