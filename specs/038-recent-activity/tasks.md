@@ -20,7 +20,7 @@ that makes it pass is written. Wording and appearance get no tests.
   from `BaseModel` to `Project` and `Dataset`, as plan.md "Dependency and settings" describes.
 - [x] T002 [US1] Tests: `TestRecordEdits`, `TestRecordPublished`, `TestRecordJoined` and
   `TestRecordingNeverFails` in `tests/test_contrib/test_activity/test_receivers.py`, and
-  `TestNoOtherFeed` in `tests/test_contrib/test_activity/test_exposure.py`, as plan.md "Tests"
+  `TestNoOtherFeed` in `tests/test_contrib/test_activity/test_apps.py`, as plan.md "Tests"
   describes.
 - [x] T003 [US1] `fairdm/contrib/activity/` with `apps.py` and `receivers.py`, as plan.md
   "Recording" describes. T002 goes green.

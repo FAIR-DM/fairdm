@@ -256,7 +256,7 @@ lines give two pages, the second holding five.
   Account Center renders `mvp_accounts`' page.
 - The project and dataset pages each render `data-card="activity"`.
 
-`tests/test_contrib/test_activity/test_exposure.py`, `TestNoOtherFeed` (scenario 23, FR-013): no address of
+`tests/test_contrib/test_activity/test_apps.py`, `TestNoOtherFeed` (scenario 23, FR-013): no address of
 `mvp_community_activity` or `actstream` resolves, and every action recorded is not public.
 
 ## Proof of scale (SC-003, SC-004)
