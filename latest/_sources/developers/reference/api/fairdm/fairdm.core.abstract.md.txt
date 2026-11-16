@@ -127,16 +127,6 @@ Bases: {py:obj}`fairdm.db.models.Model`
 
 ````
 
-````{py:attribute} tracker
-:canonical: fairdm.core.abstract.BaseModel.tracker
-:value: >
-   'FieldTracker(...)'
-
-```{autodoc2-docstring} fairdm.core.abstract.BaseModel.tracker
-```
-
-````
-
 `````{py:class} Meta
 :canonical: fairdm.core.abstract.BaseModel.Meta
 

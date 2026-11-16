@@ -102,7 +102,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.5.0" />
-    <meta name="docbuild:last-update" content="Nov 14, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 16, 2026"/>
   
     
     <script src="_static/searchtools.js"></script>
@@ -815,6 +815,7 @@ and this project adheres to <a class="reference external" href="https://semver.o
 <section id="added">
 <h3>Added<a class="headerlink" href="#added" title="Link to this heading">#</a></h3>
 <ul class="simple">
+<li><p><strong>Project and dataset pages show their recent activity.</strong> A “Recent activity” panel lists the newest 8 things that happened, grouped by day: the record or a dataset created, a dataset published, details edited, someone joining, and how many samples and measurements were added to each dataset that day. A project’s panel covers its datasets too, and shows nothing about a dataset the viewer may not open. <strong>See all</strong> leads to the record’s full list at its address followed by <code class="docutils literal notranslate"><span class="pre">activity/</span></code>. Publishing, edits and people joining are recorded from this version on with django-activity-stream, as actions no feed shows. Additions are worked out from when each record was added, so an upgraded portal shows its past additions straight away. The panel is <code class="docutils literal notranslate"><span class="pre">&lt;c-overview.activity&gt;</span></code> in the new <code class="docutils literal notranslate"><span class="pre">overview.activity</span></code> block. FairDM now depends on <code class="docutils literal notranslate"><span class="pre">django-mvp-community[activity]</span></code> and <code class="docutils literal notranslate"><span class="pre">django-activity-stream</span></code>, and installs <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.activity</span></code>, <code class="docutils literal notranslate"><span class="pre">mvp_community</span></code> and <code class="docutils literal notranslate"><span class="pre">actstream</span></code>. Run <code class="docutils literal notranslate"><span class="pre">migrate</span></code> to create django-activity-stream’s tables. Do not include <code class="docutils literal notranslate"><span class="pre">actstream.urls</span></code> in a portal’s URLs: some of its views show the hidden actions to anyone. See <a class="reference internal" href="developers/reference/components.html#c-overview-activity"><span class="std std-ref">Components</span></a>.</p></li>
 <li><p><strong>Project and dataset pages map where their samples come from.</strong> A “Where the samples come
 from” panel shows every sample the viewer may open that has a location, clustered where they
 crowd, opening on the record’s spatial coverage. Selecting a cluster zooms in and selecting a

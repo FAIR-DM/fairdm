@@ -462,7 +462,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.5.0" />
-    <meta name="docbuild:last-update" content="Nov 14, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 16, 2026"/>
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1217,6 +1217,7 @@ window.runMermaid = runMermaid;</script>
 <li class="toctree-l1"><a class="reference internal" href="plugins.html">Plugins</a></li>
 <li class="toctree-l1"><a class="reference internal" href="portal-roles.html">Portal roles in code</a></li>
 <li class="toctree-l1"><a class="reference internal" href="profile-claiming.html">Profile claiming</a></li>
+<li class="toctree-l1"><a class="reference internal" href="recent-activity.html">Recent activity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="record-editing-pages.html">Record editing pages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="record-fields.html">Record fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rest-api.html">REST API</a></li>
@@ -1302,6 +1303,7 @@ window.runMermaid = runMermaid;</script>
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.autocomplete.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.autocomplete</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.location.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.location</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.import_export.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.import_export</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.activity.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.activity</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.contributors.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.contributors</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.collections.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.collections</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.admin</span></code></a></li>
@@ -1521,7 +1523,6 @@ window.runMermaid = runMermaid;</script>
 </tbody>
 </table>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">tracker</span></code> is a <code class="docutils literal notranslate"><span class="pre">FieldTracker</span></code> from django-model-utils. It adds no column.</p>
 <section id="methods-every-record-has">
 <h3>Methods every record has<a class="headerlink" href="#methods-every-record-has" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="table">
@@ -1676,6 +1677,7 @@ window.runMermaid = runMermaid;</script>
 </table>
 </div>
 <p>A value that is not a list of such objects fails validation with one of the codes <code class="docutils literal notranslate"><span class="pre">funding_not_list</span></code>, <code class="docutils literal notranslate"><span class="pre">funding_unknown_key</span></code>, <code class="docutils literal notranslate"><span class="pre">funding_missing_funder_name</span></code>, <code class="docutils literal notranslate"><span class="pre">funding_invalid_type</span></code> or <code class="docutils literal notranslate"><span class="pre">funding_invalid_identifier_type</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">tracker</span></code> is a <code class="docutils literal notranslate"><span class="pre">FieldTracker</span></code> from django-model-utils, which tells which fields a save changed. It adds no column.</p>
 <section id="class-attributes">
 <h3>Class attributes<a class="headerlink" href="#class-attributes" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="table">
@@ -1811,6 +1813,7 @@ window.runMermaid = runMermaid;</script>
 </table>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">FAIRDM_DEFAULT_LICENSE</span></code> is described on <a class="reference internal" href="settings.html"><span class="std std-doc">Settings</span></a>. The default is read when a dataset is created. If the portal has not loaded its licences yet, the default is empty.</p>
+<p><code class="docutils literal notranslate"><span class="pre">tracker</span></code> is a <code class="docutils literal notranslate"><span class="pre">FieldTracker</span></code> from django-model-utils, which tells which fields a save changed. It adds no column.</p>
 <section id="id1">
 <h3>Class attributes<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
 <div class="pst-scrollable-table-container"><table class="table">

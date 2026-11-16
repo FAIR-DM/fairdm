@@ -1,0 +1,416 @@
+# {py:mod}`fairdm.contrib.activity.lines`
+
+```{py:module} fairdm.contrib.activity.lines
+```
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Line <fairdm.contrib.activity.lines.Line>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.lines.Line
+    :summary:
+    ```
+* - {py:obj}`Day <fairdm.contrib.activity.lines.Day>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.lines.Day
+    :summary:
+    ```
+* - {py:obj}`Row <fairdm.contrib.activity.lines.Row>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.lines.Row
+    :summary:
+    ```
+* - {py:obj}`ActivityLines <fairdm.contrib.activity.lines.ActivityLines>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.lines.ActivityLines
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`group_days <fairdm.contrib.activity.lines.group_days>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.lines.group_days
+    :summary:
+    ```
+* - {py:obj}`recent_activity <fairdm.contrib.activity.lines.recent_activity>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.lines.recent_activity
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`PANEL_LINES <fairdm.contrib.activity.lines.PANEL_LINES>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.lines.PANEL_LINES
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} PANEL_LINES
+:canonical: fairdm.contrib.activity.lines.PANEL_LINES
+:value: >
+   8
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.PANEL_LINES
+```
+
+````
+
+`````{py:class} Line
+:canonical: fairdm.contrib.activity.lines.Line
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.Line
+```
+
+````{py:attribute} timestamp
+:canonical: fairdm.contrib.activity.lines.Line.timestamp
+:type: datetime.datetime
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.Line.timestamp
+```
+
+````
+
+````{py:attribute} day
+:canonical: fairdm.contrib.activity.lines.Line.day
+:type: datetime.date
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.Line.day
+```
+
+````
+
+````{py:attribute} kind
+:canonical: fairdm.contrib.activity.lines.Line.kind
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.Line.kind
+```
+
+````
+
+````{py:attribute} html
+:canonical: fairdm.contrib.activity.lines.Line.html
+:type: django.utils.safestring.SafeString
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.Line.html
+```
+
+````
+
+````{py:attribute} count
+:canonical: fairdm.contrib.activity.lines.Line.count
+:type: int
+:value: >
+   1
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.Line.count
+```
+
+````
+
+`````
+
+`````{py:class} Day
+:canonical: fairdm.contrib.activity.lines.Day
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.Day
+```
+
+````{py:attribute} day
+:canonical: fairdm.contrib.activity.lines.Day.day
+:type: datetime.date
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.Day.day
+```
+
+````
+
+````{py:attribute} lines
+:canonical: fairdm.contrib.activity.lines.Day.lines
+:type: tuple
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.Day.lines
+```
+
+````
+
+`````
+
+`````{py:class} Row
+:canonical: fairdm.contrib.activity.lines.Row
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.Row
+```
+
+````{py:attribute} timestamp
+:canonical: fairdm.contrib.activity.lines.Row.timestamp
+:type: datetime.datetime
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.Row.timestamp
+```
+
+````
+
+````{py:attribute} day
+:canonical: fairdm.contrib.activity.lines.Row.day
+:type: datetime.date
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.Row.day
+```
+
+````
+
+````{py:attribute} source
+:canonical: fairdm.contrib.activity.lines.Row.source
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.Row.source
+```
+
+````
+
+````{py:attribute} model
+:canonical: fairdm.contrib.activity.lines.Row.model
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.Row.model
+```
+
+````
+
+````{py:attribute} record_id
+:canonical: fairdm.contrib.activity.lines.Row.record_id
+:type: int
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.Row.record_id
+```
+
+````
+
+````{py:attribute} count
+:canonical: fairdm.contrib.activity.lines.Row.count
+:type: int
+:value: >
+   1
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.Row.count
+```
+
+````
+
+````{py:attribute} contributor_id
+:canonical: fairdm.contrib.activity.lines.Row.contributor_id
+:type: int | None
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.Row.contributor_id
+```
+
+````
+
+````{py:property} kind
+:canonical: fairdm.contrib.activity.lines.Row.kind
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.Row.kind
+```
+
+````
+
+`````
+
+`````{py:class} ActivityLines(record, user)
+:canonical: fairdm.contrib.activity.lines.ActivityLines
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.ActivityLines
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.ActivityLines.__init__
+```
+
+````{py:method} sources()
+:canonical: fairdm.contrib.activity.lines.ActivityLines.sources
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.ActivityLines.sources
+```
+
+````
+
+````{py:method} counted(model)
+:canonical: fairdm.contrib.activity.lines.ActivityLines.counted
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.ActivityLines.counted
+```
+
+````
+
+````{py:method} new_datasets()
+:canonical: fairdm.contrib.activity.lines.ActivityLines.new_datasets
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.ActivityLines.new_datasets
+```
+
+````
+
+````{py:method} project_created()
+:canonical: fairdm.contrib.activity.lines.ActivityLines.project_created
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.ActivityLines.project_created
+```
+
+````
+
+````{py:method} in_scope(side, projects=True)
+:canonical: fairdm.contrib.activity.lines.ActivityLines.in_scope
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.ActivityLines.in_scope
+```
+
+````
+
+````{py:method} actions(verb, condition)
+:canonical: fairdm.contrib.activity.lines.ActivityLines.actions
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.ActivityLines.actions
+```
+
+````
+
+````{py:method} edits()
+:canonical: fairdm.contrib.activity.lines.ActivityLines.edits
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.ActivityLines.edits
+```
+
+````
+
+````{py:method} publications()
+:canonical: fairdm.contrib.activity.lines.ActivityLines.publications
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.ActivityLines.publications
+```
+
+````
+
+````{py:method} joinings()
+:canonical: fairdm.contrib.activity.lines.ActivityLines.joinings
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.ActivityLines.joinings
+```
+
+````
+
+````{py:method} count_row(source)
+:canonical: fairdm.contrib.activity.lines.ActivityLines.count_row
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.ActivityLines.count_row
+```
+
+````
+
+````{py:method} dataset_row(found)
+:canonical: fairdm.contrib.activity.lines.ActivityLines.dataset_row
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.ActivityLines.dataset_row
+```
+
+````
+
+````{py:method} action_row(source)
+:canonical: fairdm.contrib.activity.lines.ActivityLines.action_row
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.ActivityLines.action_row
+```
+
+````
+
+````{py:method} is_own(row)
+:canonical: fairdm.contrib.activity.lines.ActivityLines.is_own
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.ActivityLines.is_own
+```
+
+````
+
+````{py:method} lines(rows)
+:canonical: fairdm.contrib.activity.lines.ActivityLines.lines
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.ActivityLines.lines
+```
+
+````
+
+````{py:method} sentence(row, record, contributor)
+:canonical: fairdm.contrib.activity.lines.ActivityLines.sentence
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.ActivityLines.sentence
+```
+
+````
+
+````{py:method} link(record)
+:canonical: fairdm.contrib.activity.lines.ActivityLines.link
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.ActivityLines.link
+```
+
+````
+
+`````
+
+````{py:function} group_days(lines)
+:canonical: fairdm.contrib.activity.lines.group_days
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.group_days
+```
+````
+
+````{py:function} recent_activity(record, request)
+:canonical: fairdm.contrib.activity.lines.recent_activity
+
+```{autodoc2-docstring} fairdm.contrib.activity.lines.recent_activity
+```
+````

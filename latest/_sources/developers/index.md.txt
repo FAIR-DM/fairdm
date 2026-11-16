@@ -114,6 +114,7 @@ explanation covers why parts of FairDM work as they do. Explanation every reader
 - [Plugins](reference/plugins.md)
 - [Portal roles in code](reference/portal-roles.md)
 - [Profile claiming](reference/profile-claiming.md)
+- [Recent activity](reference/recent-activity.md)
 - [Record editing pages](reference/record-editing-pages.md)
 - [Record fields](reference/record-fields.md)
 - [REST API](reference/rest-api.md)
@@ -251,6 +252,7 @@ reference/permalinks
 reference/plugins
 reference/portal-roles
 reference/profile-claiming
+reference/recent-activity
 reference/record-editing-pages
 reference/record-fields
 reference/rest-api

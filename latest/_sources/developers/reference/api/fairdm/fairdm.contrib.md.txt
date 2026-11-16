@@ -18,6 +18,7 @@ fairdm.contrib.identity
 fairdm.contrib.autocomplete
 fairdm.contrib.location
 fairdm.contrib.import_export
+fairdm.contrib.activity
 fairdm.contrib.contributors
 fairdm.contrib.collections
 fairdm.contrib.admin

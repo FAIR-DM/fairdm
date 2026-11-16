@@ -37,8 +37,6 @@ erDiagram
 | `added` | `DateTimeField` | The time of creation | When the record was added. | Not editable. |
 | `modified` | `DateTimeField` | The time of each save | When the record was last saved. | Not editable. |
 
-`tracker` is a `FieldTracker` from django-model-utils. It adds no column.
-
 ### Methods every record has
 
 | Name | Returns |
@@ -86,6 +84,8 @@ Each object in `funding` accepts these keys and no others:
 
 A value that is not a list of such objects fails validation with one of the codes `funding_not_list`, `funding_unknown_key`, `funding_missing_funder_name`, `funding_invalid_type` or `funding_invalid_identifier_type`.
 
+`tracker` is a `FieldTracker` from django-model-utils, which tells which fields a save changed. It adds no column.
+
 ### Class attributes
 
 | Name | Value |
@@ -128,6 +128,8 @@ Deleting a project deletes its datasets. A project that still has a public datas
 | `contributors` | `GenericRelation` to `contributors.Contribution` | | The dataset's credits. | |
 
 `FAIRDM_DEFAULT_LICENSE` is described on [Settings](settings.md). The default is read when a dataset is created. If the portal has not loaded its licences yet, the default is empty.
+
+`tracker` is a `FieldTracker` from django-model-utils, which tells which fields a save changed. It adds no column.
 
 ### Class attributes
 

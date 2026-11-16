@@ -103,7 +103,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.5.0" />
-    <meta name="docbuild:last-update" content="Nov 14, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 16, 2026"/>
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -858,6 +858,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l1"><a class="reference internal" href="plugins.html">Plugins</a></li>
 <li class="toctree-l1"><a class="reference internal" href="portal-roles.html">Portal roles in code</a></li>
 <li class="toctree-l1"><a class="reference internal" href="profile-claiming.html">Profile claiming</a></li>
+<li class="toctree-l1"><a class="reference internal" href="recent-activity.html">Recent activity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="record-editing-pages.html">Record editing pages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="record-fields.html">Record fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rest-api.html">REST API</a></li>
@@ -943,6 +944,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.autocomplete.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.autocomplete</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.location.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.location</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.import_export.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.import_export</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.activity.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.activity</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.contributors.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.contributors</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.collections.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.collections</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.admin</span></code></a></li>
@@ -1775,6 +1777,36 @@ commentsRunWhenDOMLoaded(addUtterances);
 </table>
 </div>
 <div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">c-overview.coverage</span> <span class="na">:map</span><span class="o">=</span><span class="s">"sample_map"</span> <span class="na">id</span><span class="o">=</span><span class="s">"coverage"</span> <span class="na">more_url</span><span class="o">=</span><span class="s">"{{ urls.samples }}"</span> <span class="p">/&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="c-overview-activity">
+<h3><code class="docutils literal notranslate"><span class="pre">c-overview.activity</span></code><a class="headerlink" href="#c-overview-activity" title="Link to this heading">#</a></h3>
+<p>A project’s or dataset’s recent activity: its lines grouped by day, newest first, each line marked in its record’s colour. <code class="docutils literal notranslate"><span class="pre">data-card</span></code> is <code class="docutils literal notranslate"><span class="pre">activity</span></code>. The list is django-mvp-community’s <code class="docutils literal notranslate"><span class="pre">&lt;c-mvp_community.activity.feed&gt;</span></code>, handed one item per day, and it draws its own empty state when there is nothing to show. FairDM overrides that package’s row, <code class="docutils literal notranslate"><span class="pre">cotton/mvp_community/activity/entry.html</span></code>, to draw a day, so any other use of the package’s list in a portal draws FairDM’s day row too.</p>
+<p>The actions behind the panel are recorded as not public and read through each record’s own rules. Do not include <code class="docutils literal notranslate"><span class="pre">actstream.urls</span></code> in a portal’s URLs: some of django-activity-stream’s views show actions that are not public to anyone.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Attribute</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Default</p></th>
+<th class="head"><p>Accepts</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">days</span></code></p></td>
+<td><p>list</p></td>
+<td><p></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Day</span></code> items from <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.activity.lines.group_days()</span></code>, each with <code class="docutils literal notranslate"><span class="pre">day</span></code> and <code class="docutils literal notranslate"><span class="pre">lines</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">more_url</span></code></p></td>
+<td><p>string</p></td>
+<td><p></p></td>
+<td><p>The full list, linked as See all.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="highlight-html notranslate"><div class="highlight"><pre><span></span><span class="p">&lt;</span><span class="nt">c-overview.activity</span> <span class="na">:days</span><span class="o">=</span><span class="s">"activity.days"</span> <span class="na">more_url</span><span class="o">=</span><span class="s">"{{ activity.more_url }}"</span> <span class="p">/&gt;</span>
 </pre></div>
 </div>
 </section>
@@ -3522,6 +3554,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-history"><code class="docutils literal notranslate"><span class="pre">c-overview.history</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-props-and-c-overview-prop"><code class="docutils literal notranslate"><span class="pre">c-overview.props</span></code> and <code class="docutils literal notranslate"><span class="pre">c-overview.prop</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-coverage"><code class="docutils literal notranslate"><span class="pre">c-overview.coverage</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-activity"><code class="docutils literal notranslate"><span class="pre">c-overview.activity</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#c-overview-location"><code class="docutils literal notranslate"><span class="pre">c-overview.location</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#maps-and-filters-in-js-overview-js">Maps and filters in <code class="docutils literal notranslate"><span class="pre">js/overview.js</span></code></a></li>
 </ul>

@@ -1,0 +1,189 @@
+# {py:mod}`fairdm.contrib.activity.receivers`
+
+```{py:module} fairdm.contrib.activity.receivers
+```
+
+```{autodoc2-docstring} fairdm.contrib.activity.receivers
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`record <fairdm.contrib.activity.receivers.record>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.receivers.record
+    :summary:
+    ```
+* - {py:obj}`record_edit <fairdm.contrib.activity.receivers.record_edit>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.receivers.record_edit
+    :summary:
+    ```
+* - {py:obj}`record_published <fairdm.contrib.activity.receivers.record_published>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.receivers.record_published
+    :summary:
+    ```
+* - {py:obj}`record_related_saved <fairdm.contrib.activity.receivers.record_related_saved>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.receivers.record_related_saved
+    :summary:
+    ```
+* - {py:obj}`record_related_deleted <fairdm.contrib.activity.receivers.record_related_deleted>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.receivers.record_related_deleted
+    :summary:
+    ```
+* - {py:obj}`record_joined <fairdm.contrib.activity.receivers.record_joined>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.receivers.record_joined
+    :summary:
+    ```
+* - {py:obj}`connect <fairdm.contrib.activity.receivers.connect>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.receivers.connect
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`logger <fairdm.contrib.activity.receivers.logger>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.receivers.logger
+    :summary:
+    ```
+* - {py:obj}`EDITED <fairdm.contrib.activity.receivers.EDITED>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.receivers.EDITED
+    :summary:
+    ```
+* - {py:obj}`PUBLISHED <fairdm.contrib.activity.receivers.PUBLISHED>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.receivers.PUBLISHED
+    :summary:
+    ```
+* - {py:obj}`JOINED <fairdm.contrib.activity.receivers.JOINED>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.receivers.JOINED
+    :summary:
+    ```
+* - {py:obj}`UNREPORTED_FIELDS <fairdm.contrib.activity.receivers.UNREPORTED_FIELDS>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.receivers.UNREPORTED_FIELDS
+    :summary:
+    ```
+* - {py:obj}`RELATED_MODELS <fairdm.contrib.activity.receivers.RELATED_MODELS>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.receivers.RELATED_MODELS
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} logger
+:canonical: fairdm.contrib.activity.receivers.logger
+:value: >
+   'getLogger(...)'
+
+```{autodoc2-docstring} fairdm.contrib.activity.receivers.logger
+```
+
+````
+
+````{py:data} EDITED
+:canonical: fairdm.contrib.activity.receivers.EDITED
+:value: >
+   'edited'
+
+```{autodoc2-docstring} fairdm.contrib.activity.receivers.EDITED
+```
+
+````
+
+````{py:data} PUBLISHED
+:canonical: fairdm.contrib.activity.receivers.PUBLISHED
+:value: >
+   'published'
+
+```{autodoc2-docstring} fairdm.contrib.activity.receivers.PUBLISHED
+```
+
+````
+
+````{py:data} JOINED
+:canonical: fairdm.contrib.activity.receivers.JOINED
+:value: >
+   'joined'
+
+```{autodoc2-docstring} fairdm.contrib.activity.receivers.JOINED
+```
+
+````
+
+````{py:data} UNREPORTED_FIELDS
+:canonical: fairdm.contrib.activity.receivers.UNREPORTED_FIELDS
+:value: >
+   'frozenset(...)'
+
+```{autodoc2-docstring} fairdm.contrib.activity.receivers.UNREPORTED_FIELDS
+```
+
+````
+
+````{py:data} RELATED_MODELS
+:canonical: fairdm.contrib.activity.receivers.RELATED_MODELS
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.contrib.activity.receivers.RELATED_MODELS
+```
+
+````
+
+````{py:function} record(actor, verb, target=None)
+:canonical: fairdm.contrib.activity.receivers.record
+
+```{autodoc2-docstring} fairdm.contrib.activity.receivers.record
+```
+````
+
+````{py:function} record_edit(sender, instance, created, **kwargs)
+:canonical: fairdm.contrib.activity.receivers.record_edit
+
+```{autodoc2-docstring} fairdm.contrib.activity.receivers.record_edit
+```
+````
+
+````{py:function} record_published(sender, instance, created, **kwargs)
+:canonical: fairdm.contrib.activity.receivers.record_published
+
+```{autodoc2-docstring} fairdm.contrib.activity.receivers.record_published
+```
+````
+
+````{py:function} record_related_saved(sender, instance, **kwargs)
+:canonical: fairdm.contrib.activity.receivers.record_related_saved
+
+```{autodoc2-docstring} fairdm.contrib.activity.receivers.record_related_saved
+```
+````
+
+````{py:function} record_related_deleted(sender, instance, origin=None, **kwargs)
+:canonical: fairdm.contrib.activity.receivers.record_related_deleted
+
+```{autodoc2-docstring} fairdm.contrib.activity.receivers.record_related_deleted
+```
+````
+
+````{py:function} record_joined(sender, instance, created, **kwargs)
+:canonical: fairdm.contrib.activity.receivers.record_joined
+
+```{autodoc2-docstring} fairdm.contrib.activity.receivers.record_joined
+```
+````
+
+````{py:function} connect()
+:canonical: fairdm.contrib.activity.receivers.connect
+
+```{autodoc2-docstring} fairdm.contrib.activity.receivers.connect
+```
+````

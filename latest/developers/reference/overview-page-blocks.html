@@ -103,7 +103,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.5.0" />
-    <meta name="docbuild:last-update" content="Nov 14, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 16, 2026"/>
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -858,6 +858,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l1"><a class="reference internal" href="plugins.html">Plugins</a></li>
 <li class="toctree-l1"><a class="reference internal" href="portal-roles.html">Portal roles in code</a></li>
 <li class="toctree-l1"><a class="reference internal" href="profile-claiming.html">Profile claiming</a></li>
+<li class="toctree-l1"><a class="reference internal" href="recent-activity.html">Recent activity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="record-editing-pages.html">Record editing pages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="record-fields.html">Record fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="rest-api.html">REST API</a></li>
@@ -943,6 +944,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.autocomplete.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.autocomplete</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.location.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.location</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.import_export.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.import_export</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.activity.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.activity</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.contributors.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.contributors</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.collections.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.collections</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="api/fairdm/fairdm.contrib.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.admin</span></code></a></li>
@@ -1248,6 +1250,9 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">has_map</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">overview.map_library</span></code>.</p></td>
 </tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">activity</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">overview.activity</span></code>, on the project and dataset pages: <code class="docutils literal notranslate"><span class="pre">days</span></code> and <code class="docutils literal notranslate"><span class="pre">more_url</span></code>.</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1266,12 +1271,12 @@ commentsRunWhenDOMLoaded(addUtterances);
 <tbody>
 <tr class="row-even"><td><p>Project</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">overview.badges</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.facts</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.notices</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.figures</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.main</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.details_extra</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">overview.about</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.datasets</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.charts</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.map</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">overview.about</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.datasets</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.charts</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.map</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.activity</span></code></p></td>
 <td><p></p></td>
 </tr>
 <tr class="row-odd"><td><p>Dataset</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">overview.badges</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.facts</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.readiness</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.notices</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.figures</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.main</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.record_facts</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">overview.about</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.lifecycle</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.data</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.charts</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.map</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">overview.about</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.lifecycle</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.data</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.charts</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.map</span></code>, <code class="docutils literal notranslate"><span class="pre">overview.activity</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">overview.publications</span></code>, inside <code class="docutils literal notranslate"><span class="pre">overview.record_facts</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>Sample</p></td>
@@ -1317,6 +1322,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </div>
 <p>The person page’s <code class="docutils literal notranslate"><span class="pre">overview.future</span></code> holds the publications and map cards and the organization page’s holds its members map. The activity blocks hold <a class="reference internal" href="components.html#c-card-placeholder"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">c-card.placeholder</span></code></span></a> cards.</p>
 <p><code class="docutils literal notranslate"><span class="pre">overview.map</span></code> on the project and dataset pages draws <a class="reference internal" href="components.html#c-overview-coverage"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">c-overview.coverage</span></code></span></a> from <code class="docutils literal notranslate"><span class="pre">sample_map</span></code> when the viewer may open at least one sample.</p>
+<p><code class="docutils literal notranslate"><span class="pre">overview.activity</span></code> on the project and dataset pages draws <a class="reference internal" href="components.html#c-overview-activity"><span class="std std-ref"><code class="docutils literal notranslate"><span class="pre">c-overview.activity</span></code></span></a> from <code class="docutils literal notranslate"><span class="pre">activity</span></code>, which the overview plugin sets with <code class="docutils literal notranslate"><span class="pre">fairdm.contrib.activity.lines.recent_activity(record,</span> <span class="pre">request)</span></code>: <code class="docutils literal notranslate"><span class="pre">days</span></code>, the newest 8 lines the viewer may see grouped by day, and <code class="docutils literal notranslate"><span class="pre">more_url</span></code>, the record’s full list at <code class="docutils literal notranslate"><span class="pre">&lt;record</span> <span class="pre">address&gt;activity/</span></code> (<code class="docutils literal notranslate"><span class="pre">project:activity</span></code>, <code class="docutils literal notranslate"><span class="pre">dataset:activity</span></code>) when there are more.</p>
 <p>The project page’s datasets panel carries Add dataset beside “See all” for the team, and its timeline row in the fact sheet carries the key dates’ Edit. The dataset page’s timeline panel carries the key dates’ Edit and its readiness panel carries Publish.</p>
 </section>
 <section id="tasks">

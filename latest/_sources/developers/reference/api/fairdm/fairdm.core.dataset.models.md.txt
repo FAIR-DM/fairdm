@@ -374,6 +374,16 @@ Bases: {py:obj}`fairdm.core.abstract.BaseModel`
 
 ````
 
+````{py:attribute} tracker
+:canonical: fairdm.core.dataset.models.Dataset.tracker
+:value: >
+   'FieldTracker(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.models.Dataset.tracker
+```
+
+````
+
 ````{py:attribute} uuid
 :canonical: fairdm.core.dataset.models.Dataset.uuid
 :value: >

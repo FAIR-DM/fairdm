@@ -1,0 +1,20 @@
+# {py:mod}`fairdm.contrib.activity`
+
+```{py:module} fairdm.contrib.activity
+```
+
+```{autodoc2-docstring} fairdm.contrib.activity
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.contrib.activity.apps
+fairdm.contrib.activity.receivers
+fairdm.contrib.activity.plugins
+fairdm.contrib.activity.lines
+```

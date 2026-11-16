@@ -103,7 +103,7 @@ commentsRunWhenDOMLoaded(addUtterances);
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.5.0" />
-    <meta name="docbuild:last-update" content="Nov 14, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 16, 2026"/>
   
     
     <script src="../../../../_static/searchtools.js"></script>
@@ -858,6 +858,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l1"><a class="reference internal" href="../../plugins.html">Plugins</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../portal-roles.html">Portal roles in code</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../profile-claiming.html">Profile claiming</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../recent-activity.html">Recent activity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../record-editing-pages.html">Record editing pages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../record-fields.html">Record fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../rest-api.html">REST API</a></li>
@@ -943,6 +944,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.autocomplete.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.autocomplete</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.location.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.location</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.import_export.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.import_export</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.activity.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.activity</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.contributors.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.contributors</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.collections.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.collections</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.admin</span></code></a></li>
@@ -1220,6 +1222,12 @@ should relate back to a project.</p>
 <dt class="sig sig-object py" id="fairdm.core.project.models.Project.objects">
 <span class="sig-name descname"><span class="pre">objects</span></span><a class="headerlink" href="#fairdm.core.project.models.Project.objects" title="Link to this definition">#</a></dt>
 <dd><p>‘as_manager(…)’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.core.project.models.Project.tracker">
+<span class="sig-name descname"><span class="pre">tracker</span></span><a class="headerlink" href="#fairdm.core.project.models.Project.tracker" title="Link to this definition">#</a></dt>
+<dd><p>‘FieldTracker(…)’</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1590,6 +1598,7 @@ PublicDatasetsProtect: The project has public datasets.</p>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.project.models.Project.STATUS_CHOICES"><code class="docutils literal notranslate"><span class="pre">Project.STATUS_CHOICES</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.project.models.Project.VISIBILITY"><code class="docutils literal notranslate"><span class="pre">Project.VISIBILITY</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.project.models.Project.objects"><code class="docutils literal notranslate"><span class="pre">Project.objects</span></code></a></li>
+<li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.project.models.Project.tracker"><code class="docutils literal notranslate"><span class="pre">Project.tracker</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.project.models.Project.uuid"><code class="docutils literal notranslate"><span class="pre">Project.uuid</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.project.models.Project.visibility"><code class="docutils literal notranslate"><span class="pre">Project.visibility</span></code></a></li>
 <li class="toc-h5 nav-item toc-entry"><a class="reference internal nav-link" href="#fairdm.core.project.models.Project.funding"><code class="docutils literal notranslate"><span class="pre">Project.funding</span></code></a></li>
