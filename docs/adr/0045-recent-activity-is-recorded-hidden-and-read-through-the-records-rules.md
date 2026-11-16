@@ -15,9 +15,12 @@ time.
 What a viewer sees is decided when the page is drawn, from the records' visibility and the viewer's
 levels as they stand then. `ActivityLines` limits every line to the datasets the viewer may see
 (`DatasetQuerySet.visible_to`), and the sample and measurement counts to the records the viewer may
-see (`visible_to` on their managers). No page FairDM ships, and none of django-mvp-community's or
-django-activity-stream's own feeds, shows the actions any other way, because none of them shows an
-action that is not public.
+see (`visible_to` on their managers). No other page FairDM ships shows the actions. FairDM
+includes neither `actstream.urls` nor django-mvp-community's activity URLs, and a portal must not
+include `actstream.urls` either: some of django-activity-stream's own views show actions that are
+not public, with no regard to who may open the records they name. The administration interface
+lists the actions to staff who hold django-activity-stream's view permission, which no role FairDM
+ships grants.
 
 ## Why
 

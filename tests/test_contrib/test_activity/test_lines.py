@@ -11,6 +11,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.db import connection
 from django.test import RequestFactory
 from django.test.utils import CaptureQueriesContext
+from django.urls import reverse
 
 from fairdm.contrib.activity.lines import (
     ActivityLines,
@@ -113,6 +114,9 @@ class TestActivityLines:
         lines = lines_of(project)
 
         assert kinds(lines) == CREATED + Counter(sample=1, measurement=1, dataset=3)
+        assert {line.kind: line.count for line in lines if line.count > 1} == {
+            "sample": 2
+        }
         assert all(isinstance(line, Line) for line in lines)
         assert any(dataset.get_absolute_url() in line.html for line in lines)
         assert any(person.get_absolute_url() in line.html for line in lines)
@@ -316,17 +320,9 @@ def request_of_a_visitor():
     return request
 
 
-@pytest.fixture
-def full_list_address(monkeypatch):
-    """Make the full list's address resolve, as it does once its page exists."""
-    monkeypatch.setattr(
-        "fairdm.contrib.activity.lines.safe_reverse", lambda name, **kwargs: "/all/"
-    )
-
-
 class TestRecentActivity:
     def test_nine_lines_give_eight_and_a_link_to_the_rest(
-        self, request_of_a_visitor, full_list_address, clean_slate
+        self, request_of_a_visitor, clean_slate
     ):
         project = make_project()
         dataset = make_dataset(project)
@@ -339,11 +335,11 @@ class TestRecentActivity:
 
         total = sum(len(day.lines) for day in panel["days"])
         assert total == 8
-        assert panel["more_url"]
+        assert panel["more_url"] == reverse(
+            "project:activity", kwargs={"uuid": project.uuid}
+        )
 
-    def test_eight_lines_give_no_link(
-        self, request_of_a_visitor, full_list_address, clean_slate
-    ):
+    def test_eight_lines_give_no_link(self, request_of_a_visitor, clean_slate):
         project = make_project()
         dataset = make_dataset(project)
         clean_slate()
@@ -376,10 +372,23 @@ class TestActivityLinesAccess:
         dataset = make_dataset(project, published=False, visibility=Visibility.PRIVATE)
         add_samples(dataset)
         edit(dataset)
+        Crediting(dataset).add(PersonFactory())
         stranger = PersonFactory()
 
         assert kinds(lines_of(project, None)) == Counter(project=1)
         assert kinds(lines_of(project, stranger)) == Counter(project=1)
+
+    def test_a_count_covers_only_the_samples_the_viewer_may_see(self, clean_slate):
+        project = make_project()
+        dataset = make_dataset(project, published=False)
+        seen = add_samples(dataset, 2)[0]
+        viewer = team_member(seen)
+
+        counts = [
+            line.count for line in lines_of(project, viewer) if line.kind == "sample"
+        ]
+
+        assert counts == [1]
 
     def test_a_private_dataset_is_present_for_its_team(self, clean_slate):
         project = make_project()

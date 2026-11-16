@@ -258,6 +258,8 @@ Where a project's or dataset's samples were taken: every located sample the view
 
 A project's or dataset's recent activity: its lines grouped by day, newest first, each line marked in its record's colour. `data-card` is `activity`. The list is django-mvp-community's `<c-mvp_community.activity.feed>`, handed one item per day, and it draws its own empty state when there is nothing to show. FairDM overrides that package's row, `cotton/mvp_community/activity/entry.html`, to draw a day, so any other use of the package's list in a portal draws FairDM's day row too.
 
+The actions behind the panel are recorded as not public and read through each record's own rules. Do not include `actstream.urls` in a portal's URLs: some of django-activity-stream's views show actions that are not public to anyone.
+
 | Attribute | Type | Default | Accepts |
 |---|---|---|---|
 | `days` | list | | `Day` items from `fairdm.contrib.activity.lines.group_days()`, each with `day` and `lines`. |

@@ -60,3 +60,16 @@ that makes it pass is written. Wording and appearance get no tests.
 - [x] T014 [US1] A test that a public action of the same kind gives no line, which the mutation pass
   found missing.
 - [x] T015 [US1] Wrap the new modules to 88 characters.
+- [x] T016 [US1] Give each sentence its own translation call, so all thirteen are extracted (code
+  review).
+- [x] T017 [US1] Check that no address reaches a view of django-activity-stream or of
+  django-mvp-community's activity pages, and correct ADR 0045, decision D4 and the docs to say a
+  portal must not include `actstream.urls` (code review).
+- [x] T018 [US1] Credit someone on the private dataset in the visitor and stranger case, so the
+  contributor lines are held to the scope (code review).
+- [x] T019 [US1] Carry each line's count, assert it, and test that a count covers only the samples
+  the viewer may see (code review).
+- [x] T020 [US1] Assert the full list's address in the panel, not a patched one (code review).
+- [x] T021 [US1] Move the change tracker's sentence to the Project and Dataset sections of the
+  model reference (code review).
+- [x] T022 [US1] Document the arguments and results of the gathering helpers (code review).

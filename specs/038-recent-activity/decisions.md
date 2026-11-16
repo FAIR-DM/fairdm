@@ -49,8 +49,10 @@ django-activity-stream marks each action public or not, and django-mvp-community
 following page and recent-activity component show public actions to everyone, with no regard to
 who may open the records they name. FairDM's records have their own visibility, which those feeds
 cannot see. So every action FairDM records is marked not public, and FairDM chooses which actions a
-viewer sees itself (D3). Any feed the activity package offers, whether mounted by FairDM or by a
-portal later, then shows none of them (FR-013).
+viewer sees itself (D3). The feeds django-mvp-community offers show public actions only, so
+they show none of these. Some of django-activity-stream's own views, `actstream.urls`, show
+actions that are not public, so FairDM includes none of its URLs and a portal must not either
+(FR-013).
 
 **ADR:** docs/adr/0045-recent-activity-is-recorded-hidden-and-read-through-the-records-rules.md
 
@@ -213,3 +215,13 @@ The last group edits specification 018 and writes the user and developer pages a
 It holds no code and no design, so it was written directly rather than dispatched.
 
 **ADR:** none — how this build was run, nothing downstream inherits it.
+
+## D21 — The full list's count is the sources' count
+
+`ActivityLines` counts its lines in the database, source by source, and draws a line only when the
+record or contributor it names still exists. The two agree because registering Project, Dataset and
+Contributor with django-activity-stream deletes an object's actions with it, and the datasets an
+action can name are already limited to those in the scope. A count that ran ahead of the lines would
+show as a page of the full list a line short, never as a wrong line.
+
+**ADR:** none — a detail of one class.

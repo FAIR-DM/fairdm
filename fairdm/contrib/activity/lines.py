@@ -43,12 +43,14 @@ class Line:
         day: The portal's day the line falls on.
         kind: ``project``, ``dataset``, ``sample`` or ``measurement``: the colour.
         html: The sentence, safe to render, with every name escaped and linked.
+        count: How many records the line adds up: samples or measurements added, or 1.
     """
 
     timestamp: datetime
     day: date
     kind: str
     html: SafeString
+    count: int = 1
 
 
 @dataclass(frozen=True)
@@ -154,7 +156,11 @@ class ActivityLines:
         return self.lines(rows)
 
     def sources(self):
-        """Return each grouped source and the way its rows become ``Row``s."""
+        """Return each grouped source and the way its rows become ``Row``s.
+
+        Returns:
+            Pairs of a grouped queryset and the function turning its rows into ``Row``.
+        """
         return [
             (self.counted(Sample), self.count_row("samples")),
             (self.counted(Measurement), self.count_row("measurements")),
@@ -165,7 +171,14 @@ class ActivityLines:
         ]
 
     def counted(self, model):
-        """Group the samples or measurements the viewer may see by dataset and day."""
+        """Group the samples or measurements the viewer may see by dataset and day.
+
+        Args:
+            model: ``Sample`` or ``Measurement``.
+
+        Returns:
+            Rows of ``dataset_id``, ``day``, ``count`` and ``newest``, newest first.
+        """
         return (
             model.objects.visible_to(self.user)
             .filter(dataset__in=self.datasets.values("pk"))
@@ -177,11 +190,19 @@ class ActivityLines:
         )
 
     def new_datasets(self):
-        """Return the datasets in the scope, newest first."""
+        """Return the datasets in the scope, newest first.
+
+        Returns:
+            Rows of ``pk`` and ``added``.
+        """
         return self.datasets.order_by("-added").values("pk", "added")
 
     def project_created(self):
-        """Return the project's own creation as a row, on a project's page only."""
+        """Return the project's own creation as a row, on a project's page only.
+
+        Returns:
+            A list holding the project's ``Row``, or an empty list on a dataset's page.
+        """
         if not isinstance(self.record, Project):
             return []
         return [
@@ -221,7 +242,15 @@ class ActivityLines:
         return condition
 
     def actions(self, verb, condition):
-        """Group the not-public actions of a verb by who did what to whom and by day."""
+        """Group the not-public actions of a verb by who did what to whom and by day.
+
+        Args:
+            verb: ``EDITED``, ``PUBLISHED`` or ``JOINED``.
+            condition: The ``Q`` that keeps the actions about the scope.
+
+        Returns:
+            Rows of actor, target, ``day`` and ``newest``, newest first.
+        """
         return (
             Action.objects.filter(condition, verb=verb, public=False)
             .order_by()
@@ -238,19 +267,38 @@ class ActivityLines:
         )
 
     def edits(self):
-        """Return the edits of the project and the datasets, by record and day."""
+        """Return the edits of the project and the datasets, by record and day.
+
+        Returns:
+            The grouped ``edited`` actions.
+        """
         return self.actions(EDITED, self.in_scope("actor"))
 
     def publications(self):
-        """Return the publishing of the datasets, by dataset and day."""
+        """Return the publishing of the datasets, by dataset and day.
+
+        Returns:
+            The grouped ``published`` actions.
+        """
         return self.actions(PUBLISHED, self.in_scope("actor", projects=False))
 
     def joinings(self):
-        """Return the contributors joining the project and the datasets."""
+        """Return the contributors joining the project and the datasets.
+
+        Returns:
+            The grouped ``joined`` actions.
+        """
         return self.actions(JOINED, self.in_scope("target"))
 
     def count_row(self, source):
-        """Return the conversion of a grouped count into a row."""
+        """Return the conversion of a grouped count into a row.
+
+        Args:
+            source: ``samples`` or ``measurements``.
+
+        Returns:
+            A function that turns one grouped row into a ``Row``.
+        """
 
         def convert(found):
             return Row(
@@ -265,7 +313,14 @@ class ActivityLines:
         return convert
 
     def dataset_row(self, found):
-        """Turn a dataset's creation into a row."""
+        """Turn a dataset's creation into a row.
+
+        Args:
+            found: A row of ``new_datasets``.
+
+        Returns:
+            The ``Row``.
+        """
         return Row(
             found["added"],
             timezone.localtime(found["added"]).date(),
@@ -275,7 +330,14 @@ class ActivityLines:
         )
 
     def action_row(self, source):
-        """Return the conversion of a grouped action into a row."""
+        """Return the conversion of a grouped action into a row.
+
+        Args:
+            source: ``edited``, ``published`` or ``joined``.
+
+        Returns:
+            A function that turns one grouped action into a ``Row``.
+        """
         names = {
             ContentType.objects.get_for_model(Project).pk: "project",
             ContentType.objects.get_for_model(Dataset).pk: "dataset",
@@ -297,11 +359,25 @@ class ActivityLines:
         return convert
 
     def is_own(self, row):
-        """Say whether the row is about the record whose page asks."""
+        """Say whether the row is about the record whose page asks.
+
+        Args:
+            row: The ``Row``.
+
+        Returns:
+            Whether it is the page's own record.
+        """
         return row.model == self.model and row.record_id == self.record.pk
 
     def lines(self, rows):
-        """Turn rows into lines, fetching each dataset and contributor named once."""
+        """Turn rows into lines, fetching each dataset and contributor named once.
+
+        Args:
+            rows: ``Row`` items, in order.
+
+        Returns:
+            The ``Line`` items, leaving out a row whose record or contributor is gone.
+        """
         dataset_ids = {
             row.record_id
             for row in rows
@@ -326,12 +402,22 @@ class ActivityLines:
                     row.day,
                     row.kind,
                     self.sentence(row, record, contributor),
+                    row.count,
                 )
             )
         return lines
 
     def sentence(self, row, record, contributor):
-        """Write a row's sentence, naming the record unless it is the page's own."""
+        """Write a row's sentence, naming the record unless it is the page's own.
+
+        Args:
+            row: The ``Row``.
+            record: The project or dataset it is about.
+            contributor: The contributor who joined, or ``None``.
+
+        Returns:
+            The sentence, safe to render.
+        """
         own = self.is_own(row)
         name = None if own else self.link(record)
         count = intcomma(row.count)
@@ -360,18 +446,30 @@ class ActivityLines:
                     row.count,
                 )
         elif row.source == "datasets":
-            text = gettext("Dataset created" if own else "Dataset created: {record}")
+            text = (
+                gettext("Dataset created")
+                if own
+                else gettext("Dataset created: {record}")
+            )
         elif row.source == "project":
             text = gettext("Project created")
         elif row.source == "edited":
-            text = gettext("Details edited" if own else "Details edited: {record}")
+            text = (
+                gettext("Details edited")
+                if own
+                else gettext("Details edited: {record}")
+            )
         elif row.source == "published":
-            text = gettext(
-                "Dataset published" if own else "Dataset published: {record}"
+            text = (
+                gettext("Dataset published")
+                if own
+                else gettext("Dataset published: {record}")
             )
         else:
-            text = gettext(
-                "{contributor} joined" if own else "{contributor} joined {record}"
+            text = (
+                gettext("{contributor} joined")
+                if own
+                else gettext("{contributor} joined {record}")
             )
         return format_html(
             text,
@@ -381,7 +479,14 @@ class ActivityLines:
         )
 
     def link(self, record):
-        """Return the record's name linked to its page, or alone when it has none."""
+        """Return the record's name linked to its page, or alone when it has none.
+
+        Args:
+            record: A project, dataset or contributor.
+
+        Returns:
+            The escaped name, as a link where the record has a page.
+        """
         try:
             url = record.get_absolute_url()
         except NoReverseMatch:
