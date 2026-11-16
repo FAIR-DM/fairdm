@@ -2,7 +2,7 @@
 
 from collections import Counter
 from datetime import date, datetime
-from datetime import timezone as dt_timezone
+from datetime import UTC
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -93,7 +93,7 @@ def edit(record):
 
 def at(year, month, day, hour=12, minute=0):
     """Return a moment in UTC."""
-    return datetime(year, month, day, hour, minute, tzinfo=dt_timezone.utc)
+    return datetime(year, month, day, hour, minute, tzinfo=UTC)
 
 
 class TestActivityLines:
@@ -235,7 +235,7 @@ class TestActivityLines:
 
         (line,) = [line for line in lines_of(project) if line.kind == "sample"]
 
-        assert local.astimezone(dt_timezone.utc).date() == date(2026, 7, 10)
+        assert local.astimezone(UTC).date() == date(2026, 7, 10)
         assert line.day == date(2026, 7, 11)
 
     def test_a_slice_reads_only_as_far_as_it_is_asked(self):
