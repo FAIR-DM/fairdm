@@ -44,26 +44,21 @@ following page and recent-activity component show public actions to everyone, wi
 who may open the records they name. FairDM's records have their own visibility, which those feeds
 cannot see. So every action FairDM records is marked not public, and FairDM chooses which actions a
 viewer sees itself (D3). Any feed the activity package offers, whether mounted by FairDM or by a
-portal later, then shows none of them (FR-012).
+portal later, then shows none of them (FR-013).
 
-## D5 — A dependency on django-mvp-community: the recent-activity component takes the actions to show
+## D5 — FairDM chooses the lines and hands them to django-mvp-community's list of activity
 
-As published (0.1.4), `<c-mvp_community.activity.recent :object="…" />` shows the public actions
-that name the object itself as actor, target or action object. That falls short of this feature in
-two ways:
+The maintainer's decision (2026-11-16): django-mvp-community is not changed. Its recent-activity
+component shows the public actions around one object, and changing it to take a chosen list is
+outside that package's bounds.
 
-- A project's panel must show its datasets' activity too (FR-005). An action names at most three
-  objects, and a sample added to a dataset does not name the project.
-- What a viewer sees depends on who may open each record (D3, D4). The component shows every public
-  action to everyone, and FairDM's actions are not public.
-
-The component needs a way for a project to hand it the actions to show, already chosen and in
-order, with its limit, its empty state and its "more" link working as they do now. That is a change
-to django-mvp-community, the maintainer's own package, and this feature depends on it. It is not
-worked round in FairDM by drawing the actions some other way.
-
-Gathering entries by record and day (D2) and grouping them by day is FairDM's look on these pages,
-and comes through FairDM's override of the component's template.
+FairDM chooses the actions for a project or dataset itself, keeps those about records the viewer
+may open (D3, D4), gathers them into lines (D2) and passes them to the package's existing
+`<c-mvp_community.activity.feed :actions="…" />` component, which already draws whatever list it is
+given and its empty state. The heading, the "See all" link and the grouping by day come from
+FairDM's own overview panel. Where the package's row does not look like the prototype's line,
+FairDM overrides the row's template, as the package's documentation allows. The package itself is
+not edited.
 
 ## D6 — The project page includes its datasets' activity
 
@@ -98,12 +93,12 @@ was added, so the creation of projects and datasets and the additions of samples
 are shown from that date. Publishing, edits and contributors added before the upgrade were never
 recorded, and nothing pretends they were.
 
-## D11 — The newest few entries, with no page of all activity
+## D11 — The newest 8 lines, with a link to the full list
 
-The panel shows a fixed number of the newest entries, as the prototype does. The request asks for
-recent activity, not a history browser, and the prototype has no page for it. A page listing a
-record's whole history is a separate idea, and the activity package's feed view would make it
-cheap to add later.
+The maintainer's decision (2026-11-16). The panel shows the newest 8 lines and links to a page
+listing all of the record's activity, one for each project and each dataset, newest first, grouped
+by day and paged. The page applies the same rule for who sees what as the panel (D3), so it is
+FairDM's own page, not the activity package's feed view, which shows public actions only.
 
 ## D12 — Sample, measurement, person and organization pages are left out
 
@@ -118,3 +113,17 @@ dataset pages that statement stops being true. The pull request that delivers th
 018 so FR-016 no longer lists recent activity for project and dataset pages, and it keeps the item
 for person and organization pages. The placeholder card on the project page is removed by
 https://github.com/FAIR-DM/fairdm/issues/672.
+
+## D14 — The project and dataset pages show project-level and dataset-level events only
+
+The maintainer's decision (2026-11-16). The project panel shows datasets created and published,
+the project's and its datasets' details edited, people joining the project or one of its datasets,
+and per day one line per dataset counting the samples added to it, and one counting the
+measurements. A sample's or measurement's own changes never appear on either page. The dataset
+panel follows the same rule for the dataset alone.
+
+## D15 — A project's own creation stays on its panel
+
+The maintainer's list for the project panel names its datasets' creation and not the project's own.
+His rule is "only project-level and dataset-level events", and a project being created is one, so it
+stays, as the first line of a project's history. It is one line, at most, in a project's life.

@@ -13,29 +13,33 @@ read, never merged and never branched from.
 
 "This will require installing Django-mvp-community." Use the `activity` extra of
 https://github.com/django-mvp/django-mvp-community, which is built on django-activity-stream and
-supplies the recent-activity component (its `docs/developer/activity.md`). FairDM adds the
-dependency, registers its records, records an action when something happens to one, and shows the
-component in the panel. Where the extra lacks something this feature needs, that is a change to
-django-mvp-community, made there (decisions.md, D5).
+supplies the list of activity, `<c-mvp_community.activity.feed :actions="…" />` (its
+`docs/developer/activity.md`). FairDM adds the dependency, registers its records, records an action
+when something happens to one, chooses the actions a viewer may see, gathers them into lines and
+passes them to that component inside its own panel. django-mvp-community is used as published and
+is not edited (decisions.md, D5).
 
 ## The prototype's activity is replaced, not ported
 
 From the hand-over's shared pieces: Activity, at `overview_proto.py:149` (`activity`), "Replaced by
-actions recorded with django-activity-stream, shown through django-mvp-community's recent-activity
-component". Built by this feature. The prototype's function is evidence of what the panel shows
-(additions gathered by dataset and day), not code to keep.
+actions recorded with django-activity-stream", now shown through django-mvp-community's list of
+activity, which FairDM hands the lines it chooses (decisions.md, D5). Built by this feature. The
+prototype's function is evidence of what the panel shows (additions gathered by dataset and day),
+not code to keep.
 
 ## The panel is the one the redesigned pages build
 
 From the hand-over's shared pieces: Panel, "heading, count, 'See all', an edit control", at
 `cotton/ov/panel.html` and inside `cotton/ov/activity.html:8`. It is built by the first pull
 request of https://github.com/FAIR-DM/fairdm/issues/672 (the shared page and the project page), and
-this feature reuses it. This feature's build waits for that pull request.
+this feature reuses it, its "See all" link leading to the full list (decisions.md, D11). That work
+is on `main`, as `cotton/overview/panel.html`.
 
 ## The look is ported
 
-`fairdm/templates/cotton/ov/activity.html` lands as "the look of django-mvp-community's
-recent-activity component on these pages, through a template override". The plan names each file it
+`fairdm/templates/cotton/ov/activity.html` lands as FairDM's Recent activity panel, on the
+overview panel `main` already has, with a template override of django-mvp-community's activity row
+where its look differs from the prototype's line. The plan names each file it
 ports and where it lands in `main`. A plan that redraws a screen the prototype already has fails the
 design review. Every merge is checked side by side against the prototype's screens for this
 feature: the project page `/projects/p2u5RQQxsGcHgpnCE6TMcJQ/` and the dataset page
@@ -52,3 +56,11 @@ As written on https://github.com/FAIR-DM/fairdm/issues/668:
 - Map tile credits start closed, behind their (i) button.
 - A change to one element keeps everything else where it was: a swap keeps the old element's
   placement, size and fade.
+
+## What the panels show (the maintainer, 2026-11-16)
+
+Project-level and dataset-level events only, the newest 8 lines, with a link to the full list:
+datasets created and published, the project's and its datasets' details edited, people joining the
+project or a dataset, and the per-day count of samples and of measurements added to each dataset,
+one line per dataset per day. A sample's or measurement's own changes never appear on the project
+or dataset panels (decisions.md, D14).

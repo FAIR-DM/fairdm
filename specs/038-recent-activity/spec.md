@@ -31,11 +31,12 @@ records were added, so it can only show additions.
 
 After this feature:
 
-- A project's page and a dataset's page each show what has happened to the record and to the
-  records in it lately, newest first, grouped by the day it happened.
-- What is shown covers additions (a project or dataset created, samples and measurements added to
-  a dataset), a dataset being published, edits to a project's or dataset's details, and
-  contributors being added to a project or dataset.
+- A project's page and a dataset's page each show what has happened to the record lately, newest
+  first, grouped by the day it happened, with a link to the full list.
+- What is shown is project-level and dataset-level events only: a project or dataset created, a
+  dataset published, edits to a project's or dataset's details, people joining a project or
+  dataset, and one line per dataset per day counting the samples, and one counting the
+  measurements, added to it. A sample's or measurement's own changes never appear.
 - A viewer only ever sees activity about records they may open, and that follows the records'
   visibility as it is when the page is viewed, not as it was when the activity happened.
 - A portal that already holds records shows their additions from the day they were added.
@@ -59,8 +60,10 @@ delivers this feature. The placeholder itself is removed by the redesign of the 
 - **What changed in an edit**: an entry says that a record's details were edited, not which fields
   or what they were before. A record's revision history is
   https://github.com/FAIR-DM/fairdm/issues/170.
-- **A page of all activity**: the panel shows the newest entries only. There is no page that lists
-  a record's whole history, no site-wide activity page and no activity on the home page.
+- **A page of all activity**: each project and dataset has a page listing all of its activity,
+  which the panel links to. There is no site-wide activity page and no activity on the home page.
+- **django-mvp-community**: the package is used as published. Nothing in it is changed by this
+  feature.
 - **Following a record**, and notifications about activity: not part of this feature.
 - **The citation downloads and the sample map** on the same pages are
   https://github.com/FAIR-DM/fairdm/issues/673 and https://github.com/FAIR-DM/fairdm/issues/674.
@@ -97,11 +100,27 @@ again. The longer reasoning is in [decisions.md](decisions.md).
 - Q: What does an existing portal show the day it upgrades? → A: The creation of its projects and
   datasets and the samples and measurements added to them, from when each was added. Publishing,
   edits and contributors added before the upgrade were never recorded and are not shown.
-- Q: How many entries does the panel show? → A: The newest few, a fixed number. It has no link to
-  a fuller list, since no such list exists.
 - Q: What happens to an entry about a record that is later deleted? → A: It is no longer shown. A
   count of samples or measurements added counts only those that still exist, and an entry whose
   count falls to none is not shown.
+
+### Session 2026-11-16
+
+Both answers are the maintainer's own decisions.
+
+- Q: Does this feature change django-mvp-community's recent-activity component so it can take the
+  actions to show? → A: No. Changing it is outside that package's bounds. FairDM chooses the
+  actions itself, keeps those the viewer may open, gathers them and hands them to the package's
+  existing list of activity, which already draws a list it is given. The prototype's look comes
+  through FairDM's own panel, and through FairDM's own version of a row where the package's row
+  differs. django-mvp-community is not edited.
+- Q: What does the project page show? → A: Project-level and dataset-level events only: datasets
+  created and published, the project's and its datasets' details edited, people joining the
+  project or one of its datasets, and per day, one line per dataset counting the samples added to
+  it and one counting the measurements. A sample's or measurement's own changes never appear on the
+  project or dataset pages. The dataset page follows the same rule for the dataset alone.
+- Q: How many lines does the panel show? → A: The newest 8, with a link to the full list of the
+  record's activity.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -159,44 +178,47 @@ signed-in person who is not, and check what each one sees.
     newest first.
 13. **Given** activity just before midnight in the portal's time zone, **When** a reader opens the
     page, **Then** the entry falls on that day in the portal's time zone.
-14. **Given** more activity than the panel shows, **When** a reader opens the page, **Then** only
-    the newest entries are shown, up to the panel's fixed number.
-15. **Given** a project or dataset with no activity a reader may see, **When** they open its page,
+14. **Given** more than 8 lines of activity, **When** a reader opens the page, **Then** only the
+    newest 8 are shown, with a link to the full list of the record's activity.
+15. **Given** the full list of a project's or dataset's activity, **When** a reader opens it,
+    **Then** it shows every line the panel would, newest first and grouped by day, under the same
+    rules for who sees what, a page at a time.
+16. **Given** a project or dataset with no activity a reader may see, **When** they open its page,
     **Then** the panel says nothing has happened yet.
-16. **Given** a page in a language the portal translates, **When** a reader opens it, **Then** the
+17. **Given** a page in a language the portal translates, **When** a reader opens it, **Then** the
     panel's own text, including each entry's description of what happened, is in that language,
     with counts that read correctly for one and for many.
 
 *Who sees what*
 
-17. **Given** a public project with a private dataset, **When** a reader who may not open that
+18. **Given** a public project with a private dataset, **When** a reader who may not open that
     dataset opens the project's page, **Then** no entry about the dataset, its samples or its
     measurements is shown, and the project's other activity is.
-18. **Given** the same project, **When** a member of the private dataset's team opens the project's
+19. **Given** the same project, **When** a member of the private dataset's team opens the project's
     page, **Then** the dataset's activity is shown to them.
-19. **Given** a private project, **When** a person who may open it opens its page, **Then** they
+20. **Given** a private project, **When** a person who may open it opens its page, **Then** they
     see the activity of its datasets they may open.
-20. **Given** a private dataset with activity that is later made public, **When** a signed-out
+21. **Given** a private dataset with activity that is later made public, **When** a signed-out
     reader opens the pages, **Then** its earlier activity is shown.
-21. **Given** a public dataset with activity that is later made private, **When** a reader who may
+22. **Given** a public dataset with activity that is later made private, **When** a reader who may
     no longer open it opens its project's page, **Then** none of its activity is shown.
-22. **Given** any portal page or feed of activity that exists apart from these two panels, **When**
+23. **Given** any portal page or feed of activity that exists apart from these two panels, **When**
     a reader opens it, **Then** no activity from these records reaches them through it.
 
 *Records that change*
 
-23. **Given** samples added and then some deleted on the same day, **When** a reader opens the
+24. **Given** samples added and then some deleted on the same day, **When** a reader opens the
     page, **Then** the count covers only the samples that still exist, and an entry whose samples
     were all deleted is not shown.
-24. **Given** a dataset that was deleted, **When** a reader opens its project's page, **Then** none
+25. **Given** a dataset that was deleted, **When** a reader opens its project's page, **Then** none
     of that dataset's activity is shown.
 
 *A portal that already holds records*
 
-25. **Given** a portal with projects, datasets, samples and measurements from before this feature,
+26. **Given** a portal with projects, datasets, samples and measurements from before this feature,
     **When** it upgrades and a reader opens a project's page, **Then** the creation of its datasets
     and the samples and measurements added to them are shown on the days they were added.
-26. **Given** the same portal, **When** a reader opens the pages, **Then** no entry is shown for
+27. **Given** the same portal, **When** a reader opens the pages, **Then** no entry is shown for
     publishing, edits or contributors added before the upgrade.
 
 ### Edge Cases
@@ -209,7 +231,7 @@ signed-in person who is not, and check what each one sees.
   joined, not that they are still there.
 - A contributor whose own page is not public: the entry names them without a link to their page.
 - A project page with many datasets and a long history: the page answers in the same time as one
-  with little, because the panel shows a fixed number of entries.
+  with little, because the panel shows at most 8 lines.
 
 ## Requirements *(mandatory)*
 
@@ -239,28 +261,34 @@ signed-in person who is not, and check what each one sees.
 - **FR-008**: Each entry MUST name the record it is about and lead to that record's page. An entry
   for a contributor added MUST name the contributor, leading to their page where the viewer may
   open it. (US1)
-- **FR-009**: The panel MUST show at most a fixed number of the newest entries, and MUST say that
-  nothing has happened yet when there is nothing to show. (US1)
-- **FR-010**: The panel's text MUST be translatable, with counts in the singular and plural forms
+- **FR-009**: The panel MUST show at most the newest 8 lines, MUST link to the record's full list
+  of activity when there is more, and MUST say that nothing has happened yet when there is nothing
+  to show. (US1)
+- **FR-010**: Each project and dataset MUST have a page listing all of its activity as the panel
+  does, newest first, grouped by day and a page at a time, under the rule in FR-012. (US1)
+- **FR-011**: The panel's text MUST be translatable, with counts in the singular and plural forms
   of the language. (US1)
 
 **Who sees what**
 
-- **FR-011**: An entry MUST be shown only to a viewer who may open the record it is about, judged by
+- **FR-012**: An entry MUST be shown only to a viewer who may open the record it is about, judged by
   the record's visibility and the viewer's levels at the time the page is viewed. (US1)
-- **FR-012**: Activity about these records MUST NOT reach anyone through any other page, feed or
-  address that the activity package offers, unless that page applies the rule in FR-011. (US1)
-- **FR-013**: An entry about a record that no longer exists MUST NOT be shown, and a count MUST
+- **FR-013**: Activity about these records MUST NOT reach anyone through any other page, feed or
+  address that the activity package offers, unless that page applies the rule in FR-012. (US1)
+- **FR-014**: The project and dataset pages MUST NOT show any change to a sample or measurement
+  other than the daily count of those added to each dataset. (US1)
+- **FR-015**: An entry about a record that no longer exists MUST NOT be shown, and a count MUST
   cover only the records that still exist. (US1)
 
 **Existing portals**
 
-- **FR-014**: On upgrade, a portal's existing projects, datasets, samples and measurements MUST be
+- **FR-016**: On upgrade, a portal's existing projects, datasets, samples and measurements MUST be
   shown as created or added on the day they were added. (US1)
 
 **Documentation**
 
-- **FR-015**: The documentation MUST describe the Recent activity panel: which events it shows, how
+- **FR-017**: The documentation MUST describe the Recent activity panel and the full list: which
+  events they show, how
   entries are gathered by day, who sees what, and what an upgraded portal shows of its past. (US1)
 
 ### Key Entities
@@ -288,7 +316,7 @@ None of FairDM's own. The activity package's own record of each event is used.
 - The redesigned project and dataset pages from https://github.com/FAIR-DM/fairdm/issues/672 are on
   `main` before this feature is built. Its panel sits in those pages.
 - The activity package used is the `activity` extra of django-mvp-community, built on
-  django-activity-stream, at a version that supports the Django and Python versions FairDM
-  supports.
+  django-activity-stream, as published, at a version that supports the Django and Python versions
+  FairDM supports. Its existing list of activity draws the lines this feature chooses.
 - Who may open a record is decided as it is today, by its visibility and the viewer's levels
   (specification 018, FR-018 to FR-020).
