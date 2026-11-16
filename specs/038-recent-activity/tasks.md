@@ -27,9 +27,9 @@ that makes it pass is written. Wording and appearance get no tests.
 
 ### Group 2
 
-- [ ] T004 [US1] Tests: `TestActivityLines` in `tests/test_contrib/test_activity/test_lines.py`, as
+- [x] T004 [US1] Tests: `TestActivityLines` in `tests/test_contrib/test_activity/test_lines.py`, as
   plan.md "Tests" describes.
-- [ ] T005 [US1] `fairdm/contrib/activity/lines.py`: `Line`, `ActivityLines` and
+- [x] T005 [US1] `fairdm/contrib/activity/lines.py`: `Line`, `ActivityLines` and
   `recent_activity`, as plan.md "Gathering" describes. T004 goes green.
 
 ### Group 3

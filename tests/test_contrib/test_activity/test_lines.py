@@ -210,6 +210,7 @@ class TestActivityLines:
         Action.objects.update(timestamp=at(2026, 7, 2))
         set_added(dataset, at(2026, 6, 1))
         set_added(project, at(2026, 5, 1))
+        project.refresh_from_db()
 
         lines = lines_of(project)
 
@@ -256,6 +257,7 @@ class TestActivityLines:
     def test_its_length_is_the_number_of_lines_a_full_slice_returns(self, clean_slate):
         project = make_project()
         dataset = make_dataset(project)
+        clean_slate()
         (sample,) = add_samples(dataset, 1, when=at(2026, 7, 1))
         add_samples(dataset, 1, when=at(2026, 7, 2))
         add_measurements(dataset, sample, 1, when=at(2026, 7, 2))
@@ -312,12 +314,12 @@ def full_list_address(monkeypatch):
 
 class TestRecentActivity:
     def test_nine_lines_give_eight_and_a_link_to_the_rest(
-        self, request_of_a_visitor, full_list_address
+        self, request_of_a_visitor, full_list_address, clean_slate
     ):
         project = make_project()
         dataset = make_dataset(project)
-        add_samples(dataset, 1, when=at(2026, 7, 1))
-        for day in range(2, 8):
+        clean_slate()
+        for day in range(1, 8):
             add_samples(dataset, 1, when=at(2026, 7, day))
         edit(project)
 
@@ -327,9 +329,12 @@ class TestRecentActivity:
         assert total == 8
         assert panel["more_url"]
 
-    def test_eight_lines_give_no_link(self, request_of_a_visitor, full_list_address):
+    def test_eight_lines_give_no_link(
+        self, request_of_a_visitor, full_list_address, clean_slate
+    ):
         project = make_project()
         dataset = make_dataset(project)
+        clean_slate()
         for day in range(1, 7):
             add_samples(dataset, 1, when=at(2026, 7, day))
 
