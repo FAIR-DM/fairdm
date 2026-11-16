@@ -34,15 +34,15 @@ that makes it pass is written. Wording and appearance get no tests.
 
 ### Group 3
 
-- [ ] T006 [US1] Tests: `TestActivityPanel` and `TestOverrides` in
+- [x] T006 [US1] Tests: `TestActivityPanel` and `TestOverrides` in
   `tests/test_templates/test_activity.py`, the two page checks there, and `TestActivityPage` in
   `tests/test_contrib/test_activity/test_plugins.py`, as plan.md "Tests" describes.
-- [ ] T007 [US1] The panel, the row override, the `overview.activity` block in both detail
+- [x] T007 [US1] The panel, the row override, the `overview.activity` block in both detail
   templates and `activity` in both overview plugins' context, as plan.md "The panel and the
   overrides" describes, ported from the prototype as "What is ported" lists.
-- [ ] T008 [US1] `fairdm/contrib/activity/plugins.py` and `activity/activity_list.html`, as plan.md
+- [x] T008 [US1] `fairdm/contrib/activity/plugins.py` and `activity/activity_list.html`, as plan.md
   "The full list" describes. T006 goes green.
-- [ ] T009 [US1] `fairdm/static/css/fairdm.css`: the `.ov-activity` rules, ported onto the
+- [x] T009 [US1] `fairdm/static/css/fairdm.css`: the `.ov-activity` rules, ported onto the
   package's list inside the panel. No test.
 
 ### Group 4
