@@ -11,3 +11,17 @@ class ActivityConfig(AppConfig):
     name = "fairdm.contrib.activity"
     label = "activity"
     verbose_name = _("Activity")
+
+    def ready(self):
+        """Register the recorded models with django-activity-stream and connect the receivers."""
+        from actstream import registry
+
+        from fairdm.contrib.contributors.models import Contributor, Organization, Person
+        from fairdm.core.dataset.models import Dataset
+        from fairdm.core.project.models import Project
+
+        from . import receivers
+
+        for model in (Project, Dataset, Contributor, Person, Organization):
+            registry.register(model)
+        receivers.connect()

@@ -14,15 +14,15 @@ that makes it pass is written. Wording and appearance get no tests.
 
 ### Group 1
 
-- [ ] T001 [US1] Add `django-mvp-community[activity]` and `django-activity-stream` to
+- [x] T001 [US1] Add `django-mvp-community[activity]` and `django-activity-stream` to
   `pyproject.toml` with their deptry entries, lock and sync, install `fairdm.contrib.activity`,
   `mvp_community` and `actstream` in `fairdm/conf/settings/apps.py`, and move the change tracker
   from `BaseModel` to `Project` and `Dataset`, as plan.md "Dependency and settings" describes.
-- [ ] T002 [US1] Tests: `TestRecordEdits`, `TestRecordPublished`, `TestRecordJoined` and
+- [x] T002 [US1] Tests: `TestRecordEdits`, `TestRecordPublished`, `TestRecordJoined` and
   `TestRecordingNeverFails` in `tests/test_contrib/test_activity/test_receivers.py`, and
   `TestNoOtherFeed` in `tests/test_contrib/test_activity/test_exposure.py`, as plan.md "Tests"
   describes.
-- [ ] T003 [US1] `fairdm/contrib/activity/` with `apps.py` and `receivers.py`, as plan.md
+- [x] T003 [US1] `fairdm/contrib/activity/` with `apps.py` and `receivers.py`, as plan.md
   "Recording" describes. T002 goes green.
 
 ### Group 2

@@ -203,7 +203,7 @@ class TestRecordJoined:
         assert is_actor(joined, organization)
 
     def test_crediting_on_a_sample_records_nothing(self, clean_slate):
-        sample = ConcreteSampleFactory()
+        sample = ConcreteSampleFactory(dataset=DatasetFactory())
         person = PersonFactory()
         clean_slate()
 
