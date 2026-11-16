@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from licensing.fields import LicenseField
+from model_utils import FieldTracker
 from partial_dates import Relation
 from shortuuid.django_fields import ShortUUIDField
 
@@ -270,6 +271,7 @@ class Dataset(BaseModel):
     # `objects` is declared first, so Django takes it as `_default_manager`.
     objects = DatasetManager()  # type: ignore[misc]
     all_objects = DatasetQuerySet.as_manager()
+    tracker = FieldTracker()
 
     uuid = ShortUUIDField(
         editable=False,

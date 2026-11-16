@@ -88,6 +88,8 @@ dependencies = [
     "pyecharts (>=2.1.0,<3.0.0)",
     "django-mvp-accounts[api] (>=0.4.0,<0.5.0)",
     "django-mvp-compliance (>=0.3.0,<0.4.0)",
+    "django-mvp-community[activity] (>=0.1.4,<0.2.0)",
+    "django-activity-stream (>=2.0,<3.0)",
     "django-mvp-forms (>=0.7.0,<1.0)",
     # Imported directly (fairdm/contrib/collections/tables.py,
     # fairdm/contrib/contributors/models.py) and registered as a template
@@ -336,7 +338,7 @@ known_first_party = ["fairdm", "demo"]
 # Django packages whose distribution name differs from the name they are
 # imported under. Without this, deptry reads every one of them as declared but
 # never used.
-package_module_name_map = { django-environ = "environ", django-filter = "django_filters", django-import-export = "import_export", django-meta = "meta", django-model-utils = "model_utils", django-parler = "parler", django-pint = ["django_pint", "quantityfield"], django-solo = "solo", django-split-settings = "split_settings", django-auto-prefetch = "auto_prefetch", django-guardian = "guardian", django-polymorphic = "polymorphic", django-content-license = "licensing", django-flex-menus = "flex_menu", django-easy-icons = "easy_icons", django-mvp = "mvp", django-mvp-charts = "mvp_charts", django-mvp-compliance = "mvp_compliance", django-hijack = "hijack", django-controlled-vocabularies = "controlled_vocabularies", django-literature = "literature", django-ordered-model = "ordered_model", django-taggit = "taggit", django-waffle = "waffle" }
+package_module_name_map = { django-environ = "environ", django-filter = "django_filters", django-import-export = "import_export", django-meta = "meta", django-model-utils = "model_utils", django-parler = "parler", django-pint = ["django_pint", "quantityfield"], django-solo = "solo", django-split-settings = "split_settings", django-auto-prefetch = "auto_prefetch", django-guardian = "guardian", django-polymorphic = "polymorphic", django-content-license = "licensing", django-flex-menus = "flex_menu", django-easy-icons = "easy_icons", django-mvp = "mvp", django-mvp-charts = "mvp_charts", django-mvp-compliance = "mvp_compliance", django-mvp-community = "mvp_community", django-activity-stream = "actstream", django-hijack = "hijack", django-controlled-vocabularies = "controlled_vocabularies", django-literature = "literature", django-ordered-model = "ordered_model", django-taggit = "taggit", django-waffle = "waffle" }
 
 [tool.deptry.per_rule_ignores]
 # DEP002 = declared but never imported. Django wires most of its moving parts
@@ -357,6 +359,7 @@ DEP002 = [
     "django-htmx",
     "django-mvp-accounts",
     "django-mvp-charts",
+    "django-mvp-community",
     "django-mvp-compliance",
     "django-mvp-forms",
     "django-redis",

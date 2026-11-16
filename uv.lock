@@ -934,6 +934,18 @@ argon2 = [
 ]
 
 [[package]]
+name = "django-activity-stream"
+version = "2.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ff/38/6e3effa1633930183f027d5b89392fef159a6aa45fe9b50b6fdb46bc0ba2/django-activity-stream-2.0.0.tar.gz", hash = "sha256:33a467ba9b9a9969cbed76b2fd65e94a19928e48f0ec2b2e5bb1855177036ed2", size = 41331, upload-time = "2023-10-04T07:51:22.947Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a4/a5/24dee73df5206e71020ab5e530b8687fb2073a7c95542d145f6bbaabd86d/django_activity_stream-2.0.0-py3-none-any.whl", hash = "sha256:e7b86e637e419d068d9a5b4f3bacfec5ae231f412c2bda0ad686a1e47d4424ef", size = 50731, upload-time = "2023-10-04T07:51:20.479Z" },
+]
+
+[[package]]
 name = "django-adminactions"
 version = "2.4"
 source = { registry = "https://pypi.org/simple" }
@@ -1428,6 +1440,24 @@ wheels = [
 ]
 
 [[package]]
+name = "django-mvp-community"
+version = "0.1.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+    { name = "django-mvp" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8e/f5/004cdde875745642ded29ac965d8f8e86338890658db22bc866323df1d1c/django_mvp_community-0.1.4.tar.gz", hash = "sha256:3695d1448d08aa0b40f9ab53f4dc266dd96a4822791f43eb7fbf0a79a83d7d79", size = 36152, upload-time = "2026-11-09T17:37:53.639Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c6/ec/e3cf4c7b679d8361d85bec260c80cbae8f980e19b763779096f45077a64b/django_mvp_community-0.1.4-py3-none-any.whl", hash = "sha256:5038a62cfb8e5d9dd7fc1a490216a8e52223c3e00dbcff3329453ab9ee2dd95c", size = 57123, upload-time = "2026-11-09T17:37:52.251Z" },
+]
+
+[package.optional-dependencies]
+activity = [
+    { name = "django-activity-stream" },
+]
+
+[[package]]
 name = "django-mvp-compliance"
 version = "0.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1897,6 +1927,7 @@ dependencies = [
     { name = "defusedxml" },
     { name = "dj-control-room", extra = ["cache", "celery", "redis"] },
     { name = "django", extra = ["argon2"] },
+    { name = "django-activity-stream" },
     { name = "django-adminactions" },
     { name = "django-allauth", extra = ["mfa", "socialaccount"] },
     { name = "django-auto-prefetch" },
@@ -1924,6 +1955,7 @@ dependencies = [
     { name = "django-mvp" },
     { name = "django-mvp-accounts", extra = ["api"] },
     { name = "django-mvp-charts" },
+    { name = "django-mvp-community", extra = ["activity"] },
     { name = "django-mvp-compliance" },
     { name = "django-mvp-forms" },
     { name = "django-ordered-model" },
@@ -1985,6 +2017,7 @@ requires-dist = [
     { name = "defusedxml", specifier = ">=0.7.0,<0.8.0" },
     { name = "dj-control-room", extras = ["redis", "cache", "celery"], specifier = ">=1.8.1,<2" },
     { name = "django", extras = ["argon2"], specifier = ">=6.0,<7.0.0" },
+    { name = "django-activity-stream", specifier = ">=2.0,<3.0" },
     { name = "django-adminactions", specifier = ">=2.0.0,<3.0.0" },
     { name = "django-allauth", extras = ["mfa", "socialaccount"], specifier = ">=65.19.4,<66.0.0" },
     { name = "django-auto-prefetch", specifier = ">=1.12.0,<2.0.0" },
@@ -2012,6 +2045,7 @@ requires-dist = [
     { name = "django-mvp", specifier = ">=0.33.2,<0.34.0" },
     { name = "django-mvp-accounts", extras = ["api"], specifier = ">=0.4.0,<0.5.0" },
     { name = "django-mvp-charts", specifier = ">=0.3.0,<0.4.0" },
+    { name = "django-mvp-community", extras = ["activity"], specifier = ">=0.1.4,<0.2.0" },
     { name = "django-mvp-compliance", specifier = ">=0.3.0,<0.4.0" },
     { name = "django-mvp-forms", specifier = ">=0.7.0,<1.0" },
     { name = "django-ordered-model", specifier = ">=3.7.4,<4.0.0" },

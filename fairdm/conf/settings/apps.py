@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "fairdm.core.dataset",
     "fairdm.core.sample",
     "fairdm.core.measurement",
+    "fairdm.contrib.activity",
     "fairdm.contrib.autocomplete",
     "fairdm.contrib.collections",
     "fairdm.contrib.contributors",
@@ -47,6 +48,10 @@ INSTALLED_APPS = [
     # Ahead of allauth and mvp: it replaces templates both of them ship, and Django takes
     # the first one it finds.
     "mvp_accounts",
+    # After fairdm.contrib.activity and mvp_accounts: FairDM's activity row and the
+    # Account Center page win over the ones this package ships.
+    "mvp_community",
+    "actstream",
     "mvp",
     # Directly below mvp, which replaces some of its templates.
     "daisy_cotton",
