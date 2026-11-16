@@ -50,3 +50,8 @@ that makes it pass is written. Wording and appearance get no tests.
 - [ ] T010 [US1] Edit `specs/018-overview-pages/spec.md` as plan.md "Specifications edited"
   describes.
 - [ ] T011 [US1] Documentation and `CHANGELOG.md`, as plan.md "Documentation" describes.
+
+### Found after planning
+
+- [x] T012 [US1] Move `TestNoOtherFeed` to `tests/test_contrib/test_activity/test_apps.py`, the
+  module that mirrors the app's configuration.
