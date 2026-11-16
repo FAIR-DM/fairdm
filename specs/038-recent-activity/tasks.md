@@ -75,3 +75,5 @@ that makes it pass is written. Wording and appearance get no tests.
 - [x] T022 [US1] Document the arguments and results of the gathering helpers (code review).
 - [x] T023 [US1] A developer reference page for the activity app, naming every public class the
   docs check found undocumented.
+- [x] T024 [US1] At phone width, release the activity row's children from the list row's first grid
+  row, so the day sits on its own line above its lines (parity check at the merge gate).
