@@ -1,6 +1,5 @@
 """Tests for fairdm/contrib/activity/receivers.py."""
 
-import logging
 from unittest import mock
 
 import pytest
@@ -8,6 +7,7 @@ from actstream import action
 from actstream.models import Action
 from django.contrib.contenttypes.models import ContentType
 
+from fairdm.contrib.activity import receivers
 from fairdm.contrib.activity.receivers import EDITED, JOINED, PUBLISHED
 from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.core.dataset.models import Dataset
@@ -213,28 +213,28 @@ class TestRecordJoined:
 
 
 class TestRecordingNeverFails:
-    def test_a_failing_send_does_not_stop_the_save_and_is_logged(self, caplog):
+    def test_a_failing_send_does_not_stop_the_save_and_is_logged(self):
         record = refetch(ProjectFactory())
 
         with (
             mock.patch.object(action, "send", side_effect=RuntimeError("down")),
-            caplog.at_level(logging.ERROR),
+            mock.patch.object(receivers.logger, "exception") as logged,
         ):
             record.name = "Saved all the same"
             record.save()
 
         assert Project.objects.get(pk=record.pk).name == "Saved all the same"
-        assert any(r.levelno >= logging.ERROR for r in caplog.records)
+        logged.assert_called_once()
 
-    def test_a_failing_send_does_not_stop_a_dataset_being_published(self, caplog):
+    def test_a_failing_send_does_not_stop_a_dataset_being_published(self):
         dataset = refetch(DatasetFactory(published=False))
 
         with (
             mock.patch.object(action, "send", side_effect=RuntimeError("down")),
-            caplog.at_level(logging.ERROR),
+            mock.patch.object(receivers.logger, "exception") as logged,
         ):
             dataset.published = True
             dataset.save()
 
         assert Dataset.all_objects.get(pk=dataset.pk).published is True
-        assert any(r.levelno >= logging.ERROR for r in caplog.records)
+        logged.assert_called()

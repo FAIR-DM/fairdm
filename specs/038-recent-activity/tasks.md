@@ -55,3 +55,5 @@ that makes it pass is written. Wording and appearance get no tests.
 
 - [x] T012 [US1] Move `TestNoOtherFeed` to `tests/test_contrib/test_activity/test_apps.py`, the
   module that mirrors the app's configuration.
+- [x] T013 [US1] Assert the logged failure on the receivers' own logger, so the test no longer
+  depends on log propagation, which another test's logging setup can switch off.
