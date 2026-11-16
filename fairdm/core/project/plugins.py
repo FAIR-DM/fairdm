@@ -8,6 +8,7 @@ from django.utils.translation import gettext, ngettext
 from django.utils.translation import gettext_lazy as _
 
 from fairdm import plugins
+from fairdm.contrib.activity.lines import recent_activity
 from fairdm.contrib.plugins import Plugin
 from fairdm.contrib.plugins.access import has_perm
 from fairdm.contrib.plugins.mixins import (
@@ -167,6 +168,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         if can_manage:
             page["readiness"] = self.get_readiness(page)
         page.update(self.get_shared_context(page))
+
+        page["activity"] = recent_activity(project, self.request)
 
         context["project"] = project
         context.update(page)

@@ -8,6 +8,7 @@ from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from model_utils import FieldTracker
 from partial_dates import Relation
 from shortuuid.django_fields import ShortUUIDField
 
@@ -104,6 +105,7 @@ class Project(BaseModel):
     VISIBILITY = Visibility
 
     objects = ProjectQuerySet.as_manager()  # type: ignore[assignment,misc]
+    tracker = FieldTracker()
 
     uuid = ShortUUIDField(
         editable=False,

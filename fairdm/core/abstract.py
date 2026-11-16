@@ -14,7 +14,6 @@ from django.utils.html import strip_tags
 from django.utils.text import Truncator
 from django.utils.translation import gettext_lazy as _
 from easy_thumbnails.fields import ThumbnailerImageField
-from model_utils import FieldTracker
 from taggit.managers import TaggableManager
 
 from fairdm.contrib.contributors.choices import IdentifierLookup
@@ -52,8 +51,6 @@ class BaseModel(models.Model):
         null=True,
         blank=True,
     )
-
-    tracker = FieldTracker()
 
     class Meta:
         abstract = True

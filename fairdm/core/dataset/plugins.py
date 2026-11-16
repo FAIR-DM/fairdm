@@ -10,6 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from partial_dates import Precision
 
 from fairdm import plugins
+from fairdm.contrib.activity.lines import recent_activity
 from fairdm.contrib.contributors.models import Person
 from fairdm.contrib.plugins.access import has_perm
 from fairdm.contrib.plugins.mixins import (
@@ -198,6 +199,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         if can_manage and not dataset.data_is_public:
             page["readiness"] = self.get_readiness(page)
         page.update(self.get_shared_context(page))
+
+        page["activity"] = recent_activity(dataset, self.request)
 
         context["dataset"] = dataset
         context.update(page)
