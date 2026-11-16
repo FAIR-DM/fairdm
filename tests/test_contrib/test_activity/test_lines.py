@@ -5,6 +5,7 @@ from datetime import UTC, date, datetime
 from zoneinfo import ZoneInfo
 
 import pytest
+from actstream import action
 from actstream.models import Action
 from django.contrib.auth.models import AnonymousUser
 from django.db import connection
@@ -18,6 +19,7 @@ from fairdm.contrib.activity.lines import (
     group_days,
     recent_activity,
 )
+from fairdm.contrib.activity.receivers import EDITED
 from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
@@ -197,6 +199,16 @@ class TestActivityLines:
         sample.name = "Renamed"
         sample.save()
         Crediting(sample).add(PersonFactory())
+
+        assert kinds(lines_of(project)) == before
+
+    def test_a_public_action_of_the_same_kind_gives_no_line(self, clean_slate):
+        project = make_project()
+        dataset = make_dataset(project)
+        clean_slate()
+        before = kinds(lines_of(project))
+
+        action.send(dataset, verb=EDITED, public=True)
 
         assert kinds(lines_of(project)) == before
 

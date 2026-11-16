@@ -57,3 +57,5 @@ that makes it pass is written. Wording and appearance get no tests.
   module that mirrors the app's configuration.
 - [x] T013 [US1] Assert the logged failure on the receivers' own logger, so the test no longer
   depends on log propagation, which another test's logging setup can switch off.
+- [x] T014 [US1] A test that a public action of the same kind gives no line, which the mutation pass
+  found missing.
