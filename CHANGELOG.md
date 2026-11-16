@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.6.0] - 2026-11-16
+
 ### Added
 
 - **Project and dataset pages show their recent activity.** A "Recent activity" panel lists the newest 8 things that happened, grouped by day: the record or a dataset created, a dataset published, details edited, someone joining, and how many samples and measurements were added to each dataset that day. A project's panel covers its datasets too, and shows nothing about a dataset the viewer may not open. **See all** leads to the record's full list at its address followed by `activity/`. Publishing, edits and people joining are recorded from this version on with django-activity-stream, as actions no feed shows. Additions are worked out from when each record was added, so an upgraded portal shows its past additions straight away. The panel is `<c-overview.activity>` in the new `overview.activity` block. FairDM now depends on `django-mvp-community[activity]` and `django-activity-stream`, and installs `fairdm.contrib.activity`, `mvp_community` and `actstream`. Run `migrate` to create django-activity-stream's tables. Do not include `actstream.urls` in a portal's URLs: some of its views show the hidden actions to anyone. See [Components](developers/reference/components.md#c-overviewactivity).
