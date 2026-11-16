@@ -1,0 +1,118 @@
+# {py:mod}`fairdm.contrib.contributors.views.claiming`
+
+```{py:module} fairdm.contrib.contributors.views.claiming
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.claiming
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ClaimProfileView <fairdm.contrib.contributors.views.claiming.ClaimProfileView>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.views.claiming.ClaimProfileView
+    :summary:
+    ```
+* - {py:obj}`ClaimProfileConfirmView <fairdm.contrib.contributors.views.claiming.ClaimProfileConfirmView>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.views.claiming.ClaimProfileConfirmView
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`logger <fairdm.contrib.contributors.views.claiming.logger>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.views.claiming.logger
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} logger
+:canonical: fairdm.contrib.contributors.views.claiming.logger
+:value: >
+   'getLogger(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.claiming.logger
+```
+
+````
+
+`````{py:class} ClaimProfileView(**kwargs)
+:canonical: fairdm.contrib.contributors.views.claiming.ClaimProfileView
+
+Bases: {py:obj}`django.views.generic.TemplateView`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.claiming.ClaimProfileView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.claiming.ClaimProfileView.__init__
+```
+
+````{py:attribute} template_name
+:canonical: fairdm.contrib.contributors.views.claiming.ClaimProfileView.template_name
+:value: >
+   'contributors/claim_profile.html'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.claiming.ClaimProfileView.template_name
+```
+
+````
+
+````{py:method} get(request, *args, **kwargs)
+:canonical: fairdm.contrib.contributors.views.claiming.ClaimProfileView.get
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.claiming.ClaimProfileView.get
+```
+
+````
+
+`````
+
+`````{py:class} ClaimProfileConfirmView(**kwargs)
+:canonical: fairdm.contrib.contributors.views.claiming.ClaimProfileConfirmView
+
+Bases: {py:obj}`django.contrib.auth.mixins.LoginRequiredMixin`, {py:obj}`django.views.generic.TemplateView`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.claiming.ClaimProfileConfirmView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.claiming.ClaimProfileConfirmView.__init__
+```
+
+````{py:attribute} template_name
+:canonical: fairdm.contrib.contributors.views.claiming.ClaimProfileConfirmView.template_name
+:value: >
+   'contributors/claim_profile.html'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.claiming.ClaimProfileConfirmView.template_name
+```
+
+````
+
+````{py:method} post(request, *args, **kwargs)
+:canonical: fairdm.contrib.contributors.views.claiming.ClaimProfileConfirmView.post
+
+```{autodoc2-docstring} fairdm.contrib.contributors.views.claiming.ClaimProfileConfirmView.post
+```
+
+````
+
+`````

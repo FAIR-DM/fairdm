@@ -1,0 +1,94 @@
+# {py:mod}`fairdm.core.project.transforms`
+
+```{py:module} fairdm.core.project.transforms
+```
+
+```{autodoc2-docstring} fairdm.core.project.transforms
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ProjectDataCiteTransform <fairdm.core.project.transforms.ProjectDataCiteTransform>`
+  - ```{autodoc2-docstring} fairdm.core.project.transforms.ProjectDataCiteTransform
+    :summary:
+    ```
+* - {py:obj}`ProjectSchemaOrgTransform <fairdm.core.project.transforms.ProjectSchemaOrgTransform>`
+  - ```{autodoc2-docstring} fairdm.core.project.transforms.ProjectSchemaOrgTransform
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`to_datacite <fairdm.core.project.transforms.to_datacite>`
+  - ```{autodoc2-docstring} fairdm.core.project.transforms.to_datacite
+    :summary:
+    ```
+* - {py:obj}`to_json_ld <fairdm.core.project.transforms.to_json_ld>`
+  - ```{autodoc2-docstring} fairdm.core.project.transforms.to_json_ld
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} ProjectDataCiteTransform
+:canonical: fairdm.core.project.transforms.ProjectDataCiteTransform
+
+Bases: {py:obj}`fairdm.contrib.contributors.utils.transforms.BaseTransform`
+
+```{autodoc2-docstring} fairdm.core.project.transforms.ProjectDataCiteTransform
+```
+
+````{py:method} export(project) -> dict
+:canonical: fairdm.core.project.transforms.ProjectDataCiteTransform.export
+
+```{autodoc2-docstring} fairdm.core.project.transforms.ProjectDataCiteTransform.export
+```
+
+````
+
+`````
+
+`````{py:class} ProjectSchemaOrgTransform
+:canonical: fairdm.core.project.transforms.ProjectSchemaOrgTransform
+
+Bases: {py:obj}`fairdm.contrib.contributors.utils.transforms.BaseTransform`
+
+```{autodoc2-docstring} fairdm.core.project.transforms.ProjectSchemaOrgTransform
+```
+
+````{py:method} export(project) -> dict
+:canonical: fairdm.core.project.transforms.ProjectSchemaOrgTransform.export
+
+```{autodoc2-docstring} fairdm.core.project.transforms.ProjectSchemaOrgTransform.export
+```
+
+````
+
+`````
+
+````{py:function} to_datacite(project) -> dict
+:canonical: fairdm.core.project.transforms.to_datacite
+
+```{autodoc2-docstring} fairdm.core.project.transforms.to_datacite
+```
+````
+
+````{py:function} to_json_ld(project) -> dict
+:canonical: fairdm.core.project.transforms.to_json_ld
+
+```{autodoc2-docstring} fairdm.core.project.transforms.to_json_ld
+```
+````

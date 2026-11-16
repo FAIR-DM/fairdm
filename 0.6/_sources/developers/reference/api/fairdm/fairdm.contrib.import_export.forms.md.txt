@@ -1,0 +1,108 @@
+# {py:mod}`fairdm.contrib.import_export.forms`
+
+```{py:module} fairdm.contrib.import_export.forms
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.forms
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ImportForm <fairdm.contrib.import_export.forms.ImportForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.forms.ImportForm
+    :summary:
+    ```
+* - {py:obj}`ExportForm <fairdm.contrib.import_export.forms.ExportForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.forms.ExportForm
+    :summary:
+    ```
+````
+
+### API
+
+``````{py:class} ImportForm(*args, **kwargs)
+:canonical: fairdm.contrib.import_export.forms.ImportForm
+
+Bases: {py:obj}`fairdm.forms.Form`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.forms.ImportForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.forms.ImportForm.__init__
+```
+
+````{py:attribute} file
+:canonical: fairdm.contrib.import_export.forms.ImportForm.file
+:value: >
+   'FileField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.forms.ImportForm.file
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.contrib.import_export.forms.ImportForm.Meta
+
+```{autodoc2-docstring} fairdm.contrib.import_export.forms.ImportForm.Meta
+```
+
+````{py:attribute} fields
+:canonical: fairdm.contrib.import_export.forms.ImportForm.Meta.fields
+:value: >
+   ['file']
+
+```{autodoc2-docstring} fairdm.contrib.import_export.forms.ImportForm.Meta.fields
+```
+
+````
+
+````{py:attribute} helper_attrs
+:canonical: fairdm.contrib.import_export.forms.ImportForm.Meta.helper_attrs
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.forms.ImportForm.Meta.helper_attrs
+```
+
+````
+
+`````
+
+``````
+
+`````{py:class} ExportForm(*args, **kwargs)
+:canonical: fairdm.contrib.import_export.forms.ExportForm
+
+Bases: {py:obj}`fairdm.forms.Form`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.forms.ExportForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.forms.ExportForm.__init__
+```
+
+````{py:attribute} format
+:canonical: fairdm.contrib.import_export.forms.ExportForm.format
+:value: >
+   'ChoiceField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.forms.ExportForm.format
+```
+
+````
+
+`````

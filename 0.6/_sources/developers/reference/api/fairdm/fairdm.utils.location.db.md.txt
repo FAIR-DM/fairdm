@@ -1,0 +1,42 @@
+# {py:mod}`fairdm.utils.location.db`
+
+```{py:module} fairdm.utils.location.db
+```
+
+```{autodoc2-docstring} fairdm.utils.location.db
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`location_constraints <fairdm.utils.location.db.location_constraints>`
+  - ```{autodoc2-docstring} fairdm.utils.location.db.location_constraints
+    :summary:
+    ```
+* - {py:obj}`geography_index <fairdm.utils.location.db.geography_index>`
+  - ```{autodoc2-docstring} fairdm.utils.location.db.geography_index
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} location_constraints()
+:canonical: fairdm.utils.location.db.location_constraints
+
+```{autodoc2-docstring} fairdm.utils.location.db.location_constraints
+```
+````
+
+````{py:function} geography_index(name)
+:canonical: fairdm.utils.location.db.geography_index
+
+```{autodoc2-docstring} fairdm.utils.location.db.geography_index
+```
+````

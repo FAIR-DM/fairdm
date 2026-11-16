@@ -1,0 +1,56 @@
+# {py:mod}`fairdm.core.descriptions`
+
+```{py:module} fairdm.core.descriptions
+```
+
+```{autodoc2-docstring} fairdm.core.descriptions
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`VocabularyDescriptionsForm <fairdm.core.descriptions.VocabularyDescriptionsForm>`
+  - ```{autodoc2-docstring} fairdm.core.descriptions.VocabularyDescriptionsForm
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} VocabularyDescriptionsForm(*args, related_model, instance, **kwargs)
+:canonical: fairdm.core.descriptions.VocabularyDescriptionsForm
+
+Bases: {py:obj}`django.forms.Form`
+
+```{autodoc2-docstring} fairdm.core.descriptions.VocabularyDescriptionsForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.descriptions.VocabularyDescriptionsForm.__init__
+```
+
+````{py:method} definition(concept)
+:canonical: fairdm.core.descriptions.VocabularyDescriptionsForm.definition
+
+```{autodoc2-docstring} fairdm.core.descriptions.VocabularyDescriptionsForm.definition
+```
+
+````
+
+````{py:method} save()
+:canonical: fairdm.core.descriptions.VocabularyDescriptionsForm.save
+
+```{autodoc2-docstring} fairdm.core.descriptions.VocabularyDescriptionsForm.save
+```
+
+````
+
+`````

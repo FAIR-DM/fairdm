@@ -1,0 +1,44 @@
+# {py:mod}`fairdm`
+
+```{py:module} fairdm
+```
+
+```{autodoc2-docstring} fairdm
+:allowtitles:
+```
+
+## Subpackages
+
+```{toctree}
+:titlesonly:
+:maxdepth: 3
+
+fairdm.templatetags
+fairdm.management
+fairdm.forms
+fairdm.backups
+fairdm.views
+fairdm.conf
+fairdm.api
+fairdm.registry
+fairdm.db
+fairdm.contrib
+fairdm.utils
+fairdm.core
+fairdm.factories
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.portal_roles
+fairdm.models
+fairdm.apps
+fairdm.menus
+fairdm.permissions
+fairdm.config
+fairdm.plugins
+```

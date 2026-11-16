@@ -1,0 +1,120 @@
+# {py:mod}`fairdm.core.admin`
+
+```{py:module} fairdm.core.admin
+```
+
+```{autodoc2-docstring} fairdm.core.admin
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`DescriptionInline <fairdm.core.admin.DescriptionInline>`
+  - ```{autodoc2-docstring} fairdm.core.admin.DescriptionInline
+    :summary:
+    ```
+* - {py:obj}`DateInline <fairdm.core.admin.DateInline>`
+  - ```{autodoc2-docstring} fairdm.core.admin.DateInline
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} DescriptionInline(parent_model, admin_site)
+:canonical: fairdm.core.admin.DescriptionInline
+
+Bases: {py:obj}`django.contrib.admin.StackedInline`
+
+```{autodoc2-docstring} fairdm.core.admin.DescriptionInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.admin.DescriptionInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.admin.DescriptionInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.admin.DescriptionInline.model
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.core.admin.DescriptionInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.core.admin.DescriptionInline.extra
+```
+
+````
+
+````{py:attribute} max_num
+:canonical: fairdm.core.admin.DescriptionInline.max_num
+:value: >
+   6
+
+```{autodoc2-docstring} fairdm.core.admin.DescriptionInline.max_num
+```
+
+````
+
+`````
+
+`````{py:class} DateInline(parent_model, admin_site)
+:canonical: fairdm.core.admin.DateInline
+
+Bases: {py:obj}`django.contrib.admin.StackedInline`
+
+```{autodoc2-docstring} fairdm.core.admin.DateInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.admin.DateInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.admin.DateInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.admin.DateInline.model
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.core.admin.DateInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.core.admin.DateInline.extra
+```
+
+````
+
+````{py:attribute} max_num
+:canonical: fairdm.core.admin.DateInline.max_num
+:value: >
+   6
+
+```{autodoc2-docstring} fairdm.core.admin.DateInline.max_num
+```
+
+````
+
+`````

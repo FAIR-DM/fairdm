@@ -1,0 +1,130 @@
+# {py:mod}`fairdm.core.measurement.config`
+
+```{py:module} fairdm.core.measurement.config
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.config
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`BaseMeasurementConfiguration <fairdm.core.measurement.config.BaseMeasurementConfiguration>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.config.BaseMeasurementConfiguration
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`COMPONENTS_ADDING_OWN_FIELDS <fairdm.core.measurement.config.COMPONENTS_ADDING_OWN_FIELDS>`
+  - ```{autodoc2-docstring} fairdm.core.measurement.config.COMPONENTS_ADDING_OWN_FIELDS
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} COMPONENTS_ADDING_OWN_FIELDS
+:canonical: fairdm.core.measurement.config.COMPONENTS_ADDING_OWN_FIELDS
+:value: >
+   ('form', 'table', 'filterset')
+
+```{autodoc2-docstring} fairdm.core.measurement.config.COMPONENTS_ADDING_OWN_FIELDS
+```
+
+````
+
+`````{py:class} BaseMeasurementConfiguration(model: type[models.Model] | None = None, **overrides: typing.Any)
+:canonical: fairdm.core.measurement.config.BaseMeasurementConfiguration
+
+Bases: {py:obj}`fairdm.registry.config.ModelConfiguration`
+
+```{autodoc2-docstring} fairdm.core.measurement.config.BaseMeasurementConfiguration
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.measurement.config.BaseMeasurementConfiguration.__init__
+```
+
+````{py:attribute} fields
+:canonical: fairdm.core.measurement.config.BaseMeasurementConfiguration.fields
+:value: >
+   ['name', 'sample', 'dataset', 'image']
+
+```{autodoc2-docstring} fairdm.core.measurement.config.BaseMeasurementConfiguration.fields
+```
+
+````
+
+````{py:attribute} table_fields
+:canonical: fairdm.core.measurement.config.BaseMeasurementConfiguration.table_fields
+:value: >
+   ['name', 'sample', 'dataset', 'added', 'modified']
+
+```{autodoc2-docstring} fairdm.core.measurement.config.BaseMeasurementConfiguration.table_fields
+```
+
+````
+
+````{py:attribute} form_fields
+:canonical: fairdm.core.measurement.config.BaseMeasurementConfiguration.form_fields
+:value: >
+   ['name', 'sample', 'dataset', 'image']
+
+```{autodoc2-docstring} fairdm.core.measurement.config.BaseMeasurementConfiguration.form_fields
+```
+
+````
+
+````{py:attribute} filterset_fields
+:canonical: fairdm.core.measurement.config.BaseMeasurementConfiguration.filterset_fields
+:value: >
+   ['sample', 'dataset', 'added']
+
+```{autodoc2-docstring} fairdm.core.measurement.config.BaseMeasurementConfiguration.filterset_fields
+```
+
+````
+
+````{py:attribute} display_name
+:canonical: fairdm.core.measurement.config.BaseMeasurementConfiguration.display_name
+:value: >
+   'Measurement'
+
+```{autodoc2-docstring} fairdm.core.measurement.config.BaseMeasurementConfiguration.display_name
+```
+
+````
+
+````{py:attribute} description
+:canonical: fairdm.core.measurement.config.BaseMeasurementConfiguration.description
+:value: >
+   'Observation or calculation recorded from a sample'
+
+```{autodoc2-docstring} fairdm.core.measurement.config.BaseMeasurementConfiguration.description
+```
+
+````
+
+````{py:method} resolve_fields(component: str) -> list[str]
+:canonical: fairdm.core.measurement.config.BaseMeasurementConfiguration.resolve_fields
+
+```{autodoc2-docstring} fairdm.core.measurement.config.BaseMeasurementConfiguration.resolve_fields
+```
+
+````
+
+`````

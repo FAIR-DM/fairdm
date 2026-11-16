@@ -1,0 +1,80 @@
+# {py:mod}`fairdm.core.sample.apps`
+
+```{py:module} fairdm.core.sample.apps
+```
+
+```{autodoc2-docstring} fairdm.core.sample.apps
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`FairDMSampleConfig <fairdm.core.sample.apps.FairDMSampleConfig>`
+  - ```{autodoc2-docstring} fairdm.core.sample.apps.FairDMSampleConfig
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} FairDMSampleConfig(app_name, app_module)
+:canonical: fairdm.core.sample.apps.FairDMSampleConfig
+
+Bases: {py:obj}`django.apps.AppConfig`
+
+```{autodoc2-docstring} fairdm.core.sample.apps.FairDMSampleConfig
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.sample.apps.FairDMSampleConfig.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.core.sample.apps.FairDMSampleConfig.name
+:value: >
+   'fairdm.core.sample'
+
+```{autodoc2-docstring} fairdm.core.sample.apps.FairDMSampleConfig.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.core.sample.apps.FairDMSampleConfig.label
+:value: >
+   'sample'
+
+```{autodoc2-docstring} fairdm.core.sample.apps.FairDMSampleConfig.label
+```
+
+````
+
+````{py:attribute} verbose_name
+:canonical: fairdm.core.sample.apps.FairDMSampleConfig.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.apps.FairDMSampleConfig.verbose_name
+```
+
+````
+
+````{py:attribute} verbose_name_plural
+:canonical: fairdm.core.sample.apps.FairDMSampleConfig.verbose_name_plural
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.core.sample.apps.FairDMSampleConfig.verbose_name_plural
+```
+
+````
+
+`````

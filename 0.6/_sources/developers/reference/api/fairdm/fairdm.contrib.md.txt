@@ -1,0 +1,51 @@
+# {py:mod}`fairdm.contrib`
+
+```{py:module} fairdm.contrib
+```
+
+```{autodoc2-docstring} fairdm.contrib
+:allowtitles:
+```
+
+## Subpackages
+
+```{toctree}
+:titlesonly:
+:maxdepth: 3
+
+fairdm.contrib.plugins
+fairdm.contrib.identity
+fairdm.contrib.autocomplete
+fairdm.contrib.location
+fairdm.contrib.import_export
+fairdm.contrib.activity
+fairdm.contrib.contributors
+fairdm.contrib.collections
+fairdm.contrib.admin
+```
+
+## Package Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`CORE_MAPPING <fairdm.contrib.CORE_MAPPING>`
+  - ```{autodoc2-docstring} fairdm.contrib.CORE_MAPPING
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} CORE_MAPPING
+:canonical: fairdm.contrib.CORE_MAPPING
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.CORE_MAPPING
+```
+
+````

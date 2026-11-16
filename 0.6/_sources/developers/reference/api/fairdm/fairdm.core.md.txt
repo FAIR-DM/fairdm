@@ -1,0 +1,48 @@
+# {py:mod}`fairdm.core`
+
+```{py:module} fairdm.core
+```
+
+```{autodoc2-docstring} fairdm.core
+:allowtitles:
+```
+
+## Subpackages
+
+```{toctree}
+:titlesonly:
+:maxdepth: 3
+
+fairdm.core.measurement
+fairdm.core.project
+fairdm.core.dataset
+fairdm.core.sample
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.core.admin
+fairdm.core.models
+fairdm.core.descriptions
+fairdm.core.citation
+fairdm.core.utils
+fairdm.core.image_utils
+fairdm.core.apps
+fairdm.core.vocabularies
+fairdm.core.filters
+fairdm.core.urls
+fairdm.core.permissions
+fairdm.core.overview
+fairdm.core.abstract
+fairdm.core.plugins
+fairdm.core.editing
+fairdm.core.choices
+fairdm.core.related_records
+fairdm.core.formsets
+fairdm.core.managers
+fairdm.core.forms
+```

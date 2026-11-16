@@ -1,0 +1,50 @@
+# {py:mod}`fairdm.core.permissions`
+
+```{py:module} fairdm.core.permissions
+```
+
+```{autodoc2-docstring} fairdm.core.permissions
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`PolymorphicObjectPermissionBackend <fairdm.core.permissions.PolymorphicObjectPermissionBackend>`
+  - ```{autodoc2-docstring} fairdm.core.permissions.PolymorphicObjectPermissionBackend
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} PolymorphicObjectPermissionBackend
+:canonical: fairdm.core.permissions.PolymorphicObjectPermissionBackend
+
+Bases: {py:obj}`guardian.backends.ObjectPermissionBackend`
+
+```{autodoc2-docstring} fairdm.core.permissions.PolymorphicObjectPermissionBackend
+```
+
+````{py:method} has_perm(user_obj, perm, obj=None)
+:canonical: fairdm.core.permissions.PolymorphicObjectPermissionBackend.has_perm
+
+```{autodoc2-docstring} fairdm.core.permissions.PolymorphicObjectPermissionBackend.has_perm
+```
+
+````
+
+````{py:method} get_all_permissions(user_obj, obj=None)
+:canonical: fairdm.core.permissions.PolymorphicObjectPermissionBackend.get_all_permissions
+
+```{autodoc2-docstring} fairdm.core.permissions.PolymorphicObjectPermissionBackend.get_all_permissions
+```
+
+````
+
+`````

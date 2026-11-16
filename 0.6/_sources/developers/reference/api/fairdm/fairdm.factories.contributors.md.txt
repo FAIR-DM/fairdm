@@ -1,0 +1,534 @@
+# {py:mod}`fairdm.factories.contributors`
+
+```{py:module} fairdm.factories.contributors
+```
+
+```{autodoc2-docstring} fairdm.factories.contributors
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`UserFactory <fairdm.factories.contributors.UserFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.contributors.UserFactory
+    :summary:
+    ```
+* - {py:obj}`ContributorFactory <fairdm.factories.contributors.ContributorFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.contributors.ContributorFactory
+    :summary:
+    ```
+* - {py:obj}`PersonFactory <fairdm.factories.contributors.PersonFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.contributors.PersonFactory
+    :summary:
+    ```
+* - {py:obj}`OrganizationFactory <fairdm.factories.contributors.OrganizationFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.contributors.OrganizationFactory
+    :summary:
+    ```
+* - {py:obj}`ContributorIdentifierFactory <fairdm.factories.contributors.ContributorIdentifierFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.contributors.ContributorIdentifierFactory
+    :summary:
+    ```
+* - {py:obj}`AffiliationFactory <fairdm.factories.contributors.AffiliationFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.contributors.AffiliationFactory
+    :summary:
+    ```
+* - {py:obj}`ContributionFactory <fairdm.factories.contributors.ContributionFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.contributors.ContributionFactory
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`User <fairdm.factories.contributors.User>`
+  - ```{autodoc2-docstring} fairdm.factories.contributors.User
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} User
+:canonical: fairdm.factories.contributors.User
+:value: >
+   'get_user_model(...)'
+
+```{autodoc2-docstring} fairdm.factories.contributors.User
+```
+
+````
+
+``````{py:class} UserFactory
+:canonical: fairdm.factories.contributors.UserFactory
+
+Bases: {py:obj}`factory.django.DjangoModelFactory`
+
+```{autodoc2-docstring} fairdm.factories.contributors.UserFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.contributors.UserFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.contributors.UserFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.contributors.UserFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.contributors.UserFactory.Meta.model
+```
+
+````
+
+`````
+
+````{py:attribute} email
+:canonical: fairdm.factories.contributors.UserFactory.email
+:value: >
+   'Sequence(...)'
+
+```{autodoc2-docstring} fairdm.factories.contributors.UserFactory.email
+```
+
+````
+
+````{py:attribute} first_name
+:canonical: fairdm.factories.contributors.UserFactory.first_name
+:value: >
+   'Test'
+
+```{autodoc2-docstring} fairdm.factories.contributors.UserFactory.first_name
+```
+
+````
+
+````{py:attribute} last_name
+:canonical: fairdm.factories.contributors.UserFactory.last_name
+:value: >
+   'User'
+
+```{autodoc2-docstring} fairdm.factories.contributors.UserFactory.last_name
+```
+
+````
+
+````{py:attribute} is_active
+:canonical: fairdm.factories.contributors.UserFactory.is_active
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.factories.contributors.UserFactory.is_active
+```
+
+````
+
+````{py:attribute} is_staff
+:canonical: fairdm.factories.contributors.UserFactory.is_staff
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.factories.contributors.UserFactory.is_staff
+```
+
+````
+
+````{py:attribute} is_superuser
+:canonical: fairdm.factories.contributors.UserFactory.is_superuser
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.factories.contributors.UserFactory.is_superuser
+```
+
+````
+
+````{py:method} password(create, extracted, **kwargs)
+:canonical: fairdm.factories.contributors.UserFactory.password
+
+```{autodoc2-docstring} fairdm.factories.contributors.UserFactory.password
+```
+
+````
+
+``````
+
+``````{py:class} ContributorFactory
+:canonical: fairdm.factories.contributors.ContributorFactory
+
+Bases: {py:obj}`factory.django.DjangoModelFactory`
+
+```{autodoc2-docstring} fairdm.factories.contributors.ContributorFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.contributors.ContributorFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.contributors.ContributorFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.contributors.ContributorFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.contributors.ContributorFactory.Meta.model
+```
+
+````
+
+`````
+
+`````{py:class} Params
+:canonical: fairdm.factories.contributors.ContributorFactory.Params
+
+```{autodoc2-docstring} fairdm.factories.contributors.ContributorFactory.Params
+```
+
+````{py:attribute} with_image
+:canonical: fairdm.factories.contributors.ContributorFactory.Params.with_image
+:value: >
+   'Trait(...)'
+
+```{autodoc2-docstring} fairdm.factories.contributors.ContributorFactory.Params.with_image
+```
+
+````
+
+`````
+
+````{py:attribute} name
+:canonical: fairdm.factories.contributors.ContributorFactory.name
+:value: >
+   'Sequence(...)'
+
+```{autodoc2-docstring} fairdm.factories.contributors.ContributorFactory.name
+```
+
+````
+
+````{py:attribute} profile
+:canonical: fairdm.factories.contributors.ContributorFactory.profile
+:value: >
+   'Faker(...)'
+
+```{autodoc2-docstring} fairdm.factories.contributors.ContributorFactory.profile
+```
+
+````
+
+``````
+
+``````{py:class} PersonFactory
+:canonical: fairdm.factories.contributors.PersonFactory
+
+Bases: {py:obj}`fairdm.factories.contributors.ContributorFactory`
+
+```{autodoc2-docstring} fairdm.factories.contributors.PersonFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.contributors.PersonFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.contributors.PersonFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.contributors.PersonFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.contributors.PersonFactory.Meta.model
+```
+
+````
+
+````{py:attribute} django_get_or_create
+:canonical: fairdm.factories.contributors.PersonFactory.Meta.django_get_or_create
+:value: >
+   ['email']
+
+```{autodoc2-docstring} fairdm.factories.contributors.PersonFactory.Meta.django_get_or_create
+```
+
+````
+
+`````
+
+````{py:attribute} email
+:canonical: fairdm.factories.contributors.PersonFactory.email
+:value: >
+   'Sequence(...)'
+
+```{autodoc2-docstring} fairdm.factories.contributors.PersonFactory.email
+```
+
+````
+
+````{py:attribute} first_name
+:canonical: fairdm.factories.contributors.PersonFactory.first_name
+:value: >
+   'Faker(...)'
+
+```{autodoc2-docstring} fairdm.factories.contributors.PersonFactory.first_name
+```
+
+````
+
+````{py:attribute} last_name
+:canonical: fairdm.factories.contributors.PersonFactory.last_name
+:value: >
+   'Faker(...)'
+
+```{autodoc2-docstring} fairdm.factories.contributors.PersonFactory.last_name
+```
+
+````
+
+````{py:attribute} is_active
+:canonical: fairdm.factories.contributors.PersonFactory.is_active
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.factories.contributors.PersonFactory.is_active
+```
+
+````
+
+````{py:method} password(create, extracted, **kwargs)
+:canonical: fairdm.factories.contributors.PersonFactory.password
+
+```{autodoc2-docstring} fairdm.factories.contributors.PersonFactory.password
+```
+
+````
+
+``````
+
+``````{py:class} OrganizationFactory
+:canonical: fairdm.factories.contributors.OrganizationFactory
+
+Bases: {py:obj}`fairdm.factories.contributors.ContributorFactory`
+
+```{autodoc2-docstring} fairdm.factories.contributors.OrganizationFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.contributors.OrganizationFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.contributors.OrganizationFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.contributors.OrganizationFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.contributors.OrganizationFactory.Meta.model
+```
+
+````
+
+`````
+
+``````
+
+``````{py:class} ContributorIdentifierFactory
+:canonical: fairdm.factories.contributors.ContributorIdentifierFactory
+
+Bases: {py:obj}`fairdm.factories.utils.ConceptFieldFactory`
+
+```{autodoc2-docstring} fairdm.factories.contributors.ContributorIdentifierFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.contributors.ContributorIdentifierFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.contributors.ContributorIdentifierFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.contributors.ContributorIdentifierFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.contributors.ContributorIdentifierFactory.Meta.model
+```
+
+````
+
+`````
+
+````{py:attribute} type
+:canonical: fairdm.factories.contributors.ContributorIdentifierFactory.type
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.contributors.ContributorIdentifierFactory.type
+```
+
+````
+
+````{py:attribute} value
+:canonical: fairdm.factories.contributors.ContributorIdentifierFactory.value
+:value: >
+   'Sequence(...)'
+
+```{autodoc2-docstring} fairdm.factories.contributors.ContributorIdentifierFactory.value
+```
+
+````
+
+``````
+
+``````{py:class} AffiliationFactory
+:canonical: fairdm.factories.contributors.AffiliationFactory
+
+Bases: {py:obj}`factory.django.DjangoModelFactory`
+
+```{autodoc2-docstring} fairdm.factories.contributors.AffiliationFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.contributors.AffiliationFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.contributors.AffiliationFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.contributors.AffiliationFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.contributors.AffiliationFactory.Meta.model
+```
+
+````
+
+`````
+
+````{py:attribute} person
+:canonical: fairdm.factories.contributors.AffiliationFactory.person
+:value: >
+   'SubFactory(...)'
+
+```{autodoc2-docstring} fairdm.factories.contributors.AffiliationFactory.person
+```
+
+````
+
+````{py:attribute} organization
+:canonical: fairdm.factories.contributors.AffiliationFactory.organization
+:value: >
+   'SubFactory(...)'
+
+```{autodoc2-docstring} fairdm.factories.contributors.AffiliationFactory.organization
+```
+
+````
+
+````{py:attribute} type
+:canonical: fairdm.factories.contributors.AffiliationFactory.type
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.contributors.AffiliationFactory.type
+```
+
+````
+
+````{py:attribute} start_date
+:canonical: fairdm.factories.contributors.AffiliationFactory.start_date
+:value: >
+   '2020'
+
+```{autodoc2-docstring} fairdm.factories.contributors.AffiliationFactory.start_date
+```
+
+````
+
+``````
+
+``````{py:class} ContributionFactory
+:canonical: fairdm.factories.contributors.ContributionFactory
+
+Bases: {py:obj}`factory.django.DjangoModelFactory`
+
+```{autodoc2-docstring} fairdm.factories.contributors.ContributionFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.contributors.ContributionFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.contributors.ContributionFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.contributors.ContributionFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.contributors.ContributionFactory.Meta.model
+```
+
+````
+
+````{py:attribute} exclude
+:canonical: fairdm.factories.contributors.ContributionFactory.Meta.exclude
+:value: >
+   ['content_object']
+
+```{autodoc2-docstring} fairdm.factories.contributors.ContributionFactory.Meta.exclude
+```
+
+````
+
+`````
+
+````{py:attribute} contributor
+:canonical: fairdm.factories.contributors.ContributionFactory.contributor
+:value: >
+   'SubFactory(...)'
+
+```{autodoc2-docstring} fairdm.factories.contributors.ContributionFactory.contributor
+```
+
+````
+
+````{py:method} content_object()
+:canonical: fairdm.factories.contributors.ContributionFactory.content_object
+
+```{autodoc2-docstring} fairdm.factories.contributors.ContributionFactory.content_object
+```
+
+````
+
+````{py:method} content_type()
+:canonical: fairdm.factories.contributors.ContributionFactory.content_type
+
+```{autodoc2-docstring} fairdm.factories.contributors.ContributionFactory.content_type
+```
+
+````
+
+````{py:method} object_id()
+:canonical: fairdm.factories.contributors.ContributionFactory.object_id
+
+```{autodoc2-docstring} fairdm.factories.contributors.ContributionFactory.object_id
+```
+
+````
+
+``````

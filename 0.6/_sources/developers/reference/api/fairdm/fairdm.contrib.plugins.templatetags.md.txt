@@ -1,0 +1,17 @@
+# {py:mod}`fairdm.contrib.plugins.templatetags`
+
+```{py:module} fairdm.contrib.plugins.templatetags
+```
+
+```{autodoc2-docstring} fairdm.contrib.plugins.templatetags
+:allowtitles:
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.contrib.plugins.templatetags.plugin_tags
+```

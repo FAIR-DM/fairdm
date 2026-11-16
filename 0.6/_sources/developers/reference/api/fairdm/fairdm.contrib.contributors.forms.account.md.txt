@@ -1,0 +1,118 @@
+# {py:mod}`fairdm.contrib.contributors.forms.account`
+
+```{py:module} fairdm.contrib.contributors.forms.account
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.account
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`LoginForm <fairdm.contrib.contributors.forms.account.LoginForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.forms.account.LoginForm
+    :summary:
+    ```
+* - {py:obj}`UserTokenForm <fairdm.contrib.contributors.forms.account.UserTokenForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.forms.account.UserTokenForm
+    :summary:
+    ```
+* - {py:obj}`SignupForm <fairdm.contrib.contributors.forms.account.SignupForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.forms.account.SignupForm
+    :summary:
+    ```
+* - {py:obj}`SocialSignupForm <fairdm.contrib.contributors.forms.account.SocialSignupForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.forms.account.SocialSignupForm
+    :summary:
+    ```
+````
+
+### API
+
+````{py:class} LoginForm(*args, **kwargs)
+:canonical: fairdm.contrib.contributors.forms.account.LoginForm
+
+Bases: {py:obj}`allauth.account.forms.LoginForm`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.account.LoginForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.account.LoginForm.__init__
+```
+
+````
+
+`````{py:class} UserTokenForm(data=None, files=None, auto_id='id_%s', prefix=None, initial=None, error_class=ErrorList, label_suffix=None, empty_permitted=False, field_order=None, use_required_attribute=None, renderer=None, bound_field_class=None)
+:canonical: fairdm.contrib.contributors.forms.account.UserTokenForm
+
+Bases: {py:obj}`allauth.account.forms.UserTokenForm`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.account.UserTokenForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.account.UserTokenForm.__init__
+```
+
+````{py:method} clean()
+:canonical: fairdm.contrib.contributors.forms.account.UserTokenForm.clean
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.account.UserTokenForm.clean
+```
+
+````
+
+`````
+
+````{py:class} SignupForm(*args, **kwargs)
+:canonical: fairdm.contrib.contributors.forms.account.SignupForm
+
+Bases: {py:obj}`allauth.account.forms.SignupForm`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.account.SignupForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.account.SignupForm.__init__
+```
+
+````
+
+`````{py:class} SocialSignupForm(*args, **kwargs)
+:canonical: fairdm.contrib.contributors.forms.account.SocialSignupForm
+
+Bases: {py:obj}`allauth.socialaccount.forms.SignupForm`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.account.SocialSignupForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.account.SocialSignupForm.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.contrib.contributors.forms.account.SocialSignupForm.name
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.account.SocialSignupForm.name
+```
+
+````
+
+`````

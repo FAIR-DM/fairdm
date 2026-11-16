@@ -1,0 +1,97 @@
+# {py:mod}`fairdm.utils.location.coverage`
+
+```{py:module} fairdm.utils.location.coverage
+```
+
+```{autodoc2-docstring} fairdm.utils.location.coverage
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`Coverage <fairdm.utils.location.coverage.Coverage>`
+  - ```{autodoc2-docstring} fairdm.utils.location.coverage.Coverage
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`spatial_coverage <fairdm.utils.location.coverage.spatial_coverage>`
+  - ```{autodoc2-docstring} fairdm.utils.location.coverage.spatial_coverage
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} Coverage
+:canonical: fairdm.utils.location.coverage.Coverage
+
+Bases: {py:obj}`typing.NamedTuple`
+
+```{autodoc2-docstring} fairdm.utils.location.coverage.Coverage
+```
+
+````{py:attribute} west
+:canonical: fairdm.utils.location.coverage.Coverage.west
+:type: float
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.utils.location.coverage.Coverage.west
+```
+
+````
+
+````{py:attribute} south
+:canonical: fairdm.utils.location.coverage.Coverage.south
+:type: float
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.utils.location.coverage.Coverage.south
+```
+
+````
+
+````{py:attribute} east
+:canonical: fairdm.utils.location.coverage.Coverage.east
+:type: float
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.utils.location.coverage.Coverage.east
+```
+
+````
+
+````{py:attribute} north
+:canonical: fairdm.utils.location.coverage.Coverage.north
+:type: float
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.utils.location.coverage.Coverage.north
+```
+
+````
+
+`````
+
+````{py:function} spatial_coverage(*querysets_and_fields)
+:canonical: fairdm.utils.location.coverage.spatial_coverage
+
+```{autodoc2-docstring} fairdm.utils.location.coverage.spatial_coverage
+```
+````

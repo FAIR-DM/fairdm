@@ -1,0 +1,80 @@
+# {py:mod}`fairdm.contrib.plugins.apps`
+
+```{py:module} fairdm.contrib.plugins.apps
+```
+
+```{autodoc2-docstring} fairdm.contrib.plugins.apps
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`PluginsConfig <fairdm.contrib.plugins.apps.PluginsConfig>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.apps.PluginsConfig
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} PluginsConfig(app_name, app_module)
+:canonical: fairdm.contrib.plugins.apps.PluginsConfig
+
+Bases: {py:obj}`django.apps.AppConfig`
+
+```{autodoc2-docstring} fairdm.contrib.plugins.apps.PluginsConfig
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.plugins.apps.PluginsConfig.__init__
+```
+
+````{py:attribute} name
+:canonical: fairdm.contrib.plugins.apps.PluginsConfig.name
+:value: >
+   'fairdm.contrib.plugins'
+
+```{autodoc2-docstring} fairdm.contrib.plugins.apps.PluginsConfig.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.contrib.plugins.apps.PluginsConfig.label
+:value: >
+   'plugins'
+
+```{autodoc2-docstring} fairdm.contrib.plugins.apps.PluginsConfig.label
+```
+
+````
+
+````{py:attribute} verbose_name
+:canonical: fairdm.contrib.plugins.apps.PluginsConfig.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.plugins.apps.PluginsConfig.verbose_name
+```
+
+````
+
+````{py:attribute} default_auto_field
+:canonical: fairdm.contrib.plugins.apps.PluginsConfig.default_auto_field
+:value: >
+   'django.db.models.BigAutoField'
+
+```{autodoc2-docstring} fairdm.contrib.plugins.apps.PluginsConfig.default_auto_field
+```
+
+````
+
+`````

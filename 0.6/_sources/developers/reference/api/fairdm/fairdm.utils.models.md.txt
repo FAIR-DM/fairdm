@@ -1,0 +1,41 @@
+# {py:mod}`fairdm.utils.models`
+
+```{py:module} fairdm.utils.models
+```
+
+```{autodoc2-docstring} fairdm.utils.models
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`PolymorphicMixin <fairdm.utils.models.PolymorphicMixin>`
+  - ```{autodoc2-docstring} fairdm.utils.models.PolymorphicMixin
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} PolymorphicMixin
+:canonical: fairdm.utils.models.PolymorphicMixin
+
+```{autodoc2-docstring} fairdm.utils.models.PolymorphicMixin
+```
+
+````{py:method} get_inheritance_chain()
+:canonical: fairdm.utils.models.PolymorphicMixin.get_inheritance_chain
+:classmethod:
+
+```{autodoc2-docstring} fairdm.utils.models.PolymorphicMixin.get_inheritance_chain
+```
+
+````
+
+`````

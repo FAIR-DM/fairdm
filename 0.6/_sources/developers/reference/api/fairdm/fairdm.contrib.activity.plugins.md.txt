@@ -1,0 +1,166 @@
+# {py:mod}`fairdm.contrib.activity.plugins`
+
+```{py:module} fairdm.contrib.activity.plugins
+```
+
+```{autodoc2-docstring} fairdm.contrib.activity.plugins
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ActivityList <fairdm.contrib.activity.plugins.ActivityList>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.plugins.ActivityList
+    :summary:
+    ```
+* - {py:obj}`ProjectActivity <fairdm.contrib.activity.plugins.ProjectActivity>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.plugins.ProjectActivity
+    :summary:
+    ```
+* - {py:obj}`DatasetActivity <fairdm.contrib.activity.plugins.DatasetActivity>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.plugins.DatasetActivity
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} ActivityList(**kwargs)
+:canonical: fairdm.contrib.activity.plugins.ActivityList
+
+Bases: {py:obj}`fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin`, {py:obj}`fairdm.contrib.plugins.Plugin`, {py:obj}`fairdm.views.FairDMTemplateView`
+
+```{autodoc2-docstring} fairdm.contrib.activity.plugins.ActivityList
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.activity.plugins.ActivityList.__init__
+```
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.activity.plugins.ActivityList.url_path
+:value: >
+   'activity'
+
+```{autodoc2-docstring} fairdm.contrib.activity.plugins.ActivityList.url_path
+```
+
+````
+
+````{py:attribute} name
+:canonical: fairdm.contrib.activity.plugins.ActivityList.name
+:value: >
+   'activity'
+
+```{autodoc2-docstring} fairdm.contrib.activity.plugins.ActivityList.name
+```
+
+````
+
+````{py:attribute} template_name
+:canonical: fairdm.contrib.activity.plugins.ActivityList.template_name
+:value: >
+   'activity/activity_list.html'
+
+```{autodoc2-docstring} fairdm.contrib.activity.plugins.ActivityList.template_name
+```
+
+````
+
+````{py:attribute} page_title
+:canonical: fairdm.contrib.activity.plugins.ActivityList.page_title
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.activity.plugins.ActivityList.page_title
+```
+
+````
+
+````{py:attribute} paginate_by
+:canonical: fairdm.contrib.activity.plugins.ActivityList.paginate_by
+:value: >
+   25
+
+```{autodoc2-docstring} fairdm.contrib.activity.plugins.ActivityList.paginate_by
+```
+
+````
+
+````{py:method} get_page_lead()
+:canonical: fairdm.contrib.activity.plugins.ActivityList.get_page_lead
+
+```{autodoc2-docstring} fairdm.contrib.activity.plugins.ActivityList.get_page_lead
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.contrib.activity.plugins.ActivityList.get_context_data
+
+```{autodoc2-docstring} fairdm.contrib.activity.plugins.ActivityList.get_context_data
+```
+
+````
+
+`````
+
+`````{py:class} ProjectActivity(**kwargs)
+:canonical: fairdm.contrib.activity.plugins.ProjectActivity
+
+Bases: {py:obj}`fairdm.contrib.activity.plugins.ActivityList`
+
+```{autodoc2-docstring} fairdm.contrib.activity.plugins.ProjectActivity
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.activity.plugins.ProjectActivity.__init__
+```
+
+````{py:attribute} check
+:canonical: fairdm.contrib.activity.plugins.ProjectActivity.check
+:value: >
+   'staticmethod(...)'
+
+```{autodoc2-docstring} fairdm.contrib.activity.plugins.ProjectActivity.check
+```
+
+````
+
+`````
+
+`````{py:class} DatasetActivity(**kwargs)
+:canonical: fairdm.contrib.activity.plugins.DatasetActivity
+
+Bases: {py:obj}`fairdm.contrib.activity.plugins.ActivityList`
+
+```{autodoc2-docstring} fairdm.contrib.activity.plugins.DatasetActivity
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.activity.plugins.DatasetActivity.__init__
+```
+
+````{py:attribute} check
+:canonical: fairdm.contrib.activity.plugins.DatasetActivity.check
+:value: >
+   'staticmethod(...)'
+
+```{autodoc2-docstring} fairdm.contrib.activity.plugins.DatasetActivity.check
+```
+
+````
+
+`````

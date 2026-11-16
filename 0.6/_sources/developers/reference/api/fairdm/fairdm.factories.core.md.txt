@@ -1,0 +1,1216 @@
+# {py:mod}`fairdm.factories.core`
+
+```{py:module} fairdm.factories.core
+```
+
+```{autodoc2-docstring} fairdm.factories.core
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ProjectDescriptionFactory <fairdm.factories.core.ProjectDescriptionFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.core.ProjectDescriptionFactory
+    :summary:
+    ```
+* - {py:obj}`ProjectDateFactory <fairdm.factories.core.ProjectDateFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.core.ProjectDateFactory
+    :summary:
+    ```
+* - {py:obj}`ProjectIdentifierFactory <fairdm.factories.core.ProjectIdentifierFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.core.ProjectIdentifierFactory
+    :summary:
+    ```
+* - {py:obj}`ProjectFactory <fairdm.factories.core.ProjectFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.core.ProjectFactory
+    :summary:
+    ```
+* - {py:obj}`DatasetDescriptionFactory <fairdm.factories.core.DatasetDescriptionFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.core.DatasetDescriptionFactory
+    :summary:
+    ```
+* - {py:obj}`DatasetDateFactory <fairdm.factories.core.DatasetDateFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.core.DatasetDateFactory
+    :summary:
+    ```
+* - {py:obj}`DatasetIdentifierFactory <fairdm.factories.core.DatasetIdentifierFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.core.DatasetIdentifierFactory
+    :summary:
+    ```
+* - {py:obj}`LiteratureItemFactory <fairdm.factories.core.LiteratureItemFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.core.LiteratureItemFactory
+    :summary:
+    ```
+* - {py:obj}`DatasetLiteratureRelationFactory <fairdm.factories.core.DatasetLiteratureRelationFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.core.DatasetLiteratureRelationFactory
+    :summary:
+    ```
+* - {py:obj}`DatasetFactory <fairdm.factories.core.DatasetFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.core.DatasetFactory
+    :summary:
+    ```
+* - {py:obj}`SampleDescriptionFactory <fairdm.factories.core.SampleDescriptionFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.core.SampleDescriptionFactory
+    :summary:
+    ```
+* - {py:obj}`SampleDateFactory <fairdm.factories.core.SampleDateFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.core.SampleDateFactory
+    :summary:
+    ```
+* - {py:obj}`SampleIdentifierFactory <fairdm.factories.core.SampleIdentifierFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.core.SampleIdentifierFactory
+    :summary:
+    ```
+* - {py:obj}`SampleFactory <fairdm.factories.core.SampleFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.core.SampleFactory
+    :summary:
+    ```
+* - {py:obj}`MeasurementDescriptionFactory <fairdm.factories.core.MeasurementDescriptionFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.core.MeasurementDescriptionFactory
+    :summary:
+    ```
+* - {py:obj}`MeasurementDateFactory <fairdm.factories.core.MeasurementDateFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.core.MeasurementDateFactory
+    :summary:
+    ```
+* - {py:obj}`MeasurementIdentifierFactory <fairdm.factories.core.MeasurementIdentifierFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.core.MeasurementIdentifierFactory
+    :summary:
+    ```
+* - {py:obj}`MeasurementFactory <fairdm.factories.core.MeasurementFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.core.MeasurementFactory
+    :summary:
+    ```
+* - {py:obj}`SampleRelationFactory <fairdm.factories.core.SampleRelationFactory>`
+  - ```{autodoc2-docstring} fairdm.factories.core.SampleRelationFactory
+    :summary:
+    ```
+````
+
+### API
+
+``````{py:class} ProjectDescriptionFactory
+:canonical: fairdm.factories.core.ProjectDescriptionFactory
+
+Bases: {py:obj}`fairdm.factories.utils.ConceptFieldFactory`
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectDescriptionFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.core.ProjectDescriptionFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectDescriptionFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.core.ProjectDescriptionFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectDescriptionFactory.Meta.model
+```
+
+````
+
+`````
+
+````{py:attribute} type
+:canonical: fairdm.factories.core.ProjectDescriptionFactory.type
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectDescriptionFactory.type
+```
+
+````
+
+````{py:attribute} value
+:canonical: fairdm.factories.core.ProjectDescriptionFactory.value
+:value: >
+   'Faker(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectDescriptionFactory.value
+```
+
+````
+
+``````
+
+``````{py:class} ProjectDateFactory
+:canonical: fairdm.factories.core.ProjectDateFactory
+
+Bases: {py:obj}`fairdm.factories.utils.ConceptFieldFactory`
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectDateFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.core.ProjectDateFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectDateFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.core.ProjectDateFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectDateFactory.Meta.model
+```
+
+````
+
+`````
+
+````{py:attribute} type
+:canonical: fairdm.factories.core.ProjectDateFactory.type
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectDateFactory.type
+```
+
+````
+
+````{py:attribute} value
+:canonical: fairdm.factories.core.ProjectDateFactory.value
+:value: >
+   'Faker(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectDateFactory.value
+```
+
+````
+
+``````
+
+``````{py:class} ProjectIdentifierFactory
+:canonical: fairdm.factories.core.ProjectIdentifierFactory
+
+Bases: {py:obj}`fairdm.factories.utils.ConceptFieldFactory`
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectIdentifierFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.core.ProjectIdentifierFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectIdentifierFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.core.ProjectIdentifierFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectIdentifierFactory.Meta.model
+```
+
+````
+
+`````
+
+````{py:attribute} type
+:canonical: fairdm.factories.core.ProjectIdentifierFactory.type
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectIdentifierFactory.type
+```
+
+````
+
+````{py:attribute} value
+:canonical: fairdm.factories.core.ProjectIdentifierFactory.value
+:value: >
+   'Faker(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectIdentifierFactory.value
+```
+
+````
+
+``````
+
+``````{py:class} ProjectFactory
+:canonical: fairdm.factories.core.ProjectFactory
+
+Bases: {py:obj}`factory.django.DjangoModelFactory`
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.core.ProjectFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.core.ProjectFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectFactory.Meta.model
+```
+
+````
+
+`````
+
+`````{py:class} Params
+:canonical: fairdm.factories.core.ProjectFactory.Params
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectFactory.Params
+```
+
+````{py:attribute} with_image
+:canonical: fairdm.factories.core.ProjectFactory.Params.with_image
+:value: >
+   'Trait(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectFactory.Params.with_image
+```
+
+````
+
+`````
+
+````{py:attribute} name
+:canonical: fairdm.factories.core.ProjectFactory.name
+:value: >
+   'Faker(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectFactory.name
+```
+
+````
+
+````{py:attribute} status
+:canonical: fairdm.factories.core.ProjectFactory.status
+:value: >
+   'FuzzyChoice(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectFactory.status
+```
+
+````
+
+````{py:attribute} funding
+:canonical: fairdm.factories.core.ProjectFactory.funding
+:value: >
+   'LazyAttribute(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectFactory.funding
+```
+
+````
+
+````{py:attribute} owner
+:canonical: fairdm.factories.core.ProjectFactory.owner
+:value: >
+   'SubFactory(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectFactory.owner
+```
+
+````
+
+````{py:method} descriptions(create, extracted, **kwargs)
+:canonical: fairdm.factories.core.ProjectFactory.descriptions
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectFactory.descriptions
+```
+
+````
+
+````{py:method} dates(create, extracted, **kwargs)
+:canonical: fairdm.factories.core.ProjectFactory.dates
+
+```{autodoc2-docstring} fairdm.factories.core.ProjectFactory.dates
+```
+
+````
+
+``````
+
+``````{py:class} DatasetDescriptionFactory
+:canonical: fairdm.factories.core.DatasetDescriptionFactory
+
+Bases: {py:obj}`fairdm.factories.utils.ConceptFieldFactory`
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetDescriptionFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.core.DatasetDescriptionFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetDescriptionFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.core.DatasetDescriptionFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetDescriptionFactory.Meta.model
+```
+
+````
+
+`````
+
+````{py:attribute} type
+:canonical: fairdm.factories.core.DatasetDescriptionFactory.type
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetDescriptionFactory.type
+```
+
+````
+
+````{py:attribute} value
+:canonical: fairdm.factories.core.DatasetDescriptionFactory.value
+:value: >
+   'Faker(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetDescriptionFactory.value
+```
+
+````
+
+``````
+
+``````{py:class} DatasetDateFactory
+:canonical: fairdm.factories.core.DatasetDateFactory
+
+Bases: {py:obj}`fairdm.factories.utils.ConceptFieldFactory`
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetDateFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.core.DatasetDateFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetDateFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.core.DatasetDateFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetDateFactory.Meta.model
+```
+
+````
+
+`````
+
+````{py:attribute} type
+:canonical: fairdm.factories.core.DatasetDateFactory.type
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetDateFactory.type
+```
+
+````
+
+````{py:attribute} value
+:canonical: fairdm.factories.core.DatasetDateFactory.value
+:value: >
+   'Faker(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetDateFactory.value
+```
+
+````
+
+``````
+
+``````{py:class} DatasetIdentifierFactory
+:canonical: fairdm.factories.core.DatasetIdentifierFactory
+
+Bases: {py:obj}`fairdm.factories.utils.ConceptFieldFactory`
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetIdentifierFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.core.DatasetIdentifierFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetIdentifierFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.core.DatasetIdentifierFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetIdentifierFactory.Meta.model
+```
+
+````
+
+`````
+
+````{py:attribute} type
+:canonical: fairdm.factories.core.DatasetIdentifierFactory.type
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetIdentifierFactory.type
+```
+
+````
+
+````{py:attribute} value
+:canonical: fairdm.factories.core.DatasetIdentifierFactory.value
+:value: >
+   'Sequence(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetIdentifierFactory.value
+```
+
+````
+
+``````
+
+``````{py:class} LiteratureItemFactory
+:canonical: fairdm.factories.core.LiteratureItemFactory
+
+Bases: {py:obj}`factory.django.DjangoModelFactory`
+
+```{autodoc2-docstring} fairdm.factories.core.LiteratureItemFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.core.LiteratureItemFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.core.LiteratureItemFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.core.LiteratureItemFactory.Meta.model
+:value: >
+   'literature.Item'
+
+```{autodoc2-docstring} fairdm.factories.core.LiteratureItemFactory.Meta.model
+```
+
+````
+
+`````
+
+````{py:attribute} citation_key
+:canonical: fairdm.factories.core.LiteratureItemFactory.citation_key
+:value: >
+   'Sequence(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.LiteratureItemFactory.citation_key
+```
+
+````
+
+````{py:attribute} type
+:canonical: fairdm.factories.core.LiteratureItemFactory.type
+:value: >
+   'article-journal'
+
+```{autodoc2-docstring} fairdm.factories.core.LiteratureItemFactory.type
+```
+
+````
+
+````{py:attribute} title
+:canonical: fairdm.factories.core.LiteratureItemFactory.title
+:value: >
+   'LazyAttribute(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.LiteratureItemFactory.title
+```
+
+````
+
+````{py:attribute} doi
+:canonical: fairdm.factories.core.LiteratureItemFactory.doi
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.LiteratureItemFactory.doi
+```
+
+````
+
+````{py:attribute} year
+:canonical: fairdm.factories.core.LiteratureItemFactory.year
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.LiteratureItemFactory.year
+```
+
+````
+
+````{py:attribute} authors
+:canonical: fairdm.factories.core.LiteratureItemFactory.authors
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.factories.core.LiteratureItemFactory.authors
+```
+
+````
+
+``````
+
+``````{py:class} DatasetLiteratureRelationFactory
+:canonical: fairdm.factories.core.DatasetLiteratureRelationFactory
+
+Bases: {py:obj}`factory.django.DjangoModelFactory`
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetLiteratureRelationFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.core.DatasetLiteratureRelationFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetLiteratureRelationFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.core.DatasetLiteratureRelationFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetLiteratureRelationFactory.Meta.model
+```
+
+````
+
+`````
+
+````{py:attribute} dataset
+:canonical: fairdm.factories.core.DatasetLiteratureRelationFactory.dataset
+:value: >
+   'SubFactory(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetLiteratureRelationFactory.dataset
+```
+
+````
+
+````{py:attribute} literature_item
+:canonical: fairdm.factories.core.DatasetLiteratureRelationFactory.literature_item
+:value: >
+   'SubFactory(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetLiteratureRelationFactory.literature_item
+```
+
+````
+
+````{py:attribute} relationship_type
+:canonical: fairdm.factories.core.DatasetLiteratureRelationFactory.relationship_type
+:value: >
+   'IsCitedBy'
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetLiteratureRelationFactory.relationship_type
+```
+
+````
+
+``````
+
+``````{py:class} DatasetFactory
+:canonical: fairdm.factories.core.DatasetFactory
+
+Bases: {py:obj}`factory.django.DjangoModelFactory`
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.core.DatasetFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.core.DatasetFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetFactory.Meta.model
+```
+
+````
+
+`````
+
+`````{py:class} Params
+:canonical: fairdm.factories.core.DatasetFactory.Params
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetFactory.Params
+```
+
+````{py:attribute} with_image
+:canonical: fairdm.factories.core.DatasetFactory.Params.with_image
+:value: >
+   'Trait(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetFactory.Params.with_image
+```
+
+````
+
+`````
+
+````{py:attribute} name
+:canonical: fairdm.factories.core.DatasetFactory.name
+:value: >
+   'Faker(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetFactory.name
+```
+
+````
+
+````{py:attribute} project
+:canonical: fairdm.factories.core.DatasetFactory.project
+:value: >
+   'SubFactory(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetFactory.project
+```
+
+````
+
+````{py:method} license()
+:canonical: fairdm.factories.core.DatasetFactory.license
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetFactory.license
+```
+
+````
+
+````{py:method} descriptions(create, extracted, **kwargs)
+:canonical: fairdm.factories.core.DatasetFactory.descriptions
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetFactory.descriptions
+```
+
+````
+
+````{py:method} dates(create, extracted, **kwargs)
+:canonical: fairdm.factories.core.DatasetFactory.dates
+
+```{autodoc2-docstring} fairdm.factories.core.DatasetFactory.dates
+```
+
+````
+
+``````
+
+``````{py:class} SampleDescriptionFactory
+:canonical: fairdm.factories.core.SampleDescriptionFactory
+
+Bases: {py:obj}`fairdm.factories.utils.ConceptFieldFactory`
+
+```{autodoc2-docstring} fairdm.factories.core.SampleDescriptionFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.core.SampleDescriptionFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.core.SampleDescriptionFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.core.SampleDescriptionFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.SampleDescriptionFactory.Meta.model
+```
+
+````
+
+`````
+
+````{py:attribute} type
+:canonical: fairdm.factories.core.SampleDescriptionFactory.type
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.SampleDescriptionFactory.type
+```
+
+````
+
+````{py:attribute} value
+:canonical: fairdm.factories.core.SampleDescriptionFactory.value
+:value: >
+   'Faker(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.SampleDescriptionFactory.value
+```
+
+````
+
+``````
+
+``````{py:class} SampleDateFactory
+:canonical: fairdm.factories.core.SampleDateFactory
+
+Bases: {py:obj}`fairdm.factories.utils.ConceptFieldFactory`
+
+```{autodoc2-docstring} fairdm.factories.core.SampleDateFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.core.SampleDateFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.core.SampleDateFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.core.SampleDateFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.SampleDateFactory.Meta.model
+```
+
+````
+
+`````
+
+````{py:attribute} type
+:canonical: fairdm.factories.core.SampleDateFactory.type
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.SampleDateFactory.type
+```
+
+````
+
+````{py:attribute} value
+:canonical: fairdm.factories.core.SampleDateFactory.value
+:value: >
+   'Faker(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.SampleDateFactory.value
+```
+
+````
+
+``````
+
+``````{py:class} SampleIdentifierFactory
+:canonical: fairdm.factories.core.SampleIdentifierFactory
+
+Bases: {py:obj}`fairdm.factories.utils.ConceptFieldFactory`
+
+```{autodoc2-docstring} fairdm.factories.core.SampleIdentifierFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.core.SampleIdentifierFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.core.SampleIdentifierFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.core.SampleIdentifierFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.SampleIdentifierFactory.Meta.model
+```
+
+````
+
+`````
+
+````{py:attribute} type
+:canonical: fairdm.factories.core.SampleIdentifierFactory.type
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.SampleIdentifierFactory.type
+```
+
+````
+
+````{py:attribute} value
+:canonical: fairdm.factories.core.SampleIdentifierFactory.value
+:value: >
+   'Sequence(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.SampleIdentifierFactory.value
+```
+
+````
+
+``````
+
+``````{py:class} SampleFactory
+:canonical: fairdm.factories.core.SampleFactory
+
+Bases: {py:obj}`fairdm.factories.utils.ConceptFieldFactory`
+
+```{autodoc2-docstring} fairdm.factories.core.SampleFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.core.SampleFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.core.SampleFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.core.SampleFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.SampleFactory.Meta.model
+```
+
+````
+
+````{py:attribute} abstract
+:canonical: fairdm.factories.core.SampleFactory.Meta.abstract
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.factories.core.SampleFactory.Meta.abstract
+```
+
+````
+
+`````
+
+````{py:attribute} name
+:canonical: fairdm.factories.core.SampleFactory.name
+:value: >
+   'Faker(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.SampleFactory.name
+```
+
+````
+
+````{py:attribute} local_id
+:canonical: fairdm.factories.core.SampleFactory.local_id
+:value: >
+   'Faker(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.SampleFactory.local_id
+```
+
+````
+
+````{py:attribute} dataset
+:canonical: fairdm.factories.core.SampleFactory.dataset
+:value: >
+   'SubFactory(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.SampleFactory.dataset
+```
+
+````
+
+````{py:attribute} location
+:canonical: fairdm.factories.core.SampleFactory.location
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.SampleFactory.location
+```
+
+````
+
+````{py:method} descriptions(create, extracted, **kwargs)
+:canonical: fairdm.factories.core.SampleFactory.descriptions
+
+```{autodoc2-docstring} fairdm.factories.core.SampleFactory.descriptions
+```
+
+````
+
+````{py:method} dates(create, extracted, **kwargs)
+:canonical: fairdm.factories.core.SampleFactory.dates
+
+```{autodoc2-docstring} fairdm.factories.core.SampleFactory.dates
+```
+
+````
+
+``````
+
+``````{py:class} MeasurementDescriptionFactory
+:canonical: fairdm.factories.core.MeasurementDescriptionFactory
+
+Bases: {py:obj}`fairdm.factories.utils.ConceptFieldFactory`
+
+```{autodoc2-docstring} fairdm.factories.core.MeasurementDescriptionFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.core.MeasurementDescriptionFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.core.MeasurementDescriptionFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.core.MeasurementDescriptionFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.MeasurementDescriptionFactory.Meta.model
+```
+
+````
+
+`````
+
+````{py:attribute} type
+:canonical: fairdm.factories.core.MeasurementDescriptionFactory.type
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.MeasurementDescriptionFactory.type
+```
+
+````
+
+````{py:attribute} value
+:canonical: fairdm.factories.core.MeasurementDescriptionFactory.value
+:value: >
+   'Faker(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.MeasurementDescriptionFactory.value
+```
+
+````
+
+``````
+
+``````{py:class} MeasurementDateFactory
+:canonical: fairdm.factories.core.MeasurementDateFactory
+
+Bases: {py:obj}`fairdm.factories.utils.ConceptFieldFactory`
+
+```{autodoc2-docstring} fairdm.factories.core.MeasurementDateFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.core.MeasurementDateFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.core.MeasurementDateFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.core.MeasurementDateFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.MeasurementDateFactory.Meta.model
+```
+
+````
+
+`````
+
+````{py:attribute} type
+:canonical: fairdm.factories.core.MeasurementDateFactory.type
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.MeasurementDateFactory.type
+```
+
+````
+
+````{py:attribute} value
+:canonical: fairdm.factories.core.MeasurementDateFactory.value
+:value: >
+   'Faker(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.MeasurementDateFactory.value
+```
+
+````
+
+``````
+
+``````{py:class} MeasurementIdentifierFactory
+:canonical: fairdm.factories.core.MeasurementIdentifierFactory
+
+Bases: {py:obj}`fairdm.factories.utils.ConceptFieldFactory`
+
+```{autodoc2-docstring} fairdm.factories.core.MeasurementIdentifierFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.core.MeasurementIdentifierFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.core.MeasurementIdentifierFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.core.MeasurementIdentifierFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.MeasurementIdentifierFactory.Meta.model
+```
+
+````
+
+`````
+
+````{py:attribute} type
+:canonical: fairdm.factories.core.MeasurementIdentifierFactory.type
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.MeasurementIdentifierFactory.type
+```
+
+````
+
+````{py:attribute} value
+:canonical: fairdm.factories.core.MeasurementIdentifierFactory.value
+:value: >
+   'Sequence(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.MeasurementIdentifierFactory.value
+```
+
+````
+
+``````
+
+``````{py:class} MeasurementFactory
+:canonical: fairdm.factories.core.MeasurementFactory
+
+Bases: {py:obj}`factory.django.DjangoModelFactory`
+
+```{autodoc2-docstring} fairdm.factories.core.MeasurementFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.core.MeasurementFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.core.MeasurementFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.core.MeasurementFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.MeasurementFactory.Meta.model
+```
+
+````
+
+````{py:attribute} abstract
+:canonical: fairdm.factories.core.MeasurementFactory.Meta.abstract
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.factories.core.MeasurementFactory.Meta.abstract
+```
+
+````
+
+`````
+
+````{py:attribute} name
+:canonical: fairdm.factories.core.MeasurementFactory.name
+:value: >
+   'Faker(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.MeasurementFactory.name
+```
+
+````
+
+````{py:attribute} dataset
+:canonical: fairdm.factories.core.MeasurementFactory.dataset
+:value: >
+   'SubFactory(...)'
+
+```{autodoc2-docstring} fairdm.factories.core.MeasurementFactory.dataset
+```
+
+````
+
+````{py:method} descriptions(create, extracted, **kwargs)
+:canonical: fairdm.factories.core.MeasurementFactory.descriptions
+
+```{autodoc2-docstring} fairdm.factories.core.MeasurementFactory.descriptions
+```
+
+````
+
+````{py:method} dates(create, extracted, **kwargs)
+:canonical: fairdm.factories.core.MeasurementFactory.dates
+
+```{autodoc2-docstring} fairdm.factories.core.MeasurementFactory.dates
+```
+
+````
+
+``````
+
+``````{py:class} SampleRelationFactory
+:canonical: fairdm.factories.core.SampleRelationFactory
+
+Bases: {py:obj}`factory.django.DjangoModelFactory`
+
+```{autodoc2-docstring} fairdm.factories.core.SampleRelationFactory
+```
+
+`````{py:class} Meta
+:canonical: fairdm.factories.core.SampleRelationFactory.Meta
+
+```{autodoc2-docstring} fairdm.factories.core.SampleRelationFactory.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.factories.core.SampleRelationFactory.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.factories.core.SampleRelationFactory.Meta.model
+```
+
+````
+
+`````
+
+````{py:attribute} type
+:canonical: fairdm.factories.core.SampleRelationFactory.type
+:value: >
+   'child_of'
+
+```{autodoc2-docstring} fairdm.factories.core.SampleRelationFactory.type
+```
+
+````
+
+``````

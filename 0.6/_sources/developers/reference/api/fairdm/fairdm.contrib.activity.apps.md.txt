@@ -1,0 +1,88 @@
+# {py:mod}`fairdm.contrib.activity.apps`
+
+```{py:module} fairdm.contrib.activity.apps
+```
+
+```{autodoc2-docstring} fairdm.contrib.activity.apps
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ActivityConfig <fairdm.contrib.activity.apps.ActivityConfig>`
+  - ```{autodoc2-docstring} fairdm.contrib.activity.apps.ActivityConfig
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} ActivityConfig(app_name, app_module)
+:canonical: fairdm.contrib.activity.apps.ActivityConfig
+
+Bases: {py:obj}`django.apps.AppConfig`
+
+```{autodoc2-docstring} fairdm.contrib.activity.apps.ActivityConfig
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.activity.apps.ActivityConfig.__init__
+```
+
+````{py:attribute} default_auto_field
+:canonical: fairdm.contrib.activity.apps.ActivityConfig.default_auto_field
+:value: >
+   'django.db.models.BigAutoField'
+
+```{autodoc2-docstring} fairdm.contrib.activity.apps.ActivityConfig.default_auto_field
+```
+
+````
+
+````{py:attribute} name
+:canonical: fairdm.contrib.activity.apps.ActivityConfig.name
+:value: >
+   'fairdm.contrib.activity'
+
+```{autodoc2-docstring} fairdm.contrib.activity.apps.ActivityConfig.name
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.contrib.activity.apps.ActivityConfig.label
+:value: >
+   'activity'
+
+```{autodoc2-docstring} fairdm.contrib.activity.apps.ActivityConfig.label
+```
+
+````
+
+````{py:attribute} verbose_name
+:canonical: fairdm.contrib.activity.apps.ActivityConfig.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.activity.apps.ActivityConfig.verbose_name
+```
+
+````
+
+````{py:method} ready()
+:canonical: fairdm.contrib.activity.apps.ActivityConfig.ready
+
+```{autodoc2-docstring} fairdm.contrib.activity.apps.ActivityConfig.ready
+```
+
+````
+
+`````

@@ -1,0 +1,258 @@
+# {py:mod}`fairdm.conf.settings.celery`
+
+```{py:module} fairdm.conf.settings.celery
+```
+
+```{autodoc2-docstring} fairdm.conf.settings.celery
+:allowtitles:
+```
+
+## Module Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`env <fairdm.conf.settings.celery.env>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.celery.env
+    :summary:
+    ```
+* - {py:obj}`CELERY_TIMEZONE <fairdm.conf.settings.celery.CELERY_TIMEZONE>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_TIMEZONE
+    :summary:
+    ```
+* - {py:obj}`CELERY_RESULT_EXTENDED <fairdm.conf.settings.celery.CELERY_RESULT_EXTENDED>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_RESULT_EXTENDED
+    :summary:
+    ```
+* - {py:obj}`CELERY_RESULT_BACKEND_ALWAYS_RETRY <fairdm.conf.settings.celery.CELERY_RESULT_BACKEND_ALWAYS_RETRY>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_RESULT_BACKEND_ALWAYS_RETRY
+    :summary:
+    ```
+* - {py:obj}`CELERY_RESULT_BACKEND_MAX_RETRIES <fairdm.conf.settings.celery.CELERY_RESULT_BACKEND_MAX_RETRIES>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_RESULT_BACKEND_MAX_RETRIES
+    :summary:
+    ```
+* - {py:obj}`CELERY_ACCEPT_CONTENT <fairdm.conf.settings.celery.CELERY_ACCEPT_CONTENT>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_ACCEPT_CONTENT
+    :summary:
+    ```
+* - {py:obj}`CELERY_TASK_SERIALIZER <fairdm.conf.settings.celery.CELERY_TASK_SERIALIZER>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_TASK_SERIALIZER
+    :summary:
+    ```
+* - {py:obj}`CELERY_RESULT_SERIALIZER <fairdm.conf.settings.celery.CELERY_RESULT_SERIALIZER>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_RESULT_SERIALIZER
+    :summary:
+    ```
+* - {py:obj}`CELERY_TASK_TIME_LIMIT <fairdm.conf.settings.celery.CELERY_TASK_TIME_LIMIT>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_TASK_TIME_LIMIT
+    :summary:
+    ```
+* - {py:obj}`CELERY_TASK_SOFT_TIME_LIMIT <fairdm.conf.settings.celery.CELERY_TASK_SOFT_TIME_LIMIT>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_TASK_SOFT_TIME_LIMIT
+    :summary:
+    ```
+* - {py:obj}`CELERY_BEAT_SCHEDULER <fairdm.conf.settings.celery.CELERY_BEAT_SCHEDULER>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_BEAT_SCHEDULER
+    :summary:
+    ```
+* - {py:obj}`CELERY_WORKER_SEND_TASK_EVENTS <fairdm.conf.settings.celery.CELERY_WORKER_SEND_TASK_EVENTS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_WORKER_SEND_TASK_EVENTS
+    :summary:
+    ```
+* - {py:obj}`CELERY_TASK_SEND_SENT_EVENT <fairdm.conf.settings.celery.CELERY_TASK_SEND_SENT_EVENT>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_TASK_SEND_SENT_EVENT
+    :summary:
+    ```
+* - {py:obj}`CELERY_TASK_EAGER_PROPAGATES <fairdm.conf.settings.celery.CELERY_TASK_EAGER_PROPAGATES>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_TASK_EAGER_PROPAGATES
+    :summary:
+    ```
+* - {py:obj}`CELERY_BROKER_URL <fairdm.conf.settings.celery.CELERY_BROKER_URL>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_BROKER_URL
+    :summary:
+    ```
+* - {py:obj}`CELERY_RESULT_BACKEND <fairdm.conf.settings.celery.CELERY_RESULT_BACKEND>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_RESULT_BACKEND
+    :summary:
+    ```
+* - {py:obj}`CELERY_TASK_ALWAYS_EAGER <fairdm.conf.settings.celery.CELERY_TASK_ALWAYS_EAGER>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_TASK_ALWAYS_EAGER
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} env
+:canonical: fairdm.conf.settings.celery.env
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.celery.env
+```
+
+````
+
+````{py:data} CELERY_TIMEZONE
+:canonical: fairdm.conf.settings.celery.CELERY_TIMEZONE
+:value: >
+   'env(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_TIMEZONE
+```
+
+````
+
+````{py:data} CELERY_RESULT_EXTENDED
+:canonical: fairdm.conf.settings.celery.CELERY_RESULT_EXTENDED
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_RESULT_EXTENDED
+```
+
+````
+
+````{py:data} CELERY_RESULT_BACKEND_ALWAYS_RETRY
+:canonical: fairdm.conf.settings.celery.CELERY_RESULT_BACKEND_ALWAYS_RETRY
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_RESULT_BACKEND_ALWAYS_RETRY
+```
+
+````
+
+````{py:data} CELERY_RESULT_BACKEND_MAX_RETRIES
+:canonical: fairdm.conf.settings.celery.CELERY_RESULT_BACKEND_MAX_RETRIES
+:value: >
+   10
+
+```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_RESULT_BACKEND_MAX_RETRIES
+```
+
+````
+
+````{py:data} CELERY_ACCEPT_CONTENT
+:canonical: fairdm.conf.settings.celery.CELERY_ACCEPT_CONTENT
+:value: >
+   ['json']
+
+```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_ACCEPT_CONTENT
+```
+
+````
+
+````{py:data} CELERY_TASK_SERIALIZER
+:canonical: fairdm.conf.settings.celery.CELERY_TASK_SERIALIZER
+:value: >
+   'json'
+
+```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_TASK_SERIALIZER
+```
+
+````
+
+````{py:data} CELERY_RESULT_SERIALIZER
+:canonical: fairdm.conf.settings.celery.CELERY_RESULT_SERIALIZER
+:value: >
+   'json'
+
+```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_RESULT_SERIALIZER
+```
+
+````
+
+````{py:data} CELERY_TASK_TIME_LIMIT
+:canonical: fairdm.conf.settings.celery.CELERY_TASK_TIME_LIMIT
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_TASK_TIME_LIMIT
+```
+
+````
+
+````{py:data} CELERY_TASK_SOFT_TIME_LIMIT
+:canonical: fairdm.conf.settings.celery.CELERY_TASK_SOFT_TIME_LIMIT
+:value: >
+   60
+
+```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_TASK_SOFT_TIME_LIMIT
+```
+
+````
+
+````{py:data} CELERY_BEAT_SCHEDULER
+:canonical: fairdm.conf.settings.celery.CELERY_BEAT_SCHEDULER
+:value: >
+   'django_celery_beat.schedulers:DatabaseScheduler'
+
+```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_BEAT_SCHEDULER
+```
+
+````
+
+````{py:data} CELERY_WORKER_SEND_TASK_EVENTS
+:canonical: fairdm.conf.settings.celery.CELERY_WORKER_SEND_TASK_EVENTS
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_WORKER_SEND_TASK_EVENTS
+```
+
+````
+
+````{py:data} CELERY_TASK_SEND_SENT_EVENT
+:canonical: fairdm.conf.settings.celery.CELERY_TASK_SEND_SENT_EVENT
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_TASK_SEND_SENT_EVENT
+```
+
+````
+
+````{py:data} CELERY_TASK_EAGER_PROPAGATES
+:canonical: fairdm.conf.settings.celery.CELERY_TASK_EAGER_PROPAGATES
+:value: >
+   True
+
+```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_TASK_EAGER_PROPAGATES
+```
+
+````
+
+````{py:data} CELERY_BROKER_URL
+:canonical: fairdm.conf.settings.celery.CELERY_BROKER_URL
+:value: >
+   'env(...)'
+
+```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_BROKER_URL
+```
+
+````
+
+````{py:data} CELERY_RESULT_BACKEND
+:canonical: fairdm.conf.settings.celery.CELERY_RESULT_BACKEND
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_RESULT_BACKEND
+```
+
+````
+
+````{py:data} CELERY_TASK_ALWAYS_EAGER
+:canonical: fairdm.conf.settings.celery.CELERY_TASK_ALWAYS_EAGER
+:value: >
+   False
+
+```{autodoc2-docstring} fairdm.conf.settings.celery.CELERY_TASK_ALWAYS_EAGER
+```
+
+````

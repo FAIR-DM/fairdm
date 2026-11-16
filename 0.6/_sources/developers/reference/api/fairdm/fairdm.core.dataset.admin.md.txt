@@ -1,0 +1,388 @@
+# {py:mod}`fairdm.core.dataset.admin`
+
+```{py:module} fairdm.core.dataset.admin
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.admin
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ItemAdmin <fairdm.core.dataset.admin.ItemAdmin>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.admin.ItemAdmin
+    :summary:
+    ```
+* - {py:obj}`DescriptionInline <fairdm.core.dataset.admin.DescriptionInline>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.admin.DescriptionInline
+    :summary:
+    ```
+* - {py:obj}`DateInline <fairdm.core.dataset.admin.DateInline>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.admin.DateInline
+    :summary:
+    ```
+* - {py:obj}`IdentifierInline <fairdm.core.dataset.admin.IdentifierInline>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.admin.IdentifierInline
+    :summary:
+    ```
+* - {py:obj}`DatasetAdmin <fairdm.core.dataset.admin.DatasetAdmin>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.admin.DatasetAdmin
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`DateInlineFormSet <fairdm.core.dataset.admin.DateInlineFormSet>`
+  - ```{autodoc2-docstring} fairdm.core.dataset.admin.DateInlineFormSet
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} ItemAdmin(model, admin_site)
+:canonical: fairdm.core.dataset.admin.ItemAdmin
+
+Bases: {py:obj}`django.contrib.admin.ModelAdmin`
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.ItemAdmin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.ItemAdmin.__init__
+```
+
+````{py:attribute} search_fields
+:canonical: fairdm.core.dataset.admin.ItemAdmin.search_fields
+:value: >
+   ('title', 'citation_key')
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.ItemAdmin.search_fields
+```
+
+````
+
+````{py:attribute} list_display
+:canonical: fairdm.core.dataset.admin.ItemAdmin.list_display
+:value: >
+   ('title',)
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.ItemAdmin.list_display
+```
+
+````
+
+`````
+
+`````{py:class} DescriptionInline(parent_model, admin_site)
+:canonical: fairdm.core.dataset.admin.DescriptionInline
+
+Bases: {py:obj}`django.contrib.admin.StackedInline`
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DescriptionInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DescriptionInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.dataset.admin.DescriptionInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DescriptionInline.model
+```
+
+````
+
+````{py:attribute} fk_name
+:canonical: fairdm.core.dataset.admin.DescriptionInline.fk_name
+:value: >
+   'related'
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DescriptionInline.fk_name
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.core.dataset.admin.DescriptionInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DescriptionInline.extra
+```
+
+````
+
+````{py:method} get_formset(request, obj=None, **kwargs)
+:canonical: fairdm.core.dataset.admin.DescriptionInline.get_formset
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DescriptionInline.get_formset
+```
+
+````
+
+`````
+
+````{py:data} DateInlineFormSet
+:canonical: fairdm.core.dataset.admin.DateInlineFormSet
+:value: >
+   'date_ordering_formset(...)'
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DateInlineFormSet
+```
+
+````
+
+`````{py:class} DateInline(parent_model, admin_site)
+:canonical: fairdm.core.dataset.admin.DateInline
+
+Bases: {py:obj}`django.contrib.admin.StackedInline`
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DateInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DateInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.dataset.admin.DateInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DateInline.model
+```
+
+````
+
+````{py:attribute} fk_name
+:canonical: fairdm.core.dataset.admin.DateInline.fk_name
+:value: >
+   'related'
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DateInline.fk_name
+```
+
+````
+
+````{py:attribute} formset
+:canonical: fairdm.core.dataset.admin.DateInline.formset
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DateInline.formset
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.core.dataset.admin.DateInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DateInline.extra
+```
+
+````
+
+````{py:method} get_formset(request, obj=None, **kwargs)
+:canonical: fairdm.core.dataset.admin.DateInline.get_formset
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DateInline.get_formset
+```
+
+````
+
+`````
+
+`````{py:class} IdentifierInline(parent_model, admin_site)
+:canonical: fairdm.core.dataset.admin.IdentifierInline
+
+Bases: {py:obj}`django.contrib.admin.TabularInline`
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.IdentifierInline
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.IdentifierInline.__init__
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.dataset.admin.IdentifierInline.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.IdentifierInline.model
+```
+
+````
+
+````{py:attribute} fk_name
+:canonical: fairdm.core.dataset.admin.IdentifierInline.fk_name
+:value: >
+   'related'
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.IdentifierInline.fk_name
+```
+
+````
+
+````{py:attribute} extra
+:canonical: fairdm.core.dataset.admin.IdentifierInline.extra
+:value: >
+   0
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.IdentifierInline.extra
+```
+
+````
+
+````{py:method} get_formset(request, obj=None, **kwargs)
+:canonical: fairdm.core.dataset.admin.IdentifierInline.get_formset
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.IdentifierInline.get_formset
+```
+
+````
+
+`````
+
+`````{py:class} DatasetAdmin(model, admin_site)
+:canonical: fairdm.core.dataset.admin.DatasetAdmin
+
+Bases: {py:obj}`django.contrib.admin.ModelAdmin`
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DatasetAdmin
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DatasetAdmin.__init__
+```
+
+````{py:attribute} inlines
+:canonical: fairdm.core.dataset.admin.DatasetAdmin.inlines
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DatasetAdmin.inlines
+```
+
+````
+
+````{py:attribute} search_fields
+:canonical: fairdm.core.dataset.admin.DatasetAdmin.search_fields
+:value: >
+   ('name', 'uuid', 'identifiers__value', 'project__name')
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DatasetAdmin.search_fields
+```
+
+````
+
+````{py:attribute} list_display
+:canonical: fairdm.core.dataset.admin.DatasetAdmin.list_display
+:value: >
+   ('name', 'added', 'modified', 'has_data', 'has_abstract', 'has_doi', 'published')
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DatasetAdmin.list_display
+```
+
+````
+
+````{py:attribute} list_filter
+:canonical: fairdm.core.dataset.admin.DatasetAdmin.list_filter
+:value: >
+   ('project', 'license', 'visibility', 'published')
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DatasetAdmin.list_filter
+```
+
+````
+
+````{py:attribute} readonly_fields
+:canonical: fairdm.core.dataset.admin.DatasetAdmin.readonly_fields
+:value: >
+   ('uuid', 'added', 'modified')
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DatasetAdmin.readonly_fields
+```
+
+````
+
+````{py:attribute} autocomplete_fields
+:canonical: fairdm.core.dataset.admin.DatasetAdmin.autocomplete_fields
+:value: >
+   ('project', 'reference')
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DatasetAdmin.autocomplete_fields
+```
+
+````
+
+````{py:attribute} fieldsets
+:canonical: fairdm.core.dataset.admin.DatasetAdmin.fieldsets
+:value: >
+   ((), (), (), (), ())
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DatasetAdmin.fieldsets
+```
+
+````
+
+````{py:method} get_queryset(request)
+:canonical: fairdm.core.dataset.admin.DatasetAdmin.get_queryset
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DatasetAdmin.get_queryset
+```
+
+````
+
+````{py:method} has_abstract(obj)
+:canonical: fairdm.core.dataset.admin.DatasetAdmin.has_abstract
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DatasetAdmin.has_abstract
+```
+
+````
+
+````{py:method} has_doi(obj)
+:canonical: fairdm.core.dataset.admin.DatasetAdmin.has_doi
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DatasetAdmin.has_doi
+```
+
+````
+
+````{py:method} save_model(request, obj, form, change)
+:canonical: fairdm.core.dataset.admin.DatasetAdmin.save_model
+
+```{autodoc2-docstring} fairdm.core.dataset.admin.DatasetAdmin.save_model
+```
+
+````
+
+`````

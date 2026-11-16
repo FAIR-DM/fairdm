@@ -1,0 +1,33 @@
+# {py:mod}`fairdm.utils`
+
+```{py:module} fairdm.utils
+```
+
+```{autodoc2-docstring} fairdm.utils
+:allowtitles:
+```
+
+## Subpackages
+
+```{toctree}
+:titlesonly:
+:maxdepth: 3
+
+fairdm.utils.location
+```
+
+## Submodules
+
+```{toctree}
+:titlesonly:
+:maxdepth: 1
+
+fairdm.utils.context_processors
+fairdm.utils.models
+fairdm.utils.utils
+fairdm.utils.permissions
+fairdm.utils.inspection
+fairdm.utils.choices
+fairdm.utils.markdown
+fairdm.utils.brand
+```

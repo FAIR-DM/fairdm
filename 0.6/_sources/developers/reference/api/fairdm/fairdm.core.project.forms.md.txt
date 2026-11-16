@@ -1,0 +1,168 @@
+# {py:mod}`fairdm.core.project.forms`
+
+```{py:module} fairdm.core.project.forms
+```
+
+```{autodoc2-docstring} fairdm.core.project.forms
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ProjectForm <fairdm.core.project.forms.ProjectForm>`
+  - ```{autodoc2-docstring} fairdm.core.project.forms.ProjectForm
+    :summary:
+    ```
+* - {py:obj}`ProjectCreateForm <fairdm.core.project.forms.ProjectCreateForm>`
+  - ```{autodoc2-docstring} fairdm.core.project.forms.ProjectCreateForm
+    :summary:
+    ```
+````
+
+### API
+
+``````{py:class} ProjectForm(*args, request=None, **kwargs)
+:canonical: fairdm.core.project.forms.ProjectForm
+
+Bases: {py:obj}`fairdm.core.forms.ManagerOnlyFieldsMixin`, {py:obj}`fairdm.forms.ModelForm`
+
+```{autodoc2-docstring} fairdm.core.project.forms.ProjectForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.project.forms.ProjectForm.__init__
+```
+
+````{py:attribute} image
+:canonical: fairdm.core.project.forms.ProjectForm.image
+:value: >
+   'ImageField(...)'
+
+```{autodoc2-docstring} fairdm.core.project.forms.ProjectForm.image
+```
+
+````
+
+````{py:attribute} name
+:canonical: fairdm.core.project.forms.ProjectForm.name
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.core.project.forms.ProjectForm.name
+```
+
+````
+
+````{py:attribute} status
+:canonical: fairdm.core.project.forms.ProjectForm.status
+:value: >
+   'TypedChoiceField(...)'
+
+```{autodoc2-docstring} fairdm.core.project.forms.ProjectForm.status
+```
+
+````
+
+````{py:attribute} visibility
+:canonical: fairdm.core.project.forms.ProjectForm.visibility
+:value: >
+   'TypedChoiceField(...)'
+
+```{autodoc2-docstring} fairdm.core.project.forms.ProjectForm.visibility
+```
+
+````
+
+````{py:attribute} owner
+:canonical: fairdm.core.project.forms.ProjectForm.owner
+:value: >
+   'OrganizationChoiceField(...)'
+
+```{autodoc2-docstring} fairdm.core.project.forms.ProjectForm.owner
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.project.forms.ProjectForm.Meta
+
+```{autodoc2-docstring} fairdm.core.project.forms.ProjectForm.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.project.forms.ProjectForm.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.project.forms.ProjectForm.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.core.project.forms.ProjectForm.Meta.fields
+:value: >
+   ['image', 'name', 'status', 'visibility', 'owner']
+
+```{autodoc2-docstring} fairdm.core.project.forms.ProjectForm.Meta.fields
+```
+
+````
+
+`````
+
+````{py:attribute} manager_only_fields
+:canonical: fairdm.core.project.forms.ProjectForm.manager_only_fields
+:value: >
+   ('visibility', 'owner')
+
+```{autodoc2-docstring} fairdm.core.project.forms.ProjectForm.manager_only_fields
+```
+
+````
+
+``````
+
+``````{py:class} ProjectCreateForm(*args, **kwargs)
+:canonical: fairdm.core.project.forms.ProjectCreateForm
+
+Bases: {py:obj}`fairdm.core.project.forms.ProjectForm`
+
+```{autodoc2-docstring} fairdm.core.project.forms.ProjectCreateForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.project.forms.ProjectCreateForm.__init__
+```
+
+`````{py:class} Meta
+:canonical: fairdm.core.project.forms.ProjectCreateForm.Meta
+
+Bases: {py:obj}`fairdm.core.project.forms.ProjectForm`
+
+```{autodoc2-docstring} fairdm.core.project.forms.ProjectCreateForm.Meta
+```
+
+````{py:attribute} fields
+:canonical: fairdm.core.project.forms.ProjectCreateForm.Meta.fields
+:value: >
+   ['name', 'status', 'visibility']
+
+```{autodoc2-docstring} fairdm.core.project.forms.ProjectCreateForm.Meta.fields
+```
+
+````
+
+`````
+
+``````

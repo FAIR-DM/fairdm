@@ -1,0 +1,168 @@
+# {py:mod}`fairdm.api.throttling`
+
+```{py:module} fairdm.api.throttling
+```
+
+```{autodoc2-docstring} fairdm.api.throttling
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`AnonBurstThrottle <fairdm.api.throttling.AnonBurstThrottle>`
+  - ```{autodoc2-docstring} fairdm.api.throttling.AnonBurstThrottle
+    :summary:
+    ```
+* - {py:obj}`AnonDailyThrottle <fairdm.api.throttling.AnonDailyThrottle>`
+  - ```{autodoc2-docstring} fairdm.api.throttling.AnonDailyThrottle
+    :summary:
+    ```
+* - {py:obj}`SignedInThrottle <fairdm.api.throttling.SignedInThrottle>`
+  - ```{autodoc2-docstring} fairdm.api.throttling.SignedInThrottle
+    :summary:
+    ```
+* - {py:obj}`UserBurstThrottle <fairdm.api.throttling.UserBurstThrottle>`
+  - ```{autodoc2-docstring} fairdm.api.throttling.UserBurstThrottle
+    :summary:
+    ```
+* - {py:obj}`UserDailyThrottle <fairdm.api.throttling.UserDailyThrottle>`
+  - ```{autodoc2-docstring} fairdm.api.throttling.UserDailyThrottle
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} AnonBurstThrottle()
+:canonical: fairdm.api.throttling.AnonBurstThrottle
+
+Bases: {py:obj}`rest_framework.throttling.AnonRateThrottle`
+
+```{autodoc2-docstring} fairdm.api.throttling.AnonBurstThrottle
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.throttling.AnonBurstThrottle.__init__
+```
+
+````{py:attribute} scope
+:canonical: fairdm.api.throttling.AnonBurstThrottle.scope
+:value: >
+   'anon_burst'
+
+```{autodoc2-docstring} fairdm.api.throttling.AnonBurstThrottle.scope
+```
+
+````
+
+`````
+
+`````{py:class} AnonDailyThrottle()
+:canonical: fairdm.api.throttling.AnonDailyThrottle
+
+Bases: {py:obj}`rest_framework.throttling.AnonRateThrottle`
+
+```{autodoc2-docstring} fairdm.api.throttling.AnonDailyThrottle
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.throttling.AnonDailyThrottle.__init__
+```
+
+````{py:attribute} scope
+:canonical: fairdm.api.throttling.AnonDailyThrottle.scope
+:value: >
+   'anon_day'
+
+```{autodoc2-docstring} fairdm.api.throttling.AnonDailyThrottle.scope
+```
+
+````
+
+`````
+
+`````{py:class} SignedInThrottle()
+:canonical: fairdm.api.throttling.SignedInThrottle
+
+Bases: {py:obj}`rest_framework.throttling.UserRateThrottle`
+
+```{autodoc2-docstring} fairdm.api.throttling.SignedInThrottle
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.throttling.SignedInThrottle.__init__
+```
+
+````{py:method} get_cache_key(request, view)
+:canonical: fairdm.api.throttling.SignedInThrottle.get_cache_key
+
+```{autodoc2-docstring} fairdm.api.throttling.SignedInThrottle.get_cache_key
+```
+
+````
+
+`````
+
+`````{py:class} UserBurstThrottle()
+:canonical: fairdm.api.throttling.UserBurstThrottle
+
+Bases: {py:obj}`fairdm.api.throttling.SignedInThrottle`
+
+```{autodoc2-docstring} fairdm.api.throttling.UserBurstThrottle
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.throttling.UserBurstThrottle.__init__
+```
+
+````{py:attribute} scope
+:canonical: fairdm.api.throttling.UserBurstThrottle.scope
+:value: >
+   'user_burst'
+
+```{autodoc2-docstring} fairdm.api.throttling.UserBurstThrottle.scope
+```
+
+````
+
+`````
+
+`````{py:class} UserDailyThrottle()
+:canonical: fairdm.api.throttling.UserDailyThrottle
+
+Bases: {py:obj}`fairdm.api.throttling.SignedInThrottle`
+
+```{autodoc2-docstring} fairdm.api.throttling.UserDailyThrottle
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.api.throttling.UserDailyThrottle.__init__
+```
+
+````{py:attribute} scope
+:canonical: fairdm.api.throttling.UserDailyThrottle.scope
+:value: >
+   'user_day'
+
+```{autodoc2-docstring} fairdm.api.throttling.UserDailyThrottle.scope
+```
+
+````
+
+`````

@@ -1,0 +1,145 @@
+# {py:mod}`fairdm.core.project.filters`
+
+```{py:module} fairdm.core.project.filters
+```
+
+```{autodoc2-docstring} fairdm.core.project.filters
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ProjectFilter <fairdm.core.project.filters.ProjectFilter>`
+  - ```{autodoc2-docstring} fairdm.core.project.filters.ProjectFilter
+    :summary:
+    ```
+````
+
+### API
+
+``````{py:class} ProjectFilter(*args, **kwargs)
+:canonical: fairdm.core.project.filters.ProjectFilter
+
+Bases: {py:obj}`fairdm.core.filters.BaseListFilter`
+
+```{autodoc2-docstring} fairdm.core.project.filters.ProjectFilter
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.core.project.filters.ProjectFilter.__init__
+```
+
+````{py:attribute} q
+:canonical: fairdm.core.project.filters.ProjectFilter.q
+:value: >
+   'SearchFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.project.filters.ProjectFilter.q
+```
+
+````
+
+````{py:attribute} o
+:canonical: fairdm.core.project.filters.ProjectFilter.o
+:value: >
+   'SortFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.project.filters.ProjectFilter.o
+```
+
+````
+
+````{py:attribute} status
+:canonical: fairdm.core.project.filters.ProjectFilter.status
+:value: >
+   'MultipleChoiceFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.project.filters.ProjectFilter.status
+```
+
+````
+
+````{py:attribute} owner
+:canonical: fairdm.core.project.filters.ProjectFilter.owner
+:value: >
+   'RecordMultipleFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.project.filters.ProjectFilter.owner
+```
+
+````
+
+````{py:attribute} tags
+:canonical: fairdm.core.project.filters.ProjectFilter.tags
+:value: >
+   'TagFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.project.filters.ProjectFilter.tags
+```
+
+````
+
+````{py:attribute} contributor
+:canonical: fairdm.core.project.filters.ProjectFilter.contributor
+:value: >
+   'RecordMultipleFilter(...)'
+
+```{autodoc2-docstring} fairdm.core.project.filters.ProjectFilter.contributor
+```
+
+````
+
+````{py:method} keyword_vocabularies()
+:canonical: fairdm.core.project.filters.ProjectFilter.keyword_vocabularies
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.core.project.filters.ProjectFilter.keyword_vocabularies
+```
+
+````
+
+````{py:property} form
+:canonical: fairdm.core.project.filters.ProjectFilter.form
+
+```{autodoc2-docstring} fairdm.core.project.filters.ProjectFilter.form
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.core.project.filters.ProjectFilter.Meta
+
+```{autodoc2-docstring} fairdm.core.project.filters.ProjectFilter.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.core.project.filters.ProjectFilter.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.core.project.filters.ProjectFilter.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.core.project.filters.ProjectFilter.Meta.fields
+:value: >
+   ['status', 'owner', 'tags', 'contributor']
+
+```{autodoc2-docstring} fairdm.core.project.filters.ProjectFilter.Meta.fields
+```
+
+````
+
+`````
+
+``````

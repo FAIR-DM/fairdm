@@ -1,0 +1,70 @@
+# {py:mod}`fairdm.contrib.autocomplete.apps`
+
+```{py:module} fairdm.contrib.autocomplete.apps
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.apps
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`AutocompleteConfig <fairdm.contrib.autocomplete.apps.AutocompleteConfig>`
+  - ```{autodoc2-docstring} fairdm.contrib.autocomplete.apps.AutocompleteConfig
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} AutocompleteConfig(app_name, app_module)
+:canonical: fairdm.contrib.autocomplete.apps.AutocompleteConfig
+
+Bases: {py:obj}`django.apps.AppConfig`
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.apps.AutocompleteConfig
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.apps.AutocompleteConfig.__init__
+```
+
+````{py:attribute} default_auto_field
+:canonical: fairdm.contrib.autocomplete.apps.AutocompleteConfig.default_auto_field
+:value: >
+   'django.db.models.BigAutoField'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.apps.AutocompleteConfig.default_auto_field
+```
+
+````
+
+````{py:attribute} name
+:canonical: fairdm.contrib.autocomplete.apps.AutocompleteConfig.name
+:value: >
+   'fairdm.contrib.autocomplete'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.apps.AutocompleteConfig.name
+```
+
+````
+
+````{py:attribute} verbose_name
+:canonical: fairdm.contrib.autocomplete.apps.AutocompleteConfig.verbose_name
+:value: >
+   '_(...)'
+
+```{autodoc2-docstring} fairdm.contrib.autocomplete.apps.AutocompleteConfig.verbose_name
+```
+
+````
+
+`````

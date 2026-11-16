@@ -1,0 +1,34 @@
+# {py:mod}`fairdm.conf.urls`
+
+```{py:module} fairdm.conf.urls
+```
+
+```{autodoc2-docstring} fairdm.conf.urls
+:allowtitles:
+```
+
+## Module Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`urlpatterns <fairdm.conf.urls.urlpatterns>`
+  - ```{autodoc2-docstring} fairdm.conf.urls.urlpatterns
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} urlpatterns
+:canonical: fairdm.conf.urls.urlpatterns
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.urls.urlpatterns
+```
+
+````

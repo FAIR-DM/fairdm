@@ -1,0 +1,202 @@
+# {py:mod}`fairdm.contrib.contributors.forms.forms`
+
+```{py:module} fairdm.contrib.contributors.forms.forms
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.forms
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`UserIdentifierFormSet <fairdm.contrib.contributors.forms.forms.UserIdentifierFormSet>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.forms.forms.UserIdentifierFormSet
+    :summary:
+    ```
+* - {py:obj}`UserIdentifierForm <fairdm.contrib.contributors.forms.forms.UserIdentifierForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.forms.forms.UserIdentifierForm
+    :summary:
+    ```
+* - {py:obj}`AffiliationForm <fairdm.contrib.contributors.forms.forms.AffiliationForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.forms.forms.AffiliationForm
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} UserIdentifierFormSet(data=None, files=None, instance=None, save_as_new=False, prefix=None, queryset=None, **kwargs)
+:canonical: fairdm.contrib.contributors.forms.forms.UserIdentifierFormSet
+
+Bases: {py:obj}`django.forms.models.BaseInlineFormSet`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.forms.UserIdentifierFormSet
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.forms.UserIdentifierFormSet.__init__
+```
+
+````{py:method} get_form_kwargs(index)
+:canonical: fairdm.contrib.contributors.forms.forms.UserIdentifierFormSet.get_form_kwargs
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.forms.UserIdentifierFormSet.get_form_kwargs
+```
+
+````
+
+`````
+
+``````{py:class} UserIdentifierForm(*args, **kwargs)
+:canonical: fairdm.contrib.contributors.forms.forms.UserIdentifierForm
+
+Bases: {py:obj}`django.forms.ModelForm`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.forms.UserIdentifierForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.forms.UserIdentifierForm.__init__
+```
+
+`````{py:class} Meta
+:canonical: fairdm.contrib.contributors.forms.forms.UserIdentifierForm.Meta
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.forms.UserIdentifierForm.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.contributors.forms.forms.UserIdentifierForm.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.forms.UserIdentifierForm.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.contrib.contributors.forms.forms.UserIdentifierForm.Meta.fields
+:value: >
+   ['type', 'value']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.forms.UserIdentifierForm.Meta.fields
+```
+
+````
+
+````{py:attribute} field_classes
+:canonical: fairdm.contrib.contributors.forms.forms.UserIdentifierForm.Meta.field_classes
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.forms.UserIdentifierForm.Meta.field_classes
+```
+
+````
+
+````{py:attribute} labels
+:canonical: fairdm.contrib.contributors.forms.forms.UserIdentifierForm.Meta.labels
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.forms.UserIdentifierForm.Meta.labels
+```
+
+````
+
+`````
+
+``````
+
+``````{py:class} AffiliationForm(*args, **kwargs)
+:canonical: fairdm.contrib.contributors.forms.forms.AffiliationForm
+
+Bases: {py:obj}`django.forms.ModelForm`
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.forms.AffiliationForm
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.forms.AffiliationForm.__init__
+```
+
+````{py:attribute} organization
+:canonical: fairdm.contrib.contributors.forms.forms.AffiliationForm.organization
+:value: >
+   'OrganizationChoiceField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.forms.AffiliationForm.organization
+```
+
+````
+
+````{py:method} save(commit=True)
+:canonical: fairdm.contrib.contributors.forms.forms.AffiliationForm.save
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.forms.AffiliationForm.save
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.contrib.contributors.forms.forms.AffiliationForm.Meta
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.forms.AffiliationForm.Meta
+```
+
+````{py:attribute} model
+:canonical: fairdm.contrib.contributors.forms.forms.AffiliationForm.Meta.model
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.forms.AffiliationForm.Meta.model
+```
+
+````
+
+````{py:attribute} fields
+:canonical: fairdm.contrib.contributors.forms.forms.AffiliationForm.Meta.fields
+:value: >
+   ['organization', 'is_primary']
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.forms.AffiliationForm.Meta.fields
+```
+
+````
+
+````{py:attribute} labels
+:canonical: fairdm.contrib.contributors.forms.forms.AffiliationForm.Meta.labels
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.forms.AffiliationForm.Meta.labels
+```
+
+````
+
+````{py:attribute} help_texts
+:canonical: fairdm.contrib.contributors.forms.forms.AffiliationForm.Meta.help_texts
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.contributors.forms.forms.AffiliationForm.Meta.help_texts
+```
+
+````
+
+`````
+
+``````

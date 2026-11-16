@@ -1,0 +1,42 @@
+# {py:mod}`fairdm.contrib.contributors.utils.tokens`
+
+```{py:module} fairdm.contrib.contributors.utils.tokens
+```
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.tokens
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`generate_claim_token <fairdm.contrib.contributors.utils.tokens.generate_claim_token>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.tokens.generate_claim_token
+    :summary:
+    ```
+* - {py:obj}`validate_claim_token <fairdm.contrib.contributors.utils.tokens.validate_claim_token>`
+  - ```{autodoc2-docstring} fairdm.contrib.contributors.utils.tokens.validate_claim_token
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} generate_claim_token(person: fairdm.contrib.contributors.models.Person) -> str
+:canonical: fairdm.contrib.contributors.utils.tokens.generate_claim_token
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.tokens.generate_claim_token
+```
+````
+
+````{py:function} validate_claim_token(token_string: str) -> fairdm.contrib.contributors.models.Person | None
+:canonical: fairdm.contrib.contributors.utils.tokens.validate_claim_token
+
+```{autodoc2-docstring} fairdm.contrib.contributors.utils.tokens.validate_claim_token
+```
+````

@@ -1,0 +1,31 @@
+# {py:mod}`fairdm.utils.markdown`
+
+```{py:module} fairdm.utils.markdown
+```
+
+```{autodoc2-docstring} fairdm.utils.markdown
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`markdownify <fairdm.utils.markdown.markdownify>`
+  - ```{autodoc2-docstring} fairdm.utils.markdown.markdownify
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} markdownify(content)
+:canonical: fairdm.utils.markdown.markdownify
+
+```{autodoc2-docstring} fairdm.utils.markdown.markdownify
+```
+````

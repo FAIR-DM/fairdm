@@ -1,0 +1,64 @@
+# {py:mod}`fairdm.utils.permissions`
+
+```{py:module} fairdm.utils.permissions
+```
+
+```{autodoc2-docstring} fairdm.utils.permissions
+:allowtitles:
+```
+
+## Module Contents
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`assign_all_model_perms <fairdm.utils.permissions.assign_all_model_perms>`
+  - ```{autodoc2-docstring} fairdm.utils.permissions.assign_all_model_perms
+    :summary:
+    ```
+* - {py:obj}`remove_all_model_perms <fairdm.utils.permissions.remove_all_model_perms>`
+  - ```{autodoc2-docstring} fairdm.utils.permissions.remove_all_model_perms
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`OBJECT_PERMS <fairdm.utils.permissions.OBJECT_PERMS>`
+  - ```{autodoc2-docstring} fairdm.utils.permissions.OBJECT_PERMS
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} OBJECT_PERMS
+:canonical: fairdm.utils.permissions.OBJECT_PERMS
+:value: >
+   ['add_{model_name}', 'change_{model_name}', 'delete_{model_name}', 'view_{model_name}', 'add_contrib...
+
+```{autodoc2-docstring} fairdm.utils.permissions.OBJECT_PERMS
+```
+
+````
+
+````{py:function} assign_all_model_perms(user, obj)
+:canonical: fairdm.utils.permissions.assign_all_model_perms
+
+```{autodoc2-docstring} fairdm.utils.permissions.assign_all_model_perms
+```
+````
+
+````{py:function} remove_all_model_perms(user, obj)
+:canonical: fairdm.utils.permissions.remove_all_model_perms
+
+```{autodoc2-docstring} fairdm.utils.permissions.remove_all_model_perms
+```
+````

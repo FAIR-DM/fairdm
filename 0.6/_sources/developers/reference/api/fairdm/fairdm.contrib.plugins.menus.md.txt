@@ -1,0 +1,51 @@
+# {py:mod}`fairdm.contrib.plugins.menus`
+
+```{py:module} fairdm.contrib.plugins.menus
+```
+
+```{autodoc2-docstring} fairdm.contrib.plugins.menus
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`PluginMenuRenderer <fairdm.contrib.plugins.menus.PluginMenuRenderer>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.menus.PluginMenuRenderer
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} PluginMenuRenderer()
+:canonical: fairdm.contrib.plugins.menus.PluginMenuRenderer
+
+Bases: {py:obj}`flex_menu.renderers.BaseRenderer`
+
+```{autodoc2-docstring} fairdm.contrib.plugins.menus.PluginMenuRenderer
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.plugins.menus.PluginMenuRenderer.__init__
+```
+
+````{py:attribute} templates
+:canonical: fairdm.contrib.plugins.menus.PluginMenuRenderer.templates
+:type: dict[typing.Any, typing.Any]
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.plugins.menus.PluginMenuRenderer.templates
+```
+
+````
+
+`````

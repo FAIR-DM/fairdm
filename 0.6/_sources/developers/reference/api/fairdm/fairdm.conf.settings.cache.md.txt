@@ -1,0 +1,76 @@
+# {py:mod}`fairdm.conf.settings.cache`
+
+```{py:module} fairdm.conf.settings.cache
+```
+
+```{autodoc2-docstring} fairdm.conf.settings.cache
+:allowtitles:
+```
+
+## Module Contents
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`env <fairdm.conf.settings.cache.env>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.cache.env
+    :summary:
+    ```
+* - {py:obj}`CACHES <fairdm.conf.settings.cache.CACHES>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.cache.CACHES
+    :summary:
+    ```
+* - {py:obj}`COLLECTFASTA_CACHE <fairdm.conf.settings.cache.COLLECTFASTA_CACHE>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.cache.COLLECTFASTA_CACHE
+    :summary:
+    ```
+* - {py:obj}`COLLECTFASTA_THREADS <fairdm.conf.settings.cache.COLLECTFASTA_THREADS>`
+  - ```{autodoc2-docstring} fairdm.conf.settings.cache.COLLECTFASTA_THREADS
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} env
+:canonical: fairdm.conf.settings.cache.env
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.cache.env
+```
+
+````
+
+````{py:data} CACHES
+:canonical: fairdm.conf.settings.cache.CACHES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.conf.settings.cache.CACHES
+```
+
+````
+
+````{py:data} COLLECTFASTA_CACHE
+:canonical: fairdm.conf.settings.cache.COLLECTFASTA_CACHE
+:value: >
+   'collectfasta'
+
+```{autodoc2-docstring} fairdm.conf.settings.cache.COLLECTFASTA_CACHE
+```
+
+````
+
+````{py:data} COLLECTFASTA_THREADS
+:canonical: fairdm.conf.settings.cache.COLLECTFASTA_THREADS
+:value: >
+   8
+
+```{autodoc2-docstring} fairdm.conf.settings.cache.COLLECTFASTA_THREADS
+```
+
+````
