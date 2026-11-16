@@ -13,8 +13,9 @@ pages (https://github.com/FAIR-DM/fairdm/issues/672) merged.
 - **django-mvp-community's list of activity draws a list handed to it.** True:
   `cotton/mvp_community/activity/feed.html` takes `actions`, already in order, draws each through
   `cotton/mvp_community/activity/entry.html` and has its own empty state. Both templates are listed
-  as override points in the package's `docs/developer/activity.md`. The package is used as
-  published (decisions.md, D5).
+  as override points in the package's `docs/developer/activity.md`. The list wraps its rows in a
+  `c-mvp.card` and a `c-list` and does not group them. FairDM hands it one item per day and
+  overrides the row to draw a day (decisions.md, D5, D17).
 - **The recent-activity component can show a project's activity with its datasets', or keep
   activity from a viewer who may not open it.** False, and no longer needed: FairDM chooses the
   lines itself and hands them to the list (D5).
@@ -37,18 +38,21 @@ pages (https://github.com/FAIR-DM/fairdm/issues/672) merged.
     `Contribution.add_to` (`models.py:1974`) and `Contributor.add_to` (`models.py:747`), each a
     create. `Crediting.move` uses `bulk_update`, which adds no one.
 - **Publishing has one path.** `Dataset.published` is set only in the administration interface
-  (`dataset/admin.py:118`), or by its mass-update action, which saves each row. It is read-only in
+  (`dataset/admin.py:118`), with a `save()`. It is read-only in
   the API and absent from `DatasetForm`.
 - **Who may open a record.** The pages decide it per object: `project_is_visible`
   (`project/plugins.py:44`) and `dataset_is_visible` (`dataset/plugins.py:51`). As a queryset,
   `Dataset.all_objects.visible_to(user)` (`dataset/models.py:150`) returns the datasets a user may
   open. Projects have no `visible_to`, and the panel needs none: the project page is already open
   to its viewer.
-- **A receiver can tell a change from a save that changes nothing.** True. `BaseModel.tracker`
-  (`core/abstract.py:56`, django-model-utils 5.0.0 `FieldTracker`) is declared on projects and
-  datasets and read nowhere today. The tracker wraps `save_base`, which sends `post_save`, and
-  resets only when it returns (`model_utils/tracker.py:410-425`), so a `post_save` receiver sees
-  what changed.
+- **A receiver can tell a change from a save that changes nothing.** Not as the code stands. The
+  `FieldTracker` declared on the abstract `BaseModel` (`core/abstract.py:56`) is never set up:
+  django-model-utils finalizes a tracker on `class_prepared` for the class it is declared on
+  (`model_utils/tracker.py:364-382`), and Django sends that for concrete models only. In the
+  running settings `hasattr(Project, "tracker")` and `hasattr(Dataset, "tracker")` are both false.
+  Declared on the concrete model, a tracker wraps `save_base`, which sends `post_save`, and resets
+  only when it returns (`tracker.py:410-425`), so a `post_save` receiver sees what changed. The
+  feature declares it on `Project` and `Dataset` (decisions.md, D19).
 - **Days in the portal's time zone.** `TIME_ZONE` is the portal's (`DJANGO_TIME_ZONE`, `apps.py:164`)
   with `USE_TZ = True`. No view activates another zone, so `TruncDate` gives the portal's day.
 
@@ -127,7 +131,8 @@ Project-level and dataset-level events, 8 lines, a link to the full list (D14, D
   measurements by dataset and `TruncDate("added")`, edits by record and day. Each source is cut to
   the number of lines wanted, the sources are merged by latest time, and the merged list is cut
   again. A line among the newest 8 overall is among the newest 8 of its own source, so the result
-  is exact, and the work is bounded by the number shown rather than the project's history (SC-004).
+  is exact. The number of queries is constant, while the rows each grouping reads grow with the
+  scope's history, so the timing at the browser pass is the evidence for SC-004.
 - **Who sees what (FR-012).** The project page is already open to its viewer. Its panel takes its
   datasets from `Dataset.all_objects.visible_to(user).filter(project=project)`, and every
   dataset-level line, sample and measurement counts and contributors joining a dataset included, is
@@ -158,6 +163,8 @@ Project-level and dataset-level events, 8 lines, a link to the full list (D14, D
 - singular and plural counts · 4, Django · `ngettext`
 - record colour square · 2, this repo · `.record-*` classes (`static/css/fairdm.css:429-447`)
 - the activity icon · 2, this repo · `EASY_ICONS["activity"]` (`addons.py:112`)
+- the panel component, `Line`, the two full-list pages and their template · 7, new · searched
+  `cotton/overview/` and the record sub-page plugins: none draws activity
 - gathering lines from several sources · 7, new · searched django-activity-stream's managers and
   streams (one object, or the public site), django-mvp-community's components (they draw a given
   list), this repo's overview helpers (`core/overview.py`): nothing merges grouped rows across models

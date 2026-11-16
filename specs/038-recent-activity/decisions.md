@@ -138,14 +138,20 @@ Counting from `added` counts only what still exists (FR-015), shows an upgraded 
 no migration (FR-016, SC-005), and adds nothing to an import (SC-003). Recording an action for each
 sample would need all three solved again.
 
-## D17 — The look comes through FairDM's overrides of the package's list and row
+## D17 — The package's list draws the days, and FairDM's row draws one day
 
-The package's list draws its rows inside a card, and each row as a person's avatar, a sentence and
-a time. The prototype's panel is a list of days, each with its lines, inside FairDM's own panel.
-FairDM overrides `cotton/mvp_community/activity/feed.html` to group the lines it is handed by day,
-and `cotton/mvp_community/activity/entry.html` to draw one line, both of which the package documents
-as templates a project may override. FairDM includes none of the package's pages, so nothing else
-draws through them.
+django-mvp-community's list, `<c-mvp_community.activity.feed :actions="…" />`, is used as
+published: a card holding a list, one row per item it is handed, or its own empty state. FairDM
+hands it one item per day, newest day first, each holding that day's lines. FairDM overrides only
+the row, `cotton/mvp_community/activity/entry.html`, which the package documents as a template a
+project may override, so that a row draws the prototype's day: the date beside its lines, each line
+a square in its record's colour. The card's frame is taken off inside FairDM's panel by FairDM's
+stylesheet, so the panel reads as the prototype's. When there is nothing to show, the package's own
+empty state is drawn. FairDM includes none of the package's pages, so nothing else draws through the
+overridden row.
+
+**ADR:** none — local to this feature's templates, and the package's documentation already names
+the row as an override point.
 
 ## D18 — Sample and measurement counts follow who may see the records
 
@@ -153,3 +159,13 @@ A line counting samples or measurements added to a dataset counts only the recor
 see, by the same rule as the page's own Samples and Measurements figures. A visitor reading a
 public dataset whose data is not yet published sees the dataset's other lines and no counts, as
 the page shows them no samples.
+
+## D19 — Projects and datasets declare their own change tracker
+
+The design review found that `tracker = FieldTracker()` on the abstract `BaseModel` never takes
+effect: django-model-utils sets the tracker up when a model's class is prepared, which Django does
+for concrete models only, so `Project`, `Dataset`, `Sample` and `Measurement` have no `tracker` at
+all. Recording an edit needs to know what changed, so `Project` and `Dataset` each declare their own
+tracker, and the dead declaration on `BaseModel` is removed. A tracker is not a field and needs no
+migration. django-lifecycle's `has_changed()` is not used: it resets on commit, and the portal runs
+each request in one transaction.

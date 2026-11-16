@@ -14,9 +14,10 @@ that makes it pass is written. Wording and appearance get no tests.
 
 ### Group 1
 
-- [ ] T001 [US1] Add `django-mvp-community[activity]` to `pyproject.toml` with its deptry entries,
-  lock and sync, and install `fairdm.contrib.activity`, `mvp_community` and `actstream` in
-  `fairdm/conf/settings/apps.py`, as plan.md "Dependency and settings" describes.
+- [ ] T001 [US1] Add `django-mvp-community[activity]` and `django-activity-stream` to
+  `pyproject.toml` with their deptry entries, lock and sync, install `fairdm.contrib.activity`,
+  `mvp_community` and `actstream` in `fairdm/conf/settings/apps.py`, and move the change tracker
+  from `BaseModel` to `Project` and `Dataset`, as plan.md "Dependency and settings" describes.
 - [ ] T002 [US1] Tests: `TestRecordEdits`, `TestRecordPublished`, `TestRecordJoined` and
   `TestRecordingNeverFails` in `tests/test_contrib/test_activity/test_receivers.py`, and
   `TestNoOtherFeed` in `tests/test_contrib/test_activity/test_exposure.py`, as plan.md "Tests"
@@ -36,12 +37,13 @@ that makes it pass is written. Wording and appearance get no tests.
 - [ ] T006 [US1] Tests: `TestActivityPanel` and `TestOverrides` in
   `tests/test_templates/test_activity.py`, the two page checks there, and `TestActivityPage` in
   `tests/test_contrib/test_activity/test_plugins.py`, as plan.md "Tests" describes.
-- [ ] T007 [US1] The panel, the two overrides, the `overview.activity` block in both detail
+- [ ] T007 [US1] The panel, the row override, the `overview.activity` block in both detail
   templates and `activity` in both overview plugins' context, as plan.md "The panel and the
   overrides" describes, ported from the prototype as "What is ported" lists.
 - [ ] T008 [US1] `fairdm/contrib/activity/plugins.py` and `activity/activity_list.html`, as plan.md
   "The full list" describes. T006 goes green.
-- [ ] T009 [US1] `fairdm/static/css/fairdm.css`: the `.ov-activity` rules, ported. No test.
+- [ ] T009 [US1] `fairdm/static/css/fairdm.css`: the `.ov-activity` rules, ported onto the
+  package's list inside the panel. No test.
 
 ### Group 4
 
