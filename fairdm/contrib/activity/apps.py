@@ -20,7 +20,7 @@ class ActivityConfig(AppConfig):
         from fairdm.core.dataset.models import Dataset
         from fairdm.core.project.models import Project
 
-        from . import receivers
+        from . import plugins, receivers  # noqa: F401
 
         for model in (Project, Dataset, Contributor, Person, Organization):
             registry.register(model)

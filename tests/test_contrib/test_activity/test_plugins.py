@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 from django.urls import reverse
 from django.utils import timezone
 
+from fairdm.contrib.activity.lines import ActivityLines
 from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.core.sample.models import Sample
 from fairdm.factories import DatasetFactory, PersonFactory, ProjectFactory
@@ -78,11 +79,12 @@ class TestActivityPage:
     def test_thirty_lines_fall_on_a_page_of_twenty_five_and_one_of_five(self, client):
         dataset = make_record("dataset")
         today = timezone.now()
-        for days_ago in range(29):
+        for days_ago in range(30 - len(ActivityLines(dataset, None))):
             sample = ConcreteSampleFactory(dataset=dataset)
             Sample.objects.filter(pk=sample.pk).update(
                 added=today - timedelta(days=days_ago + 1)
             )
+        assert len(ActivityLines(dataset, None)) == 30
 
         first = client.get(address(dataset))
         second = client.get(address(dataset), {"page": 2})

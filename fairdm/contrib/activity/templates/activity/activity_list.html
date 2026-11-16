@@ -1,0 +1,9 @@
+{% extends "page_view.html" %}
+{% comment %}
+  A record's full list of recent activity: one page of its lines, grouped by day, drawn in the
+  panel the overview page shows, with the pager of the record lists below.
+{% endcomment %}
+{% block page.content %}
+  <c-overview.activity :days="days" />
+  <c-mvp.page.list.footer :page_obj="page_obj" size="sm" />
+{% endblock page.content %}
