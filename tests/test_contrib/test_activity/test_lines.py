@@ -10,6 +10,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.db import connection
 from django.test import RequestFactory
 from django.test.utils import CaptureQueriesContext
+
 from fairdm.contrib.activity.lines import (
     ActivityLines,
     Day,
@@ -17,7 +18,6 @@ from fairdm.contrib.activity.lines import (
     group_days,
     recent_activity,
 )
-
 from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
