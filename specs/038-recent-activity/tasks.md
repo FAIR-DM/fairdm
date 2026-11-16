@@ -47,9 +47,9 @@ that makes it pass is written. Wording and appearance get no tests.
 
 ### Group 4
 
-- [ ] T010 [US1] Edit `specs/018-overview-pages/spec.md` as plan.md "Specifications edited"
+- [x] T010 [US1] Edit `specs/018-overview-pages/spec.md` as plan.md "Specifications edited"
   describes.
-- [ ] T011 [US1] Documentation and `CHANGELOG.md`, as plan.md "Documentation" describes.
+- [x] T011 [US1] Documentation and `CHANGELOG.md`, as plan.md "Documentation" describes.
 
 ### Found after planning
 

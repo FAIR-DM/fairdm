@@ -39,8 +39,8 @@ page. This specification describes the design that review settled on.
 - Q: Several parts of the pages stand in for capabilities FairDM does not have yet: publishing,
   importing data and metadata downloads. Do they ship? → A: Yes. They ship, with one treatment
   across all four pages that makes it plain they are not available yet. Nothing that stands in for
-  a missing capability looks or behaves as if it works. Recent activity comes back as a working
-  panel with a feature of its own (FS-038), and is not shown until then. The map of a project's or
+  a missing capability looks or behaves as if it works. Recent activity on the project and
+  dataset pages is the panel specification 038 adds. The map of a project's or
   dataset's samples is the panel specification 037 adds. Exporting a citation is part of the
   citation panel (FS-036).
 - Q: Projects, datasets and samples open their overview inside a tabbed detail view that plugins
@@ -469,8 +469,9 @@ member of its dataset's team, including the one recorded in a different dataset 
 **Capabilities that are not available yet**
 
 - **FR-016**: The pages MUST ship with these capabilities shown as not yet available: publishing a
-  dataset, importing data and metadata downloads. Recent activity is not shown until its own
-  feature adds it (FS-038). The project and dataset pages show where their samples come from, as
+  dataset, importing data and metadata downloads, and recent activity on the person and
+  organization pages. The project and dataset pages show their recent activity, as specification
+  038 describes. The project and dataset pages show where their samples come from, as
   specification 037 describes. The full list of a sample's measurements is the sample's
   Measurements tab (specification 023, US-4). A sample's Measurements panel MUST lead to it, and
   so MUST a measurement's list of other measurements on the same sample, wherever the viewer may

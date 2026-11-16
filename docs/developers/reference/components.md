@@ -254,6 +254,19 @@ Where a project's or dataset's samples were taken: every located sample the view
 <c-overview.coverage :map="sample_map" id="coverage" more_url="{{ urls.samples }}" />
 ```
 
+### `c-overview.activity`
+
+A project's or dataset's recent activity: its lines grouped by day, newest first, each line marked in its record's colour. `data-card` is `activity`. The list is django-mvp-community's `<c-mvp_community.activity.feed>`, handed one item per day, and it draws its own empty state when there is nothing to show. FairDM overrides that package's row, `cotton/mvp_community/activity/entry.html`, to draw a day, so any other use of the package's list in a portal draws FairDM's day row too.
+
+| Attribute | Type | Default | Accepts |
+|---|---|---|---|
+| `days` | list | | `Day` items from `fairdm.contrib.activity.lines.group_days()`, each with `day` and `lines`. |
+| `more_url` | string | | The full list, linked as See all. |
+
+```html
+<c-overview.activity :days="activity.days" more_url="{{ activity.more_url }}" />
+```
+
 ### `c-overview.location`
 
 Where a sample was taken or a measurement made: a map with the point marked, and the coordinates written out as decimal degrees in WGS 84 to five places. `data-card` is `location`. The map is drawn by `js/overview.js` with MapLibre, which `overview/page.html` loads in its `overview.map_library` block when the context sets `has_map`.

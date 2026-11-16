@@ -169,3 +169,8 @@ all. Recording an edit needs to know what changed, so `Project` and `Dataset` ea
 tracker, and the dead declaration on `BaseModel` is removed. A tracker is not a field and needs no
 migration. django-lifecycle's `has_changed()` is not used: it resets on commit, and the portal runs
 each request in one transaction.
+
+## D20 — The documentation group was written without a dispatch
+
+The last group edits specification 018 and writes the user and developer pages and the changelog.
+It holds no code and no design, so it was written directly rather than dispatched.
