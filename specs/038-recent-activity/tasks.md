@@ -73,3 +73,5 @@ that makes it pass is written. Wording and appearance get no tests.
 - [x] T021 [US1] Move the change tracker's sentence to the Project and Dataset sections of the
   model reference (code review).
 - [x] T022 [US1] Document the arguments and results of the gathering helpers (code review).
+- [x] T023 [US1] A developer reference page for the activity app, naming every public class the
+  docs check found undocumented.
