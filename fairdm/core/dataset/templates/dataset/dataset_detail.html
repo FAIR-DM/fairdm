@@ -159,6 +159,10 @@
       <c-overview.coverage :map="sample_map" id="coverage" more_url="{{ urls.samples }}" />
     {% endif %}
   {% endblock overview.map %}
+
+  {% block overview.activity %}
+    <c-overview.activity :days="activity.days" more_url="{{ activity.more_url }}" />
+  {% endblock overview.activity %}
 {% endblock overview.main %}
 
 {% block overview.record_facts %}

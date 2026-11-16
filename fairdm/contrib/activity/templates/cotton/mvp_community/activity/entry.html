@@ -1,0 +1,12 @@
+{# @description One day of a FairDM record's recent activity as a list row: the day, and a line for each thing that happened on it, coloured by the kind of record. Replaces the community package's row of the same name. #}
+{# @prop action:text | description:"The day to draw, with its lines." #}
+{% load i18n humanize %}
+<c-vars action />
+<li class="list-row ov-activity__row">
+  <span class="ov-activity__day">{{ action.day|naturalday:"j M Y"|capfirst }}</span>
+  <ul class="ov-activity__events">
+    {% for line in action.lines %}
+      <li class="record-{{ line.kind }}"><span>{{ line.html }}</span></li>
+    {% endfor %}
+  </ul>
+</li>

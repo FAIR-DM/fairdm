@@ -1,0 +1,8 @@
+{# @description The recent activity of a project or dataset: its newest lines grouped by day, in the community package's list, or that package's empty state when nothing has happened. #}
+{# @prop days:text | description:"The days to draw, newest first, each with its lines." #}
+{# @prop more_url:text | description:"The full list, linked as See all." #}
+{% load i18n %}
+<c-vars days more_url />
+<c-overview.panel title="{% translate 'Recent activity' %}" more_url="{{ more_url }}" data-card="activity" class="ov-activity">
+  <c-mvp_community.activity.feed :actions="days" only />
+</c-overview.panel>
