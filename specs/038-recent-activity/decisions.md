@@ -20,6 +20,8 @@ history is its timeline on the sample page. A deletion leaves nothing to link to
 a deleted record's page is not on it. Publishing already covers the visibility change a reader
 cares about.
 
+**ADR:** none — which events show is this feature's scope.
+
 ## D2 — Additions and edits are gathered by record and day
 
 The samples added to one dataset on one day are one entry with a count, and so are the
@@ -29,6 +31,8 @@ This is what the prototype shows, and it is what keeps an import of thousands of
 filling the panel. Whether each addition is recorded on its own and gathered when shown, or
 recorded once per batch, is for the plan. The reader sees the same either way.
 
+**ADR:** none — how lines are grouped is this feature's look.
+
 ## D3 — Visibility is judged when the page is viewed
 
 An entry is shown only to a viewer who may open the record it is about, judged when the page is
@@ -36,6 +40,8 @@ viewed. Judging it when the activity was recorded would be simpler, and wrong tw
 dataset made public later would hide its own history from everyone, and a dataset made private
 later would keep showing its history to people who may no longer open it. Specification 018's rule
 for who may open a record is used unchanged.
+
+**ADR:** docs/adr/0045-recent-activity-is-recorded-hidden-and-read-through-the-records-rules.md
 
 ## D4 — Activity is recorded as not public in the activity package
 
@@ -45,6 +51,8 @@ who may open the records they name. FairDM's records have their own visibility, 
 cannot see. So every action FairDM records is marked not public, and FairDM chooses which actions a
 viewer sees itself (D3). Any feed the activity package offers, whether mounted by FairDM or by a
 portal later, then shows none of them (FR-013).
+
+**ADR:** docs/adr/0045-recent-activity-is-recorded-hidden-and-read-through-the-records-rules.md
 
 ## D5 — FairDM chooses the lines and hands them to django-mvp-community's list of activity
 
@@ -60,17 +68,23 @@ FairDM's own overview panel. Where the package's row does not look like the prot
 FairDM overrides the row's template, as the package's documentation allows. The package itself is
 not edited.
 
+**ADR:** none — Sam's ruling on this feature's use of the package, recorded in the specification.
+
 ## D6 — The project page includes its datasets' activity
 
 The prototype's project panel lists samples and measurements added to each dataset, and datasets
 created. A project's own events alone would leave a project page nearly empty, since a project
 changes little once its datasets exist.
 
+**ADR:** none — what the project panel covers is this feature's scope.
+
 ## D7 — A measurement counts in the dataset it belongs to
 
 A measurement can belong to one dataset while its sample is in another (CONTEXT.md, Measurement).
 It is added to the dataset it belongs to, and the team of that dataset made it, so that is where it
 counts. Its visibility follows that dataset too.
+
+**ADR:** none — follows the existing rule that a measurement belongs to its own dataset.
 
 ## D8 — Entries name the record, not who made the change
 
@@ -79,10 +93,14 @@ one of them would be wrong, and naming them all would make the panel a list of p
 for a contributor added names the contributor, since that is the event. Who made a change belongs
 to revision history (https://github.com/FAIR-DM/fairdm/issues/170).
 
+**ADR:** none — a wording rule of this panel.
+
 ## D9 — Days are the portal's own
 
 Entries fall on the day in the portal's configured time zone. FairDM sets no per-viewer time zone
 anywhere else, and a research group's portal serves one community, usually in one region.
+
+**ADR:** none — the portal's time zone is already the only one FairDM uses.
 
 ## D10 — An upgraded portal shows its past additions
 
@@ -93,6 +111,8 @@ was added, so the creation of projects and datasets and the additions of samples
 are shown from that date. Publishing, edits and contributors added before the upgrade were never
 recorded, and nothing pretends they were.
 
+**ADR:** none — a consequence of D16, recorded in ADR 0045.
+
 ## D11 — The newest 8 lines, with a link to the full list
 
 The maintainer's decision (2026-11-16). The panel shows the newest 8 lines and links to a page
@@ -100,11 +120,15 @@ listing all of the record's activity, one for each project and each dataset, new
 by day and paged. The page applies the same rule for who sees what as the panel (D3), so it is
 FairDM's own page, not the activity package's feed view, which shows public actions only.
 
+**ADR:** none — this feature's scope.
+
 ## D12 — Sample, measurement, person and organization pages are left out
 
 The prototype puts the panel on project and dataset pages only. The sample page shows its history
 as a timeline (https://github.com/FAIR-DM/fairdm/issues/672). Person and organization pages keep
 their "not yet available" card from specification 018.
+
+**ADR:** none — this feature's scope.
 
 ## D13 — Specification 018 is amended, not replaced
 
@@ -114,6 +138,8 @@ dataset pages that statement stops being true. The pull request that delivers th
 for person and organization pages. The placeholder card on the project page is removed by
 https://github.com/FAIR-DM/fairdm/issues/672.
 
+**ADR:** none — an edit to another specification, made in this pull request.
+
 ## D14 — The project and dataset pages show project-level and dataset-level events only
 
 The maintainer's decision (2026-11-16). The project panel shows datasets created and published,
@@ -122,11 +148,15 @@ and per day one line per dataset counting the samples added to it, and one count
 measurements. A sample's or measurement's own changes never appear on either page. The dataset
 panel follows the same rule for the dataset alone.
 
+**ADR:** none — this feature's scope.
+
 ## D15 — A project's own creation stays on its panel
 
 The maintainer's list for the project panel names its datasets' creation and not the project's own.
 His rule is "only project-level and dataset-level events", and a project being created is one, so it
 stays, as the first line of a project's history. It is one line, at most, in a project's life.
+
+**ADR:** none — this feature's scope.
 
 ## D16 — Additions are counted from when each record was added
 
@@ -137,6 +167,8 @@ recorded as actions: a dataset published, details edited, a contributor added.
 Counting from `added` counts only what still exists (FR-015), shows an upgraded portal's past with
 no migration (FR-016, SC-005), and adds nothing to an import (SC-003). Recording an action for each
 sample would need all three solved again.
+
+**ADR:** docs/adr/0045-recent-activity-is-recorded-hidden-and-read-through-the-records-rules.md
 
 ## D17 — The package's list draws the days, and FairDM's row draws one day
 
@@ -150,8 +182,9 @@ stylesheet, so the panel reads as the prototype's. When there is nothing to show
 empty state is drawn. FairDM includes none of the package's pages, so nothing else draws through the
 overridden row.
 
-**ADR:** none — local to this feature's templates, and the package's documentation already names
 the row as an override point.
+
+**ADR:** none — local to this feature's templates, and the package's documentation names the row as an override point.
 
 ## D18 — Sample and measurement counts follow who may see the records
 
@@ -159,6 +192,8 @@ A line counting samples or measurements added to a dataset counts only the recor
 see, by the same rule as the page's own Samples and Measurements figures. A visitor reading a
 public dataset whose data is not yet published sees the dataset's other lines and no counts, as
 the page shows them no samples.
+
+**ADR:** none — follows the page's existing rule for its Samples figure.
 
 ## D19 — Projects and datasets declare their own change tracker
 
@@ -170,7 +205,11 @@ tracker, and the dead declaration on `BaseModel` is removed. A tracker is not a 
 migration. django-lifecycle's `has_changed()` is not used: it resets on commit, and the portal runs
 each request in one transaction.
 
+**ADR:** none — a fix to a declaration that never took effect, with no choice in it.
+
 ## D20 — The documentation group was written without a dispatch
 
 The last group edits specification 018 and writes the user and developer pages and the changelog.
 It holds no code and no design, so it was written directly rather than dispatched.
+
+**ADR:** none — how this build was run, nothing downstream inherits it.
