@@ -1,4 +1,4 @@
-"""Tests for the recent activity panel and the overrides of the community package's rows."""
+"""Tests for the recent activity panel and the community package's overridden row."""
 
 from datetime import UTC, date, datetime
 

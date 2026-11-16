@@ -1,4 +1,4 @@
-"""The full list of a project's or a dataset's recent activity, a page of lines at a time."""
+"""The full list of a project's or a dataset's recent activity, a page at a time."""
 
 from django.core.paginator import InvalidPage, Paginator
 from django.http import Http404

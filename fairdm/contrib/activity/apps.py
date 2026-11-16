@@ -13,7 +13,7 @@ class ActivityConfig(AppConfig):
     verbose_name = _("Activity")
 
     def ready(self):
-        """Register the recorded models with django-activity-stream and connect the receivers."""
+        """Register the recorded models and connect the receivers."""
         from actstream import registry
 
         from fairdm.contrib.contributors.models import Contributor, Organization, Person

@@ -1,8 +1,8 @@
 """Record what happens to a project or dataset as actions of django-activity-stream.
 
-Every action is recorded not public: the panels read them back through the access rules of the
-record they name, and no other feed exposes them. A failure to record is logged and never reaches
-the save that caused it.
+Every action is recorded not public: the panels read them back through the access rules
+of the record they name, and no other feed exposes them. A failure to record is logged
+and never reaches the save that caused it.
 """
 
 import logging
@@ -32,7 +32,7 @@ PUBLISHED = "published"
 JOINED = "joined"
 
 UNREPORTED_FIELDS = frozenset({"modified", "visibility", "published"})
-"""Fields whose change is not an edit: a timestamp, and two changes that read otherwise."""
+"""Fields whose change is not an edit: a timestamp, and two with lines of their own."""
 
 RELATED_MODELS = (
     ProjectDescription,
@@ -60,7 +60,7 @@ def record(actor, verb, target=None):
 
 
 def record_edit(sender, instance, created, **kwargs):
-    """Record an edit of a project or dataset when a field other than the quiet ones changed."""
+    """Record an edit of a project or dataset when a reported field changed."""
     if created:
         return
     if set(instance.tracker.changed()) - UNREPORTED_FIELDS:
@@ -68,7 +68,7 @@ def record_edit(sender, instance, created, **kwargs):
 
 
 def record_published(sender, instance, created, **kwargs):
-    """Record that a dataset was published, on creation or when the flag is first set."""
+    """Record that a dataset was published, on creation or when the flag is set."""
     if instance.published and (created or "published" in instance.tracker.changed()):
         record(instance, PUBLISHED)
 
@@ -79,7 +79,7 @@ def record_related_saved(sender, instance, **kwargs):
 
 
 def record_related_deleted(sender, instance, origin=None, **kwargs):
-    """Record an edit of the record a related row belonged to, unless it went with the record."""
+    """Record an edit of a related row's record, unless the row went with it."""
     if isinstance(origin, models.Model):
         cascaded = origin is not instance
     elif isinstance(origin, models.QuerySet):

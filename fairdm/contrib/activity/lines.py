@@ -1,9 +1,10 @@
-"""Gather what happened to a project or a dataset into the lines its recent activity lists.
+"""Gather what happened to a project or a dataset into its recent activity lines.
 
 Additions come from the ``added`` time of the records, never from actions: a sample or a
-measurement records nothing when it is made. Edits, publishing and contributors joining come from
-the not-public actions ``receivers`` records. Everything is grouped in the database by record and
-by day, and each source is cut to the part asked for before the sources are merged.
+measurement records nothing when it is made. Edits, publishing and contributors joining
+come from the not-public actions ``receivers`` records. Everything is grouped in the
+database by record and by day, and each source is cut to the part asked for before the
+sources are merged.
 """
 
 from dataclasses import dataclass
@@ -40,7 +41,7 @@ class Line:
     Attributes:
         timestamp: The newest event the line covers.
         day: The portal's day the line falls on.
-        kind: ``project``, ``dataset``, ``sample`` or ``measurement``, the record's colour.
+        kind: ``project``, ``dataset``, ``sample`` or ``measurement``: the colour.
         html: The sentence, safe to render, with every name escaped and linked.
     """
 
@@ -97,10 +98,11 @@ class Row:
 class ActivityLines:
     """The lines of recent activity of a project or a dataset, for one viewer.
 
-    A project covers itself and the datasets the viewer may see. A dataset covers itself alone: the
-    page has already decided the viewer may open it. Samples and measurements count only when the
-    viewer may see them, as the page's own figures do. It is a sequence that is sliced, never
-    indexed, so the panel and a paginator can both read it.
+    A project covers itself and the datasets the viewer may see. A dataset covers itself
+    alone: the page has already decided the viewer may open it. Samples and measurements
+    count only when the viewer may see them, as the page's own figures do. It is a
+    sequence that is sliced, never indexed, so the panel and a paginator can both read
+    it.
 
     Args:
         record: The project or the dataset whose page asks.
@@ -152,7 +154,7 @@ class ActivityLines:
         return self.lines(rows)
 
     def sources(self):
-        """Return each grouped source as its queryset and the way its rows become ``Row``s."""
+        """Return each grouped source and the way its rows become ``Row``s."""
         return [
             (self.counted(Sample), self.count_row("samples")),
             (self.counted(Measurement), self.count_row("measurements")),
@@ -197,7 +199,7 @@ class ActivityLines:
 
         Args:
             side: ``actor`` or ``target``.
-            projects: Whether the project of a project's page counts as well as its datasets.
+            projects: Whether a project's page counts the project with its datasets.
 
         Returns:
             A ``Q`` over the action's content type and object id, which is a string.
@@ -299,7 +301,7 @@ class ActivityLines:
         return row.model == self.model and row.record_id == self.record.pk
 
     def lines(self, rows):
-        """Turn rows into lines, fetching the datasets and contributors they name once each."""
+        """Turn rows into lines, fetching each dataset and contributor named once."""
         dataset_ids = {
             row.record_id
             for row in rows
@@ -329,7 +331,7 @@ class ActivityLines:
         return lines
 
     def sentence(self, row, record, contributor):
-        """Write the sentence of a row, naming the record unless it is the page's own."""
+        """Write a row's sentence, naming the record unless it is the page's own."""
         own = self.is_own(row)
         name = None if own else self.link(record)
         count = intcomma(row.count)
@@ -379,7 +381,7 @@ class ActivityLines:
         )
 
     def link(self, record):
-        """Return the record's name as a link to its page, or the name alone without one."""
+        """Return the record's name linked to its page, or alone when it has none."""
         try:
             url = record.get_absolute_url()
         except NoReverseMatch:
@@ -410,8 +412,9 @@ def recent_activity(record, request):
         request: The request, whose user decides what the viewer may see.
 
     Returns:
-        ``days``, the newest lines grouped by day, and ``more_url``, the address of the full
-        list when there are lines beyond the panel's, and an empty string otherwise.
+        ``days``, the newest lines grouped by day, and ``more_url``, the address of
+        the full list when there are lines beyond the panel's, and an empty string
+        otherwise.
     """
     lines = ActivityLines(record, request.user)[: PANEL_LINES + 1]
     more_url = ""

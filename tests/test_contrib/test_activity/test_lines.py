@@ -487,7 +487,7 @@ class TestActivityLinesRemoval:
 
 class TestActivityLinesScale:
     def seed(self, datasets):
-        """Return a project of that many datasets, each with samples, measurements, actions."""
+        """Return a project of that many datasets, each with records and actions."""
         project = make_project()
         for _ in range(datasets):
             dataset = make_dataset(project)
