@@ -1,0 +1,19 @@
+{% extends "page_view.html" %}
+{% load i18n %}
+{% block page.actions %}
+  <a class="btn btn-sm btn-primary" href="{{ import_url }}"><i class="bi bi-box-arrow-in-down" aria-hidden="true"></i> {% translate "Import a file" %}</a>
+{% endblock page.actions %}
+{% block page.content %}
+<div class="tx">
+  <section class="tx-panel">
+    {% if jobs %}
+      {% include "tabular/partials/job_list.html" with show_type=True %}
+    {% else %}
+      <div class="tx-empty-block">
+        <p class="tx-empty">{% translate "Nothing has been imported into this dataset yet." %}</p>
+        <a class="btn btn-sm btn-primary" href="{{ import_url }}">{% translate "Import a file" %}</a>
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock page.content %}

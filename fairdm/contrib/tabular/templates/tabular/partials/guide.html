@@ -1,0 +1,69 @@
+{% load i18n %}
+{# The guide to a type's columns: what each holds, whether it is needed, how to write it. #}
+<div class="tx-guide">
+  {% for key, title, columns in schema.groups %}
+    <h3 class="tx-guide__group">{{ title }}</h3>
+    <div class="tx-guide__table" role="table" aria-label="{{ title }}">
+      <div class="tx-guide__row tx-guide__row--head" role="row">
+        <span role="columnheader">{% translate "Heading" %}</span>
+        <span role="columnheader">{% translate "What it holds" %}</span>
+        <span role="columnheader">{% translate "How to write it" %}</span>
+        <span role="columnheader">{% translate "Example" %}</span>
+      </div>
+      {% for column in columns %}
+        <div class="tx-guide__row{% if column.role == 'export' %} tx-guide__row--export{% endif %}" role="row" id="col-{{ column.name }}">
+          <div class="tx-guide__name" role="cell">
+            <code class="tx-code">{{ column.name }}</code>
+            <span class="tx-guide__label">{{ column.label }}</span>
+            <span class="tx-guide__tags">
+              {% if column.required %}
+                <span class="tx-tag tx-tag--required">{% translate "Required for new records" %}</span>
+              {% elif column.role == "key" %}
+                <span class="tx-tag tx-tag--key">{% translate "Finds the record" %}</span>
+              {% elif column.role == "match" %}
+                <span class="tx-tag tx-tag--key">{% translate "Finds the record" %}</span>
+              {% elif column.role == "export" %}
+                <span class="tx-tag">{% translate "Export only" %}</span>
+              {% else %}
+                <span class="tx-tag">{% translate "Optional" %}</span>
+              {% endif %}
+            </span>
+          </div>
+          <div class="tx-guide__what" role="cell">
+            {% if column.description %}<p>{{ column.description }}</p>{% endif %}
+            {% if column.aliases %}
+              <p class="tx-guide__aliases">{% translate "Also recognised as" %}
+                {% for alias in column.aliases|slice:":4" %}<span class="tx-alias">{{ alias }}</span>{% endfor %}
+              </p>
+            {% endif %}
+          </div>
+          <div class="tx-guide__how" role="cell">
+            <span class="tx-guide__kind">{{ column.kind_label }}{% if column.unit %} · {% translate "in" %} {{ column.unit }}{% endif %}</span>
+            <span class="tx-guide__hint">{{ column.format_hint }}</span>
+            {% if column.minimum is not None or column.maximum is not None %}
+              <span class="tx-guide__hint">
+                {% if column.minimum is not None and column.maximum is not None %}{% blocktranslate with a=column.minimum b=column.maximum %}From {{ a }} to {{ b }}{% endblocktranslate %}
+                {% elif column.minimum is not None %}{% blocktranslate with a=column.minimum %}At least {{ a }}{% endblocktranslate %}
+                {% else %}{% blocktranslate with b=column.maximum %}At most {{ b }}{% endblocktranslate %}{% endif %}
+              </span>
+            {% endif %}
+            {% if column.decimals is not None %}<span class="tx-guide__hint">{% blocktranslate count n=column.decimals %}At most {{ n }} decimal place{% plural %}At most {{ n }} decimal places{% endblocktranslate %}</span>{% endif %}
+            {% if column.allowed %}
+              <details class="tx-allowed">
+                <summary>{% blocktranslate count n=column.allowed|length %}{{ n }} allowed value{% plural %}{{ n }} allowed values{% endblocktranslate %}{% if column.allowed_total %} {% blocktranslate with total=column.allowed_total %}of {{ total }}{% endblocktranslate %}{% endif %}</summary>
+                <ul>
+                  {% for value, meaning in column.allowed %}
+                    <li><code class="tx-code">{{ value }}</code>{% if meaning and meaning != value %}<span>{{ meaning|truncatechars:140 }}</span>{% endif %}</li>
+                  {% endfor %}
+                </ul>
+              </details>
+            {% endif %}
+          </div>
+          <div class="tx-guide__example" role="cell">
+            {% if column.example %}<code class="tx-code tx-code--example">{{ column.example }}</code>{% else %}<span class="tx-dim">—</span>{% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endfor %}
+</div>

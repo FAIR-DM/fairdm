@@ -1,0 +1,93 @@
+{% extends "page_view.html" %}
+{% load i18n %}
+{% block page.content %}
+<div class="tx">
+  {% include "tabular/partials/steps.html" %}
+  <form method="post" class="tx-stack">
+    {% csrf_token %}
+    {% if clash %}<div class="tx-alert tx-alert--error" role="alert"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i><span>{{ clash }}</span></div>{% endif %}
+    {% for problem in problems %}
+      <div class="tx-alert tx-alert--error" role="alert"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i><span>{{ problem }}</span></div>
+    {% endfor %}
+    {% for warning in warnings %}
+      <div class="tx-alert tx-alert--warning"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><span>{{ warning }}</span></div>
+    {% endfor %}
+
+    <section class="tx-panel">
+      <header class="tx-panel__head">
+        <h2 class="tx-panel__title">{% translate "Columns in your file" %}</h2>
+        <span class="tx-count">{{ rows|length }}</span>
+        <span class="tx-panel__sub">{% blocktranslate count n=matched %}{{ n }} column will be read. The rest are left out.{% plural %}{{ n }} columns will be read. The rest are left out.{% endblocktranslate %}</span>
+      </header>
+      <div class="tx-map" role="table" aria-label="{% translate 'Column matches' %}">
+        <div class="tx-map__row tx-map__row--head" role="row">
+          <span role="columnheader">{% translate "Your column" %}</span>
+          <span role="columnheader">{% translate "First values" %}</span>
+          <span role="columnheader">{% translate "Fills" %}</span>
+        </div>
+        {% for row in rows %}
+          <div class="tx-map__row{% if not row.target %} tx-map__row--off{% endif %}" role="row">
+            <div class="tx-map__heading" role="cell">
+              <span class="tx-map__name">{{ row.heading }}</span>
+              {% if row.target and row.auto %}<span class="tx-tag tx-tag--ok"><i class="bi bi-check2" aria-hidden="true"></i> {% translate "Recognised" %}</span>
+              {% elif row.target %}<span class="tx-tag tx-tag--key">{% translate "Your choice" %}</span>
+              {% else %}<span class="tx-tag">{% translate "Left out" %}</span>{% endif %}
+            </div>
+            <div class="tx-map__values" role="cell">
+              {% for value in row.values %}<code class="tx-code">{{ value }}</code>{% empty %}<span class="tx-dim">{% translate "All empty" %}</span>{% endfor %}
+            </div>
+            <div class="tx-map__target" role="cell">
+              <label class="sr-only" for="col-{{ row.index }}">{% blocktranslate with h=row.heading %}What “{{ h }}” fills{% endblocktranslate %}</label>
+              <select class="select select-sm tx-select" name="col-{{ row.index }}" id="col-{{ row.index }}">
+                <option value="" {% if not row.target %}selected{% endif %}>{% translate "Leave this column out" %}</option>
+                {% for option in options %}
+                  <option value="{{ option.name }}" {% if option.name == row.target %}selected{% endif %}>{{ option.label }}{% if option.required %} *{% endif %} ({{ option.name }})</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <div class="tx-split tx-split--even">
+      <section class="tx-panel">
+        <h2 class="tx-panel__title">{% translate "Fields no column fills" %}</h2>
+        {% if unfilled %}
+          <ul class="tx-unfilled">
+            {% for column in unfilled %}
+              <li>
+                <span>{{ column.label }} <code class="tx-code">{{ column.name }}</code></span>
+                {% if column.required %}<span class="tx-tag tx-tag--required">{% translate "Required for new records" %}</span>
+                {% else %}<span class="tx-dim">{% translate "Stored values stay as they are" %}</span>{% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="tx-empty">{% translate "Every field has a column." %}</p>
+        {% endif %}
+      </section>
+      <section class="tx-panel">
+        <h2 class="tx-panel__title">{% translate "What the file may do" %}</h2>
+        <fieldset class="tx-choice">
+          <legend class="sr-only">{% translate "What the file may do" %}</legend>
+          {% for value, label in modes %}
+            <label class="tx-option tx-option--compact"><input type="radio" name="mode" value="{{ value }}" {% if value == job.mode %}checked{% endif %}><span class="tx-option__label">{{ label }}</span></label>
+          {% endfor %}
+        </fieldset>
+        <fieldset class="tx-choice">
+          <legend>{% translate "An empty cell" %}</legend>
+          <label class="tx-option tx-option--compact"><input type="radio" name="empty" value="keep" {% if job.empty_cells == "keep" %}checked{% endif %}><span class="tx-option__label">{% translate "Keeps the stored value" %}</span></label>
+          <label class="tx-option tx-option--compact"><input type="radio" name="empty" value="clear" {% if job.empty_cells == "clear" %}checked{% endif %}><span class="tx-option__label">{% translate "Clears the stored value" %}</span></label>
+        </fieldset>
+      </section>
+    </div>
+
+    <div class="tx-actions tx-actions--bar">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-list-check" aria-hidden="true"></i> {% translate "Check the file" %}</button>
+      <a class="btn btn-ghost" href="{{ start_url }}">{% translate "Choose another file" %}</a>
+      <span class="tx-note">{% blocktranslate count n=job.row_count %}{{ n }} row will be checked. Nothing is written yet.{% plural %}{{ n }} rows will be checked. Nothing is written yet.{% endblocktranslate %}</span>
+    </div>
+  </form>
+</div>
+{% endblock page.content %}

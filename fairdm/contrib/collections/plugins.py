@@ -556,6 +556,12 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
         context["kind"] = self.base_model.__name__.lower()
         context["holder"] = self.holder
         context["own_page"] = self.is_own_page()
+        context["import_choose_url"] = None
+        if self.holder == "dataset":
+            from fairdm.contrib.tabular.plugins import can_import
+
+            if can_import(self.request, self.base_object):
+                context["import_choose_url"] = reverse(self.base_object, "import")
         return context
 
     def get_page_title(self):

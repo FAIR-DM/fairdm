@@ -1,0 +1,5 @@
+local_id,name,sample,element,concentration_ppm,detection_limit_ppm,instrument_model
+BF-X-201,Fe in BF-R-006,BF-R-006,Fe,4021.3,2.1,Bruker S1 TITAN
+BF-X-202,Ca in BF-R-007,BF-R-007,Ca,"1290,5",2.0,Bruker S1 TITAN
+BF-X-203,Ti in BF-R-404,BF-R-404,Ti,411.0,1.2,Bruker S1 TITAN
+BF-X-204,K in BF-R-008,BF-R-008,K,2210.0,abc,Bruker S1 TITAN

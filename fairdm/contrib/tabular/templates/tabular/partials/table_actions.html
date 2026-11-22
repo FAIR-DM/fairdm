@@ -1,0 +1,30 @@
+{% load i18n humanize %}
+{# Export, and Import for people who may change the dataset, in a records table's title row. #}
+{% if transfer %}
+  <div class="tx-tools">
+    <details class="dropdown dropdown-end tx-menu" data-tx-menu>
+      <summary class="btn btn-sm btn-ghost"><i class="bi bi-download" aria-hidden="true"></i> {% translate "Export" %} <i class="bi bi-chevron-down tx-caret" aria-hidden="true"></i></summary>
+      <div class="dropdown-content tx-menu__panel">
+        {% if transfer.filtered %}
+          <p class="tx-menu__title">{% blocktranslate count n=transfer.shown %}The {{ n }} row the filters show{% plural %}The {{ n }} rows the filters show{% endblocktranslate %}</p>
+          <ul class="tx-menu__formats">
+            {% for f in transfer.shown_urls %}<li><a href="{{ f.url }}" download><span class="tx-menu__fmt">{{ f.label }}</span><span class="tx-menu__hint">{{ f.hint }}</span></a></li>{% endfor %}
+          </ul>
+          <p class="tx-menu__title">{% blocktranslate with type=transfer.type_name %}Every {{ type }} here{% endblocktranslate %}</p>
+          <ul class="tx-menu__formats">
+            {% for f in transfer.all_urls %}<li><a href="{{ f.url }}" download><span class="tx-menu__fmt">{{ f.label }}</span><span class="tx-menu__hint">{{ f.hint }}</span></a></li>{% endfor %}
+          </ul>
+        {% else %}
+          <p class="tx-menu__title">{% blocktranslate count n=transfer.shown with type=transfer.type_name %}All {{ n }} {{ type }}{% plural %}All {{ n }} {{ type }}{% endblocktranslate %}</p>
+          <ul class="tx-menu__formats">
+            {% for f in transfer.all_urls %}<li><a href="{{ f.url }}" download><span class="tx-menu__fmt">{{ f.label }}</span><span class="tx-menu__hint">{{ f.hint }}</span></a></li>{% endfor %}
+          </ul>
+        {% endif %}
+        <p class="tx-menu__foot">{% translate "Files keep each record's portal ID, so an edited file imports back into the same records." %}</p>
+      </div>
+    </details>
+    {% if transfer.import_url %}
+      <a class="btn btn-sm btn-primary" href="{{ transfer.import_url }}"><i class="bi bi-box-arrow-in-down" aria-hidden="true"></i> {% translate "Import" %}</a>
+    {% endif %}
+  </div>
+{% endif %}

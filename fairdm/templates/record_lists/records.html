@@ -59,10 +59,19 @@
             {% translate "Published measurements this contributor is credited on, or that are in their datasets and projects, will be listed here." as message %}
           {% endif %}
         {% endif %}
-        <c-mvp.page.list.empty icon="{{ kind }}" heading="{{ heading }}" message="{{ message }}" />
+        <div class="tx-empty-state">
+          <c-mvp.page.list.empty icon="{{ kind }}" heading="{{ heading }}" message="{{ message }}" />
+          {% if import_choose_url %}
+            <a class="btn btn-sm btn-primary" href="{{ import_choose_url }}"><i class="bi bi-box-arrow-in-down" aria-hidden="true"></i> {% if kind == "sample" %}{% translate "Import samples" %}{% else %}{% translate "Import measurements" %}{% endif %}</a>
+          {% endif %}
+        </div>
     </div>
   {% endif %}
 {% endblock page.content %}
+
+{% block page.actions %}
+  {% if record_state == "listed" %}{% include "tabular/partials/table_actions.html" %}{% endif %}
+{% endblock page.actions %}
 
 {% block page.footer %}
   {% if record_state == "listed" %}{{ block.super }}{% endif %}

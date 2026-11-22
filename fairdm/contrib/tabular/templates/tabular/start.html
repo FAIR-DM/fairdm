@@ -1,0 +1,116 @@
+{% extends "page_view.html" %}
+{% load i18n %}
+{% block page.actions %}
+  <a class="btn btn-sm btn-ghost" href="{{ records_url }}"><i class="bi bi-table" aria-hidden="true"></i> {% blocktranslate with type=schema.name %}{{ type }} in this dataset{% endblocktranslate %}</a>
+{% endblock page.actions %}
+{% block page.content %}
+<div class="tx">
+  {% include "tabular/partials/steps.html" %}
+
+  <div class="tx-split">
+    <form class="tx-panel tx-upload" method="post" enctype="multipart/form-data" data-tx-upload>
+      {% csrf_token %}
+      <h2 class="tx-panel__title">{% translate "Your file" %}</h2>
+      {% if upload_error %}
+        <div class="tx-alert tx-alert--error" role="alert"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i><span>{{ upload_error }}</span></div>
+      {% endif %}
+      <label class="tx-drop" data-tx-drop>
+        <input type="file" name="file" class="tx-drop__input" accept=".csv,.tsv,.txt,.xlsx,.ods,.json" required data-tx-file aria-describedby="tx-formats">
+        <i class="bi bi-cloud-arrow-up tx-drop__icon" aria-hidden="true"></i>
+        <span class="tx-drop__text" data-tx-drop-text>
+          <strong>{% translate "Choose a file" %}</strong> <span class="tx-drop__or">{% translate "or drop it here" %}</span>
+        </span>
+        <span class="tx-drop__chosen" data-tx-chosen hidden></span>
+        <span class="tx-drop__formats" id="tx-formats">{{ formats|join:" · " }} · {% translate "up to 20 MB" %}</span>
+      </label>
+
+      <fieldset class="tx-choice">
+        <legend>{% translate "What the file may do" %}</legend>
+        {% for value, label in modes %}
+          <label class="tx-option">
+            <input type="radio" name="mode" value="{{ value }}" {% if value == mode %}checked{% endif %}>
+            <span>
+              <span class="tx-option__label">{{ label }}</span>
+              <span class="tx-option__hint">
+                {% if value == "both" %}{% translate "Rows that match a record update it. The rest become new records." %}
+                {% elif value == "add" %}{% translate "Rows that match a record are left out, so nothing stored changes." %}
+                {% else %}{% translate "Rows that match no record are left out, so nothing is added." %}{% endif %}
+              </span>
+            </span>
+          </label>
+        {% endfor %}
+      </fieldset>
+
+      <fieldset class="tx-choice">
+        <legend>{% translate "An empty cell" %}</legend>
+        <label class="tx-option">
+          <input type="radio" name="empty" value="keep" {% if empty == "keep" %}checked{% endif %}>
+          <span><span class="tx-option__label">{% translate "Keeps the stored value" %}</span>
+          <span class="tx-option__hint">{% translate "Safe for a file that leaves things out." %}</span></span>
+        </label>
+        <label class="tx-option">
+          <input type="radio" name="empty" value="clear" {% if empty == "clear" %}checked{% endif %}>
+          <span><span class="tx-option__label">{% translate "Clears the stored value" %}</span>
+          <span class="tx-option__hint">{% translate "For an export you have edited, where an emptied cell means remove it." %}</span></span>
+        </label>
+      </fieldset>
+
+      <div class="tx-actions">
+        <button type="submit" class="btn btn-primary" data-tx-submit><i class="bi bi-upload" aria-hidden="true"></i> {% translate "Upload and check" %}</button>
+        <span class="tx-note">{% translate "Nothing is written until you have seen what the file would do." %}</span>
+      </div>
+    </form>
+
+    <aside class="tx-side">
+      <section class="tx-panel tx-panel--side">
+        <h2 class="tx-panel__title">{% translate "Start from" %}</h2>
+        <ul class="tx-downloads">
+          {% for label, url, fmt in template_urls %}
+            <li><a href="{{ url }}" download><i class="bi bi-file-earmark-{% if fmt == 'xlsx' %}excel{% else %}text{% endif %}" aria-hidden="true"></i><span>{{ label }}</span></a></li>
+          {% endfor %}
+        </ul>
+        {% if count %}
+          <p class="tx-side__sub">{% blocktranslate count n=count with type=schema.name|lower %}The {{ n }} {{ type }} already here, to edit and import back:{% plural %}The {{ n }} {{ type }} already here, to edit and import back:{% endblocktranslate %}</p>
+          <ul class="tx-downloads">
+            {% for label, url in current_urls %}
+              <li><a href="{{ url }}" download><i class="bi bi-arrow-repeat" aria-hidden="true"></i><span>{{ label }}</span></a></li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+        <p class="tx-side__sub">{% translate "For software:" %} <a href="{{ schema_url }}" download>{% translate "the columns as a Table Schema" %}</a></p>
+      </section>
+
+      <section class="tx-panel tx-panel--side">
+        <h2 class="tx-panel__title">{% translate "How rows find their record" %}</h2>
+        <ol class="tx-match">
+          <li><span class="tx-match__key">{% translate "Portal ID" %}</span><span>{% translate "updates the record it names, which must be in this dataset." %}</span></li>
+          <li><span class="tx-match__key">{% translate "Local ID" %}</span><span>{% translate "with no portal ID, updates the record with that Local ID here." %}</span></li>
+          <li><span class="tx-match__key">{% translate "Neither" %}</span><span>{% translate "adds a new record." %}</span></li>
+        </ol>
+        <p class="tx-note">{% translate "A name never finds a record: two samples may share one. To import the same file twice without adding its rows twice, keep the Portal ID or give every row a Local ID." %}</p>
+      </section>
+
+      {% if recent %}
+        <section class="tx-panel tx-panel--side">
+          <header class="tx-panel__head">
+            <h2 class="tx-panel__title">{% translate "Recent imports" %}</h2>
+            <a class="tx-more" href="{{ imports_url }}">{% translate "See all" %}</a>
+          </header>
+          {% include "tabular/partials/job_list.html" with jobs=recent %}
+        </section>
+      {% endif %}
+    </aside>
+  </div>
+
+  <section class="tx-panel" aria-labelledby="tx-columns">
+    <header class="tx-panel__head">
+      <h2 class="tx-panel__title" id="tx-columns">{% blocktranslate with type=schema.name %}The columns of a {{ type }} file{% endblocktranslate %}</h2>
+      <span class="tx-count">{{ schema.columns|length }}</span>
+    </header>
+    <p class="tx-lead">
+      {% translate "Put the headings in the first row, one record on each row after it. Columns may come in any order, and a file may leave out any column that is not required. Headings are matched without regard to case, spaces or underscores, and each label below works as a heading too." %}
+    </p>
+    {% include "tabular/partials/guide.html" %}
+  </section>
+</div>
+{% endblock page.content %}

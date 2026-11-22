@@ -3,3 +3,4 @@
 {% block page.title %}
   <c-list.type-heading name="{{ page.title }}" kind="{{ kind }}" :entries="type_entries" />
 {% endblock page.title %}
+{% block page.actions %}{% include "tabular/partials/table_actions.html" %}{% endblock page.actions %}

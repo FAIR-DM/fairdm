@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "fairdm.contrib.collections",
     "fairdm.contrib.contributors",
     "fairdm.contrib.import_export",
+    "fairdm.contrib.tabular",
     "fairdm.contrib.location",
     "fairdm.contrib.identity",
     # Ahead of allauth and mvp: it replaces templates both of them ship, and Django takes

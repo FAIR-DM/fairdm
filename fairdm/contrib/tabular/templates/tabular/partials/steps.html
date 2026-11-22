@@ -1,0 +1,11 @@
+{% load i18n %}
+{# The four steps of an import, with the current one marked. #}
+<ol class="tx-steps" aria-label="{% translate 'Import steps' %}">
+  {% for key, label in steps %}
+    <li class="tx-step{% if forloop.counter0 < step_index %} tx-step--done{% elif forloop.counter0 == step_index %} tx-step--current{% endif %}"
+        {% if forloop.counter0 == step_index %}aria-current="step"{% endif %}>
+      <span class="tx-step__dot">{% if forloop.counter0 < step_index %}<i class="bi bi-check-lg" aria-hidden="true"></i>{% else %}{{ forloop.counter }}{% endif %}</span>
+      <span class="tx-step__label">{{ label }}</span>
+    </li>
+  {% endfor %}
+</ol>

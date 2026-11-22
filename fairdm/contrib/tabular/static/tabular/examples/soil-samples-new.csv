@@ -1,0 +1,9 @@
+local_id,name,soil_type,ph_level,depth_cm,organic_matter_percent,moisture_content,texture,latitude,longitude,location_elevation
+BF-S-101,"Plot 26, pit 1",silt loam,4.44,20,13.0,40.4,coarse,48.01437,8.17294,731
+BF-S-102,"Plot 26, pit 2",loam,6.05,20,12.9,41.8,fine,47.92954,8.17023,914
+BF-S-103,"Plot 26, pit 3",peat,7.33,50,3.1,36.8,coarse,47.98440,8.04534,888
+BF-S-104,"Plot 26, pit 4",silt loam,4.47,10,12.6,38.4,coarse,47.96006,8.00192,1082
+BF-S-105,"Plot 27, pit 1",peat,6.20,10,14.0,36.2,medium,48.01220,8.16315,721
+BF-S-106,"Plot 27, pit 2",peat,6.42,30,3.8,33.1,coarse,48.05028,8.21257,856
+BF-S-107,"Plot 27, pit 3",silt loam,5.33,10,12.2,23.9,coarse,47.99928,8.13902,824
+BF-S-108,"Plot 27, pit 4",peat,4.32,10,5.4,23.6,medium,48.05839,8.17798,641

@@ -1,0 +1,13 @@
+{% load i18n %}
+<div class="tx-progress" hx-get="{{ status_url }}" hx-trigger="every 1s" hx-swap="outerHTML" data-tx-progress>
+  <div class="tx-progress__bar" role="progressbar" aria-valuemin="0" aria-valuemax="{{ job.row_count }}" aria-valuenow="{{ progress }}" aria-label="{% if job.status == 'importing' %}{% translate 'Rows imported' %}{% else %}{% translate 'Rows checked' %}{% endif %}">
+    <span style="width: {{ percent }}%"></span>
+  </div>
+  <p class="tx-progress__text">
+    {% if job.status == "importing" %}
+      {% blocktranslate with n=progress total=job.row_count %}{{ n }} of {{ total }} rows imported{% endblocktranslate %}
+    {% else %}
+      {% blocktranslate with n=progress total=job.row_count %}{{ n }} of {{ total }} rows checked{% endblocktranslate %}
+    {% endif %}
+  </p>
+</div>

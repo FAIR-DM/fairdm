@@ -12,6 +12,7 @@ from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
 from fairdm.registry import registry
 from fairdm.registry.factories import PublishedChoicesMixin
+from fairdm.contrib.tabular.mixins import RecordTransferMixin
 from fairdm.views import FairDMTableView
 
 # The columns a generated table holds that say nothing to a reader of the records.
@@ -26,7 +27,7 @@ BOOKKEEPING_COLUMNS = (
 )
 
 
-class DataTableView(FairDMTableView):
+class DataTableView(RecordTransferMixin, FairDMTableView):
     """Display the published records of one Sample or Measurement sub-type as a filterable table.
 
     Attributes:
