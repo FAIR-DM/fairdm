@@ -43,7 +43,7 @@
           </div>
         </section>
 
-      {% elif job.status == "checked" %}
+      {% elif job.status == "checked" or job.status == "nothing" %}
         <section class="tx-panel tx-hero tx-hero--ready">
           {% if nothing_to_write %}
             <h2 class="tx-panel__title">{% translate "Nothing would change" %}</h2>
@@ -56,11 +56,11 @@
             <h2 class="tx-panel__title">{% translate "Ready to import" %}</h2>
             <p class="tx-lead">
               {% if job.summary.new and job.summary.update %}
-                {% blocktranslate with a=job.summary.new u=job.summary.update type=job.type_name|lower %}Importing adds {{ a }} new {{ type }} and changes {{ u }}.{% endblocktranslate %}
+                {% blocktranslate with a=job.summary.new u=job.summary.update type=job.type_name %}Importing adds {{ a }} new {{ type }} and changes {{ u }}.{% endblocktranslate %}
               {% elif job.summary.new %}
-                {% blocktranslate with a=job.summary.new type=job.type_name|lower %}Importing adds {{ a }} new {{ type }}.{% endblocktranslate %}
+                {% blocktranslate with a=job.summary.new type=job.type_name %}Importing adds {{ a }} new {{ type }}.{% endblocktranslate %}
               {% else %}
-                {% blocktranslate with u=job.summary.update type=job.type_name|lower %}Importing changes {{ u }} {{ type }}. It adds none.{% endblocktranslate %}
+                {% blocktranslate with u=job.summary.update type=job.type_name %}Importing changes {{ u }} {{ type }}. It adds none.{% endblocktranslate %}
               {% endif %}
               {% if job.summary.unchanged %}{% blocktranslate count n=job.summary.unchanged %}{{ n }} row matches its record already and is left alone.{% plural %}{{ n }} rows match their records already and are left alone.{% endblocktranslate %}{% endif %}
               {% translate "Look through the rows below first." %}
@@ -79,9 +79,9 @@
       {% elif job.status == "imported" %}
         <section class="tx-panel tx-hero tx-hero--done">
           <h2 class="tx-panel__title"><i class="bi bi-check-circle-fill" aria-hidden="true"></i>
-            {% if job.summary.new and job.summary.update %}{% blocktranslate with a=job.summary.new u=job.summary.update type=job.type_name|lower %}Added {{ a }} {{ type }} and changed {{ u }}{% endblocktranslate %}
-            {% elif job.summary.new %}{% blocktranslate with a=job.summary.new type=job.type_name|lower %}Added {{ a }} {{ type }}{% endblocktranslate %}
-            {% else %}{% blocktranslate with u=job.summary.update type=job.type_name|lower %}Changed {{ u }} {{ type }}{% endblocktranslate %}{% endif %}
+            {% if job.summary.new and job.summary.update %}{% blocktranslate with a=job.summary.new u=job.summary.update type=job.type_name %}Added {{ a }} {{ type }} and changed {{ u }}{% endblocktranslate %}
+            {% elif job.summary.new %}{% blocktranslate with a=job.summary.new type=job.type_name %}Added {{ a }} {{ type }}{% endblocktranslate %}
+            {% else %}{% blocktranslate with u=job.summary.update type=job.type_name %}Changed {{ u }} {{ type }}{% endblocktranslate %}{% endif %}
           </h2>
           <p class="tx-lead">{% blocktranslate with who=job.imported_by.get_full_name|default:job.imported_by when=job.imported_at|naturaltime %}Imported by {{ who }} {{ when }}.{% endblocktranslate %}</p>
           <div class="tx-actions">
@@ -101,7 +101,7 @@
               {% csrf_token %}
               <h3 class="tx-panel__title">{% translate "Undo this import?" %}</h3>
               <ul class="tx-list">
-                {% if job.summary.new %}<li>{% blocktranslate count n=job.summary.new with type=job.type_name|lower %}The {{ n }} record it added is deleted.{% plural %}The {{ n }} {{ type }} it added are deleted.{% endblocktranslate %}</li>{% endif %}
+                {% if job.summary.new %}<li>{% blocktranslate count n=job.summary.new with type=job.type_name %}The {{ n }} record it added is deleted.{% plural %}The {{ n }} {{ type }} it added are deleted.{% endblocktranslate %}</li>{% endif %}
                 {% if job.summary.update %}<li>{% blocktranslate count n=job.summary.update %}The record it changed gets back the values it had before.{% plural %}The {{ n }} records it changed get back the values they had before.{% endblocktranslate %}</li>{% endif %}
               </ul>
               <p class="tx-note">{% translate "The import stays listed under Past imports, marked as undone." %}</p>
@@ -184,19 +184,19 @@
                     <p class="tx-row__note">{{ row.note }}</p>
                   {% elif row.outcome == "new" %}
                     <dl class="tx-cells">
-                      {% for heading in mapped_headings|slice:":6" %}
+                      {% for heading in mapped_headings|slice:":7" %}{% if column_map|get:heading != "name" %}
                         {% with v=row.values|get:heading %}{% if v %}<div><dt>{{ heading }}</dt><dd>{{ v|truncatechars:40 }}</dd></div>{% endif %}{% endwith %}
-                      {% endfor %}
+                      {% endif %}{% endfor %}
                     </dl>
                   {% endif %}
                 </li>
               {% endfor %}
             </ul>
-            {% if page > 1 or has_next %}
+            {% if row_page > 1 or has_next %}
               <nav class="tx-pager tx-pad" aria-label="{% translate 'More rows' %}">
-                {% if page > 1 %}<a class="btn btn-sm btn-ghost" href="?show={{ show|default:'all' }}&page={{ page|add:'-1' }}">{% translate "Previous" %}</a>{% endif %}
+                {% if row_page > 1 %}<a class="btn btn-sm btn-ghost" href="?show={{ show|default:'all' }}&page={{ row_page|add:'-1' }}">{% translate "Previous" %}</a>{% endif %}
                 <span class="tx-note">{% blocktranslate with a=page_rows.0.line total=shown_total %}Showing {{ total }} rows, 100 at a time{% endblocktranslate %}</span>
-                {% if has_next %}<a class="btn btn-sm btn-ghost" href="?show={{ show|default:'all' }}&page={{ page|add:'1' }}">{% translate "Next" %}</a>{% endif %}
+                {% if has_next %}<a class="btn btn-sm btn-ghost" href="?show={{ show|default:'all' }}&page={{ row_page|add:'1' }}">{% translate "Next" %}</a>{% endif %}
               </nav>
             {% endif %}
           {% else %}
@@ -218,14 +218,14 @@
           <div><dt>{% translate "Empty cells" %}</dt><dd>{{ empty_label }}</dd></div>
           <div><dt>{% translate "Uploaded" %}</dt><dd>{{ job.created_by.get_full_name|default:job.created_by }}, {{ job.created|naturaltime }}</dd></div>
         </dl>
-        {% if job.status == "checked" or job.status == "problems" %}
+        {% if job.status == "checked" or job.status == "problems" or job.status == "nothing" %}
           <div class="tx-side__actions">
             <a class="btn btn-sm btn-ghost" href="{{ columns_url }}"><i class="bi bi-arrow-left-right" aria-hidden="true"></i> {% translate "Change column matches" %}</a>
             <form method="post">{% csrf_token %}<button class="btn btn-sm btn-ghost" name="action" value="recheck"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> {% translate "Check again" %}</button></form>
           </div>
         {% endif %}
       </section>
-      {% if job.status == "checked" or job.status == "problems" %}
+      {% if job.status == "checked" or job.status == "problems" or job.status == "nothing" %}
         <section class="tx-panel tx-panel--side">
           <h2 class="tx-panel__title">{% translate "Reading the outcome" %}</h2>
           <ul class="tx-legend">

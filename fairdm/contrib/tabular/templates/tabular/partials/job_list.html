@@ -14,8 +14,8 @@
         <span class="tx-job__outcome">
           {% if job.status == "imported" %}
             {% with s=job.summary %}
-              {% if s.new %}<span class="tx-delta tx-delta--new">+{{ s.new }}</span>{% endif %}
-              {% if s.update %}<span class="tx-delta tx-delta--update">~{{ s.update }}</span>{% endif %}
+              {% if s.new %}<span class="tx-delta tx-delta--new">{% blocktranslate with n=s.new %}{{ n }} added{% endblocktranslate %}</span>{% endif %}
+              {% if s.update %}<span class="tx-delta tx-delta--update">{% blocktranslate with n=s.update %}{{ n }} changed{% endblocktranslate %}</span>{% endif %}
             {% endwith %}
           {% endif %}
           <span class="tx-state tx-state--{{ job.status }}">{{ job.get_status_display }}</span>

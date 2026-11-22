@@ -160,7 +160,9 @@ class Command(BaseCommand):
         water = [[f"BF-W-{i:02d}", f"Spring {i}", "spring", f"{rng.uniform(6, 11):.1f}", f"{rng.uniform(6.2, 7.8):.2f}"] for i in range(1, 6)]
         job4 = run(WaterSample, "water-test.csv", csv_bytes(water_headers, water), 7)
         engine.undo(job4, regular)
-        ImportJob.objects.filter(pk=job4.pk).update(imported_at=now - timedelta(days=7), undone_at=now - timedelta(days=7))
+        ImportJob.objects.filter(pk=job4.pk).update(
+            created=now - timedelta(days=7), imported_at=now - timedelta(days=7), undone_at=now - timedelta(days=7)
+        )
 
         # 5. pH corrections from the lab, as an edited export: yesterday, still undoable.
         corrections = []

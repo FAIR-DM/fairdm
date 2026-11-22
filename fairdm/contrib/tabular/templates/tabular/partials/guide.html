@@ -31,16 +31,16 @@
           </div>
           <div class="tx-guide__what" role="cell">
             {% if column.description %}<p>{{ column.description }}</p>{% endif %}
-            {% if column.aliases %}
+            {% if column.shown_aliases %}
               <p class="tx-guide__aliases">{% translate "Also recognised as" %}
-                {% for alias in column.aliases|slice:":4" %}<span class="tx-alias">{{ alias }}</span>{% endfor %}
+                {% for alias in column.shown_aliases|slice:":4" %}<span class="tx-alias">{{ alias }}</span>{% endfor %}
               </p>
             {% endif %}
           </div>
           <div class="tx-guide__how" role="cell">
             <span class="tx-guide__kind">{{ column.kind_label }}{% if column.unit %} · {% translate "in" %} {{ column.unit }}{% endif %}</span>
             <span class="tx-guide__hint">{{ column.format_hint }}</span>
-            {% if column.minimum is not None or column.maximum is not None %}
+            {% if column.kind != 'latitude' and column.kind != 'longitude' and column.minimum is not None or column.kind != 'latitude' and column.kind != 'longitude' and column.maximum is not None %}
               <span class="tx-guide__hint">
                 {% if column.minimum is not None and column.maximum is not None %}{% blocktranslate with a=column.minimum b=column.maximum %}From {{ a }} to {{ b }}{% endblocktranslate %}
                 {% elif column.minimum is not None %}{% blocktranslate with a=column.minimum %}At least {{ a }}{% endblocktranslate %}

@@ -429,7 +429,12 @@ def check(job: ImportJob):
     job.summary = summary
     job.rows = entries
     job.checked_at = timezone.now()
-    job.status = ImportJob.Status.PROBLEMS if summary["problem"] else ImportJob.Status.CHECKED
+    if summary["problem"]:
+        job.status = ImportJob.Status.PROBLEMS
+    elif summary["new"] or summary["update"]:
+        job.status = ImportJob.Status.CHECKED
+    else:
+        job.status = ImportJob.Status.NOTHING
     job.save()
 
 

@@ -68,11 +68,12 @@ class ImportPage(PrivateRecordNotFoundMixin, Plugin, FairDMTemplateView):
 
     def get_breadcrumbs(self):
         trail = super().get_breadcrumbs()
-        title = trail.pop() if trail else None
-        trail.extend(self.extra_crumbs())
-        if title and title.get("text") != _("Import"):
-            trail.append(title)
-        return trail
+        home = self.dataset.get_absolute_url()
+        at = next((i for i, c in enumerate(trail) if c.get("href") == home), len(trail) - 1)
+        head = trail[: at + 1]
+        head.extend(self.extra_crumbs())
+        head.append({"text": str(self.get_page_title())})
+        return head
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -287,7 +288,7 @@ class JobColumns(JobPage):
 
     def post(self, request, *args, **kwargs):
         job = self.job
-        if job.status not in (ImportJob.Status.MATCHING, ImportJob.Status.CHECKED, ImportJob.Status.PROBLEMS):
+        if job.status not in (ImportJob.Status.MATCHING, ImportJob.Status.CHECKED, ImportJob.Status.PROBLEMS, ImportJob.Status.NOTHING):
             return redirect(job.get_absolute_url())
         schema = schema_for(job.model)
         valid = {c.name for c in schema.importable}
@@ -374,6 +375,7 @@ class JobDetail(JobPage):
         titles = {
             ImportJob.Status.CHECKING: _("Checking %(file)s"),
             ImportJob.Status.CHECKED: _("%(file)s is ready to import"),
+            ImportJob.Status.NOTHING: _("%(file)s matches what is stored"),
             ImportJob.Status.PROBLEMS: _("%(file)s needs changes"),
             ImportJob.Status.IMPORTING: _("Importing %(file)s"),
             ImportJob.Status.IMPORTED: _("%(file)s was imported"),
@@ -388,7 +390,7 @@ class JobDetail(JobPage):
         job = self.job
         return _("%(n)s rows of %(type)s for %(dataset)s") % {
             "n": job.row_count,
-            "type": job.type_name.lower(),
+            "type": job.type_name,
             "dataset": self.dataset,
         }
 
@@ -410,7 +412,7 @@ class JobDetail(JobPage):
             job.save()
             messages.info(request, _("Nothing from %(file)s was imported.") % {"file": job.filename})
             return redirect(reverse(self.dataset, "import-start", type=job.type_slug))
-        elif action == "recheck" and job.status in (ImportJob.Status.CHECKED, ImportJob.Status.PROBLEMS):
+        elif action == "recheck" and job.status in (ImportJob.Status.CHECKED, ImportJob.Status.PROBLEMS, ImportJob.Status.NOTHING):
             job.status = ImportJob.Status.CHECKING
             job.save()
             tasks.start(tasks.check_job, job.pk)
@@ -441,7 +443,7 @@ class JobDetail(JobPage):
         start = (page - 1) * self.per_page
         context["show"] = show
         context["page_rows"] = rows[start : start + self.per_page]
-        context["page"] = page
+        context["row_page"] = page
         context["has_next"] = start + self.per_page < len(rows)
         context["shown_total"] = len(rows)
         labels = {
@@ -454,10 +456,13 @@ class JobDetail(JobPage):
         if job.status in (ImportJob.Status.IMPORTED, ImportJob.Status.UNDONE):
             labels["new"] = _("Added")
         context["tiles"] = [
-            {"key": key, "label": labels[key], "count": job.summary.get(key, 0)} for key in order if key in job.summary
+            {"key": key, "label": labels[key], "count": job.summary.get(key, 0)}
+            for key in order
+            if job.summary.get(key, 0) or key in ("new", "update")
         ]
         context["column_labels"] = {c.name: str(c.label) for c in context["schema"].columns}
         context["column_labels"][""] = ""
+        context["column_map"] = job.column_map
         context["mapped_headings"] = [h for h in job.headers if job.column_map.get(h)]
         context["key_headings"] = [
             h for h in job.headers if job.column_map.get(h) in ("name", "local_id", "sample")
@@ -470,7 +475,7 @@ class JobDetail(JobPage):
             context["conflicts"] = engine.undo_conflicts(job)
         context["mode_label"] = ImportJob.Mode(job.mode).label
         context["empty_label"] = ImportJob.Empty(job.empty_cells).label
-        context["nothing_to_write"] = job.status == ImportJob.Status.CHECKED and not job.writes
+        context["nothing_to_write"] = job.status == ImportJob.Status.NOTHING
         return context
 
 

@@ -70,7 +70,7 @@
           {% endfor %}
         </ul>
         {% if count %}
-          <p class="tx-side__sub">{% blocktranslate count n=count with type=schema.name|lower %}The {{ n }} {{ type }} already here, to edit and import back:{% plural %}The {{ n }} {{ type }} already here, to edit and import back:{% endblocktranslate %}</p>
+          <p class="tx-side__sub">{% blocktranslate count n=count with type=schema.name %}The {{ n }} {{ type }} already here, to edit and import back:{% plural %}The {{ n }} {{ type }} already here, to edit and import back:{% endblocktranslate %}</p>
           <ul class="tx-downloads">
             {% for label, url in current_urls %}
               <li><a href="{{ url }}" download><i class="bi bi-arrow-repeat" aria-hidden="true"></i><span>{{ label }}</span></a></li>

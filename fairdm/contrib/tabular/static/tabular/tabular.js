@@ -41,7 +41,10 @@
   }
   document.addEventListener("click", function (event) {
     document.querySelectorAll("details[data-tx-menu][open]").forEach(function (menu) {
-      if (!menu.contains(event.target)) menu.removeAttribute("open");
+      // A click outside closes the menu, and so does choosing a file to download.
+      if (!menu.contains(event.target) || event.target.closest("a[download]")) {
+        setTimeout(function () { menu.removeAttribute("open"); }, 0);
+      }
     });
   });
   document.addEventListener("keydown", function (event) {

@@ -28,6 +28,7 @@ class ImportJob(models.Model):
         MATCHING = "matching", _("Matching columns")
         CHECKING = "checking", _("Checking")
         CHECKED = "checked", _("Ready to import")
+        NOTHING = "nothing", _("Nothing to change")
         PROBLEMS = "problems", _("Needs changes")
         IMPORTING = "importing", _("Importing")
         IMPORTED = "imported", _("Imported")

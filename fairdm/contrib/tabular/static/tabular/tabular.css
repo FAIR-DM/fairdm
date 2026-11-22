@@ -169,6 +169,7 @@
 .tx-state { font-size: 0.75rem; font-weight: 600; padding: 0.05rem 0.5rem; border-radius: 999px; background: var(--color-base-200); color: var(--tx-muted); white-space: nowrap; }
 .tx-state--imported { background: color-mix(in oklch, var(--tx-new) 14%, var(--color-base-100)); color: color-mix(in oklch, var(--tx-new) 80%, var(--color-base-content)); }
 .tx-state--problems, .tx-state--failed { background: color-mix(in oklch, var(--tx-problem) 12%, var(--color-base-100)); color: color-mix(in oklch, var(--tx-problem) 80%, var(--color-base-content)); }
+.tx-state--nothing { background: var(--color-base-200); }
 .tx-state--checked, .tx-state--checking, .tx-state--importing { background: color-mix(in oklch, var(--color-primary) 12%, var(--color-base-100)); color: var(--color-primary); }
 .tx-delta { font-size: 0.75rem; font-weight: 650; font-variant-numeric: tabular-nums; }
 .tx-delta--new { color: color-mix(in oklch, var(--tx-new) 85%, var(--color-base-content)); }
@@ -233,7 +234,7 @@
 .tx-progress__bar span { display: block; height: 100%; background: var(--color-primary); border-radius: inherit; transition: width .4s ease; min-width: 0.625rem; }
 .tx-progress__text { margin: 0; font-size: 0.8125rem; color: var(--tx-muted); font-variant-numeric: tabular-nums; }
 
-.tx-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: 0.5rem; }
+.tx-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(6.25rem, 1fr)); gap: 0.5rem; }
 .tx-tile { display: flex; flex-direction: column; gap: 0.125rem; padding: 0.625rem 0.875rem; border: 1px solid var(--tx-line); border-radius: var(--tx-radius); color: inherit; text-decoration: none; position: relative; }
 .tx-tile::before { content: ""; position: absolute; inset-inline-start: 0; top: 0.625rem; bottom: 0.625rem; width: 3px; border-radius: 2px; background: var(--tx-faint); }
 .tx-tile--new::before { background: var(--tx-new); }

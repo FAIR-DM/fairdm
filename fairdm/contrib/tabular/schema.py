@@ -139,6 +139,18 @@ class Column:
         return self.role != "export"
 
     @property
+    def shown_aliases(self) -> list[str]:
+        """The other headings worth listing: not the heading or the label again."""
+        own = {normalise(self.name), normalise(self.label)}
+        out, seen = [], set()
+        for alias in self.aliases:
+            key = normalise(alias)
+            if key and key not in own and key not in seen:
+                seen.add(key)
+                out.append(alias)
+        return out
+
+    @property
     def keys(self) -> set[str]:
         """Every normalised heading that means this column."""
         return {normalise(x) for x in [self.name, self.label, *self.aliases] if x}
@@ -403,7 +415,8 @@ UNIT_IN_LABEL = re.compile(r"\s*\(([^)]+)\)\s*$")
 
 def field_column(model_field, role="field", group="own", description=None, aliases=()):
     kind = kind_of(model_field)
-    label = capfirst(str(model_field.verbose_name))
+    verbose = str(model_field.verbose_name)
+    label = verbose if any(ch.isupper() for ch in verbose) else capfirst(verbose)
     unit = ""
     bare_label = label
     found = UNIT_IN_LABEL.search(label)
