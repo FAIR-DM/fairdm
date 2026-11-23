@@ -26,6 +26,7 @@ from django_lifecycle.mixins import LifecycleModelMixin
 from easy_icons import icon
 from easy_thumbnails.fields import ThumbnailerImageField
 from model_utils import FieldTracker
+from mvp.models import PreferencesMixin
 from ordered_model.models import OrderedModel
 from shortuuid.django_fields import ShortUUIDField
 
@@ -759,7 +760,7 @@ class Contributor(PolymorphicMixin, PolymorphicModel):
         return Contribution.add_to(self, obj, roles)
 
 
-class Person(AbstractUser, Contributor):
+class Person(PreferencesMixin, AbstractUser, Contributor):
     """An individual contributor who can also sign in as a user.
 
     A person may be a ghost (no email), invited (email, unclaimed), claimed, or inactive.
@@ -773,6 +774,8 @@ class Person(AbstractUser, Contributor):
         is_claimed: Whether the person has claimed the account.
         USERNAME_FIELD: The field used to sign in, which is the email.
         REQUIRED_FIELDS: Fields required by ``createsuperuser``, which is none.
+        preferences: The preferences the person has changed from their defaults, which
+            django-mvp's preferences page edits.
         username: Removed, as people sign in by email.
     """
 
