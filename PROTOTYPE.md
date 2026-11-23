@@ -116,30 +116,51 @@ what undo restores, who undid it and when.
 
 ## Decisions
 
-See the issue.
+Copied from https://github.com/FAIR-DM/fairdm/issues/692
+
+### Decided while building
+
+- The export's first column is `portal_id`, and import matches by it, then by Local ID within the dataset. A name never matches.
+- An import never deletes. Records missing from a file are left alone.
+- Empty cells keep stored values unless the person chooses otherwise.
+- A file with any problem row cannot be imported, and comes back as a workbook with the problems written beside each row.
+- When every heading is recognised the column-matching step is skipped. It stays reachable from the check.
+- Headings are the field names, and labels work as headings too, so exports stay stable when labels are translated.
+- A type with no `resource_fields` gets every editable field. A type with `resource_fields` gets those, plus the identifiers and whatever a new record needs.
+- Measurements name their sample by portal ID, Local ID or a name unique in the dataset. The export adds a `sample_name` column for readers, ignored on import.
+- Numbers written with a decimal comma are refused with the corrected value suggested, rather than guessed at.
+
+### Sam's decisions and the rules that followed, 2026-11-23
+
+- **No copies of another dataset's records, and they don't block a file.** A row whose portal ID belongs to another dataset, whoever owns it, is left out with the reason, and the rest of the file imports. An import never adds to or changes another dataset's records, and never suggests clearing the portal ID to add a copy, because copies of copies make it impossible to say where data came from. For a measurement, the reason points to the way that already exists to use another dataset's data: a measurement's `sample` column may name any sample the person can see.
+- **Samples can't be referenced into another dataset.** A sample belongs to one dataset, so referencing one from another dataset would change the core data model. It is recorded under what the prototype doesn't do and not built here. Adding another dataset's samples and measurements to your own dataset is a separate feature still to come.
+- **The type is chosen in a dialog, not on a page of its own.** The page for choosing a type, its address and its template are gone. One dialog, built on the project's existing modal component, serves every Import button that has no type yet: the Samples tab lists only sample types, the Measurements tab only measurement types, and the empty dataset overview both. Import on a single type's table still goes straight to that type's import page.
+- **Every page goes through one lookup for what a file holds.** The import pages, the Export menu and the import record all ask for an import definition by name, and an import record stores that name rather than the model it imported into. FairDM builds one definition per registered type, so nothing a person sees changes. A project can register its own definition, unused so far. Anything specific to one portal waits until that portal moves to this workflow.
+- **Import a file on past imports opens the same dialog, with both kinds,** since the page it used to lead to is gone.
+- **The check and the import are queued once the upload is saved.** They could start before the upload was written and then find nothing.
+- **The prototype runs on django-mvp 0.36 and django-mvp-forms 0.11,** the versions `main` moved to in https://github.com/FAIR-DM/fairdm/pull/693, so what is built from it starts on the same versions.
+- **The import options are drawn with django-mvp-forms' card choice widget.** What the file may do and what an empty cell means are a form whose choices are cards from the package, in place of cards written by hand for this page. The import page shows each choice with its explanation. Column matching shows the labels alone, since the package's cards have no compact form and an explanation-free card is the closest match to the compact look there. Choices, wording and defaults are unchanged.
 
 ## Faked or skipped
 
-- The stored file is never deleted. A retention rule is needed.
+- The stored file is never deleted. A retention rule is needed. Feature 3.
 - Row outcomes are stored as JSON on the job. A 50,000-row file makes a large row; the rebuild may
-  want a row table or a file.
-- Progress is kept in the cache and polled every second.
-- No import of keywords, tags, descriptions, dates, identifiers or contributors.
+  want a row table or a file. Feature 3.
+- Progress is kept in the cache and polled every second. Feature 3.
+- No import of keywords, tags, descriptions, dates, identifiers or contributors. A later feature, not one of these three.
 - Only one type per file. Several related tables in one file (samples and their measurements) is
-  roadmap's next step.
+  roadmap's next step, not one of these three.
 - No accessibility audit beyond semantic markup and labels: the guide and match tables use ARIA
-  table roles on divs, which the rebuild should check or replace with real tables.
-- Undo checks `modified` timestamps only.
+  table roles on divs, which the rebuild should check or replace with real tables. Features 2 and 3.
+- Undo checks `modified` timestamps only. Feature 3.
 - A dataset can't reference another dataset's samples. A sample belongs to exactly one dataset
   (`Sample.dataset`), so referencing them is a change to the core data model, outside this
   prototype. Only measurements can point at another dataset's samples. Adding another dataset's
   samples and measurements to your own dataset is a separate FairDM feature still to come. Until
-  it exists, an import leaves those rows out.
-- A chosen option card shows a dark outline but not the primary edge and tint django-mvp-forms
-  asks for: the stylesheet django-mvp 0.36 ships has no rules for `has-checked:border-primary`
-  and `has-checked:bg-primary/10`. The fix belongs in django-mvp's stylesheet, not here.
+  it exists, an import leaves those rows out. Feature 3 builds the leaving out; the referencing
+  is its own feature, outside this prototype.
 - The existing `LocatedResourceMixin.import_instance` on `main` drops every field's error when a
-  row has no location columns. The prototype works around it; the rebuild fixes it.
+  row has no location columns. The prototype works around it. Feature 3 fixes it on `main`.
 
 ## What it replaces
 
