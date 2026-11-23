@@ -126,6 +126,7 @@ dev = [
     "django>=6.0,<7.0",
     "dj-urls-panel>=0.5,<1",
     "dj-signals-panel>=0.6,<1",
+    "frictionless>=5,<6",
 ]
 docs = [
     "fairdm-docs[pydata-sphinx-theme]",
