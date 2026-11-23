@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **A registered sample or measurement type can say what its import and export file holds.** Call `get_table_schema()` on the type's configuration to get its columns in order, each with its heading, kind, whether a new record needs it, its allowed values, unit, limits and an example. A portal can also ask for the file as a Frictionless Table Schema, add import definitions of its own with `fairdm.contrib.import_export.definitions.register` and show the columns with `<c-import.guide>`. Every definition is published, open to everyone, at `table-schemas/<name>/`, which downloads `<name>-table-schema.json`. Dates and times are written as ISO 8601 and booleans as `yes` or `no`, and a number with a decimal comma is refused with a message that says so. See [Table schema](developers/reference/table-schema.md) and [How to register an import definition](developers/how-to/register-an-import-definition.md).
+
 ### Changed
 
 - **FairDM now needs django-mvp 0.36 and django-mvp-forms 0.11.** `Person` gains a `preferences` field, which stores the timezone and language a person picks on django-mvp's preferences page. Run `migrate` to add it. FairDM installs `object_preferences` and lists `mvp.middleware.PreferencesMiddleware` below the locale middleware, so a signed-in person sees pages in the language and times in the timezone they chose. A portal that sets `MIDDLEWARE` itself must add it there.

@@ -76,6 +76,6 @@ reason before the code that makes it pass is written. Wording and appearance get
 
 ### Group 7
 
-- [ ] T014 [US1] Documentation: a developer reference page and a how-to, the `CHANGELOG.md` line,
+- [x] T014 [US1] Documentation: a developer reference page and a how-to, the `CHANGELOG.md` line,
   and `CONTEXT.md` glossary entries for table schema, column, import definition and column guide,
   as plan.md "Specifications and documents edited" describes.

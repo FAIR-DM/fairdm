@@ -59,6 +59,42 @@ Declared on `Sample` and `Measurement` in `fairdm/core/sample/models.py` and
 `fairdm/core/measurement/models.py`, with the input, lookups and import columns in
 `fairdm/utils/location/`.
 
+### Table schema
+
+The columns of the file that imports and exports a sample or measurement type, in the order a file
+has them, worked out from the type's model and its configuration each time they are asked for.
+Nothing is stored, and no stored record changes the result. It can describe itself as a
+Frictionless Table Schema, which the portal publishes at `table-schemas/<name>/`.
+
+Avoid "template" for the schema: the template is the empty file a person downloads.
+
+Implemented by `TableSchema` and `build_table_schema` in `fairdm/contrib/import_export/schema.py`,
+and offered as `ModelConfiguration.get_table_schema()`.
+
+### Column
+
+One column of a table schema: its heading, its kind, whether a new record needs a value, and the
+unit, limits, allowed values and example that go with it. Its role says what it is for. The portal ID
+finds a record, the Local ID matches one, and an export-only column is written but never read.
+
+Implemented by `Column` in `fairdm/contrib/import_export/schema.py`.
+
+### Import definition
+
+The name of a kind of file, the sample or measurement model its rows fill and the formats it is
+offered in. FairDM makes one for every registered type, named after the model in lower case. A portal
+adds its own with `register`.
+
+Implemented by `ImportDefinition` in `fairdm/contrib/import_export/definitions.py`.
+
+### Column guide
+
+The page section that explains a table schema to the person filling in a file: one table for each
+group of columns, giving each column's heading, what it holds, how to write it and an example. It
+is drawn from the schema and never written by hand.
+
+Drawn by `<c-import.guide>` in `fairdm/templates/cotton/import/guide.html`.
+
 ### Spatial coverage
 
 The smallest box, in WGS 84 degrees, that holds the locations of a dataset's or a project's samples
