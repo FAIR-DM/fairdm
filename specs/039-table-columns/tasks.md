@@ -45,9 +45,9 @@ reason before the code that makes it pass is written. Wording and appearance get
 
 ### Group 4
 
-- [ ] T007 [US1] Tests: `TestLookup` and `TestRegister` in
+- [x] T007 [US1] Tests: `TestLookup` and `TestRegister` in
   `tests/test_contrib/test_import_export/test_definitions.py`, as plan.md "Tests" describes.
-- [ ] T008 [US1] `fairdm/contrib/import_export/definitions.py`, as plan.md "The import definitions"
+- [x] T008 [US1] `fairdm/contrib/import_export/definitions.py`, as plan.md "The import definitions"
   describes. T007 goes green.
 
 ### Group 5
