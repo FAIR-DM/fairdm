@@ -122,7 +122,10 @@
         <div class="ov-empty-block">
           {% if can_manage %}
             <p class="ov-empty">{% translate "This dataset holds no samples or measurements yet. Import a spreadsheet or add records by hand to start building it." %}</p>
-            <a class="btn btn-sm btn-primary" href="{{ dataset.get_absolute_url }}import/"><i class="bi bi-box-arrow-in-down" aria-hidden="true"></i> {% translate "Import data" %}</a>
+            {% if import_chooser %}
+              {% translate "Import data" as label %}
+              <c-tabular.import-menu :chooser="import_chooser" label="{{ label }}" />
+            {% endif %}
           {% else %}
             <p class="ov-empty">{% translate "No samples or measurements have been added to this dataset yet." %}</p>
           {% endif %}

@@ -201,6 +201,12 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         page.update(self.get_shared_context(page))
 
         page["activity"] = recent_activity(dataset, self.request)
+        page["import_chooser"] = None
+        if can_manage and shows_records and not data_types:
+            from fairdm.contrib.tabular.plugins import can_import, import_chooser
+
+            if can_import(self.request, dataset):
+                page["import_chooser"] = import_chooser(dataset)
 
         context["dataset"] = dataset
         context.update(page)

@@ -86,14 +86,20 @@ class RecordTransferMixin:
             "shown_urls": self.transfer_urls("filtered", definition),
             "all_urls": self.transfer_urls("all", definition),
             "import_url": None,
+            "import_chooser": None,
             "imports_url": None,
             "type_name": str(definition.model._meta.verbose_name_plural),
         }
         holder = getattr(self, "base_object", None)
         if holder is not None and getattr(self, "holder", None) == "dataset":
-            from .plugins import can_import
+            from .plugins import can_import, import_chooser
 
             if can_import(self.request, holder):
-                context["transfer"]["import_url"] = reverse(holder, "import-start", type=definition.name)
+                # A table of one type imports that type. A tab that hasn't been given a type
+                # offers every type of its kind.
+                if self.kwargs.get("type"):
+                    context["transfer"]["import_url"] = reverse(holder, "import", type=definition.name)
+                else:
+                    context["transfer"]["import_chooser"] = import_chooser(holder, definition.kind)
                 context["transfer"]["imports_url"] = reverse(holder, "imports")
         return context

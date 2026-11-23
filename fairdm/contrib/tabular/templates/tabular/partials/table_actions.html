@@ -25,6 +25,9 @@
     </details>
     {% if transfer.import_url %}
       <a class="btn btn-sm btn-primary" href="{{ transfer.import_url }}"><i class="bi bi-box-arrow-in-down" aria-hidden="true"></i> {% translate "Import" %}</a>
+    {% elif transfer.import_chooser %}
+      {% translate "Import" as label %}
+      <c-tabular.import-menu :chooser="transfer.import_chooser" label="{{ label }}" />
     {% endif %}
   </div>
 {% endif %}

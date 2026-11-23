@@ -1,6 +1,6 @@
 """The import pages of a dataset.
 
-``/datasets/<uuid>/import/`` chooses a type, ``/import/<type>/`` takes a file, and
+``/datasets/<uuid>/import/<type>/`` takes a file, and
 ``/imports/<job>/`` follows one file from its column matches through the check to the import
 and, if it comes to that, its undo. ``/imports/`` lists every import into the dataset.
 """
@@ -57,6 +57,36 @@ def count_in(dataset, model):
     return model.objects.filter(dataset=dataset).count()
 
 
+def import_chooser(dataset, kind=None):
+    """The types a dialog offers to import into ``dataset``: one kind, or samples and measurements.
+
+    Returns the dialog's id and title, and one group per kind, each with its types: name,
+    column count, the columns a new record needs, how many the dataset holds and the import page.
+    """
+    titles = {"sample": _("Samples"), "measurement": _("Measurements")}
+    groups = []
+    for key in [kind] if kind else ["sample", "measurement"]:
+        entries = []
+        for definition in definitions(key):
+            schema = definition.columns()
+            entries.append(
+                {
+                    "name": schema.name,
+                    "count": count_in(dataset, definition.model),
+                    "url": reverse(dataset, "import", type=definition.name),
+                    "required": [str(c.label) for c in schema.required],
+                    "columns": len(schema.importable) - 1,
+                }
+            )
+        groups.append({"kind": key, "title": titles[key], "entries": entries})
+    title = {
+        None: _("Import"),
+        "sample": _("Import samples"),
+        "measurement": _("Import measurements"),
+    }[kind]
+    return {"id": f"tx-import-{kind or 'all'}", "title": title, "groups": groups}
+
+
 class ImportPage(PrivateRecordNotFoundMixin, Plugin, FairDMTemplateView):
     """Shared by every import page: the permission, the step bar and the trail."""
 
@@ -71,7 +101,7 @@ class ImportPage(PrivateRecordNotFoundMixin, Plugin, FairDMTemplateView):
         return self.base_object
 
     def extra_crumbs(self):
-        return [{"text": _("Import"), "href": reverse(self.dataset, "import")}]
+        return []
 
     def get_breadcrumbs(self):
         trail = super().get_breadcrumbs()
@@ -94,50 +124,11 @@ class ImportPage(PrivateRecordNotFoundMixin, Plugin, FairDMTemplateView):
 
 
 @plugins.register(Dataset, menu=False)
-class DatasetImport(ImportPage):
-    """Choose what to import: every sample and measurement type the portal has."""
-
-    url_path = "import"
-    name = "import"
-    template_name = "tabular/choose.html"
-    page_title = _l("Import")
-
-    def extra_crumbs(self):
-        return []
-
-    def get_page_lead(self):
-        return _("Choose what your file holds. Each sample and measurement type has its own columns.")
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        groups = {"sample": [], "measurement": []}
-        for definition in definitions():
-            schema = definition.columns()
-            groups[definition.kind].append(
-                {
-                    "schema": schema,
-                    "count": count_in(self.dataset, definition.model),
-                    "url": reverse(self.dataset, "import-start", type=definition.name),
-                    "description": schema.config.get_description()
-                    if schema.config.description or schema.config.metadata
-                    else "",
-                    "required": [str(c.label) for c in schema.required],
-                    "columns": len(schema.importable) - 1,
-                }
-            )
-        context["groups"] = [
-            ("sample", _("Samples"), groups["sample"]),
-            ("measurement", _("Measurements"), groups["measurement"]),
-        ]
-        context["recent"] = self.dataset.import_jobs.select_related("created_by")[:5]
-        return context
-
-
 class ImportStart(ImportPage):
     """Take a file for one type: what it needs, the templates, and the upload."""
 
-    url_path = "<slug:type>"
-    name = "start"
+    url_path = "import/<slug:type>"
+    name = "import"
     template_name = "tabular/start.html"
     step = "file"
 
@@ -182,7 +173,7 @@ class ImportStart(ImportPage):
         context["schema"] = schema
         context["count"] = count_in(self.dataset, self.definition.model)
         context["records_url"] = records_tab_url(self.dataset, self.definition)
-        base = reverse(self.dataset, "import-start", type=self.definition.name)
+        base = reverse(self.dataset, "import", type=self.definition.name)
         context["template_urls"] = [
             (_("Excel template, with the column guide"), f"{base}template.xlsx/", "xlsx"),
             (_("CSV template"), f"{base}template.csv/", "csv"),
@@ -204,7 +195,7 @@ class ImportStart(ImportPage):
 
 
 class ImportTemplate(ImportPage):
-    url_path = "<slug:type>/template.<str:fmt>"
+    url_path = "template.<str:fmt>"
     name = "template"
 
     def get(self, request, *args, **kwargs):
@@ -215,7 +206,7 @@ class ImportTemplate(ImportPage):
 
 
 class ImportSchema(ImportPage):
-    url_path = "<slug:type>/schema.json"
+    url_path = "schema.json"
     name = "schema"
 
     def get(self, request, *args, **kwargs):
@@ -225,7 +216,7 @@ class ImportSchema(ImportPage):
         return exports.schema_response(definition.columns())
 
 
-DatasetImport.extra_views = [ImportTemplate, ImportSchema, ImportStart]
+ImportStart.extra_views = [ImportTemplate, ImportSchema]
 
 
 @plugins.register(Dataset, menu=False)
@@ -243,7 +234,7 @@ class DatasetImports(ImportPage):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["jobs"] = self.dataset.import_jobs.select_related("created_by", "imported_by")
-        context["import_url"] = reverse(self.dataset, "import")
+        context["import_chooser"] = import_chooser(self.dataset)
         return context
 
 
@@ -263,8 +254,7 @@ class JobPage(ImportPage):
     def extra_crumbs(self):
         job = self.job
         return [
-            {"text": _("Import"), "href": reverse(self.dataset, "import")},
-            {"text": capfirst(job.type_name), "href": reverse(self.dataset, "import-start", type=job.definition_name)},
+            {"text": capfirst(job.type_name), "href": reverse(self.dataset, "import", type=job.definition_name)},
         ]
 
     def get_context_data(self, **kwargs):
@@ -273,7 +263,7 @@ class JobPage(ImportPage):
         schema = job.definition.columns()
         context["job"] = job
         context["schema"] = schema
-        context["start_url"] = reverse(self.dataset, "import-start", type=job.definition_name)
+        context["start_url"] = reverse(self.dataset, "import", type=job.definition_name)
         context["columns_url"] = reverse(self.dataset, "imports-columns", job=job.pk)
         context["records_url"] = records_tab_url(self.dataset, job.definition)
         return context
@@ -420,7 +410,7 @@ class JobDetail(JobPage):
             job.status = ImportJob.Status.DISCARDED
             job.save()
             messages.info(request, _("Nothing from %(file)s was imported.") % {"file": job.filename})
-            return redirect(reverse(self.dataset, "import-start", type=job.definition_name))
+            return redirect(reverse(self.dataset, "import", type=job.definition_name))
         elif action == "recheck" and job.status in (ImportJob.Status.CHECKED, ImportJob.Status.PROBLEMS, ImportJob.Status.NOTHING):
             job.status = ImportJob.Status.CHECKING
             job.save()

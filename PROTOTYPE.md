@@ -23,12 +23,16 @@ Seed: `DJANGO_ENV=development python manage.py seed_import_export_prototype`, th
    Screens: "The columns of a … file" on `/datasets/<uuid>/import/<type>/`.
 3. **Import a file into a dataset.** A person who may change a dataset picks a type, uploads a file,
    matches its columns, sees what every row would do, imports it whole, and can undo it.
-   Screens: `/datasets/<uuid>/import/` (choose a type), `/import/<type>/` (file, options, guide,
+   Screens: the dialog of types (no page of its own), `/import/<type>/` (file, options, guide,
    templates), `/imports/<job>/columns/` (match columns), `/imports/<job>/` (check, import, undo),
    `/imports/` (past imports). Owns `ImportJob`. Depends on feature 2. Build after feature 1.
 
-Resolve work, not features: the **Import data** button on an empty dataset's overview (currently a
-disabled placeholder) and the empty Samples and Measurements tabs now lead to the type chooser.
+Where Import starts: a single type's table (`/samples/<type>/`) links straight to that type's
+import page. Every other Import button opens one dialog listing the types, each linking to its
+import page: the Samples or Measurements tab before a type is chosen, and their empty states, list
+only that kind. The empty dataset overview's **Import data** button (currently a disabled
+placeholder on `main`, resolve work) and **Import a file** on past imports list both kinds. There
+is no page for choosing a type.
 
 ## How an import works
 
@@ -82,14 +86,16 @@ the import is built on. tablib reads ODS. openpyxl writes the workbooks.
 | `static/tabular/tabular.js` | features 1 and 3 | FairDM's scripts |
 | `templates/tabular/partials/table_actions.html` | 1 | Cotton component in the records table title row |
 | `templates/tabular/partials/guide.html` | 2 | Cotton component |
-| `templates/tabular/choose.html`, `start.html`, `columns.html`, `job.html`, `history.html`, `partials/steps.html`, `partials/job_list.html`, `partials/progress.html` | 3 | The import pages |
+| `templates/cotton/tabular/import_menu.html` (the Import button and its dialog of types, on `c-mvp.modal`) | 3 | Cotton component |
+| `start.html`, `columns.html`, `job.html`, `history.html`, `partials/steps.html`, `partials/job_list.html`, `partials/progress.html` | 3 | The import pages |
 | `fairdm/templates/record_lists/records.html` (actions block, empty-state button), `collections/listing.html` | 1 and 3 | Same files on `main` |
 
 Screens to compare, at 390 and 1400 wide, signed in as `regular.user` unless named:
 
 - Samples tab with Export and Import: `/datasets/<seeded>/samples/soilsample/`
 - Export menu open, with a search active: same, `?q=peat`
-- Type chooser: `/datasets/<seeded>/import/`
+- Dialog of types: Import on `/datasets/<seeded>/samples/` and `/measurements/`; as `regular.user2`,
+  **Import data** on the empty dataset's overview
 - Import page and guide: `/datasets/<seeded>/import/soilsample/`
 - Column matching: upload `static/tabular/examples/soil-samples-field-headings.xlsx`
 - Needs changes: the `xrf-batch-2.csv` import
