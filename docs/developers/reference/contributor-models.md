@@ -81,12 +81,13 @@ Attach `validate_iso_639_1_language_codes` to a field of your own that holds a l
 
 ## Person
 
-`Person` extends Django's `AbstractUser` and `Contributor`. It is the portal's user model. `fairdm.setup()` sets `AUTH_USER_MODEL` to `contributors.Person` and people sign in with their email address. The `username` field is removed.
+`Person` extends Django's `AbstractUser`, `Contributor` and django-mvp's `PreferencesMixin`. It is the portal's user model. `fairdm.setup()` sets `AUTH_USER_MODEL` to `contributors.Person` and people sign in with their email address. The `username` field is removed.
 
 | Field | Type | Default | What it holds | What it accepts |
 |---|---|---|---|---|
 | `email` | `EmailField`, unique, nullable | `None` | The sign-in address. Empty for a profile made for attribution alone | A valid address. `clean()` stores an empty string as `None` and lowercases the address |
 | `is_claimed` | `BooleanField`, indexed | `False` | Whether the person has claimed the profile | `True` or `False` |
+| `preferences` | `PreferencesField` | `{}` | The preferences the person has changed from their defaults, such as their timezone and language, which django-mvp's preferences page edits | What django-mvp's preferences forms save |
 
 The `AbstractUser` fields (`first_name`, `last_name`, `is_active`, `is_staff`, `is_superuser`, `password`, `last_login`, `date_joined`, `groups`, `user_permissions`) are inherited. `USERNAME_FIELD` is `email` and `REQUIRED_FIELDS` is empty. A constraint, `unique_person_email_ci`, makes addresses unique regardless of case.
 

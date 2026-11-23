@@ -53,6 +53,8 @@ INSTALLED_APPS = [
     "mvp_community",
     "actstream",
     "mvp",
+    # Stores each person's preferences, which django-mvp's preferences page edits.
+    "object_preferences",
     # Directly below mvp, which replaces some of its templates.
     "daisy_cotton",
     "daisy_cotton_ext",
@@ -117,6 +119,9 @@ MIDDLEWARE = [
     "mvp_compliance.middleware.AgreementMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.locale.LocaleMiddleware",
+    # Below locale and authentication: it replaces the language LocaleMiddleware chose
+    # with the one a signed-in person picked, and applies their timezone.
+    "mvp.middleware.PreferencesMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.contrib.sites.middleware.CurrentSiteMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",

@@ -1,5 +1,7 @@
 """The application-shell settings in ``fairdm/conf/settings/addons.py``."""
 
+from urllib.parse import urlsplit
+
 import pytest
 from bs4 import BeautifulSoup
 from django.conf import settings
@@ -36,7 +38,8 @@ class TestSidebarFooterControls:
         assert sidebar is not None
         login_url = reverse("account_login")
         assert any(
-            link.get("href") == login_url for link in sidebar.find_all("a", href=True)
+            urlsplit(link["href"]).path == login_url
+            for link in sidebar.find_all("a", href=True)
         )
 
     def test_the_theme_toggle_is_in_the_drawer(self, client):
