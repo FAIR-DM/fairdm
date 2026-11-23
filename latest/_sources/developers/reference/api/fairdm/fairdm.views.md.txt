@@ -13,8 +13,8 @@
 :titlesonly:
 :maxdepth: 1
 
+fairdm.views.mixins
+fairdm.views.permalink
 fairdm.views.base
 fairdm.views.generic
-fairdm.views.permalink
-fairdm.views.mixins
 ```

@@ -13,8 +13,8 @@
 :titlesonly:
 :maxdepth: 1
 
-fairdm.contrib.contributors.utils.audit
 fairdm.contrib.contributors.utils.helpers
+fairdm.contrib.contributors.utils.audit
 fairdm.contrib.contributors.utils.tokens
 fairdm.contrib.contributors.utils.transforms
 ```
