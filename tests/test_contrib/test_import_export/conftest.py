@@ -91,3 +91,27 @@ def added_definitions():
     yield definitions.added
     definitions.added.clear()
     definitions.added.update(before)
+
+
+@pytest.fixture
+def factory_for():
+    """Return a function giving the factory of a registered demo type."""
+    from demo import factories
+
+    by_model = {
+        factories.CustomParentSampleFactory._meta.model: (
+            factories.CustomParentSampleFactory
+        ),
+        factories.CustomSampleFactory._meta.model: factories.CustomSampleFactory,
+        factories.RockSampleFactory._meta.model: factories.RockSampleFactory,
+        factories.SoilSampleFactory._meta.model: factories.SoilSampleFactory,
+        factories.WaterSampleFactory._meta.model: factories.WaterSampleFactory,
+        factories.ExampleMeasurementFactory._meta.model: (
+            factories.ExampleMeasurementFactory
+        ),
+        factories.XRFMeasurementFactory._meta.model: factories.XRFMeasurementFactory,
+        factories.ICP_MS_MeasurementFactory._meta.model: (
+            factories.ICP_MS_MeasurementFactory
+        ),
+    }
+    return by_model.__getitem__

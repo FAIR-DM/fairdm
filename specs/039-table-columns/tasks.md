@@ -66,10 +66,10 @@ reason before the code that makes it pass is written. Wording and appearance get
 
 ### Group 6
 
-- [ ] T012 [US2] Tests: `TestTableSchemaView` in
+- [x] T012 [US2] Tests: `TestTableSchemaView` in
   `tests/test_contrib/test_import_export/test_views.py`, and `TestFrictionlessValidation` in
   `tests/test_contrib/test_import_export/test_schema.py`, as plan.md "Tests" describes.
-- [ ] T013 [US2] `Column.as_frictionless()`, `TableSchema.as_frictionless()`, `TableSchemaView` and
+- [x] T013 [US2] `Column.as_frictionless()`, `TableSchema.as_frictionless()`, `TableSchemaView` and
   the `table_schema` route, as plan.md "The Table Schema" describes. T012 goes green.
 
 ## Phase 4: Documents

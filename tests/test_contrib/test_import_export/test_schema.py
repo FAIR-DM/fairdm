@@ -1,5 +1,8 @@
 """Tests for fairdm/contrib/import_export/schema.py."""
 
+import csv
+
+import frictionless
 import pytest
 from controlled_vocabularies.models import Record
 from django.db import connection, models
@@ -7,14 +10,20 @@ from django.test.utils import CaptureQueriesContext
 from django.utils import translation
 
 from demo.factories import RockSampleFactory
-from demo.models import ICP_MS_Measurement, RockSample
+from demo.models import (
+    CustomSample,
+    ExampleMeasurement,
+    ICP_MS_Measurement,
+    RockSample,
+)
 from fairdm.contrib.import_export.schema import (
     Column,
     TableSchema,
     build_table_schema,
     kind_of,
 )
-from fairdm.core.models import Sample
+from fairdm.contrib.import_export.widgets import render_cell
+from fairdm.core.models import Measurement, Sample
 from fairdm.factories import DatasetFactory
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
@@ -374,3 +383,186 @@ class TestPortalConfig:
     def test_every_column_belongs_to_a_group(self, model):
         schema = registry.get_for_model(model).get_table_schema()
         assert {column.group for column in schema.columns} <= {"ids", "own", "shared"}
+
+
+TYPES = [*registry.samples, *registry.measurements]
+RANGED = [m for m in TYPES if m is not CustomSample]
+LISTED = [m for m in registry.samples if m is not CustomSample]
+
+
+def write_file(path, schema, rows):
+    """Write a CSV file of rows under the schema's headings and return its path."""
+    with path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(schema.headings)
+        writer.writerows(rows)
+    return path
+
+
+def valid(path, schema):
+    """Say whether the standard validator accepts the file under the schema."""
+    resource = frictionless.Resource(
+        path=path.name,
+        basepath=str(path.parent),
+        schema=frictionless.Schema.from_descriptor(schema.as_frictionless()),
+    )
+    return frictionless.validate(resource).valid
+
+
+@pytest.fixture
+def exported(factory_for, tmp_path):
+    """Return a function writing the file an export of built records of a type holds."""
+
+    def build(model, count=2):
+        """Write the export.
+
+        Args:
+            model: The registered sample or measurement model.
+            count: How many records to build.
+
+        Returns:
+            The schema, the rows and the path of the file.
+        """
+        schema = registry.get_for_model(model).get_table_schema()
+        extra = (
+            {"sample": RockSampleFactory()} if issubclass(model, Measurement) else {}
+        )
+        records = [factory_for(model)(**extra) for _ in range(count)]
+        rows = [[render_cell(c, record) for c in schema.columns] for record in records]
+        return schema, rows, write_file(tmp_path / "export.csv", schema, rows)
+
+    return build
+
+
+@pytest.mark.parametrize("model", TYPES, ids=lambda m: m.__name__)
+class TestFrictionlessValidation:
+    def test_the_descriptor_is_a_valid_schema(self, model):
+        schema = registry.get_for_model(model).get_table_schema()
+
+        descriptor = frictionless.Schema.from_descriptor(schema.as_frictionless())
+
+        assert [f.name for f in descriptor.fields] == schema.headings
+
+    def test_a_file_an_export_wrote_validates(self, model, exported):
+        schema, _rows, path = exported(model)
+
+        assert valid(path, schema)
+
+    def test_a_file_of_new_records_with_no_portal_id_validates(
+        self, model, exported, tmp_path
+    ):
+        schema, rows, _path = exported(model)
+        index = schema.headings.index("portal_id")
+        fresh = [[*row[:index], "", *row[index + 1 :]] for row in rows]
+
+        assert valid(write_file(tmp_path / "new.csv", schema, fresh), schema)
+
+    def test_a_file_with_the_same_portal_id_twice_fails(
+        self, model, exported, tmp_path
+    ):
+        schema, rows, _path = exported(model)
+        index = schema.headings.index("portal_id")
+        rows[1][index] = rows[0][index]
+
+        assert not valid(write_file(tmp_path / "twice.csv", schema, rows), schema)
+
+    def test_the_schema_has_no_primary_key_and_the_portal_id_is_unique(self, model):
+        schema = registry.get_for_model(model).get_table_schema()
+
+        descriptor = schema.as_frictionless()
+
+        assert "primaryKey" not in descriptor
+        portal_id = descriptor["fields"][0]
+        assert portal_id["name"] == "portal_id"
+        assert portal_id["constraints"]["unique"] is True
+        assert "required" not in portal_id["constraints"]
+
+    def test_the_missing_value_is_the_empty_cell(self, model):
+        schema = registry.get_for_model(model).get_table_schema()
+
+        assert schema.as_frictionless()["missingValues"] == [""]
+
+
+class TestFrictionlessRefusals:
+    @pytest.mark.parametrize("model", RANGED, ids=lambda m: m.__name__)
+    def test_a_cell_outside_a_range_fails(self, model, exported, tmp_path):
+        schema, rows, _path = exported(model)
+        column = next(c for c in schema.columns if c.maximum is not None)
+        rows[0][schema.headings.index(column.name)] = str(column.maximum + 1)
+
+        assert not valid(write_file(tmp_path / "range.csv", schema, rows), schema)
+
+    @pytest.mark.parametrize("model", LISTED, ids=lambda m: m.__name__)
+    def test_a_value_not_in_the_list_fails(self, model, exported, tmp_path):
+        schema, rows, _path = exported(model)
+        column = next(c for c in schema.columns if c.allowed)
+        rows[0][schema.headings.index(column.name)] = "not-in-the-list"
+
+        assert not valid(write_file(tmp_path / "listed.csv", schema, rows), schema)
+
+
+class TestFrictionlessDescriptor:
+    def field(self, schema, name):
+        """Return the descriptor of one column."""
+        return next(f for f in schema.as_frictionless()["fields"] if f["name"] == name)
+
+    def test_a_list_names_every_allowed_value(self, rock_config):
+        schema = rock_config.get_table_schema()
+        column = schema.get("status")
+
+        field = self.field(schema, "status")
+
+        assert field["constraints"]["enum"] == [v for v, _meaning in column.allowed]
+
+    @pytest.mark.parametrize(
+        ("model", "name", "kind"),
+        [
+            (RockSample, "collection_date", "date"),
+            (ICP_MS_Measurement, "analysis_date", "datetime"),
+        ],
+    )
+    def test_a_date_or_datetime_has_the_default_format(self, model, name, kind):
+        schema = registry.get_for_model(model).get_table_schema()
+
+        field = self.field(schema, name)
+
+        assert field["type"] == kind
+        assert field["format"] == "default"
+
+    def test_a_time_has_the_default_format(self):
+        schema = registry.get_for_model(ExampleMeasurement).get_table_schema()
+
+        field = self.field(schema, "time_field")
+
+        assert field["type"] == "time"
+        assert field["format"] == "default"
+
+    def test_a_boolean_reads_yes_and_no(self):
+        schema = registry.get_for_model(CustomSample).get_table_schema()
+
+        field = self.field(schema, "boolean_field")
+
+        assert field["type"] == "boolean"
+        assert field["trueValues"] == ["yes"]
+        assert field["falseValues"] == ["no"]
+
+    def test_a_partial_date_is_a_pattern(self, make_column):
+        schema = TableSchema(
+            model=RockSample, config=None, columns=[make_column("partial_date")]
+        )
+
+        field = schema.as_frictionless()["fields"][0]
+
+        assert field["type"] == "string"
+        assert field["constraints"]["pattern"] == r"^\d{4}(-\d{2}(-\d{2})?)?$"
+
+    def test_the_export_only_column_is_not_read_on_import(self, xrf_config):
+        schema = xrf_config.get_table_schema()
+
+        assert self.field(schema, "sample_name")["readOnImport"] is False
+        assert "readOnImport" not in self.field(schema, "sample")
+
+    def test_a_unit_is_a_custom_property(self, rock_config):
+        field = self.field(rock_config.get_table_schema(), "weight_grams")
+
+        assert field["unit"] == "grams"
