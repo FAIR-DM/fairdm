@@ -64,6 +64,7 @@ is no page for choosing a type.
 | Import definition lookup (`ImportDefinition`, `get_definition`, `register`) | `fairdm/contrib/tabular/definitions.py` | The one place every import page, the export menu and the import record find a file's columns, resource, formats and export rows, by name. FairDM builds one per registered type, named after it. `register` lets a project add its own; nothing uses that yet. Built by feature 2, before anything else reads columns |
 | Column model (`Column`, `TableSchema`, `schema_for`) | `fairdm/contrib/tabular/schema.py` | Part of the registry: a `ModelConfiguration.get_table_schema()` next to `get_resource_class()`, built by feature 2 |
 | Cell widgets (number, date, boolean, concept, sample, quantity, choice) | `resources.py` top half | import-export widgets in `fairdm/contrib/import_export/widgets.py`, feature 2 |
+| Import options form (what the file may do, what an empty cell means) | `forms.py` `ImportOptionsForm`, drawn with django-mvp-forms' `CardSelect`: with each choice's explanation on the import page, labels alone on column matching | The form behind the options on both pages, feature 3 |
 | Dataset-bound resource (matching, modes, empty cells, change list) | `resources.py` `FairDMRecordResource`, `build_resource` | Replaces `BaseFairDMResource` and the registry's `ResourceFactory`, feature 3 |
 | Export menu and `?export=` handling | `mixins.py` `RecordTransferMixin`, `partials/table_actions.html` | A mixin on `DataTableView`, feature 1; the menu a Cotton component |
 | Step bar, panels, tags, badges, job list | `templates/tabular/partials/*.html`, `tabular.css` | Cotton components under `cotton/import/`, feature 3 |
@@ -134,6 +135,9 @@ See the issue.
   prototype. Only measurements can point at another dataset's samples. Adding another dataset's
   samples and measurements to your own dataset is a separate FairDM feature still to come. Until
   it exists, an import leaves those rows out.
+- A chosen option card shows a dark outline but not the primary edge and tint django-mvp-forms
+  asks for: the stylesheet django-mvp 0.36 ships has no rules for `has-checked:border-primary`
+  and `has-checked:bg-primary/10`. The fix belongs in django-mvp's stylesheet, not here.
 - The existing `LocatedResourceMixin.import_instance` on `main` drops every field's error when a
   row has no location columns. The prototype works around it; the rebuild fixes it.
 

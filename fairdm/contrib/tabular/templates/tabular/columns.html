@@ -70,15 +70,12 @@
       <section class="tx-panel">
         <h2 class="tx-panel__title">{% translate "What the file may do" %}</h2>
         <fieldset class="tx-choice">
-          <legend class="sr-only">{% translate "What the file may do" %}</legend>
-          {% for value, label in modes %}
-            <label class="tx-option tx-option--compact"><input type="radio" name="mode" value="{{ value }}" {% if value == job.mode %}checked{% endif %}><span class="tx-option__label">{{ label }}</span></label>
-          {% endfor %}
+          <legend class="sr-only">{{ options_form.mode.label }}</legend>
+          {{ options_form.mode }}
         </fieldset>
         <fieldset class="tx-choice">
-          <legend>{% translate "An empty cell" %}</legend>
-          <label class="tx-option tx-option--compact"><input type="radio" name="empty" value="keep" {% if job.empty_cells == "keep" %}checked{% endif %}><span class="tx-option__label">{% translate "Keeps the stored value" %}</span></label>
-          <label class="tx-option tx-option--compact"><input type="radio" name="empty" value="clear" {% if job.empty_cells == "clear" %}checked{% endif %}><span class="tx-option__label">{% translate "Clears the stored value" %}</span></label>
+          <legend>{{ options_form.empty.label }}</legend>
+          {{ options_form.empty }}
         </fieldset>
       </section>
     </div>

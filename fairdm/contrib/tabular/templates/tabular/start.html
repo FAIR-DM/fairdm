@@ -25,34 +25,13 @@
       </label>
 
       <fieldset class="tx-choice">
-        <legend>{% translate "What the file may do" %}</legend>
-        {% for value, label in modes %}
-          <label class="tx-option">
-            <input type="radio" name="mode" value="{{ value }}" {% if value == mode %}checked{% endif %}>
-            <span>
-              <span class="tx-option__label">{{ label }}</span>
-              <span class="tx-option__hint">
-                {% if value == "both" %}{% translate "Rows that match a record update it. The rest become new records." %}
-                {% elif value == "add" %}{% translate "Rows that match a record are left out, so nothing stored changes." %}
-                {% else %}{% translate "Rows that match no record are left out, so nothing is added." %}{% endif %}
-              </span>
-            </span>
-          </label>
-        {% endfor %}
+        <legend>{{ options_form.mode.label }}</legend>
+        {{ options_form.mode }}
       </fieldset>
 
       <fieldset class="tx-choice">
-        <legend>{% translate "An empty cell" %}</legend>
-        <label class="tx-option">
-          <input type="radio" name="empty" value="keep" {% if empty == "keep" %}checked{% endif %}>
-          <span><span class="tx-option__label">{% translate "Keeps the stored value" %}</span>
-          <span class="tx-option__hint">{% translate "Safe for a file that leaves things out." %}</span></span>
-        </label>
-        <label class="tx-option">
-          <input type="radio" name="empty" value="clear" {% if empty == "clear" %}checked{% endif %}>
-          <span><span class="tx-option__label">{% translate "Clears the stored value" %}</span>
-          <span class="tx-option__hint">{% translate "For an export you have edited, where an emptied cell means remove it." %}</span></span>
-        </label>
+        <legend>{{ options_form.empty.label }}</legend>
+        {{ options_form.empty }}
       </fieldset>
 
       <div class="tx-actions">

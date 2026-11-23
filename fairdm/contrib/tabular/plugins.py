@@ -23,8 +23,9 @@ from fairdm.core.dataset.models import Dataset
 from fairdm.views import FairDMTemplateView
 
 from . import engine, exports, tasks
-from .models import ImportJob
 from .definitions import definitions, get_definition
+from .forms import ImportOptionsForm
+from .models import ImportJob
 
 FORMAT_NAMES = {
     "csv": "CSV",
@@ -147,12 +148,7 @@ class ImportStart(ImportPage):
 
     def post(self, request, *args, **kwargs):
         uploaded = request.FILES.get("file")
-        mode = request.POST.get("mode", ImportJob.Mode.BOTH)
-        empty = request.POST.get("empty", ImportJob.Empty.KEEP)
-        if mode not in ImportJob.Mode.values:
-            mode = ImportJob.Mode.BOTH
-        if empty not in ImportJob.Empty.values:
-            empty = ImportJob.Empty.KEEP
+        mode, empty = ImportOptionsForm(request.POST).chosen(ImportJob.Mode.BOTH, ImportJob.Empty.KEEP)
         if not uploaded:
             return self.render_to_response(self.get_context_data(upload_error=_("Choose a file to import."), mode=mode, empty=empty))
         try:
@@ -183,9 +179,12 @@ class ImportStart(ImportPage):
             ("Excel", f"{context['records_url']}?export=xlsx&scope=all"),
             ("CSV", f"{context['records_url']}?export=csv&scope=all"),
         ]
-        context["modes"] = ImportJob.Mode.choices
-        context["mode"] = kwargs.get("mode", ImportJob.Mode.BOTH)
-        context["empty"] = kwargs.get("empty", ImportJob.Empty.KEEP)
+        context["options_form"] = ImportOptionsForm(
+            initial={
+                "mode": kwargs.get("mode", ImportJob.Mode.BOTH),
+                "empty": kwargs.get("empty", ImportJob.Empty.KEEP),
+            }
+        )
         context["upload_error"] = kwargs.get("upload_error")
         context["formats"] = [FORMAT_NAMES[f] for f in self.definition.formats if f in FORMAT_NAMES]
         context["recent"] = self.dataset.import_jobs.filter(
@@ -300,10 +299,7 @@ class JobColumns(JobPage):
             chosen[heading] = value
             if value:
                 used.setdefault(value, []).append(heading)
-        mode = request.POST.get("mode", job.mode)
-        empty = request.POST.get("empty", job.empty_cells)
-        job.mode = mode if mode in ImportJob.Mode.values else job.mode
-        job.empty_cells = empty if empty in ImportJob.Empty.values else job.empty_cells
+        job.mode, job.empty_cells = ImportOptionsForm(request.POST).chosen(job.mode, job.empty_cells)
         job.column_map = chosen
         clashes = {k: v for k, v in used.items() if len(v) > 1}
         if clashes:
@@ -350,7 +346,9 @@ class JobColumns(JobPage):
         context["warnings"] = engine.mapping_warnings(job)
         context["clash"] = kwargs.get("clash")
         context["matched"] = len(mapped)
-        context["modes"] = ImportJob.Mode.choices
+        context["options_form"] = ImportOptionsForm(
+            initial={"mode": job.mode, "empty": job.empty_cells}, brief=True
+        )
         return context
 
 

@@ -124,14 +124,6 @@
 .tx-drop__formats { font-size: 0.75rem; color: var(--tx-faint); }
 .tx-choice { border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
 .tx-choice legend { font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem; padding: 0; }
-.tx-option { display: flex; gap: 0.75rem; align-items: flex-start; padding: 0.625rem 0.75rem; border: 1px solid var(--tx-line); border-radius: var(--tx-radius); cursor: pointer; }
-.tx-option:has(input:checked) { border-color: var(--color-primary); background: color-mix(in oklch, var(--color-primary) 5%, var(--color-base-100)); }
-.tx-option input { margin-top: 0.2rem; accent-color: var(--color-primary); width: 1rem; height: 1rem; flex: none; }
-.tx-option > span { display: flex; flex-direction: column; gap: 0.125rem; min-width: 0; }
-.tx-option__label { font-size: 0.9rem; font-weight: 550; }
-.tx-option__hint { font-size: 0.8125rem; color: var(--tx-muted); }
-.tx-option--compact { padding: 0.5rem 0.75rem; align-items: center; }
-.tx-option--compact input { margin-top: 0; }
 .tx-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
 .tx-actions--bar { position: sticky; bottom: 0; z-index: 2; padding: 0.875rem var(--tx-pad); border: 1px solid var(--tx-line); border-radius: var(--tx-radius); background: color-mix(in oklch, var(--color-base-100) 92%, transparent); backdrop-filter: blur(6px); }
 @media (max-width: 639px) { .tx-actions .btn { flex: 1 1 100%; } .tx-actions--bar .tx-note { flex-basis: 100%; } }
