@@ -52,14 +52,14 @@ reason before the code that makes it pass is written. Wording and appearance get
 
 ### Group 5
 
-- [ ] T009 [US1] Tests: `TestGuideComponent` in `tests/test_templates/test_import_guide.py`, as
+- [x] T009 [US1] Tests: `TestGuideComponent` in `tests/test_templates/test_import_guide.py`, as
   plan.md "Tests" describes.
-- [ ] T010 [US1] `fairdm/templates/cotton/import/guide.html`, ported from the prototype's
+- [x] T010 [US1] `fairdm/templates/cotton/import/guide.html`, ported from the prototype's
   `partials/guide.html` with native table elements and explicit roles (decision D7), as plan.md
   "The column guide" describes. T009 goes green. Then read Chrome's accessibility tree for the guide
   rendered for `soilsample` at 390 and 1400 wide, confirm one table with column headers per group,
   and record the result as a decision in `decisions.md` (SC-005).
-- [ ] T011 [US1] `fairdm/static/css/fairdm.css`: the `ie-` section, ported from the prototype's
+- [x] T011 [US1] `fairdm/static/css/fairdm.css`: the `ie-` section, ported from the prototype's
   `tabular.css` as plan.md "What is ported" lists. No test.
 
 ## Phase 3: User Story 2, a person downloads a type's Table Schema (P2)
