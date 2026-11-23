@@ -13,10 +13,10 @@
 :titlesonly:
 :maxdepth: 1
 
-fairdm.contrib.collections.apps
-fairdm.contrib.collections.urls
-fairdm.contrib.collections.views
 fairdm.contrib.collections.tables
+fairdm.contrib.collections.views
+fairdm.contrib.collections.urls
+fairdm.contrib.collections.apps
 fairdm.contrib.collections.plugins
 ```
 

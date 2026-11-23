@@ -148,8 +148,8 @@ The groups are:
 ### `MIDDLEWARE`
 
 - **Type**: `list[str]`
-- **Default**: In this order, `SecurityMiddleware`, WhiteNoise, django-cors-headers, sessions, CSRF, authentication, `mvp_compliance.middleware.AgreementMiddleware`, messages, locale, common, current site, clickjacking, allauth's account middleware, django-htmx, django-tomselect and django-hijack. Development appends `django_browser_reload.middleware.BrowserReloadMiddleware` when `django_browser_reload` is installed.
-- **What it does**: The request and response middleware. Security, WhiteNoise and authentication must keep their places, and the agreement middleware must come after authentication.
+- **Default**: In this order, `SecurityMiddleware`, WhiteNoise, django-cors-headers, sessions, CSRF, authentication, `mvp_compliance.middleware.AgreementMiddleware`, messages, locale, `mvp.middleware.PreferencesMiddleware`, common, current site, clickjacking, allauth's account middleware, django-htmx, django-tomselect and django-hijack. Development appends `django_browser_reload.middleware.BrowserReloadMiddleware` when `django_browser_reload` is installed.
+- **What it does**: The request and response middleware. Security, WhiteNoise and authentication must keep their places, and the agreement middleware must come after authentication. The preferences middleware must come after authentication and locale, because it replaces the language the locale middleware chose with the one a signed-in person picked.
 - **Accepts**: A list of dotted paths. Add a portal's own middleware by assignment after `fairdm.setup()`.
 
 ### `TEMPLATES`

@@ -13,7 +13,7 @@
 :titlesonly:
 :maxdepth: 1
 
-fairdm.db.models
-fairdm.db.fields
 fairdm.db.managers
+fairdm.db.fields
+fairdm.db.models
 ```

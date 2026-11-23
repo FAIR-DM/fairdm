@@ -642,7 +642,7 @@ Bases: {py:obj}`fairdm.utils.models.PolymorphicMixin`, {py:obj}`fairdm.db.models
 ``````{py:class} Person(*args, **kwargs)
 :canonical: fairdm.contrib.contributors.models.Person
 
-Bases: {py:obj}`django.contrib.auth.models.AbstractUser`, {py:obj}`fairdm.contrib.contributors.models.Contributor`
+Bases: {py:obj}`mvp.models.PreferencesMixin`, {py:obj}`django.contrib.auth.models.AbstractUser`, {py:obj}`fairdm.contrib.contributors.models.Contributor`
 
 ```{autodoc2-docstring} fairdm.contrib.contributors.models.Person
 ```
