@@ -80,3 +80,14 @@ def make_column():
         return Column(name=f"{kind}_column", label=kind, kind=kind, **overrides)
 
     return build
+
+
+@pytest.fixture
+def added_definitions():
+    """Remove the definitions a test registers once it has finished."""
+    from fairdm.contrib.import_export import definitions
+
+    before = dict(definitions.added)
+    yield definitions.added
+    definitions.added.clear()
+    definitions.added.update(before)
