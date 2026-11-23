@@ -142,3 +142,8 @@ makes the portal ID required, and a file of new records has it empty, so the sta
 rejected every row and FR-018 failed for the file US2 exists to check (checked with frictionless 5).
 US2 scenario 5 and FR-017 now give the portal ID a `unique` constraint and no primary key. A test
 keeps that a file with duplicate portal IDs fails validation. **ADR:** none, local to this feature.
+
+## D18. Group 1 was built directly, not dispatched
+
+T001 and T002 are a dependency line and a constant with no design content, so they were done by the
+orchestrating run. **ADR:** none, local to this feature.
