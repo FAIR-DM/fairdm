@@ -36,10 +36,10 @@ reason before the code that makes it pass is written. Wording and appearance get
 
 ### Group 3
 
-- [ ] T005 [US1] Tests: `TestRoundTrip`, `TestRefusals`, `TestConceptWidget`, `TestSampleWidget` and
+- [x] T005 [US1] Tests: `TestRoundTrip`, `TestRefusals`, `TestConceptWidget`, `TestSampleWidget` and
   `TestQuantityWidget` in `tests/test_contrib/test_import_export/test_widgets.py`, as plan.md
   "Tests" describes.
-- [ ] T006 [US1] `fairdm/contrib/import_export/widgets.py` (the widgets, `widget_for`,
+- [x] T006 [US1] `fairdm/contrib/import_export/widgets.py` (the widgets, `widget_for`,
   `render_cell`) and `Column.widget()`, as plan.md "The widgets" describes, ported from the
   prototype's `resources.py`. T005 goes green.
 

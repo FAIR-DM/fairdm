@@ -102,6 +102,20 @@ class Column:
     aliases: list[str] = field(default_factory=list)
     group: str = "own"
 
+    def widget(self, dataset=None, user=None):
+        """Return the widget that reads and writes this column's cells.
+
+        Args:
+            dataset: The dataset a file is imported into, which a sample column looks in.
+            user: The person importing, or None for a visitor.
+
+        Returns:
+            The widget for the column's kind.
+        """
+        from .widgets import widget_for
+
+        return widget_for(self, dataset=dataset, user=user)
+
     @property
     def kind_label(self):
         """What this column's kind is called on screen.
