@@ -147,3 +147,12 @@ keeps that a file with duplicate portal IDs fails validation. **ADR:** none, loc
 
 T001 and T002 are a dependency line and a constant with no design content, so they were done by the
 orchestrating run. **ADR:** none, local to this feature.
+
+## D19. The guide is read as a table at both widths (D7 checked)
+
+The guide rendered for `soilsample` was read in Chrome's accessibility tree at 390 and 1400
+wide. At both, each of the three groups is one `table` with a caption, a row of four
+`columnheader` cells (Heading, What it holds, How to write it, Example) and rows whose first cell
+is a `rowheader`, the rest `cell`. Below 1024px the header row is clipped, not hidden, so the
+column headers stay in the tree. Native table elements with explicit roles are kept.
+**ADR:** none, local to this feature.
