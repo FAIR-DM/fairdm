@@ -62,14 +62,14 @@ prototype branch `prototype-import-export`, read with `git show` and never merge
 |---|---|
 | `schema.py` `Column`, `TableSchema`, `schema_for`, `field_column`, `kind_of`, `location_columns`, `default_example` | `fairdm/contrib/import_export/schema.py`. `fill_examples` is not carried over: it read the first stored record (D4). `concept_choices` loses its 40-value cut. |
 | `resources.py` widgets and `render_cell` | `fairdm/contrib/import_export/widgets.py`. `SampleWidget` refuses a sample the person may not see as one that does not exist (D6). The resource half (`CellField`, `build_resource`) is #697's and is not read here. |
-| `definitions.py` | `fairdm/contrib/import_export/definitions.py`, without `resource()` and `export_rows()` (#697 and #696 add them) and without the `exports.FORMATS` import (the formats come from `fairdm.contrib.import_export.formats`, see below). |
+| `definitions.py` | `fairdm/contrib/import_export/definitions.py`, without `resource()`, `export_rows()` and `definition_for_model()` (#697 and #696 add what they use) and without the `exports.FORMATS` import (see below). |
 | `partials/guide.html`, the `tx-guide*` rules | `cotton/import/guide.html`, the `ie-guide*` rules. |
 | `plugins.py` `ImportSchema` view | A plain view, `TableSchemaView`, at an address of the type's own (D3). |
 
-The prototype's `exports.FORMATS` does not exist on `main`. The formats are the portal's
-`IMPORT_EXPORT_FORMATS` setting (`fairdm/conf/settings/addons.py`: LaTeX and django-import-export's
-defaults), so a built-in definition's `formats` is the tuple of those formats' names, read from the
-setting each time the definitions are asked for, never a copy.
+The prototype's `exports.FORMATS` does not exist on `main`. A built-in definition's `formats` are the
+names of the portal's `IMPORT_FORMATS` setting (`fairdm/conf/settings/addons.py`: CSV, TSV, XLS, XLSX
+and ODS), the formats it reads. `IMPORT_EXPORT_FORMATS` also holds the export-only LaTeX, so it is
+not used. The setting is read each time the definitions are asked for, never copied.
 
 ## What already exists
 
@@ -79,6 +79,9 @@ One line per new piece of code, the first place on the list where the search sto
 |---|---|
 | A way to read a number cell | New code. `import_export.widgets.FloatWidget` and `DecimalWidget` accept a decimal comma through Django's number localisation and give no range or places check, so a refusal with the point-written number is new code. `fairdm/utils/location/resources.py` `MeasureWidget` reads finite numbers only and is not reused: it has no range. |
 | Boolean, date, time, partial date, choice, concept, sample, quantity cell widgets | New code on `import_export.widgets.Widget`, the package's own base. `BooleanWidget`, `DateWidget` and `ForeignKeyWidget` were read and do not refuse with a reason a person can act on or accept the forms the spec lists. |
+| Which fields of a type a person can type into a file | This repo: `fairdm/utils/inspection.py` `FieldInspector.should_exclude_field`, the one rule for it. The prototype's `SKIPPED` set is not carried over. |
+| The kind of a model field, the unit in a label, an example from a kind | New code. `kind_of` maps field classes to the spec's thirteen kinds, which nothing in the repo or in django-import-export does. The unit parse is one regular expression. `example_for` is a table of fixed examples. |
+| `render_cell` and the text widget | New code on `import_export.widgets.Widget`. `CharWidget` was the candidate for text and does not strip, check the length or give a reason. |
 | The four location columns' names | This repo: `fairdm/utils/location/resources.py`, made a constant there. |
 | Latitude and longitude ranges | This repo: `fairdm/utils/location/forms.py` `LocationField` holds the rule. The column model takes -90 to 90 and -180 to 180 as written in the specification and the widget does not repeat `LocationField`'s other rules (they apply to the point as a whole, which is #697's). |
 | Concept values of a field | `controlled_vocabularies.models.Record` filtered by `ConceptField.resolve_restriction()`, the package's own. |

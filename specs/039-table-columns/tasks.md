@@ -56,7 +56,9 @@ reason before the code that makes it pass is written. Wording and appearance get
   plan.md "Tests" describes.
 - [ ] T010 [US1] `fairdm/templates/cotton/import/guide.html`, ported from the prototype's
   `partials/guide.html` with native table elements and explicit roles (decision D7), as plan.md
-  "The column guide" describes. T009 goes green.
+  "The column guide" describes. T009 goes green. Then read Chrome's accessibility tree for the guide
+  rendered for `soilsample` at 390 and 1400 wide, confirm one table with column headers per group,
+  and record the result as a decision in `decisions.md` (SC-005).
 - [ ] T011 [US1] `fairdm/static/css/fairdm.css`: the `ie-` section, ported from the prototype's
   `tabular.css` as plan.md "What is ported" lists. No test.
 
@@ -66,8 +68,7 @@ reason before the code that makes it pass is written. Wording and appearance get
 
 - [ ] T012 [US2] Tests: `TestTableSchemaView` in
   `tests/test_contrib/test_import_export/test_views.py`, and `TestFrictionlessValidation` in
-  `tests/test_contrib/test_import_export/test_table_schema_validation.py`, as plan.md "Tests"
-  describes.
+  `tests/test_contrib/test_import_export/test_schema.py`, as plan.md "Tests" describes.
 - [ ] T013 [US2] `Column.as_frictionless()`, `TableSchema.as_frictionless()`, `TableSchemaView` and
   the `table_schema` route, as plan.md "The Table Schema" describes. T012 goes green.
 
@@ -75,5 +76,6 @@ reason before the code that makes it pass is written. Wording and appearance get
 
 ### Group 7
 
-- [ ] T014 [US1] Documentation: a developer reference page and a how-to, and the `CHANGELOG.md`
-  line, as plan.md "Specifications and documents edited" describes.
+- [ ] T014 [US1] Documentation: a developer reference page and a how-to, the `CHANGELOG.md` line,
+  and `CONTEXT.md` glossary entries for table schema, column, import definition and column guide,
+  as plan.md "Specifications and documents edited" describes.

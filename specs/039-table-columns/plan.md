@@ -56,14 +56,17 @@ standing in for the page until #697 places it there.
 Local ID, `field`, `export` for the sample's name), `required`, `description`, `attribute`,
 `model_field`, `unit`, `allowed` (a list of `(value, meaning)`), `max_length`, `decimals`,
 `minimum`, `maximum`, `example`, `aliases`, `group` (`ids`, `own`, `shared`). It keeps the
-prototype's properties: `kind_label`, `importable`, `shown_aliases`, `keys`, `format_hint`, and adds:
+prototype's properties `kind_label`, `importable`, `shown_aliases` and `format_hint`, and adds:
 
 - `widget(dataset=None, user=None)`: the widget that reads and writes this column's cells, from
   `widgets.widget_for`, imported inside the method.
 - `as_frictionless()`: this column as a Frictionless field (below).
 
 `TableSchema` keeps `model`, `config`, `columns`, `kind`, `slug`, `name`, `singular`, `importable`,
-`required`, `headings`, `get`, `match`, `groups`, and `as_frictionless()`.
+`required`, `headings`, `get`, `groups`, and `as_frictionless()`. Matching a file's headings to
+columns (`match`, `keys` and the prototype's `normalise`) is #697's and is not ported here
+(spec Boundary). `shown_aliases` leaves out an alias that equals the heading or the label, compared
+case-insensitively.
 
 **Building it.** `build_table_schema(config)` follows the prototype's `schema_for`, with these
 changes, each a requirement of the specification:
@@ -71,9 +74,15 @@ changes, each a requirement of the specification:
 1. The model and the declared `resource_fields` come from the configuration it is given, not a
    registry lookup, so a configuration that overrides `get_table_schema()` and calls the default
    works. `resource_fields` is read through `flatten_fields`, which already unfolds the list's
-   groupings.
-2. The model's `uuid` is skipped as a field and offered as the `portal_id` column. `status` is read
-   from `Sample` only (D8).
+   groupings. A name in the configuration's `exclude` is never an own-field column, unless it is a
+   field a new record cannot be saved without (every generated component drops `exclude`, and a
+   file must stay saveable). Recorded as decision D11.
+2. The type's own fields are its concrete fields that are not concrete fields of the base `Sample` or
+   `Measurement` and for which `FieldInspector(model).should_exclude_field(name)`
+   (`fairdm/utils/inspection.py`, the repo's one rule for fields a person can enter) is false. The
+   prototype's `SKIPPED` set is not carried over. The model's `uuid` is offered as the `portal_id`
+   column. `status` is read from `Sample` only (D8). A type's own foreign key to another model has
+   no kind and is not a column yet (decision D12).
 3. `status` and the four location columns appear when `resource_fields` is empty or names them. The
    location columns are named by `fairdm.utils.location.resources.LOCATION_COLUMNS`. A declared
    `location` in `resource_fields` names all four, and a declared `status` names the status column.
@@ -85,11 +94,13 @@ changes, each a requirement of the specification:
    prototype's `fill_examples` and its stored-record read are removed, and no code path in the
    module queries the type's own table (FR-006).
 5. A concept column's `allowed` holds every value (no cut, no `allowed_total`). `allowed` entries
-   hold the preferred label as the value (what an export writes) and the concept's definition as the
-   meaning. The guide cuts a long list to its first 40 on display only (`allowed|slice:":40"` with a
+   hold the record's `pref_label` as the value, never `str(record)`, which is the label in the
+   active language, so the list, the Table Schema's `enum` and the cell an export writes do not
+   change with the portal's language. The meaning is the concept's definition. The guide cuts a long list to its first 40 on display only (`allowed|slice:":40"` with a
    count, see "The column guide").
-6. `is_required` is `Field.blank is False and not null, no default, not a BooleanField` as the
-   prototype has it, unchanged: it is what makes "a field a new record cannot be saved without".
+6. `is_required(field)` is false for a field with `blank=True`, for a nullable field that is not a
+   `CharField`, for one with a default and for a `BooleanField`, and true otherwise, as the
+   prototype has it. It is what makes "a field a new record cannot be saved without".
 7. `Column.unit` comes from a unit in brackets at the end of the label (the prototype's
    `UNIT_IN_LABEL`) or the quantity field's base unit. The label without the bracket is one of the
    recognised headings.
@@ -123,13 +134,13 @@ obj=None, **kwargs)` returning the cell. All refusals are `ValueError` with a la
 | Kind | Widget | Notes |
 |---|---|---|
 | `text`, `id` | `TextCellWidget` | Strips; refuses over `max_length` with the length; an empty cell on a nullable field is `None`. |
-| `integer`, `number`, `latitude`, `longitude` | `NumberCellWidget` | A decimal comma is refused with the number written with a point. Range from the column. `Decimal` column: more decimal places than `decimals` is refused. Spreadsheet floats that are whole numbers read as whole numbers. |
+| `integer`, `number`, `latitude`, `longitude` | `NumberCellWidget` | A decimal comma is refused with the number written with a point. A non-finite number (`nan`, `inf`) is refused, as `MeasureWidget` does. Range from the column. `Decimal` column: more decimal places than `decimals` is refused. Spreadsheet floats that are whole numbers read as whole numbers. |
 | `boolean` | `BooleanCellWidget` | yes/no, true/false, 1/0 (and `ja`, `nein`). Anything else refused. |
-| `date`, `datetime`, `time` | `DateCellWidget` | A spreadsheet's own date or datetime object reads the same as text. Text: ISO forms and `DD.MM.YYYY`. Refusal names the form. |
+| `date`, `datetime`, `time` | `DateCellWidget` | A spreadsheet's own date or datetime object reads the same as text. Text: ISO forms (a minute-precision `YYYY-MM-DD HH:MM` and `HH:MM` too) and `DD.MM.YYYY`. A naive cell is read in the active time zone. `render` writes a date as `YYYY-MM-DD`, a datetime as ISO 8601 with seconds in UTC (`YYYY-MM-DDTHH:MM:SSZ`) and a time as `HH:MM:SS`, so a stored value with seconds reads back to the same value. Refusal names the form. |
 | `partial_date` | `PartialDateCellWidget` | `YYYY`, `YYYY-MM`, `YYYY-MM-DD`; returns the string `partial_dates` stores. |
 | `choice` | `ChoiceCellWidget` | By stored value or its meaning, case-insensitive. Refusal lists up to 8 values. |
 | `concept` | `ConceptCellWidget` | By label in any language, code or URI. The lookup is built once per widget. Empty vocabulary: refused with a reason. |
-| `sample` | `SampleCellWidget(column, dataset, user)` | Order: portal ID among `Sample.objects.visible_to(user)` (any dataset); then Local ID in the dataset; then the name in the dataset. A sample the person may not see, and a portal ID nobody holds, raise the same message (D6). Duplicate Local ID or name in the dataset: the message asks for the portal ID. With `user=None` no visibility filter applies: a caller must pass the person. |
+| `sample` | `SampleCellWidget(column, dataset, user)` | Order: portal ID among `Sample.objects.visible_to(user)` (any dataset); then Local ID in the dataset; then the name in the dataset. All three lookups read one queryset, `Sample.objects.visible_to(user)`, where `None` means a visitor (`fairdm/core/managers.py`): the portal ID across it, then the Local ID, then the name, within `.filter(dataset=dataset)`. A sample the person may not see, and a portal ID nobody holds, raise the same message (D6). Duplicate Local ID or name in the dataset: the message asks for the portal ID. |
 | `quantity` | `QuantityCellWidget` | A bare number is in the column's unit. A number and a unit is converted with `ureg`. An unconvertible unit is refused. |
 
 `widget_for(column, dataset=None, user=None)` returns the widget for `column.kind`.
@@ -146,14 +157,16 @@ widgets (D10): `fairdm.contrib.import_export.resources.SampleWidget` is unchange
 class ImportDefinition:
     name: str
     model: type
-    formats: tuple[str, ...]     # from settings.IMPORT_EXPORT_FORMATS when built in
+    formats: tuple[str, ...]     # the names of settings.IMPORT_FORMATS when built in
     kind (property)              # "sample" or "measurement"
     def table_schema(self)       # registry.get_for_model(self.model).get_table_schema()
 ```
 
-`register(definition)` raises `ValueError` for a name already known (built-in or added).
-`definitions(kind=None)`, `get_definition(name)` (returns `None` for an unknown name) and
-`definition_for_model(model)`. Built-in definitions are built from `registry.samples` and
+`register(definition)` raises `ValueError` for a name already known (built-in or added) and for a
+model that is not registered (the public Table Schema route reads the model's configuration).
+`definitions(kind=None)` and `get_definition(name)` (returns `None` for an unknown name).
+The formats are `settings.IMPORT_FORMATS`, the formats the portal reads, not
+`IMPORT_EXPORT_FORMATS`, which holds the export-only LaTeX. Built-in definitions are built from `registry.samples` and
 `registry.measurements` on each call, named by `model._meta.model_name`, so a portal's type has one
 with no work. `ImportDefinition.columns()` is not carried over: `table_schema()` is the name the
 specification uses.
@@ -163,8 +176,8 @@ specification uses.
 `Column.as_frictionless()` and `TableSchema.as_frictionless()` as the prototype, with these changes:
 
 - `enum` lists every `allowed` value, always (D5).
-- `format`: `date` default (ISO), `datetime` `%Y-%m-%d %H:%M` and `time` `%H:%M` (what
-  `render_cell` writes, so a file in the cell form validates, FR-018). `boolean` carries
+- `format`: `default` for `date`, `datetime` and `time`, which is what `render_cell` writes (see the
+  widgets), so a file in the cell form validates (FR-018). `boolean` carries
   `trueValues: ["yes"]` and `falseValues: ["no"]`. `partial_date` carries a `pattern` constraint
   `^\d{4}(-\d{2}(-\d{2})?)?$`.
 - The column written on export only carries `"readOnImport": false` (a custom descriptor property
@@ -197,7 +210,7 @@ below 1024px with CSS, and the table elements carry explicit ARIA roles
 Chrome drop table semantics from an element whose `display` is changed. The build checks the result
 twice: a test that each group renders one table with its column headers, and a read of Chrome's
 accessibility tree at 390 and 1400 wide that finds a table with column headers for every group. The
-decision and the result are recorded in `decisions.md` at S5.
+decision and the result are recorded in `decisions.md` at S5 (SC-005, task T010).
 
 **Long lists.** `<details>` with the first 40 values and the total, in the component, never in the
 column. The Table Schema lists them all.
@@ -224,22 +237,26 @@ Mirroring the source tree:
 
 - `tests/test_contrib/test_import_export/test_schema.py`: `TestColumnOrder` (FR-002, scenarios 1-3),
   `TestResourceFieldsRule` (FR-003), `TestColumnContents` (FR-004, 005, scenario 4 and 5),
-  `TestExamples` (FR-006, with a stored private record whose value must not appear),
+  `TestExamples` (FR-006, with a stored private record whose value must not appear), a concept
+  column's allowed values equal under two languages,
   `TestLocationColumns`, `TestPortalConfig` (FR-015, a registered type with no work).
 - `tests/test_registry/test_config.py`: `TestGetTableSchema` (FR-001: it is there, it can be
   overridden).
 - `tests/test_contrib/test_import_export/test_widgets.py`: `TestRoundTrip` (SC-002, one case per
-  kind), `TestRefusals` (FR-008), `TestConceptWidget`, `TestSampleWidget` (FR-010, the same message
-  for unseen and absent, duplicates), `TestQuantityWidget`.
+  kind, the datetime and time cases with non-zero seconds), `TestRefusals` (FR-008, including a `nan` latitude), `TestConceptWidget`, `TestSampleWidget` (FR-010, the same message
+  for unseen and absent, with `user=None` too, duplicates), `TestQuantityWidget`.
 - `tests/test_contrib/test_import_export/test_definitions.py`: `TestLookup`, `TestRegister`
   (FR-011-013).
 - `tests/test_contrib/test_import_export/test_views.py`: `TestTableSchemaView` (FR-016, 017, a
-  valid Frictionless Schema, the type's headers, anonymous access, 404, language).
-- `tests/test_contrib/test_import_export/test_table_schema_validation.py`: `TestFrictionlessValidation`
-  (SC-003: the schema validates, a file written by `render_cell` validates, a file outside the range
-  fails).
+  valid Frictionless Schema, Content-Type `application/json` and the Content-Disposition file name,
+  anonymous access, 404, language).
+- `tests/test_contrib/test_import_export/test_schema.py`, `TestFrictionlessValidation` (SC-003: every
+  registered type's schema is valid, parametrised over `registry.samples` and
+  `registry.measurements`, a file written by `render_cell` validates, a file of new records with an
+  empty portal ID validates, a file outside the range fails).
 - `tests/test_templates/test_import_guide.py`: `TestGuideComponent` (one table per group with column
-  headers, required and key tags by column, the long list cut on display only, the example).
+  headers, required and key tags by column, the long list cut on display only, the example, and
+  one render over every registered type).
 
 ## Risks
 

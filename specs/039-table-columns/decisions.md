@@ -94,3 +94,43 @@ PROTOTYPE.md says the dataset-bound resource replaces `BaseFairDMResource` and t
 `ResourceFactory`, in the import feature (#697). This feature adds the columns and widgets that
 resource will be built from, and leaves `get_resource_class()` as it is, so nothing that reads it
 changes before its replacement exists.
+
+## D11. A name in `exclude` is never a column, unless the record cannot be saved without it
+
+Every generated component drops the names in a configuration's `exclude`, so a field a developer
+excluded everywhere does not reach a form, a table or the API. The column model follows, so an
+export never writes it. A required field stays a column because a file of new records must stay
+saveable (FR-003). No demo type sets `exclude`. **ADR:** none, local to this feature.
+
+## D12. A type's own foreign key to another model is not a column yet
+
+The specification lists thirteen kinds of column and a reference to a record of another model is
+not one of them. Such a field has no kind and is left out. No registered demo type has one. A
+portal type with a required one cannot have it filled from a file until a later feature adds the
+kind. **ADR:** none, local to this feature.
+
+## D13. A concept column's value is its preferred label, not the label in the active language
+
+`str(record)` is the label in the language of the request, so using it would change the allowed
+list, the Table Schema's `enum` and the cell an export writes with the portal's language, and a
+file exported in one language would fail the Table Schema fetched in another (US2 scenario 8
+changes only titles and descriptions). The preferred label is the same in every language.
+**ADR:** none, local to this feature.
+
+## D14. Dates and times are written with seconds, the datetime in UTC
+
+A stored time with seconds must read back to the same value (SC-002). A cell is a datetime as
+ISO 8601 in UTC with seconds (`2024-05-01T10:15:42Z`), a time as `HH:MM:SS` and a date as
+`YYYY-MM-DD`, which is also the default form of the Frictionless types, so the Table Schema needs
+no custom format. Cells with minutes only are still read. **ADR:** none, local to this feature.
+
+## D15. The sample widget always filters by what the person may see
+
+One queryset, `Sample.objects.visible_to(user)`, serves the portal ID, the Local ID and the name
+lookups, and `None` means a visitor, as everywhere else in the portal. There is no mode that
+reads every sample. **ADR:** none, local to this feature.
+
+## D16. Import formats come from `IMPORT_FORMATS`
+
+A definition is offered in the formats a portal reads, which leaves out the export-only LaTeX.
+**ADR:** none, local to this feature.
