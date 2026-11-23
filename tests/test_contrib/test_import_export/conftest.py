@@ -3,6 +3,7 @@
 import pytest
 
 from demo.models import ICP_MS_Measurement, RockSample, XRFMeasurement
+from fairdm.contrib.import_export.schema import Column
 from fairdm.registry import registry
 from fairdm.registry.config import ModelConfiguration
 
@@ -39,5 +40,43 @@ def rock_config_for():
             A configuration of the rock sample.
         """
         return ModelConfiguration(model=RockSample, **overrides)
+
+    return build
+
+
+@pytest.fixture
+def column_of():
+    """Return a function giving a registered type's column by its heading."""
+
+    def get(model, name):
+        """Find the column.
+
+        Args:
+            model: The registered sample or measurement model.
+            name: The column's heading.
+
+        Returns:
+            The column of the model's table schema.
+        """
+        return registry.get_for_model(model).get_table_schema().get(name)
+
+    return get
+
+
+@pytest.fixture
+def make_column():
+    """Return a function building a column of a kind no demo type has a field for."""
+
+    def build(kind, **overrides):
+        """Build the column.
+
+        Args:
+            kind: The column's kind.
+            **overrides: Column attributes, such as ``allowed``.
+
+        Returns:
+            The column.
+        """
+        return Column(name=f"{kind}_column", label=kind, kind=kind, **overrides)
 
     return build
