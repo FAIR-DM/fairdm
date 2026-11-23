@@ -435,7 +435,24 @@ class FairDMRecordResource(LocatedResourceMixin, resources.ModelResource):
     def import_row(self, row, instance_loader, **kwargs):
         number = kwargs.get("row_number")
         self._current = number
-        result = super().import_row(row, instance_loader, **kwargs)
+        if self.belongs_elsewhere(row):
+            # Left out rather than refused, so a file that mixes this dataset's records with
+            # another dataset's still imports. Never offered as a copy: copies of another
+            # dataset's records lose where the data came from. Only a measurement has a way to
+            # use another dataset's records, by naming one of its samples.
+            if issubclass(self._meta.model, Sample):
+                note = _("Belongs to another dataset. An import adds and changes only this dataset's records.")
+            else:
+                note = _(
+                    "Belongs to another dataset. An import adds and changes only this dataset's "
+                    "records. A measurement made here can name a sample from another dataset in "
+                    "the sample column."
+                )
+            self.row_notes[number] = note
+            result = self.get_row_result_class()()
+            result.import_type = result.IMPORT_TYPE_SKIP
+        else:
+            result = super().import_row(row, instance_loader, **kwargs)
         self._rows_seen += 1
         if self.on_row:
             self.on_row(self._rows_seen)
@@ -450,22 +467,6 @@ class FairDMRecordResource(LocatedResourceMixin, resources.ModelResource):
             found = base.objects.filter(uuid=portal_id).first()
             if found is None:
                 raise RowProblem("portal_id", _("No record has the portal ID %(v)s.") % {"v": portal_id})
-            if found.dataset_id != self.dataset.pk:
-                # Never offered as a copy: copies of another dataset's records lose where the
-                # data came from. Only a measurement has a way to use another dataset's records,
-                # by naming one of its samples.
-                if issubclass(base, Sample):
-                    message = _(
-                        "%(v)s belongs to another dataset. An import adds and changes only this "
-                        "dataset's records."
-                    )
-                else:
-                    message = _(
-                        "%(v)s belongs to another dataset. An import adds and changes only this "
-                        "dataset's records. A measurement made here can name a sample from "
-                        "another dataset in the sample column."
-                    )
-                raise RowProblem("portal_id", message % {"v": portal_id})
             typed = model.objects.filter(pk=found.pk).first()
             if typed is None:
                 raise RowProblem(
@@ -489,6 +490,15 @@ class FairDMRecordResource(LocatedResourceMixin, resources.ModelResource):
             if matches:
                 return matches[0]
         return None
+
+    def belongs_elsewhere(self, row) -> bool:
+        """Whether the row's portal ID names a record of another dataset."""
+        portal_id = clean_text(row.get("portal_id"))
+        if not portal_id:
+            return False
+        model = self._meta.model
+        base = model.type_of if hasattr(model, "type_of") else model
+        return base.objects.filter(uuid=portal_id).exclude(dataset=self.dataset).exists()
 
     def init_instance(self, row=None):
         return self._meta.model(dataset=self.dataset)

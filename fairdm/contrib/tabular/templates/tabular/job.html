@@ -47,7 +47,7 @@
         <section class="tx-panel tx-hero tx-hero--ready">
           {% if nothing_to_write %}
             <h2 class="tx-panel__title">{% translate "Nothing would change" %}</h2>
-            <p class="tx-lead">{% blocktranslate count n=job.row_count %}The row matches a stored record exactly, or is left out by the options you chose.{% plural %}All {{ n }} rows match stored records exactly, or are left out by the options you chose.{% endblocktranslate %}</p>
+            <p class="tx-lead">{% blocktranslate count n=job.row_count %}The row matches a stored record exactly, or is left out.{% plural %}All {{ n }} rows match stored records exactly, or are left out.{% endblocktranslate %}</p>
             <div class="tx-actions">
               <a class="btn btn-primary" href="{{ records_url }}"><i class="bi bi-table" aria-hidden="true"></i> {% translate "Back to the records" %}</a>
               <a class="btn btn-ghost" href="{{ columns_url }}">{% translate "Change the columns or options" %}</a>
@@ -232,7 +232,7 @@
             <li><span class="tx-badge tx-badge--new">{% translate "New" %}</span> {% translate "No record matches, so one is added." %}</li>
             <li><span class="tx-badge tx-badge--update">{% translate "Changes" %}</span> {% translate "Its record is updated. Each changed value is shown, old and new." %}</li>
             <li><span class="tx-badge tx-badge--unchanged">{% translate "Unchanged" %}</span> {% translate "Its record already holds these values." %}</li>
-            <li><span class="tx-badge tx-badge--skipped">{% translate "Left out" %}</span> {% translate "The options you chose leave it out." %}</li>
+            <li><span class="tx-badge tx-badge--skipped">{% translate "Left out" %}</span> {% translate "The options you chose leave it out, or its record belongs to another dataset." %}</li>
             <li><span class="tx-badge tx-badge--problem">{% translate "Needs changes" %}</span> {% translate "Something in it can't be read. It stops the whole file." %}</li>
           </ul>
         </section>

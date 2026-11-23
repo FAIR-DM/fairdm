@@ -37,11 +37,12 @@ is no page for choosing a type.
 ## How an import works
 
 - Rows find their record by portal ID, then by Local ID within the dataset, never by name. A row
-  with neither adds a record. A portal ID of another type is refused. So is a portal ID from another
-  dataset, whoever owns it: an import adds and changes only its own dataset's records, and never
-  offers to add a copy, since copies of copies lose where the data came from. For a measurement
-  the message points to the existing way to use another dataset's records: a measurement's
-  `sample` column may name any sample the person can see.
+  with neither adds a record. A portal ID of another type is refused. A row whose portal ID is
+  another dataset's, whoever owns it, is left out with the reason, so a file mixing this dataset's
+  records with another's still imports the rest. An import adds and changes only its own dataset's
+  records, and never offers to add a copy, since copies of copies lose where the data came from.
+  For a measurement the reason points to the existing way to use another dataset's records: a
+  measurement's `sample` column may name any sample the person can see.
 - Modes: add and update (default), only add, only update. Empty cells keep the stored value
   (default) or clear it.
 - Matching: headings match field name, label, the label without its unit, and listed aliases,
@@ -130,7 +131,9 @@ See the issue.
 - Undo checks `modified` timestamps only.
 - A dataset can't reference another dataset's samples. A sample belongs to exactly one dataset
   (`Sample.dataset`), so referencing them is a change to the core data model, outside this
-  prototype. Only measurements can point at another dataset's samples.
+  prototype. Only measurements can point at another dataset's samples. Adding another dataset's
+  samples and measurements to your own dataset is a separate FairDM feature still to come. Until
+  it exists, an import leaves those rows out.
 - The existing `LocatedResourceMixin.import_instance` on `main` drops every field's error when a
   row has no location columns. The prototype works around it; the rebuild fixes it.
 
