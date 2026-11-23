@@ -8,7 +8,6 @@ and, if it comes to that, its undo. ``/imports/`` lists every import into the da
 from __future__ import annotations
 
 from django.contrib import messages
-from django.contrib.contenttypes.models import ContentType
 from django.db.models import Count
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect
@@ -25,7 +24,15 @@ from fairdm.views import FairDMTemplateView
 
 from . import engine, exports, tasks
 from .models import ImportJob
-from .schema import importable_types, schema_for, type_for_slug
+from .definitions import definitions, get_definition
+
+FORMAT_NAMES = {
+    "csv": "CSV",
+    "xlsx": "Excel (.xlsx)",
+    "ods": "OpenDocument (.ods)",
+    "tsv": "TSV",
+    "json": "JSON",
+}
 
 STEPS = [
     ("file", _l("Choose a file")),
@@ -41,9 +48,9 @@ def can_import(request, dataset) -> bool:
     return has_perm(request, "dataset.import_data", dataset)
 
 
-def records_tab_url(dataset, schema):
-    name = "measurements" if schema.kind == "measurement" else "samples"
-    return reverse(dataset, name, type=schema.slug)
+def records_tab_url(dataset, definition):
+    name = "measurements" if definition.kind == "measurement" else "samples"
+    return reverse(dataset, name, type=definition.model._meta.model_name)
 
 
 def count_in(dataset, model):
@@ -104,12 +111,13 @@ class DatasetImport(ImportPage):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         groups = {"sample": [], "measurement": []}
-        for schema in importable_types():
-            groups[schema.kind].append(
+        for definition in definitions():
+            schema = definition.columns()
+            groups[definition.kind].append(
                 {
                     "schema": schema,
-                    "count": count_in(self.dataset, schema.model),
-                    "url": reverse(self.dataset, "import-start", type=schema.slug),
+                    "count": count_in(self.dataset, definition.model),
+                    "url": reverse(self.dataset, "import-start", type=definition.name),
                     "description": schema.config.get_description()
                     if schema.config.description or schema.config.metadata
                     else "",
@@ -121,7 +129,7 @@ class DatasetImport(ImportPage):
             ("sample", _("Samples"), groups["sample"]),
             ("measurement", _("Measurements"), groups["measurement"]),
         ]
-        context["recent"] = self.dataset.import_jobs.select_related("created_by", "content_type")[:5]
+        context["recent"] = self.dataset.import_jobs.select_related("created_by")[:5]
         return context
 
 
@@ -134,10 +142,10 @@ class ImportStart(ImportPage):
     step = "file"
 
     def dispatch(self, request, *args, **kwargs):
-        model = type_for_slug(kwargs.get("type"))
-        if model is None:
+        self.definition = get_definition(kwargs.get("type"))
+        if self.definition is None:
             raise Http404(_("The portal has no record type of that name."))
-        self.schema = schema_for(model)
+        self.schema = self.definition.columns()
         return super().dispatch(request, *args, **kwargs)
 
     def get_page_title(self):
@@ -157,7 +165,7 @@ class ImportStart(ImportPage):
         if not uploaded:
             return self.render_to_response(self.get_context_data(upload_error=_("Choose a file to import."), mode=mode, empty=empty))
         try:
-            job = engine.start_job(self.dataset, self.schema.model, uploaded, request.user, mode, empty)
+            job = engine.start_job(self.dataset, self.definition, uploaded, request.user, mode, empty)
         except engine.FileProblem as e:
             return self.render_to_response(self.get_context_data(upload_error=str(e), mode=mode, empty=empty))
         unmatched = [h for h, c in job.column_map.items() if not c]
@@ -172,9 +180,9 @@ class ImportStart(ImportPage):
         context = super().get_context_data(**kwargs)
         schema = self.schema
         context["schema"] = schema
-        context["count"] = count_in(self.dataset, schema.model)
-        context["records_url"] = records_tab_url(self.dataset, schema)
-        base = reverse(self.dataset, "import-start", type=schema.slug)
+        context["count"] = count_in(self.dataset, self.definition.model)
+        context["records_url"] = records_tab_url(self.dataset, self.definition)
+        base = reverse(self.dataset, "import-start", type=self.definition.name)
         context["template_urls"] = [
             (_("Excel template, with the column guide"), f"{base}template.xlsx/", "xlsx"),
             (_("CSV template"), f"{base}template.csv/", "csv"),
@@ -188,9 +196,10 @@ class ImportStart(ImportPage):
         context["mode"] = kwargs.get("mode", ImportJob.Mode.BOTH)
         context["empty"] = kwargs.get("empty", ImportJob.Empty.KEEP)
         context["upload_error"] = kwargs.get("upload_error")
-        context["formats"] = ["CSV", "Excel (.xlsx)", "OpenDocument (.ods)", "TSV", "JSON"]
-        ctype = ContentType.objects.get_for_model(schema.model, for_concrete_model=True)
-        context["recent"] = self.dataset.import_jobs.filter(content_type=ctype).select_related("created_by")[:5]
+        context["formats"] = [FORMAT_NAMES[f] for f in self.definition.formats if f in FORMAT_NAMES]
+        context["recent"] = self.dataset.import_jobs.filter(
+            definition_name=self.definition.name
+        ).select_related("created_by")[:5]
         return context
 
 
@@ -199,10 +208,10 @@ class ImportTemplate(ImportPage):
     name = "template"
 
     def get(self, request, *args, **kwargs):
-        model = type_for_slug(kwargs["type"])
-        if model is None or kwargs["fmt"] not in exports.FORMATS:
+        definition = get_definition(kwargs["type"])
+        if definition is None or kwargs["fmt"] not in definition.formats:
             raise Http404
-        return exports.template_response(schema_for(model), kwargs["fmt"])
+        return exports.template_response(definition.columns(), kwargs["fmt"])
 
 
 class ImportSchema(ImportPage):
@@ -210,10 +219,10 @@ class ImportSchema(ImportPage):
     name = "schema"
 
     def get(self, request, *args, **kwargs):
-        model = type_for_slug(kwargs["type"])
-        if model is None:
+        definition = get_definition(kwargs["type"])
+        if definition is None:
             raise Http404
-        return exports.schema_response(schema_for(model))
+        return exports.schema_response(definition.columns())
 
 
 DatasetImport.extra_views = [ImportTemplate, ImportSchema, ImportStart]
@@ -233,7 +242,7 @@ class DatasetImports(ImportPage):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["jobs"] = self.dataset.import_jobs.select_related("created_by", "imported_by", "content_type")
+        context["jobs"] = self.dataset.import_jobs.select_related("created_by", "imported_by")
         context["import_url"] = reverse(self.dataset, "import")
         return context
 
@@ -255,18 +264,18 @@ class JobPage(ImportPage):
         job = self.job
         return [
             {"text": _("Import"), "href": reverse(self.dataset, "import")},
-            {"text": capfirst(job.type_name), "href": reverse(self.dataset, "import-start", type=job.type_slug)},
+            {"text": capfirst(job.type_name), "href": reverse(self.dataset, "import-start", type=job.definition_name)},
         ]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         job = self.job
-        schema = schema_for(job.model)
+        schema = job.definition.columns()
         context["job"] = job
         context["schema"] = schema
-        context["start_url"] = reverse(self.dataset, "import-start", type=job.type_slug)
+        context["start_url"] = reverse(self.dataset, "import-start", type=job.definition_name)
         context["columns_url"] = reverse(self.dataset, "imports-columns", job=job.pk)
-        context["records_url"] = records_tab_url(self.dataset, schema)
+        context["records_url"] = records_tab_url(self.dataset, job.definition)
         return context
 
 
@@ -290,7 +299,7 @@ class JobColumns(JobPage):
         job = self.job
         if job.status not in (ImportJob.Status.MATCHING, ImportJob.Status.CHECKED, ImportJob.Status.PROBLEMS, ImportJob.Status.NOTHING):
             return redirect(job.get_absolute_url())
-        schema = schema_for(job.model)
+        schema = job.definition.columns()
         valid = {c.name for c in schema.importable}
         chosen = {}
         used = {}
@@ -411,7 +420,7 @@ class JobDetail(JobPage):
             job.status = ImportJob.Status.DISCARDED
             job.save()
             messages.info(request, _("Nothing from %(file)s was imported.") % {"file": job.filename})
-            return redirect(reverse(self.dataset, "import-start", type=job.type_slug))
+            return redirect(reverse(self.dataset, "import-start", type=job.definition_name))
         elif action == "recheck" and job.status in (ImportJob.Status.CHECKED, ImportJob.Status.PROBLEMS, ImportJob.Status.NOTHING):
             job.status = ImportJob.Status.CHECKING
             job.save()

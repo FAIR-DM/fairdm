@@ -14,8 +14,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from .models import ImportJob
-from .resources import RowProblem, blank, build_resource, clean_text
-from .schema import schema_for
+from .resources import RowProblem, blank, clean_text
 
 READABLE = {
     "csv": _("CSV"),
@@ -128,9 +127,11 @@ def parse(raw: bytes, fmt: str):
     return headers, rows, lines
 
 
-def start_job(dataset, model, uploaded, user, mode, empty) -> ImportJob:
+def start_job(dataset, definition, uploaded, user, mode, empty) -> ImportJob:
     """Read the uploaded file far enough to match its columns. Raises FileProblem."""
     fmt = file_format(uploaded.name)
+    if fmt not in definition.formats:
+        raise FileProblem(_("“%(name)s” is not a file this page reads.") % {"name": uploaded.name})
     if uploaded.size > MAX_BYTES:
         raise FileProblem(_("The file is larger than 20 MB."))
     raw = uploaded.read()
@@ -140,7 +141,7 @@ def start_job(dataset, model, uploaded, user, mode, empty) -> ImportJob:
         if h and h.lower() in seen:
             raise FileProblem(_("Two columns are headed “%(h)s”. Give each column its own heading.") % {"h": h})
         seen.add(h.lower())
-    schema = schema_for(model)
+    schema = definition.columns()
     column_map = {}
     taken = set()
     for heading in headers:
@@ -160,12 +161,11 @@ def start_job(dataset, model, uploaded, user, mode, empty) -> ImportJob:
             if len(values) == 4:
                 break
         samples[heading] = values
-    from django.contrib.contenttypes.models import ContentType
     from django.core.files.base import ContentFile
 
     job = ImportJob(
         dataset=dataset,
-        content_type=ContentType.objects.get_for_model(model, for_concrete_model=True),
+        definition_name=definition.name,
         created_by=user,
         filename=uploaded.name,
         file_format=fmt,
@@ -184,7 +184,7 @@ def start_job(dataset, model, uploaded, user, mode, empty) -> ImportJob:
 
 def mapping_problems(job: ImportJob, schema=None) -> list[str]:
     """What stops the matched columns from being checked."""
-    schema = schema or schema_for(job.model)
+    schema = schema or job.definition.columns()
     mapped = {v for v in job.column_map.values() if v}
     problems = []
     if not mapped:
@@ -278,12 +278,13 @@ def friendly(message: str, code: str | None) -> str:
 
 def run(job: ImportJob, dry_run: bool):
     """Check or import a job's file and keep the outcome of every row on the job."""
-    schema = schema_for(job.model)
+    definition = job.definition
+    schema = definition.columns()
     headers, raw_rows, lines, data = mapped_dataset(job)
     columns = [h for h in data.headers]
     attribute_to_column = {c.attribute: c.name for c in schema.importable if c.attribute}
     attribute_to_column["location"] = "latitude"
-    resource_class = build_resource(schema, job.dataset, columns=columns)
+    resource_class = definition.resource(job.dataset, columns=columns, schema=schema)
     resource = resource_class(job.dataset, mode=job.mode, empty=job.empty_cells, user=job.created_by)
     key = progress_key(job.pk)
     cache.set(key, 0, 3600)

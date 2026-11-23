@@ -52,6 +52,7 @@ disabled placeholder) and the empty Samples and Measurements tabs now lead to th
 
 | Piece | Where in the prototype | What it becomes |
 |---|---|---|
+| Import definition lookup (`ImportDefinition`, `get_definition`, `register`) | `fairdm/contrib/tabular/definitions.py` | The one place every import page, the export menu and the import record find a file's columns, resource, formats and export rows, by name. FairDM builds one per registered type, named after it. `register` lets a project add its own; nothing uses that yet. Built by feature 2, before anything else reads columns |
 | Column model (`Column`, `TableSchema`, `schema_for`) | `fairdm/contrib/tabular/schema.py` | Part of the registry: a `ModelConfiguration.get_table_schema()` next to `get_resource_class()`, built by feature 2 |
 | Cell widgets (number, date, boolean, concept, sample, quantity, choice) | `resources.py` top half | import-export widgets in `fairdm/contrib/import_export/widgets.py`, feature 2 |
 | Dataset-bound resource (matching, modes, empty cells, change list) | `resources.py` `FairDMRecordResource`, `build_resource` | Replaces `BaseFairDMResource` and the registry's `ResourceFactory`, feature 3 |
@@ -97,7 +98,7 @@ Screens to compare, at 390 and 1400 wide, signed in as `regular.user` unless nam
 
 ## The data model
 
-`ImportJob` (feature 3): dataset, record type, who and when, the stored file, its headings and
+`ImportJob` (feature 3): dataset, the name of the import definition it was read with, who and when, the stored file, its headings and
 sample values, the column matches, mode and empty-cell rule, status, per-row outcome (JSON), counts,
 what undo restores, who undid it and when.
 

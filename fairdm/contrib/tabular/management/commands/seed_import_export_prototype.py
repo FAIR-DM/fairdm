@@ -26,6 +26,7 @@ from django.utils import timezone
 from demo.models import RockSample, SoilSample, WaterSample, XRFMeasurement
 from demo.seed.common import create_accounts, example_accounts, grant_team_rights, remove_own_projects
 from fairdm.contrib.tabular import engine
+from fairdm.contrib.tabular.definitions import definition_for_model
 from fairdm.contrib.tabular.models import ImportJob
 from fairdm.core.choices import ProjectStatus
 from fairdm.core.dataset.models import Dataset
@@ -116,7 +117,7 @@ class Command(BaseCommand):
 
         def run(model, name, raw, when_days, finish=True, mode="both", empty_cells="keep", mapping=None):
             upload = SimpleUploadedFile(name, raw)
-            job = engine.start_job(dataset, model, upload, regular, mode, empty_cells)
+            job = engine.start_job(dataset, definition_for_model(model), upload, regular, mode, empty_cells)
             if mapping:
                 job.column_map.update(mapping)
                 job.save()

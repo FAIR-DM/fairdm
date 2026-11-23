@@ -15,7 +15,7 @@ from django.utils.translation import gettext as _
 from fairdm.contrib.plugins import reverse
 
 from . import exports
-from .schema import schema_for
+from .definitions import definition_for_model
 
 FORMAT_LABELS = [
     ("csv", "CSV", _("Opens anywhere")),
@@ -29,38 +29,40 @@ FORMAT_LABELS = [
 class RecordTransferMixin:
     """Answer ``?export=`` with a file, and give the template the Import and Export menus."""
 
-    def transfer_model(self):
-        model = getattr(self, "model", None)
-        chosen = getattr(self, "chosen", "unset")
-        if chosen is None:
+    def transfer_definition(self):
+        """The import definition of the type this table lists, or None when it lists none."""
+        if getattr(self, "chosen", "unset") is None:
             return None
-        return model
+        model = getattr(self, "model", None)
+        return definition_for_model(model) if model is not None else None
 
     def get(self, request, *args, **kwargs):
         fmt = request.GET.get("export")
         if not fmt:
             return super().get(request, *args, **kwargs)
-        model = self.transfer_model()
-        if fmt not in exports.FORMATS or model is None:
+        definition = self.transfer_definition()
+        if definition is None or fmt not in definition.formats:
             raise Http404(_("Nothing to export here."))
-        schema = schema_for(model)
+        schema = definition.columns()
         if request.GET.get("scope") == "all":
             queryset = self.get_queryset()
         else:
             filterset = self.get_filterset()
             queryset = filterset.qs if filterset is not None else self.get_queryset()
-        queryset = queryset.order_by("pk")
+        queryset = definition.export_rows(queryset)
         holder = getattr(self, "base_object", None)
         stem = f"{holder} {schema.name}" if holder is not None else schema.name
         stem = f"{stem} {timezone.localdate().isoformat()}"
         return exports.export_response(schema, queryset, fmt, stem)
 
-    def transfer_urls(self, scope):
+    def transfer_urls(self, scope, definition):
         params = self.request.GET.copy()
         for key in ("export", "scope", "page"):
             params.pop(key, None)
         out = []
         for fmt, label, hint in FORMAT_LABELS:
+            if fmt not in definition.formats:
+                continue
             if scope == "filtered":
                 query = params.copy()
                 query["export"] = fmt
@@ -72,8 +74,8 @@ class RecordTransferMixin:
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        model = self.transfer_model()
-        if model is None:
+        definition = self.transfer_definition()
+        if definition is None:
             context["transfer"] = None
             return context
         refinements = context.get("refinements") or []
@@ -81,17 +83,17 @@ class RecordTransferMixin:
         context["transfer"] = {
             "filtered": bool(refinements),
             "shown": shown,
-            "shown_urls": self.transfer_urls("filtered"),
-            "all_urls": self.transfer_urls("all"),
+            "shown_urls": self.transfer_urls("filtered", definition),
+            "all_urls": self.transfer_urls("all", definition),
             "import_url": None,
             "imports_url": None,
-            "type_name": str(model._meta.verbose_name_plural),
+            "type_name": str(definition.model._meta.verbose_name_plural),
         }
         holder = getattr(self, "base_object", None)
         if holder is not None and getattr(self, "holder", None) == "dataset":
             from .plugins import can_import
 
             if can_import(self.request, holder):
-                context["transfer"]["import_url"] = reverse(holder, "import-start", type=model._meta.model_name)
+                context["transfer"]["import_url"] = reverse(holder, "import-start", type=definition.name)
                 context["transfer"]["imports_url"] = reverse(holder, "imports")
         return context

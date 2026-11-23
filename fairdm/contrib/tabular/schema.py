@@ -571,17 +571,3 @@ def default_example(column):
     if column.decimals is not None:
         return str(Decimal("12.5").quantize(Decimal(1).scaleb(-column.decimals)))
     return examples.get(column.kind, "")
-
-
-def importable_types():
-    """Every registered sample type, then every measurement type, as schemas."""
-    return [schema_for(m) for m in registry.samples] + [
-        schema_for(m) for m in registry.measurements
-    ]
-
-
-def type_for_slug(slug):
-    for model in [*registry.samples, *registry.measurements]:
-        if model._meta.model_name == slug:
-            return model
-    return None

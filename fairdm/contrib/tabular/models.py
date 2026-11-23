@@ -1,14 +1,13 @@
 """One record per file someone imports into a dataset."""
 
 from django.conf import settings
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 
 class ImportJob(models.Model):
-    """A file uploaded into one dataset for one record type, from upload to outcome.
+    """A file uploaded into one dataset under one import definition, from upload to outcome.
 
     The check and the import both run in the background. The check writes nothing and keeps the
     outcome of every row, which is what the review screen shows. The import writes the same rows
@@ -39,7 +38,8 @@ class ImportJob(models.Model):
     dataset = models.ForeignKey(
         "dataset.Dataset", on_delete=models.CASCADE, related_name="import_jobs"
     )
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    #: The name of the import definition the file was read with.
+    definition_name = models.CharField(max_length=100)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="+"
     )
@@ -87,16 +87,18 @@ class ImportJob(models.Model):
         return self.filename
 
     @property
+    def definition(self):
+        from .definitions import get_definition
+
+        return get_definition(self.definition_name)
+
+    @property
     def model(self):
-        return self.content_type.model_class()
+        return self.definition.model
 
     @property
     def type_name(self):
         return str(self.model._meta.verbose_name_plural)
-
-    @property
-    def type_slug(self):
-        return self.model._meta.model_name
 
     def get_absolute_url(self):
         return reverse(
