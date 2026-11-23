@@ -26,11 +26,11 @@ reason before the code that makes it pass is written. Wording and appearance get
 
 ### Group 2
 
-- [ ] T003 [US1] Tests: `TestColumnOrder`, `TestResourceFieldsRule`, `TestColumnContents`,
+- [x] T003 [US1] Tests: `TestColumnOrder`, `TestResourceFieldsRule`, `TestColumnContents`,
   `TestExamples`, `TestLocationColumns` and `TestPortalConfig` in
   `tests/test_contrib/test_import_export/test_schema.py`, and `TestGetTableSchema` in
   `tests/test_registry/test_config.py`, as plan.md "Tests" describes.
-- [ ] T004 [US1] `fairdm/contrib/import_export/schema.py` (`Column`, `TableSchema`,
+- [x] T004 [US1] `fairdm/contrib/import_export/schema.py` (`Column`, `TableSchema`,
   `build_table_schema`, `kind_of`, `example_for`) and `ModelConfiguration.get_table_schema()`, as
   plan.md "The column model" describes, ported from the prototype's `schema.py`. T003 goes green.
 

@@ -5,15 +5,15 @@ from controlled_vocabularies.models import Record
 from django.db import connection, models
 from django.test.utils import CaptureQueriesContext
 from django.utils import translation
+
+from demo.factories import RockSampleFactory
+from demo.models import ICP_MS_Measurement, RockSample
 from fairdm.contrib.import_export.schema import (
     Column,
     TableSchema,
     build_table_schema,
     kind_of,
 )
-
-from demo.factories import RockSampleFactory
-from demo.models import ICP_MS_Measurement, RockSample
 from fairdm.core.models import Sample
 from fairdm.factories import DatasetFactory
 from fairdm.registry import registry
@@ -80,7 +80,7 @@ class TestColumnOrder:
 
     def test_groups_run_identifiers_own_shared(self, rock_config):
         schema = build_table_schema(rock_config)
-        assert [key for key, _title, _columns in schema.groups()] == [
+        assert [key for key, *rest in schema.groups()] == [
             "ids",
             "own",
             "shared",
@@ -236,7 +236,7 @@ class TestColumnContents:
         )
         column = build_table_schema(rock_config).get("status")
         assert expected
-        assert {value for value, _meaning in column.allowed} == expected
+        assert {value for value, meaning in column.allowed} == expected
         assert len(column.allowed) == len(expected)
 
     def test_a_concept_columns_values_do_not_change_with_language(self, rock_config):

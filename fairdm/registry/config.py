@@ -34,6 +34,8 @@ if TYPE_CHECKING:
     from django.db import models
     from rest_framework.serializers import ModelSerializer
 
+    from fairdm.contrib.import_export.schema import TableSchema
+
 
 @dataclass(frozen=True, kw_only=True)
 class Authority:
@@ -576,6 +578,12 @@ class ModelConfiguration:
     def get_resource_class(self) -> type[ModelResource]:
         """Return the import and export resource. Override to build your own."""
         return cast(type[ModelResource], self._component_class("resource"))
+
+    def get_table_schema(self) -> "TableSchema":
+        """Return the columns of this type's file. Override to build your own."""
+        from fairdm.contrib.import_export.schema import build_table_schema
+
+        return build_table_schema(self)
 
     def get_admin_class(self) -> "type[ModelAdmin]":
         """Return the Django admin class for this model. Override to build your own."""

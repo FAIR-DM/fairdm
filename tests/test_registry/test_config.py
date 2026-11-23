@@ -6,9 +6,9 @@ from django.db import models
 from django.forms import ModelForm
 from django_filters import FilterSet
 from django_tables2 import Table
-from fairdm.contrib.import_export.schema import TableSchema
 
 from demo.models import RockSample
+from fairdm.contrib.import_export.schema import TableSchema
 from fairdm.core.models import Measurement, Sample
 from fairdm.core.sample.admin import SampleChildAdmin
 from fairdm.registry import registry
@@ -1344,6 +1344,7 @@ class TestNonFunctionalGuards:
                 getattr(config, accessor)()
 
 
+@pytest.mark.django_db
 class TestGetTableSchema:
     def test_a_configuration_returns_the_schema_of_its_model(self):
         schema = ModelConfiguration(model=RockSample).get_table_schema()
