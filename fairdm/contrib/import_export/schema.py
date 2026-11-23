@@ -52,6 +52,28 @@ KIND_LABELS = {
 UNIT_IN_LABEL = re.compile(r"\s*\(([^)]+)\)\s*$")
 """A unit in brackets at the end of a label, such as ``Weight (grams)``."""
 
+FRICTIONLESS_TYPES = {
+    "id": "string",
+    "text": "string",
+    "integer": "integer",
+    "number": "number",
+    "boolean": "boolean",
+    "date": "date",
+    "datetime": "datetime",
+    "time": "time",
+    "partial_date": "string",
+    "concept": "string",
+    "choice": "string",
+    "sample": "string",
+    "quantity": "number",
+    "latitude": "number",
+    "longitude": "number",
+}
+"""The Frictionless field type of each kind of column."""
+
+PARTIAL_DATE_PATTERN = r"^\d{4}(-\d{2}(-\d{2})?)?$"
+"""A year, a year and month, or a full date, which is what a partial date cell holds."""
+
 PORTAL_ID_EXAMPLES = {
     "sample": "s8T2as4Lg6UQKuW25tbFmfE",
     "measurement": "m4eKrbeo2iEEN3gx2WRu5Lh",
@@ -115,6 +137,47 @@ class Column:
         from .widgets import widget_for
 
         return widget_for(self, dataset=dataset, user=user)
+
+    def as_frictionless(self) -> dict:
+        """Describe the column as a field of a Frictionless Table Schema.
+
+        Returns:
+            The field descriptor, with its title and description in the active
+            language. The name is never translated.
+        """
+        entry = {
+            "name": self.name,
+            "title": str(self.label),
+            "type": FRICTIONLESS_TYPES.get(self.kind, "string"),
+            "description": str(self.description),
+        }
+        constraints = {}
+        if self.role == "key":
+            constraints["unique"] = True
+        if self.required:
+            constraints["required"] = True
+        if self.max_length:
+            constraints["maxLength"] = self.max_length
+        if self.minimum is not None:
+            constraints["minimum"] = self.minimum
+        if self.maximum is not None:
+            constraints["maximum"] = self.maximum
+        if self.allowed:
+            constraints["enum"] = [value for value, _meaning in self.allowed]
+        if self.kind == "partial_date":
+            constraints["pattern"] = PARTIAL_DATE_PATTERN
+        if constraints:
+            entry["constraints"] = constraints
+        if self.kind in ("date", "datetime", "time"):
+            entry["format"] = "default"
+        if self.kind == "boolean":
+            entry["trueValues"] = ["yes"]
+            entry["falseValues"] = ["no"]
+        if self.unit:
+            entry["unit"] = self.unit
+        if not self.importable:
+            entry["readOnImport"] = False
+        return entry
 
     @property
     def kind_label(self):
@@ -269,6 +332,23 @@ class TableSchema:
             The column, or None when the type has no such column.
         """
         return next((column for column in self.columns if column.name == name), None)
+
+    def as_frictionless(self) -> dict:
+        """Describe the file as a Frictionless Table Schema.
+
+        The portal ID is unique and the schema names no primary key, because a file of
+        new records leaves the portal ID empty.
+
+        Returns:
+            The descriptor: the type's name, title and fields, and the empty cell as
+            the missing value.
+        """
+        return {
+            "name": self.slug,
+            "title": self.name,
+            "fields": [column.as_frictionless() for column in self.columns],
+            "missingValues": [""],
+        }
 
     def groups(self) -> list[tuple[str, str, list[Column]]]:
         """Return the columns in the guide's sections.
