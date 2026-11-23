@@ -33,7 +33,11 @@ disabled placeholder) and the empty Samples and Measurements tabs now lead to th
 ## How an import works
 
 - Rows find their record by portal ID, then by Local ID within the dataset, never by name. A row
-  with neither adds a record. A portal ID from another dataset or of another type is refused.
+  with neither adds a record. A portal ID of another type is refused. So is a portal ID from another
+  dataset, whoever owns it: an import adds and changes only its own dataset's records, and never
+  offers to add a copy, since copies of copies lose where the data came from. For a measurement
+  the message points to the existing way to use another dataset's records: a measurement's
+  `sample` column may name any sample the person can see.
 - Modes: add and update (default), only add, only update. Empty cells keep the stored value
   (default) or clear it.
 - Matching: headings match field name, label, the label without its unit, and listed aliases,
@@ -118,6 +122,9 @@ See the issue.
 - No accessibility audit beyond semantic markup and labels: the guide and match tables use ARIA
   table roles on divs, which the rebuild should check or replace with real tables.
 - Undo checks `modified` timestamps only.
+- A dataset can't reference another dataset's samples. A sample belongs to exactly one dataset
+  (`Sample.dataset`), so referencing them is a change to the core data model, outside this
+  prototype. Only measurements can point at another dataset's samples.
 - The existing `LocatedResourceMixin.import_instance` on `main` drops every field's error when a
   row has no location columns. The prototype works around it; the rebuild fixes it.
 

@@ -451,11 +451,21 @@ class FairDMRecordResource(LocatedResourceMixin, resources.ModelResource):
             if found is None:
                 raise RowProblem("portal_id", _("No record has the portal ID %(v)s.") % {"v": portal_id})
             if found.dataset_id != self.dataset.pk:
-                raise RowProblem(
-                    "portal_id",
-                    _("%(v)s belongs to another dataset. Import it there, or clear the portal ID to add a copy here.")
-                    % {"v": portal_id},
-                )
+                # Never offered as a copy: copies of another dataset's records lose where the
+                # data came from. Only a measurement has a way to use another dataset's records,
+                # by naming one of its samples.
+                if issubclass(base, Sample):
+                    message = _(
+                        "%(v)s belongs to another dataset. An import adds and changes only this "
+                        "dataset's records."
+                    )
+                else:
+                    message = _(
+                        "%(v)s belongs to another dataset. An import adds and changes only this "
+                        "dataset's records. A measurement made here can name a sample from "
+                        "another dataset in the sample column."
+                    )
+                raise RowProblem("portal_id", message % {"v": portal_id})
             typed = model.objects.filter(pk=found.pk).first()
             if typed is None:
                 raise RowProblem(
