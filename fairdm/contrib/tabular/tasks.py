@@ -3,6 +3,7 @@
 import logging
 
 from celery import shared_task
+from django.db import transaction
 
 logger = logging.getLogger(__name__)
 
@@ -36,9 +37,17 @@ def import_job(job_id, user_id):
 
 
 def start(task, *args):
-    """Queue a task, or run it here when no worker can be reached."""
-    try:
-        task.delay(*args)
-    except Exception:  # noqa: BLE001
-        logger.warning("No Celery broker; running %s in the request", task.name)
-        task(*args)
+    """Queue a task once the request's changes are saved, or run it here when no worker answers.
+
+    Requests run in a transaction, so a task queued at once can start before the job it reads
+    is saved.
+    """
+
+    def queue():
+        try:
+            task.delay(*args)
+        except Exception:  # noqa: BLE001
+            logger.warning("No Celery broker; running %s in the request", task.name)
+            task(*args)
+
+    transaction.on_commit(queue)
