@@ -119,8 +119,8 @@ MIDDLEWARE = [
     "mvp_compliance.middleware.AgreementMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.locale.LocaleMiddleware",
-    # Below LocaleMiddleware and authentication: it replaces the language LocaleMiddleware
-    # chose with the one a signed-in person picked, and applies their timezone.
+    # Below locale and authentication: it replaces the language LocaleMiddleware chose
+    # with the one a signed-in person picked, and applies their timezone.
     "mvp.middleware.PreferencesMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.contrib.sites.middleware.CurrentSiteMiddleware",
