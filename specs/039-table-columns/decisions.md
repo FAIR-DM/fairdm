@@ -134,3 +134,11 @@ reads every sample. **ADR:** none, local to this feature.
 
 A definition is offered in the formats a portal reads, which leaves out the export-only LaTeX.
 **ADR:** none, local to this feature.
+
+## D17. The portal ID is unique, not the primary key
+
+A ruling made at the build's spec gate on Sam's behalf by the orchestrating session. A primary key
+makes the portal ID required, and a file of new records has it empty, so the standard validator
+rejected every row and FR-018 failed for the file US2 exists to check (checked with frictionless 5).
+US2 scenario 5 and FR-017 now give the portal ID a `unique` constraint and no primary key. A test
+keeps that a file with duplicate portal IDs fails validation. **ADR:** none, local to this feature.

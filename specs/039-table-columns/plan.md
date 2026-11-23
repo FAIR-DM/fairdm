@@ -184,7 +184,7 @@ specification uses.
   the standard permits) as well as the sentence in its description, so a machine can see it.
 - `unit` is a custom property as in the prototype. `title` and `description` are strings in the
   active language. `name` never changes with the language.
-- `primaryKey: ["portal_id"]` and `missingValues: [""]` as the prototype.
+- `portal_id` carries `constraints.unique` and the schema has no `primaryKey` (D17). `missingValues: [""]` as the prototype.
 
 The view is `TableSchemaView(View)` in `fairdm/contrib/import_export/views.py`:
 `get(request, name)` looks the definition up with `get_definition(name)`, answers 404 (`Http404`) for
@@ -253,7 +253,7 @@ Mirroring the source tree:
 - `tests/test_contrib/test_import_export/test_schema.py`, `TestFrictionlessValidation` (SC-003: every
   registered type's schema is valid, parametrised over `registry.samples` and
   `registry.measurements`, a file written by `render_cell` validates, a file of new records with an
-  empty portal ID validates, a file outside the range fails).
+  empty portal ID validates, a file with duplicate portal IDs fails, a file outside the range fails).
 - `tests/test_templates/test_import_guide.py`: `TestGuideComponent` (one table per group with column
   headers, required and key tags by column, the long list cut on display only, the example, and
   one render over every registered type).

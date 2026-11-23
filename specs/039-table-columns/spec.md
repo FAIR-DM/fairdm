@@ -209,8 +209,8 @@ schema with a standard Frictionless validator. Open the address of a type that i
    lists every value a cell of the column may hold as an export writes it, however long the list.
 4. **Given** the column written on export and never read on import, **When** the Table Schema is
    read, **Then** it carries that column and says it is not read on import.
-5. **Given** the Table Schema, **When** it is read, **Then** the portal ID is its primary key, and an
-   empty cell is its missing value.
+5. **Given** the Table Schema, **When** it is read, **Then** the portal ID carries a unique constraint, so
+   no two rows may share one, and an empty cell is its missing value.
 6. **Given** a file of records written in the columns' own cell form, **When** it is checked against
    the type's Table Schema with a standard Frictionless validator, **Then** it is valid. **Given** a
    file with a cell outside its column's range, or not in its allowed list, **Then** the validator
@@ -291,8 +291,9 @@ schema with a standard Frictionless validator. Open the address of a type that i
   named after the type. An address for a type that is not registered MUST answer not found. (US2)
 - **FR-017**: The Table Schema MUST hold every column in order, each with its heading as the name, its
   label as the title, its description, its type, its unit and its constraints (needed for a new
-  record, length, range, every allowed value as an export writes it). It MUST name the portal ID as
-  its primary key and the empty cell as its missing value, and MUST say which column is not read on
+  record, length, range, every allowed value as an export writes it). It MUST give the portal ID a
+  unique constraint (never a primary key, which would make an empty portal ID invalid and fail a file
+  of new records) and name the empty cell as its missing value, and MUST say which column is not read on
   import. It MUST be valid against the Frictionless Table Schema specification. (US2)
 - **FR-018**: A file written in the columns' own cell form MUST validate against the type's Table
   Schema with a standard Frictionless validator. (US2)
