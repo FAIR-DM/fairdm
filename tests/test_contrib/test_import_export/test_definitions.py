@@ -2,15 +2,15 @@
 
 import pytest
 from django.contrib.auth import get_user_model
+from import_export.formats.base_formats import CSV, XLSX
+
+from demo.models import RockSample
 from fairdm.contrib.import_export.definitions import (
     ImportDefinition,
     definitions,
     get_definition,
     register,
 )
-from import_export.formats.base_formats import CSV, XLSX
-
-from demo.models import RockSample
 from fairdm.registry import registry
 
 pytestmark = pytest.mark.django_db

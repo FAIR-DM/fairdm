@@ -128,7 +128,7 @@ class Column:
         """Return the widget that reads and writes this column's cells.
 
         Args:
-            dataset: The dataset a file is imported into, which a sample column looks in.
+            dataset: The dataset a file is imported into, where a sample column looks.
             user: The person importing, or None for a visitor.
 
         Returns:

@@ -1,8 +1,8 @@
 """Tests for the ``c-import.guide`` component, the column guide of a type's file.
 
-The component is rendered for a table schema and the tests read its structure: the tables,
-their headers and roles, which columns carry which tag, and how a long list is cut. Wording and
-look are never asserted.
+The component is rendered for a table schema and the tests read its structure: the
+tables, their headers and roles, which columns carry which tag, and how a long list is
+cut. Wording and look are never asserted.
 """
 
 from dataclasses import replace
@@ -50,7 +50,7 @@ def rock_config():
 
 @pytest.fixture
 def long_list_schema(schema):
-    """The rock sample schema with a column of fifty allowed values, and that column's name."""
+    """The rock sample schema with a column of fifty allowed values, and its name."""
     index = next(i for i, column in enumerate(schema.columns) if column.group == "own")
     values = [(f"value-{n}", f"meaning {n}") for n in range(LONG_LIST)]
     schema.columns[index] = replace(schema.columns[index], allowed=values)

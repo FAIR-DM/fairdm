@@ -171,9 +171,7 @@ class TestRoundTrip:
     ):
         assert column_of(*ROCK_TYPE).widget().clean(cell) == ""
 
-    def test_an_empty_cell_of_a_text_field_that_can_be_null_is_none(
-        self, make_column
-    ):
+    def test_an_empty_cell_of_a_text_field_that_can_be_null_is_none(self, make_column):
         column = make_column("text", model_field=models.CharField(null=True))
 
         assert column.widget().clean("  ") is None
@@ -210,36 +208,36 @@ class TestRefusals:
         ],
     )
     def test_a_cell_the_column_cannot_read_is_refused(self, column_of, where, cell):
-        with pytest.raises(ValueError):  # noqa: PT011
+        with pytest.raises(ValueError):
             column_of(*where).widget().clean(cell)
 
     def test_text_over_the_longest_allowed_is_refused(self, column_of):
         column = column_of(*ROCK_TYPE)
 
-        with pytest.raises(ValueError):  # noqa: PT011
+        with pytest.raises(ValueError):
             column.widget().clean("x" * (column.max_length + 1))
 
     def test_a_value_not_in_the_list_is_refused(self, make_column):
         column = make_column("choice", allowed=[("igneous", "Igneous rock")])
 
-        with pytest.raises(ValueError):  # noqa: PT011
+        with pytest.raises(ValueError):
             column.widget().clean("purple")
 
     def test_a_partial_date_in_another_form_is_refused(self, make_column):
         for cell in ("June 2024", "2024-13", "2024-02-30"):
-            with pytest.raises(ValueError):  # noqa: PT011
+            with pytest.raises(ValueError):
                 make_column("partial_date").widget().clean(cell)
 
     def test_a_decimal_comma_is_refused_with_the_number_written_with_a_point(
         self, column_of
     ):
-        with pytest.raises(ValueError) as refusal:  # noqa: PT011
+        with pytest.raises(ValueError) as refusal:
             column_of(*WEIGHT).widget().clean("12,5")
 
         assert "12.5" in str(refusal.value)
 
     def test_a_decimal_comma_in_a_quantity_is_refused_with_a_point(self, column_of):
-        with pytest.raises(ValueError) as refusal:  # noqa: PT011
+        with pytest.raises(ValueError) as refusal:
             column_of(ICP_MS_Measurement, "value").widget().clean("12,5 ppm")
 
         assert "12.5" in str(refusal.value)
@@ -286,7 +284,7 @@ class TestConceptWidget:
         assert column.widget().render(record) == record.pref_label
 
     def test_a_label_not_in_the_list_is_refused(self, column, record):
-        with pytest.raises(ValueError):  # noqa: PT011
+        with pytest.raises(ValueError):
             column.widget().clean("no such concept")
 
     def test_an_empty_vocabulary_refuses_every_cell(self, column, record):
@@ -294,7 +292,7 @@ class TestConceptWidget:
         widget = column.widget()
 
         for cell in (record.pref_label, record.slug, record.uri, "anything"):
-            with pytest.raises(ValueError):  # noqa: PT011
+            with pytest.raises(ValueError):
                 widget.clean(cell)
 
     def test_the_lookup_is_built_once_per_widget(
@@ -355,7 +353,7 @@ class TestSampleWidget:
 
     def refusal(self, column, target, user, cell):
         """Return the message a cell is refused with."""
-        with pytest.raises(ValueError) as refused:  # noqa: PT011
+        with pytest.raises(ValueError) as refused:
             column.widget(dataset=target, user=user).clean(cell)
         return str(refused.value)
 
@@ -485,15 +483,15 @@ class TestQuantityWidget:
         assert column.widget().clean(3).magnitude == 3
 
     def test_a_unit_that_does_not_convert_is_refused(self, column):
-        with pytest.raises(ValueError):  # noqa: PT011
+        with pytest.raises(ValueError):
             column.widget().clean("12 meter")
 
     def test_a_unit_nobody_knows_is_refused(self, column):
-        with pytest.raises(ValueError):  # noqa: PT011
+        with pytest.raises(ValueError):
             column.widget().clean("12 zorp")
 
     def test_text_that_is_not_a_number_is_refused(self, column):
-        with pytest.raises(ValueError):  # noqa: PT011
+        with pytest.raises(ValueError):
             column.widget().clean("lots")
 
     def test_a_cell_is_written_as_the_number_in_the_columns_unit(self, column):
