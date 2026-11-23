@@ -156,3 +156,10 @@ wide. At both, each of the three groups is one `table` with a caption, a row of 
 is a `rowheader`, the rest `cell`. Below 1024px the header row is clipped, not hidden, so the
 column headers stay in the tree. Native table elements with explicit roles are kept.
 **ADR:** none, local to this feature.
+
+## D20. The import and export views module loses a dead import
+
+`fairdm/contrib/import_export/views.py` imported `FairDMModelFormMixin` from `fairdm.views`, a name
+that no longer exists, and nothing loaded the module until the Table Schema route did.
+`DatasetPublishConfirm`, which used it and is referenced nowhere, now extends `FormView` alone so
+the module loads. The rest of the module is untouched. **ADR:** none, local to this feature.
