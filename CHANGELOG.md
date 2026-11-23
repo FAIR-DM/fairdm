@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **FairDM now needs django-mvp 0.36 and django-mvp-forms 0.11.** `Person` gains a `preferences` field, which stores the timezone and language a person picks on django-mvp's preferences page. Run `migrate` to add it. FairDM installs `object_preferences` and lists `mvp.middleware.PreferencesMiddleware` below the locale middleware, so a signed-in person sees pages in the language and times in the timezone they chose. A portal that sets `MIDDLEWARE` itself must add it there.
+- **Notification emails carry FairDM's logo.** FairDM ships `brand/email/logo.png` and `brand/email/logo_dark.png`, drawn from its logo, for the emails built on django-mvp's email layout. A portal with its own logo draws its own copies with `python manage.py mvp_email_logos`.
+
 ## [v0.6.0] - 2026-11-16
 
 ### Added
