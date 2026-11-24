@@ -165,7 +165,7 @@ public name.
 
 - [x] T033 [US1] An empty required cell and the row's other problems are all reported.
 - [x] T034 [US1] A file whose headings all match still shows the warnings about its columns.
-- [ ] T035 [US1] A check or an import that fails unexpectedly ends in a state the person can
+- [x] T035 [US1] A check or an import that fails unexpectedly ends in a state the person can
   leave.
 - [ ] T036 [US2] Undo refuses when an added record has gained related records, and holds the
   records while it reads them.

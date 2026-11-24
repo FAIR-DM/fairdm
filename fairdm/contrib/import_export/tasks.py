@@ -54,7 +54,7 @@ def check_job(job_pk):
     """Check a job's file against its dataset.
 
     A job that is no longer being checked is left alone. A check that runs out of time
-    ends the job as failed.
+    or fails unexpectedly ends the job as failed.
 
     Args:
         job_pk: The key of the import job.
@@ -67,13 +67,17 @@ def check_job(job_pk):
         run.check()
     except SoftTimeLimitExceeded:
         run.fail(_("The check took too long and was stopped."))
+    except Exception:
+        logger.exception("Checking %s failed.", job_pk)
+        run.fail(_("The check failed unexpectedly. Try the file again."))
 
 
 @shared_task(**IMPORT_LIMITS)
 def import_job(job_pk, user_pk):
     """Import the rows of a checked job.
 
-    An import that runs out of time has written nothing and returns to the check.
+    An import that runs out of time or fails unexpectedly has written nothing and
+    returns to the check.
 
     Args:
         job_pk: The key of the import job.
@@ -88,6 +92,9 @@ def import_job(job_pk, user_pk):
         run.perform(user)
     except SoftTimeLimitExceeded:
         run.stop(_("The import took too long and was stopped. Nothing was written."))
+    except Exception:
+        logger.exception("Importing %s failed.", job_pk)
+        run.stop(_("The import failed unexpectedly. Nothing was written."))
 
 
 @shared_task(**UNDO_LIMITS)

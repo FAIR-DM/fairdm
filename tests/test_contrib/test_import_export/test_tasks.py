@@ -75,6 +75,15 @@ class TestCheckJob:
         assert job.error
         assert not job.file
 
+    def test_an_unexpected_error_ends_the_check_as_failed(self, make_job):
+        job = make_job([rock("A")])
+        with mock.patch.object(ImportRun, "run", side_effect=RuntimeError("boom")):
+            tasks.check_job(job.pk)
+        job.refresh_from_db()
+        assert job.status == Status.FAILED
+        assert job.error
+        assert "boom" not in job.error
+
     def test_a_job_that_is_gone_is_ignored(self):
         assert tasks.check_job(0) is None
 
@@ -102,6 +111,19 @@ class TestImportJob:
         assert job.status == Status.CHECKED
         assert job.error
         assert job.file
+
+    def test_an_unexpected_error_returns_the_job_to_checked(self, make_job):
+        job = make_job([rock("A")])
+        tasks.check_job(job.pk)
+        ImportJob.objects.filter(pk=job.pk).update(status=Status.IMPORTING)
+        with mock.patch.object(ImportRun, "run", side_effect=RuntimeError("boom")):
+            tasks.import_job(job.pk, None)
+        job.refresh_from_db()
+        assert job.status == Status.CHECKED
+        assert job.error
+        assert "boom" not in job.error
+        assert job.file
+        assert not RockSample.objects.filter(name="A").exists()
 
     def test_the_person_is_looked_up(self, make_job):
         from fairdm.factories import UserFactory
