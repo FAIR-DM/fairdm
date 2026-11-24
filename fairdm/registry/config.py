@@ -344,7 +344,7 @@ class ModelConfiguration:
             (spec.fields_attr, getattr(self, spec.fields_attr))
             for spec in COMPONENTS.values()
         ]
-        lists.append(("resource_fields", self.resource_fields))
+        lists.append(("resource_fields", self.resource_fields or []))
         return [(name, value) for name, value in lists if value]
 
     def _validate_fields(self) -> None:
