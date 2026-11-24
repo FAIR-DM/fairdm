@@ -64,6 +64,11 @@
   {% endif %}
 {% endblock page.content %}
 
+{% block page.actions %}
+  {% if record_state == "listed" and export_menu %}<div class="ie-tools"><c-import.export-menu :menu="export_menu" /></div>{% endif %}
+  {{ block.super }}
+{% endblock page.actions %}
+
 {% block page.footer %}
   {% if record_state == "listed" %}{{ block.super }}{% endif %}
 {% endblock page.footer %}
