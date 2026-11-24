@@ -79,7 +79,7 @@ class ImportOptionsForm(forms.Form):
 
 
 class UploadForm(forms.Form):
-    """The file to import. A file of another format or over the size limit is refused."""
+    """The file to import. A file of another format or too large is refused."""
 
     MAX_BYTES = 20 * 1024 * 1024
     EXTENSIONS = (".csv", ".tsv", ".xlsx", ".ods")

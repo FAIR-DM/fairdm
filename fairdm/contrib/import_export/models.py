@@ -8,11 +8,12 @@ from django.utils.translation import gettext_lazy as _
 
 
 class ImportJob(models.Model):
-    """A file uploaded into one dataset under one import definition, from upload to outcome.
+    """A file uploaded into one dataset under one import definition.
 
-    The check and the import both run in the background. The check writes nothing to the
-    dataset and keeps the outcome of every row as an ``ImportRow``. The import writes the same
-    rows and keeps what undoing it would restore.
+    The job runs from upload to outcome. The check and the import both run in the
+    background. The check writes nothing to the dataset and keeps the outcome of every
+    row as an ``ImportRow``. The import writes the same rows and keeps what undoing it
+    would restore.
     """
 
     class Mode(models.TextChoices):
@@ -360,6 +361,12 @@ class ImportRow(models.Model):
 
 @receiver(post_delete, sender=ImportJob)
 def delete_stored_file(sender, instance, **kwargs):
-    """Delete a job's stored file along with the job, so no file outlives it."""
+    """Delete a job's stored file along with the job, so no file outlives it.
+
+    Args:
+        sender: The model class, ``ImportJob``.
+        instance: The job that was deleted.
+        **kwargs: The rest of the signal's arguments.
+    """
     if instance.file:
         instance.file.delete(save=False)

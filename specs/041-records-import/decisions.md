@@ -191,3 +191,17 @@ Each is folded into the plan or a task. The build briefs carry the ones that bin
 - The upload is parsed before the job is created.
 - Undo conflicts are computed on the undo POST, and `plugins.py` is edited by Groups 7 and 9 in
   sequence, never together.
+
+## D23 — Job status names stay on `ImportJob.Status`, and the job address waits for its route
+
+**Decision:** `ImportJob.Status.choices` is the one mapping from a status to its title, so no
+separate `STATUS_LABELS` dictionary exists. `ImportJob.get_absolute_url` is added in the group
+that adds the job route, because the address it reverses does not exist yet and a property that
+cannot be called is untestable. `UploadForm` holds the 20 MB limit and the four extensions until
+`FileReader` exists.
+
+**Why:** A `TextChoices` label is already one name per state, which is what the plan's
+`STATUS_LABELS` is for. A second dictionary would be a second copy.
+
+**Revisit if:** the badge and the page title need different words for one status, or
+`FileReader` lands with its own limit (the form should then read it, not repeat it).
