@@ -205,3 +205,19 @@ cannot be called is untestable. `UploadForm` holds the 20 MB limit and the four 
 
 **Revisit if:** the badge and the page title need different words for one status, or
 `FileReader` lands with its own limit (the form should then read it, not repeat it).
+
+## D24 — `build_resource` returns the resource, and a row's note, changes and record are three maps
+
+**Decision:** `build_resource(schema, dataset, ...)` and `ImportDefinition.resource(dataset, ...)`
+return a `RecordResource` instance, not a class. The resource keeps `notes` (why a row was left
+out), `changes` (the cells of an updated row, from `changed_cells`) and `record_pks` (the stored
+record each row matched), each by row number. The prototype held notes and changes in one map of
+mixed values.
+
+**Why:** The call already takes the dataset and the options, which only an instance holds, and one
+instance per file is what gives each file its own sample cache. Three maps of one kind each need
+no `isinstance` at the reader, and `record_pks` is what the runner needs to find two rows that
+mean one record.
+
+**Revisit if:** a caller needs the class itself, for instance to subclass it for a project's
+type.

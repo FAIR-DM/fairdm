@@ -74,9 +74,9 @@ public name.
 
 ### Group 5
 
-- [ ] T012 [US1] Tests: `test_resources.py` (rewritten) and the sample cache test in
+- [x] T012 [US1] Tests: `test_resources.py` (rewritten) and the sample cache test in
   `test_widgets.py`, as plan.md "Tests" lists.
-- [ ] T013 [US1] `resources.py` (`RowProblem`, `RecordResource`, `changed_cells`,
+- [x] T013 [US1] `resources.py` (`RowProblem`, `RecordResource`, `changed_cells`,
   `build_resource`), `ImportDefinition.resource()` in `definitions.py`, the per-file cache in
   `SampleCellWidget`, as plan.md "Modules" describes, rebuilt from the prototype's `resources.py`.
   T012 goes green.

@@ -18,6 +18,8 @@ from fairdm.factories import DatasetFactory
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
 
+pytestmark = pytest.mark.django_db
+
 NEW = RowResult.IMPORT_TYPE_NEW
 UPDATE = RowResult.IMPORT_TYPE_UPDATE
 SKIP = RowResult.IMPORT_TYPE_SKIP

@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING
 
 from django.conf import settings
 
+from fairdm.contrib.import_export.resources import RecordResource, build_resource
 from fairdm.core.measurement.models import Measurement
 from fairdm.registry import registry
 
@@ -49,6 +50,19 @@ class ImportDefinition:
             The table schema of the registered model.
         """
         return registry.get_for_model(self.model).get_table_schema()
+
+    def resource(self, dataset, **options) -> RecordResource:
+        """Build the resource that imports a file of this type into a dataset.
+
+        Args:
+            dataset: The dataset the rows are added to and changed in.
+            **options: ``mode``, ``empty``, ``user`` and ``columns``, as
+                ``build_resource`` takes them.
+
+        Returns:
+            The resource, ready to import one file.
+        """
+        return build_resource(self.table_schema(), dataset, **options)
 
 
 class ImportDefinitions:
