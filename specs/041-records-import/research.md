@@ -77,14 +77,17 @@ Read at `4c32f3e7`, the merge of the export.
 
 One line per piece of new code, the first place the search stopped.
 
-- File reading (CSV with a sniffed delimiter, TSV, Excel, OpenDocument): tablib reads all four
-  (`tablib.Dataset().load`, with `openpyxl` and `odfpy`), and `csv.Sniffer` reads the delimiter.
+- File reading (CSV with a sniffed delimiter, TSV, Excel, OpenDocument): tablib reads CSV, TSV
+  and Excel (`tablib.Dataset().load` with `openpyxl`) and `csv.Sniffer` reads the delimiter.
+  tablib's OpenDocument reader ignores repeated rows and cells and raises on a workbook with more
+  than one table, so OpenDocument is read with `odfpy` directly (first table only, repeats
+  expanded and capped).
   New code: the size and row limits, the first-sheet rule and the heading row, which are this
   feature's rules and not a package's.
 - Dry run, row results, diffs, row-level errors: `django-import-export` `Resource.import_data`
   (a maintained package). New code: the dataset-bound resource's lookup, modes and empty-cell rule.
 - Background run: Celery, already a dependency and run by the portal's worker.
-- Progress polling and a page that refreshes itself: HTMX, already served by django-mvp
+- Progress polling and a page that refreshes itself: HTMX, loaded from a CDN in `base.html`
   (`hx-get` with `hx-trigger="every 1s"`, and the `HX-Refresh` response header). New code: a few
   lines in a status view. No polling script of our own.
 - Progress storage: the Redis cache the portal already runs. A database column cannot carry it,

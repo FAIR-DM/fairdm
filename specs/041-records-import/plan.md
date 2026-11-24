@@ -120,10 +120,18 @@ specification), `headers` (list), `samples` (dict of up to four values per headi
 `line` (the line in the file), `outcome` (`new`, `update`, `unchanged`, `skipped`, `problem`),
 `label`, `portal_id` (blank for a row that adds nothing yet), `record_pk` (nullable, set once the
 import writes it), `changes` (JSON list of `{column, label, old, new}`), `problems` (JSON list of
-`{column, message}`), `note` (the reason a row was left out), `values` (JSON, the cells by
-heading), `before` (JSON, the stored values an undo restores, update rows only) and `digest`
-(a 64-character hex digest of the record's stored values after the import). Index on
+`{column, message}`), `note` (the reason a row was left out), `before` (JSON, the stored values
+an undo restores, update rows only) and `digest` (a 64-character hex digest of the record's
+stored values after the import). No cell of the file is kept on a row (D21). Index on
 `(job, outcome, number)`. `Meta.ordering = ["number"]`.
+
+Every field of both models has a `verbose_name` and a `help_text`. `ImportJob` has one index,
+`(dataset, definition_name, created)`, because the import page lists a dataset's recent imports
+of one type and past imports lists a dataset's imports newest first. A `post_delete` receiver on
+`ImportJob` deletes its stored file when one is set, so deleting a dataset leaves no file behind
+(D4). Wherever the file is deleted, `ImportJob.samples` (the values shown on column matching) is
+cleared with it, so no cell of the file outlives it. `tests/factories.py` gains `ImportJobFactory`
+and `ImportRowFactory`, and the conftest fixtures wrap them.
 
 One migration, `0001_initial`, with a `dataset` dependency taken from the latest dataset
 migration. No data migration.
@@ -132,17 +140,26 @@ migration. No data migration.
 
 All in `fairdm/contrib/import_export/` unless named.
 
-- **`reader.py`**: `FileProblem`, `READABLE` (CSV, TSV, Excel, OpenDocument), `MAX_BYTES = 20 MB`,
-  `MAX_ROWS = 50_000`, `file_format(name)`, `read_grid(raw, fmt)`, `parse(raw, fmt)` returning
+- **`reader.py`**: `FileProblem` and the class `FileReader` (D22: one class per module, no base
+  class), with `MAX_BYTES = 20 MB`, `MAX_ROWS = 50_000` and `MAX_UNCOMPRESSED` as class attributes
+  and the methods `file_format(name)`, `read_grid(raw, fmt)` and `parse(raw, fmt)`, which returns
   headings, rows and line numbers. Rebuilt test-first from the prototype's `engine.py`. JSON and
   `.txt` are not read (FR-005). The delimiter of a CSV is sniffed between `,` and `;` and a tab is
-  never a CSV's. The first sheet of a workbook is read.
-- **`matching.py`**: `normalise(heading)` (case, spaces and punctuation removed), `match_heading(
-  schema, heading)` over each importable column's name, label, label without its unit and
-  aliases, `match_columns(schema, headings)` (the first heading to take a column wins, a second
-  stays unmatched), `mapping_problems(job, schema)` and `mapping_warnings(job)` (FR-008 to FR-010),
-  and `needs_matching(job, schema)` (FR-009). Adds `TableSchema.match`'s role without touching the
-  schema module: the matcher takes the schema.
+  never a CSV's. The first sheet of a workbook is read. Reading stops at `MAX_ROWS + 1` data
+  rows (`itertools.islice` over openpyxl's `iter_rows`), and an Excel or OpenDocument file is
+  refused before it is opened when its first sheet's entry (`xl/worksheets/sheet1.xml`,
+  `content.xml`) is larger uncompressed than `MAX_UNCOMPRESSED` (read from `ZipInfo.file_size`).
+  **OpenDocument is read with odfpy directly, not tablib** (DR-004): tablib's reader drops
+  `number-rows-repeated`, so a repeated cell reads once, and it raises on a second sheet. The
+  reader reads the first table only, expands `number-columns-repeated`, and expands
+  `number-rows-repeated` capped at `MAX_ROWS + 1`.
+- **`matching.py`**: the class `HeadingMatcher(schema)` with `normalise(heading)` (case, spaces
+  and punctuation removed), `match(heading)` over each importable column's name, label, label
+  without its unit and aliases, `match_columns(headings)` (the first heading to take a column
+  wins, a second stays unmatched), `problems(job)` and `warnings(job)` (FR-008 to FR-010) and
+  `needs_matching(job)` (FR-009). The matcher takes the schema and leaves the schema module
+  alone. The alias `sample id`, which the schema gives to both `local_id` and a measurement's
+  `sample` column, goes to the first column that claims it (`local_id`), and a test names it.
 - **`forms.py`** (rewritten): `ImportOptionsForm` (mode, empty cells, `CardSelect` widgets, a
   `brief` switch that drops the descriptions, `chosen(mode, empty)`) and `UploadForm` (the file
   field, size and extension checked, so a refused file leaves no job). The old `ImportForm` and
@@ -159,13 +176,18 @@ All in `fairdm/contrib/import_export/` unless named.
   the cell text, holding the sample or the problem, so a file with a repeated sample asks the
   database once per distinct cell (the review finding carried from FS-039). The resource builds
   one widget per run, so the cache lives for one file.
-- **`runner.py`**: `check(job)`, `perform(job, user)`, `progress(job)`. Both read the file once,
-  build the data set from the column map, run `import_data` and write the `ImportRow` rows in
-  chunks of 1,000 with `bulk_create`. `check` runs the dry run, so it writes nothing to the
-  dataset, then replaces the job's rows. `perform` is below.
-- **`undo.py`**: `digest(record)`, `conflicts(job, user)`, `undo(job, user)`. See "Undo".
-- **`tasks.py`**: `check_job`, `import_job`, `discard_stale_jobs`, and `start(task, *args)` that
-  queues on commit and runs inline when no broker answers.
+- **`runner.py`**: the class `ImportRun(job)` with `check()`, `perform(user)` and `progress()`.
+  Both phases read the file once, build the data set from the column map, run `import_data` and
+  write the `ImportRow` rows in chunks of 1,000 with `bulk_create`. `check` runs the dry run, so
+  it writes nothing to the dataset, then replaces the job's rows. `perform` is below.
+- **`undo.py`**: the class `ImportUndo(job)` with `digest(record)`, `conflicts(user, limit)` and
+  `undo(user)`. See "Undo".
+- **`tasks.py`**: `check_job`, `import_job`, `discard_stale_jobs`, and `start(task, *args)`, which
+  is `transaction.on_commit(lambda: task.delay(*args))` with no inline fallback: the portal runs
+  a worker (spec Assumptions). `check_job` and `import_job` carry their own `soft_time_limit` and
+  `time_limit`, sized from one timed 50,000-row run of the demo portal's widest type, recorded in
+  research.md. `SoftTimeLimitExceeded` ends a check as `failed` and returns an import to
+  `checked` with the sentence that says nothing was written (DR-005).
 - **`plugins.py`**: the pages, below.
 - **`apps.py`**: `ready()` registers the periodic task through `post_migrate`, as
   `fairdm/backups/signals.py` does.
@@ -184,7 +206,7 @@ All in `fairdm/contrib/import_export/` unless named.
 
 ## The check and the import
 
-`check(job)`: read the file (`reader.parse`), keep the columns of `column_map`, find duplicate keys
+`ImportRun.check()`: read the file (`reader.parse`), keep the columns of `column_map`, find duplicate keys
 inside the file (two rows with the same portal ID or Local ID both need changes, FR-014), build the
 resource with `ImportDefinition.resource`, and run
 `import_data(dry_run=True, use_transactions=True, raise_errors=False,
@@ -192,14 +214,22 @@ rollback_on_validation_errors=True, retain_instance_in_row_result=True)`. Each r
 one `ImportRow`: a row with validation errors, a `RowProblem` or a duplicate is `problem` with
 each problem and its column (FR-017: every one, whether or not the row has location columns); a
 skip with a note is `skipped`; a skip without one is `unchanged`; `new` and `update` carry their
-changes. Progress is written to the cache every ten rows (`on_row`). The job's status ends as
+changes. An empty cell in a column a new record needs is a problem on that row, and so is
+clearing a required value on an update (the resource reads `Column.required` per cell, since
+`clean_model_instances` is off, DR-014). Duplicates are found by the resolved record: after
+`import_data`, every row whose `instance.pk` appears in more than one row is a problem, and the
+comparison of the keys' text stays for rows that add records, so a portal ID on one row and the
+Local ID of the same record on another are caught (FR-014, DR-007). Progress is written to the cache every ten rows (`on_row`). The job's status ends as
 `problems`, `checked` or `nothing`. A file that cannot be read ends as `failed` and its file is
 deleted.
 
-`perform(job, user)` runs in one `transaction.atomic()`:
+`ImportRun.perform(user)` runs in one `transaction.atomic()`:
 
-1. Lock the dataset row with `Dataset.objects.select_for_update()`. Imports of one dataset write
-   one at a time, and the second reads what the first wrote (FR-021).
+1. Lock the dataset row with `Dataset.all_objects.select_for_update().get(pk=job.dataset_id)`
+   (`all_objects`, because the default manager hides private datasets), re-read the job under the
+   lock and return unless its status is `importing`. Imports of one dataset write one at a time,
+   and the second reads what the first wrote (FR-021). Tests assert the lock from captured
+   queries (a `FOR UPDATE` on the dataset row before any write).
 2. Run the same import as the check with `dry_run=False` and collect each row's outcome and
    changes in memory.
 3. Compare, row by row, the outcome and the changes with the check's `ImportRow` rows. Any
@@ -207,33 +237,40 @@ deleted.
 4. On a difference: outside the rolled-back block, replace the rows with the new outcomes, set the
    status back to `problems` or `checked`, and set `error` to a sentence saying the dataset
    changed since the check (FR-019).
-5. Otherwise, for each written row: record `record_pk`, `portal_id`, `digest(record)` and, for an
-   update, `before` (the stored values of the attributes that changed). Set `imported_at`,
+5. Otherwise, for each written row record `record_pk` and `portal_id`, and take the `digest`
+   (and, for an update, `before`) from a fresh read inside the transaction:
+   `job.model.objects.filter(pk__in=chunk)` in chunks of 500, the query `conflicts` uses, never
+   the instance the import held (DR-003). A test covers a decimal-places column and a datetime
+   under a non-UTC `TIME_ZONE`. Set `imported_at`,
    `imported_by` and the status `imported`, and delete the file.
 
-The two phases share one function (`run(job, dry_run)`), as the prototype's engine does. The
+The two phases share one method (`run(dry_run)`), as the prototype's engine does. The
 resource itself never touches the job.
 
 ## Undo
 
 - **What is kept**: for a created record, `record_pk` and `digest`. For an updated record,
-  `record_pk`, `digest` and `before`, a map from attribute name to the stored string of the value
-  that was replaced (JSON-safe: strings for decimals, ISO text for dates, WKT for a point,
-  portal IDs for relations).
-- **`digest(record)`** is the SHA-256 of a canonical JSON of every concrete field's stored value,
+  `record_pk`, `digest` and `before`, a map from attribute name to
+  `field.value_to_string(original)` of the value that was replaced, the encoding the digest uses,
+  so no widget is involved (a point is its WKT). Undo puts a value back with
+  `setattr(record, field.attname, field.to_python(value))` (DR-009).
+- **`ImportUndo.digest(record)`** is the SHA-256 of a canonical JSON of every concrete field's stored value,
   `modified` included, read with `field.value_to_string(record)`. Computed inside the import's
   transaction after the save, so it describes what the database holds. A save that changes
   nothing still moves `modified`, so even that is a change since. A queryset `update()` that skips
   `modified` changes a value and so changes the digest. A deleted record has no digest at all.
-- **`conflicts(job, user)`** loads the touched records in chunks of 500 by `record_pk`, and returns
-  one entry per record whose digest differs or that no longer exists, per sample added that has
-  measurements (`Measurement.objects.filter(sample_id__in=...)`) and per record the person
-  may not change (D20). It returns the first 20 and the full count.
-- **`undo(job, user)`** runs in one `transaction.atomic()` after locking the dataset: it recomputes
-  `conflicts`, raises when there is any, deletes the created records (one `delete()` per
-  chunk through the type's manager so signals and polymorphic children fire as a hand deletion's
-  do), and restores each updated record's `before` values through the same cell widgets in
-  reverse, then saves it. It sets `undone_at`, `undone_by` and the status `undone`, and deletes the
+- **`conflicts(user, limit=20)`** loads the touched records in chunks of 500 by `record_pk`, and
+  returns one entry per record whose digest differs or that no longer exists, and per sample
+  added that has measurements (`Measurement.objects.filter(sample_id__in=...)`), stopping at
+  `limit` entries and counting the rest. It is computed on the POST of an undo, and on a GET of
+  an imported job only to decide whether the button shows, with the cost on a 50,000-row import
+  measured at the browser pass. Who may undo is decided once, by the dataset's `import_data`
+  permission (D20); `conflicts` reads no per-record permission (DR-008).
+- **`ImportUndo.undo(user)`** runs in one `transaction.atomic()` after locking the dataset with
+  `Dataset.all_objects.select_for_update()` (the lock is asserted from captured queries): it
+  recomputes `conflicts`, raises when there is any, deletes the created records (one `delete()`
+  per chunk through the type's manager so signals and polymorphic children fire as a hand
+  deletion's do), and restores each updated record's `before` values, then saves it. It sets `undone_at`, `undone_by` and the status `undone`, and deletes the
   file if one is left.
 
 ## Pages: `fairdm/contrib/import_export/plugins.py`
@@ -244,19 +281,30 @@ sit under the dataset: `import/<type>/`, `imports/`, `imports/<job>/`, `imports/
 `can_import(request, dataset)` is `has_perm(request, "dataset.import_data", dataset)` and every
 page answers a person without it with a 404 through `handle_no_permission` (FR-001).
 
-- `ImportPage` (base): permission, the step bar's context, breadcrumb.
+- `ImportPage` (base): permission, the step bar's context, breadcrumb. `JobPage` reads the job as
+  `self.dataset.import_jobs.filter(pk=...)` and answers 404 when none is found, for columns,
+  detail, status and problems alike, so another dataset's job under this dataset's address is a
+  404 (DR-001). Each POST moves the status with one conditional update,
+  `import_jobs.filter(pk=..., status__in=ALLOWED).update(status=NEXT)`, and queues the task only
+  when it updated one row. ALLOWED: `import` from `checked` with writes; `recheck` from `checked`,
+  `problems` or `nothing`; `discard` from `matching`, `checked` or `problems`; `undo` from
+  `imported`; the columns POST from `matching`, `checked`, `problems` or `nothing`. The problems
+  download is allowed in `problems` only. A double POST starts one task.
 - `ImportStart`: the type's page. Uses `c-import.guide`, the template links
   (`TableExport(schema).workbook()` for Excel, a headings-only file for CSV), the link to the
   type's Table Schema (`table_schema` URL from FS-039), the downloads of the dataset's current
-  records (the records tab's `?export=…&scope=all`), the options form and the upload. A refused
-  file is shown on the same page and no job exists.
+  records (the records tab's `?export=…&scope=all`), the options form and the upload. The upload
+  runs `FileReader.parse` on the uploaded bytes before the job is created, and a `FileProblem`
+  is shown on the same page with no job saved, one test for each FR-005 refusal (DR-019).
 - `JobColumns`: the matching page, real `<table>`, a heading, a few values and a select per row.
 - `JobDetail`: the check, the import and its outcome, with the rows by outcome a page at a time
   (`per_page = 100`, `?show=` and `?page=`), reading `ImportRow` with a filter and slice. Actions
   (`import`, `discard`, `recheck`, `undo`) are POSTs that start a task and redirect.
 - `JobStatus`: the progress component for HTMX, answering `HX-Refresh: true` once the run is over.
-- `JobProblems`: the workbook of a file with problems, built from `ImportRow.values` and
-  `problems`, with a Problems column and the cells at fault marked.
+- `JobProblems`: the workbook of a file with problems. It re-reads the stored file with
+  `FileReader.parse` (`ImportRow.line` maps back to the row), adds a Problems column and marks the
+  cells at fault. Every heading, value and message is written through `TableExport.write_text`,
+  so a cell such as `=1+1` stays text and a control character is dropped (DR-011, DR-012).
 - `DatasetImports`: past imports, `c-import.job-list`, empty state, and the dialog button.
 - `import_chooser(dataset, kind=None)`: the dialog's data, as the prototype builds it, over
   `import_definitions.all(kind)` and `definition.table_schema()`.
@@ -272,23 +320,27 @@ All new tests are seen to fail for the right reason before the code that makes t
 Fixtures (datasets with samples and measurements of every registered type, people at each level,
 file builders for the four formats) go in `tests/test_contrib/test_import_export/conftest.py`.
 
-- `test_reader.py`: `TestParse` over the four formats (a comma, a semicolon, a tab, an Excel
+- `test_reader.py`: `TestFileReader` (`TestParse`) over the four formats (a comma, a semicolon, a tab, an Excel
   and an OpenDocument file give the same headings and rows), the first sheet only, a blank first
   line, a file with no headings, no rows, over 50,000 rows and over 20 MB, a file of another
-  format, `TestEncoding` for UTF-8 with and without a byte order mark and for cp1252.
-- `test_matching.py`: `TestNormalise`, `TestMatchHeading` (name, label, label without unit,
+  format, `TestEncoding` for UTF-8 with and without a byte order mark and for cp1252, an OpenDocument file
+  with a repeated cell reading the same row as the CSV, one with three sheets reading the first
+  only, a workbook whose sheet entry is over `MAX_UNCOMPRESSED` refused before it opens, and a
+  read that stops at `MAX_ROWS + 1` rows.
+- `test_matching.py`: `TestHeadingMatcher` (`TestNormalise`, `TestMatchHeading` (name, label, label without unit,
   alias, case, spaces, punctuation), `TestMatchColumns` (two headings for one column),
   `TestMappingProblems` (a column a new record needs, two headings for one, update with no
   identifier) and `TestMappingWarnings` (no identifier while adding and updating, latitude without
-  longitude), `TestNeedsMatching` (FR-009).
+  longitude), `TestNeedsMatching` (FR-009), a `Sample ID` heading on a measurement file going to
+  `local_id`).
 - `test_forms.py`: `TestImportOptionsForm` (defaults, `chosen`, `brief`) and `TestUploadForm`.
 - `test_models.py`: `TestImportJob`, `TestImportRow` (status helpers, `writes`, ordering,
   cascade on dataset deletion).
 - `test_resources.py` (rewritten): `TestRecordLookup` (portal ID, then Local ID within the
   dataset, never name, a portal ID of another type needs changes, a portal ID of another dataset
   is left out with the measurement note), `TestModes` (both, add, update), `TestEmptyCells`,
-  `TestFieldProblems` (a row with no location column reports every field problem; the same row
-  with location columns reports them too), `TestDecimalComma`, `TestMeasurementSample` (portal ID of
+  `TestFieldProblems` (an empty cell in a required column of a new row and clearing a required value on an update are problems; a row with no location column reports every field problem; the same row
+  with location columns reports them too), `TestDecimalComma`, `TestSampleNameIgnored` (a `sample_name` column changes nothing, FR-016), `TestMeasurementSample` (portal ID of
   a visible sample in any dataset, Local ID and a unique name in this dataset only, a shared
   name, an invisible sample), `TestSampleCache` (a file of 300 rows over three samples costs three
   lookups), `TestChangedCells`, and `TestEveryRegisteredType` (every registered sample and
@@ -296,21 +348,23 @@ file builders for the four formats) go in `tests/test_contrib/test_import_export
 - `test_runner.py`: `TestCheck` (writes nothing to the dataset, keeps every outcome, duplicate
   keys, progress), `TestPerform` (writes what the check showed, one transaction, the second
   of two imports re-checks against the first's rows, a changed dataset returns to the check and saves
-  nothing, a deleted record does the same), `TestFileDeleted`, and `TestRoundTrip` (a file exported
+  nothing, a deleted record does the same, a private dataset imports, the `FOR UPDATE` lock on the
+  dataset row is seen in captured queries), `TestDuplicateRecords` (a row by portal ID and a row
+  by Local ID of one record both need changes), `TestTimeLimits` (a 50,000-row file checked and
+  imported within the tasks' limits, or the recorded timing they come from), `TestFileDeleted` (each of imported, undone, discarded and failed leaves no file and no cell of it), and `TestRoundTrip` (a file exported
   from a records table and imported back shows every row unchanged, SC-001).
-- `test_undo.py`: `TestDigest`, `TestConflicts` (an edit by `save`, a queryset `update()` that
-  skips `modified`, a deleted record, a measurement added to an added sample, a person without the
-  change permission), `TestUndo` (added deleted, changed restored, one transaction, nothing changed
+- `test_undo.py`: `TestImportUndo` (`TestDigest` with a decimal-places column and a datetime under a non-UTC `TIME_ZONE` equal at undo and at import; `TestConflicts` (an edit by `save`, a queryset `update()` that
+  skips `modified`, a deleted record, a measurement added to an added sample, an edit-level person who did not run the import may undo; a private dataset), `TestUndo` (added deleted, changed restored, one transaction, the dataset lock seen in captured queries, nothing changed
   when refused, SC-003).
-- `test_tasks.py`: `TestStart` (queues on commit, runs inline with no broker), `TestDiscardStale`
-  (30 days, the file deleted, the rows kept).
+- `test_tasks.py`: `TestStart` (queues on commit, nothing queued when the transaction rolls back), `TestDiscardStale`
+  (30 days, the file deleted, the rows kept), and a `post_migrate` case that the `PeriodicTask` row exists.
 - `test_plugins.py`: `TestPermission` (view-only person, a visitor and a person of another dataset
-  get a 404 on every address, no Import button), `TestImportStart`, `TestUpload` (a refused file
+  get a 404 on every address, another dataset's job under this dataset's address is a 404 on each job route, no Import button), `TestImportStart`, `TestUpload` (a refused file
   records no job; a clean file goes to the check; an unmatched heading goes to matching),
   `TestJobColumns`, `TestJobDetail` (rows by outcome a page at a time, the actions,
-  a double POST starts one task), `TestJobStatus`, `TestJobProblems` (the workbook carries each
-  problem beside its row), `TestPastImports`, `TestChooser` (samples only, measurements only, both).
-- `tests/test_utils/test_location_resources.py` (or the file that already tests the mixin):
+  a double POST starts one task, `import` POSTed on a `problems` or `nothing` job is refused and writes nothing), `TestJobStatus`, `TestJobProblems` (the workbook carries each
+  problem beside its row; a cell `=1+1` comes back as text), `TestPastImports`, `TestChooser` (samples only, measurements only, both).
+- `tests/test_utils/test_location/test_resources.py`:
   `TestImportInstance` for FR-017.
 - `tests/test_registry/`: the tests that name `get_resource_class` or `resource_class` are
   removed or rewritten with the component. `tests/test_templates/test_import_menu.py`,

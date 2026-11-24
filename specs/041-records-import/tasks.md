@@ -22,7 +22,7 @@ public name.
 - [ ] T001 [US1] Tests: `TestImportInstance` for `LocatedResourceMixin` in the test module that
   covers `fairdm/utils/location/resources.py` (a row with an invalid field and no location column
   is refused with that field's problem; the same with location columns reports the field's and the
-  location's).
+  location's). The module is `tests/test_utils/test_location/test_resources.py`.
 - [ ] T002 [US1] Fix `LocatedResourceMixin.import_instance` in `fairdm/utils/location/resources.py`
   as plan.md "Modules" describes. T001 goes green.
 
@@ -42,14 +42,20 @@ public name.
 - [ ] T005 [US1] Remove the registry's `resource` component, `ResourceFactory`, `resource_class`
   and `get_resource_class()` (D19). Rewrite or delete the registry tests that name them. Edit
   `docs/developers/how-to/import-and-export-locations.md`,
-  `docs/developers/reference/model-configuration.md` and `docs/contributing/registry-system.md`.
+  `docs/developers/reference/model-configuration.md`, `docs/contributing/registry-system.md` and
+  `docs/developers/reference/location-fields.md` (which names `BaseFairDMResource`). Name
+  `resource_fields` explicitly in the registry's `_OVERRIDABLE` and `_field_lists` so the column
+  model still reads it, with a test (DR-010). `tests/test_registry/test_config.py` lists
+  `get_resource_class` and is edited.
 
 ### Group 3
 
 - [ ] T006 [US1] Tests: `TestImportJob` and `TestImportRow` in
   `tests/test_contrib/test_import_export/test_models.py`, as plan.md "Tests" lists.
 - [ ] T007 [US1] `fairdm/contrib/import_export/models.py` (`ImportJob`, `ImportRow`) and
-  `migrations/0001_initial.py` (squashed to one file), as plan.md "Data model" describes. T006
+  `migrations/0001_initial.py` (squashed to one file), `verbose_name`, `help_text` and the index on every
+  field as plan.md "Data model" describes, the `post_delete` receiver that deletes the file, and
+  `ImportJobFactory` and `ImportRowFactory` in `tests/factories.py` (DR-017, DR-018). T006
   goes green. `makemigrations --check` is clean.
 - [ ] T008 [US1] Tests: `TestImportOptionsForm` and `TestUploadForm` in
   `tests/test_contrib/test_import_export/test_forms.py`.
@@ -61,9 +67,10 @@ public name.
 ### Group 4
 
 - [ ] T010 [US1] Tests: `test_reader.py` and `test_matching.py`, as plan.md "Tests" lists.
-- [ ] T011 [US1] `reader.py` (`FileProblem`, limits, `file_format`, `read_grid`, `parse`) rebuilt
-  from the prototype's `engine.py` reading part, and `matching.py` (`normalise`, `match_heading`,
-  `match_columns`, `mapping_problems`, `mapping_warnings`, `needs_matching`). T010 goes green.
+- [ ] T011 [US1] `reader.py` (`FileProblem` and `FileReader`: limits, `file_format`, `read_grid`, `parse`; OpenDocument
+  read with odfpy directly) rebuilt from the prototype's `engine.py` reading part, and `matching.py`
+  (`HeadingMatcher`: `normalise`, `match`, `match_columns`, `problems`, `warnings`,
+  `needs_matching`). T010 goes green.
 
 ### Group 5
 
@@ -78,8 +85,8 @@ public name.
 
 - [ ] T014 [US1] Tests: `test_runner.py` (check, perform, divergence, lock, file deletion,
   round trip) and `test_tasks.py` `TestStart`.
-- [ ] T015 [US1] `runner.py` (`run`, `check`, `perform`, `progress`) and `tasks.py`
-  (`check_job`, `import_job`, `start`), as plan.md "The check and the import" describes. T014
+- [ ] T015 [US1] `runner.py` (`ImportRun`: `run`, `check`, `perform`, `progress`) and `tasks.py`
+  (`check_job` and `import_job` with their own time limits, `start` with no inline fallback), as plan.md "The check and the import" describes. T014
   goes green.
 
 ### Group 7
@@ -113,7 +120,7 @@ public name.
 - [ ] T021 [US2] Tests: `test_undo.py` and `TestDiscardStale` in `test_tasks.py`, and the undo and
   past-imports tests in `test_plugins.py` (`TestPastImports`, undo refused naming the records,
   undo done).
-- [ ] T022 [US2] `undo.py`, the `undo` action and conflicts on the job page, `DatasetImports`,
+- [ ] T022 [US2] `undo.py` (`ImportUndo`), the `undo` action and conflicts on the job page, `DatasetImports`,
   `discard_stale_jobs` and its periodic task registered in `apps.py`, as plan.md "Undo" describes.
   T021 goes green.
 

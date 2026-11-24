@@ -158,3 +158,33 @@ at the edit level. So undo asks `change_<model>` of each record it touches, whic
 person holds, and refuses a record the person may not change. The portal has no rule about a
 dataset's published state that blocks a change, so there is nothing more to read. Reported at the
 merge gate for the orchestrator to confirm. **ADR:** none — local to this feature.
+
+## D21 — The stored rows keep no cell of the file
+
+`ImportRow` holds the outcome, changes, problems, the record and its digest, and no copy of the
+file's cells. The problems workbook is built by reading the stored file again, which exists while
+an import can still have problems. When the file is deleted, the values shown on column matching
+are cleared with it, so no cell outlives the file (D4). **ADR:** none — local to this feature.
+
+## D22 — The new modules are one class each
+
+The constitution asks for classes, so the file reader is `FileReader`, the heading matcher is
+`HeadingMatcher(schema)`, the check and the import are `ImportRun(job)` and the undo is
+`ImportUndo(job)`. No base class. **ADR:** none.
+
+## Watch items from the design review
+
+Each is folded into the plan or a task. The build briefs carry the ones that bind code.
+
+- Job pages look the job up through the dataset and POST actions move the status with one
+  conditional update (plan, "Pages").
+- `Dataset.all_objects` takes the lock, since the default manager hides private datasets.
+- The digest and `before` come from a fresh read after the writes, in `value_to_string` form.
+- Celery limits on both tasks, caught `SoftTimeLimitExceeded`, a timed 50,000-row run.
+- Duplicates are found by the resolved record, and an empty required cell is a row problem.
+- The problems workbook goes through `TableExport.write_text`.
+- Reading stops at 50,001 rows and refuses an oversized uncompressed sheet.
+- A `post_delete` receiver deletes the stored file.
+- The upload is parsed before the job is created.
+- Undo conflicts are computed on the undo POST, and `plugins.py` is edited by Groups 7 and 9 in
+  sequence, never together.
