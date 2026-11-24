@@ -393,7 +393,7 @@ class ImportTemplate(DefinitionMixin, ImportPage):
         else:
             buffer = io.StringIO(newline="")
             csv.writer(buffer).writerow(schema.headings)
-            payload = ("﻿" + buffer.getvalue()).encode("utf-8")
+            payload = ("\ufeff" + buffer.getvalue()).encode("utf-8")
         chosen = format_for(fmt)
         response = HttpResponse(payload, content_type=chosen.content_type)
         filename = f"{slugify(schema.name)}-template.{chosen.extension}"
