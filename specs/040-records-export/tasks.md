@@ -31,7 +31,7 @@ reason before the code that makes it pass is written. Wording and appearance get
 
 ### Group 3
 
-- [ ] T004 [US1] Tests: `TestExportRequest`, `TestExportVisibility`, `TestExportStability`,
+- [x] T004 [US1] Tests: `TestExportRequest`, `TestExportVisibility`, `TestExportStability`,
   `TestExportMenuContext` and `TestFileName` and `TestExportQueries` in
   `tests/test_contrib/test_import_export/test_mixins.py` (fixtures in that directory's `conftest.py`), and `TestExportOnPages` in
   `tests/test_contrib/test_collections/test_views.py`, as plan.md "Tests" describes.

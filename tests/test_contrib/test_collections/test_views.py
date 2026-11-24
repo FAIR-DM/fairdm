@@ -8,11 +8,14 @@ from pathlib import Path
 import pytest
 from bs4 import BeautifulSoup
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
+from django.test import RequestFactory
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
+from fairdm.contrib.import_export.mixins import RecordExportMixin
 from pytest_django.asserts import assertContains
 
 import fairdm.contrib.collections as collections_pkg
@@ -33,8 +36,14 @@ from demo.models import (
     XRFMeasurement,
 )
 from fairdm.contrib.collections.views import DataTableView
+from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.core.sample.models import Sample
-from fairdm.factories import DatasetFactory, ProjectFactory
+from fairdm.factories import (
+    ContributionFactory,
+    DatasetFactory,
+    PersonFactory,
+    ProjectFactory,
+)
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
 
@@ -749,3 +758,63 @@ class TestOneSearchControl:
 
         assert "q" in toolbar
         assert "search" not in toolbar | panel
+
+
+@pytest.mark.django_db
+class TestExportOnPages:
+    """Every records table offers its export, and a table of the project's own does too."""
+
+    @pytest.fixture
+    def holders(self, published_dataset, published_sample):
+        """A dataset, a project and a contributor, each holding the published rock."""
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        released = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
+        RockSampleFactory(dataset=released)
+        person = PersonFactory()
+        ContributionFactory(
+            content_object=published_sample,
+            contributor=person,
+            level=ContributionLevel.VIEW,
+        )
+        return {
+            "dataset": published_dataset,
+            "project": project,
+            "contributor": person,
+        }
+
+    def test_the_portal_listing_has_a_menu(self, client, published_sample):
+        slug = registry.get_for_model(RockSample).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        assert response.context["export_menu"]["shown"] == 1
+
+    @pytest.mark.parametrize("holder", ["dataset", "project", "contributor"])
+    def test_a_tab_of_each_kind_of_record_has_a_menu(
+        self, client, tab_url, holders, holder
+    ):
+        response = client.get(tab_url(holders[holder], "samples", RockSample))
+
+        assert response.context["export_menu"]["shown"] == 1
+
+    def test_a_tab_with_no_records_has_no_menu(self, client, tab_url):
+        empty = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+
+        response = client.get(tab_url(empty, "samples"))
+
+        assert response.context["export_menu"] is None
+
+    def test_a_listing_of_the_projects_own_inherits_the_menu(self, published_sample):
+        class OwnListing(DataTableView):
+            """A listing a project defines for itself."""
+
+        config = registry.get_for_model(RockSample)
+        request = RequestFactory().get("/")
+        request.user = AnonymousUser()
+
+        response = OwnListing.as_view(model=RockSample, model_config=config)(request)
+
+        assert issubclass(OwnListing, RecordExportMixin)
+        assert response.context_data["export_menu"]["shown"] == 1
