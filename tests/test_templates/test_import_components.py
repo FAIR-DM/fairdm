@@ -199,6 +199,14 @@ class TestPanel:
         )
         assert f"ie-panel--{size}" in page.select_one("section")["class"]
 
+    def test_a_flush_panel_keeps_its_heading_in_the_header(self, render_markup, soup):
+        page = soup(
+            render_markup('<c-import.panel title="T" size="flush">x</c-import.panel>')
+        )
+        header = page.select_one("section.ie-panel--flush > header.ie-panel__head")
+        assert header is not None
+        assert header.select_one("h2.ie-panel__title") is not None
+
     def test_a_plain_panel_has_no_size_class(self, render_markup, soup):
         page = soup(render_markup('<c-import.panel title="T">x</c-import.panel>'))
         assert page.select_one("section")["class"] == ["ie-panel"]
