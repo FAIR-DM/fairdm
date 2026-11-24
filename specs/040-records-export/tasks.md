@@ -23,9 +23,9 @@ reason before the code that makes it pass is written. Wording and appearance get
 
 ### Group 2
 
-- [ ] T002 [US1] Tests: `TestExportResponse`, `TestExportOrder`, `TestSampleName` and `TestWorkbook`
+- [x] T002 [US1] Tests: `TestExportResponse`, `TestExportOrder`, `TestSampleName` and `TestWorkbook`
   in `tests/test_contrib/test_import_export/test_exports.py`, as plan.md "Tests" describes.
-- [ ] T003 [US1] `fairdm/contrib/import_export/exports.py` (`ExportFormat`, `EXPORT_FORMATS`,
+- [x] T003 [US1] `fairdm/contrib/import_export/exports.py` (`ExportFormat`, `EXPORT_FORMATS`,
   `format_for`, the class `TableExport`), as plan.md "The writer"
   describes, rebuilt from the prototype's `exports.py`. T002 goes green.
 
