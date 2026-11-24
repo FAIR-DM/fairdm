@@ -156,8 +156,11 @@ change at the edit level. Reading "by hand" as a deletion would make an import t
 impossible to undo for the people the specification names. The import itself added those records
 at the edit level. So undo asks `change_<model>` of each record it touches, which an edit-level
 person holds, and refuses a record the person may not change. The portal has no rule about a
-dataset's published state that blocks a change, so there is nothing more to read. Reported at the
-merge gate for the orchestrator to confirm. **ADR:** none — local to this feature.
+dataset's published state that blocks a change, so there is nothing more to read. Ruled on Sam's behalf by the
+orchestrator (2026-11-24): undo needs only the dataset's import permission. It takes back only what
+that import did and is refused once any of those records has been changed since, so it never
+deletes a record that existed before the import and gives nobody a delete they did not already
+have. The per-record permission check is dropped. **ADR:** none — local to this feature.
 
 ## D21 — The stored rows keep no cell of the file
 
