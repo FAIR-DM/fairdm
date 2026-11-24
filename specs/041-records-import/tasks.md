@@ -23,7 +23,7 @@ public name.
   covers `fairdm/utils/location/resources.py` (a row with an invalid field and no location column
   is refused with that field's problem; the same with location columns reports the field's and the
   location's). The module is `tests/test_utils/test_location/test_resources.py`.
-- [ ] T002 [US1] Fix `LocatedResourceMixin.import_instance` in `fairdm/utils/location/resources.py`
+- [x] T002 [US1] Fix `LocatedResourceMixin.import_instance` in `fairdm/utils/location/resources.py`
   as plan.md "Modules" describes. T001 goes green.
 
 ### Group 2
