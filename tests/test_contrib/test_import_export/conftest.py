@@ -2,10 +2,44 @@
 
 import pytest
 
-from demo.models import ICP_MS_Measurement, RockSample, XRFMeasurement
+from demo.factories import (
+    CustomParentSampleFactory,
+    CustomSampleFactory,
+    ExampleMeasurementFactory,
+    ICP_MS_MeasurementFactory,
+    RockSampleFactory,
+    SoilSampleFactory,
+    WaterSampleFactory,
+    XRFMeasurementFactory,
+)
+from demo.models import (
+    CustomParentSample,
+    CustomSample,
+    ExampleMeasurement,
+    ICP_MS_Measurement,
+    RockSample,
+    SoilSample,
+    WaterSample,
+    XRFMeasurement,
+)
 from fairdm.contrib.import_export.schema import Column
+from fairdm.core.measurement.models import Measurement
+from fairdm.factories import DatasetFactory
 from fairdm.registry import registry
 from fairdm.registry.config import ModelConfiguration
+from fairdm.utils.choices import Visibility
+
+RECORD_FACTORIES = {
+    RockSample: RockSampleFactory,
+    SoilSample: SoilSampleFactory,
+    WaterSample: WaterSampleFactory,
+    CustomParentSample: CustomParentSampleFactory,
+    CustomSample: CustomSampleFactory,
+    ExampleMeasurement: ExampleMeasurementFactory,
+    XRFMeasurement: XRFMeasurementFactory,
+    ICP_MS_Measurement: ICP_MS_MeasurementFactory,
+}
+"""The factory of each registered demo type."""
 
 
 @pytest.fixture
@@ -115,3 +149,36 @@ def factory_for():
         ),
     }
     return by_model.__getitem__
+
+
+@pytest.fixture
+def open_dataset():
+    """A published dataset anyone may see."""
+    return DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+
+
+@pytest.fixture
+def make_record(open_dataset):
+    """Return a function creating a stored record of any registered type."""
+
+    def build(model, **overrides):
+        """Create the record with its type's factory.
+
+        Args:
+            model: A registered sample or measurement model.
+            **overrides: Field values for the record.
+
+        Returns:
+            The stored record. A measurement is made on a new sample in the same
+            dataset unless the overrides give one.
+        """
+        factory_class = RECORD_FACTORIES[model]
+        overrides.setdefault("dataset", open_dataset)
+        if issubclass(model, Measurement):
+            overrides.setdefault(
+                "sample", RockSampleFactory(dataset=overrides["dataset"])
+            )
+        return factory_class(**overrides)
+
+    return build
+
