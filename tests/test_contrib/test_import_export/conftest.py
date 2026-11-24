@@ -199,7 +199,7 @@ def named_rocks(open_dataset):
 
 @pytest.fixture
 def private_rocks():
-    """Rocks no visitor may list: in a private dataset, an unpublished one, a private project."""
+    """Rocks no visitor may list: private, unpublished or in a private project."""
     private = DatasetFactory(visibility=Visibility.PRIVATE, published=False)
     unpublished = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
     hidden_project = ProjectFactory(visibility=Visibility.PRIVATE)

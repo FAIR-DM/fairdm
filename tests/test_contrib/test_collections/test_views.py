@@ -773,7 +773,7 @@ def records_tab(holder, kind, model=None):
 
 @pytest.mark.django_db
 class TestExportOnPages:
-    """Every records table offers its export, and a table of the project's own does too."""
+    """Every records table offers its export, and so does a project's own table."""
 
     @pytest.fixture
     def holders(self):

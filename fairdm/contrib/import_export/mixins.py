@@ -17,8 +17,8 @@ class RecordExportMixin:
     """Answers ``?export=<format>`` on a records table with the table's rows as a file.
 
     Add it first among a table view's bases. A request without ``export`` is left to the
-    view. The rows are those the table shows for the request's search and filters, or with
-    ``scope=all`` every row the table could list, whatever page the address names.
+    view. The rows are those the table shows for the request's search and filters, or
+    with ``scope=all`` every row the table could list, whatever page the address names.
     """
 
     def export_definition(self):
@@ -67,9 +67,10 @@ class RecordExportMixin:
             definition: The listed type's definition, found when not given.
 
         Returns:
-            Every record the table could list for ``scope=all``, else those the request's
-            search and filters leave. A measurement is annotated with whether its sample
-            is open to the viewer, and the cells' relations are loaded with the rows.
+            Every record the table could list for ``scope=all``, else those the
+            request's search and filters leave. A measurement is annotated with
+            whether its sample is open to the viewer, and the cells' relations are
+            loaded with the rows.
         """
         definition = definition or self.export_definition()
         queryset = self.get_queryset()
