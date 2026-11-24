@@ -213,7 +213,7 @@ class Plugin(PermissionRequiredMixin, View):
         if not context.get("object"):
             context["object"] = getattr(self, "object", None) or self.base_object
 
-        context["breadcrumbs"] = self.get_breadcrumbs()
+        context["breadcrumbs"] = self.get_finished_breadcrumbs()
 
         # The base template renders the local tab navigation when `plugin_menu` is present.
         context["plugin_menu"] = self.menu
@@ -226,6 +226,16 @@ class Plugin(PermissionRequiredMixin, View):
 
         return context
 
+    def get_page_context(self) -> dict[str, Any]:
+        """Draw the header's trail from :meth:`get_finished_breadcrumbs`."""
+        page = super().get_page_context()  # type: ignore[misc]
+        page["breadcrumbs"] = self.get_finished_breadcrumbs()
+        return page
+
+    def get_finished_breadcrumbs(self) -> list[dict[str, Any]]:
+        """Return :meth:`get_breadcrumbs` as the page draws it, through :func:`finish_trail`."""
+        return finish_trail(self.get_breadcrumbs(), record_kind(self.registered_model))
+
     def get_breadcrumbs(self) -> list[dict[str, Any]]:
         """Build the breadcrumb trail from the model, the record and the page title.
 
@@ -237,26 +247,23 @@ class Plugin(PermissionRequiredMixin, View):
 
         breadcrumbs: list[dict[str, Any]] = []
         record_class = record_crumb_class(self.registered_model)
-        kind = record_kind(self.registered_model)
+        obj = self.base_object
 
-        if self.registered_model:
-            meta = self.registered_model._meta
-            entry: dict[str, Any] = {"text": capfirst(meta.verbose_name_plural)}
-            # A core record type leads its trail with the type's icon, which is also what the
-            # step shrinks to on a narrow trail.
-            if kind:
-                entry["icon"] = kind
-            # A record type may have no list page; a trail entry that does not navigate is worse
-            # than one that is plain text, so the link is added only when it resolves.
+        # The trail starts at the list of the record's own type: a soil sample's starts at the
+        # soil samples, which is a page, where the plugin may be mounted on every sample. A type
+        # with no list page gets no step, as every step but the last must be a page to go to.
+        for model in dict.fromkeys(m for m in (type(obj) if obj is not None else None, self.registered_model) if m):
+            meta = model._meta
             for candidate in (f"{meta.model_name}-list", f"{meta.model_name}s"):
                 try:
-                    entry["href"] = django_reverse(candidate)
+                    href = django_reverse(candidate)
                 except NoReverseMatch:
                     continue
+                breadcrumbs.append({"text": capfirst(meta.verbose_name_plural), "href": href})
                 break
-            breadcrumbs.append(entry)
+            if breadcrumbs:
+                break
 
-        obj = self.base_object
         if obj is not None:
             # Not cut short here: the trail truncates with an ellipsis only when it runs out of
             # room in the header.
@@ -273,6 +280,26 @@ class Plugin(PermissionRequiredMixin, View):
             breadcrumbs.append({"text": self.page_title})
 
         return breadcrumbs
+
+
+def finish_trail(trail: list[dict[str, Any]], kind: str) -> list[dict[str, Any]]:
+    """Give a core record's trail its icon and make its last step the current page.
+
+    Args:
+        trail: The breadcrumb dicts a plugin built.
+        kind: The core record type the plugin serves, or an empty string.
+
+    Returns:
+        A copy of the trail. A core record type's icon is on its first step, which is also what
+        that step shrinks to on a narrow trail. The last step has no link, so it is drawn as the
+        current page, as it is on a record's own overview.
+    """
+    trail = [dict(crumb) for crumb in trail]
+    if trail and kind:
+        trail[0]["icon"] = kind
+    if trail:
+        trail[-1].pop("href", None)
+    return trail
 
 
 def record_kind(model: type[Model] | None) -> str:
