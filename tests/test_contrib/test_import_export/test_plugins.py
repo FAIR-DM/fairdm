@@ -1367,6 +1367,17 @@ class TestJobUndo:
         page = parse(editor_client.get(job_url(job)))
         assert page.select('form button[name="action"][value="undo"]')
 
+    def test_undo_is_asked_for_in_a_dialog_before_it_is_posted(
+        self, editor_client, job_url, imported_job
+    ):
+        job, _added, _changed = imported_job
+        page = parse(editor_client.get(job_url(job)))
+        dialog = page.select_one("dialog#ie-undo")
+        assert dialog.select_one('form[method="post"] button[value="undo"]')
+        opener = page.select_one('button[aria-haspopup="dialog"][type="button"]')
+        assert opener is not None
+        assert not page.select('form:not(dialog form) button[value="undo"]')
+
     def test_the_undo_button_is_not_shown_when_a_record_changed(
         self, editor_client, job_url, imported_job
     ):

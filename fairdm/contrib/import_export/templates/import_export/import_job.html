@@ -79,13 +79,28 @@
           <div class="ie-actions">
             <a class="btn btn-primary" href="{{ records_url }}"><i class="bi bi-table" aria-hidden="true"></i> {% blocktranslate with type=job.type_name %}See the {{ type }}{% endblocktranslate %}</a>
             {% if not undo_blocked %}
-              <form method="post" data-ie-once>
-                {% csrf_token %}
-                <button type="submit" name="action" value="undo" class="btn btn-ghost"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> {% translate "Undo this import" %}</button>
-              </form>
+              <button type="button" class="btn btn-ghost" aria-haspopup="dialog" onclick="document.getElementById('ie-undo').showModal()"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> {% translate "Undo this import" %}</button>
             {% endif %}
           </div>
         </c-import.panel>
+        {% if not undo_blocked %}
+          <dialog id="ie-undo" class="modal">
+            <form method="post" class="modal-box ie-dialog" data-ie-once>
+              {% csrf_token %}
+              <h3 class="ie-panel__title">{% translate "Undo this import?" %}</h3>
+              <ul class="ie-list">
+                {% if job.summary.new %}<li>{% blocktranslate count n=job.summary.new with type=job.type_name %}The {{ n }} record it added is deleted.{% plural %}The {{ n }} {{ type }} it added are deleted.{% endblocktranslate %}</li>{% endif %}
+                {% if job.summary.update %}<li>{% blocktranslate count n=job.summary.update %}The record it changed gets back the values it had before.{% plural %}The {{ n }} records it changed get back the values they had before.{% endblocktranslate %}</li>{% endif %}
+              </ul>
+              <p class="ie-note">{% translate "The import stays listed under Past imports, marked as undone." %}</p>
+              <div class="modal-action">
+                <button type="button" class="btn btn-ghost" onclick="this.closest('dialog').close()">{% translate "Keep it" %}</button>
+                <button type="submit" name="action" value="undo" class="btn btn-error">{% translate "Undo the import" %}</button>
+              </div>
+            </form>
+            <form method="dialog" class="modal-backdrop"><button>{% translate "Close" %}</button></form>
+          </dialog>
+        {% endif %}
         {% if undo_blocked %}
           <c-import.panel :title="_('This import cannot be undone')" tone="error" icon="exclamation-triangle-fill">
             <p class="ie-lead">{% translate "A record it added or changed has been changed or deleted since, or a sample it added now has measurements. Undoing would lose that work, so nothing was touched." %}</p>
