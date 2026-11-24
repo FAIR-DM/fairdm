@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **A type's configuration no longer builds an import and export resource.** `resource_class`, `get_resource_class()`, the `ResourceFactory` and `BaseFairDMResource`, `SampleResource` and `MeasurementResource` are gone, with the old import page and its form. `resource_fields` stays and lists the columns of a type's import and export file. A configuration that sets `resource_class` now raises `TypeError`. A dataset's ZIP package writes each type's file with the same columns as the Export menu.
 
+  To upgrade a portal that set `resource_class` on a type's configuration:
+
+  1. Remove `resource_class` from each `ModelConfiguration`. Leaving it in raises `TypeError` when the registry loads.
+  2. List the columns the type's import and export file holds in `resource_fields`. A column not listed is not read or written.
+  3. Delete the custom resource class, and any import of `BaseFairDMResource`, `SampleResource`, `MeasurementResource` or `ResourceFactory`.
+  4. Move what the custom resource did into the model or its fields. The import now reads each cell through the widget of the column's field and matches a row to a record by its portal ID, then by its Local ID within the dataset. A custom resource could set other `import_id_fields`, add a `Meta` option, a per-column widget or a hook such as `before_import_row`, and the import no longer reads any of them. A rule on a value belongs in a validator of the model field, which the check reports with the row's other problems.
+
 ### Changed
 
 - **FairDM now needs django-mvp 0.36 and django-mvp-forms 0.11.** `Person` gains a `preferences` field, which stores the timezone and language a person picks on django-mvp's preferences page. Run `migrate` to add it. FairDM installs `object_preferences` and lists `mvp.middleware.PreferencesMiddleware` below the locale middleware, so a signed-in person sees pages in the language and times in the timezone they chose. A portal that sets `MIDDLEWARE` itself must add it there.
