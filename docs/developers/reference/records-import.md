@@ -95,7 +95,7 @@ Where two columns claim the same words, the first column of the schema keeps the
 
 `match_columns(headings)` matches a whole file and returns the column name of each heading. The first heading to take a column keeps it, and a second heading for the same column, or one that means no column, is an empty string.
 
-`problems(job)` lists what stops the matched columns from being checked: no column matched, two headings matched to one column, a column a new record needs left unmatched unless the job only updates, and a job that only updates with neither the portal ID nor the Local ID matched. `warnings(job)` lists what is worth knowing and does not stop the check: a job that adds and updates with no identifier column, and a latitude matched without a longitude or the reverse. `needs_matching(job)` is true when a heading of the job is matched to no column or `problems` is not empty. A warning alone leaves the matching to be skipped.
+`problems(job)` lists what stops the matched columns from being checked: no column matched, two headings matched to one column, a column a new record needs left unmatched unless the job only updates, and a job that only updates with neither the portal ID nor the Local ID matched. `warnings(job)` lists what is worth knowing and does not stop the check: a job that adds and updates with no identifier column, and a latitude matched without a longitude or the reverse. `needs_matching(job)` is true when a heading of the job is matched to no column or `problems` is not empty. A warning alone leaves the matching to be skipped, so the job page shows the warnings above its panel while the file is checked and its outcome is waiting.
 
 ## Importing rows
 

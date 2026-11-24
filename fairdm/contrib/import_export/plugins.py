@@ -598,6 +598,8 @@ class JobDetail(JobPage):
     Attributes:
         per_page: How many rows a page lists.
         ACTIONS: For each action the statuses it may start from and the one it moves to.
+        CHECK_STATUSES: The statuses in which the warnings about the file's columns are
+            shown.
     """
 
     url_path = "<int:job>"
@@ -624,6 +626,12 @@ class JobDetail(JobPage):
             ImportJob.Status.DISCARDED,
         ),
     }
+    CHECK_STATUSES = (
+        ImportJob.Status.CHECKING,
+        ImportJob.Status.CHECKED,
+        ImportJob.Status.NOTHING,
+        ImportJob.Status.PROBLEMS,
+    )
     TITLES = {
         ImportJob.Status.CHECKING: _l("Checking %(file)s"),
         ImportJob.Status.CHECKED: _l("%(file)s is ready to import"),
@@ -775,6 +783,11 @@ class JobDetail(JobPage):
         context["progress_total"] = self.progress_total()
         context["undo_refusal"] = (
             job.error.splitlines() if job.status == ImportJob.Status.IMPORTED else []
+        )
+        context["warnings"] = (
+            HeadingMatcher(context["schema"]).warnings(job)
+            if job.status in self.CHECK_STATUSES
+            else []
         )
         return context
 

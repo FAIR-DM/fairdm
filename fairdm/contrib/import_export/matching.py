@@ -151,7 +151,7 @@ class HeadingMatcher:
 
         Returns:
             True when a heading is matched to no column or a problem stops the check.
-            Warnings alone leave the matching to be skipped.
+            Warnings alone leave the matching to be skipped. The job's page shows them.
         """
         unmatched = any(not job.column_map.get(h) for h in job.headers)
         return unmatched or bool(self.problems(job))

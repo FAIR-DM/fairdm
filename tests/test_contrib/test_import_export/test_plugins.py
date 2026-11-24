@@ -597,6 +597,27 @@ def add_rows(job, outcome, count, start=1):
 class TestJobDetail:
     """The check and its outcome, with the actions that move a job on."""
 
+    def test_a_warning_about_the_columns_is_on_the_page_after_an_upload(
+        self, upload, editor_client, rock_csv, queued
+    ):
+        upload("rocks.csv", rock_csv, mode="both")
+        job = ImportJob.objects.get()
+        response = editor_client.get(job.get_absolute_url())
+        assert job.status == Status.CHECKING
+        assert len(parse(response).select("[data-ie-warning]")) == 1
+
+    def test_no_warning_is_shown_when_the_columns_hold_none(
+        self, upload, editor_client, queued
+    ):
+        upload(
+            "rocks.csv",
+            b"name,rock_type,collection_date,local_id\nA,granite,2024-06-30,R-1\n",
+            mode="both",
+        )
+        job = ImportJob.objects.get()
+        response = editor_client.get(job.get_absolute_url())
+        assert not parse(response).select("[data-ie-warning]")
+
     def rows_on(self, response):
         """Return the row elements of a page."""
         return parse(response).select("[data-ie-row]")

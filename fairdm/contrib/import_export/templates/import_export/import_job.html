@@ -9,6 +9,7 @@
 
   <div class="ie-split ie-split--job">
     <div class="ie-stack">
+      {% for warning in warnings %}<div data-ie-warning><c-import.alert kind="warning">{{ warning }}</c-import.alert></div>{% endfor %}
 
       {# ---- What is happening now, and what to do next ---- #}
       {% if job.is_running %}
