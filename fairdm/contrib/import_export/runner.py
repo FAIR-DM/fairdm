@@ -7,6 +7,7 @@ the check showed.
 """
 
 from collections import Counter
+from itertools import batched
 
 import tablib
 from django.core.cache import cache
@@ -407,8 +408,7 @@ class ImportRun:
         """
         undo = ImportUndo(self.job)
         numbers = sorted(written)
-        for start in range(0, len(numbers), self.FRESH_CHUNK):
-            chunk = numbers[start : start + self.FRESH_CHUNK]
+        for chunk in batched(numbers, self.FRESH_CHUNK, strict=False):
             fresh = {
                 record.pk: record
                 for record in self.job.model.objects.filter(

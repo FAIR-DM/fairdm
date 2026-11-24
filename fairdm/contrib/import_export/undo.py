@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+from itertools import batched
 
 from django.db import transaction
 from django.utils import timezone
@@ -61,17 +62,14 @@ class ImportUndo:
             outcome: The ``ImportRow.Outcome`` to read: new or update.
 
         Yields:
-            Lists of up to ``CHUNK`` rows, in file order.
+            Tuples of up to ``CHUNK`` rows, in file order.
         """
         rows = self.job.rows.filter(outcome=outcome, record_pk__isnull=False)
-        batch = []
-        for row in rows.order_by("number").iterator(chunk_size=self.CHUNK):
-            batch.append(row)
-            if len(batch) == self.CHUNK:
-                yield batch
-                batch = []
-        if batch:
-            yield batch
+        yield from batched(
+            rows.order_by("number").iterator(chunk_size=self.CHUNK),
+            self.CHUNK,
+            strict=False,
+        )
 
     def conflicts(self, user, limit=LIMIT):
         """List the records that stand in the way of an undo.
