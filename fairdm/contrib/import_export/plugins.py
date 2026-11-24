@@ -674,8 +674,9 @@ class JobDetail(JobPage):
         """Move the job on with one conditional update and queue the task it needs.
 
         Undo is one of the actions: it moves an imported job to undoing and queues the
-        task that does the work, so the request returns at once. An action the job's status does not allow changes nothing, so a second post of
-        the same action finds the job already moved and queues no second task.
+        task that does the work, so the request returns at once. An action the job's
+        status does not allow changes nothing, so a second post of the same action
+        finds the job already moved and queues no second task.
 
         Args:
             request: The request.

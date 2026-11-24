@@ -10,10 +10,10 @@ from django.utils.translation import gettext_lazy as _
 class ImportJob(models.Model):
     """A file uploaded into one dataset under one import definition.
 
-    The job runs from upload to outcome. The check, the import and the undo all run in
-    the background. The check writes nothing to the dataset and keeps the outcome of every
-    row as an ``ImportRow``. The import writes the same rows and keeps what undoing it
-    would restore.
+    The job runs from upload to outcome. The check, the import and the undo all run
+    in the background. The check writes nothing to the dataset and keeps the outcome
+    of every row as an ``ImportRow``. The import writes the same rows and keeps what
+    undoing it would restore.
     """
 
     class Mode(models.TextChoices):
