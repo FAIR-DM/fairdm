@@ -409,9 +409,11 @@ def build_table_schema(config) -> TableSchema:
             continue
         columns.append(field_column(model_field))
 
-    if not is_measurement and (not declared or "status" in declared):
+    wants_status = not declared or "status" in declared
+    if not is_measurement and wants_status and "status" not in excluded:
         columns.append(field_column(model._meta.get_field("status"), group="shared"))
-    columns.extend(location_columns(is_measurement, declared))
+    if "location" not in excluded:
+        columns.extend(location_columns(is_measurement, declared))
     return TableSchema(model=model, config=config, columns=columns)
 
 

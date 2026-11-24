@@ -169,6 +169,18 @@ class TestResourceFieldsRule:
         assert "rock_type" in headings(config)
         assert "weight_grams" not in headings(config)
 
+    def test_exclude_drops_the_status(self, rock_config_for):
+        config = rock_config_for(exclude=["status"])
+
+        assert "status" not in headings(config)
+        assert set(LOCATION_COLUMNS) <= set(headings(config))
+
+    def test_exclude_drops_the_location_columns(self, rock_config_for):
+        config = rock_config_for(exclude=["location"])
+
+        assert not set(LOCATION_COLUMNS) & set(headings(config))
+        assert "status" in headings(config)
+
     def test_exclude_does_not_drop_the_identifiers(self, rock_config_for):
         config = rock_config_for(exclude=["name", "local_id"])
         assert headings(config)[:3] == ["portal_id", "local_id", "name"]
