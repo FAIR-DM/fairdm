@@ -166,7 +166,8 @@ the type's columns and the table's results.
   the sheet name is shortened.
 - A column with a very long list of allowed values still gets its list sheet and its offered
   values.
-- A measurement whose sample the viewer may not see is not in the table, so it is not in the file.
+- A measurement whose sample the viewer may not open is in the table, so it is in the file, and its
+  `sample` and `sample_name` cells are empty (decision D11).
 - Search terms and filters in the address are carried into the export of the shown rows exactly as
   the table read them, so the file and the table can never disagree about which rows match.
 
