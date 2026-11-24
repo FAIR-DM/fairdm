@@ -4,8 +4,11 @@ import hashlib
 import json
 from itertools import batched
 
+from django.contrib.contenttypes.fields import GenericRelation
+from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db import transaction
+from django.db.models.fields.reverse_related import ForeignObjectRel
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
@@ -80,8 +83,12 @@ class ImportUndo:
 
         A record is in the way when it no longer exists, when its stored values differ
         from what the import left, or when it is a sample the import added and it now
-        has measurements. Who may undo is the dataset's import permission, decided by
-        the page, so no per-record permission is read here.
+        has measurements. A record the import added is also in the way when it has
+        rows in a related table, such as descriptions, dates, identifiers,
+        contributors, relations or children, as undoing would delete them with it.
+        Who may undo is the dataset's import permission, decided by the page, so no
+        per-record permission is read here. The records are read with a lock, which
+        holds until the transaction that called this ends, so call it inside one.
 
         Args:
             limit: How many records to name.
@@ -97,11 +104,12 @@ class ImportUndo:
             for rows in self.chunks(outcome):
                 present = {
                     record.pk: record
-                    for record in model.objects.filter(
+                    for record in model.objects.select_for_update(of=("self",)).filter(
                         pk__in=[row.record_pk for row in rows]
                     )
                 }
                 measured = self.measured(outcome, present)
+                related = self.related(outcome, present)
                 for row in rows:
                     record = present.get(row.record_pk)
                     if record is None:
@@ -110,6 +118,8 @@ class ImportUndo:
                         reason = "changed"
                     elif row.record_pk in measured:
                         reason = "measurements"
+                    elif row.record_pk in related:
+                        reason = "changed"
                     else:
                         continue
                     found.append(
@@ -139,6 +149,56 @@ class ImportUndo:
                 "sample_id", flat=True
             )
         )
+
+    def relations(self):
+        """List the tables whose rows belong to a record of the job's type.
+
+        Read from the model's options, so a relation a portal adds is included. The
+        link a child type holds to its parent is left out: the import writes it.
+
+        Returns:
+            Tuples of the related model, the name of the field that holds the record's
+            key and the further filter that picks the record's rows: empty for a
+            foreign key, the record's content type for a generic relation.
+        """
+        model = self.job.model
+        found = []
+        for field in model._meta.get_fields(include_hidden=True):
+            if isinstance(field, GenericRelation):
+                kind = {
+                    field.content_type_field_name: ContentType.objects.get_for_model(
+                        model
+                    )
+                }
+                found.append((field.related_model, field.object_id_field_name, kind))
+            elif isinstance(field, ForeignObjectRel) and not field.many_to_many:
+                if not field.field.remote_field.parent_link:
+                    found.append((field.related_model, field.field.attname, {}))
+        return found
+
+    def related(self, outcome, present):
+        """Find the added records that have rows in a related table.
+
+        One query for each related table.
+
+        Args:
+            outcome: The outcome of the rows being read.
+            present: The records of the chunk that still exist, by key.
+
+        Returns:
+            The set of keys of records with a related row. Empty for rows that changed
+            a record, which undo keeps.
+        """
+        if outcome != ImportRow.Outcome.NEW:
+            return set()
+        found = set()
+        for other, column, kind in self.relations():
+            rows = other._base_manager.filter(
+                **{f"{column}__in": list(present)}, **kind
+            )
+            keys = rows.values_list(column, flat=True).distinct()
+            found.update(self.job.model._meta.pk.to_python(key) for key in keys)
+        return found
 
     def undo(self, user):
         """Delete what the import added and restore what it changed.

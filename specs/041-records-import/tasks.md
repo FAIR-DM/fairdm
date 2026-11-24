@@ -167,7 +167,7 @@ public name.
 - [x] T034 [US1] A file whose headings all match still shows the warnings about its columns.
 - [x] T035 [US1] A check or an import that fails unexpectedly ends in a state the person can
   leave.
-- [ ] T036 [US2] Undo refuses when an added record has gained related records, and holds the
+- [x] T036 [US2] Undo refuses when an added record has gained related records, and holds the
   records while it reads them.
 - [ ] T037 [US2] The file's new values kept in a row are cleared when the job is undone or
   discarded.

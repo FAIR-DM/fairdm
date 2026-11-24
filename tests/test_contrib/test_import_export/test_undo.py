@@ -12,6 +12,7 @@ from fairdm.contrib.import_export.models import ImportJob, ImportRow
 from fairdm.contrib.import_export.runner import ImportRun
 from fairdm.contrib.import_export.undo import ImportUndo
 from fairdm.core.dataset.models import Dataset
+from fairdm.factories import ContributionFactory, SampleDescriptionFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -154,6 +155,52 @@ class TestConflicts:
         found = ImportUndo(job).conflicts()
         assert [entry["pk"] for entry in found["entries"]] == [added.pk]
 
+    def test_a_description_added_to_an_added_sample_is_one(self, imported):
+        job, added, _changed = imported
+        SampleDescriptionFactory(related=added)
+        found = ImportUndo(job).conflicts()
+        assert [(e["pk"], e["reason"]) for e in found["entries"]] == [
+            (added.pk, "changed")
+        ]
+
+    def test_a_contributor_added_to_an_added_sample_is_one(self, imported):
+        job, added, _changed = imported
+        ContributionFactory(content_object=added)
+        found = ImportUndo(job).conflicts()
+        assert [(e["pk"], e["reason"]) for e in found["entries"]] == [
+            (added.pk, "changed")
+        ]
+
+    def test_a_description_added_to_a_changed_sample_is_not_one(self, imported):
+        job, _added, changed = imported
+        SampleDescriptionFactory(related=changed)
+        assert ImportUndo(job).conflicts()["entries"] == []
+
+    def test_the_queries_do_not_grow_with_the_rows(self, make_job):
+        def imported_rows(prefix, how_many):
+            job = make_job(
+                [
+                    {
+                        "name": f"{prefix} {n}",
+                        "local_id": f"{prefix}-{n}",
+                        "rock_type": "basalt",
+                        "collection_date": "2024-06-30",
+                    }
+                    for n in range(how_many)
+                ]
+            )
+            ImportRun(job).check()
+            ImportJob.objects.filter(pk=job.pk).update(status="importing")
+            ImportRun(job).perform(None)
+            return job
+
+        def count(job):
+            with CaptureQueriesContext(connection) as queries:
+                ImportUndo(job).conflicts()
+            return len(queries)
+
+        assert count(imported_rows("A", 1)) == count(imported_rows("B", 6))
+
     def test_the_list_stops_at_the_limit_and_counts_the_rest(self, imported):
         job, added, changed = imported
         RockSample.objects.filter(pk__in=[added.pk, changed.pk]).update(
@@ -226,6 +273,18 @@ class TestUndo:
         assert locks
         assert writes
         assert min(locks) < min(writes)
+
+    def test_the_records_read_for_the_conflicts_are_locked(self, undoing):
+        job, _added, _changed = undoing
+        with CaptureQueriesContext(connection) as queries:
+            ImportUndo(job).undo(None)
+        table = RockSample._meta.db_table
+        locked = [
+            q["sql"]
+            for q in queries.captured_queries
+            if "FOR UPDATE" in q["sql"] and f'"{table}"' in q["sql"]
+        ]
+        assert locked
 
     def test_a_failure_part_way_changes_nothing(self, undoing):
         job, added, changed = undoing
