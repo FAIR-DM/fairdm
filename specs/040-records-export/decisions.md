@@ -125,3 +125,15 @@ The component draws only the menu. The title row's block wraps it in an element 
 Import button of specification 041 sits inside the same wrapper without the component changing.
 
 **ADR:** none — local to this feature, nothing downstream inherits it
+
+## D16. A hidden sample's portal ID is blanked as well as its name
+
+The design review found that the `sample` column writes the sample's portal ID, which tells a viewer who may not open the sample which measurements share it. Both the `sample` and `sample_name` cells are empty for such a row (D11).
+
+**ADR:** none — local to this feature, nothing downstream inherits it
+
+## D17. The writer is one class, `TableExport`
+
+The writing functions all take the table schema first, so they are one class that specification 041's template download also calls.
+
+**ADR:** none — local to this feature, nothing downstream inherits it

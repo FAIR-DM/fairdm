@@ -26,14 +26,14 @@ reason before the code that makes it pass is written. Wording and appearance get
 - [ ] T002 [US1] Tests: `TestExportResponse`, `TestExportOrder`, `TestSampleName` and `TestWorkbook`
   in `tests/test_contrib/test_import_export/test_exports.py`, as plan.md "Tests" describes.
 - [ ] T003 [US1] `fairdm/contrib/import_export/exports.py` (`ExportFormat`, `EXPORT_FORMATS`,
-  `format_for`, `export_rows`, `export_response`, `write_workbook`), as plan.md "The writer"
+  `format_for`, the class `TableExport`), as plan.md "The writer"
   describes, rebuilt from the prototype's `exports.py`. T002 goes green.
 
 ### Group 3
 
 - [ ] T004 [US1] Tests: `TestExportRequest`, `TestExportVisibility`, `TestExportStability`,
-  `TestExportMenuContext` and `TestFileName` in
-  `tests/test_contrib/test_import_export/test_mixins.py`, and `TestExportOnPages` in
+  `TestExportMenuContext` and `TestFileName` and `TestExportQueries` in
+  `tests/test_contrib/test_import_export/test_mixins.py` (fixtures in that directory's `conftest.py`), and `TestExportOnPages` in
   `tests/test_contrib/test_collections/test_views.py`, as plan.md "Tests" describes.
 - [ ] T005 [US1] `fairdm/contrib/import_export/mixins.py` (`RecordExportMixin`) and
   `DataTableView` taking it, as plan.md "The mixin" describes. T004's request, visibility,

@@ -4,7 +4,7 @@
 
 ## Summary
 
-`fairdm.contrib.import_export` gains two modules: `exports.py` writes a file from a type's table
+`fairdm.contrib.import_export` gains two modules: `exports.py` holds the class `TableExport`, which writes a file from a type's table
 schema and a queryset (CSV, TSV, JSON and OpenDocument through tablib, Excel through one workbook
 writer), and `mixins.py` holds `RecordExportMixin`, which answers `?export=<format>` on a records
 table and gives the template the menu's data. `DataTableView` takes the mixin, so every tab and
@@ -64,22 +64,25 @@ EXPORT_FORMATS: tuple[ExportFormat, ...]   # csv, xlsx, ods, tsv, json, in this 
 note), `content_type`, `extension`. The labels are CSV, Excel, OpenDocument, TSV and JSON.
 `format_for(key)` returns the entry or `None`.
 
-- `export_rows(schema, queryset)`: a generator that reads `queryset.iterator(chunk_size=500)` and
-  yields one list of cells per record, each `render_cell(column, record)`. The one exception is the
-  column named `sample_name`: its cell is `""` unless `getattr(record, "sample_open", False)` is
-  true (D11).
-- `export_response(schema, queryset, key, filename_stem)`: builds the payload and returns an
-  `HttpResponse` with the format's content type and `Content-Disposition: attachment;
-  filename="<slugified stem>.<extension>"`.
+`TableExport(schema)` is the one class (Article X: the writing functions share the schema). It is
+what specification 041's template download calls as `TableExport(schema).workbook()`.
+
+- `rows(queryset)`: a generator that reads `queryset.iterator(chunk_size=500)` and yields one list
+  of cells per record, each `render_cell(column, record)`. Two columns are the exception: `sample_name`
+  and `sample` write `""` unless `getattr(record, "sample_open", False)` is true (D11, D16).
+- `response(queryset, key, filename_stem)`: builds the payload and returns an `HttpResponse` with
+  the format's content type and the header from `django.utils.http.content_disposition_header(True,
+  filename)`, where the file name is `slugify(stem, allow_unicode=True)` plus the extension, so a
+  name in any script still identifies the record.
   - CSV and TSV: `tablib.Dataset(headers=schema.headings)`, each row appended, `export("csv")` or
     `export("tsv")`, UTF-8, CSV preceded by a byte order mark (research.md).
-  - OpenDocument: `export("ods")`, the dataset's title the type's name.
+  - OpenDocument: `export("ods")`.
   - JSON: `export("json")`, UTF-8: a list of one object per row keyed by the headings.
-  - Excel: `write_workbook(schema, rows)`.
-- `write_workbook(schema, rows=())` returns the workbook's bytes. It takes any iterable of rows, so
-  it writes the same workbook with none (FR-011), which specification 041's template download calls.
+  - Excel: `workbook(rows)`.
+- `workbook(rows=())` returns the workbook's bytes. It takes any iterable of rows, so it writes the
+  same workbook with none (FR-011).
   1. **Sheet 1**, named for the type: the plural name with the characters Excel forbids
-     (`[]:*?/\`) removed and cut to 31 characters. The first row holds the headings, bold and
+     removed and cut to 31 characters. The first row holds the headings, bold and
      coloured by whether the column is required, written on export only, or neither; the panes
      below it are frozen; column widths follow the heading's length. Every string is written as text
      (`cell.data_type = "s"`), never as a formula (D12).
@@ -110,15 +113,17 @@ carries `export`.
   Otherwise `None`.
 - `get(request, ...)`: no `export` parameter, `super().get(...)`. Otherwise, with no definition or a
   key outside `EXPORT_FORMATS`, `Http404` (FR-014). Otherwise
-  `export_response(definition.table_schema(), self.export_queryset(), key, stem)`.
+  `TableExport(definition.table_schema()).response(self.export_queryset(), key, stem)`.
 - `export_queryset()`: the queryset is `self.get_queryset()` when the request carries
   `scope=all`, else `self.get_filterset().qs` (or `get_queryset()` when the view has no filter set).
   The filter set is built from the request's own parameters, so the file and the table cannot
   disagree (Edge Cases). The page number is ignored because a filter set does not read it. The
   result is `.order_by("pk").prefetch_related(None)`, and on a measurement type is annotated with
   `sample_open = Exists(Sample.objects.visible_to(self.request.user).filter(pk=OuterRef("sample_id")))`
-  unless the queryset already has that annotation (D3, D11).
-- The file's stem: the record whose tab it is (`self.base_object`, where the view has one) and the
+  unless the queryset already has that annotation (D3, D11). It also calls `select_related` on
+  every column of kind `concept` whose attribute is a relation (a sample's status is one on every
+  type) and on `sample` for a measurement, so a cell costs no query of its own.
+- The file's stem (slugified with `allow_unicode=True` by the response): the record whose tab it is (`self.base_object`, where the view has one) and the
   type's plural name, then the date from `timezone.localdate().isoformat()`, joined with spaces and
   slugified by the response (FR-013).
 - `get_context_data()`: `context["export_menu"]` is `None` when there is no definition or
@@ -153,18 +158,19 @@ records shows its empty state and no menu. Specification 041 adds its Import but
 ## Tests
 
 All new tests are seen to fail for the right reason before the code that makes them pass. Fixtures
-reuse `tests/test_contrib/test_collections/conftest.py` (`published_dataset`, `RockSampleFactory`)
-and `registry_models` for a measurement type.
+the export tests need (published and private datasets with samples and measurements, built from
+the repository's factories) are added to `tests/test_contrib/test_import_export/conftest.py`, since
+`test_collections/conftest.py` does not reach that directory.
 
 - `tests/test_contrib/test_import_export/test_exports.py`
-  - `TestExportResponse`: for every format, headings equal `schema.headings` in order with
+  - `TestExportResponse`: parametrised over every registered sample and measurement type (SC-001, SC-002) and every format; headings equal `schema.headings` in order with
     `portal_id` first (SC-002); content type and extension; a value with a delimiter, a quote or a
     line break stays one row after being read back by `csv`/`tablib`; non-ASCII text survives every
     format; JSON is a list of objects keyed by the headings; CSV starts with the byte order mark;
     an empty optional value and a record with no location give empty cells.
   - `TestExportOrder`: rows come out in primary-key order given a queryset sorted otherwise.
-  - `TestSampleName`: a measurement row with `sample_open` true writes the sample's name, false or
-    unannotated writes `""`.
+  - `TestSampleName`: a measurement row with `sample_open` true writes the sample's name and portal ID, false or
+    unannotated writes `""` in both the `sample_name` and `sample` cells.
   - `TestWorkbook`: with openpyxl's `load_workbook`, sheet 1 holds the rows, sheet 2 the guide with
     a row per column, sheet 3 an allowed list per listed column; a heading note carries the label,
     kind, unit and whether needed; each listed column has a list validation pointing at its range; a
@@ -186,13 +192,15 @@ and `registry_models` for a measurement type.
   - `TestExportMenuContext`: `export_menu` is `None` on an empty table and on a search with no
     match, `filtered` is false without a search and true with one, `shown` equals `result_count`,
     and the URLs drop `page`.
-  - `TestFileName`: the name carries the type, the record's name where there is one, and the date.
+  - `TestFileName`: the name carries the type, the record's name where there is one, and the date (also a name in a non-Latin script).
+  - `TestExportQueries`: exporting a sample type's rows costs the same number of queries for 3 rows as
+    for 30 (`django_assert_max_num_queries`).
 - `tests/test_contrib/test_collections/test_views.py` (additions): `TestExportOnPages`: the portal
   listing and a dataset, project and contributor tab each render the menu and a custom
   `DataTableView` subclass inherits it (FR-018). The tab with no records renders none.
 - `tests/test_templates/test_export_menu.py`: `TestExportMenuComponent` renders the component with
   a filtered and an unfiltered menu and asserts one link per format per choice, each with
-  `download`, the filtered choice only when `filtered`, and nothing for `menu=None`.
+  `download`, the `<details>` carrying `data-ie-menu`, the filtered choice only when `filtered`, and nothing for `menu=None`.
 
 Mutation pass at S5: for each template or page-output test above, delete the markup or flip the
 condition it names and see it fail.
