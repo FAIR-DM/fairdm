@@ -25,12 +25,16 @@ and the column guide are all things the same developer does with a type's column
 scenarios of the first story rather than stories of their own. The column guide is read by a site
 user only once #697 places it on the import page, so the person reading it has no story here.
 
+**ADR:** none, local to this feature.
+
 ## D2. The sample's name is a column of the schema, written on export only
 
 #696 says measurements add a `sample_name` column that import ignores. The prototype declares that
 column in the type's columns, marked as written on export and not read on import, and the Table
 Schema describes it. This feature keeps it there, so the Table Schema describes the file an export
 writes, column for column. #696 fills the cells and #697 skips the column.
+
+**ADR:** none, local to this feature.
 
 ## D3. The Table Schema is served for the type, to anyone
 
@@ -41,6 +45,8 @@ which are public, and examples come from no stored record (D4). A researcher pre
 not yet have a dataset to import into. So the address depends on the type alone and is open to
 anyone. #697's import page links to it, and nothing a person sees on that page changes.
 
+**ADR:** none, local to this feature.
+
 ## D4. Examples never come from stored records
 
 The prototype fills a column's example from the first stored record of the type, in whichever
@@ -48,6 +54,8 @@ dataset it sits. That record can be private, and the guide and the Table Schema 
 who may not see it, so its values would be shown to them. Examples are made from the column's kind
 and constraints instead. This is a change to how the prototype works, not to anything it shows: the
 guide still gives an example for every column. Constitution Article V.
+
+**ADR:** none, local to this feature.
 
 ## D5. The Table Schema lists every allowed value
 
@@ -60,12 +68,16 @@ description says so, but a strict validator would refuse them. That is the expec
 exported from the portal validates, and a hand-made file using another label may be flagged by a
 validator and still import.
 
+**ADR:** none, local to this feature.
+
 ## D6. A sample the person may not see is refused as if it did not exist
 
 The prototype's sample widget tells a person "you may not see the sample", which confirms that a
 private sample with that portal ID exists. The refusal is the same as for a portal ID nobody holds,
 in line with how the permalink (specification 034) and the citation addresses (specification 036)
 answer for private records. Constitution Article V.
+
+**ADR:** none, local to this feature.
 
 ## D7. The guide is read as a table by assistive technology
 
@@ -76,10 +88,14 @@ the means is left to planning, which must keep the prototype's look: at narrow w
 stacks each column's cells, and a native table restyled that way can lose its table meaning in some
 browsers. Planning tests both and records which.
 
+**ADR:** none, local to this feature.
+
 ## D8. Status is a sample's column only
 
 #695 lists "the status" among the columns. Only `Sample` has a status field. A measurement has none,
 so its table schema carries none, as in the prototype.
+
+**ADR:** none, local to this feature.
 
 ## D9. `get_table_schema()` can be overridden
 
@@ -88,6 +104,8 @@ The configuration's other components (`get_table_class()`, `get_filterset_class(
 them and follows the same rule, so a portal with an unusual type can adjust its columns without
 changing FairDM. The import definition reads its columns through it.
 
+**ADR:** none, local to this feature.
+
 ## D10. The registry's generated resource stays until the import replaces it
 
 PROTOTYPE.md says the dataset-bound resource replaces `BaseFairDMResource` and the registry's
@@ -95,19 +113,25 @@ PROTOTYPE.md says the dataset-bound resource replaces `BaseFairDMResource` and t
 resource will be built from, and leaves `get_resource_class()` as it is, so nothing that reads it
 changes before its replacement exists.
 
+**ADR:** none, local to this feature.
+
 ## D11. A name in `exclude` is never a column, unless the record cannot be saved without it
 
 Every generated component drops the names in a configuration's `exclude`, so a field a developer
 excluded everywhere does not reach a form, a table or the API. The column model follows, so an
 export never writes it. A required field stays a column because a file of new records must stay
-saveable (FR-003). No demo type sets `exclude`. **ADR:** none, local to this feature.
+saveable (FR-003). No demo type sets `exclude`.
+
+**ADR:** none, local to this feature.
 
 ## D12. A type's own foreign key to another model is not a column yet
 
 The specification lists thirteen kinds of column and a reference to a record of another model is
 not one of them. Such a field has no kind and is left out. No registered demo type has one. A
 portal type with a required one cannot have it filled from a file until a later feature adds the
-kind. **ADR:** none, local to this feature.
+kind.
+
+**ADR:** none, local to this feature.
 
 ## D13. A concept column's value is its preferred label, not the label in the active language
 
@@ -122,13 +146,17 @@ changes only titles and descriptions). The preferred label is the same in every 
 A stored time with seconds must read back to the same value (SC-002). A cell is a datetime as
 ISO 8601 in UTC with seconds (`2024-05-01T10:15:42Z`), a time as `HH:MM:SS` and a date as
 `YYYY-MM-DD`, which is also the default form of the Frictionless types, so the Table Schema needs
-no custom format. Cells with minutes only are still read. **ADR:** none, local to this feature.
+no custom format. Cells with minutes only are still read.
+
+**ADR:** none, local to this feature.
 
 ## D15. The sample widget always filters by what the person may see
 
 One queryset, `Sample.objects.visible_to(user)`, serves the portal ID, the Local ID and the name
 lookups, and `None` means a visitor, as everywhere else in the portal. There is no mode that
-reads every sample. **ADR:** none, local to this feature.
+reads every sample.
+
+**ADR:** none, local to this feature.
 
 ## D16. Import formats come from `IMPORT_FORMATS`
 
@@ -141,12 +169,16 @@ A ruling made at the build's spec gate on Sam's behalf by the orchestrating sess
 makes the portal ID required, and a file of new records has it empty, so the standard validator
 rejected every row and FR-018 failed for the file US2 exists to check (checked with frictionless 5).
 US2 scenario 5 and FR-017 now give the portal ID a `unique` constraint and no primary key. A test
-keeps that a file with duplicate portal IDs fails validation. **ADR:** none, local to this feature.
+keeps that a file with duplicate portal IDs fails validation.
+
+**ADR:** none, local to this feature.
 
 ## D18. Group 1 was built directly, not dispatched
 
 T001 and T002 are a dependency line and a constant with no design content, so they were done by the
-orchestrating run. **ADR:** none, local to this feature.
+orchestrating run.
+
+**ADR:** none, local to this feature.
 
 ## D19. The guide is read as a table at both widths (D7 checked)
 
@@ -162,4 +194,6 @@ column headers stay in the tree. Native table elements with explicit roles are k
 `fairdm/contrib/import_export/views.py` imported `FairDMModelFormMixin` from `fairdm.views`, a name
 that no longer exists, and nothing loaded the module until the Table Schema route did.
 `DatasetPublishConfirm`, which used it and is referenced nowhere, now extends `FormView` alone so
-the module loads. The rest of the module is untouched. **ADR:** none, local to this feature.
+the module loads. The rest of the module is untouched.
+
+**ADR:** none, local to this feature.
