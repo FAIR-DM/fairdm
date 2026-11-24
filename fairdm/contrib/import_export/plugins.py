@@ -38,7 +38,6 @@ from .matching import HeadingMatcher
 from .models import ImportJob, ImportRow
 from .reader import FileProblem, FileReader
 from .runner import ImportRun
-from .undo import ImportUndo
 
 STEPS = [
     ("file", _l("Choose a file")),
@@ -482,8 +481,19 @@ class JobPage(ImportPage):
         """
         job = self.job
         done = ImportRun(job).progress() or 0
-        percent = min(100, int(100 * done / job.row_count)) if job.row_count else 0
+        total = self.progress_total()
+        percent = min(100, int(100 * done / total)) if total else 0
         return done, percent
+
+    def progress_total(self):
+        """Count what the job's run works through.
+
+        Returns:
+            The records an undo puts back, or the rows of the file for a check or an
+            import.
+        """
+        job = self.job
+        return job.writes if job.status == ImportJob.Status.UNDOING else job.row_count
 
 
 class JobColumns(JobPage):
@@ -596,6 +606,7 @@ class JobDetail(JobPage):
     per_page = 100
     ACTIONS = {
         "import": ((ImportJob.Status.CHECKED,), ImportJob.Status.IMPORTING),
+        "undo": ((ImportJob.Status.IMPORTED,), ImportJob.Status.UNDOING),
         "recheck": (
             (
                 ImportJob.Status.CHECKED,
@@ -620,6 +631,7 @@ class JobDetail(JobPage):
         ImportJob.Status.PROBLEMS: _l("%(file)s needs changes"),
         ImportJob.Status.IMPORTING: _l("Importing %(file)s"),
         ImportJob.Status.IMPORTED: _l("%(file)s was imported"),
+        ImportJob.Status.UNDOING: _l("Undoing %(file)s"),
         ImportJob.Status.UNDONE: _l("%(file)s was imported, then undone"),
         ImportJob.Status.FAILED: _l("%(file)s could not be read"),
         ImportJob.Status.DISCARDED: _l("%(file)s was not imported"),
@@ -632,6 +644,7 @@ class JobDetail(JobPage):
         if self.job.status in (
             ImportJob.Status.IMPORTING,
             ImportJob.Status.IMPORTED,
+            ImportJob.Status.UNDOING,
             ImportJob.Status.UNDONE,
         ):
             return "import"
@@ -660,7 +673,8 @@ class JobDetail(JobPage):
     def post(self, request, *args, **kwargs):
         """Move the job on with one conditional update and queue the task it needs.
 
-        An action the job's status does not allow changes nothing, so a second post of
+        Undo is one of the actions: it moves an imported job to undoing and queues the
+        task that does the work, so the request returns at once. An action the job's status does not allow changes nothing, so a second post of
         the same action finds the job already moved and queues no second task.
 
         Args:
@@ -673,19 +687,22 @@ class JobDetail(JobPage):
         """
         job = self.job
         action = request.POST.get("action")
-        if action == "undo":
-            return self.undo(request)
         rule = self.ACTIONS.get(action)
         if rule is None or (action == "import" and not job.writes):
             return redirect(job.get_absolute_url())
         allowed, target = rule
+        changes = {"status": target}
+        if action == "undo":
+            changes["error"] = ""
         moved = self.dataset.import_jobs.filter(pk=job.pk, status__in=allowed).update(
-            status=target
+            **changes
         )
         if not moved:
             return redirect(job.get_absolute_url())
         if action == "import":
             tasks.start(tasks.import_job, job.pk, request.user.pk)
+        elif action == "undo":
+            tasks.start(tasks.undo_job, job.pk, request.user.pk)
         elif action == "recheck":
             tasks.start(tasks.check_job, job.pk)
         else:
@@ -696,31 +713,6 @@ class JobDetail(JobPage):
             )
             return redirect(reverse(self.dataset, "import", type=job.definition_name))
         return redirect(job.get_absolute_url())
-
-    def undo(self, request):
-        """Undo the import, or show the records that stand in the way.
-
-        The dataset is locked and the job's status read again inside the undo, so a
-        second post of the action finds the job already undone and changes nothing.
-
-        Args:
-            request: The request.
-
-        Returns:
-            A redirect to the job once it is undone or when there is nothing to undo,
-            otherwise the job's page with the records in the way listed.
-        """
-        job = self.job
-        found = ImportUndo(job).undo(request.user)
-        if found is None or not found["entries"]:
-            if found is not None:
-                messages.success(
-                    request,
-                    _("%(file)s was undone.") % {"file": job.filename},
-                )
-            return redirect(job.get_absolute_url())
-        self.refusal = found
-        return self.get(request)
 
     def rows_shown(self):
         """Choose the rows the page lists, by the outcome in ``?show=``.
@@ -779,9 +771,9 @@ class JobDetail(JobPage):
             ImportJob.Status.IMPORTED,
             ImportJob.Status.UNDONE,
         )
-        context["conflicts"] = getattr(self, "refusal", None)
-        context["undo_blocked"] = job.status == ImportJob.Status.IMPORTED and bool(
-            context["conflicts"] or ImportUndo(job).conflicts(None, limit=1)["entries"]
+        context["progress_total"] = self.progress_total()
+        context["undo_refusal"] = (
+            job.error.splitlines() if job.status == ImportJob.Status.IMPORTED else []
         )
         return context
 
@@ -841,9 +833,10 @@ class JobStatus(JobPage):
                 {
                     "percent": percent,
                     "done": done,
-                    "total": job.row_count,
+                    "total": self.progress_total(),
                     "url": reverse(self.dataset, "imports-status", job=job.pk),
                     "importing": job.status == ImportJob.Status.IMPORTING,
+                    "undoing": job.status == ImportJob.Status.UNDOING,
                 },
                 request=request,
             )

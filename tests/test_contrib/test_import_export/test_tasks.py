@@ -9,10 +9,12 @@ from django.db import transaction
 from django.utils import timezone
 from django_celery_beat.models import PeriodicTask
 
+from demo.models import RockSample
 from fairdm.contrib.import_export import tasks
 from fairdm.contrib.import_export.apps import DISCARD_TASK, seed_discard_task
 from fairdm.contrib.import_export.models import ImportJob
 from fairdm.contrib.import_export.runner import ImportRun
+from fairdm.contrib.import_export.undo import ImportUndo
 from tests.factories import ImportJobFactory, ImportRowFactory
 
 pytestmark = pytest.mark.django_db
@@ -113,6 +115,82 @@ class TestImportJob:
         assert job.imported_by == user
 
 
+class TestUndoJob:
+    """The undo task undoes an import the request has claimed."""
+
+    @pytest.fixture
+    def undoing(self, make_job):
+        """A job of two new rocks, imported, and then claimed for the undo."""
+        job = make_job([rock("A"), rock("B")])
+        tasks.check_job(job.pk)
+        ImportJob.objects.filter(pk=job.pk).update(status=Status.IMPORTING)
+        tasks.import_job(job.pk, None)
+        ImportJob.objects.filter(pk=job.pk).update(status=Status.UNDOING)
+        job.refresh_from_db()
+        return job
+
+    def test_undoes_the_job_and_records_who(self, undoing):
+        from fairdm.factories import UserFactory
+
+        user = UserFactory()
+        tasks.undo_job(undoing.pk, user.pk)
+        undoing.refresh_from_db()
+        assert undoing.status == Status.UNDONE
+        assert undoing.undone_by == user
+        assert not RockSample.objects.filter(dataset=undoing.dataset).exists()
+
+    def test_a_refusal_returns_the_job_to_imported_naming_the_records(self, undoing):
+        RockSample.objects.filter(dataset=undoing.dataset).update(rock_type="gabbro")
+        tasks.undo_job(undoing.pk, None)
+        undoing.refresh_from_db()
+        assert undoing.status == Status.IMPORTED
+        assert undoing.error
+        assert RockSample.objects.filter(dataset=undoing.dataset).count() == 2
+
+    def test_an_unexpected_error_returns_the_job_to_imported_and_is_logged(
+        self, undoing
+    ):
+        with (
+            mock.patch.object(ImportUndo, "delete_created", side_effect=ValueError),
+            mock.patch.object(tasks.logger, "exception") as logged,
+        ):
+            tasks.undo_job(undoing.pk, None)
+        undoing.refresh_from_db()
+        assert undoing.status == Status.IMPORTED
+        assert undoing.error
+        assert RockSample.objects.filter(dataset=undoing.dataset).count() == 2
+        logged.assert_called_once()
+
+    def test_a_time_limit_returns_the_job_to_imported_with_nothing_changed(
+        self, undoing
+    ):
+        from celery.exceptions import SoftTimeLimitExceeded
+
+        with mock.patch.object(
+            ImportUndo, "delete_created", side_effect=SoftTimeLimitExceeded
+        ):
+            tasks.undo_job(undoing.pk, None)
+        undoing.refresh_from_db()
+        assert undoing.status == Status.IMPORTED
+        assert undoing.error
+        assert RockSample.objects.filter(dataset=undoing.dataset).count() == 2
+
+    @pytest.mark.parametrize("status", [Status.IMPORTED, Status.UNDONE])
+    def test_a_job_that_is_not_undoing_is_left_alone(self, undoing, status):
+        ImportJob.objects.filter(pk=undoing.pk).update(status=status)
+        tasks.undo_job(undoing.pk, None)
+        undoing.refresh_from_db()
+        assert undoing.status == status
+        assert RockSample.objects.filter(dataset=undoing.dataset).count() == 2
+
+    def test_a_job_that_is_gone_is_ignored(self):
+        assert tasks.undo_job(0, None) is None
+
+    def test_the_limits_match_the_other_tasks(self):
+        assert tasks.undo_job.soft_time_limit == tasks.IMPORT_LIMITS["soft_time_limit"]
+        assert tasks.undo_job.time_limit == tasks.IMPORT_LIMITS["time_limit"]
+
+
 class TestDiscardStale:
     """An import left unfinished for 30 days is discarded and its file deleted."""
 
@@ -159,7 +237,14 @@ class TestDiscardStale:
         assert job.file
 
     @pytest.mark.parametrize(
-        "status", [Status.IMPORTING, Status.IMPORTED, Status.UNDONE, Status.FAILED]
+        "status",
+        [
+            Status.IMPORTING,
+            Status.UNDOING,
+            Status.IMPORTED,
+            Status.UNDONE,
+            Status.FAILED,
+        ],
     )
     def test_a_job_with_a_result_or_at_work_is_left_alone(self, status):
         job = self.old(ImportJobFactory(status=status))

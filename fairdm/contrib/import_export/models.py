@@ -10,8 +10,8 @@ from django.utils.translation import gettext_lazy as _
 class ImportJob(models.Model):
     """A file uploaded into one dataset under one import definition.
 
-    The job runs from upload to outcome. The check and the import both run in the
-    background. The check writes nothing to the dataset and keeps the outcome of every
+    The job runs from upload to outcome. The check, the import and the undo all run in
+    the background. The check writes nothing to the dataset and keeps the outcome of every
     row as an ``ImportRow``. The import writes the same rows and keeps what undoing it
     would restore.
     """
@@ -39,6 +39,7 @@ class ImportJob(models.Model):
         PROBLEMS = "problems", _("Needs changes")
         IMPORTING = "importing", _("Importing")
         IMPORTED = "imported", _("Imported")
+        UNDOING = "undoing", _("Undoing")
         FAILED = "failed", _("Could not be read")
         UNDONE = "undone", _("Undone")
         DISCARDED = "discarded", _("Discarded")
@@ -244,9 +245,13 @@ class ImportJob(models.Model):
         """Whether a background task is working on the job.
 
         Returns:
-            True while the job is being checked or imported.
+            True while the job is being checked, imported or undone.
         """
-        return self.status in (self.Status.CHECKING, self.Status.IMPORTING)
+        return self.status in (
+            self.Status.CHECKING,
+            self.Status.IMPORTING,
+            self.Status.UNDOING,
+        )
 
     @property
     def is_finished(self):

@@ -12,7 +12,7 @@ from tests.factories import ImportJobFactory, ImportRowFactory
 
 pytestmark = pytest.mark.django_db
 
-RUNNING = {"checking", "importing"}
+RUNNING = {"checking", "importing", "undoing"}
 FINISHED = {"imported", "undone", "discarded", "failed"}
 
 

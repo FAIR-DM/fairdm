@@ -106,6 +106,17 @@ class TestProgress:
             != import_.select_one("[role=progressbar]")["aria-label"]
         )
 
+    def test_a_bar_for_an_undo_is_labelled_apart_from_a_check_and_an_import(
+        self, render, soup
+    ):
+        def label(**kwargs):
+            page = soup(
+                render("progress", percent=0, done=0, total=1, url="/s/", **kwargs)
+            )
+            return page.select_one("[role=progressbar]")["aria-label"]
+
+        assert label(undoing=True) not in {label(), label(importing=True)}
+
 
 class TestOutcomeBadge:
     """A badge for each outcome of a row."""

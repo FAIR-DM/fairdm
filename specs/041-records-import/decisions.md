@@ -274,6 +274,8 @@ type.
 
 **ADR:** none — local to this feature, revisit if the measured time says otherwise.
 
+*Section end: superseded by D29.*
+
 
 ## D27 — undo is confirmed in a dialog, as the prototype draws it
 
@@ -294,3 +296,13 @@ type.
 **Revisit if:** now. A task with an `undoing` status, and a job page that decides whether Undo shows without reading every row, are the two changes the numbers point at.
 
 **ADR:** none — the revisit decides whether one is needed.
+
+## D29 — undo is a task with an undoing status (supersedes D26)
+
+**Decision:** `ImportJob.Status` gains `undoing`. The `undo` action claims an `imported` job on the dataset with one conditional update to `undoing` and queues `undo_job(job_pk, user_pk)`, so a double post starts one task. The task runs `ImportUndo.undo`, which keeps its transaction, its dataset lock and its all-or-nothing refusal, and moves the job from `undoing` to `undone` in that transaction. A refusal returns the job to `imported` with the records in the way written to its `error`, one line each with a last line counting the rest, and an unexpected error or a time limit returns it to `imported` with a plain message. The job page shows the Undo button on every imported job without reading any record and shows the refusal after the task. Progress is the cache count that checks and imports use. The stale-job discard leaves undoing jobs alone, and the branch's one migration is regenerated.
+
+**Why:** D26's revisit condition was met at the browser pass: on a 50,000-row import the job page took 11 to 12 s to load, because it scanned every added or changed row to decide whether the Undo button shows, and the undo post took 43 s inside the request, which a web server's request timeout cuts off.
+
+**Revisit if:** a stuck `undoing` job needs a way back that does not wait for a person to look at the database.
+
+**ADR:** none — local to this feature.

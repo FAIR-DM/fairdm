@@ -4,8 +4,10 @@ import hashlib
 import json
 from itertools import batched
 
+from django.core.cache import cache
 from django.db import transaction
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.models import Measurement
@@ -19,6 +21,7 @@ class ImportUndo:
 
     Attributes:
         job: The import the undo is about.
+        done: How many records the undo has put back so far.
         CHUNK: How many records are read or deleted at a time.
         LIMIT: How many records in the way a refusal names.
     """
@@ -33,6 +36,7 @@ class ImportUndo:
             job: The import job.
         """
         self.job = job
+        self.done = 0
 
     def digest(self, record):
         """Describe a record's stored values in one short text.
@@ -71,7 +75,7 @@ class ImportUndo:
             strict=False,
         )
 
-    def conflicts(self, user, limit=LIMIT):
+    def conflicts(self, limit=LIMIT):
         """List the records that stand in the way of an undo.
 
         A record is in the way when it no longer exists, when its stored values differ
@@ -80,8 +84,6 @@ class ImportUndo:
         the page, so no per-record permission is read here.
 
         Args:
-            user: The person who would undo. Kept for the caller's sake: the rule
-                reads nothing about them.
             limit: How many records to name.
 
         Returns:
@@ -143,39 +145,91 @@ class ImportUndo:
 
         Everything happens in one transaction after the dataset is locked, so imports
         and undos of one dataset run one at a time and the second reads what the first
-        wrote. Nothing is changed when any record is in the way.
+        wrote. Nothing is changed when any record is in the way: the job returns to
+        imported with the records named in its ``error``.
 
         Args:
             user: The person undoing the import.
 
         Returns:
-            None when the job is not imported, so there is nothing to undo. Otherwise
+            None when the job is not undoing, so there is nothing to undo. Otherwise
             the result of ``conflicts``, with no entries once the undo is done.
         """
         # runner imports this module, so the run is read here.
         from .runner import ImportRun
 
         job = self.job
-        with transaction.atomic():
-            Dataset.all_objects.select_for_update().get(pk=job.dataset_id)
-            job.refresh_from_db()
-            if job.status != ImportJob.Status.IMPORTED:
-                return None
-            found = self.conflicts(user)
-            if found["entries"]:
-                return found
-            self.delete_created()
-            self.restore_updated()
-            ImportJob.objects.filter(
-                pk=job.pk, status=ImportJob.Status.IMPORTED
-            ).update(
-                status=ImportJob.Status.UNDONE,
-                undone_at=timezone.now(),
-                undone_by=user,
-            )
-            job.refresh_from_db()
-            ImportRun(job).delete_file()
+        run = ImportRun(job)
+        try:
+            with transaction.atomic():
+                Dataset.all_objects.select_for_update().get(pk=job.dataset_id)
+                job.refresh_from_db()
+                if job.status != ImportJob.Status.UNDOING:
+                    return None
+                found = self.conflicts()
+                if found["entries"]:
+                    self.release(self.describe(found))
+                    return found
+                self.delete_created()
+                self.restore_updated()
+                ImportJob.objects.filter(
+                    pk=job.pk, status=ImportJob.Status.UNDOING
+                ).update(
+                    status=ImportJob.Status.UNDONE,
+                    undone_at=timezone.now(),
+                    undone_by=user,
+                    error="",
+                )
+                job.refresh_from_db()
+                run.delete_file()
+        finally:
+            cache.delete(run.progress_key)
         return found
+
+    def describe(self, found):
+        """Write the records in the way as text, one line each.
+
+        Args:
+            found: The result of ``conflicts``.
+
+        Returns:
+            One line for each record, with the reason it stands in the way, and a last
+            line counting the records beyond those named.
+        """
+        reasons = {
+            "deleted": _("deleted since"),
+            "measurements": _("has measurements"),
+            "changed": _("changed since"),
+        }
+        lines = [f"{e['label']} · {reasons[e['reason']]}" for e in found["entries"]]
+        if found["more"]:
+            lines.append(_("and %(n)s more records in the way") % {"n": found["more"]})
+        return "\n".join(lines)
+
+    def release(self, message):
+        """Return an undoing job to imported, with a message for the page.
+
+        Nothing happens to a job that is not undoing.
+
+        Args:
+            message: What stopped the undo, which the job's page shows.
+        """
+        ImportJob.objects.filter(
+            pk=self.job.pk, status=ImportJob.Status.UNDOING
+        ).update(status=ImportJob.Status.IMPORTED, error=message)
+
+    def advance(self, rows):
+        """Count the records of a finished chunk and write the progress.
+
+        Args:
+            rows: The rows of the chunk.
+        """
+        # runner imports this module, so the run is read here.
+        from .runner import ImportRun
+
+        self.done += len(rows)
+        run = ImportRun(self.job)
+        cache.set(run.progress_key, self.done, run.PROGRESS_SECONDS)
 
     def delete_created(self):
         """Delete the records the import added, one ``delete()`` for each chunk.
@@ -187,6 +241,7 @@ class ImportUndo:
             self.job.model.objects.filter(
                 pk__in=[row.record_pk for row in rows]
             ).delete()
+            self.advance(rows)
 
     def restore_updated(self):
         """Put back the values each changed record held before the import."""
@@ -199,3 +254,4 @@ class ImportUndo:
                 for attname, value in row.before.items():
                     setattr(record, attname, fields[attname].to_python(value))
                 record.save()
+            self.advance(rows)

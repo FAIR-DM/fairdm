@@ -3,6 +3,7 @@
 The portal runs a worker, so a task is only ever queued and never run in place.
 """
 
+import logging
 from datetime import timedelta
 
 from celery import shared_task
@@ -14,12 +15,16 @@ from django.utils.translation import gettext as _
 
 from .models import ImportJob
 from .runner import ImportRun
+from .undo import ImportUndo
+
+logger = logging.getLogger(__name__)
 
 # A file of 50,000 rows of the widest demo type took 11 minutes to check and 13 to
 # import, so each task may run for 40 minutes before it is asked to stop and five more
 # before it is killed. See specs/041-records-import/research.md.
 CHECK_LIMITS = {"soft_time_limit": 2400, "time_limit": 2700}
 IMPORT_LIMITS = {"soft_time_limit": 2400, "time_limit": 2700}
+UNDO_LIMITS = {"soft_time_limit": 2400, "time_limit": 2700}
 
 STALE_DAYS = 30
 STALE_STATUSES = (
@@ -83,6 +88,32 @@ def import_job(job_pk, user_pk):
         run.perform(user)
     except SoftTimeLimitExceeded:
         run.stop(_("The import took too long and was stopped. Nothing was written."))
+
+
+@shared_task(**UNDO_LIMITS)
+def undo_job(job_pk, user_pk):
+    """Undo an import the page has claimed.
+
+    A job that is not undoing is left alone. An undo that is refused, runs out of time
+    or fails has changed nothing and returns the job to imported with the reason in
+    its ``error``.
+
+    Args:
+        job_pk: The key of the import job.
+        user_pk: The key of the person who asked for the undo, or None.
+    """
+    job = ImportJob.objects.filter(pk=job_pk).first()
+    if job is None:
+        return
+    user = get_user_model().objects.filter(pk=user_pk).first()
+    undo = ImportUndo(job)
+    try:
+        undo.undo(user)
+    except SoftTimeLimitExceeded:
+        undo.release(_("The undo took too long and was stopped. Nothing was changed."))
+    except Exception:
+        logger.exception("Undoing import %s failed.", job_pk)
+        undo.release(_("The undo failed. Nothing was changed."))
 
 
 @shared_task

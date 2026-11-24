@@ -11,6 +11,8 @@ import pytest
 from bs4 import BeautifulSoup
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from import_export.formats.base_formats import XLSX
 from openpyxl import load_workbook
 
@@ -979,6 +981,31 @@ class TestJobStatus:
         ImportJob.objects.filter(pk=running.pk).update(status=Status.IMPORTING)
         assert label() != checking
 
+    def test_an_undo_is_labelled_apart_from_a_check_and_an_import(
+        self, editor_client, job_url, running
+    ):
+        def label(status):
+            ImportJob.objects.filter(pk=running.pk).update(status=status)
+            page = parse(editor_client.get(job_url(running, "status")))
+            return page.select_one("[role=progressbar]")["aria-label"]
+
+        assert label(Status.UNDOING) not in {
+            label(Status.CHECKING),
+            label(Status.IMPORTING),
+        }
+
+    def test_an_undoing_job_counts_its_progress_against_the_records_it_writes(
+        self, editor_client, job_url, running
+    ):
+        ImportJob.objects.filter(pk=running.pk).update(
+            status=Status.UNDOING, summary={"new": 30, "update": 10}
+        )
+        cache.set(ImportRun(running).progress_key, 20)
+        page = parse(editor_client.get(job_url(running, "status")))
+        bar = page.select_one("[role=progressbar]")
+        assert bar["aria-valuenow"] == "20"
+        assert bar["aria-valuemax"] == "40"
+
     def test_a_job_with_no_progress_yet_reads_as_none_done(
         self, editor_client, job_url, running
     ):
@@ -1259,38 +1286,51 @@ def imported_job(make_job, open_dataset, editor):
 
 
 class TestJobUndo:
-    """The undo action: refused while anything stands in the way."""
+    """The undo action: claimed in the request, done by a task."""
 
     def post(self, client, address):
         """Post the undo action to a job's page."""
         return client.post(address, {"action": "undo"})
 
-    def test_undo_deletes_what_was_added_and_restores_what_was_changed(
-        self, editor_client, editor, job_url, imported_job
+    def test_undo_claims_the_job_and_queues_the_task_at_once(
+        self, editor_client, editor, job_url, imported_job, queued
     ):
         job, added, changed = imported_job
         response = self.post(editor_client, job_url(job))
         job.refresh_from_db()
-        changed.refresh_from_db()
         assert response.status_code == 302
+        assert response["Location"] == job_url(job)
+        assert job.status == Status.UNDOING
+        queued.assert_called_once_with(tasks.undo_job, job.pk, editor.pk)
+        assert RockSample.objects.filter(pk=added.pk).exists()
+        assert str(RockSample.objects.get(pk=changed.pk).hardness_mohs) == "6.5"
+
+    def test_the_task_undoes_what_was_added_and_restores_what_was_changed(
+        self, editor_client, editor, job_url, imported_job, queued
+    ):
+        job, added, changed = imported_job
+        self.post(editor_client, job_url(job))
+        tasks.undo_job(*queued.call_args.args[1:])
+        job.refresh_from_db()
+        changed.refresh_from_db()
         assert job.status == Status.UNDONE
         assert job.undone_by == editor
         assert not RockSample.objects.filter(pk=added.pk).exists()
         assert str(changed.hardness_mohs) == "7.0"
 
     def test_anyone_with_the_edit_level_may_undo_not_only_who_imported(
-        self, client, open_dataset, person_at, job_url, imported_job
+        self, client, open_dataset, person_at, job_url, imported_job, queued
     ):
         job, _added, _changed = imported_job
         other = person_at(open_dataset, ContributionLevel.EDIT)
         client.force_login(other)
         self.post(client, job_url(job))
         job.refresh_from_db()
-        assert job.status == Status.UNDONE
-        assert job.undone_by == other
+        assert job.status == Status.UNDOING
+        queued.assert_called_once_with(tasks.undo_job, job.pk, other.pk)
 
     def test_a_person_who_may_not_import_gets_a_404_and_nothing_changes(
-        self, client, open_dataset, person_at, job_url, imported_job
+        self, client, open_dataset, person_at, job_url, imported_job, queued
     ):
         job, added, _changed = imported_job
         client.force_login(person_at(open_dataset, ContributionLevel.VIEW))
@@ -1299,59 +1339,29 @@ class TestJobUndo:
         assert response.status_code == 404
         assert job.status == Status.IMPORTED
         assert RockSample.objects.filter(pk=added.pk).exists()
+        queued.assert_not_called()
 
-    def test_a_refusal_changes_nothing_and_lists_the_records_in_the_way(
-        self, editor_client, job_url, imported_job
-    ):
-        job, added, changed = imported_job
-        RockSample.objects.filter(pk=changed.pk).update(rock_type="gabbro")
-        response = self.post(editor_client, job_url(job))
-        job.refresh_from_db()
-        listed = parse(response).select("[data-ie-conflict]")
-        assert response.status_code == 200
-        assert job.status == Status.IMPORTED
-        assert RockSample.objects.filter(pk=added.pk).exists()
-        assert [item["data-ie-conflict"] for item in listed] == [str(changed.pk)]
-
-    def test_a_refusal_shows_twenty_records_and_counts_the_rest(
-        self, editor_client, job_url, imported_job
+    def test_a_double_post_queues_one_task(
+        self, editor_client, job_url, imported_job, queued
     ):
         job, _added, _changed = imported_job
-        ImportRow.objects.bulk_create(
-            ImportRow(job=job, number=100 + n, line=n, outcome="new", record_pk=n)
-            for n in range(1, 31)
-        )
-        response = self.post(editor_client, job_url(job))
-        page = parse(response)
-        assert len(page.select("[data-ie-conflict]")) == 20
-        assert (
-            page.select_one("[data-ie-conflict-more]")["data-ie-conflict-more"] == "10"
-        )
-
-    def test_a_double_post_starts_one_undo(self, editor_client, job_url, imported_job):
-        job, _added, _changed = imported_job
-        with mock.patch.object(
-            ImportUndo,
-            "delete_created",
-            autospec=True,
-            side_effect=ImportUndo.delete_created,
-        ) as deleted:
-            self.post(editor_client, job_url(job))
-            self.post(editor_client, job_url(job))
-        assert deleted.call_count == 1
+        self.post(editor_client, job_url(job))
+        self.post(editor_client, job_url(job))
+        assert queued.call_count == 1
 
     @pytest.mark.parametrize(
         "status",
         [
             Status.CHECKED,
             Status.PROBLEMS,
+            Status.UNDOING,
             Status.UNDONE,
             Status.DISCARDED,
             Status.FAILED,
         ],
     )
     def test_undo_is_refused_in_any_other_status(
-        self, editor_client, job_url, imported_job, status
+        self, editor_client, job_url, imported_job, queued, status
     ):
         job, added, _changed = imported_job
         ImportJob.objects.filter(pk=job.pk).update(status=status)
@@ -1359,11 +1369,55 @@ class TestJobUndo:
         job.refresh_from_db()
         assert job.status == status
         assert RockSample.objects.filter(pk=added.pk).exists()
+        queued.assert_not_called()
 
-    def test_the_undo_button_shows_on_an_imported_job_nothing_stands_in_the_way_of(
+    def test_a_refusal_after_the_task_names_the_records_on_the_job_page(
+        self, editor_client, editor, job_url, imported_job, queued
+    ):
+        job, added, changed = imported_job
+        RockSample.objects.filter(pk=changed.pk).update(rock_type="gabbro")
+        self.post(editor_client, job_url(job))
+        tasks.undo_job(job.pk, editor.pk)
+        label = job.rows.get(record_pk=changed.pk).label
+        page = parse(editor_client.get(job_url(job)))
+        listed = [item.get_text() for item in page.select("[data-ie-refusal] li")]
+        job.refresh_from_db()
+        assert job.status == Status.IMPORTED
+        assert RockSample.objects.filter(pk=added.pk).exists()
+        assert [text for text in listed if label in text]
+
+    def test_a_refusal_shows_twenty_records_and_counts_the_rest(
+        self, editor_client, editor, job_url, imported_job, queued
+    ):
+        job, _added, _changed = imported_job
+        ImportRow.objects.bulk_create(
+            ImportRow(job=job, number=100 + n, line=n, outcome="new", record_pk=n)
+            for n in range(1, 31)
+        )
+        self.post(editor_client, job_url(job))
+        tasks.undo_job(job.pk, editor.pk)
+        page = parse(editor_client.get(job_url(job)))
+        assert len(page.select("[data-ie-refusal] li")) == 21
+
+    def test_an_imported_job_with_no_refusal_shows_no_refusal(
         self, editor_client, job_url, imported_job
     ):
         job, _added, _changed = imported_job
+        page = parse(editor_client.get(job_url(job)))
+        assert not page.select("[data-ie-refusal]")
+
+    def test_the_undo_button_shows_on_an_imported_job(
+        self, editor_client, job_url, imported_job
+    ):
+        job, _added, _changed = imported_job
+        page = parse(editor_client.get(job_url(job)))
+        assert page.select('form button[name="action"][value="undo"]')
+
+    def test_the_undo_button_shows_even_when_a_record_changed(
+        self, editor_client, job_url, imported_job
+    ):
+        job, _added, changed = imported_job
+        RockSample.objects.filter(pk=changed.pk).update(rock_type="gabbro")
         page = parse(editor_client.get(job_url(job)))
         assert page.select('form button[name="action"][value="undo"]')
 
@@ -1378,16 +1432,54 @@ class TestJobUndo:
         assert opener is not None
         assert not page.select('form:not(dialog form) button[value="undo"]')
 
-    def test_the_undo_button_is_not_shown_when_a_record_changed(
+    def test_an_undoing_job_shows_the_progress_and_no_undo_button(
         self, editor_client, job_url, imported_job
     ):
-        job, _added, changed = imported_job
-        RockSample.objects.filter(pk=changed.pk).update(rock_type="gabbro")
+        job, _added, _changed = imported_job
+        ImportJob.objects.filter(pk=job.pk).update(status=Status.UNDOING)
         page = parse(editor_client.get(job_url(job)))
+        assert page.select_one("[data-ie-progress]")["hx-get"] == job_url(job, "status")
         assert not page.select('button[value="undo"]')
 
+    def test_the_job_page_of_an_imported_job_runs_the_same_queries_for_50_and_500_rows(
+        self, editor_client, job_url, imported_job
+    ):
+        job, _added, _changed = imported_job
+
+        def add(first, last):
+            ImportRow.objects.bulk_create(
+                ImportRow(
+                    job=job,
+                    number=100 + n,
+                    line=n,
+                    outcome="new",
+                    record_pk=n,
+                    digest="x",
+                )
+                for n in range(first, last)
+            )
+
+        def count():
+            editor_client.get(job_url(job))
+            with CaptureQueriesContext(connection) as queries:
+                editor_client.get(job_url(job))
+            return len(queries)
+
+        add(0, 50)
+        few = count()
+        add(50, 500)
+        assert count() == few
+
+    def test_the_job_page_of_an_imported_job_looks_for_no_conflicts(
+        self, editor_client, job_url, imported_job
+    ):
+        job, _added, _changed = imported_job
+        with mock.patch.object(ImportUndo, "conflicts") as looked:
+            editor_client.get(job_url(job))
+        looked.assert_not_called()
+
     def test_another_datasets_job_cannot_be_undone_through_this_one(
-        self, editor_client, open_dataset, job_url, imported_job
+        self, editor_client, open_dataset, job_url, imported_job, queued
     ):
         job, _added, _changed = imported_job
         other = DatasetFactory()
@@ -1395,6 +1487,7 @@ class TestJobUndo:
         job.refresh_from_db()
         assert response.status_code == 404
         assert job.status == Status.IMPORTED
+        queued.assert_not_called()
 
 
 class TestPastImports:
