@@ -25,7 +25,6 @@ from fairdm.contrib.import_export.models import ImportJob, ImportRow
 from fairdm.contrib.import_export.plugins import import_chooser
 from fairdm.contrib.import_export.reader import FileReader
 from fairdm.contrib.import_export.runner import ImportRun
-from fairdm.contrib.import_export.undo import ImportUndo
 from fairdm.contrib.plugins import reverse
 from fairdm.factories import ContributionFactory, DatasetFactory, PersonFactory
 from fairdm.registry import registry

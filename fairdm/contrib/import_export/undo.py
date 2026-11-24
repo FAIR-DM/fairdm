@@ -117,9 +117,7 @@ class ImportUndo:
                     records = records.select_for_update(of=("self",))
                 present = {
                     record.pk: record
-                    for record in records.filter(
-                        pk__in=[row.record_pk for row in rows]
-                    )
+                    for record in records.filter(pk__in=[row.record_pk for row in rows])
                 }
                 measured = self.measured(outcome, present)
                 related = self.related(outcome, present)
