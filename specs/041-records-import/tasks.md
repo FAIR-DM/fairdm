@@ -28,7 +28,7 @@ public name.
 
 ### Group 2
 
-- [ ] T003 [US1] Remove the unused import module pieces: `BaseImportExportView`, `DataImportView`,
+- [x] T003 [US1] Remove the unused import module pieces: `BaseImportExportView`, `DataImportView`,
   `DataExportView` and `UploadForm` from `fairdm/contrib/import_export/views.py`; `ImportForm` and
   `ExportForm` from `forms.py` (the file is rewritten in Group 4); `BaseFairDMResource`,
   `SampleResource`, `MeasurementResource` and the old `SampleWidget` from `resources.py` (the file
