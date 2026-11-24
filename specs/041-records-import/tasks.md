@@ -163,7 +163,7 @@ public name.
 
 ### Group 15
 
-- [ ] T033 [US1] An empty required cell and the row's other problems are all reported.
+- [x] T033 [US1] An empty required cell and the row's other problems are all reported.
 - [ ] T034 [US1] A file whose headings all match still shows the warnings about its columns.
 - [ ] T035 [US1] A check or an import that fails unexpectedly ends in a state the person can
   leave.

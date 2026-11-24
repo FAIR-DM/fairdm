@@ -297,8 +297,23 @@ class TestFieldProblems:
     ):
         _, result = run_import(RockSample, [rock_row(rock_type="")])
 
-        assert (outcomes(result), problem_of(result).column) == ([ERROR], "rock_type")
+        fields = set(result.rows[0].validation_error.error_dict)
+        assert (outcomes(result), fields) == ([INVALID], {"rock_type"})
         assert not RockSample.objects.filter(name="Granite").exists()
+
+    def test_an_empty_required_cell_is_reported_with_the_rows_other_problems(
+        self, run_import
+    ):
+        _, result = run_import(
+            RockSample,
+            [rock_row(name="", hardness_mohs="6,5", weight_grams="abc")],
+        )
+
+        fields = set(result.rows[0].validation_error.error_dict)
+        assert (outcomes(result), fields) == (
+            [INVALID],
+            {"name", "hardness_mohs", "weight_grams"},
+        )
 
     def test_clearing_a_required_value_on_an_update_is_a_problem(
         self, run_import, rock
@@ -308,7 +323,8 @@ class TestFieldProblems:
         )
 
         rock.refresh_from_db()
-        assert (outcomes(result), problem_of(result).column) == ([ERROR], "rock_type")
+        fields = set(result.rows[0].validation_error.error_dict)
+        assert (outcomes(result), fields) == ([INVALID], {"rock_type"})
         assert rock.rock_type == "granite"
 
     def test_an_empty_required_cell_is_kept_when_empty_cells_are_kept(

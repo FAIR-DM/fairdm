@@ -12,6 +12,7 @@ What it adds to django-import-export:
 
 from __future__ import annotations
 
+from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _
 from import_export import fields, resources
 
@@ -223,11 +224,20 @@ class RecordResource(LocatedResourceMixin, resources.ModelResource):
             instance: The new or stored record.
             row: The row.
             **kwargs: What django-import-export passes on.
-        """
-        self.settle_empty_cells(instance, row)
-        super().import_instance(instance, row, **kwargs)
 
-    def settle_empty_cells(self, instance, row) -> None:
+        Raises:
+            ValidationError: The empty required cells and the cells that cannot be
+                read, each under its column.
+        """
+        errors = self.settle_empty_cells(instance, row)
+        try:
+            super().import_instance(instance, row, **kwargs)
+        except ValidationError as error:
+            errors = error.update_error_dict(errors)
+        if errors:
+            raise ValidationError(errors)
+
+    def settle_empty_cells(self, instance, row) -> dict:
         """Drop the empty cells that change nothing and refuse those that would.
 
         A new record has nothing to clear, so its empty cells are left to the model's
@@ -238,10 +248,11 @@ class RecordResource(LocatedResourceMixin, resources.ModelResource):
             instance: The new or stored record.
             row: The row, which loses the empty cells that are left out.
 
-        Raises:
-            RowProblem: An empty cell in a column a record needs, on a new record or
-                on one whose empty cells are to be cleared.
+        Returns:
+            The problems, by column: an empty cell in a column a record needs, on a new
+            record or on one whose empty cells are to be cleared. Empty when none.
         """
+        errors = {}
         is_new = instance.pk is None
         clearing = not is_new and self.empty == "clear"
         for column in self.schema.importable:
@@ -250,16 +261,17 @@ class RecordResource(LocatedResourceMixin, resources.ModelResource):
             if not CellWidget.is_empty(row[column.name]):
                 continue
             if column.required and (is_new or clearing):
-                raise RowProblem(
-                    column.name,
+                message = (
                     _("A %(label)s is needed here, and this cell is empty.")
-                    % {"label": column.label}
                     if is_new
                     else _("The %(label)s cannot be emptied, as the record needs one.")
-                    % {"label": column.label},
                 )
+                errors[column.name] = [
+                    ValidationError(message % {"label": column.label}, code="required")
+                ]
             if not clearing:
                 del row[column.name]
+        return errors
 
     def skip_row(self, instance, original, row, import_validation_errors=None):
         """Leave out a row the mode does not ask for, or one that changes nothing.
