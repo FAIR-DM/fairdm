@@ -207,7 +207,8 @@ class ImportRun:
         """
         instance = row_result.instance
         if instance is not None and instance.pk:
-            row.label = row_result.object_repr or row.label
+            limit = ImportRow._meta.get_field("label").max_length
+            row.label = (row_result.object_repr or row.label)[:limit]
         if row_result.import_type == RowResult.IMPORT_TYPE_NEW:
             row.outcome = ImportRow.Outcome.NEW
             return
