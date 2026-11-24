@@ -1106,6 +1106,44 @@ class TestOverviewEmptyCardFollowsWhatTheViewerMaySee:
         assert _page(client, holding).page.find(id="dataset-no-records") is None
 
 
+class TestOverviewEmptyCardImportButton:
+    """The Import data button of an empty dataset opens the dialog of types."""
+
+    def test_the_team_gets_a_dialog_of_sample_and_measurement_types(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        client.force_login(_team_member(dataset, "change_dataset"))
+
+        card = _page(client, dataset).page.find(id="dataset-no-records")
+
+        button = card.select_one("button[aria-haspopup=dialog]")
+        assert button is not None
+        dialog = card.select_one("dialog")
+        assert dialog is not None
+        assert dialog.select_one(".record-sample") is not None
+        assert dialog.select_one(".record-measurement") is not None
+        assert card.select_one("[disabled]") is None
+
+    def test_a_dialog_entry_leads_to_the_import_page_of_its_type(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        client.force_login(_team_member(dataset, "change_dataset"))
+
+        card = _page(client, dataset).page.find(id="dataset-no-records")
+
+        links = [a["href"] for a in card.select("dialog a[href]")]
+        assert links
+        assert all("/import/" in href for href in links)
+        assert all(str(dataset.uuid) in href for href in links)
+
+    def test_a_viewer_who_may_not_manage_gets_no_button(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+        client.force_login(_team_member(dataset))
+
+        page = _page(client, dataset).page
+
+        assert page.select_one("#dataset-no-records button") is None
+        assert page.select("dialog[id^=ie-import-]") == []
+
+
 class TestOverviewReadinessChecklist:
     """FR-033: seven required items and three recommended ones."""
 
