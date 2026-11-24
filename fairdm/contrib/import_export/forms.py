@@ -1,12 +1,11 @@
 """The choices a person makes about a file, and the file itself."""
 
-from pathlib import PurePath
-
 from django import forms
 from django.utils.translation import gettext_lazy as _
 from mvp_forms.widgets import CardSelect
 
 from .models import ImportJob
+from .reader import FileProblem, FileReader
 
 MODE_DESCRIPTIONS = {
     ImportJob.Mode.BOTH: _(
@@ -81,8 +80,7 @@ class ImportOptionsForm(forms.Form):
 class UploadForm(forms.Form):
     """The file to import. A file of another format or too large is refused."""
 
-    MAX_BYTES = 20 * 1024 * 1024
-    EXTENSIONS = (".csv", ".tsv", ".xlsx", ".ods")
+    MAX_BYTES = FileReader.MAX_BYTES
 
     file = forms.FileField(
         label=_("File"),
@@ -99,11 +97,13 @@ class UploadForm(forms.Form):
             ValidationError: With code ``format`` or ``too_large``.
         """
         upload = self.cleaned_data["file"]
-        if PurePath(upload.name).suffix.lower() not in self.EXTENSIONS:
+        try:
+            FileReader.file_format(upload.name)
+        except FileProblem:
             raise forms.ValidationError(
                 _("Upload a CSV, TSV, Excel or OpenDocument file."), code="format"
-            )
-        if upload.size > self.MAX_BYTES:
+            ) from None
+        if upload.size > FileReader.MAX_BYTES:
             raise forms.ValidationError(
                 _("The file is larger than 20 MB."), code="too_large"
             )

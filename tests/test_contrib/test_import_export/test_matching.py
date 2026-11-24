@@ -3,9 +3,11 @@
 from types import SimpleNamespace
 
 import pytest
-from fairdm.contrib.import_export.matching import HeadingMatcher
 
+from fairdm.contrib.import_export.matching import HeadingMatcher
 from fairdm.contrib.import_export.models import ImportJob
+
+pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture

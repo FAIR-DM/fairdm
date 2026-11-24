@@ -66,8 +66,8 @@ public name.
 
 ### Group 4
 
-- [ ] T010 [US1] Tests: `test_reader.py` and `test_matching.py`, as plan.md "Tests" lists.
-- [ ] T011 [US1] `reader.py` (`FileProblem` and `FileReader`: limits, `file_format`, `read_grid`, `parse`; OpenDocument
+- [x] T010 [US1] Tests: `test_reader.py` and `test_matching.py`, as plan.md "Tests" lists.
+- [x] T011 [US1] `reader.py` (`FileProblem` and `FileReader`: limits, `file_format`, `read_grid`, `parse`; OpenDocument
   read with odfpy directly) rebuilt from the prototype's `engine.py` reading part, and `matching.py`
   (`HeadingMatcher`: `normalise`, `match`, `match_columns`, `problems`, `warnings`,
   `needs_matching`). T010 goes green.

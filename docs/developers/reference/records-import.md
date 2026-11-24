@@ -13,3 +13,37 @@ A person with the edit level on a dataset imports a file of one registered sampl
 `ImportOptionsForm` asks two questions with a card for each choice. What the file may do is add new records and update existing ones, only add, or only update. What an empty cell means is keep the stored value or clear it. `ImportOptionsForm(brief=True)` leaves each card's explanation out, for the column matching page where the choices are already known. `chosen(mode, empty)` returns the two choices the form holds, or the two it is given when the form is unbound or a choice is missing.
 
 `UploadForm` reads the file of an import. It refuses a file over the size limit or of a format the import does not read.
+
+## Reading a file
+
+`FileReader` turns the bytes of a file into headings and rows. Every method is a class method, so nothing is kept between calls. The generated API reference describes each argument in [`reader`](api/fairdm/fairdm.contrib.import_export.reader.md).
+
+`FileProblem` is the error for a file that cannot be imported. Its message says why in the active language, and its `code` names the reason: `format`, `too_large`, `too_large_unpacked`, `unreadable`, `empty`, `no_rows` or `too_many_rows`.
+
+The class attributes hold the limits and the formats:
+
+- `FORMATS` lists the formats read: `csv`, `tsv`, `xlsx` and `ods`. JSON and `.txt` files are refused.
+- `MAX_BYTES` is the largest file, 20 MB. `MAX_ROWS` is the most data rows, 50,000.
+- `MAX_UNCOMPRESSED` is the largest a workbook's or spreadsheet's first sheet may be once unpacked. `SHEET_ENTRIES` names the archive entry that holds the first sheet of each of the two formats.
+- `MAX_REPEAT` is the most empty cells one repeated cell of an OpenDocument row expands to.
+- `ENCODINGS` lists the text encodings tried in order: UTF-8 with or without a byte order mark, then Windows-1252, then Latin-1.
+
+`file_format(name)` names a file's format by its extension in any case. `parse(raw, fmt)` returns the headings, the rows and the line of the file each row came from. Headings are trimmed text with empty ones at the end dropped. Each row is cut or filled with `None` to the number of headings, and rows with no value are left out, so a line number counts them. The first row with a value holds the headings, so a blank first line is skipped.
+
+`parse` reads through `read_grid(raw, fmt)`, which returns every row as a list of cells and stops one row past `MAX_ROWS` instead of reading to the end of the file. It reads through `read_csv`, `read_xlsx` and `read_ods`. A comma-separated file's delimiter is sniffed between a comma and a semicolon, and a tab is never its delimiter. An Excel workbook is read through openpyxl's read-only mode, first sheet only.
+
+An OpenDocument spreadsheet is read with odfpy and never with tablib, which drops repeated rows and fails on a second sheet. `read_ods` reads the first table only. `ods_rows` repeats a row as many times as it is repeated, and `ods_cells` repeats a cell likewise, giving text, a number, a date as text, a truth value or `None`.
+
+An Excel or OpenDocument file whose first sheet is larger than `MAX_UNCOMPRESSED` once unpacked is refused before it is opened. `check_unpacked(raw, fmt)` reads the size from the archive's index. `decode(raw)` reads the bytes of a text file in `ENCODINGS`, `blank(cell)` says whether a cell holds nothing, and `limited(rows)` is the iterator that stops a read at the row limit.
+
+## Matching headings
+
+`HeadingMatcher(schema)` finds the column each heading of a file means, for the [table schema](table-schema.md) of one type. Its `schema` attribute is that schema, and its `keys` attribute is the column each normalised heading means. The matcher reads the schema and changes nothing in it. The generated API reference describes each argument in [`matching`](api/fairdm/fairdm.contrib.import_export.matching.md).
+
+`normalise(heading)` reduces a heading to its lower-case letters and digits, so `Rock type`, `rock_type` and `ROCK-TYPE` are the same. `match(heading)` returns the column a heading means, or `None`. A heading means a column by its name, its label, its label without a unit in brackets at the end, or one of its aliases. A column written on export only is never matched.
+
+Where two columns claim the same words, the first column of the schema keeps them. `Sample ID` is an alias of both the Local ID and a measurement's sample column, so it goes to the Local ID.
+
+`match_columns(headings)` matches a whole file and returns the column name of each heading. The first heading to take a column keeps it, and a second heading for the same column, or one that means no column, is an empty string.
+
+`problems(job)` lists what stops the matched columns from being checked: no column matched, two headings matched to one column, a column a new record needs left unmatched unless the job only updates, and a job that only updates with neither the portal ID nor the Local ID matched. `warnings(job)` lists what is worth knowing and does not stop the check: a job that adds and updates with no identifier column, and a latitude matched without a longitude or the reverse. `needs_matching(job)` is true when a heading of the job is matched to no column or `problems` is not empty. A warning alone leaves the matching to be skipped.
