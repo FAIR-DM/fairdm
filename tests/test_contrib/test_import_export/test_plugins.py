@@ -929,6 +929,18 @@ class TestJobActions:
         assert stored
         queued.assert_not_called()
 
+    def test_discard_leaves_the_rows_no_changed_cell(
+        self, editor_client, job_url, checked_job, queued
+    ):
+        ImportRowFactory(
+            job=checked_job,
+            outcome=Outcome.UPDATE,
+            changes=[{"column": "name", "label": "Name", "old": "A", "new": "B"}],
+        )
+        self.post(editor_client, job_url(checked_job), "discard")
+        assert not checked_job.rows.exclude(changes=[]).exists()
+        assert checked_job.rows.count() == 1
+
     @pytest.mark.parametrize(
         "status", [Status.IMPORTED, Status.IMPORTING, Status.UNDONE, Status.FAILED]
     )

@@ -242,6 +242,7 @@ class ImportUndo:
                 )
                 job.refresh_from_db()
                 run.delete_file()
+                run.clear_changes()
         finally:
             cache.delete(run.progress_key)
         return found

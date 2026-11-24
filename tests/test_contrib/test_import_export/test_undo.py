@@ -254,6 +254,18 @@ class TestUndo:
         assert not job.file
         assert job.rows.count() == 2
 
+    def test_the_rows_keep_no_changed_cell_once_undone(self, undoing):
+        job, _added, _changed = undoing
+        assert job.rows.exclude(changes=[]).exists()
+        ImportUndo(job).undo(None)
+        assert not job.rows.exclude(changes=[]).exists()
+
+    def test_a_refused_undo_keeps_the_changed_cells(self, undoing):
+        job, added, _changed = undoing
+        added.save()
+        ImportUndo(job).undo(None)
+        assert job.rows.exclude(changes=[]).exists()
+
     def test_the_dataset_is_locked_before_anything_is_written(self, undoing):
         job, _added, _changed = undoing
         with CaptureQueriesContext(connection) as queries:

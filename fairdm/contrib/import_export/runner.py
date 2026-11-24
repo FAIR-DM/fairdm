@@ -459,6 +459,14 @@ class ImportRun:
         job.samples = {}
         job.save(update_fields=["file", "samples"])
 
+    def clear_changes(self):
+        """Clear the cells the job's rows keep, once the job's values no longer stand.
+
+        A discarded or undone import keeps its rows and counts but no new value of
+        the file.
+        """
+        self.job.rows.update(changes=[])
+
     def fail(self, message):
         """End the job as failed and delete its file.
 

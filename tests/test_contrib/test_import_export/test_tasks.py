@@ -21,6 +21,8 @@ pytestmark = pytest.mark.django_db
 
 Status = ImportJob.Status
 
+CHANGES = [{"column": "name", "label": "Name", "old": "Old", "new": "Brand new"}]
+
 
 def rock(name):
     """Return the cells of a new rock with every required column filled."""
@@ -250,6 +252,12 @@ class TestDiscardStale:
         ImportRowFactory(job=job)
         tasks.discard_stale_jobs()
         assert job.rows.count() == 2
+
+    def test_the_rows_keep_no_changed_cell(self):
+        job = self.old(ImportJobFactory(with_file=True))
+        ImportRowFactory(job=job, outcome="update", changes=CHANGES)
+        tasks.discard_stale_jobs()
+        assert not job.rows.exclude(changes=[]).exists()
 
     def test_a_younger_job_is_left_alone(self):
         job = self.old(ImportJobFactory(with_file=True), days=29)

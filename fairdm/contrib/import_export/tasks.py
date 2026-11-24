@@ -127,8 +127,8 @@ def undo_job(job_pk, user_pk):
 def discard_stale_jobs():
     """Discard the imports left unfinished for 30 days and delete their files.
 
-    A job being imported is left alone. The rows of a discarded job are kept, so the
-    import is still listed with its counts.
+    A job being imported is left alone. The rows of a discarded job are kept without
+    their changed cells, so the import is still listed with its counts.
 
     Returns:
         How many jobs were discarded.
@@ -141,6 +141,8 @@ def discard_stale_jobs():
             status=ImportJob.Status.DISCARDED
         )
         if moved:
-            ImportRun(job).delete_file()
+            run = ImportRun(job)
+            run.delete_file()
+            run.clear_changes()
             discarded += 1
     return discarded

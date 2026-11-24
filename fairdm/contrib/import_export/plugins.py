@@ -715,7 +715,9 @@ class JobDetail(JobPage):
         elif action == "recheck":
             tasks.start(tasks.check_job, job.pk)
         else:
-            ImportRun(job).delete_file()
+            run = ImportRun(job)
+            run.delete_file()
+            run.clear_changes()
             messages.info(
                 request,
                 _("Nothing from %(file)s was imported.") % {"file": job.filename},
