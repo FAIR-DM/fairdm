@@ -57,7 +57,7 @@ public name.
   field as plan.md "Data model" describes, the `post_delete` receiver that deletes the file, and
   `ImportJobFactory` and `ImportRowFactory` in `tests/factories.py` (DR-017, DR-018). T006
   goes green. `makemigrations --check` is clean.
-- [ ] T008 [US1] Tests: `TestImportOptionsForm` and `TestUploadForm` in
+- [x] T008 [US1] Tests: `TestImportOptionsForm` and `TestUploadForm` in
   `tests/test_contrib/test_import_export/test_forms.py`.
 - [ ] T009 [US1] `fairdm/contrib/import_export/forms.py`: `ImportOptionsForm` (with
   `CardSelect`, ported from the prototype's `forms.py`) and `UploadForm`. T008 goes green.
