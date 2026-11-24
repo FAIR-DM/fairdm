@@ -52,7 +52,7 @@
 
       {% if recent %}
         <c-import.panel size="side" :title="_('Recent imports')">
-          <c-slot name="action"><a class="ie-more" href="{{ imports_url }}">{% translate "See all" %}</a></c-slot>
+          <c-slot name="action"><c-more-link href="{{ imports_url }}" text="{% translate 'See all' %}" class="ie-more" only /></c-slot>
           <c-import.job-list :jobs="recent" />
         </c-import.panel>
       {% endif %}

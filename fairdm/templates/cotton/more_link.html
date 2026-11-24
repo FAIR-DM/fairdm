@@ -1,0 +1,6 @@
+{# @description The link from a card or panel heading to the full list behind it: plain text with an arrow after it. #}
+{# @prop href:text | description:"Where the full list lives." #}
+{# @prop text:text | description:"The link's text, such as View all." #}
+{# @prop class:text | description:"Extra classes on the link." #}
+<c-vars href text class />
+<a href="{{ href }}" class="more-link {{ class }}" {{ attrs }}>{{ text }}<c-icon name="arrow-right" aria-hidden="true" only /></a>

@@ -1,7 +1,7 @@
 {% load i18n %}
 {% comment %}
   <c-card.identifiers> — every identifier the record carries, the team's own ID and its portal
-  ID, as a small table. DOIs and IGSNs link to doi.org.
+  ID, as a list with each label above its value. DOIs and IGSNs link to doi.org.
 
   Attributes:
     identifiers  – [{type, value, link}]; `link` is set for DOIs and IGSNs
@@ -14,49 +14,50 @@
 {% endcomment %}
 <c-vars identifiers portal_id permalink local_id class />
 <c-mvp.card title="{% translate 'Identifiers' %}" class="bg-base-100 {{ class }}" data-card="identifiers" only>
-  <table class="table table-xs">
-    <caption class="sr-only">{% translate "Identifiers" %}</caption>
-    <tbody>
-      {% for identifier in identifiers %}
-        <tr>
-          <th scope="row" class="ps-0 font-normal text-base-content/70 whitespace-nowrap align-top">{{ identifier.type }}</th>
-          <td class="pe-0 font-mono break-all">
-            {% if identifier.link %}<a href="{{ identifier.link }}" class="link link-primary">{{ identifier.value }}</a>{% else %}{{ identifier.value }}{% endif %}
-          </td>
-        </tr>
-      {% endfor %}
-      {% if local_id %}
-        <tr>
-          <th scope="row" class="ps-0 font-normal text-base-content/70 whitespace-nowrap align-top">{% translate "Local ID" %}</th>
-          <td class="pe-0 font-mono break-all">{{ local_id }}</td>
-        </tr>
-      {% endif %}
-      {% if portal_id %}
-        <tr>
-          <th scope="row" class="ps-0 font-normal text-base-content/70 whitespace-nowrap align-top">{% translate "Portal ID" %}</th>
-          <td class="pe-0 font-mono break-all">
-            {{ portal_id }}
-            <button type="button" class="btn btn-ghost btn-xs"
-                    aria-label="{% translate 'Copy portal ID' %}" title="{% translate 'Copy portal ID' %}"
-                    onclick="navigator.clipboard.writeText('{{ portal_id|escapejs }}')">
-              <c-icon name="copy" aria-hidden="true" only />
-            </button>
-          </td>
-        </tr>
-      {% endif %}
-      {% if permalink %}
-        <tr>
-          <th scope="row" class="ps-0 font-normal text-base-content/70 whitespace-nowrap align-top">{% translate "Permalink" %}</th>
-          <td class="pe-0 font-mono break-all">
-            <a href="{{ permalink }}" class="link link-primary">{{ permalink }}</a>
-            <button type="button" class="btn btn-ghost btn-xs"
-                    aria-label="{% translate 'Copy permalink' %}" title="{% translate 'Copy permalink' %}"
-                    onclick="navigator.clipboard.writeText('{{ permalink|escapejs }}')">
-              <c-icon name="copy" aria-hidden="true" only />
-            </button>
-          </td>
-        </tr>
-      {% endif %}
-    </tbody>
-  </table>
+  {% comment %}
+    Each label sits above its value, so a long value has the card's whole width. A link is cut
+    short with an ellipsis rather than wrapped, and its title carries the whole address.
+  {% endcomment %}
+  <dl class="flex flex-col gap-3 text-sm">
+    {% for identifier in identifiers %}
+      <div class="min-w-0">
+        <dt class="text-base-content/70">{{ identifier.type }}</dt>
+        <dd class="font-mono min-w-0 {% if identifier.link %}truncate{% else %}break-words{% endif %}">
+          {% if identifier.link %}<a href="{{ identifier.link }}" class="link link-primary" title="{{ identifier.value }}">{{ identifier.value }}</a>{% else %}{{ identifier.value }}{% endif %}
+        </dd>
+      </div>
+    {% endfor %}
+    {% if local_id %}
+      <div class="min-w-0">
+        <dt class="text-base-content/70">{% translate "Local ID" %}</dt>
+        <dd class="font-mono break-words">{{ local_id }}</dd>
+      </div>
+    {% endif %}
+    {% if portal_id %}
+      <div class="min-w-0">
+        <dt class="text-base-content/70">{% translate "Portal ID" %}</dt>
+        <dd class="flex items-center gap-1 min-w-0">
+          <span class="font-mono break-words">{{ portal_id }}</span>
+          <button type="button" class="btn btn-ghost btn-xs shrink-0"
+                  aria-label="{% translate 'Copy portal ID' %}" title="{% translate 'Copy portal ID' %}"
+                  onclick="navigator.clipboard.writeText('{{ portal_id|escapejs }}')">
+            <c-icon name="copy" aria-hidden="true" only />
+          </button>
+        </dd>
+      </div>
+    {% endif %}
+    {% if permalink %}
+      <div class="min-w-0">
+        <dt class="text-base-content/70">{% translate "Permalink" %}</dt>
+        <dd class="flex items-center gap-1 min-w-0">
+          <a href="{{ permalink }}" class="link link-primary font-mono truncate min-w-0" title="{{ permalink }}">{{ permalink }}</a>
+          <button type="button" class="btn btn-ghost btn-xs shrink-0"
+                  aria-label="{% translate 'Copy permalink' %}" title="{% translate 'Copy permalink' %}"
+                  onclick="navigator.clipboard.writeText('{{ permalink|escapejs }}')">
+            <c-icon name="copy" aria-hidden="true" only />
+          </button>
+        </dd>
+      </div>
+    {% endif %}
+  </dl>
 </c-mvp.card>

@@ -24,7 +24,7 @@
       {% if edit_url or more_url %}
         <div class="ov-panel__tools">
           <c-overview.edit href="{{ edit_url }}" text="{{ edit_text }}" icon="{{ edit_icon }}" label="{{ edit_label }}" only />
-          {% if more_url %}<a href="{{ more_url }}" class="ov-panel__more">{{ more_text|default:_("See all") }}<c-icon name="chevron-right" aria-hidden="true" only /></a>{% endif %}
+          {% if more_url %}<c-more-link href="{{ more_url }}" text="{{ more_text|default:_('See all') }}" only />{% endif %}
         </div>
       {% endif %}
       {% if sub %}<p class="ov-panel__sub">{{ sub }}</p>{% endif %}
