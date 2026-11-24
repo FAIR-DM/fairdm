@@ -46,9 +46,6 @@ STEPS = [
     ("import", _l("Import")),
 ]
 
-Status = ImportJob.Status
-Outcome = ImportRow.Outcome
-
 
 def can_import(request, dataset):
     """Say whether the request's user may import into a dataset.
@@ -212,6 +209,11 @@ class ImportStart(DefinitionMixin, ImportPage):
         A file that cannot be read is shown on this page and saves no job. A job whose
         headings all match goes straight to the check and any other goes to matching.
 
+        Args:
+            request: The request.
+            *args: Unused.
+            **kwargs: The address's arguments.
+
         Returns:
             A redirect to the job or its matching page, or this page with the problem.
         """
@@ -224,7 +226,7 @@ class ImportStart(DefinitionMixin, ImportPage):
             return self.render_to_response(
                 self.get_context_data(upload_error=str(problem), mode=mode, empty=empty)
             )
-        if job.status == Status.MATCHING:
+        if job.status == ImportJob.Status.MATCHING:
             return redirect(reverse(self.dataset, "imports-columns", job=job.pk))
         tasks.start(tasks.check_job, job.pk)
         return redirect(job.get_absolute_url())
@@ -277,7 +279,11 @@ class ImportStart(DefinitionMixin, ImportPage):
             column_map=matcher.match_columns(headings),
             row_count=len(rows),
         )
-        job.status = Status.MATCHING if matcher.needs_matching(job) else Status.CHECKING
+        job.status = (
+            ImportJob.Status.MATCHING
+            if matcher.needs_matching(job)
+            else ImportJob.Status.CHECKING
+        )
         with transaction.atomic():
             job.file.save(name, ContentFile(raw), save=False)
             job.save()
@@ -359,6 +365,11 @@ class ImportTemplate(DefinitionMixin, ImportPage):
 
     def get(self, request, *args, **kwargs):
         """Answer with the type's template in one of the formats a template has.
+
+        Args:
+            request: The request.
+            *args: Unused.
+            **kwargs: The address's arguments.
 
         Returns:
             The file as a download.
@@ -467,7 +478,12 @@ class JobColumns(JobPage):
     name = "columns"
     template_name = "import_export/import_columns.html"
     step = "columns"
-    ALLOWED = (Status.MATCHING, Status.CHECKED, Status.PROBLEMS, Status.NOTHING)
+    ALLOWED = (
+        ImportJob.Status.MATCHING,
+        ImportJob.Status.CHECKED,
+        ImportJob.Status.PROBLEMS,
+        ImportJob.Status.NOTHING,
+    )
 
     def get_page_title(self):
         """Name the file whose columns are matched."""
@@ -484,6 +500,11 @@ class JobColumns(JobPage):
 
         Only a job that has not been imported or set aside is matched. Matches that
         cannot be checked are kept and shown again with what is wrong.
+
+        Args:
+            request: The request.
+            *args: Unused.
+            **kwargs: The address's arguments.
 
         Returns:
             A redirect to the job, or this page again with the problems.
@@ -510,7 +531,7 @@ class JobColumns(JobPage):
         if HeadingMatcher(schema).problems(job):
             jobs.update(**fields)
             return self.render_to_response(self.get_context_data())
-        if jobs.update(status=Status.CHECKING, summary={}, **fields):
+        if jobs.update(status=ImportJob.Status.CHECKING, summary={}, **fields):
             tasks.start(tasks.check_job, job.pk)
         return redirect(job.get_absolute_url())
 
@@ -559,30 +580,45 @@ class JobDetail(JobPage):
     template_name = "import_export/import_job.html"
     per_page = 100
     ACTIONS = {
-        "import": ((Status.CHECKED,), Status.IMPORTING),
-        "recheck": ((Status.CHECKED, Status.PROBLEMS, Status.NOTHING), Status.CHECKING),
+        "import": ((ImportJob.Status.CHECKED,), ImportJob.Status.IMPORTING),
+        "recheck": (
+            (
+                ImportJob.Status.CHECKED,
+                ImportJob.Status.PROBLEMS,
+                ImportJob.Status.NOTHING,
+            ),
+            ImportJob.Status.CHECKING,
+        ),
         "discard": (
-            (Status.MATCHING, Status.CHECKED, Status.PROBLEMS),
-            Status.DISCARDED,
+            (
+                ImportJob.Status.MATCHING,
+                ImportJob.Status.CHECKED,
+                ImportJob.Status.PROBLEMS,
+            ),
+            ImportJob.Status.DISCARDED,
         ),
     }
     TITLES = {
-        Status.CHECKING: _l("Checking %(file)s"),
-        Status.CHECKED: _l("%(file)s is ready to import"),
-        Status.NOTHING: _l("%(file)s matches what is stored"),
-        Status.PROBLEMS: _l("%(file)s needs changes"),
-        Status.IMPORTING: _l("Importing %(file)s"),
-        Status.IMPORTED: _l("%(file)s was imported"),
-        Status.UNDONE: _l("%(file)s was imported, then undone"),
-        Status.FAILED: _l("%(file)s could not be read"),
-        Status.DISCARDED: _l("%(file)s was not imported"),
-        Status.MATCHING: _l("%(file)s: columns to match"),
+        ImportJob.Status.CHECKING: _l("Checking %(file)s"),
+        ImportJob.Status.CHECKED: _l("%(file)s is ready to import"),
+        ImportJob.Status.NOTHING: _l("%(file)s matches what is stored"),
+        ImportJob.Status.PROBLEMS: _l("%(file)s needs changes"),
+        ImportJob.Status.IMPORTING: _l("Importing %(file)s"),
+        ImportJob.Status.IMPORTED: _l("%(file)s was imported"),
+        ImportJob.Status.UNDONE: _l("%(file)s was imported, then undone"),
+        ImportJob.Status.FAILED: _l("%(file)s could not be read"),
+        ImportJob.Status.DISCARDED: _l("%(file)s was not imported"),
+        ImportJob.Status.MATCHING: _l("%(file)s: columns to match"),
     }
 
     @property
     def step(self):
         """The step the job is at: the import once it has begun, the check before."""
-        if self.job.status in (Status.IMPORTING, Status.IMPORTED, Status.UNDONE):
+        if self.job.status in (
+            ImportJob.Status.IMPORTING,
+            ImportJob.Status.IMPORTED,
+            ImportJob.Status.UNDONE,
+        ):
             return "import"
         return "check"
 
@@ -602,7 +638,7 @@ class JobDetail(JobPage):
     def get(self, request, *args, **kwargs):
         """Show the job, or send a job still matching to its matching page."""
         job = self.job
-        if job.status == Status.MATCHING:
+        if job.status == ImportJob.Status.MATCHING:
             return redirect(reverse(self.dataset, "imports-columns", job=job.pk))
         return super().get(request, *args, **kwargs)
 
@@ -611,6 +647,11 @@ class JobDetail(JobPage):
 
         An action the job's status does not allow changes nothing, so a second post of
         the same action finds the job already moved and queues no second task.
+
+        Args:
+            request: The request.
+            *args: Unused.
+            **kwargs: The address's arguments.
 
         Returns:
             A redirect to the job, or to the import page after a discard.
@@ -647,10 +688,14 @@ class JobDetail(JobPage):
         """
         job = self.job
         show = self.request.GET.get("show", "")
-        if show not in Outcome.values and show != "all":
-            show = Outcome.PROBLEM if job.summary.get(Outcome.PROBLEM) else ""
+        if show not in ImportRow.Outcome.values and show != "all":
+            show = (
+                ImportRow.Outcome.PROBLEM
+                if job.summary.get(ImportRow.Outcome.PROBLEM)
+                else ""
+            )
         rows = job.rows.all()
-        if show in Outcome.values:
+        if show in ImportRow.Outcome.values:
             rows = rows.filter(outcome=show)
         return show, rows
 
@@ -692,7 +737,10 @@ class JobDetail(JobPage):
         context["problems_url"] = reverse(self.dataset, "imports-problems", job=job.pk)
         context["mode_label"] = ImportJob.Mode(job.mode).label
         context["empty_label"] = ImportJob.Empty(job.empty_cells).label
-        context["written"] = job.status in (Status.IMPORTED, Status.UNDONE)
+        context["written"] = job.status in (
+            ImportJob.Status.IMPORTED,
+            ImportJob.Status.UNDONE,
+        )
         return context
 
     def tiles(self, job):
@@ -705,18 +753,19 @@ class JobDetail(JobPage):
             Dicts with the outcome's ``key``, ``label`` and ``count``. Outcomes with no
             rows are left out, except new and changed rows.
         """
-        written = job.status in (Status.IMPORTED, Status.UNDONE)
+        written = job.status in (ImportJob.Status.IMPORTED, ImportJob.Status.UNDONE)
         labels = {
-            Outcome.PROBLEM: _("Need changes"),
-            Outcome.NEW: _("Added") if written else _("New"),
-            Outcome.UPDATE: _("Updated"),
-            Outcome.UNCHANGED: _("Unchanged"),
-            Outcome.SKIPPED: _("Skipped"),
+            ImportRow.Outcome.PROBLEM: _("Need changes"),
+            ImportRow.Outcome.NEW: _("Added") if written else _("New"),
+            ImportRow.Outcome.UPDATE: _("Updated"),
+            ImportRow.Outcome.UNCHANGED: _("Unchanged"),
+            ImportRow.Outcome.SKIPPED: _("Skipped"),
         }
         return [
             {"key": key, "label": label, "count": job.summary.get(key, 0)}
             for key, label in labels.items()
-            if job.summary.get(key, 0) or key in (Outcome.NEW, Outcome.UPDATE)
+            if job.summary.get(key, 0)
+            or key in (ImportRow.Outcome.NEW, ImportRow.Outcome.UPDATE)
         ]
 
 
@@ -728,6 +777,11 @@ class JobStatus(JobPage):
 
     def get(self, request, *args, **kwargs):
         """Answer the progress, or a refresh of the page once the run is over.
+
+        Args:
+            request: The request.
+            *args: Unused.
+            **kwargs: The address's arguments.
 
         Returns:
             The progress component, or an empty response with ``HX-Refresh``.
@@ -748,7 +802,7 @@ class JobStatus(JobPage):
                     "done": done,
                     "total": job.row_count,
                     "url": reverse(self.dataset, "imports-status", job=job.pk),
-                    "importing": job.status == Status.IMPORTING,
+                    "importing": job.status == ImportJob.Status.IMPORTING,
                 },
                 request=request,
             )
@@ -768,6 +822,11 @@ class JobProblems(JobPage):
         Every heading, value and message is written as text, so a cell that starts with
         ``=`` is never a formula.
 
+        Args:
+            request: The request.
+            *args: Unused.
+            **kwargs: The address's arguments.
+
         Returns:
             The workbook as a download.
 
@@ -775,7 +834,7 @@ class JobProblems(JobPage):
             Http404: The job has no problems or its file is no longer stored.
         """
         job = self.job
-        if job.status != Status.PROBLEMS or not job.file:
+        if job.status != ImportJob.Status.PROBLEMS or not job.file:
             raise Http404(_("There is no file with problems to download."))
         try:
             with job.file.open("rb") as stored:
@@ -784,7 +843,8 @@ class JobProblems(JobPage):
             raise Http404(_("The uploaded file is no longer stored.")) from None
         schema = job.definition.table_schema()
         problems = {
-            row.line: row.problems for row in job.rows.filter(outcome=Outcome.PROBLEM)
+            row.line: row.problems
+            for row in job.rows.filter(outcome=ImportRow.Outcome.PROBLEM)
         }
         export = TableExport(schema)
         book = Workbook()
