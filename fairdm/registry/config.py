@@ -25,7 +25,6 @@ from django.utils.functional import Promise
 from django.utils.module_loading import import_string
 from django_filters import FilterSet
 from django_tables2 import Table
-from import_export.resources import ModelResource
 
 from fairdm.registry.exceptions import ConfigurationError, FieldValidationError
 
@@ -116,9 +115,6 @@ COMPONENTS: dict[str, Component] = {
         None,
         "SerializerFactory",
         default_exclude=("options", "tags"),
-    ),
-    "resource": Component(
-        "resource_fields", "resource_class", ModelResource, "ResourceFactory"
     ),
     "admin": Component("admin_list_display", "admin_class", None, "AdminFactory"),
 }
@@ -230,15 +226,13 @@ class ModelConfiguration:
         table_fields: Field list for the table component alone.
         filterset_fields: Field list for the filterset component alone.
         serializer_fields: Field list for the serializer component alone.
-        resource_fields: Field list for the import and export resource alone.
+        resource_fields: Field list for the import and export columns alone.
         admin_list_display: Field list for the admin component alone.
         form_class: A form class, or its dotted path, replacing the generated one.
         table_class: A table class, or its dotted path, replacing the generated one.
         filterset_class: A filterset class, or its dotted path, replacing the
             generated one.
         serializer_class: A serializer class, or its dotted path, replacing the
-            generated one.
-        resource_class: A resource class, or its dotted path, replacing the
             generated one.
         admin_class: An admin class, or its dotted path, replacing the generated one.
         display_name: Human-readable name, defaulting to the model's verbose name.
@@ -270,7 +264,6 @@ class ModelConfiguration:
     table_class: type[Table] | str | None = None
     filterset_class: type[FilterSet] | str | None = None
     serializer_class: "type[ModelSerializer] | str | None" = None
-    resource_class: type[ModelResource] | str | None = None
     admin_class: "type[ModelAdmin] | str | None" = None
 
     display_name: str = ""
@@ -284,6 +277,7 @@ class ModelConfiguration:
         "search_fields",
         *(c.fields_attr for c in COMPONENTS.values()),
         *(c.class_attr for c in COMPONENTS.values()),
+        "resource_fields",
         "display_name",
         "description",
     )
@@ -350,6 +344,7 @@ class ModelConfiguration:
             (spec.fields_attr, getattr(self, spec.fields_attr))
             for spec in COMPONENTS.values()
         ]
+        lists.append(("resource_fields", self.resource_fields or []))
         return [(name, value) for name, value in lists if value]
 
     def _validate_fields(self) -> None:
@@ -574,10 +569,6 @@ class ModelConfiguration:
     def get_serializer_class(self) -> "type[ModelSerializer]":
         """Return the REST serializer for this model. Override to build your own."""
         return cast("type[ModelSerializer]", self._component_class("serializer"))
-
-    def get_resource_class(self) -> type[ModelResource]:
-        """Return the import and export resource. Override to build your own."""
-        return cast(type[ModelResource], self._component_class("resource"))
 
     def get_table_schema(self) -> "TableSchema":
         """Return the columns of this type's file. Override to build your own."""

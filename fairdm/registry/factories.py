@@ -1,7 +1,7 @@
 """Factories that generate Django components from a ModelConfiguration.
 
-Each factory builds one component (form, table, filter set, admin, serializer or
-resource), choosing widgets, columns and filters from the model's field types.
+Each factory builds one component (form, table, filter set, admin or serializer),
+choosing widgets, columns and filters from the model's field types.
 """
 
 from typing import Any, cast
@@ -1102,83 +1102,11 @@ class SerializerFactory(ComponentFactory):
         return nested
 
 
-class ResourceFactory(ComponentFactory):
-    """Factory for generating import/export Resource classes.
-
-    Foreign keys are matched on the related model's natural key where it has one,
-    otherwise on its primary key.
-    """
-
-    def generate(self) -> type:
-        """Generate an import/export Resource class.
-
-        Returns:
-            A ModelResource subclass with foreign key widgets.
-        """
-        from import_export import resources
-
-        from fairdm.utils.location.resources import LocatedResourceMixin
-
-        fields = self.get_fields()
-
-        meta_attrs = {
-            "model": self.model,
-            "fields": list(fields),
-            "export_order": list(fields),
-        }
-        Meta = type("Meta", (), meta_attrs)
-
-        resource_attrs = {"Meta": Meta}
-
-        fk_widgets = self._get_fk_widgets()
-        resource_attrs.update(fk_widgets)
-
-        bases: tuple[type, ...] = (resources.ModelResource,)
-        if "location" in fields:
-            bases = (LocatedResourceMixin, *bases)
-
-        resource_class_name = f"{self.model.__name__}Resource"
-        resource_class = type(resource_class_name, bases, resource_attrs)
-
-        return resource_class
-
-    def _get_fk_widgets(self) -> dict[str, Any]:
-        """Generate ForeignKey widgets with natural key support.
-
-        Returns:
-            Dictionary mapping field names to widget instances
-        """
-        from import_export import widgets
-
-        fk_widgets = {}
-        fields = self.get_fields()
-
-        for field_name in fields:
-            try:
-                field = self.model._meta.get_field(field_name)
-
-                if isinstance(field, models.ForeignKey):
-                    if hasattr(field.related_model, "natural_key"):
-                        fk_widgets[field_name] = widgets.ForeignKeyWidget(
-                            field.related_model, "natural_key"
-                        )
-                    else:
-                        fk_widgets[field_name] = widgets.ForeignKeyWidget(
-                            field.related_model, "pk"
-                        )
-
-            except Exception:  # noqa: S110
-                pass
-
-        return fk_widgets
-
-
 __all__ = [
     "AdminFactory",
     "ComponentFactory",
     "FilterFactory",
     "FormFactory",
-    "ResourceFactory",
     "SerializerFactory",
     "TableFactory",
 ]

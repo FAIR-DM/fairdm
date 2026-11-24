@@ -1,0 +1,5 @@
+{# @description A small tag beside a name. #}
+{# @prop kind:text | description:"ok, key or required. Empty for a plain tag." #}
+{# @slot default | description:"The tag's text." #}
+<c-vars kind />
+<span class="ie-tag{% if kind %} ie-tag--{{ kind }}{% endif %}">{{ slot }}</span>

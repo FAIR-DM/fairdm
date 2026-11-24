@@ -50,7 +50,6 @@ class TestModelConfigurationProtocolCompliance:
         assert hasattr(config, "table_class")
         assert hasattr(config, "filterset_class")
         assert hasattr(config, "serializer_class")
-        assert hasattr(config, "resource_class")
         assert hasattr(config, "admin_class")
         assert hasattr(config, "display_name")
         assert hasattr(config, "description")
@@ -65,7 +64,6 @@ class TestModelConfigurationProtocolCompliance:
             "table",
             "filterset",
             "serializer",
-            "resource",
             "admin",
         ):
             assert hasattr(config, f"get_{component}_class")
@@ -75,7 +73,6 @@ class TestModelConfigurationProtocolCompliance:
         assert config.get_table_class() is not None
         assert config.get_filterset_class() is not None
         assert config.get_serializer_class() is not None
-        assert config.get_resource_class() is not None
         assert config.get_admin_class() is not None
 
     def test_model_configuration_utility_methods(self):
@@ -199,19 +196,16 @@ class TestProtocolTypeCompatibility:
         from django.forms import ModelForm
         from django_filters import FilterSet
         from django_tables2 import Table
-        from import_export.resources import ModelResource
 
         form = config.get_form_class()
         table = config.get_table_class()
         filterset = config.get_filterset_class()
         admin_class = config.get_admin_class()
-        resource = config.get_resource_class()
 
         assert issubclass(form, ModelForm)
         assert issubclass(table, Table)
         assert issubclass(filterset, FilterSet)
         assert issubclass(admin_class, ModelAdmin)
-        assert issubclass(resource, ModelResource)
 
     def test_registry_return_types(self, clean_registry):
         config = ModelConfiguration(model=TestSample, fields=["test_field"])
@@ -469,7 +463,6 @@ class TestRegistryIteration:
             assert config.get_table_class() is not None
             assert config.get_filterset_class() is not None
             assert config.get_serializer_class() is not None
-            assert config.get_resource_class() is not None
             assert config.get_admin_class() is not None
 
     def test_iterate_over_measurements_and_access_components(self, clean_registry):
@@ -675,10 +668,6 @@ class TestBasicRegistration:
         assert serializer_class is not None
         instance = serializer_class()
         assert hasattr(instance, "fields")
-
-        resource_class = registered_config.get_resource_class()
-        assert resource_class is not None
-        assert hasattr(resource_class, "fields")
 
         admin_class = registered_config.get_admin_class()
         assert admin_class is not None

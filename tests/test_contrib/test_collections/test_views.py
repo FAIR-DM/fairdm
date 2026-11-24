@@ -4,6 +4,7 @@ import ast
 import datetime
 import importlib
 from pathlib import Path
+from unittest import mock
 
 import pytest
 from bs4 import BeautifulSoup
@@ -37,6 +38,7 @@ from demo.models import (
 from fairdm.contrib.collections.views import DataTableView
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.import_export.mixins import RecordExportMixin
+from fairdm.contrib.plugins import reverse as record_reverse
 from fairdm.core.sample.models import Sample
 from fairdm.factories import (
     ContributionFactory,
@@ -841,3 +843,133 @@ class TestExportOnPages:
         response = client.get(records_tab(empty, "samples"))
 
         assert b"data-ie-menu" not in response.content
+
+
+IMPORT_DIALOG = 'dialog[id^="ie-import"]'
+IMPORT_BUTTON = "button[aria-haspopup=dialog]"
+
+
+@pytest.mark.django_db
+class TestImportOnPages:
+    """A person who may import sees the Import button beside the Export menu."""
+
+    @pytest.fixture
+    def dataset(self):
+        """A public dataset listing one rock and one XRF measurement."""
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        rock = RockSampleFactory(dataset=dataset)
+        XRFMeasurementFactory(sample=rock, dataset=dataset)
+        return dataset
+
+    def sign_in(self, client, dataset, level):
+        """Sign in a person who holds a level on the dataset."""
+        person = PersonFactory()
+        ContributionFactory(content_object=dataset, contributor=person, level=level)
+        client.force_login(person)
+        return client
+
+    def page(self, client, url):
+        """Return the parsed page at an address."""
+        return BeautifulSoup(client.get(url).content, "html.parser")
+
+    @pytest.mark.parametrize(
+        ("tab", "kind"), [("samples", "sample"), ("measurements", "measurement")]
+    )
+    def test_an_editor_has_the_dialog_of_the_kind_beside_the_export_menu(
+        self, client, dataset, tab, kind
+    ):
+        self.sign_in(client, dataset, ContributionLevel.EDIT)
+
+        page = self.page(client, records_tab(dataset, tab))
+
+        tools = page.select_one(".ie-tools")
+        assert tools.select_one("[data-ie-menu]")
+        assert tools.select_one(IMPORT_BUTTON)
+        assert page.select_one(f"dialog#ie-import-{kind}")
+
+    @pytest.mark.parametrize(
+        ("tab", "model", "kind"),
+        [
+            ("samples", RockSample, "sample"),
+            ("measurements", XRFMeasurement, "measurement"),
+        ],
+    )
+    def test_a_single_types_table_links_straight_to_its_import_page(
+        self, client, dataset, tab, model, kind
+    ):
+        self.sign_in(client, dataset, ContributionLevel.EDIT)
+
+        page = self.page(client, records_tab(dataset, tab, model))
+
+        link = page.select_one(".ie-tools a.btn-primary")
+        name = registry.get_for_model(model).get_slug()
+        assert link["href"] == record_reverse(dataset, "import", type=name)
+        assert not page.select_one(IMPORT_DIALOG)
+
+    def test_a_page_with_no_export_menu_still_has_the_import_button(
+        self, client, dataset
+    ):
+        self.sign_in(client, dataset, ContributionLevel.EDIT)
+
+        with mock.patch.object(RecordExportMixin, "export_menu", return_value=None):
+            page = self.page(client, records_tab(dataset, "samples"))
+
+        assert not page.select_one("[data-ie-menu]")
+        assert page.select_one(".ie-tools " + IMPORT_BUTTON)
+
+    @pytest.mark.parametrize("tab", ["samples", "measurements"])
+    def test_a_person_who_may_only_view_has_no_import_button(
+        self, client, dataset, tab
+    ):
+        self.sign_in(client, dataset, ContributionLevel.VIEW)
+
+        page = self.page(client, records_tab(dataset, tab))
+
+        assert page.select_one("[data-ie-menu]")
+        assert not page.select_one(IMPORT_DIALOG)
+        assert not page.select_one(IMPORT_BUTTON)
+
+    def test_a_visitor_has_no_import_button(self, client, dataset):
+        page = self.page(client, records_tab(dataset, "samples"))
+
+        assert not page.select_one(IMPORT_DIALOG)
+
+    @pytest.mark.parametrize(
+        ("tab", "kind"), [("samples", "sample"), ("measurements", "measurement")]
+    )
+    def test_an_empty_tab_has_the_button_in_its_empty_state(self, client, tab, kind):
+        empty = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        self.sign_in(client, empty, ContributionLevel.EDIT)
+
+        page = self.page(client, records_tab(empty, tab))
+
+        assert not page.select_one("[data-ie-menu]")
+        assert page.select_one(".ie-empty-state " + IMPORT_BUTTON)
+        assert page.select_one(f"dialog#ie-import-{kind}")
+
+    def test_an_empty_tab_has_no_button_for_a_person_who_may_only_view(self, client):
+        empty = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        self.sign_in(client, empty, ContributionLevel.VIEW)
+
+        page = self.page(client, records_tab(empty, "samples"))
+
+        assert not page.select_one(IMPORT_DIALOG)
+
+    @pytest.mark.parametrize("holder", ["project", "contributor"])
+    def test_the_tabs_of_a_project_and_a_contributor_have_no_import_button(
+        self, client, dataset, holder
+    ):
+        self.sign_in(client, dataset, ContributionLevel.EDIT)
+        holders = {"project": dataset.project, "contributor": PersonFactory()}
+
+        page = self.page(client, records_tab(holders[holder], "samples"))
+
+        assert not page.select_one(IMPORT_DIALOG)
+
+    def test_the_portal_listing_has_no_import_button(self, client, dataset):
+        self.sign_in(client, dataset, ContributionLevel.EDIT)
+        slug = registry.get_for_model(RockSample).get_slug()
+
+        page = self.page(client, reverse(f"{slug}-list"))
+
+        assert not page.select_one(IMPORT_DIALOG)

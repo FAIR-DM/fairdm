@@ -660,11 +660,14 @@ class SampleCellWidget(CellWidget):
     """A sample by portal ID, or by Local ID or name within the dataset.
 
     Every lookup reads the samples the person may see, so a sample they may not see is
-    refused with the words used for one that does not exist.
+    refused with the words used for one that does not exist. Each distinct cell is
+    looked up once and the answer kept, so a file of many rows over a few samples asks
+    the database a few times. A widget serves one file.
 
     Attributes:
         dataset: The dataset the file is imported into.
         user: The person importing, or None for a visitor.
+        found: The sample or the refusal each cell read so far came to, by its text.
     """
 
     def __init__(self, column, dataset=None, user=None):
@@ -678,6 +681,7 @@ class SampleCellWidget(CellWidget):
         super().__init__(column)
         self.dataset = dataset
         self.user = user
+        self.found: dict[str, Sample | ValueError] = {}
 
     def clean(self, value, row=None, **kwargs):
         """Read a sample cell.
@@ -698,6 +702,30 @@ class SampleCellWidget(CellWidget):
         text = self.text_of(value)
         if not text:
             return None
+        if text not in self.found:
+            try:
+                self.found[text] = self.look_up(text)
+            except ValueError as refusal:
+                self.found[text] = refusal
+        answer = self.found[text]
+        if isinstance(answer, ValueError):
+            raise answer
+        return answer
+
+    def look_up(self, text: str) -> Sample:
+        """Find the sample a cell names among those the person may see.
+
+        Args:
+            text: The cell's text.
+
+        Returns:
+            The sample.
+
+        Raises:
+            ValueError: When no sample the person may see has the portal ID, and none in
+                the dataset has the Local ID or name, or when the Local ID or name is
+                shared by several samples.
+        """
         visible = Sample.objects.visible_to(self.user)
         found = visible.filter(uuid=text).first()
         if found is not None:

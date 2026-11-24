@@ -1,0 +1,8 @@
+{# @description A list of files to download. #}
+{# @prop links:list | description:"Dicts with label, url and the name of an icon." #}
+<c-vars links />
+<ul class="ie-downloads">
+  {% for link in links %}
+    <li><a href="{{ link.url }}" download><i class="bi bi-{{ link.icon }}" aria-hidden="true"></i><span>{{ link.label }}</span></a></li>
+  {% endfor %}
+</ul>

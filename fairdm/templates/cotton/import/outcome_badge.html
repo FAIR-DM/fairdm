@@ -1,0 +1,12 @@
+{# @description The badge that names what an import does with a row, or did with it. #}
+{# @prop outcome:text | description:"One of new, update, unchanged, skipped or problem." #}
+{# @prop done:bool | description:"True once the import has written the row, so the badge speaks in the past." #}
+{% load i18n %}
+<c-vars outcome done />
+<span class="ie-badge ie-badge--{{ outcome }}">
+  {% if outcome == "new" %}{% if done %}{% translate "Added" %}{% else %}{% translate "New" %}{% endif %}
+  {% elif outcome == "update" %}{% if done %}{% translate "Changed" %}{% else %}{% translate "Changes" %}{% endif %}
+  {% elif outcome == "unchanged" %}{% translate "Unchanged" %}
+  {% elif outcome == "skipped" %}{% translate "Left out" %}
+  {% else %}{% translate "Needs changes" %}{% endif %}
+</span>

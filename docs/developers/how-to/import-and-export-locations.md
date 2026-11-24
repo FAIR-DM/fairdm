@@ -41,21 +41,6 @@ You need a registered sample or measurement type. This guide uses `CoreSample`, 
    - an elevation or an uncertainty is given with no coordinates,
    - the uncertainty is negative.
 
-5. If the type uses a resource class of your own, add the location columns to it. A resource that derives from `BaseFairDMResource` has them already. Any other `ModelResource` gets them by inheriting `LocatedResourceMixin` ahead of it.
-
-   ```python
-   from fairdm.contrib.import_export.resources import BaseFairDMResource
-   from myportal.models import CoreSample
-
-
-   class CoreSampleResource(BaseFairDMResource):
-       class Meta:
-           model = CoreSample
-           fields = ("id", "local_id", "name", "location", "depth_m")
-   ```
-
-   Then name the resource in the configuration with `resource_class = "myportal.resources.CoreSampleResource"`. A configuration declares either `resource_fields` or `resource_class`, never both.
-
 ## The result
 
-The type's file has the four location columns wherever its resource lists `location`. A file with none of the four columns leaves every record's location as it was, and a file with only some of them changes only those. An empty cell clears the value. Clearing a point also clears the elevation and uncertainty, so a file that empties `latitude` and `longitude` for a record that holds an elevation or an uncertainty must carry those two columns too, with empty cells.
+The type's file has the four location columns wherever the type's fields list `location`. A file with none of the four columns leaves every record's location as it was, and a file with only some of them changes only those. An empty cell clears the value. Clearing a point also clears the elevation and uncertainty, so a file that empties `latitude` and `longitude` for a record that holds an elevation or an uncertainty must carry those two columns too, with empty cells.

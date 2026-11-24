@@ -1,0 +1,8 @@
+{# @description One field of the options form, in a fieldset that names it. #}
+{# @prop field:BoundField | description:"A field of the import options form." #}
+{# @prop hide_legend:bool | description:"Keep the name for screen readers only." #}
+<c-vars field hide_legend />
+<fieldset class="ie-choice">
+  <legend{% if hide_legend %} class="sr-only"{% endif %}>{{ field.label }}</legend>
+  {{ field }}
+</fieldset>

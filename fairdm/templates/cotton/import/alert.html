@@ -1,0 +1,5 @@
+{# @description A message above the form it is about. An error is announced to screen readers. #}
+{# @prop kind:text | description:"error or warning." #}
+{# @slot default | description:"The message." #}
+<c-vars kind />
+<div class="ie-alert ie-alert--{{ kind }}"{% if kind == "error" %} role="alert"{% endif %}><i class="bi bi-{% if kind == 'error' %}exclamation-octagon{% else %}exclamation-triangle{% endif %}" aria-hidden="true"></i><span>{{ slot }}</span></div>

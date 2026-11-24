@@ -1,0 +1,45 @@
+{# @description An Import button that opens a dialog of the record types a file can be imported as. Each type links to its import page. #}
+{# @prop chooser:object | description:"From import_chooser: the dialog's id and title, and its groups of types." #}
+{# @prop label:text | description:"The button's text." #}
+<c-vars chooser label />
+{% load i18n %}
+<button type="button" class="btn btn-sm btn-primary" aria-haspopup="dialog"
+        onclick="document.getElementById('{{ chooser.id }}').showModal()"><i class="bi bi-box-arrow-in-down" aria-hidden="true"></i> {{ label }}</button>
+<c-mvp.modal id="{{ chooser.id }}" title="{{ chooser.title }}" closable>
+  <div class="ie ie-chooser">
+    <p class="ie-chooser__lead">{% translate "Choose what your file holds. Each type has its own columns." %}</p>
+    {% for group in chooser.groups %}
+      <section{% if chooser.groups|length > 1 %} aria-labelledby="{{ chooser.id }}-{{ group.kind }}"{% endif %}>
+        {% if chooser.groups|length > 1 %}<h3 class="ie-chooser__group" id="{{ chooser.id }}-{{ group.kind }}">{{ group.title }}</h3>{% endif %}
+        {% if group.entries %}
+          <ul class="ie-types ie-types--stack"{% if chooser.groups|length == 1 %} aria-label="{{ group.title }}"{% endif %}>
+            {% for entry in group.entries %}
+              <li class="ie-type record-{{ group.kind }}">
+                <a class="ie-type__link" href="{{ entry.url }}">
+                  <span class="ie-type__swatch" aria-hidden="true"></span>
+                  <span class="ie-type__body">
+                    <span class="ie-type__name">{{ entry.name }}</span>
+                    <span class="ie-type__meta">
+                      {% blocktranslate count n=entry.columns %}{{ n }} column{% plural %}{{ n }} columns{% endblocktranslate %}
+                      {% if entry.required %} · {% translate "needs" %} {{ entry.required|join:", " }}{% endif %}
+                    </span>
+                  </span>
+                  <span class="ie-type__count">
+                    {% if entry.count %}
+                      {% blocktranslate count n=entry.count %}{{ n }} in this dataset{% plural %}{{ n }} in this dataset{% endblocktranslate %}
+                    {% else %}
+                      {% translate "None yet" %}
+                    {% endif %}
+                  </span>
+                  <i class="bi bi-chevron-right ie-type__go" aria-hidden="true"></i>
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="ie-empty">{% translate "This portal has no types of this kind." %}</p>
+        {% endif %}
+      </section>
+    {% endfor %}
+  </div>
+</c-mvp.modal>

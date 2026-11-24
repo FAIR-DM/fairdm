@@ -1,0 +1,23 @@
+{# @description The progress of a check or an import. It asks its address for itself every second, and the address answers a refresh of the page once the run is over. #}
+{# @prop percent:int | description:"How much of the bar is filled, from 0 to 100." #}
+{# @prop done:int | description:"How many rows are finished." #}
+{# @prop total:int | description:"How many rows the file has." #}
+{# @prop url:text | description:"The address that answers this component." #}
+{# @prop importing:bool | description:"True for an import, false for a check. Changes only the wording." #}
+{# @prop undoing:bool | description:"True for an undo. Changes only the wording and takes the place of importing." #}
+{% load i18n %}
+<c-vars percent done total url importing undoing />
+<div class="ie-progress" hx-get="{{ url }}" hx-trigger="every 1s" hx-swap="outerHTML" data-ie-progress>
+  <div class="ie-progress__bar" role="progressbar" aria-valuemin="0" aria-valuemax="{{ total }}" aria-valuenow="{{ done|default:0 }}" aria-label="{% if undoing %}{% translate 'Records put back' %}{% elif importing %}{% translate 'Rows imported' %}{% else %}{% translate 'Rows checked' %}{% endif %}">
+    <span style="width: {{ percent|default:0 }}%"></span>
+  </div>
+  <p class="ie-progress__text">
+    {% if undoing %}
+      {% blocktranslate with n=done|default:0 %}{{ n }} of {{ total }} records put back{% endblocktranslate %}
+    {% elif importing %}
+      {% blocktranslate with n=done|default:0 %}{{ n }} of {{ total }} rows imported{% endblocktranslate %}
+    {% else %}
+      {% blocktranslate with n=done|default:0 %}{{ n }} of {{ total }} rows checked{% endblocktranslate %}
+    {% endif %}
+  </p>
+</div>

@@ -1,0 +1,218 @@
+{% extends "page_view.html" %}
+{% load i18n humanize %}
+{% block page.actions %}
+  <a class="btn btn-sm btn-ghost" href="{{ imports_url }}"><i class="bi bi-clock-history" aria-hidden="true"></i> {% translate "Past imports" %}</a>
+{% endblock page.actions %}
+{% block page.content %}
+<div class="ie ie-page">
+  <c-import.steps :steps="steps" :current="step_index" />
+
+  <div class="ie-split ie-split--job">
+    <div class="ie-stack">
+      {% for warning in warnings %}<div data-ie-warning><c-import.alert kind="warning">{{ warning }}</c-import.alert></div>{% endfor %}
+
+      {# ---- What is happening now, and what to do next ---- #}
+      {% if job.is_running %}
+        {% if job.status == "undoing" %}{% translate "Putting the records back" as running_title %}{% elif job.status == "importing" %}{% translate "Writing the records" as running_title %}{% else %}{% translate "Reading every row" as running_title %}{% endif %}
+        <c-import.panel :title="running_title" tone="info">
+          <p class="ie-lead">
+            {% if job.status == "undoing" %}{% translate "The undo runs in the background. You can leave this page; the undo carries on and the import is listed under Past imports." %}
+            {% elif job.status == "importing" %}{% translate "The import runs in the background. You can leave this page; the import carries on and is listed under Past imports." %}
+            {% else %}{% translate "Each row is matched to a record and every cell is read. Nothing is written yet. You can leave this page and come back." %}{% endif %}
+          </p>
+          <c-import.progress :percent="percent" :done="progress" :total="progress_total" :url="status_url" :importing="job.status == 'importing'" :undoing="job.status == 'undoing'" />
+        </c-import.panel>
+
+      {% elif job.status == "failed" %}
+        <c-import.panel :title="_('The file could not be read')" tone="error">
+          <p class="ie-lead">{{ job.error }}</p>
+          <div class="ie-actions"><a class="btn btn-primary" href="{{ start_url }}"><i class="bi bi-upload" aria-hidden="true"></i> {% translate "Choose another file" %}</a></div>
+        </c-import.panel>
+
+      {% elif job.status == "problems" %}
+        {% blocktranslate count n=job.summary.problem|default:0 asvar problems_title %}{{ n }} row needs changes before the file can be imported{% plural %}{{ n }} rows need changes before the file can be imported{% endblocktranslate %}
+        <c-import.panel :title="problems_title" tone="error">
+          {% if job.error %}<p class="ie-lead">{{ job.error }}</p>{% endif %}
+          <p class="ie-lead">{% translate "A file goes in whole or not at all, so nothing has been written. Download the file with each problem written beside its row, correct it, and upload it again." %}</p>
+          <div class="ie-actions">
+            {% if job.file %}<a class="btn btn-primary" href="{{ problems_url }}" download><i class="bi bi-file-earmark-excel" aria-hidden="true"></i> {% translate "Download the file with its problems marked" %}</a>{% endif %}
+            <a class="btn btn-ghost" href="{{ start_url }}"><i class="bi bi-upload" aria-hidden="true"></i> {% translate "Upload a corrected file" %}</a>
+            <form method="post" class="ie-actions__form">{% csrf_token %}<button type="submit" name="action" value="discard" class="btn btn-ghost">{% translate "Don't import" %}</button></form>
+          </div>
+        </c-import.panel>
+
+      {% elif job.status == "nothing" %}
+        <c-import.panel :title="_('Nothing would change')" tone="ready">
+          <p class="ie-lead">{% blocktranslate count n=job.row_count %}The row matches a stored record exactly, or is left out.{% plural %}All {{ n }} rows match stored records exactly, or are left out.{% endblocktranslate %}</p>
+          <div class="ie-actions">
+            <a class="btn btn-primary" href="{{ records_url }}"><i class="bi bi-table" aria-hidden="true"></i> {% translate "Back to the records" %}</a>
+            <a class="btn btn-ghost" href="{{ columns_url }}">{% translate "Change the columns or options" %}</a>
+            <form method="post" class="ie-actions__form">{% csrf_token %}<button type="submit" name="action" value="discard" class="btn btn-ghost">{% translate "Don't import" %}</button></form>
+          </div>
+        </c-import.panel>
+
+      {% elif job.status == "checked" %}
+        <c-import.panel :title="_('Ready to import')" tone="ready">
+          <p class="ie-lead">
+            {% if job.summary.new and job.summary.update %}
+              {% blocktranslate with a=job.summary.new u=job.summary.update type=job.type_name %}Importing adds {{ a }} new {{ type }} and changes {{ u }}.{% endblocktranslate %}
+            {% elif job.summary.new %}
+              {% blocktranslate with a=job.summary.new type=job.type_name %}Importing adds {{ a }} new {{ type }}.{% endblocktranslate %}
+            {% else %}
+              {% blocktranslate with u=job.summary.update type=job.type_name %}Importing changes {{ u }} {{ type }}. It adds none.{% endblocktranslate %}
+            {% endif %}
+            {% if job.summary.unchanged %}{% blocktranslate count n=job.summary.unchanged %}{{ n }} row matches its record already and is left alone.{% plural %}{{ n }} rows match their records already and are left alone.{% endblocktranslate %}{% endif %}
+            {% translate "Look through the rows below first." %}
+          </p>
+          <form method="post" class="ie-actions" data-ie-once>
+            {% csrf_token %}
+            <button type="submit" name="action" value="import" class="btn btn-primary">
+              <i class="bi bi-box-arrow-in-down" aria-hidden="true"></i>
+              {% blocktranslate count n=job.writes %}Import {{ n }} row{% plural %}Import {{ n }} rows{% endblocktranslate %}
+            </button>
+            <button type="submit" name="action" value="discard" class="btn btn-ghost">{% translate "Don't import" %}</button>
+          </form>
+        </c-import.panel>
+
+      {% elif job.status == "imported" %}
+        {% if job.summary.new and job.summary.update %}{% blocktranslate with a=job.summary.new u=job.summary.update type=job.type_name asvar done_title %}Added {{ a }} {{ type }} and changed {{ u }}{% endblocktranslate %}
+        {% elif job.summary.new %}{% blocktranslate with a=job.summary.new type=job.type_name asvar done_title %}Added {{ a }} {{ type }}{% endblocktranslate %}
+        {% else %}{% blocktranslate with u=job.summary.update type=job.type_name asvar done_title %}Changed {{ u }} {{ type }}{% endblocktranslate %}{% endif %}
+        <c-import.panel :title="done_title" tone="done" icon="check-circle-fill">
+          <p class="ie-lead">{% blocktranslate with who=job.imported_by.get_full_name|default:job.imported_by when=job.imported_at|naturaltime %}Imported by {{ who }} {{ when }}.{% endblocktranslate %}</p>
+          <div class="ie-actions">
+            <a class="btn btn-primary" href="{{ records_url }}"><i class="bi bi-table" aria-hidden="true"></i> {% blocktranslate with type=job.type_name %}See the {{ type }}{% endblocktranslate %}</a>
+            <button type="button" class="btn btn-ghost" aria-haspopup="dialog" onclick="document.getElementById('ie-undo').showModal()"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> {% translate "Undo this import" %}</button>
+          </div>
+        </c-import.panel>
+        <dialog id="ie-undo" class="modal">
+          <form method="post" class="modal-box ie-dialog" data-ie-once>
+            {% csrf_token %}
+            <h3 class="ie-panel__title">{% translate "Undo this import?" %}</h3>
+            <ul class="ie-list">
+              {% if job.summary.new %}<li>{% blocktranslate count n=job.summary.new with type=job.type_name %}The {{ n }} record it added is deleted.{% plural %}The {{ n }} {{ type }} it added are deleted.{% endblocktranslate %}</li>{% endif %}
+              {% if job.summary.update %}<li>{% blocktranslate count n=job.summary.update %}The record it changed gets back the values it had before.{% plural %}The {{ n }} records it changed get back the values they had before.{% endblocktranslate %}</li>{% endif %}
+            </ul>
+            <p class="ie-note">{% translate "The import stays listed under Past imports, marked as undone." %}</p>
+            <div class="modal-action">
+              <button type="button" class="btn btn-ghost" onclick="this.closest('dialog').close()">{% translate "Keep it" %}</button>
+              <button type="submit" name="action" value="undo" class="btn btn-error">{% translate "Undo the import" %}</button>
+            </div>
+          </form>
+          <form method="dialog" class="modal-backdrop"><button>{% translate "Close" %}</button></form>
+        </dialog>
+        {% if undo_refusal %}
+          <c-import.panel :title="_('This import could not be undone')" tone="error" icon="exclamation-triangle-fill">
+            <p class="ie-lead">{% translate "The undo did not go through and nothing was changed. A record the import added or changed may have been edited or deleted since, or a sample it added may now have measurements; undoing would lose that work." %}</p>
+            <ul class="ie-conflicts" data-ie-refusal>
+              {% for line in undo_refusal %}<li>{{ line }}</li>{% endfor %}
+            </ul>
+          </c-import.panel>
+        {% endif %}
+
+      {% elif job.status == "undone" %}
+        <c-import.panel :title="_('This import was undone')" tone="info" icon="arrow-counterclockwise">
+          <p class="ie-lead">{% blocktranslate with who=job.undone_by.get_full_name|default:job.undone_by when=job.undone_at|naturaltime %}Undone by {{ who }} {{ when }}. The records it added were deleted and the ones it changed got their earlier values back.{% endblocktranslate %}</p>
+        </c-import.panel>
+
+      {% elif job.status == "discarded" %}
+        <c-import.panel :title="_('This file was not imported')" tone="info">
+          <p class="ie-lead">{% translate "It was checked and then set aside. Nothing from it was written." %}</p>
+          <div class="ie-actions"><a class="btn btn-ghost" href="{{ start_url }}">{% translate "Import another file" %}</a></div>
+        </c-import.panel>
+      {% endif %}
+
+      {# ---- Every row ---- #}
+      {% if tiles and not job.is_running %}
+        <c-import.panel :title="_('Row by row')" heading_id="ie-rows" size="flush">
+          <nav class="ie-tiles ie-pad" aria-label="{% translate 'Show rows by outcome' %}">
+            {% for tile in tiles %}
+              <a class="ie-tile ie-tile--{{ tile.key }}{% if show == tile.key %} ie-tile--on{% endif %}{% if not tile.count %} ie-tile--zero{% endif %}"
+                 href="?show={{ tile.key }}" {% if show == tile.key %}aria-current="true"{% endif %}>
+                <span class="ie-tile__count">{{ tile.count|intcomma }}</span>
+                <span class="ie-tile__label">{{ tile.label }}</span>
+              </a>
+            {% endfor %}
+            <a class="ie-tile ie-tile--all{% if not show or show == 'all' %} ie-tile--on{% endif %}" href="?show=all" {% if not show or show == "all" %}aria-current="true"{% endif %}>
+              <span class="ie-tile__count">{{ job.row_count|intcomma }}</span>
+              <span class="ie-tile__label">{% translate "All rows" %}</span>
+            </a>
+          </nav>
+
+          {% if page_rows %}
+            <ul class="ie-rows">
+              {% for row in page_rows %}
+                <li class="ie-row ie-row--{{ row.outcome }}" data-ie-row>
+                  <div class="ie-row__head">
+                    <span class="ie-row__line" title="{% translate 'Row in your file' %}">{% translate "Row" %} {{ row.line }}</span>
+                    <span class="ie-row__label">{{ row.label|default:"—" }}</span>
+                    <c-import.outcome-badge :outcome="row.outcome" :done="written" />
+                  </div>
+                  {% if row.problem_list %}
+                    <ul class="ie-row__problems">
+                      {% for p in row.problem_list %}
+                        <li data-ie-problem><i class="bi bi-x-circle" aria-hidden="true"></i>{% if p.label %}<span class="ie-row__col">{{ p.label }}</span>{% endif %}<span>{{ p.message }}</span></li>
+                      {% endfor %}
+                    </ul>
+                  {% elif row.changes %}
+                    <dl class="ie-diff">
+                      {% for c in row.changes %}
+                        <div class="ie-diff__item" data-ie-change>
+                          <dt>{{ c.label }}</dt>
+                          <dd><del>{{ c.old|default:"—" }}</del><i class="bi bi-arrow-right" aria-hidden="true"></i><ins>{{ c.new|default:_("(empty)") }}</ins></dd>
+                        </div>
+                      {% endfor %}
+                    </dl>
+                  {% elif row.note %}
+                    <p class="ie-row__note">{{ row.note }}</p>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+            {% if row_page > 1 or has_next %}
+              <nav class="ie-pager ie-pad" aria-label="{% translate 'More rows' %}">
+                {% if row_page > 1 %}<a class="btn btn-sm btn-ghost" href="?show={{ show|default:'all' }}&page={{ row_page|add:'-1' }}">{% translate "Previous" %}</a>{% endif %}
+                <span class="ie-note">{% blocktranslate with total=shown_total %}Showing {{ total }} rows, 100 at a time{% endblocktranslate %}</span>
+                {% if has_next %}<a class="btn btn-sm btn-ghost" href="?show={{ show|default:'all' }}&page={{ row_page|add:'1' }}">{% translate "Next" %}</a>{% endif %}
+              </nav>
+            {% endif %}
+          {% else %}
+            <p class="ie-empty ie-pad">{% translate "No rows have this outcome." %}</p>
+          {% endif %}
+        </c-import.panel>
+      {% endif %}
+    </div>
+
+    <aside class="ie-side">
+      <c-import.panel size="side" :title="_('The file')">
+        <dl class="ie-facts">
+          <div><dt>{% translate "File" %}</dt><dd class="ie-break">{{ job.filename }}</dd></div>
+          <div><dt>{% translate "Type" %}</dt><dd>{{ job.type_name|capfirst }}</dd></div>
+          <div><dt>{% translate "Rows" %}</dt><dd>{{ job.row_count|intcomma }}</dd></div>
+          <div><dt>{% translate "Columns read" %}</dt><dd>{{ mapped_headings|length }} {% translate "of" %} {{ job.headers|length }}</dd></div>
+          <div><dt>{% translate "May" %}</dt><dd>{{ mode_label }}</dd></div>
+          <div><dt>{% translate "Empty cells" %}</dt><dd>{{ empty_label }}</dd></div>
+          <div><dt>{% translate "Uploaded" %}</dt><dd>{{ job.created_by.get_full_name|default:job.created_by }}, {{ job.created|naturaltime }}</dd></div>
+        </dl>
+        {% if job.status == "checked" or job.status == "problems" or job.status == "nothing" %}
+          <div class="ie-side__actions">
+            <a class="btn btn-sm btn-ghost" href="{{ columns_url }}"><i class="bi bi-arrow-left-right" aria-hidden="true"></i> {% translate "Change column matches" %}</a>
+            <form method="post">{% csrf_token %}<button class="btn btn-sm btn-ghost" name="action" value="recheck"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i> {% translate "Check again" %}</button></form>
+          </div>
+        {% endif %}
+      </c-import.panel>
+      {% if job.status == "checked" or job.status == "problems" or job.status == "nothing" %}
+        <c-import.panel size="side" :title="_('Reading the outcome')">
+          <ul class="ie-legend">
+            <li><c-import.outcome-badge outcome="new" /> {% translate "No record matches, so one is added." %}</li>
+            <li><c-import.outcome-badge outcome="update" /> {% translate "Its record is updated. Each changed value is shown, old and new." %}</li>
+            <li><c-import.outcome-badge outcome="unchanged" /> {% translate "Its record already holds these values." %}</li>
+            <li><c-import.outcome-badge outcome="skipped" /> {% translate "The options you chose leave it out, or its record belongs to another dataset." %}</li>
+            <li><c-import.outcome-badge outcome="problem" /> {% translate "Something in it can't be read. It stops the whole file." %}</li>
+          </ul>
+        </c-import.panel>
+      {% endif %}
+    </aside>
+  </div>
+</div>
+{% endblock page.content %}

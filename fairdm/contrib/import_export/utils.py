@@ -3,12 +3,14 @@
 import io
 import zipfile
 
+import tablib
 from defusedxml.minidom import parseString
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.template.loader import render_to_string
 from import_export.formats.base_formats import DEFAULT_FORMATS
 
+from fairdm.contrib.import_export.exports import TableExport
 from fairdm.core.dataset.models import DatasetDate
 from fairdm.core.vocabularies import DATE_TYPES
 from fairdm.views.permalink import get_permalink
@@ -125,10 +127,11 @@ def build_export_for_datatype(dataset, queryset, fmt="csv"):
     """
     from fairdm.registry import registry
 
-    model = queryset.model
-    resource = registry.get_for_model(model).get_resource_class()(dataset=dataset)
-    tablib_dataset = resource.export(queryset=queryset)
-    return tablib_dataset.export(fmt)
+    schema = registry.get_for_model(queryset.model).get_table_schema()
+    table = tablib.Dataset(headers=schema.headings)
+    for row in TableExport(schema).rows(queryset.order_by("pk")):
+        table.append(row)
+    return table.export(fmt)
 
 
 class DataPackage:

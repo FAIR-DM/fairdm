@@ -157,12 +157,11 @@ class LocatedResourceMixin:
             super().import_instance(instance, row, **kwargs)
         except ValidationError as error:
             errors = error.update_error_dict(errors)
-        if not any(column in row for column in location_fields()):
-            return
-        try:
-            self.set_location(instance, row)
-        except ValidationError as error:
-            errors["location"] = [*errors.get("location", []), *error.error_list]
+        if any(column in row for column in location_fields()):
+            try:
+                self.set_location(instance, row)
+            except ValidationError as error:
+                errors["location"] = [*errors.get("location", []), *error.error_list]
         if errors:
             raise ValidationError(errors)
 
