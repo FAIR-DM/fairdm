@@ -1,9 +1,6 @@
-
 <!DOCTYPE html>
 
-
-<html lang="en" data-content_root="../../../../" >
-
+<html lang="en" data-content_root="../../../../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -15,38 +12,10 @@
 <meta name="description" content="Common utilities and helpers used throughout the FairDM framework. Includes form helpers, permission utilities and data processing functions. Names load lazily to avoid import cycles during Django ..." />
 
     <title>fairdm.utils &#8212; fairdm 0.6.0 documentation</title>
-  
-  
-  
-  <script data-cfasync="false">
-    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
-    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
-  </script>
-  <!--
-    this give us a css class that will be invisible only if js is disabled
-  -->
-  <noscript>
-    <style>
-      .pst-js-only { display: none !important; }
-
-    </style>
-  </noscript>
-  
-  <!-- Loaded before other Sphinx assets -->
-  <link href="../../../../_static/styles/theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
-<link href="../../../../_static/styles/pydata-sphinx-theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
-
-    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/styles/sphinx-daisyui.css?v=aedd34d4" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/sphinx-design.min.css?v=95c83b7e" />
-  
-  <!-- So that users can add custom icons -->
-  <script defer src="../../../../_static/scripts/fontawesome.js?digest=cb8930eaaf36d9849b67"></script>
-  <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
-<link rel="preload" as="script" href="../../../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
-
-    <script src="../../../../_static/documentation_options.js?v=8fa8b3e9"></script>
+    <script src="../../../../_static/documentation_options.js?v=cabcccee"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -86,1142 +55,427 @@ var addUtterances = () => {
 commentsRunWhenDOMLoaded(addUtterances);
 </script>
     <script src="../../../../_static/design-tabs.js?v=f930bc37"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = 'developers/reference/api/fairdm/fairdm.utils';</script>
-    <script>
-        DOCUMENTATION_OPTIONS.theme_version = '0.21.0';
-        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://docs.fairdm.org/switcher.json';
-        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'latest';
-        DOCUMENTATION_OPTIONS.show_version_warning_banner =
-            false;
-        </script>
-    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="icon" href="../../../../_static/icon.svg"/>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
     <link rel="next" title="fairdm.utils.location" href="fairdm.utils.location.html" />
-    <link rel="prev" title="fairdm.registry.factories" href="fairdm.registry.factories.html" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="0.6.0" />
-    <meta name="docbuild:last-update" content="Nov 24, 2026"/>
-  
-    
-    <script src="../../../../_static/searchtools.js"></script>
-    <script src="../../../../_static/language_data.js"></script>
-    <script src="../../../../searchindex.js"></script>
-  
-  </head>
-  <body data-default-mode="">
-  
-  
-  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+    <link rel="prev" title="fairdm.templatetags.fairdm" href="fairdm.templatetags.fairdm.html" /> 
+  <meta name="color-scheme" content="light dark">
+  <script src="../../../../_static/scripts/mode.js" data-light-theme="light" data-dark-theme="dark" data-default-mode="auto" data-themes=""></script>
+  <script defer src="../../../../_static/scripts/keys.js"></script>
+  <script defer src="../../../../_static/scripts/page-address.js"></script>
+  <script defer src="../../../../_static/scripts/versions.js"></script>
+  <script defer src="../../../../_static/scripts/search.js"></script>
+  <script defer src="../../../../_static/scripts/frame.js"></script>
+  <script defer src="../../../../_static/scripts/back-to-top.js"></script>
+  <script defer src="../../../../_static/scripts/announcement.js"></script>
+  <script defer src="../../../../_static/scripts/navigation.js"></script>
+  <script defer src="../../../../_static/scripts/theme-menu.js"></script>
+  <script defer src="../../../../_static/scripts/page-toc.js"></script>
+  </head><body class="bg-base-100 text-base-content antialiased" data-daisy-root="../../../../" data-daisy-suffix=".html" data-daisy-link-suffix=".html" data-daisy-builder="html" data-daisy-page="developers/reference/api/fairdm/fairdm.utils">
+  <a href="#main-content" class="btn btn-primary btn-sm absolute -top-20 left-4 z-50 focus:top-2">Skip to content</a>
+  <div class="daisy-layout" style='--daisy-areas-lg: "header header header" "primary main main" "primary footer footer"; --daisy-areas-xl: "header header header" "primary main secondary" "primary footer footer"; --daisy-primary-top: var(--daisy-header-height); --daisy-secondary-top: var(--daisy-header-height);' data-layout="hHh LpR lff" data-header-fixed data-primary-fixed data-secondary-fixed>
+    <input id="daisy-drawer" type="checkbox" class="hidden" aria-hidden="true" tabindex="-1">
 
-  
-  <div id="pst-scroll-pixel-helper"></div>
-  
-  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
-    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
-  
-  
-  
-  
-  <dialog id="pst-search-dialog">
-    
-<form class="bd-search d-flex align-items-center"
-      action="../../../../search.html"
-      method="get">
-  <i class="fa-solid fa-magnifying-glass"></i>
-  <input type="search"
-         class="form-control"
-         name="q"
-         placeholder="Search the docs ..."
-         aria-label="Search the docs ..."
-         autocomplete="off"
-         autocorrect="off"
-         autocapitalize="off"
-         spellcheck="false"/>
-  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
-</form>
-  </dialog>
-
-  <div class="pst-async-banner-revealer d-none">
-  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
-</div>
-
-  
-    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
-<div class="bd-header__inner bd-page-width">
-  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
-    <span class="fa-solid fa-bars"></span>
-  </button>
-  
-  
-  <div class=" navbar-header-items__start">
-    
-      <div class="navbar-item">
-
-  
-    
-  
-
-<a class="navbar-brand logo" href="../../../../index.html">
-  
-  
-  
-  
-  
-    
-    
-      
-    
-    
-    <img src="../../../../_static/fairdm_light.svg" class="logo__image only-light" alt="fairdm 0.6.0 documentation - Home"/>
-    <img src="../../../../_static/fairdm_dark.svg" class="logo__image only-dark pst-js-only" alt="fairdm 0.6.0 documentation - Home"/>
-  
-  
-</a></div>
-    
-  </div>
-  
-  <div class=" navbar-header-items">
-    
-    <div class="me-auto navbar-header-items__center">
-      
-        <div class="navbar-item">
-<nav>
-  <ul class="bd-navbar-elements navbar-nav">
-    
-            <li class="nav-item dropdown">
-                <button class="btn dropdown-toggle nav-item" type="button"
-                data-bs-toggle="dropdown" aria-expanded="false"
-                aria-controls="pst-nav-more-links">
-                    More
-                </button>
-                <ul id="pst-nav-more-links" class="dropdown-menu">
-                    
-<li class=" current active">
-  <a class="nav-link dropdown-item nav-internal" href="../../../index.html">
-    Developers
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../../administrators/index.html">
-    Administrators
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../../users/index.html">
-    Users
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/what-fairdm-is-for.html">
-    What FairDM is for
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/fair-data-and-research-data-infrastructure.html">
-    FAIR data and research data infrastructure
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/the-technology-stack.html">
-    The technology stack
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/the-core-data-model.html">
-    The core data model
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/how-sample-and-measurement-types-are-stored.html">
-    How sample and measurement types are stored
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/controlled-vocabularies.html">
-    Controlled vocabularies
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/configuration-over-code.html">
-    Configuration over code
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/why-complete-metadata-matters.html">
-    Why complete metadata matters
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/how-access-to-a-record-is-decided.html">
-    How access to a record is decided
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/why-fairdm-records-contributors.html">
-    Why FairDM records contributors
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/how-contributor-accounts-and-credits-work.html">
-    How contributor accounts and credits work
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/how-a-profile-is-claimed.html">
-    How a profile is claimed
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/how-fairdm-configures-a-portal.html">
-    How FairDM configures a portal
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/who-is-asked-to-agree-to-a-legal-document.html">
-    Who is asked to agree to a legal document
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/how-locations-are-stored-and-protected.html">
-    How locations are stored and protected
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../../explanation/dataset-publication-dois-and-datacite-metadata.html">
-    Dataset publication, DOIs and DataCite metadata
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../../reference/glossary.html">
-    Glossary
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../../contributing/index.html">
-    Framework Contributors
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../../adr/index.html">
-    Architecture Decision Records
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../../ROADMAP.html">
-    Roadmap — FairDM
-  </a>
-</li>
-
-
-<li class=" ">
-  <a class="nav-link dropdown-item nav-internal" href="../../../../changelog.html">
-    Changelog
-  </a>
-</li>
-
-                </ul>
-            </li>
-            
-  </ul>
-</nav></div>
-      
-    </div>
-    
-    
-    <div class="navbar-header-items__end">
-      
-        <div class="navbar-item navbar-persistent--container">
-          
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
-</button>
+    <header class="daisy-area-header daisy-navbar bg-base-100/90 backdrop-blur supports-[backdrop-filter]:bg-base-100/75">
+      <div class="navbar mx-auto min-h-16 max-w-[96rem] gap-2 px-3 sm:px-4">
+        <label for="daisy-drawer" role="button" tabindex="0" data-daisy-drawer-open class="btn btn-ghost btn-square btn-sm lg:hidden" aria-label="Open the navigation"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M4 5h16" /> <path d="M4 12h16" /> <path d="M4 19h16" /> </svg></label>
+        <div class="flex min-w-0 items-center gap-2">
+<a href="../../../../index.html" class="daisy-brand flex min-w-0 items-center gap-2.5 rounded-field px-1 py-1 font-semibold hover:opacity-85">
+    <img src="../../../../_static/fairdm_light.svg" alt="fairdm" class="daisy-logo-light h-8 w-auto">
+    <img src="../../../../_static/fairdm_dark.svg" alt="fairdm" class="daisy-logo-dark h-8 w-auto">
+</a>
         </div>
-      
-      
-        <div class="navbar-item">
-<div class="version-switcher__container dropdown pst-js-only">
-  <button id="pst-version-switcher-button-2"
-    type="button"
-    class="version-switcher__button btn btn-sm dropdown-toggle"
-    data-bs-toggle="dropdown"
-    aria-haspopup="listbox"
-    aria-controls="pst-version-switcher-list-2"
-    aria-label="Version switcher list"
-  >
-    Choose version  <!-- this text may get changed later by javascript -->
-    <span class="caret"></span>
-  </button>
-  <div id="pst-version-switcher-list-2"
-    class="version-switcher__menu dropdown-menu list-group-flush py-0"
-    role="listbox" aria-labelledby="pst-version-switcher-button-2">
-    <!-- dropdown will be populated by javascript on page load -->
-  </div>
-</div></div>
-      
-        <div class="navbar-item">
-
-<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
-    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
-  </button>
-  <ul class="dropdown-menu dropdown-menu-end">
-    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
-    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
-    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+        <div class="hidden min-w-0 flex-1 items-center lg:flex" data-navbar-align="left">
+<nav aria-label="Sections" class="min-w-0">
+  <ul class="flex items-center gap-1"><li class="daisy-dropdown dropdown dropdown-end">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm font-medium btn-active text-primary" aria-current="true">More<svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m6 9 6 6 6-6" /> </svg></div>
+    <ul tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg menu w-56">
+            <li><a href="../../../index.html" class="menu-active" aria-current="true">Developers</a></li>
+            <li><a href="../../../../administrators/index.html">Administrators</a></li>
+            <li><a href="../../../../users/index.html">Users</a></li>
+            <li><a href="../../../../explanation/what-fairdm-is-for.html">What FairDM is for</a></li>
+            <li><a href="../../../../explanation/fair-data-and-research-data-infrastructure.html">FAIR data and research data infrastructure</a></li>
+            <li><a href="../../../../explanation/the-technology-stack.html">The technology stack</a></li>
+            <li><a href="../../../../explanation/the-core-data-model.html">The core data model</a></li>
+            <li><a href="../../../../explanation/how-sample-and-measurement-types-are-stored.html">How sample and measurement types are stored</a></li>
+            <li><a href="../../../../explanation/controlled-vocabularies.html">Controlled vocabularies</a></li>
+            <li><a href="../../../../explanation/configuration-over-code.html">Configuration over code</a></li>
+            <li><a href="../../../../explanation/why-complete-metadata-matters.html">Why complete metadata matters</a></li>
+            <li><a href="../../../../explanation/how-access-to-a-record-is-decided.html">How access to a record is decided</a></li>
+            <li><a href="../../../../explanation/why-fairdm-records-contributors.html">Why FairDM records contributors</a></li>
+            <li><a href="../../../../explanation/how-contributor-accounts-and-credits-work.html">How contributor accounts and credits work</a></li>
+            <li><a href="../../../../explanation/how-a-profile-is-claimed.html">How a profile is claimed</a></li>
+            <li><a href="../../../../explanation/how-fairdm-configures-a-portal.html">How FairDM configures a portal</a></li>
+            <li><a href="../../../../explanation/who-is-asked-to-agree-to-a-legal-document.html">Who is asked to agree to a legal document</a></li>
+            <li><a href="../../../../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
+            <li><a href="../../../../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
+            <li><a href="../../../../reference/glossary.html">Glossary</a></li>
+            <li><a href="../../../../contributing/index.html">Framework Contributors</a></li>
+            <li><a href="../../../../adr/index.html">Architecture Decision Records</a></li>
+            <li><a href="../../../../ROADMAP.html">Roadmap — FairDM</a></li>
+            <li><a href="../../../../changelog.html">Changelog</a></li>
+            <li><a href="https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md">Changelog<svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M15 3h6v6" /> <path d="M10 14 21 3" /> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /> </svg><span class="sr-only">(leads outside the site)</span></a></li></ul>
+  </li>
   </ul>
-</div></div>
-      
-        <div class="navbar-item"><ul class="navbar-icon-links"
-    aria-label="Icon Links">
-        <li class="nav-item">
+</nav></div>
+        <div class="ms-auto flex items-center gap-1">
           
-          
-          
-          
-          
-          
-          
-          
-          <a href="https://github.com/FAIR-DM/fairdm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
-        </li>
-        <li class="nav-item">
-          
-          
-          
-          
-          
-          
-          
-          
-          <a href="https://github.com/FAIR-DM/fairdm/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
-        </li>
-</ul></div>
-      
-    </div>
-    
-  </div>
-  
-  
-    <div class="navbar-persistent--mobile">
-
-<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
- <i class="fa-solid fa-magnifying-glass"></i>
- <span class="search-button__default-text">Search</span>
- <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+<button type="button" class="daisy-search-open daisy-muted btn btn-sm h-9 gap-2 border-base-300 bg-base-200/70 font-normal shadow-none hover:bg-base-200 md:w-56 md:justify-start" aria-label="Search" aria-haspopup="dialog">
+  <svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m21 21-4.34-4.34" /> <circle cx="11" cy="11" r="8" /> </svg>
+  <span class="hidden md:inline">Search the docs</span>
+  <span class="ms-auto hidden items-center gap-0.5 md:flex"><kbd class="kbd kbd-xs" data-daisy-mod>Ctrl</kbd><kbd class="kbd kbd-xs">K</kbd></span>
 </button>
-    </div>
-  
-
-  
-    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
-      <span class="fa-solid fa-outdent"></span>
-    </button>
-  
-</div>
-
-    </header>
-  
-
-  <div class="bd-container">
-    <div class="bd-container__inner bd-page-width">
-      
-      
-      
-      <dialog id="pst-primary-sidebar-modal"></dialog>
-      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
-        
-
-  
-  <div class="sidebar-header-items sidebar-primary__section">
-    
-    
-      <div class="sidebar-header-items__center">
-        
-          
-          
-            <div class="navbar-item">
-<nav>
-  <ul class="bd-navbar-elements navbar-nav">
-    
-<li class="nav-item current active">
-  <a class="nav-link nav-internal" href="../../../index.html">
-    Developers
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../../administrators/index.html">
-    Administrators
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../../users/index.html">
-    Users
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../../explanation/what-fairdm-is-for.html">
-    What FairDM is for
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../../explanation/fair-data-and-research-data-infrastructure.html">
-    FAIR data and research data infrastructure
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../../explanation/the-technology-stack.html">
-    The technology stack
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../../explanation/the-core-data-model.html">
-    The core data model
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../../explanation/how-sample-and-measurement-types-are-stored.html">
-    How sample and measurement types are stored
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../../explanation/controlled-vocabularies.html">
-    Controlled vocabularies
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../../explanation/configuration-over-code.html">
-    Configuration over code
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../../explanation/why-complete-metadata-matters.html">
-    Why complete metadata matters
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../../explanation/how-access-to-a-record-is-decided.html">
-    How access to a record is decided
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../../explanation/why-fairdm-records-contributors.html">
-    Why FairDM records contributors
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../../explanation/how-contributor-accounts-and-credits-work.html">
-    How contributor accounts and credits work
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../../explanation/how-a-profile-is-claimed.html">
-    How a profile is claimed
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../../explanation/how-fairdm-configures-a-portal.html">
-    How FairDM configures a portal
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../../explanation/who-is-asked-to-agree-to-a-legal-document.html">
-    Who is asked to agree to a legal document
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../../explanation/how-locations-are-stored-and-protected.html">
-    How locations are stored and protected
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../../explanation/dataset-publication-dois-and-datacite-metadata.html">
-    Dataset publication, DOIs and DataCite metadata
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../../reference/glossary.html">
-    Glossary
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../../contributing/index.html">
-    Framework Contributors
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../../adr/index.html">
-    Architecture Decision Records
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../../ROADMAP.html">
-    Roadmap — FairDM
-  </a>
-</li>
-
-
-<li class="nav-item ">
-  <a class="nav-link nav-internal" href="../../../../changelog.html">
-    Changelog
-  </a>
-</li>
-
-  </ul>
-</nav></div>
-          
-        
-      </div>
-    
-    
-    
-      <div class="sidebar-header-items__end">
-        
-          <div class="navbar-item">
-<div class="version-switcher__container dropdown pst-js-only">
-  <button id="pst-version-switcher-button-3"
-    type="button"
-    class="version-switcher__button btn btn-sm dropdown-toggle"
-    data-bs-toggle="dropdown"
-    aria-haspopup="listbox"
-    aria-controls="pst-version-switcher-list-3"
-    aria-label="Version switcher list"
-  >
-    Choose version  <!-- this text may get changed later by javascript -->
-    <span class="caret"></span>
-  </button>
-  <div id="pst-version-switcher-list-3"
-    class="version-switcher__menu dropdown-menu list-group-flush py-0"
-    role="listbox" aria-labelledby="pst-version-switcher-button-3">
-    <!-- dropdown will be populated by javascript on page load -->
+          <div class="hidden items-center gap-1 sm:flex" data-daisy-navbar-end><div class="daisy-dropdown dropdown dropdown-end" data-daisy-json-url="https://docs.fairdm.org/switcher.json" data-daisy-version-match="latest" data-text-preferred="Preferred" data-text-current="Current version">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm gap-1 font-medium" aria-label="Choose a version">
+      <svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /> <path d="M3 3v5h5" /> <path d="M12 7v5l4 2" /> </svg><span data-daisy-version-label>latest</span><svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m6 9 6 6 6-6" /> </svg></div>
+    <div tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg w-52">
+      <ul class="menu w-full p-0" data-daisy-version-list></ul></div>
+  </div><div class="daisy-dropdown dropdown dropdown-end" data-daisy-mode-names="Match the system|Light|Dark">
+    <div tabindex="0" role="button" aria-haspopup="menu" class="btn btn-ghost btn-sm btn-square" aria-label="Choose the colour theme">
+    <span data-daisy-mode-icon="auto"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 2v2" /> <path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715" /> <path d="M16 12a4 4 0 0 0-4-4" /> <path d="m19 5-1.256 1.256" /> <path d="M20 12h2" /> </svg></span>
+    <span data-daisy-mode-icon="light"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" /> </svg></span>
+    <span data-daisy-mode-icon="dark"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /> </svg></span>
+    <span data-daisy-mode-icon="theme"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" /> <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" /> <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" /> <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" /> <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" /> </svg></span>
+    <span class="sr-only" data-daisy-mode-current></span></div>
+    <div tabindex="-1" class="dropdown-content z-40 mt-2 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg w-60">
+    <ul class="menu menu-sm w-full p-0">
+      <li><button type="button" data-daisy-set-mode="auto" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 2v2" /> <path d="M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715" /> <path d="M16 12a4 4 0 0 0-4-4" /> <path d="m19 5-1.256 1.256" /> <path d="M20 12h2" /> </svg>Match the system</button></li>
+      <li><button type="button" data-daisy-set-mode="light" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" /> </svg>Light</button></li>
+      <li><button type="button" data-daisy-set-mode="dark" aria-pressed="false"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401" /> </svg>Dark</button></li>
+    </ul></div>
   </div>
-</div></div>
-        
-          <div class="navbar-item">
-
-<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
-  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
-    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
-    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
-    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
-  </button>
-  <ul class="dropdown-menu dropdown-menu-end">
-    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
-    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
-    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
-  </ul>
-</div></div>
-        
-          <div class="navbar-item"><ul class="navbar-icon-links"
-    aria-label="Icon Links">
-        <li class="nav-item">
-          
-          
-          
-          
-          
-          
-          
-          
-          <a href="https://github.com/FAIR-DM/fairdm" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
-        </li>
-        <li class="nav-item">
-          
-          
-          
-          
-          
-          
-          
-          
-          <a href="https://github.com/FAIR-DM/fairdm/" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
-        </li>
+<ul class="flex items-center" aria-label="Icon links">
+    <li><a href="https://github.com/FAIR-DM/fairdm/" class="btn btn-ghost btn-sm btn-square tooltip tooltip-bottom" data-tip="GitHub" aria-label="GitHub"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a></li>
 </ul></div>
-        
+        </div>
       </div>
-    
-  </div>
-  
-    <div class="sidebar-primary-items__start sidebar-primary__section">
-        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
-  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
-  </svg>
-  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
-  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
-</button></div>
-        <div class="sidebar-primary-item">
+    </header>
 
-<nav class="bd-docs-nav bd-links"
-     aria-label="Section Navigation">
-  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
-  <div class="bd-toc-item navbar-nav"><p aria-level="2" class="caption" role="heading"><span class="caption-text">Tutorial</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial.html">Build your first sample and measurement types</a></li>
+    <aside class="daisy-area-primary" aria-label="Site navigation">
+      <div class="daisy-primary-inner">
+        <div class="flex items-center gap-2 border-b border-base-300 p-3 lg:hidden">
+          
+<a href="../../../../index.html" class="daisy-brand flex min-w-0 items-center gap-2.5 rounded-field px-1 py-1 font-semibold hover:opacity-85">
+    <img src="../../../../_static/fairdm_light.svg" alt="fairdm" class="daisy-logo-light h-8 w-auto">
+    <img src="../../../../_static/fairdm_dark.svg" alt="fairdm" class="daisy-logo-dark h-8 w-auto">
+</a>
+          <label for="daisy-drawer" role="button" tabindex="0" data-daisy-drawer-close class="btn btn-ghost btn-sm btn-square ms-auto" aria-label="Close the navigation"><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M18 6 6 18" /> <path d="m6 6 12 12" /> </svg></label>
+        </div>
+        <div class="flex flex-wrap items-center gap-1 border-b border-base-300 p-3 sm:hidden empty:hidden" data-daisy-navbar-end-slot></div>
+          <nav class="border-b border-base-300 p-3 lg:hidden" aria-label="Sections">
+            <ul class="menu menu-sm w-full p-0">
+                <li><a href="../../../index.html" class="menu-active" aria-current="true">Developers</a></li>
+                <li><a href="../../../../administrators/index.html">Administrators</a></li>
+                <li><a href="../../../../users/index.html">Users</a></li>
+                <li><a href="../../../../explanation/what-fairdm-is-for.html">What FairDM is for</a></li>
+                <li><a href="../../../../explanation/fair-data-and-research-data-infrastructure.html">FAIR data and research data infrastructure</a></li>
+                <li><a href="../../../../explanation/the-technology-stack.html">The technology stack</a></li>
+                <li><a href="../../../../explanation/the-core-data-model.html">The core data model</a></li>
+                <li><a href="../../../../explanation/how-sample-and-measurement-types-are-stored.html">How sample and measurement types are stored</a></li>
+                <li><a href="../../../../explanation/controlled-vocabularies.html">Controlled vocabularies</a></li>
+                <li><a href="../../../../explanation/configuration-over-code.html">Configuration over code</a></li>
+                <li><a href="../../../../explanation/why-complete-metadata-matters.html">Why complete metadata matters</a></li>
+                <li><a href="../../../../explanation/how-access-to-a-record-is-decided.html">How access to a record is decided</a></li>
+                <li><a href="../../../../explanation/why-fairdm-records-contributors.html">Why FairDM records contributors</a></li>
+                <li><a href="../../../../explanation/how-contributor-accounts-and-credits-work.html">How contributor accounts and credits work</a></li>
+                <li><a href="../../../../explanation/how-a-profile-is-claimed.html">How a profile is claimed</a></li>
+                <li><a href="../../../../explanation/how-fairdm-configures-a-portal.html">How FairDM configures a portal</a></li>
+                <li><a href="../../../../explanation/who-is-asked-to-agree-to-a-legal-document.html">Who is asked to agree to a legal document</a></li>
+                <li><a href="../../../../explanation/how-locations-are-stored-and-protected.html">How locations are stored and protected</a></li>
+                <li><a href="../../../../explanation/dataset-publication-dois-and-datacite-metadata.html">Dataset publication, DOIs and DataCite metadata</a></li>
+                <li><a href="../../../../reference/glossary.html">Glossary</a></li>
+                <li><a href="../../../../contributing/index.html">Framework Contributors</a></li>
+                <li><a href="../../../../adr/index.html">Architecture Decision Records</a></li>
+                <li><a href="../../../../ROADMAP.html">Roadmap — FairDM</a></li>
+                <li><a href="../../../../changelog.html">Changelog</a></li>
+                <li><a href="https://github.com/FAIR-DM/fairdm/blob/main/CHANGELOG.md">Changelog<svg class="size-3.5 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M15 3h6v6" /> <path d="M10 14 21 3" /> <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /> </svg><span class="sr-only">(leads outside the site)</span></a></li>
+            </ul>
+          </nav>
+        <div class="daisy-sidebar-scroll px-3 py-4 lg:py-8 lg:ps-4 lg:pe-2">
+          
+<nav class="daisy-nav" aria-label="Documentation"><ul class="daisy-nav-list">
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../tutorial.html">Build your first sample and measurement types</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-a-factory-for-a-portal-model.html">How to add a factory for a portal model</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-a-filter-to-a-sample-type.html">How to add a filter to a sample type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-a-measurement-type.html">How to add a measurement type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-a-record-field-to-a-form.html">How to add a record field to a form</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-a-sample-type.html">How to add a sample type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-a-section-to-the-home-page.html">How to add a section to the home page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-a-start-step-to-a-container.html">How to add a start step to a container</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-a-transform-for-another-format.html">How to add a transform for another format</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-a-viewset-to-the-api-router.html">How to add a viewset to the API router</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-an-action-to-an-overview-page.html">How to add an action to an overview page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-an-environment-override-module.html">How to add an environment override module</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-pages-to-a-plugin.html">How to add pages to a plugin</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-queryset-methods-to-a-measurement-type.html">How to add queryset methods to a measurement type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/add-search-and-sort-to-a-list-view.html">How to add search and sort to a list view</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/allow-only-some-sites-to-call-the-api.html">How to allow only some sites to call the API</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/back-up-a-portal.html">How to back up a portal</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/change-a-types-api-address.html">How to change a type’s API address</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/change-how-the-team-page-looks.html">How to change how the team page looks</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/change-the-api-rate-limits.html">How to change the API rate limits</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/change-the-entrance-layout.html">How to change the entrance layout</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/change-the-entrance-pane.html">How to change the entrance pane</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/change-the-portal-theme.html">How to change the portal theme</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/change-what-a-home-page-section-shows.html">How to change what a home page section shows</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/change-what-the-edit-details-page-offers.html">How to change what the edit details page offers</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/change-who-can-open-the-control-room.html">How to change who can open the control room</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/choose-the-fields-the-api-returns.html">How to choose the fields the API returns</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/configure-the-agreement-check.html">How to configure the agreement check</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/count-api-callers-behind-a-proxy.html">How to count API callers behind a proxy</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/create-a-ghost-person.html">How to create a ghost person</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/create-a-plugin.html">How to create a plugin</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/create-an-addon.html">How to create an addon</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/credit-a-person-on-a-record.html">How to credit a person on a record</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/customise-a-generated-component.html">How to customise a generated component</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/customise-a-sample-form.html">How to customise a sample form</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/customise-the-admin-for-a-measurement-type.html">How to customise the admin for a measurement type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/customise-the-api-documentation.html">How to customise the API documentation</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/customise-the-profile-form.html">How to customise the profile form</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/define-a-portal-role-of-your-own.html">How to define a portal role of your own</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/deploy-a-portal-in-a-container.html">How to deploy a portal in a container</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/develop-a-portal-on-the-development-image.html">How to develop a portal on the development image</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/extend-an-overview-page.html">How to extend an overview page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/extend-the-profile-claiming-flow.html">How to extend the profile-claiming flow</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/filter-a-list-by-a-record.html">How to filter a list by a record</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/filter-projects-by-vocabulary-keywords.html">How to filter projects by vocabulary keywords</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/find-records-by-where-they-are.html">How to find records by where they are</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/give-a-registered-type-a-location.html">How to give a sample or measurement a location</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/give-a-sample-or-measurement-type-its-own-overview-page.html">How to give a sample or measurement type its own overview page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/grant-object-permissions-on-polymorphic-models.html">How to grant object permissions on a polymorphic model</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/import-and-export-locations.html">How to import and export locations</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/import-people-from-orcid.html">How to import people from a list of ORCID iDs</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/link-to-a-legal-document.html">How to link to a legal document</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/load-development-data-for-the-overview-pages.html">How to load development data for the overview pages</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/loop-over-the-registered-types.html">How to loop over the registered types</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/narrow-a-record-field-by-another-field.html">How to narrow a record field by another field</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/override-a-fairdm-setting.html">How to override a FairDM setting</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/place-an-organization-on-a-map.html">How to place an organization on a map</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/record-sample-relationships.html">How to record sample relationships</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/register-a-sample-or-measurement-type.html">How to register a sample or measurement type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/register-an-import-definition.html">How to register an import definition</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/render-markdown-in-a-template.html">How to render markdown in a template</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/restore-a-portal-from-a-backup.html">How to restore a portal from a backup</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/restrict-a-plugin-to-some-users.html">How to restrict a plugin to some users</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/restrict-a-record-field-to-one-sample-type.html">How to restrict a record field to one sample type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/restrict-api-tokens-to-some-people.html">How to restrict API tokens to some people</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/run-a-background-worker-in-a-container.html">How to run a background worker in a container</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/search-a-registered-type-by-more-than-its-name.html">How to search a registered type by more than its name</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/show-part-of-a-page-to-a-records-team.html">How to show part of a page to a record’s team</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/sign-in-as-each-portal-role-while-developing.html">How to sign in as each portal role while developing</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/sync-a-profile-from-orcid-or-ror-without-celery.html">How to sync a profile from ORCID or ROR without Celery</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/test-a-portal-with-fairdm-factories.html">How to test a portal with FairDM factories</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/upgrade-a-portal-to-django-literature-0-3.html">How to upgrade a portal to django-literature 0.3</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/upgrade-a-portal-to-django-partial-dates.html">How to upgrade a portal to django-partial-dates</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/upgrade-a-portal-to-vocabulary-addresses.html">How to upgrade a portal to vocabulary addresses</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/use-a-controlled-vocabulary-in-a-model.html">How to use a controlled vocabulary in a model</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/use-a-sample-form-in-a-view.html">How to use a sample form in a view</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../how-to/write-a-custom-form-or-filter-for-a-measurement-type.html">How to write a custom form or filter for a measurement type</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../base-views.html">Base views</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../components.html">Components</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../configuration.html">Configuration</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../container-images.html">Container images</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../contribution-levels-and-record-access.html">Contribution levels and record access</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../contributor-models.html">Contributor models</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../core-models.html">Core models</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../crediting.html">Crediting</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../development-accounts.html">Development accounts</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../entrance-pages.html">Entrance pages</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../form-and-filter-mixins.html">Form and filter mixins</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../home-page.html">Home page</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../legal-documents.html">Legal documents</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../location-fields.html">Location fields</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../management-commands.html">Management commands</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../measurement-model.html">Measurement model</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../model-configuration.html">Model configuration</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../model-fields.html">Model fields</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../overview-page-blocks.html">Overview page blocks</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../overview-plugins.html">Overview plugins</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../permalinks.html">Permalinks</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../plugins.html">Plugins</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../portal-roles.html">Portal roles in code</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../profile-claiming.html">Profile claiming</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../recent-activity.html">Recent activity</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../record-editing-pages.html">Record editing pages</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../record-fields.html">Record fields</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../records-export.html">Records export</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../rest-api.html">REST API</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../sample-model.html">Sample model</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../settings.html">Settings</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../table-schema.html">Table schema</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../template-tags.html">Template tags</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../factories.html">Test factories</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../registry.html">The registry</a></li>
+<li class="daisy-nav-item daisy-nav-branch"><a class="daisy-nav-link daisy-on-path reference internal" href="../../python-api.html">Python API</a><button type="button" class="daisy-nav-toggle btn btn-ghost btn-xs btn-square" aria-expanded="true" aria-label="Show the pages in Python API"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /> </svg></button><ul class="daisy-nav-list">
+<li class="daisy-nav-item daisy-nav-branch"><a class="daisy-nav-link daisy-on-path reference internal" href="fairdm.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm</span></code></a><button type="button" class="daisy-nav-toggle btn btn-ghost btn-xs btn-square" aria-expanded="true" aria-label="Show the pages in fairdm"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /> </svg></button><ul class="daisy-nav-list">
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.views.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.registry.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.db.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.db</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.backups.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.conf.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.management.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.management</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.templatetags.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.templatetags</span></code></a></li>
+<li class="daisy-nav-item"><a aria-current="page" class="current daisy-nav-link menu-active reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.contrib.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.api.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.forms</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.factories.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.core.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.models</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.plugins</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.permissions</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.menus.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.menus</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.portal_roles.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.portal_roles</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.apps</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.config</span></code></a></li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">How-to guides</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-factory-for-a-portal-model.html">How to add a factory for a portal model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-filter-to-a-sample-type.html">How to add a filter to a sample type</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-measurement-type.html">How to add a measurement type</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-record-field-to-a-form.html">How to add a record field to a form</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-sample-type.html">How to add a sample type</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-section-to-the-home-page.html">How to add a section to the home page</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-start-step-to-a-container.html">How to add a start step to a container</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-transform-for-another-format.html">How to add a transform for another format</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-a-viewset-to-the-api-router.html">How to add a viewset to the API router</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-an-action-to-an-overview-page.html">How to add an action to an overview page</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-an-environment-override-module.html">How to add an environment override module</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-pages-to-a-plugin.html">How to add pages to a plugin</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-queryset-methods-to-a-measurement-type.html">How to add queryset methods to a measurement type</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/add-search-and-sort-to-a-list-view.html">How to add search and sort to a list view</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/allow-only-some-sites-to-call-the-api.html">How to allow only some sites to call the API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/back-up-a-portal.html">How to back up a portal</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/change-a-types-api-address.html">How to change a type’s API address</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/change-how-the-team-page-looks.html">How to change how the team page looks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/change-the-api-rate-limits.html">How to change the API rate limits</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/change-the-entrance-layout.html">How to change the entrance layout</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/change-the-entrance-pane.html">How to change the entrance pane</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/change-the-portal-theme.html">How to change the portal theme</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/change-what-a-home-page-section-shows.html">How to change what a home page section shows</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/change-what-the-edit-details-page-offers.html">How to change what the edit details page offers</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/change-who-can-open-the-control-room.html">How to change who can open the control room</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/choose-the-fields-the-api-returns.html">How to choose the fields the API returns</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/configure-the-agreement-check.html">How to configure the agreement check</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/count-api-callers-behind-a-proxy.html">How to count API callers behind a proxy</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/create-a-ghost-person.html">How to create a ghost person</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/create-a-plugin.html">How to create a plugin</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/create-an-addon.html">How to create an addon</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/credit-a-person-on-a-record.html">How to credit a person on a record</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/customise-a-generated-component.html">How to customise a generated component</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/customise-a-sample-form.html">How to customise a sample form</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/customise-the-admin-for-a-measurement-type.html">How to customise the admin for a measurement type</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/customise-the-api-documentation.html">How to customise the API documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/customise-the-profile-form.html">How to customise the profile form</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/define-a-portal-role-of-your-own.html">How to define a portal role of your own</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/deploy-a-portal-in-a-container.html">How to deploy a portal in a container</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/develop-a-portal-on-the-development-image.html">How to develop a portal on the development image</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/extend-an-overview-page.html">How to extend an overview page</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/extend-the-profile-claiming-flow.html">How to extend the profile-claiming flow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/filter-a-list-by-a-record.html">How to filter a list by a record</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/filter-projects-by-vocabulary-keywords.html">How to filter projects by vocabulary keywords</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/find-records-by-where-they-are.html">How to find records by where they are</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/give-a-registered-type-a-location.html">How to give a sample or measurement a location</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/give-a-sample-or-measurement-type-its-own-overview-page.html">How to give a sample or measurement type its own overview page</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/grant-object-permissions-on-polymorphic-models.html">How to grant object permissions on a polymorphic model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/import-and-export-locations.html">How to import and export locations</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/import-people-from-orcid.html">How to import people from a list of ORCID iDs</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/link-to-a-legal-document.html">How to link to a legal document</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/load-development-data-for-the-overview-pages.html">How to load development data for the overview pages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/loop-over-the-registered-types.html">How to loop over the registered types</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/narrow-a-record-field-by-another-field.html">How to narrow a record field by another field</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/override-a-fairdm-setting.html">How to override a FairDM setting</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/place-an-organization-on-a-map.html">How to place an organization on a map</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/record-sample-relationships.html">How to record sample relationships</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/register-a-sample-or-measurement-type.html">How to register a sample or measurement type</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/register-an-import-definition.html">How to register an import definition</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/render-markdown-in-a-template.html">How to render markdown in a template</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/restore-a-portal-from-a-backup.html">How to restore a portal from a backup</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/restrict-a-plugin-to-some-users.html">How to restrict a plugin to some users</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/restrict-a-record-field-to-one-sample-type.html">How to restrict a record field to one sample type</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/restrict-api-tokens-to-some-people.html">How to restrict API tokens to some people</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/run-a-background-worker-in-a-container.html">How to run a background worker in a container</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/search-a-registered-type-by-more-than-its-name.html">How to search a registered type by more than its name</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/show-part-of-a-page-to-a-records-team.html">How to show part of a page to a record’s team</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/sign-in-as-each-portal-role-while-developing.html">How to sign in as each portal role while developing</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/sync-a-profile-from-orcid-or-ror-without-celery.html">How to sync a profile from ORCID or ROR without Celery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/test-a-portal-with-fairdm-factories.html">How to test a portal with FairDM factories</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/upgrade-a-portal-to-django-literature-0-3.html">How to upgrade a portal to django-literature 0.3</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/upgrade-a-portal-to-django-partial-dates.html">How to upgrade a portal to django-partial-dates</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/upgrade-a-portal-to-vocabulary-addresses.html">How to upgrade a portal to vocabulary addresses</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/use-a-controlled-vocabulary-in-a-model.html">How to use a controlled vocabulary in a model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/use-a-sample-form-in-a-view.html">How to use a sample form in a view</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../how-to/write-a-custom-form-or-filter-for-a-measurement-type.html">How to write a custom form or filter for a measurement type</a></li>
+</li>
 </ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Reference</span></p>
-<ul class="current nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../base-views.html">Base views</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../components.html">Components</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../configuration.html">Configuration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../container-images.html">Container images</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../contribution-levels-and-record-access.html">Contribution levels and record access</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../contributor-models.html">Contributor models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../core-models.html">Core models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../crediting.html">Crediting</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../development-accounts.html">Development accounts</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../entrance-pages.html">Entrance pages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../form-and-filter-mixins.html">Form and filter mixins</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../home-page.html">Home page</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../legal-documents.html">Legal documents</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../location-fields.html">Location fields</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../management-commands.html">Management commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../measurement-model.html">Measurement model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../model-configuration.html">Model configuration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../model-fields.html">Model fields</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../overview-page-blocks.html">Overview page blocks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../overview-plugins.html">Overview plugins</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../permalinks.html">Permalinks</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../plugins.html">Plugins</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../portal-roles.html">Portal roles in code</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../profile-claiming.html">Profile claiming</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../recent-activity.html">Recent activity</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../record-editing-pages.html">Record editing pages</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../record-fields.html">Record fields</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../records-export.html">Records export</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../rest-api.html">REST API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../sample-model.html">Sample model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../settings.html">Settings</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../table-schema.html">Table schema</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../template-tags.html">Template tags</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../factories.html">Test factories</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../registry.html">The registry</a></li>
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="../../python-api.html">Python API</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l2 current active has-children"><a class="reference internal" href="fairdm.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm</span></code></a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
-<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.management.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.management</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.management.commands.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.management.commands</span></code></a></li>
+</li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../explanation/how-a-measurement-reports-its-value.html">How a measurement reports its value</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../explanation/how-api-callers-are-limited.html">How API callers are limited</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../explanation/how-fairdm-views-are-layered.html">How FairDM views are layered</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../explanation/how-markdown-is-sanitised.html">How markdown is sanitised</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../explanation/how-record-fields-decide-what-to-offer.html">How record fields decide what to offer</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../explanation/how-the-container-images-are-versioned.html">How the container images are versioned</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../explanation/what-registering-a-type-produces.html">What registering a type produces</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../../explanation/why-factories-create-metadata-only-when-asked.html">Why factories create metadata only when asked</a></li>
 </ul>
-</details></li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.templatetags.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.templatetags</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.templatetags.fairdm.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.templatetags.fairdm</span></code></a></li>
-</ul>
-</details></li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.core.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.project.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.project</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.dataset.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.dataset</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.sample.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.sample</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.measurement.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.measurement</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.managers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.managers</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.formsets.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.formsets</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.filters.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.filters</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.citation.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.citation</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.related_records.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.related_records</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.urls.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.urls</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.editing.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.editing</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.descriptions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.descriptions</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.permissions</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.choices.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.choices</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.abstract.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.abstract</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.vocabularies.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.vocabularies</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.apps</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.overview.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.overview</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.plugins</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.utils</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.models</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.admin</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.image_utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.image_utils</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.core.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.core.forms</span></code></a></li>
-</ul>
-</details></li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.db.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.db</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.db.managers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.db.managers</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.db.fields.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.db.fields</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.db.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.db.models</span></code></a></li>
-</ul>
-</details></li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.contrib.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.autocomplete.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.autocomplete</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.plugins</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.import_export.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.import_export</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.collections.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.collections</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.activity.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.activity</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.admin.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.admin</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.identity.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.identity</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.contributors.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.contributors</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.contrib.location.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.location</span></code></a></li>
-</ul>
-</details></li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.registry.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.registry.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry.config</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.registry.exceptions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry.exceptions</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.registry.registry.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry.registry</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.registry.factories.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry.factories</span></code></a></li>
-</ul>
-</details></li>
-<li class="toctree-l3 current active has-children"><a class="current reference internal" href="#"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils</span></code></a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.utils.location.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.location</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.utils.context_processors.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.context_processors</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.utils.brand.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.brand</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.utils.markdown.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.markdown</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.utils.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.permissions</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.utils.choices.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.choices</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.utils.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.utils</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.utils.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.models</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.utils.inspection.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.inspection</span></code></a></li>
-</ul>
-</details></li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.forms</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.forms.base.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.forms.base</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.forms.fields.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.forms.fields</span></code></a></li>
-</ul>
-</details></li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.backups.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.backups.management.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.management</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.backups.signals.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.signals</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.backups.tasks.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.tasks</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.backups.run.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.run</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.backups.media.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.media</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.backups.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.apps</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.backups.keys.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.backups.keys</span></code></a></li>
-</ul>
-</details></li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.factories.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.factories.core.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories.core</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.factories.contributors.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories.contributors</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.factories.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.factories.utils</span></code></a></li>
-</ul>
-</details></li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.api.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.api.router.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.router</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.api.settings.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.settings</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.api.filters.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.filters</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.api.throttling.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.throttling</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.api.schema.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.schema</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.api.urls.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.urls</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.api.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.permissions</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.api.serializers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.serializers</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.api.pagination.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.pagination</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.api.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.apps</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.api.checks.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.checks</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.api.viewsets.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.api.viewsets</span></code></a></li>
-</ul>
-</details></li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.conf.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.conf.settings.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.settings</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.conf.setup.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.setup</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.conf.urls.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.urls</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.conf.celery.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.celery</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.conf.checks.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.checks</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.conf.environment.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.environment</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.conf.addons.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.addons</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.conf.development.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.conf.development</span></code></a></li>
-</ul>
-</details></li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="fairdm.views.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views</span></code></a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.views.base.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views.base</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.views.generic.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views.generic</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.views.permalink.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views.permalink</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="fairdm.views.mixins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.views.mixins</span></code></a></li>
-</ul>
-</details></li>
-<li class="toctree-l3"><a class="reference internal" href="fairdm.config.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.config</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="fairdm.portal_roles.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.portal_roles</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="fairdm.menus.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.menus</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="fairdm.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.permissions</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="fairdm.apps.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.apps</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="fairdm.plugins.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.plugins</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="fairdm.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.models</span></code></a></li>
-</ul>
-</details></li>
-</ul>
-</details></li>
-</ul>
-<p aria-level="2" class="caption" role="heading"><span class="caption-text">Explanation</span></p>
-<ul class="nav bd-sidenav">
-<li class="toctree-l1"><a class="reference internal" href="../../../explanation/how-a-measurement-reports-its-value.html">How a measurement reports its value</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../explanation/how-api-callers-are-limited.html">How API callers are limited</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../explanation/how-fairdm-views-are-layered.html">How FairDM views are layered</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../explanation/how-markdown-is-sanitised.html">How markdown is sanitised</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../explanation/how-record-fields-decide-what-to-offer.html">How record fields decide what to offer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../explanation/how-the-container-images-are-versioned.html">How the container images are versioned</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../explanation/what-registering-a-type-produces.html">What registering a type produces</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../explanation/why-factories-create-metadata-only-when-asked.html">Why factories create metadata only when asked</a></li>
-</ul>
-</div>
-</nav></div>
-    </div>
-  
-  
-  <div class="sidebar-primary-items__end sidebar-primary__section">
-      <div class="sidebar-primary-item">
-<div id="ethical-ad-placement"
-      class="flat"
-      data-ea-publisher="readthedocs"
-      data-ea-type="readthedocs-sidebar"
-      data-ea-manual="true">
-</div></div>
-  </div>
-
-
-      </div>
-      
-      <main id="main-content" class="bd-main" role="main">
-        
-        
-          <div class="bd-content">
-            <div class="bd-article-container">
-              
-              <div class="bd-header-article d-print-none">
-<div class="header-article-items header-article__inner">
-  
-    <div class="header-article-items__start">
-      
-        <div class="header-article-item">
-
-<nav aria-label="Breadcrumb" class="d-print-none">
-  <ul class="bd-breadcrumbs">
-    
-    <li class="breadcrumb-item breadcrumb-home">
-      <a href="../../../../index.html" class="nav-link" aria-label="Home">
-        <i class="fa-solid fa-home"></i>
-      </a>
-    </li>
-    
-    <li class="breadcrumb-item"><a href="../../../index.html" class="nav-link">Developers</a></li>
-    
-    
-    <li class="breadcrumb-item"><a href="../../python-api.html" class="nav-link">Python API</a></li>
-    
-    
-    <li class="breadcrumb-item"><a href="fairdm.html" class="nav-link"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm</span></code></a></li>
-    
-    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils</span></code></span></li>
-  </ul>
 </nav>
-</div>
-      
-    </div>
-  
-  
-</div>
-</div>
-              
-              
-              
-                
-<div id="searchbox"></div>
-                <article class="bd-article">
-                  
+          
+        </div>
+      </div>
+    </aside>
+    <label for="daisy-drawer" class="daisy-drawer-overlay" aria-label="Close the navigation"></label>
+    <main id="main-content" role="main" class="daisy-area-main min-w-0 px-4 sm:px-6 lg:px-10" tabindex="-1">
+      <div class="mx-auto max-w-[46rem] pt-6 pb-10">
+          <div class="daisy-article-header flex min-h-8 items-center gap-3">
+            <div class="min-w-0 flex-1">
+<nav class="breadcrumbs daisy-breadcrumbs py-0 text-sm" aria-label="Breadcrumb">
+  <ul>
+    <li><a href="../../../../index.html" aria-label="Home"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M12 5v16" /> <path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z" /> </svg></a></li>
+    <li><a href="../../../index.html">Developers</a></li>
+    <li><a href="../../python-api.html">Python API</a></li>
+    <li><a href="fairdm.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm</span></code></a></li>
+    <li aria-current="page"><span class="truncate">fairdm.utils</span></li>
+  </ul>
+</nav></div>
+            <div class="flex shrink-0 items-center gap-1">
+              <a href="https://github.com/FAIR-DM/fairdm/edit/main/docs/developers/reference/api/fairdm/fairdm.utils.md" class="btn btn-ghost btn-sm btn-square tooltip tooltip-left" data-tip="Edit this page" aria-label="Edit this page"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" /> <path d="m15 5 4 4" /> </svg></a>
+            </div>
+          </div>
+          <details class="daisy-toc-mobile collapse collapse-arrow mt-4 rounded-box border border-base-300 bg-base-200/60 xl:hidden">
+            <summary class="collapse-title min-h-0 py-3 text-sm font-semibold">On this page</summary>
+            <nav class="collapse-content text-sm" aria-label="On this page"><ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#subpackages">Subpackages</a></li>
+<li><a class="daisy-toc-link reference internal" href="#submodules">Submodules</a></li>
+</ul>
+</nav>
+          </details>
+        <article class="daisy-sphinx-content">
+          
   <section id="module-fairdm.utils">
-<span id="fairdm-utils"></span><h1><a class="reference internal" href="#module-fairdm.utils" title="fairdm.utils"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils</span></code></a><a class="headerlink" href="#module-fairdm.utils" title="Link to this heading">#</a></h1>
+<span id="fairdm-utils"></span><h1><a class="reference internal" href="#module-fairdm.utils" title="fairdm.utils"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils</span></code></a><a class="headerlink" aria-label="Link to this heading: fairdm.utils" href="#module-fairdm.utils" title="Link to this heading">¶</a></h1>
 <p>Common utilities and helpers used throughout the FairDM framework.</p>
 <p>Includes form helpers, permission utilities and data processing functions. Names load lazily
 to avoid import cycles during Django startup.</p>
 <section id="subpackages">
-<h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading">#</a></h2>
+<h2>Subpackages<a class="headerlink" aria-label="Link to this heading: Subpackages" href="#subpackages" title="Link to this heading">¶</a></h2>
 <div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="fairdm.utils.location.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.location</span></code></a><ul>
-<li class="toctree-l2"><a class="reference internal" href="fairdm.utils.location.coverage.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.location.coverage</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="fairdm.utils.location.managers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.location.managers</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="fairdm.utils.location.db.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.location.db</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="fairdm.utils.location.resources.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.location.resources</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="fairdm.utils.location.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.location.forms</span></code></a></li>
+<ul class="daisy-nav-list">
+<li class="daisy-nav-item daisy-nav-branch"><a class="daisy-nav-link reference internal" href="fairdm.utils.location.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.location</span></code></a><button type="button" class="daisy-nav-toggle btn btn-ghost btn-xs btn-square" aria-expanded="true" aria-label="Show the pages in fairdm.utils.location"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m9 18 6-6-6-6" /> </svg></button><ul class="daisy-nav-list">
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.utils.location.coverage.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.location.coverage</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.utils.location.managers.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.location.managers</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.utils.location.db.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.location.db</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.utils.location.resources.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.location.resources</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.utils.location.forms.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.location.forms</span></code></a></li>
 </ul>
 </li>
 </ul>
 </div>
 </section>
 <section id="submodules">
-<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">#</a></h2>
+<h2>Submodules<a class="headerlink" aria-label="Link to this heading: Submodules" href="#submodules" title="Link to this heading">¶</a></h2>
 <div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="fairdm.utils.context_processors.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.context_processors</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="fairdm.utils.brand.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.brand</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="fairdm.utils.markdown.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.markdown</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="fairdm.utils.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.permissions</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="fairdm.utils.choices.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.choices</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="fairdm.utils.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.utils</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="fairdm.utils.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.models</span></code></a></li>
-<li class="toctree-l1"><a class="reference internal" href="fairdm.utils.inspection.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.inspection</span></code></a></li>
+<ul class="daisy-nav-list">
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.utils.models.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.models</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.utils.utils.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.utils</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.utils.brand.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.brand</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.utils.context_processors.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.context_processors</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.utils.markdown.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.markdown</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.utils.permissions.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.permissions</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.utils.inspection.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.inspection</span></code></a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="fairdm.utils.choices.html"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.choices</span></code></a></li>
 </ul>
 </div>
 </section>
 </section>
 
 
-                </article>
-              
-              
-              
-              
-              
-                <footer class="prev-next-footer d-print-none">
-                  
-<div class="prev-next-area">
-    <a class="left-prev"
-       href="fairdm.registry.factories.html"
-       title="previous page">
-      <i class="fa-solid fa-angle-left"></i>
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">previous</p>
-        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry.factories</span></code></p>
-      </div>
-    </a>
-    <a class="right-next"
-       href="fairdm.utils.location.html"
-       title="next page">
-      <div class="prev-next-info">
-        <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.location</span></code></p>
-      </div>
-      <i class="fa-solid fa-angle-right"></i>
-    </a>
-</div>
-                </footer>
-              
-            </div>
-            
-            
-              
-                <dialog id="pst-secondary-sidebar-modal"></dialog>
-                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
-
-
-  <div class="sidebar-secondary-item">
-<div
-    id="pst-page-navigation-heading-2"
-    class="page-toc tocsection onthispage">
-    <i class="fa-solid fa-list"></i> On this page
-  </div>
-  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
-    <ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#subpackages">Subpackages</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
-</ul>
-  </nav></div>
-
-</div></div>
-              
-            
-          </div>
-          <footer class="bd-footer-content">
-            
-          </footer>
+        </article>
         
-      </main>
+          <nav class="daisy-prev-next mt-12 grid gap-3 border-t border-base-300 pt-6 sm:grid-cols-2" aria-label="Previous and next page">
+              <a href="fairdm.templatetags.fairdm.html" rel="prev" class="group flex items-center gap-3 rounded-box border border-base-300 p-4 transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+                <svg class="size-4 shrink-0 opacity-60 transition group-hover:-translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m12 19-7-7 7-7" /> <path d="M19 12H5" /> </svg>
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Previous</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.templatetags.fairdm</span></code></span></span>
+              </a>
+              <a href="fairdm.utils.location.html" rel="next" class="group flex items-center justify-end gap-3 rounded-box border border-base-300 p-4 text-end transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Next</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.utils.location</span></code></span></span>
+                <svg class="size-4 shrink-0 opacity-60 transition group-hover:translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M5 12h14" /> <path d="m12 5 7 7-7 7" /> </svg>
+              </a>
+          </nav>
+        
+      </div>
+    </main>
+      <aside class="daisy-area-secondary" aria-label="Page tools">
+        <div class="daisy-secondary daisy-secondary-inner">
+<nav class="daisy-page-toc mb-6" aria-labelledby="daisy-page-toc-label" data-toc-level="2">
+  <p id="daisy-page-toc-label" class="daisy-section-label mb-2 flex items-center gap-2 leading-4"><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M3 5h.01" /> <path d="M3 12h.01" /> <path d="M3 19h.01" /> <path d="M8 5h13" /> <path d="M8 12h13" /> <path d="M8 19h13" /> </svg>On this page</p>
+  <ul class="daisy-toc-list">
+<li><a class="daisy-toc-link reference internal" href="#subpackages">Subpackages</a></li>
+<li><a class="daisy-toc-link reference internal" href="#submodules">Submodules</a></li>
+</ul>
+
+</nav></div>
+      </aside>
+
+    <footer class="daisy-area-footer daisy-footer border-t border-base-300 bg-base-100 px-4 py-8 text-sm sm:px-6 lg:px-10">
+      <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+        <div class="flex flex-col gap-1"><p>&copy; 2026, Samuel Jennings</p></div>
+        <div class="flex flex-col gap-1"></div>
+        <div class="flex flex-col gap-2 md:items-end"><p>Theme: <a class="link link-hover" href="https://github.com/SamuelJennings/sphinx-daisyui">sphinx-daisyui</a> 0.2.0.</p></div>
+      </div>
+    </footer>
+  </div>
+    <button type="button" class="daisy-back-to-top btn btn-sm fixed bottom-6 left-1/2 z-30 -translate-x-1/2 gap-1 rounded-full shadow-lg" hidden><svg class="size-4" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m5 12 7-7 7 7" /> <path d="M12 19V5" /> </svg>Back to top</button><dialog id="daisy-search" class="modal modal-top sm:modal-middle" aria-label="Search the documentation"
+  data-daisy-language-data="../../../../_static/language_data.js"
+  data-daisy-searchtools="../../../../_static/searchtools.js"
+  data-daisy-searchindex="../../../../searchindex.js"
+  data-daisy-prompt="Type to search pages, sections and API names."
+  data-daisy-nothing="Nothing matches %(query)s."
+  data-daisy-unavailable="Search is not available here."
+  data-daisy-page="Page"
+  data-daisy-section="Section"
+  data-daisy-as-you-type="true">
+  <div class="modal-box flex max-h-[min(40rem,85dvh)] max-w-2xl flex-col gap-0 p-0 sm:rounded-box">
+    <form action="../../../../search.html" method="get" class="flex items-center gap-3 border-b border-base-300 px-4 py-3" role="search">
+      <svg class="size-5 shrink-0 opacity-60" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m21 21-4.34-4.34" /> <circle cx="11" cy="11" r="8" /> </svg>
+      <input type="search" name="q" class="daisy-search-input min-w-0 flex-1 bg-transparent text-base outline-none" placeholder="Search the docs" aria-label="Search" autocomplete="off" spellcheck="false" role="combobox" aria-controls="daisy-search-results" aria-autocomplete="list" aria-expanded="false">
+      <kbd class="kbd kbd-sm hidden sm:inline-flex">Esc</kbd>
+      <span class="sm:hidden"><button type="button" class="btn btn-ghost btn-sm btn-square" aria-label="Close search" data-daisy-search-close=""><svg class="size-5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M18 6 6 18" /> <path d="m6 6 12 12" /> </svg></button></span>
+    </form>
+    <div class="min-h-0 flex-1 overflow-y-auto p-2">
+      <p class="daisy-search-status daisy-muted px-3 py-6 text-center text-sm" aria-live="polite">Type to search pages, sections and API names.</p>
+      <ul id="daisy-search-results" class="daisy-search-results menu w-full gap-0.5 p-0" role="listbox"></ul>
+    </div>
+    <div class="daisy-muted hidden items-center gap-4 border-t border-base-300 px-4 py-2 text-xs sm:flex">
+      <span class="flex items-center gap-1"><kbd class="kbd kbd-xs">↑</kbd><kbd class="kbd kbd-xs">↓</kbd> to move</span>
+      <span class="flex items-center gap-1"><kbd class="kbd kbd-xs">↵</kbd> to open</span>
+      <span class="ms-auto">Enter with nothing chosen opens the full results.</span>
     </div>
   </div>
-  
-  <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../../../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67"></script>
-<script defer src="../../../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67"></script>
-
-  <footer class="bd-footer">
-<div class="bd-footer__inner bd-page-width">
-  
-    <div class="footer-items__start">
-      
-        <div class="footer-item">
-
-  <p class="copyright">
-    
-      © Copyright 2026, Samuel Jennings.
-      <br/>
-    
-  </p>
-</div>
-      
-    </div>
-  
-  
-  
-    <div class="footer-items__end">
-      
-        <div class="footer-item">
-<p class="theme-version">
-  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.21.0.
-</p></div>
-      
-    </div>
-  
-</div>
-
-  </footer>
+  <form method="dialog" class="modal-backdrop"><button aria-label="Close search">close</button></form>
+</dialog>
   </body>
 </html>

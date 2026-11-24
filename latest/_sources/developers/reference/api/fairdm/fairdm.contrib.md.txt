@@ -16,12 +16,12 @@
 fairdm.contrib.autocomplete
 fairdm.contrib.plugins
 fairdm.contrib.import_export
-fairdm.contrib.collections
-fairdm.contrib.activity
-fairdm.contrib.admin
 fairdm.contrib.identity
 fairdm.contrib.contributors
+fairdm.contrib.activity
+fairdm.contrib.admin
 fairdm.contrib.location
+fairdm.contrib.collections
 ```
 
 ## Package Contents
