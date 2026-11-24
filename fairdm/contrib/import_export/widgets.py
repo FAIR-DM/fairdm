@@ -660,14 +660,14 @@ class SampleCellWidget(CellWidget):
     """A sample by portal ID, or by Local ID or name within the dataset.
 
     Every lookup reads the samples the person may see, so a sample they may not see is
-    refused with the words used for one that does not exist. Each distinct cell is looked
-    up once and the answer kept, so a file of many rows over a few samples asks the
-    database a few times. A widget serves one file.
+    refused with the words used for one that does not exist. Each distinct cell is
+    looked up once and the answer kept, so a file of many rows over a few samples asks
+    the database a few times. A widget serves one file.
 
     Attributes:
         dataset: The dataset the file is imported into.
         user: The person importing, or None for a visitor.
-        found: The sample or the refusal each cell read so far came to, by the cell's text.
+        found: The sample or the refusal each cell read so far came to, by its text.
     """
 
     def __init__(self, column, dataset=None, user=None):

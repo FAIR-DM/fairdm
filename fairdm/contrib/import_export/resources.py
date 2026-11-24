@@ -1,8 +1,8 @@
 """The import of one type of record into one dataset.
 
 ``build_resource`` turns a type's table schema into a ``RecordResource`` bound to a
-dataset. The resource does the reading, the checking and the saving of a file's rows. What
-it adds to django-import-export:
+dataset. The resource does the reading, the checking and the saving of a file's rows.
+What it adds to django-import-export:
 
 - rows are matched to stored records by portal ID, then by Local ID within the dataset,
 - the chosen mode leaves out the rows the person did not ask for, with the reason kept,
@@ -101,7 +101,7 @@ class RecordResource(LocatedResourceMixin, resources.ModelResource):
         return Sample if issubclass(self._meta.model, Sample) else Measurement
 
     def import_row(self, row, instance_loader, **kwargs):
-        """Import one row, leaving it out when its portal ID names another dataset's record.
+        """Import one row, or leave it out when its portal ID names another dataset.
 
         Args:
             row: The row, as a dict of heading to cell.
@@ -164,8 +164,8 @@ class RecordResource(LocatedResourceMixin, resources.ModelResource):
             dataset, else None.
 
         Raises:
-            RowProblem: The portal ID names no record or a record of another type, or the
-                Local ID is held by several records.
+            RowProblem: The portal ID names no record or a record of another type, or
+                the Local ID is held by several records.
         """
         model = self._meta.model
         portal_id = CellWidget.text_of(row.get("portal_id"))
@@ -239,8 +239,8 @@ class RecordResource(LocatedResourceMixin, resources.ModelResource):
             row: The row, which loses the empty cells that are left out.
 
         Raises:
-            RowProblem: An empty cell in a column a record needs, on a new record or on one
-                whose empty cells are to be cleared.
+            RowProblem: An empty cell in a column a record needs, on a new record or
+                on one whose empty cells are to be cleared.
         """
         is_new = instance.pk is None
         clearing = not is_new and self.empty == "clear"
