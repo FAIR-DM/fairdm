@@ -8,6 +8,7 @@ from django_filters import FilterSet
 from django_tables2 import Table
 
 from demo.models import RockSample
+from fairdm.contrib.import_export.schema import TableSchema
 from fairdm.core.models import Measurement, Sample
 from fairdm.core.sample.admin import SampleChildAdmin
 from fairdm.registry import registry
@@ -1341,3 +1342,32 @@ class TestNonFunctionalGuards:
         with django_assert_num_queries(0):
             for accessor in ACCESSORS:
                 getattr(config, accessor)()
+
+
+@pytest.mark.django_db
+class TestGetTableSchema:
+    def test_a_configuration_returns_the_schema_of_its_model(self):
+        schema = ModelConfiguration(model=RockSample).get_table_schema()
+        assert isinstance(schema, TableSchema)
+        assert schema.model is RockSample
+
+    def test_it_reads_the_configuration_it_is_called_on(self):
+        config = ModelConfiguration(model=RockSample, resource_fields=["weight_grams"])
+        assert "mineral_content" not in config.get_table_schema().headings
+
+    def test_nothing_is_cached(self):
+        config = ModelConfiguration(model=RockSample)
+        assert config.get_table_schema() is not config.get_table_schema()
+
+    def test_a_subclass_can_override_it(self):
+        class Trimmed(ModelConfiguration):
+            model = RockSample
+
+            def get_table_schema(self):
+                schema = super().get_table_schema()
+                schema.columns = [c for c in schema.columns if c.name != "status"]
+                return schema
+
+        headings = Trimmed().get_table_schema().headings
+        assert "status" not in headings
+        assert "rock_type" in headings

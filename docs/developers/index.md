@@ -71,6 +71,7 @@ explanation covers why parts of FairDM work as they do. Explanation every reader
 - [How to place an organization on a map](how-to/place-an-organization-on-a-map.md)
 - [How to record sample relationships](how-to/record-sample-relationships.md)
 - [How to register a sample or measurement type](how-to/register-a-sample-or-measurement-type.md)
+- [How to register an import definition](how-to/register-an-import-definition.md)
 - [How to render markdown in a template](how-to/render-markdown-in-a-template.md)
 - [How to restore a portal from a backup](how-to/restore-a-portal-from-a-backup.md)
 - [How to restrict a plugin to some users](how-to/restrict-a-plugin-to-some-users.md)
@@ -120,6 +121,7 @@ explanation covers why parts of FairDM work as they do. Explanation every reader
 - [REST API](reference/rest-api.md)
 - [Sample model](reference/sample-model.md)
 - [Settings](reference/settings.md)
+- [Table schema](reference/table-schema.md)
 - [Template tags](reference/template-tags.md)
 - [Test factories](reference/factories.md)
 - [The registry](reference/registry.md)
@@ -205,6 +207,7 @@ how-to/override-a-fairdm-setting
 how-to/place-an-organization-on-a-map
 how-to/record-sample-relationships
 how-to/register-a-sample-or-measurement-type
+how-to/register-an-import-definition
 how-to/render-markdown-in-a-template
 how-to/restore-a-portal-from-a-backup
 how-to/restrict-a-plugin-to-some-users
@@ -258,6 +261,7 @@ reference/record-fields
 reference/rest-api
 reference/sample-model
 reference/settings
+reference/table-schema
 reference/template-tags
 reference/factories
 reference/registry

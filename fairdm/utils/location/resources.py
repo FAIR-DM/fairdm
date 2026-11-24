@@ -9,6 +9,14 @@ from import_export.widgets import FloatWidget
 
 from fairdm.utils.location.forms import LocationField
 
+LOCATION_COLUMNS = (
+    "latitude",
+    "longitude",
+    "location_elevation",
+    "location_uncertainty",
+)
+"""The four columns a record's ``location`` stands for, in order."""
+
 
 class MeasureWidget(FloatWidget):
     """A number cell that exports as the number itself, never localised, and empty for none."""
@@ -70,18 +78,15 @@ def location_fields():
         A dict of field name to ``Field``, in column order: ``latitude``, ``longitude``,
         ``location_elevation`` and ``location_uncertainty``.
     """
+    latitude, longitude, elevation, uncertainty = LOCATION_COLUMNS
     return {
-        "latitude": CoordinateField("lat"),
-        "longitude": CoordinateField("lon"),
-        "location_elevation": Field(
-            attribute="location_elevation",
-            column_name="location_elevation",
-            widget=MeasureWidget(),
+        latitude: CoordinateField("lat"),
+        longitude: CoordinateField("lon"),
+        elevation: Field(
+            attribute=elevation, column_name=elevation, widget=MeasureWidget()
         ),
-        "location_uncertainty": Field(
-            attribute="location_uncertainty",
-            column_name="location_uncertainty",
-            widget=MeasureWidget(),
+        uncertainty: Field(
+            attribute=uncertainty, column_name=uncertainty, widget=MeasureWidget()
         ),
     }
 
