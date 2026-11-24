@@ -356,10 +356,15 @@ class TableSchema:
         Returns:
             A ``(key, title, columns)`` triple for each section that has columns.
         """
+        shared = (
+            _("Shared by every measurement")
+            if self.kind == "measurement"
+            else _("Shared by every sample")
+        )
         titles = {
             "ids": _("Identifying the record"),
             "own": _("About the %(type)s") % {"type": self.singular.lower()},
-            "shared": _("Shared by every %(kind)s") % {"kind": self.kind},
+            "shared": shared,
         }
         return [
             (key, titles[key], [c for c in self.columns if c.group == key])

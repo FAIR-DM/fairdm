@@ -95,6 +95,25 @@ class TestColumnOrder:
             "shared",
         ]
 
+    @pytest.mark.parametrize("config_name", ["rock_config", "xrf_config"])
+    def test_the_shared_heading_is_one_whole_translatable_string(
+        self, request, monkeypatch, config_name
+    ):
+        from fairdm.contrib.import_export import schema as schema_module
+
+        asked = []
+
+        def record(message):
+            asked.append(message)
+            return message
+
+        monkeypatch.setattr(schema_module, "_", record)
+        schema = build_table_schema(request.getfixturevalue(config_name))
+
+        titles = {key: title for key, title, columns in schema.groups()}
+
+        assert titles["shared"] in asked
+
     def test_schema_describes_its_model(self, rock_config):
         schema = build_table_schema(rock_config)
         assert isinstance(schema, TableSchema)
