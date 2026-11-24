@@ -58,7 +58,7 @@ commentsRunWhenDOMLoaded(addUtterances);
     <link rel="icon" href="../../../../_static/icon.svg"/>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
-    <link rel="next" title="fairdm.contrib.import_export.views" href="fairdm.contrib.import_export.views.html" />
+    <link rel="next" title="fairdm.contrib.import_export.undo" href="fairdm.contrib.import_export.undo.html" />
     <link rel="prev" title="fairdm.contrib.import_export.mixins" href="fairdm.contrib.import_export.mixins.html" /> 
   <meta name="color-scheme" content="light dark">
   <script src="../../../../_static/scripts/mode.js" data-light-theme="light" data-dark-theme="dark" data-default-mode="auto" data-themes=""></script>
@@ -300,6 +300,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../record-editing-pages.html">Record editing pages</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../record-fields.html">Record fields</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../records-export.html">Records export</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../records-import.html">Records import</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../rest-api.html">REST API</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../sample-model.html">Sample model</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../settings.html">Settings</a></li>
@@ -439,6 +440,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.widgets.SampleCellWidget"><code class="docutils literal notranslate"><span class="pre">SampleCellWidget</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.widgets.SampleCellWidget.clean"><code class="docutils literal notranslate"><span class="pre">SampleCellWidget.clean()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.widgets.SampleCellWidget.look_up"><code class="docutils literal notranslate"><span class="pre">SampleCellWidget.look_up()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.widgets.SampleCellWidget.render"><code class="docutils literal notranslate"><span class="pre">SampleCellWidget.render()</span></code></a></li>
 </ul>
 </li>
@@ -1052,10 +1054,13 @@ The preferred label, which is the same in every language.</p>
 <dd><p>Bases: <a class="reference internal" href="#fairdm.contrib.import_export.widgets.CellWidget" title="fairdm.contrib.import_export.widgets.CellWidget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.contrib.import_export.widgets.CellWidget</span></code></a></p>
 <p>A sample by portal ID, or by Local ID or name within the dataset.</p>
 <p>Every lookup reads the samples the person may see, so a sample they may not see is
-refused with the words used for one that does not exist.</p>
+refused with the words used for one that does not exist. Each distinct cell is
+looked up once and the answer kept, so a file of many rows over a few samples asks
+the database a few times. A widget serves one file.</p>
 <p>Attributes:
 dataset: The dataset the file is imported into.
-user: The person importing, or None for a visitor.</p>
+user: The person importing, or None for a visitor.
+found: The sample or the refusal each cell read so far came to, by its text.</p>
 <p class="rubric">Initialization</p>
 <p>Keep the column, the dataset and the person.</p>
 <p>Args:
@@ -1072,6 +1077,20 @@ row: The row the cell is in.
 **kwargs: What django-import-export passes on.</p>
 <p>Returns:
 The sample, or None for an empty cell.</p>
+<p>Raises:
+ValueError: When no sample the person may see has the portal ID, and none in
+the dataset has the Local ID or name, or when the Local ID or name is
+shared by several samples.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.widgets.SampleCellWidget.look_up">
+<span class="sig-name descname"><span class="pre">look_up</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="fairdm.core.sample.models.html#fairdm.core.sample.models.Sample" title="fairdm.core.sample.models.Sample"><span class="pre">fairdm.core.sample.models.Sample</span></a></span></span><a class="headerlink" aria-label="Link to this definition: look_up" href="#fairdm.contrib.import_export.widgets.SampleCellWidget.look_up" title="Link to this definition">¶</a></dt>
+<dd><p>Find the sample a cell names among those the person may see.</p>
+<p>Args:
+text: The cell’s text.</p>
+<p>Returns:
+The sample.</p>
 <p>Raises:
 ValueError: When no sample the person may see has the portal ID, and none in
 the dataset has the Local ID or name, or when the Local ID or name is
@@ -1174,8 +1193,8 @@ the attribute written by the column’s widget.</p>
                 <svg class="size-4 shrink-0 opacity-60 transition group-hover:-translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m12 19-7-7 7-7" /> <path d="M19 12H5" /> </svg>
                 <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Previous</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.import_export.mixins</span></code></span></span>
               </a>
-              <a href="fairdm.contrib.import_export.views.html" rel="next" class="group flex items-center justify-end gap-3 rounded-box border border-base-300 p-4 text-end transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
-                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Next</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.import_export.views</span></code></span></span>
+              <a href="fairdm.contrib.import_export.undo.html" rel="next" class="group flex items-center justify-end gap-3 rounded-box border border-base-300 p-4 text-end transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Next</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.import_export.undo</span></code></span></span>
                 <svg class="size-4 shrink-0 opacity-60 transition group-hover:translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M5 12h14" /> <path d="m12 5 7 7-7 7" /> </svg>
               </a>
           </nav>
@@ -1256,6 +1275,7 @@ the attribute written by the column’s widget.</p>
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.widgets.SampleCellWidget"><code class="docutils literal notranslate"><span class="pre">SampleCellWidget</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.widgets.SampleCellWidget.clean"><code class="docutils literal notranslate"><span class="pre">SampleCellWidget.clean()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.widgets.SampleCellWidget.look_up"><code class="docutils literal notranslate"><span class="pre">SampleCellWidget.look_up()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.widgets.SampleCellWidget.render"><code class="docutils literal notranslate"><span class="pre">SampleCellWidget.render()</span></code></a></li>
 </ul>
 </li>

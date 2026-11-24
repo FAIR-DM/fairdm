@@ -43,10 +43,6 @@
   - ```{autodoc2-docstring} fairdm.registry.factories.SerializerFactory
     :summary:
     ```
-* - {py:obj}`ResourceFactory <fairdm.registry.factories.ResourceFactory>`
-  - ```{autodoc2-docstring} fairdm.registry.factories.ResourceFactory
-    :summary:
-    ```
 ````
 
 ### Functions
@@ -270,30 +266,6 @@ Bases: {py:obj}`fairdm.registry.factories.ComponentFactory`
 :canonical: fairdm.registry.factories.SerializerFactory.generate
 
 ```{autodoc2-docstring} fairdm.registry.factories.SerializerFactory.generate
-```
-
-````
-
-`````
-
-`````{py:class} ResourceFactory(model: type[django.db.models.Model], fields: list[str] | None = None)
-:canonical: fairdm.registry.factories.ResourceFactory
-
-Bases: {py:obj}`fairdm.registry.factories.ComponentFactory`
-
-```{autodoc2-docstring} fairdm.registry.factories.ResourceFactory
-```
-
-```{rubric} Initialization
-```
-
-```{autodoc2-docstring} fairdm.registry.factories.ResourceFactory.__init__
-```
-
-````{py:method} generate() -> type
-:canonical: fairdm.registry.factories.ResourceFactory.generate
-
-```{autodoc2-docstring} fairdm.registry.factories.ResourceFactory.generate
 ```
 
 ````

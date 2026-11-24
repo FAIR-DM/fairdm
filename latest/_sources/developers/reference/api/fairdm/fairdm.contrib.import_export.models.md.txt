@@ -1,0 +1,826 @@
+# {py:mod}`fairdm.contrib.import_export.models`
+
+```{py:module} fairdm.contrib.import_export.models
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ImportJob <fairdm.contrib.import_export.models.ImportJob>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob
+    :summary:
+    ```
+* - {py:obj}`ImportRow <fairdm.contrib.import_export.models.ImportRow>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`import_file_path <fairdm.contrib.import_export.models.import_file_path>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.models.import_file_path
+    :summary:
+    ```
+* - {py:obj}`delete_stored_file <fairdm.contrib.import_export.models.delete_stored_file>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.models.delete_stored_file
+    :summary:
+    ```
+````
+
+### API
+
+````{py:function} import_file_path(instance, filename)
+:canonical: fairdm.contrib.import_export.models.import_file_path
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.import_file_path
+```
+````
+
+``````{py:class} ImportJob(*args, **kwargs)
+:canonical: fairdm.contrib.import_export.models.ImportJob
+
+Bases: {py:obj}`django.db.models.Model`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.__init__
+```
+
+`````{py:class} Mode(*args, **kwds)
+:canonical: fairdm.contrib.import_export.models.ImportJob.Mode
+
+Bases: {py:obj}`django.db.models.TextChoices`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Mode
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Mode.__init__
+```
+
+````{py:attribute} BOTH
+:canonical: fairdm.contrib.import_export.models.ImportJob.Mode.BOTH
+:value: >
+   ('both',)
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Mode.BOTH
+```
+
+````
+
+````{py:attribute} ADD
+:canonical: fairdm.contrib.import_export.models.ImportJob.Mode.ADD
+:value: >
+   ('add',)
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Mode.ADD
+```
+
+````
+
+````{py:attribute} UPDATE
+:canonical: fairdm.contrib.import_export.models.ImportJob.Mode.UPDATE
+:value: >
+   ('update',)
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Mode.UPDATE
+```
+
+````
+
+`````
+
+`````{py:class} Empty(*args, **kwds)
+:canonical: fairdm.contrib.import_export.models.ImportJob.Empty
+
+Bases: {py:obj}`django.db.models.TextChoices`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Empty
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Empty.__init__
+```
+
+````{py:attribute} KEEP
+:canonical: fairdm.contrib.import_export.models.ImportJob.Empty.KEEP
+:value: >
+   ('keep',)
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Empty.KEEP
+```
+
+````
+
+````{py:attribute} CLEAR
+:canonical: fairdm.contrib.import_export.models.ImportJob.Empty.CLEAR
+:value: >
+   ('clear',)
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Empty.CLEAR
+```
+
+````
+
+`````
+
+`````{py:class} Status(*args, **kwds)
+:canonical: fairdm.contrib.import_export.models.ImportJob.Status
+
+Bases: {py:obj}`django.db.models.TextChoices`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Status
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Status.__init__
+```
+
+````{py:attribute} MATCHING
+:canonical: fairdm.contrib.import_export.models.ImportJob.Status.MATCHING
+:value: >
+   ('matching',)
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Status.MATCHING
+```
+
+````
+
+````{py:attribute} CHECKING
+:canonical: fairdm.contrib.import_export.models.ImportJob.Status.CHECKING
+:value: >
+   ('checking',)
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Status.CHECKING
+```
+
+````
+
+````{py:attribute} CHECKED
+:canonical: fairdm.contrib.import_export.models.ImportJob.Status.CHECKED
+:value: >
+   ('checked',)
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Status.CHECKED
+```
+
+````
+
+````{py:attribute} NOTHING
+:canonical: fairdm.contrib.import_export.models.ImportJob.Status.NOTHING
+:value: >
+   ('nothing',)
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Status.NOTHING
+```
+
+````
+
+````{py:attribute} PROBLEMS
+:canonical: fairdm.contrib.import_export.models.ImportJob.Status.PROBLEMS
+:value: >
+   ('problems',)
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Status.PROBLEMS
+```
+
+````
+
+````{py:attribute} IMPORTING
+:canonical: fairdm.contrib.import_export.models.ImportJob.Status.IMPORTING
+:value: >
+   ('importing',)
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Status.IMPORTING
+```
+
+````
+
+````{py:attribute} IMPORTED
+:canonical: fairdm.contrib.import_export.models.ImportJob.Status.IMPORTED
+:value: >
+   ('imported',)
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Status.IMPORTED
+```
+
+````
+
+````{py:attribute} UNDOING
+:canonical: fairdm.contrib.import_export.models.ImportJob.Status.UNDOING
+:value: >
+   ('undoing',)
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Status.UNDOING
+```
+
+````
+
+````{py:attribute} FAILED
+:canonical: fairdm.contrib.import_export.models.ImportJob.Status.FAILED
+:value: >
+   ('failed',)
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Status.FAILED
+```
+
+````
+
+````{py:attribute} UNDONE
+:canonical: fairdm.contrib.import_export.models.ImportJob.Status.UNDONE
+:value: >
+   ('undone',)
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Status.UNDONE
+```
+
+````
+
+````{py:attribute} DISCARDED
+:canonical: fairdm.contrib.import_export.models.ImportJob.Status.DISCARDED
+:value: >
+   ('discarded',)
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Status.DISCARDED
+```
+
+````
+
+`````
+
+````{py:attribute} dataset
+:canonical: fairdm.contrib.import_export.models.ImportJob.dataset
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.dataset
+```
+
+````
+
+````{py:attribute} definition_name
+:canonical: fairdm.contrib.import_export.models.ImportJob.definition_name
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.definition_name
+```
+
+````
+
+````{py:attribute} created_by
+:canonical: fairdm.contrib.import_export.models.ImportJob.created_by
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.created_by
+```
+
+````
+
+````{py:attribute} created
+:canonical: fairdm.contrib.import_export.models.ImportJob.created
+:value: >
+   'DateTimeField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.created
+```
+
+````
+
+````{py:attribute} file
+:canonical: fairdm.contrib.import_export.models.ImportJob.file
+:value: >
+   'FileField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.file
+```
+
+````
+
+````{py:attribute} filename
+:canonical: fairdm.contrib.import_export.models.ImportJob.filename
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.filename
+```
+
+````
+
+````{py:attribute} file_format
+:canonical: fairdm.contrib.import_export.models.ImportJob.file_format
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.file_format
+```
+
+````
+
+````{py:attribute} file_size
+:canonical: fairdm.contrib.import_export.models.ImportJob.file_size
+:value: >
+   'PositiveIntegerField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.file_size
+```
+
+````
+
+````{py:attribute} mode
+:canonical: fairdm.contrib.import_export.models.ImportJob.mode
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.mode
+```
+
+````
+
+````{py:attribute} empty_cells
+:canonical: fairdm.contrib.import_export.models.ImportJob.empty_cells
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.empty_cells
+```
+
+````
+
+````{py:attribute} status
+:canonical: fairdm.contrib.import_export.models.ImportJob.status
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.status
+```
+
+````
+
+````{py:attribute} headers
+:canonical: fairdm.contrib.import_export.models.ImportJob.headers
+:value: >
+   'JSONField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.headers
+```
+
+````
+
+````{py:attribute} samples
+:canonical: fairdm.contrib.import_export.models.ImportJob.samples
+:value: >
+   'JSONField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.samples
+```
+
+````
+
+````{py:attribute} column_map
+:canonical: fairdm.contrib.import_export.models.ImportJob.column_map
+:value: >
+   'JSONField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.column_map
+```
+
+````
+
+````{py:attribute} row_count
+:canonical: fairdm.contrib.import_export.models.ImportJob.row_count
+:value: >
+   'PositiveIntegerField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.row_count
+```
+
+````
+
+````{py:attribute} summary
+:canonical: fairdm.contrib.import_export.models.ImportJob.summary
+:value: >
+   'JSONField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.summary
+```
+
+````
+
+````{py:attribute} file_problems
+:canonical: fairdm.contrib.import_export.models.ImportJob.file_problems
+:value: >
+   'JSONField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.file_problems
+```
+
+````
+
+````{py:attribute} error
+:canonical: fairdm.contrib.import_export.models.ImportJob.error
+:value: >
+   'TextField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.error
+```
+
+````
+
+````{py:attribute} checked_at
+:canonical: fairdm.contrib.import_export.models.ImportJob.checked_at
+:value: >
+   'DateTimeField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.checked_at
+```
+
+````
+
+````{py:attribute} imported_at
+:canonical: fairdm.contrib.import_export.models.ImportJob.imported_at
+:value: >
+   'DateTimeField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.imported_at
+```
+
+````
+
+````{py:attribute} imported_by
+:canonical: fairdm.contrib.import_export.models.ImportJob.imported_by
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.imported_by
+```
+
+````
+
+````{py:attribute} undone_at
+:canonical: fairdm.contrib.import_export.models.ImportJob.undone_at
+:value: >
+   'DateTimeField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.undone_at
+```
+
+````
+
+````{py:attribute} undone_by
+:canonical: fairdm.contrib.import_export.models.ImportJob.undone_by
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.undone_by
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.contrib.import_export.models.ImportJob.Meta
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Meta
+```
+
+````{py:attribute} ordering
+:canonical: fairdm.contrib.import_export.models.ImportJob.Meta.ordering
+:value: >
+   ['-created']
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Meta.ordering
+```
+
+````
+
+````{py:attribute} indexes
+:canonical: fairdm.contrib.import_export.models.ImportJob.Meta.indexes
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.Meta.indexes
+```
+
+````
+
+`````
+
+````{py:method} get_absolute_url()
+:canonical: fairdm.contrib.import_export.models.ImportJob.get_absolute_url
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.get_absolute_url
+```
+
+````
+
+````{py:property} definition
+:canonical: fairdm.contrib.import_export.models.ImportJob.definition
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.definition
+```
+
+````
+
+````{py:property} model
+:canonical: fairdm.contrib.import_export.models.ImportJob.model
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.model
+```
+
+````
+
+````{py:property} type_name
+:canonical: fairdm.contrib.import_export.models.ImportJob.type_name
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.type_name
+```
+
+````
+
+````{py:property} is_running
+:canonical: fairdm.contrib.import_export.models.ImportJob.is_running
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.is_running
+```
+
+````
+
+````{py:property} is_finished
+:canonical: fairdm.contrib.import_export.models.ImportJob.is_finished
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.is_finished
+```
+
+````
+
+````{py:property} writes
+:canonical: fairdm.contrib.import_export.models.ImportJob.writes
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportJob.writes
+```
+
+````
+
+``````
+
+``````{py:class} ImportRow(*args, **kwargs)
+:canonical: fairdm.contrib.import_export.models.ImportRow
+
+Bases: {py:obj}`django.db.models.Model`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow.__init__
+```
+
+`````{py:class} Outcome(*args, **kwds)
+:canonical: fairdm.contrib.import_export.models.ImportRow.Outcome
+
+Bases: {py:obj}`django.db.models.TextChoices`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow.Outcome
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow.Outcome.__init__
+```
+
+````{py:attribute} NEW
+:canonical: fairdm.contrib.import_export.models.ImportRow.Outcome.NEW
+:value: >
+   ('new',)
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow.Outcome.NEW
+```
+
+````
+
+````{py:attribute} UPDATE
+:canonical: fairdm.contrib.import_export.models.ImportRow.Outcome.UPDATE
+:value: >
+   ('update',)
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow.Outcome.UPDATE
+```
+
+````
+
+````{py:attribute} UNCHANGED
+:canonical: fairdm.contrib.import_export.models.ImportRow.Outcome.UNCHANGED
+:value: >
+   ('unchanged',)
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow.Outcome.UNCHANGED
+```
+
+````
+
+````{py:attribute} SKIPPED
+:canonical: fairdm.contrib.import_export.models.ImportRow.Outcome.SKIPPED
+:value: >
+   ('skipped',)
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow.Outcome.SKIPPED
+```
+
+````
+
+````{py:attribute} PROBLEM
+:canonical: fairdm.contrib.import_export.models.ImportRow.Outcome.PROBLEM
+:value: >
+   ('problem',)
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow.Outcome.PROBLEM
+```
+
+````
+
+`````
+
+````{py:attribute} job
+:canonical: fairdm.contrib.import_export.models.ImportRow.job
+:value: >
+   'ForeignKey(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow.job
+```
+
+````
+
+````{py:attribute} number
+:canonical: fairdm.contrib.import_export.models.ImportRow.number
+:value: >
+   'PositiveIntegerField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow.number
+```
+
+````
+
+````{py:attribute} line
+:canonical: fairdm.contrib.import_export.models.ImportRow.line
+:value: >
+   'PositiveIntegerField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow.line
+```
+
+````
+
+````{py:attribute} outcome
+:canonical: fairdm.contrib.import_export.models.ImportRow.outcome
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow.outcome
+```
+
+````
+
+````{py:attribute} label
+:canonical: fairdm.contrib.import_export.models.ImportRow.label
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow.label
+```
+
+````
+
+````{py:attribute} portal_id
+:canonical: fairdm.contrib.import_export.models.ImportRow.portal_id
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow.portal_id
+```
+
+````
+
+````{py:attribute} record_pk
+:canonical: fairdm.contrib.import_export.models.ImportRow.record_pk
+:value: >
+   'PositiveBigIntegerField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow.record_pk
+```
+
+````
+
+````{py:attribute} changes
+:canonical: fairdm.contrib.import_export.models.ImportRow.changes
+:value: >
+   'JSONField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow.changes
+```
+
+````
+
+````{py:attribute} problems
+:canonical: fairdm.contrib.import_export.models.ImportRow.problems
+:value: >
+   'JSONField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow.problems
+```
+
+````
+
+````{py:attribute} note
+:canonical: fairdm.contrib.import_export.models.ImportRow.note
+:value: >
+   'TextField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow.note
+```
+
+````
+
+````{py:attribute} before
+:canonical: fairdm.contrib.import_export.models.ImportRow.before
+:value: >
+   'JSONField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow.before
+```
+
+````
+
+````{py:attribute} digest
+:canonical: fairdm.contrib.import_export.models.ImportRow.digest
+:value: >
+   'CharField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow.digest
+```
+
+````
+
+`````{py:class} Meta
+:canonical: fairdm.contrib.import_export.models.ImportRow.Meta
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow.Meta
+```
+
+````{py:attribute} ordering
+:canonical: fairdm.contrib.import_export.models.ImportRow.Meta.ordering
+:value: >
+   ['number']
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow.Meta.ordering
+```
+
+````
+
+````{py:attribute} indexes
+:canonical: fairdm.contrib.import_export.models.ImportRow.Meta.indexes
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.ImportRow.Meta.indexes
+```
+
+````
+
+`````
+
+``````
+
+````{py:function} delete_stored_file(sender, instance, **kwargs)
+:canonical: fairdm.contrib.import_export.models.delete_stored_file
+
+```{autodoc2-docstring} fairdm.contrib.import_export.models.delete_stored_file
+```
+````

@@ -14,15 +14,22 @@
 :maxdepth: 1
 
 fairdm.contrib.import_export.definitions
+fairdm.contrib.import_export.models
 fairdm.contrib.import_export.schema
+fairdm.contrib.import_export.plugins
+fairdm.contrib.import_export.matching
 fairdm.contrib.import_export.utils
 fairdm.contrib.import_export.urls
 fairdm.contrib.import_export.exports
+fairdm.contrib.import_export.runner
 fairdm.contrib.import_export.mixins
 fairdm.contrib.import_export.widgets
+fairdm.contrib.import_export.undo
 fairdm.contrib.import_export.views
 fairdm.contrib.import_export.formats
+fairdm.contrib.import_export.reader
 fairdm.contrib.import_export.apps
 fairdm.contrib.import_export.resources
 fairdm.contrib.import_export.forms
+fairdm.contrib.import_export.tasks
 ```

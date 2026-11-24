@@ -300,6 +300,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../reference/record-editing-pages.html">Record editing pages</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../reference/record-fields.html">Record fields</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../reference/records-export.html">Records export</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../reference/records-import.html">Records import</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../reference/rest-api.html">REST API</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../reference/sample-model.html">Sample model</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../reference/settings.html">Settings</a></li>
@@ -414,24 +415,11 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><p>the uncertainty is negative.</p></li>
 </ul>
 </li>
-<li><p>If the type uses a resource class of your own, add the location columns to it. A resource that derives from <code class="docutils literal notranslate"><span class="pre">BaseFairDMResource</span></code> has them already. Any other <code class="docutils literal notranslate"><span class="pre">ModelResource</span></code> gets them by inheriting <code class="docutils literal notranslate"><span class="pre">LocatedResourceMixin</span></code> ahead of it.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fairdm.contrib.import_export.resources</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseFairDMResource</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">myportal.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreSample</span>
-
-
-<span class="k">class</span><span class="w"> </span><span class="nc">CoreSampleResource</span><span class="p">(</span><span class="n">BaseFairDMResource</span><span class="p">):</span>
-    <span class="k">class</span><span class="w"> </span><span class="nc">Meta</span><span class="p">:</span>
-        <span class="n">model</span> <span class="o">=</span> <span class="n">CoreSample</span>
-        <span class="n">fields</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"id"</span><span class="p">,</span> <span class="s2">"local_id"</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">,</span> <span class="s2">"location"</span><span class="p">,</span> <span class="s2">"depth_m"</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Then name the resource in the configuration with <code class="docutils literal notranslate"><span class="pre">resource_class</span> <span class="pre">=</span> <span class="pre">&quot;myportal.resources.CoreSampleResource&quot;</span></code>. A configuration declares either <code class="docutils literal notranslate"><span class="pre">resource_fields</span></code> or <code class="docutils literal notranslate"><span class="pre">resource_class</span></code>, never both.</p>
-</li>
 </ol>
 </section>
 <section id="the-result">
 <h2>The result<a class="headerlink" aria-label="Link to this heading: The result" href="#the-result" title="Link to this heading">¶</a></h2>
-<p>The type’s file has the four location columns wherever its resource lists <code class="docutils literal notranslate"><span class="pre">location</span></code>. A file with none of the four columns leaves every record’s location as it was, and a file with only some of them changes only those. An empty cell clears the value. Clearing a point also clears the elevation and uncertainty, so a file that empties <code class="docutils literal notranslate"><span class="pre">latitude</span></code> and <code class="docutils literal notranslate"><span class="pre">longitude</span></code> for a record that holds an elevation or an uncertainty must carry those two columns too, with empty cells.</p>
+<p>The type’s file has the four location columns wherever the type’s fields list <code class="docutils literal notranslate"><span class="pre">location</span></code>. A file with none of the four columns leaves every record’s location as it was, and a file with only some of them changes only those. An empty cell clears the value. Clearing a point also clears the elevation and uncertainty, so a file that empties <code class="docutils literal notranslate"><span class="pre">latitude</span></code> and <code class="docutils literal notranslate"><span class="pre">longitude</span></code> for a record that holds an elevation or an uncertainty must carry those two columns too, with empty cells.</p>
 </section>
 </section>
 

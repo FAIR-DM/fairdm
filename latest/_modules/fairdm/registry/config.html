@@ -594,7 +594,6 @@ window.runMermaid = runMermaid;</script>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.module_loading</span><span class="w"> </span><span class="kn">import</span> <span class="n">import_string</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django_filters</span><span class="w"> </span><span class="kn">import</span> <span class="n">FilterSet</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django_tables2</span><span class="w"> </span><span class="kn">import</span> <span class="n">Table</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">import_export.resources</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelResource</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">fairdm.registry.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConfigurationError</span><span class="p">,</span> <span class="n">FieldValidationError</span>
 
@@ -697,9 +696,6 @@ window.runMermaid = runMermaid;</script>
         <span class="kc">None</span><span class="p">,</span>
         <span class="s2">"SerializerFactory"</span><span class="p">,</span>
         <span class="n">default_exclude</span><span class="o">=</span><span class="p">(</span><span class="s2">"options"</span><span class="p">,</span> <span class="s2">"tags"</span><span class="p">),</span>
-    <span class="p">),</span>
-    <span class="s2">"resource"</span><span class="p">:</span> <span class="n">Component</span><span class="p">(</span>
-        <span class="s2">"resource_fields"</span><span class="p">,</span> <span class="s2">"resource_class"</span><span class="p">,</span> <span class="n">ModelResource</span><span class="p">,</span> <span class="s2">"ResourceFactory"</span>
     <span class="p">),</span>
     <span class="s2">"admin"</span><span class="p">:</span> <span class="n">Component</span><span class="p">(</span><span class="s2">"admin_list_display"</span><span class="p">,</span> <span class="s2">"admin_class"</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"AdminFactory"</span><span class="p">),</span>
 <span class="p">}</span>
@@ -816,15 +812,13 @@ window.runMermaid = runMermaid;</script>
 <span class="sd">        table_fields: Field list for the table component alone.</span>
 <span class="sd">        filterset_fields: Field list for the filterset component alone.</span>
 <span class="sd">        serializer_fields: Field list for the serializer component alone.</span>
-<span class="sd">        resource_fields: Field list for the import and export resource alone.</span>
+<span class="sd">        resource_fields: Field list for the import and export columns alone.</span>
 <span class="sd">        admin_list_display: Field list for the admin component alone.</span>
 <span class="sd">        form_class: A form class, or its dotted path, replacing the generated one.</span>
 <span class="sd">        table_class: A table class, or its dotted path, replacing the generated one.</span>
 <span class="sd">        filterset_class: A filterset class, or its dotted path, replacing the</span>
 <span class="sd">            generated one.</span>
 <span class="sd">        serializer_class: A serializer class, or its dotted path, replacing the</span>
-<span class="sd">            generated one.</span>
-<span class="sd">        resource_class: A resource class, or its dotted path, replacing the</span>
 <span class="sd">            generated one.</span>
 <span class="sd">        admin_class: An admin class, or its dotted path, replacing the generated one.</span>
 <span class="sd">        display_name: Human-readable name, defaulting to the model's verbose name.</span>
@@ -856,7 +850,6 @@ window.runMermaid = runMermaid;</script>
     <span class="n">table_class</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">Table</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">filterset_class</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">FilterSet</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">serializer_class</span><span class="p">:</span> <span class="s2">"type[ModelSerializer] | str | None"</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">resource_class</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">ModelResource</span><span class="p">]</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">admin_class</span><span class="p">:</span> <span class="s2">"type[ModelAdmin] | str | None"</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="n">display_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
@@ -870,6 +863,7 @@ window.runMermaid = runMermaid;</script>
         <span class="s2">"search_fields"</span><span class="p">,</span>
         <span class="o">*</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">fields_attr</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">COMPONENTS</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
         <span class="o">*</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">class_attr</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">COMPONENTS</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
+        <span class="s2">"resource_fields"</span><span class="p">,</span>
         <span class="s2">"display_name"</span><span class="p">,</span>
         <span class="s2">"description"</span><span class="p">,</span>
     <span class="p">)</span>
@@ -936,6 +930,7 @@ window.runMermaid = runMermaid;</script>
             <span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">fields_attr</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spec</span><span class="o">.</span><span class="n">fields_attr</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">COMPONENTS</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
         <span class="p">]</span>
+        <span class="n">lists</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">"resource_fields"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">resource_fields</span> <span class="ow">or</span> <span class="p">[]))</span>
         <span class="k">return</span> <span class="p">[(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">lists</span> <span class="k">if</span> <span class="n">value</span><span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_validate_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -1180,13 +1175,6 @@ window.runMermaid = runMermaid;</script>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_serializer_class</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"type[ModelSerializer]"</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Return the REST serializer for this model. Override to build your own."""</span>
         <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="s2">"type[ModelSerializer]"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_component_class</span><span class="p">(</span><span class="s2">"serializer"</span><span class="p">))</span></div>
-
-
-<div class="viewcode-block" id="ModelConfiguration.get_resource_class">
-<a class="viewcode-back" href="../../../developers/reference/api/fairdm/fairdm.registry.config.html#fairdm.registry.config.ModelConfiguration.get_resource_class">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_resource_class</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">[</span><span class="n">ModelResource</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">"""Return the import and export resource. Override to build your own."""</span>
-        <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="nb">type</span><span class="p">[</span><span class="n">ModelResource</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_component_class</span><span class="p">(</span><span class="s2">"resource"</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="ModelConfiguration.get_table_schema">

@@ -15,92 +15,150 @@
 :class: autosummary longtable
 :align: left
 
-* - {py:obj}`ImportForm <fairdm.contrib.import_export.forms.ImportForm>`
-  - ```{autodoc2-docstring} fairdm.contrib.import_export.forms.ImportForm
+* - {py:obj}`ImportOptionsForm <fairdm.contrib.import_export.forms.ImportOptionsForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.forms.ImportOptionsForm
     :summary:
     ```
-* - {py:obj}`ExportForm <fairdm.contrib.import_export.forms.ExportForm>`
-  - ```{autodoc2-docstring} fairdm.contrib.import_export.forms.ExportForm
+* - {py:obj}`UploadForm <fairdm.contrib.import_export.forms.UploadForm>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.forms.UploadForm
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`MODE_DESCRIPTIONS <fairdm.contrib.import_export.forms.MODE_DESCRIPTIONS>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.forms.MODE_DESCRIPTIONS
+    :summary:
+    ```
+* - {py:obj}`EMPTY_CHOICES <fairdm.contrib.import_export.forms.EMPTY_CHOICES>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.forms.EMPTY_CHOICES
+    :summary:
+    ```
+* - {py:obj}`EMPTY_DESCRIPTIONS <fairdm.contrib.import_export.forms.EMPTY_DESCRIPTIONS>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.forms.EMPTY_DESCRIPTIONS
     :summary:
     ```
 ````
 
 ### API
 
-``````{py:class} ImportForm(*args, **kwargs)
-:canonical: fairdm.contrib.import_export.forms.ImportForm
+````{py:data} MODE_DESCRIPTIONS
+:canonical: fairdm.contrib.import_export.forms.MODE_DESCRIPTIONS
+:value: >
+   None
 
-Bases: {py:obj}`fairdm.forms.Form`
+```{autodoc2-docstring} fairdm.contrib.import_export.forms.MODE_DESCRIPTIONS
+```
 
-```{autodoc2-docstring} fairdm.contrib.import_export.forms.ImportForm
+````
+
+````{py:data} EMPTY_CHOICES
+:canonical: fairdm.contrib.import_export.forms.EMPTY_CHOICES
+:value: >
+   [(), ()]
+
+```{autodoc2-docstring} fairdm.contrib.import_export.forms.EMPTY_CHOICES
+```
+
+````
+
+````{py:data} EMPTY_DESCRIPTIONS
+:canonical: fairdm.contrib.import_export.forms.EMPTY_DESCRIPTIONS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.forms.EMPTY_DESCRIPTIONS
+```
+
+````
+
+`````{py:class} ImportOptionsForm(*args, brief=False, **kwargs)
+:canonical: fairdm.contrib.import_export.forms.ImportOptionsForm
+
+Bases: {py:obj}`django.forms.Form`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.forms.ImportOptionsForm
 ```
 
 ```{rubric} Initialization
 ```
 
-```{autodoc2-docstring} fairdm.contrib.import_export.forms.ImportForm.__init__
+```{autodoc2-docstring} fairdm.contrib.import_export.forms.ImportOptionsForm.__init__
 ```
 
-````{py:attribute} file
-:canonical: fairdm.contrib.import_export.forms.ImportForm.file
+````{py:attribute} mode
+:canonical: fairdm.contrib.import_export.forms.ImportOptionsForm.mode
 :value: >
-   'FileField(...)'
+   'ChoiceField(...)'
 
-```{autodoc2-docstring} fairdm.contrib.import_export.forms.ImportForm.file
+```{autodoc2-docstring} fairdm.contrib.import_export.forms.ImportOptionsForm.mode
 ```
 
 ````
 
-`````{py:class} Meta
-:canonical: fairdm.contrib.import_export.forms.ImportForm.Meta
-
-```{autodoc2-docstring} fairdm.contrib.import_export.forms.ImportForm.Meta
-```
-
-````{py:attribute} fields
-:canonical: fairdm.contrib.import_export.forms.ImportForm.Meta.fields
+````{py:attribute} empty
+:canonical: fairdm.contrib.import_export.forms.ImportOptionsForm.empty
 :value: >
-   ['file']
+   'ChoiceField(...)'
 
-```{autodoc2-docstring} fairdm.contrib.import_export.forms.ImportForm.Meta.fields
+```{autodoc2-docstring} fairdm.contrib.import_export.forms.ImportOptionsForm.empty
 ```
 
 ````
 
-````{py:attribute} helper_attrs
-:canonical: fairdm.contrib.import_export.forms.ImportForm.Meta.helper_attrs
-:value: >
-   None
+````{py:method} chosen(mode, empty)
+:canonical: fairdm.contrib.import_export.forms.ImportOptionsForm.chosen
 
-```{autodoc2-docstring} fairdm.contrib.import_export.forms.ImportForm.Meta.helper_attrs
+```{autodoc2-docstring} fairdm.contrib.import_export.forms.ImportOptionsForm.chosen
 ```
 
 ````
 
 `````
 
-``````
+`````{py:class} UploadForm(data=None, files=None, auto_id='id_%s', prefix=None, initial=None, error_class=ErrorList, label_suffix=None, empty_permitted=False, field_order=None, use_required_attribute=None, renderer=None, bound_field_class=None)
+:canonical: fairdm.contrib.import_export.forms.UploadForm
 
-`````{py:class} ExportForm(*args, **kwargs)
-:canonical: fairdm.contrib.import_export.forms.ExportForm
+Bases: {py:obj}`django.forms.Form`
 
-Bases: {py:obj}`fairdm.forms.Form`
-
-```{autodoc2-docstring} fairdm.contrib.import_export.forms.ExportForm
+```{autodoc2-docstring} fairdm.contrib.import_export.forms.UploadForm
 ```
 
 ```{rubric} Initialization
 ```
 
-```{autodoc2-docstring} fairdm.contrib.import_export.forms.ExportForm.__init__
+```{autodoc2-docstring} fairdm.contrib.import_export.forms.UploadForm.__init__
 ```
 
-````{py:attribute} format
-:canonical: fairdm.contrib.import_export.forms.ExportForm.format
+````{py:attribute} MAX_BYTES
+:canonical: fairdm.contrib.import_export.forms.UploadForm.MAX_BYTES
 :value: >
-   'ChoiceField(...)'
+   None
 
-```{autodoc2-docstring} fairdm.contrib.import_export.forms.ExportForm.format
+```{autodoc2-docstring} fairdm.contrib.import_export.forms.UploadForm.MAX_BYTES
+```
+
+````
+
+````{py:attribute} file
+:canonical: fairdm.contrib.import_export.forms.UploadForm.file
+:value: >
+   'FileField(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.forms.UploadForm.file
+```
+
+````
+
+````{py:method} clean_file()
+:canonical: fairdm.contrib.import_export.forms.UploadForm.clean_file
+
+```{autodoc2-docstring} fairdm.contrib.import_export.forms.UploadForm.clean_file
 ```
 
 ````

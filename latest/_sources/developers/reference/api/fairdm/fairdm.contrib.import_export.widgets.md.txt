@@ -608,6 +608,14 @@ Bases: {py:obj}`fairdm.contrib.import_export.widgets.CellWidget`
 
 ````
 
+````{py:method} look_up(text: str) -> fairdm.core.sample.models.Sample
+:canonical: fairdm.contrib.import_export.widgets.SampleCellWidget.look_up
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.SampleCellWidget.look_up
+```
+
+````
+
 ````{py:method} render(value, obj=None, **kwargs)
 :canonical: fairdm.contrib.import_export.widgets.SampleCellWidget.render
 

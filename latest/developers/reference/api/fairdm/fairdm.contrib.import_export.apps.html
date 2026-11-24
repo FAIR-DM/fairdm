@@ -8,8 +8,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="developers/reference/api/fairdm/fairdm.contrib.import_export.apps.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="App configuration for import and export. Module Contents: Classes:,, FairDMImportExportConfig, Configuration for the import and export app.,,,, API:" />
-<meta name="description" content="App configuration for import and export. Module Contents: Classes:,, FairDMImportExportConfig, Configuration for the import and export app.,,,, API:" />
+<meta property="og:description" content="App configuration for import and export. Module Contents: Classes:,, FairDMImportExportConfig, Configuration for the import and export app.,,,, Functions:,, seed_discard_task, Schedule the daily di..." />
+<meta name="description" content="App configuration for import and export. Module Contents: Classes:,, FairDMImportExportConfig, Configuration for the import and export app.,,,, Functions:,, seed_discard_task, Schedule the daily di..." />
 
     <title>fairdm.contrib.import_export.apps &#8212; fairdm 0.6.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/sphinx-daisyui.css?v=aedd34d4" />
@@ -59,7 +59,7 @@ commentsRunWhenDOMLoaded(addUtterances);
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
     <link rel="next" title="fairdm.contrib.import_export.resources" href="fairdm.contrib.import_export.resources.html" />
-    <link rel="prev" title="fairdm.contrib.import_export.formats" href="fairdm.contrib.import_export.formats.html" /> 
+    <link rel="prev" title="fairdm.contrib.import_export.reader" href="fairdm.contrib.import_export.reader.html" /> 
   <meta name="color-scheme" content="light dark">
   <script src="../../../../_static/scripts/mode.js" data-light-theme="light" data-dark-theme="dark" data-default-mode="auto" data-themes=""></script>
   <script defer src="../../../../_static/scripts/keys.js"></script>
@@ -300,6 +300,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../record-editing-pages.html">Record editing pages</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../record-fields.html">Record fields</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../records-export.html">Records export</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../records-import.html">Records import</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../rest-api.html">REST API</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../sample-model.html">Sample model</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../settings.html">Settings</a></li>
@@ -372,11 +373,16 @@ commentsRunWhenDOMLoaded(addUtterances);
             <nav class="collapse-content text-sm" aria-label="On this page"><ul class="daisy-toc-list">
 <li><a class="daisy-toc-link reference internal" href="#module-contents">Module Contents</a><ul class="daisy-toc-list">
 <li><a class="daisy-toc-link reference internal" href="#classes">Classes</a></li>
+<li><a class="daisy-toc-link reference internal" href="#functions">Functions</a></li>
+<li><a class="daisy-toc-link reference internal" href="#data">Data</a></li>
 <li><a class="daisy-toc-link reference internal" href="#api">API</a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.apps.DISCARD_TASK"><code class="docutils literal notranslate"><span class="pre">DISCARD_TASK</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.apps.seed_discard_task"><code class="docutils literal notranslate"><span class="pre">seed_discard_task()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.apps.FairDMImportExportConfig"><code class="docutils literal notranslate"><span class="pre">FairDMImportExportConfig</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.apps.FairDMImportExportConfig.name"><code class="docutils literal notranslate"><span class="pre">FairDMImportExportConfig.name</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.apps.FairDMImportExportConfig.label"><code class="docutils literal notranslate"><span class="pre">FairDMImportExportConfig.label</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.apps.FairDMImportExportConfig.verbose_name"><code class="docutils literal notranslate"><span class="pre">FairDMImportExportConfig.verbose_name</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.apps.FairDMImportExportConfig.ready"><code class="docutils literal notranslate"><span class="pre">FairDMImportExportConfig.ready()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -404,8 +410,47 @@ commentsRunWhenDOMLoaded(addUtterances);
 </table>
 </div>
 </section>
+<section id="functions">
+<h3>Functions<a class="headerlink" aria-label="Link to this heading: Functions" href="#functions" title="Link to this heading">¶</a></h3>
+<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="autosummary longtable docutils align-left">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.apps.seed_discard_task" title="fairdm.contrib.import_export.apps.seed_discard_task"><code class="xref py py-obj docutils literal notranslate"><span class="pre">seed_discard_task</span></code></a></p></td>
+<td><p>Schedule the daily discard of stale imports at 02:30, if it is missing.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="data">
+<h3>Data<a class="headerlink" aria-label="Link to this heading: Data" href="#data" title="Link to this heading">¶</a></h3>
+<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="autosummary longtable docutils align-left">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.apps.DISCARD_TASK" title="fairdm.contrib.import_export.apps.DISCARD_TASK"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DISCARD_TASK</span></code></a></p></td>
+<td><p>The task path of the daily discard of imports left unfinished.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
 <section id="api">
 <h3>API<a class="headerlink" aria-label="Link to this heading: API" href="#api" title="Link to this heading">¶</a></h3>
+<dl class="py data">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.apps.DISCARD_TASK">
+<span class="sig-name descname"><span class="pre">DISCARD_TASK</span></span><a class="headerlink" aria-label="Link to this definition: DISCARD_TASK" href="#fairdm.contrib.import_export.apps.DISCARD_TASK" title="Link to this definition">¶</a></dt>
+<dd><p>‘fairdm.contrib.import_export.tasks.discard_stale_jobs’</p>
+<p>The task path of the daily discard of imports left unfinished.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.apps.seed_discard_task">
+<span class="sig-name descname"><span class="pre">seed_discard_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/fairdm/contrib/import_export/apps.html#seed_discard_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" aria-label="Link to this definition: seed_discard_task" href="#fairdm.contrib.import_export.apps.seed_discard_task" title="Link to this definition">¶</a></dt>
+<dd><p>Schedule the daily discard of stale imports at 02:30, if it is missing.</p>
+<p>A task that exists is never touched, so a portal that changed its schedule or
+switched it off keeps its choice. The task is found by its task path.</p>
+<p>Args:
+**kwargs: The signal’s arguments, unused.</p>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="fairdm.contrib.import_export.apps.FairDMImportExportConfig">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">FairDMImportExportConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_module</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/fairdm/contrib/import_export/apps.html#FairDMImportExportConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" aria-label="Link to this definition: FairDMImportExportConfig" href="#fairdm.contrib.import_export.apps.FairDMImportExportConfig" title="Link to this definition">¶</a></dt>
@@ -430,6 +475,12 @@ commentsRunWhenDOMLoaded(addUtterances);
 <dd><p>‘_(…)’</p>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.apps.FairDMImportExportConfig.ready">
+<span class="sig-name descname"><span class="pre">ready</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/fairdm/contrib/import_export/apps.html#FairDMImportExportConfig.ready"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" aria-label="Link to this definition: ready" href="#fairdm.contrib.import_export.apps.FairDMImportExportConfig.ready" title="Link to this definition">¶</a></dt>
+<dd><p>Schedule the discard of stale imports once the beat tables exist.</p>
+</dd></dl>
+
 </dd></dl>
 
 </section>
@@ -440,9 +491,9 @@ commentsRunWhenDOMLoaded(addUtterances);
         </article>
         
           <nav class="daisy-prev-next mt-12 grid gap-3 border-t border-base-300 pt-6 sm:grid-cols-2" aria-label="Previous and next page">
-              <a href="fairdm.contrib.import_export.formats.html" rel="prev" class="group flex items-center gap-3 rounded-box border border-base-300 p-4 transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+              <a href="fairdm.contrib.import_export.reader.html" rel="prev" class="group flex items-center gap-3 rounded-box border border-base-300 p-4 transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
                 <svg class="size-4 shrink-0 opacity-60 transition group-hover:-translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m12 19-7-7 7-7" /> <path d="M19 12H5" /> </svg>
-                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Previous</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.import_export.formats</span></code></span></span>
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Previous</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.import_export.reader</span></code></span></span>
               </a>
               <a href="fairdm.contrib.import_export.resources.html" rel="next" class="group flex items-center justify-end gap-3 rounded-box border border-base-300 p-4 text-end transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
                 <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Next</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.import_export.resources</span></code></span></span>
@@ -459,11 +510,16 @@ commentsRunWhenDOMLoaded(addUtterances);
   <ul class="daisy-toc-list">
 <li><a class="daisy-toc-link reference internal" href="#module-contents">Module Contents</a><ul class="daisy-toc-list">
 <li><a class="daisy-toc-link reference internal" href="#classes">Classes</a></li>
+<li><a class="daisy-toc-link reference internal" href="#functions">Functions</a></li>
+<li><a class="daisy-toc-link reference internal" href="#data">Data</a></li>
 <li><a class="daisy-toc-link reference internal" href="#api">API</a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.apps.DISCARD_TASK"><code class="docutils literal notranslate"><span class="pre">DISCARD_TASK</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.apps.seed_discard_task"><code class="docutils literal notranslate"><span class="pre">seed_discard_task()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.apps.FairDMImportExportConfig"><code class="docutils literal notranslate"><span class="pre">FairDMImportExportConfig</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.apps.FairDMImportExportConfig.name"><code class="docutils literal notranslate"><span class="pre">FairDMImportExportConfig.name</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.apps.FairDMImportExportConfig.label"><code class="docutils literal notranslate"><span class="pre">FairDMImportExportConfig.label</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.apps.FairDMImportExportConfig.verbose_name"><code class="docutils literal notranslate"><span class="pre">FairDMImportExportConfig.verbose_name</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.apps.FairDMImportExportConfig.ready"><code class="docutils literal notranslate"><span class="pre">FairDMImportExportConfig.ready()</span></code></a></li>
 </ul>
 </li>
 </ul>

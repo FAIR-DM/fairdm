@@ -300,6 +300,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../record-editing-pages.html">Record editing pages</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../record-fields.html">Record fields</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../records-export.html">Records export</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../records-import.html">Records import</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../rest-api.html">REST API</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../sample-model.html">Sample model</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../settings.html">Settings</a></li>
@@ -444,6 +445,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.collections.plugins.RecordsTab.get_listing_entries"><code class="docutils literal notranslate"><span class="pre">RecordsTab.get_listing_entries()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.collections.plugins.RecordsTab.get_empty_state_heading"><code class="docutils literal notranslate"><span class="pre">RecordsTab.get_empty_state_heading()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.collections.plugins.RecordsTab.get_context_data"><code class="docutils literal notranslate"><span class="pre">RecordsTab.get_context_data()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.collections.plugins.RecordsTab.import_context"><code class="docutils literal notranslate"><span class="pre">RecordsTab.import_context()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.collections.plugins.RecordsTab.get_page_title"><code class="docutils literal notranslate"><span class="pre">RecordsTab.get_page_title()</span></code></a></li>
 </ul>
 </li>
@@ -999,6 +1001,17 @@ The filter set, or <code class="docutils literal notranslate"><span class="pre">
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.collections.plugins.RecordsTab.import_context">
+<span class="sig-name descname"><span class="pre">import_context</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: import_context" href="#fairdm.contrib.collections.plugins.RecordsTab.import_context" title="Link to this definition">¶</a></dt>
+<dd><p>Say where the Import button leads, for a person who may import here.</p>
+<p>Returns:
+A dict with <code class="docutils literal notranslate"><span class="pre">import_url</span></code>, the import page of the listed type, when the
+address names a type, else <code class="docutils literal notranslate"><span class="pre">import_chooser</span></code>, the dialog of the kind’s
+types. Both are None unless this is a dataset’s tab and the user holds
+<code class="docutils literal notranslate"><span class="pre">dataset.import_data</span></code> on it.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="fairdm.contrib.collections.plugins.RecordsTab.get_page_title">
 <span class="sig-name descname"><span class="pre">get_page_title</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_page_title" href="#fairdm.contrib.collections.plugins.RecordsTab.get_page_title" title="Link to this definition">¶</a></dt>
 <dd><p>Return the kind’s plural name, which ends the breadcrumb trail.</p>
@@ -1253,6 +1266,7 @@ The tables, most numerous type first, each with its own query-string prefix.</p>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.collections.plugins.RecordsTab.get_listing_entries"><code class="docutils literal notranslate"><span class="pre">RecordsTab.get_listing_entries()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.collections.plugins.RecordsTab.get_empty_state_heading"><code class="docutils literal notranslate"><span class="pre">RecordsTab.get_empty_state_heading()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.collections.plugins.RecordsTab.get_context_data"><code class="docutils literal notranslate"><span class="pre">RecordsTab.get_context_data()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.collections.plugins.RecordsTab.import_context"><code class="docutils literal notranslate"><span class="pre">RecordsTab.import_context()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.collections.plugins.RecordsTab.get_page_title"><code class="docutils literal notranslate"><span class="pre">RecordsTab.get_page_title()</span></code></a></li>
 </ul>
 </li>

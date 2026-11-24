@@ -8,8 +8,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="developers/reference/api/fairdm/fairdm.contrib.import_export.forms.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="Forms for importing and exporting records. Module Contents: Classes:,, ImportForm, Form for uploading a file to import.,, ExportForm, Form for choosing the export format.,,,, API:" />
-<meta name="description" content="Forms for importing and exporting records. Module Contents: Classes:,, ImportForm, Form for uploading a file to import.,, ExportForm, Form for choosing the export format.,,,, API:" />
+<meta property="og:description" content="The choices a person makes about a file, and the file itself. Module Contents: Classes:,, ImportOptionsForm, What the file may do, and what an empty cell means.,, UploadForm, The file to import. A ..." />
+<meta name="description" content="The choices a person makes about a file, and the file itself. Module Contents: Classes:,, ImportOptionsForm, What the file may do, and what an empty cell means.,, UploadForm, The file to import. A ..." />
 
     <title>fairdm.contrib.import_export.forms &#8212; fairdm 0.6.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/sphinx-daisyui.css?v=aedd34d4" />
@@ -58,7 +58,7 @@ commentsRunWhenDOMLoaded(addUtterances);
     <link rel="icon" href="../../../../_static/icon.svg"/>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
-    <link rel="next" title="fairdm.contrib.identity" href="fairdm.contrib.identity.html" />
+    <link rel="next" title="fairdm.contrib.import_export.tasks" href="fairdm.contrib.import_export.tasks.html" />
     <link rel="prev" title="fairdm.contrib.import_export.resources" href="fairdm.contrib.import_export.resources.html" /> 
   <meta name="color-scheme" content="light dark">
   <script src="../../../../_static/scripts/mode.js" data-light-theme="light" data-dark-theme="dark" data-default-mode="auto" data-themes=""></script>
@@ -300,6 +300,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../record-editing-pages.html">Record editing pages</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../record-fields.html">Record fields</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../records-export.html">Records export</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../records-import.html">Records import</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../rest-api.html">REST API</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../sample-model.html">Sample model</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../settings.html">Settings</a></li>
@@ -372,18 +373,21 @@ commentsRunWhenDOMLoaded(addUtterances);
             <nav class="collapse-content text-sm" aria-label="On this page"><ul class="daisy-toc-list">
 <li><a class="daisy-toc-link reference internal" href="#module-contents">Module Contents</a><ul class="daisy-toc-list">
 <li><a class="daisy-toc-link reference internal" href="#classes">Classes</a></li>
+<li><a class="daisy-toc-link reference internal" href="#data">Data</a></li>
 <li><a class="daisy-toc-link reference internal" href="#api">API</a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.ImportForm"><code class="docutils literal notranslate"><span class="pre">ImportForm</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.ImportForm.file"><code class="docutils literal notranslate"><span class="pre">ImportForm.file</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.ImportForm.Meta"><code class="docutils literal notranslate"><span class="pre">ImportForm.Meta</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.ImportForm.Meta.fields"><code class="docutils literal notranslate"><span class="pre">ImportForm.Meta.fields</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.ImportForm.Meta.helper_attrs"><code class="docutils literal notranslate"><span class="pre">ImportForm.Meta.helper_attrs</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.MODE_DESCRIPTIONS"><code class="docutils literal notranslate"><span class="pre">MODE_DESCRIPTIONS</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.EMPTY_CHOICES"><code class="docutils literal notranslate"><span class="pre">EMPTY_CHOICES</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.EMPTY_DESCRIPTIONS"><code class="docutils literal notranslate"><span class="pre">EMPTY_DESCRIPTIONS</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.ImportOptionsForm"><code class="docutils literal notranslate"><span class="pre">ImportOptionsForm</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.ImportOptionsForm.mode"><code class="docutils literal notranslate"><span class="pre">ImportOptionsForm.mode</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.ImportOptionsForm.empty"><code class="docutils literal notranslate"><span class="pre">ImportOptionsForm.empty</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.ImportOptionsForm.chosen"><code class="docutils literal notranslate"><span class="pre">ImportOptionsForm.chosen()</span></code></a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.ExportForm"><code class="docutils literal notranslate"><span class="pre">ExportForm</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.ExportForm.format"><code class="docutils literal notranslate"><span class="pre">ExportForm.format</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.UploadForm"><code class="docutils literal notranslate"><span class="pre">UploadForm</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.UploadForm.MAX_BYTES"><code class="docutils literal notranslate"><span class="pre">UploadForm.MAX_BYTES</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.UploadForm.file"><code class="docutils literal notranslate"><span class="pre">UploadForm.file</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.UploadForm.clean_file"><code class="docutils literal notranslate"><span class="pre">UploadForm.clean_file()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -397,18 +401,35 @@ commentsRunWhenDOMLoaded(addUtterances);
           
   <section id="module-fairdm.contrib.import_export.forms">
 <span id="fairdm-contrib-import-export-forms"></span><h1><a class="reference internal" href="#module-fairdm.contrib.import_export.forms" title="fairdm.contrib.import_export.forms"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.import_export.forms</span></code></a><a class="headerlink" aria-label="Link to this heading: fairdm.contrib.import_export.forms" href="#module-fairdm.contrib.import_export.forms" title="Link to this heading">¶</a></h1>
-<p>Forms for importing and exporting records.</p>
+<p>The choices a person makes about a file, and the file itself.</p>
 <section id="module-contents">
 <h2>Module Contents<a class="headerlink" aria-label="Link to this heading: Module Contents" href="#module-contents" title="Link to this heading">¶</a></h2>
 <section id="classes">
 <h3>Classes<a class="headerlink" aria-label="Link to this heading: Classes" href="#classes" title="Link to this heading">¶</a></h3>
 <div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="autosummary longtable docutils align-left">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.forms.ImportForm" title="fairdm.contrib.import_export.forms.ImportForm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ImportForm</span></code></a></p></td>
-<td><p>Form for uploading a file to import.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.forms.ImportOptionsForm" title="fairdm.contrib.import_export.forms.ImportOptionsForm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ImportOptionsForm</span></code></a></p></td>
+<td><p>What the file may do, and what an empty cell means.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.forms.ExportForm" title="fairdm.contrib.import_export.forms.ExportForm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ExportForm</span></code></a></p></td>
-<td><p>Form for choosing the export format.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.forms.UploadForm" title="fairdm.contrib.import_export.forms.UploadForm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UploadForm</span></code></a></p></td>
+<td><p>The file to import. A file of another format or too large is refused.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="data">
+<h3>Data<a class="headerlink" aria-label="Link to this heading: Data" href="#data" title="Link to this heading">¶</a></h3>
+<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="autosummary longtable docutils align-left">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.forms.MODE_DESCRIPTIONS" title="fairdm.contrib.import_export.forms.MODE_DESCRIPTIONS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MODE_DESCRIPTIONS</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.forms.EMPTY_CHOICES" title="fairdm.contrib.import_export.forms.EMPTY_CHOICES"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EMPTY_CHOICES</span></code></a></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.forms.EMPTY_DESCRIPTIONS" title="fairdm.contrib.import_export.forms.EMPTY_DESCRIPTIONS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EMPTY_DESCRIPTIONS</span></code></a></p></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -416,47 +437,84 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="api">
 <h3>API<a class="headerlink" aria-label="Link to this heading: API" href="#api" title="Link to this heading">¶</a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.forms.ImportForm">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ImportForm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: ImportForm" href="#fairdm.contrib.import_export.forms.ImportForm" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.forms.Form</span></code></p>
-<p>Form for uploading a file to import.</p>
-<p class="rubric">Initialization</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.forms.ImportForm.file">
-<span class="sig-name descname"><span class="pre">file</span></span><a class="headerlink" aria-label="Link to this definition: file" href="#fairdm.contrib.import_export.forms.ImportForm.file" title="Link to this definition">¶</a></dt>
-<dd><p>‘FileField(…)’</p>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.forms.ImportForm.Meta">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Meta</span></span><a class="headerlink" aria-label="Link to this definition: Meta" href="#fairdm.contrib.import_export.forms.ImportForm.Meta" title="Link to this definition">¶</a></dt>
-<dd><dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.forms.ImportForm.Meta.fields">
-<span class="sig-name descname"><span class="pre">fields</span></span><a class="headerlink" aria-label="Link to this definition: fields" href="#fairdm.contrib.import_export.forms.ImportForm.Meta.fields" title="Link to this definition">¶</a></dt>
-<dd><p>[‘file’]</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.forms.ImportForm.Meta.helper_attrs">
-<span class="sig-name descname"><span class="pre">helper_attrs</span></span><a class="headerlink" aria-label="Link to this definition: helper_attrs" href="#fairdm.contrib.import_export.forms.ImportForm.Meta.helper_attrs" title="Link to this definition">¶</a></dt>
+<dl class="py data">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.forms.MODE_DESCRIPTIONS">
+<span class="sig-name descname"><span class="pre">MODE_DESCRIPTIONS</span></span><a class="headerlink" aria-label="Link to this definition: MODE_DESCRIPTIONS" href="#fairdm.contrib.import_export.forms.MODE_DESCRIPTIONS" title="Link to this definition">¶</a></dt>
 <dd><p>None</p>
 </dd></dl>
 
+<dl class="py data">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.forms.EMPTY_CHOICES">
+<span class="sig-name descname"><span class="pre">EMPTY_CHOICES</span></span><a class="headerlink" aria-label="Link to this definition: EMPTY_CHOICES" href="#fairdm.contrib.import_export.forms.EMPTY_CHOICES" title="Link to this definition">¶</a></dt>
+<dd><p>[(), ()]</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.forms.EMPTY_DESCRIPTIONS">
+<span class="sig-name descname"><span class="pre">EMPTY_DESCRIPTIONS</span></span><a class="headerlink" aria-label="Link to this definition: EMPTY_DESCRIPTIONS" href="#fairdm.contrib.import_export.forms.EMPTY_DESCRIPTIONS" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.forms.ImportOptionsForm">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ImportOptionsForm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">brief</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: ImportOptionsForm" href="#fairdm.contrib.import_export.forms.ImportOptionsForm" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.forms.Form</span></code></p>
+<p>What the file may do, and what an empty cell means.</p>
+<p>Args:
+brief: Draw each choice by its label alone, without the line that explains it.</p>
+<p class="rubric">Initialization</p>
+<p>Drop the descriptions from the choices when <code class="docutils literal notranslate"><span class="pre">brief</span></code> is set.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.forms.ImportOptionsForm.mode">
+<span class="sig-name descname"><span class="pre">mode</span></span><a class="headerlink" aria-label="Link to this definition: mode" href="#fairdm.contrib.import_export.forms.ImportOptionsForm.mode" title="Link to this definition">¶</a></dt>
+<dd><p>‘ChoiceField(…)’</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.forms.ImportOptionsForm.empty">
+<span class="sig-name descname"><span class="pre">empty</span></span><a class="headerlink" aria-label="Link to this definition: empty" href="#fairdm.contrib.import_export.forms.ImportOptionsForm.empty" title="Link to this definition">¶</a></dt>
+<dd><p>‘ChoiceField(…)’</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.forms.ImportOptionsForm.chosen">
+<span class="sig-name descname"><span class="pre">chosen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">empty</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: chosen" href="#fairdm.contrib.import_export.forms.ImportOptionsForm.chosen" title="Link to this definition">¶</a></dt>
+<dd><p>Return the mode and empty-cell rule chosen, or the ones given when none is.</p>
+<p>Args:
+mode: The mode to use when the form holds no valid one.
+empty: The empty-cell rule to use when the form holds no valid one.</p>
+<p>Returns:
+The mode and the empty-cell rule.</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.forms.ExportForm">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ExportForm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: ExportForm" href="#fairdm.contrib.import_export.forms.ExportForm" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.forms.Form</span></code></p>
-<p>Form for choosing the export format.</p>
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.forms.UploadForm">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">UploadForm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'id_%s'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">ErrorList</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_suffix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">empty_permitted</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_required_attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bound_field_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: UploadForm" href="#fairdm.contrib.import_export.forms.UploadForm" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.forms.Form</span></code></p>
+<p>The file to import. A file of another format or too large is refused.</p>
 <p class="rubric">Initialization</p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.forms.ExportForm.format">
-<span class="sig-name descname"><span class="pre">format</span></span><a class="headerlink" aria-label="Link to this definition: format" href="#fairdm.contrib.import_export.forms.ExportForm.format" title="Link to this definition">¶</a></dt>
-<dd><p>‘ChoiceField(…)’</p>
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.forms.UploadForm.MAX_BYTES">
+<span class="sig-name descname"><span class="pre">MAX_BYTES</span></span><a class="headerlink" aria-label="Link to this definition: MAX_BYTES" href="#fairdm.contrib.import_export.forms.UploadForm.MAX_BYTES" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.forms.UploadForm.file">
+<span class="sig-name descname"><span class="pre">file</span></span><a class="headerlink" aria-label="Link to this definition: file" href="#fairdm.contrib.import_export.forms.UploadForm.file" title="Link to this definition">¶</a></dt>
+<dd><p>‘FileField(…)’</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.forms.UploadForm.clean_file">
+<span class="sig-name descname"><span class="pre">clean_file</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: clean_file" href="#fairdm.contrib.import_export.forms.UploadForm.clean_file" title="Link to this definition">¶</a></dt>
+<dd><p>Refuse a file of a format that is not read or larger than the limit.</p>
+<p>Returns:
+The uploaded file.</p>
+<p>Raises:
+ValidationError: With code <code class="docutils literal notranslate"><span class="pre">format</span></code> or <code class="docutils literal notranslate"><span class="pre">too_large</span></code>.</p>
 </dd></dl>
 
 </dd></dl>
@@ -473,8 +531,8 @@ commentsRunWhenDOMLoaded(addUtterances);
                 <svg class="size-4 shrink-0 opacity-60 transition group-hover:-translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m12 19-7-7 7-7" /> <path d="M19 12H5" /> </svg>
                 <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Previous</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.import_export.resources</span></code></span></span>
               </a>
-              <a href="fairdm.contrib.identity.html" rel="next" class="group flex items-center justify-end gap-3 rounded-box border border-base-300 p-4 text-end transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
-                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Next</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.identity</span></code></span></span>
+              <a href="fairdm.contrib.import_export.tasks.html" rel="next" class="group flex items-center justify-end gap-3 rounded-box border border-base-300 p-4 text-end transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Next</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.import_export.tasks</span></code></span></span>
                 <svg class="size-4 shrink-0 opacity-60 transition group-hover:translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="M5 12h14" /> <path d="m12 5 7 7-7 7" /> </svg>
               </a>
           </nav>
@@ -488,18 +546,21 @@ commentsRunWhenDOMLoaded(addUtterances);
   <ul class="daisy-toc-list">
 <li><a class="daisy-toc-link reference internal" href="#module-contents">Module Contents</a><ul class="daisy-toc-list">
 <li><a class="daisy-toc-link reference internal" href="#classes">Classes</a></li>
+<li><a class="daisy-toc-link reference internal" href="#data">Data</a></li>
 <li><a class="daisy-toc-link reference internal" href="#api">API</a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.ImportForm"><code class="docutils literal notranslate"><span class="pre">ImportForm</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.ImportForm.file"><code class="docutils literal notranslate"><span class="pre">ImportForm.file</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.ImportForm.Meta"><code class="docutils literal notranslate"><span class="pre">ImportForm.Meta</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.ImportForm.Meta.fields"><code class="docutils literal notranslate"><span class="pre">ImportForm.Meta.fields</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.ImportForm.Meta.helper_attrs"><code class="docutils literal notranslate"><span class="pre">ImportForm.Meta.helper_attrs</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.MODE_DESCRIPTIONS"><code class="docutils literal notranslate"><span class="pre">MODE_DESCRIPTIONS</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.EMPTY_CHOICES"><code class="docutils literal notranslate"><span class="pre">EMPTY_CHOICES</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.EMPTY_DESCRIPTIONS"><code class="docutils literal notranslate"><span class="pre">EMPTY_DESCRIPTIONS</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.ImportOptionsForm"><code class="docutils literal notranslate"><span class="pre">ImportOptionsForm</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.ImportOptionsForm.mode"><code class="docutils literal notranslate"><span class="pre">ImportOptionsForm.mode</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.ImportOptionsForm.empty"><code class="docutils literal notranslate"><span class="pre">ImportOptionsForm.empty</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.ImportOptionsForm.chosen"><code class="docutils literal notranslate"><span class="pre">ImportOptionsForm.chosen()</span></code></a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.ExportForm"><code class="docutils literal notranslate"><span class="pre">ExportForm</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.ExportForm.format"><code class="docutils literal notranslate"><span class="pre">ExportForm.format</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.UploadForm"><code class="docutils literal notranslate"><span class="pre">UploadForm</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.UploadForm.MAX_BYTES"><code class="docutils literal notranslate"><span class="pre">UploadForm.MAX_BYTES</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.UploadForm.file"><code class="docutils literal notranslate"><span class="pre">UploadForm.file</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.forms.UploadForm.clean_file"><code class="docutils literal notranslate"><span class="pre">UploadForm.clean_file()</span></code></a></li>
 </ul>
 </li>
 </ul>

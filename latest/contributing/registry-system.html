@@ -282,7 +282,7 @@ commentsRunWhenDOMLoaded(addUtterances);
                                 ▲              │ • Tables        │
                                 │              │ • Filters       │
                                 ▼              │ • Serializers   │
-┌─────────────────┐    ┌──────────────────┐    │ • Resources     │
+┌─────────────────┐    ┌──────────────────┐    │                 │
 │   Registry      │    │    Factories     │    │ • Admin         │
 │                 │    │                  │    └─────────────────┘
 │ • Model Storage │    │ Component        │
@@ -318,7 +318,7 @@ every call.</p></li>
 <span class="n">form_class</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_form_class</span><span class="p">()</span>        <span class="c1"># ModelForm</span>
 <span class="n">table_class</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_table_class</span><span class="p">()</span>      <span class="c1"># django-tables2 Table</span>
 <span class="n">filter_class</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get_filterset_class</span><span class="p">()</span> <span class="c1"># django-filter FilterSet</span>
-<span class="c1"># ... and get_serializer_class(), get_resource_class(), get_admin_class()</span>
+<span class="c1"># ... and get_serializer_class() and get_admin_class()</span>
 </pre></div>
 </div>
 <p>Always call the accessor. It is the only public way to reach a component, so a configuration that

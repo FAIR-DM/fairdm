@@ -8,8 +8,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="developers/reference/api/fairdm/fairdm.registry.factories.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="Factories that generate Django components from a ModelConfiguration. Each factory builds one component (form, table, filter set, admin, serializer or resource), choosing widgets, columns and filter..." />
-<meta name="description" content="Factories that generate Django components from a ModelConfiguration. Each factory builds one component (form, table, filter set, admin, serializer or resource), choosing widgets, columns and filter..." />
+<meta property="og:description" content="Factories that generate Django components from a ModelConfiguration. Each factory builds one component (form, table, filter set, admin or serializer), choosing widgets, columns and filters from the..." />
+<meta name="description" content="Factories that generate Django components from a ModelConfiguration. Each factory builds one component (form, table, filter set, admin or serializer), choosing widgets, columns and filters from the..." />
 
     <title>fairdm.registry.factories &#8212; fairdm 0.6.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/sphinx-daisyui.css?v=aedd34d4" />
@@ -300,6 +300,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../record-editing-pages.html">Record editing pages</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../record-fields.html">Record fields</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../records-export.html">Records export</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../records-import.html">Records import</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../rest-api.html">REST API</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../sample-model.html">Sample model</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../settings.html">Settings</a></li>
@@ -407,10 +408,6 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.factories.SerializerFactory.generate"><code class="docutils literal notranslate"><span class="pre">SerializerFactory.generate()</span></code></a></li>
 </ul>
 </li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.registry.factories.ResourceFactory"><code class="docutils literal notranslate"><span class="pre">ResourceFactory</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.registry.factories.ResourceFactory.generate"><code class="docutils literal notranslate"><span class="pre">ResourceFactory.generate()</span></code></a></li>
-</ul>
-</li>
 </ul>
 </li>
 </ul>
@@ -423,8 +420,8 @@ commentsRunWhenDOMLoaded(addUtterances);
   <section id="module-fairdm.registry.factories">
 <span id="fairdm-registry-factories"></span><h1><a class="reference internal" href="#module-fairdm.registry.factories" title="fairdm.registry.factories"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.registry.factories</span></code></a><a class="headerlink" aria-label="Link to this heading: fairdm.registry.factories" href="#module-fairdm.registry.factories" title="Link to this heading">¶</a></h1>
 <p>Factories that generate Django components from a ModelConfiguration.</p>
-<p>Each factory builds one component (form, table, filter set, admin, serializer or
-resource), choosing widgets, columns and filters from the model’s field types.</p>
+<p>Each factory builds one component (form, table, filter set, admin or serializer),
+choosing widgets, columns and filters from the model’s field types.</p>
 <section id="module-contents">
 <h2>Module Contents<a class="headerlink" aria-label="Link to this heading: Module Contents" href="#module-contents" title="Link to this heading">¶</a></h2>
 <section id="classes">
@@ -451,9 +448,6 @@ resource), choosing widgets, columns and filters from the model’s field types.
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.registry.factories.SerializerFactory" title="fairdm.registry.factories.SerializerFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SerializerFactory</span></code></a></p></td>
 <td><p>Factory for generating DRF ModelSerializer classes.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.registry.factories.ResourceFactory" title="fairdm.registry.factories.ResourceFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ResourceFactory</span></code></a></p></td>
-<td><p>Factory for generating import/export Resource classes.</p></td>
 </tr>
 </tbody>
 </table>
@@ -719,24 +713,6 @@ A ModelSerializer subclass named <code class="docutils literal notranslate"><spa
 
 </dd></dl>
 
-<dl class="py class">
-<dt class="sig sig-object py" id="fairdm.registry.factories.ResourceFactory">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ResourceFactory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="fairdm.api.filters.html#fairdm.api.filters.OrganizationFilterSet.type" title="fairdm.api.filters.OrganizationFilterSet.type"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">django.db.models.Model</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fields</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: ResourceFactory" href="#fairdm.registry.factories.ResourceFactory" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#fairdm.registry.factories.ComponentFactory" title="fairdm.registry.factories.ComponentFactory"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.registry.factories.ComponentFactory</span></code></a></p>
-<p>Factory for generating import/export Resource classes.</p>
-<p>Foreign keys are matched on the related model’s natural key where it has one,
-otherwise on its primary key.</p>
-<p class="rubric">Initialization</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.registry.factories.ResourceFactory.generate">
-<span class="sig-name descname"><span class="pre">generate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="fairdm.api.filters.html#fairdm.api.filters.OrganizationFilterSet.type" title="fairdm.api.filters.OrganizationFilterSet.type"><span class="pre">type</span></a></span></span><a class="headerlink" aria-label="Link to this definition: generate" href="#fairdm.registry.factories.ResourceFactory.generate" title="Link to this definition">¶</a></dt>
-<dd><p>Generate an import/export Resource class.</p>
-<p>Returns:
-A ModelResource subclass with foreign key widgets.</p>
-</dd></dl>
-
-</dd></dl>
-
 </section>
 </section>
 </section>
@@ -798,10 +774,6 @@ A ModelResource subclass with foreign key widgets.</p>
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.factories.SerializerFactory"><code class="docutils literal notranslate"><span class="pre">SerializerFactory</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.factories.SerializerFactory.generate"><code class="docutils literal notranslate"><span class="pre">SerializerFactory.generate()</span></code></a></li>
-</ul>
-</li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.registry.factories.ResourceFactory"><code class="docutils literal notranslate"><span class="pre">ResourceFactory</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.registry.factories.ResourceFactory.generate"><code class="docutils literal notranslate"><span class="pre">ResourceFactory.generate()</span></code></a></li>
 </ul>
 </li>
 </ul>

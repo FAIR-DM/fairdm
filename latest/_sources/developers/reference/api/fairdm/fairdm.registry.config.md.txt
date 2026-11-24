@@ -479,17 +479,6 @@ Bases: {py:obj}`typing.NamedTuple`
 
 ````
 
-````{py:attribute} resource_class
-:canonical: fairdm.registry.config.ModelConfiguration.resource_class
-:type: type[import_export.resources.ModelResource] | str | None
-:value: >
-   None
-
-```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.resource_class
-```
-
-````
-
 ````{py:attribute} admin_class
 :canonical: fairdm.registry.config.ModelConfiguration.admin_class
 :type: type[ModelAdmin] | str | None
@@ -574,14 +563,6 @@ Bases: {py:obj}`typing.NamedTuple`
 :canonical: fairdm.registry.config.ModelConfiguration.get_serializer_class
 
 ```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.get_serializer_class
-```
-
-````
-
-````{py:method} get_resource_class() -> type[import_export.resources.ModelResource]
-:canonical: fairdm.registry.config.ModelConfiguration.get_resource_class
-
-```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.get_resource_class
 ```
 
 ````

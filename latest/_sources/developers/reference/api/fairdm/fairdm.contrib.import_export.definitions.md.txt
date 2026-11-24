@@ -103,6 +103,14 @@
 
 ````
 
+````{py:method} resource(dataset, **options) -> fairdm.contrib.import_export.resources.RecordResource
+:canonical: fairdm.contrib.import_export.definitions.ImportDefinition.resource
+
+```{autodoc2-docstring} fairdm.contrib.import_export.definitions.ImportDefinition.resource
+```
+
+````
+
 `````
 
 `````{py:class} ImportDefinitions()

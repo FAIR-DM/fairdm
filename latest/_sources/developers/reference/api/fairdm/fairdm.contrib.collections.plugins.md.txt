@@ -630,6 +630,14 @@ Bases: {py:obj}`fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin`, {py:o
 
 ````
 
+````{py:method} import_context()
+:canonical: fairdm.contrib.collections.plugins.RecordsTab.import_context
+
+```{autodoc2-docstring} fairdm.contrib.collections.plugins.RecordsTab.import_context
+```
+
+````
+
 ````{py:method} get_page_title()
 :canonical: fairdm.contrib.collections.plugins.RecordsTab.get_page_title
 

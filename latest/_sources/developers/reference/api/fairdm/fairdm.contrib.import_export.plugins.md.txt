@@ -1,0 +1,843 @@
+# {py:mod}`fairdm.contrib.import_export.plugins`
+
+```{py:module} fairdm.contrib.import_export.plugins
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ImportPage <fairdm.contrib.import_export.plugins.ImportPage>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportPage
+    :summary:
+    ```
+* - {py:obj}`DefinitionMixin <fairdm.contrib.import_export.plugins.DefinitionMixin>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.plugins.DefinitionMixin
+    :summary:
+    ```
+* - {py:obj}`ImportStart <fairdm.contrib.import_export.plugins.ImportStart>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportStart
+    :summary:
+    ```
+* - {py:obj}`ImportTemplate <fairdm.contrib.import_export.plugins.ImportTemplate>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportTemplate
+    :summary:
+    ```
+* - {py:obj}`DatasetImports <fairdm.contrib.import_export.plugins.DatasetImports>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.plugins.DatasetImports
+    :summary:
+    ```
+* - {py:obj}`JobPage <fairdm.contrib.import_export.plugins.JobPage>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobPage
+    :summary:
+    ```
+* - {py:obj}`JobColumns <fairdm.contrib.import_export.plugins.JobColumns>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobColumns
+    :summary:
+    ```
+* - {py:obj}`JobDetail <fairdm.contrib.import_export.plugins.JobDetail>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobDetail
+    :summary:
+    ```
+* - {py:obj}`JobStatus <fairdm.contrib.import_export.plugins.JobStatus>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobStatus
+    :summary:
+    ```
+* - {py:obj}`JobProblems <fairdm.contrib.import_export.plugins.JobProblems>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobProblems
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`can_import <fairdm.contrib.import_export.plugins.can_import>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.plugins.can_import
+    :summary:
+    ```
+* - {py:obj}`import_chooser <fairdm.contrib.import_export.plugins.import_chooser>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.plugins.import_chooser
+    :summary:
+    ```
+* - {py:obj}`records_url <fairdm.contrib.import_export.plugins.records_url>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.plugins.records_url
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`STEPS <fairdm.contrib.import_export.plugins.STEPS>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.plugins.STEPS
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} STEPS
+:canonical: fairdm.contrib.import_export.plugins.STEPS
+:value: >
+   [('file',), ('columns',), ('check',), ('import',)]
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.STEPS
+```
+
+````
+
+````{py:function} can_import(request, dataset)
+:canonical: fairdm.contrib.import_export.plugins.can_import
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.can_import
+```
+````
+
+````{py:function} import_chooser(dataset, kind=None)
+:canonical: fairdm.contrib.import_export.plugins.import_chooser
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.import_chooser
+```
+````
+
+````{py:function} records_url(dataset, definition)
+:canonical: fairdm.contrib.import_export.plugins.records_url
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.records_url
+```
+````
+
+`````{py:class} ImportPage(**kwargs)
+:canonical: fairdm.contrib.import_export.plugins.ImportPage
+
+Bases: {py:obj}`fairdm.contrib.plugins.mixins.PrivateRecordNotFoundMixin`, {py:obj}`fairdm.plugins.Plugin`, {py:obj}`fairdm.views.FairDMTemplateView`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportPage
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportPage.__init__
+```
+
+````{py:attribute} check
+:canonical: fairdm.contrib.import_export.plugins.ImportPage.check
+:value: >
+   'staticmethod(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportPage.check
+```
+
+````
+
+````{py:attribute} step
+:canonical: fairdm.contrib.import_export.plugins.ImportPage.step
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportPage.step
+```
+
+````
+
+````{py:method} handle_no_permission()
+:canonical: fairdm.contrib.import_export.plugins.ImportPage.handle_no_permission
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportPage.handle_no_permission
+```
+
+````
+
+````{py:property} dataset
+:canonical: fairdm.contrib.import_export.plugins.ImportPage.dataset
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportPage.dataset
+```
+
+````
+
+````{py:method} extra_crumbs()
+:canonical: fairdm.contrib.import_export.plugins.ImportPage.extra_crumbs
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportPage.extra_crumbs
+```
+
+````
+
+````{py:method} get_breadcrumbs()
+:canonical: fairdm.contrib.import_export.plugins.ImportPage.get_breadcrumbs
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportPage.get_breadcrumbs
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.contrib.import_export.plugins.ImportPage.get_context_data
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportPage.get_context_data
+```
+
+````
+
+`````
+
+`````{py:class} DefinitionMixin
+:canonical: fairdm.contrib.import_export.plugins.DefinitionMixin
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.DefinitionMixin
+```
+
+````{py:method} dispatch(request, *args, **kwargs)
+:canonical: fairdm.contrib.import_export.plugins.DefinitionMixin.dispatch
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.DefinitionMixin.dispatch
+```
+
+````
+
+`````
+
+`````{py:class} ImportStart(**kwargs)
+:canonical: fairdm.contrib.import_export.plugins.ImportStart
+
+Bases: {py:obj}`fairdm.contrib.import_export.plugins.DefinitionMixin`, {py:obj}`fairdm.contrib.import_export.plugins.ImportPage`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportStart
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportStart.__init__
+```
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.import_export.plugins.ImportStart.url_path
+:value: >
+   'import/<slug:type>'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportStart.url_path
+```
+
+````
+
+````{py:attribute} name
+:canonical: fairdm.contrib.import_export.plugins.ImportStart.name
+:value: >
+   'import'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportStart.name
+```
+
+````
+
+````{py:attribute} template_name
+:canonical: fairdm.contrib.import_export.plugins.ImportStart.template_name
+:value: >
+   'import_export/import_start.html'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportStart.template_name
+```
+
+````
+
+````{py:attribute} step
+:canonical: fairdm.contrib.import_export.plugins.ImportStart.step
+:value: >
+   'file'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportStart.step
+```
+
+````
+
+````{py:method} get_page_title()
+:canonical: fairdm.contrib.import_export.plugins.ImportStart.get_page_title
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportStart.get_page_title
+```
+
+````
+
+````{py:method} get_page_lead()
+:canonical: fairdm.contrib.import_export.plugins.ImportStart.get_page_lead
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportStart.get_page_lead
+```
+
+````
+
+````{py:method} post(request, *args, **kwargs)
+:canonical: fairdm.contrib.import_export.plugins.ImportStart.post
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportStart.post
+```
+
+````
+
+````{py:method} new_job(form, mode, empty)
+:canonical: fairdm.contrib.import_export.plugins.ImportStart.new_job
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportStart.new_job
+```
+
+````
+
+````{py:method} example_values(headings, rows)
+:canonical: fairdm.contrib.import_export.plugins.ImportStart.example_values
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportStart.example_values
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.contrib.import_export.plugins.ImportStart.get_context_data
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportStart.get_context_data
+```
+
+````
+
+`````
+
+`````{py:class} ImportTemplate(**kwargs)
+:canonical: fairdm.contrib.import_export.plugins.ImportTemplate
+
+Bases: {py:obj}`fairdm.contrib.import_export.plugins.DefinitionMixin`, {py:obj}`fairdm.contrib.import_export.plugins.ImportPage`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportTemplate
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportTemplate.__init__
+```
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.import_export.plugins.ImportTemplate.url_path
+:value: >
+   'template.<str:fmt>'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportTemplate.url_path
+```
+
+````
+
+````{py:attribute} name
+:canonical: fairdm.contrib.import_export.plugins.ImportTemplate.name
+:value: >
+   'template'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportTemplate.name
+```
+
+````
+
+````{py:method} get(request, *args, **kwargs)
+:canonical: fairdm.contrib.import_export.plugins.ImportTemplate.get
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.ImportTemplate.get
+```
+
+````
+
+`````
+
+`````{py:class} DatasetImports(**kwargs)
+:canonical: fairdm.contrib.import_export.plugins.DatasetImports
+
+Bases: {py:obj}`fairdm.contrib.import_export.plugins.ImportPage`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.DatasetImports
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.DatasetImports.__init__
+```
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.import_export.plugins.DatasetImports.url_path
+:value: >
+   'imports'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.DatasetImports.url_path
+```
+
+````
+
+````{py:attribute} name
+:canonical: fairdm.contrib.import_export.plugins.DatasetImports.name
+:value: >
+   'imports'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.DatasetImports.name
+```
+
+````
+
+````{py:attribute} template_name
+:canonical: fairdm.contrib.import_export.plugins.DatasetImports.template_name
+:value: >
+   'import_export/import_history.html'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.DatasetImports.template_name
+```
+
+````
+
+````{py:method} get_page_title()
+:canonical: fairdm.contrib.import_export.plugins.DatasetImports.get_page_title
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.DatasetImports.get_page_title
+```
+
+````
+
+````{py:method} get_page_lead()
+:canonical: fairdm.contrib.import_export.plugins.DatasetImports.get_page_lead
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.DatasetImports.get_page_lead
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.contrib.import_export.plugins.DatasetImports.get_context_data
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.DatasetImports.get_context_data
+```
+
+````
+
+`````
+
+`````{py:class} JobPage(**kwargs)
+:canonical: fairdm.contrib.import_export.plugins.JobPage
+
+Bases: {py:obj}`fairdm.contrib.import_export.plugins.ImportPage`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobPage
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobPage.__init__
+```
+
+````{py:property} job
+:canonical: fairdm.contrib.import_export.plugins.JobPage.job
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobPage.job
+```
+
+````
+
+````{py:method} extra_crumbs()
+:canonical: fairdm.contrib.import_export.plugins.JobPage.extra_crumbs
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobPage.extra_crumbs
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.contrib.import_export.plugins.JobPage.get_context_data
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobPage.get_context_data
+```
+
+````
+
+````{py:method} progress_of()
+:canonical: fairdm.contrib.import_export.plugins.JobPage.progress_of
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobPage.progress_of
+```
+
+````
+
+````{py:method} progress_total()
+:canonical: fairdm.contrib.import_export.plugins.JobPage.progress_total
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobPage.progress_total
+```
+
+````
+
+`````
+
+`````{py:class} JobColumns(**kwargs)
+:canonical: fairdm.contrib.import_export.plugins.JobColumns
+
+Bases: {py:obj}`fairdm.contrib.import_export.plugins.JobPage`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobColumns
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobColumns.__init__
+```
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.import_export.plugins.JobColumns.url_path
+:value: >
+   '<int:job>/columns'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobColumns.url_path
+```
+
+````
+
+````{py:attribute} name
+:canonical: fairdm.contrib.import_export.plugins.JobColumns.name
+:value: >
+   'columns'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobColumns.name
+```
+
+````
+
+````{py:attribute} template_name
+:canonical: fairdm.contrib.import_export.plugins.JobColumns.template_name
+:value: >
+   'import_export/import_columns.html'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobColumns.template_name
+```
+
+````
+
+````{py:attribute} step
+:canonical: fairdm.contrib.import_export.plugins.JobColumns.step
+:value: >
+   'columns'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobColumns.step
+```
+
+````
+
+````{py:attribute} ALLOWED
+:canonical: fairdm.contrib.import_export.plugins.JobColumns.ALLOWED
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobColumns.ALLOWED
+```
+
+````
+
+````{py:method} get_page_title()
+:canonical: fairdm.contrib.import_export.plugins.JobColumns.get_page_title
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobColumns.get_page_title
+```
+
+````
+
+````{py:method} get_page_lead()
+:canonical: fairdm.contrib.import_export.plugins.JobColumns.get_page_lead
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobColumns.get_page_lead
+```
+
+````
+
+````{py:method} post(request, *args, **kwargs)
+:canonical: fairdm.contrib.import_export.plugins.JobColumns.post
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobColumns.post
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.contrib.import_export.plugins.JobColumns.get_context_data
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobColumns.get_context_data
+```
+
+````
+
+`````
+
+`````{py:class} JobDetail(**kwargs)
+:canonical: fairdm.contrib.import_export.plugins.JobDetail
+
+Bases: {py:obj}`fairdm.contrib.import_export.plugins.JobPage`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobDetail
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobDetail.__init__
+```
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.import_export.plugins.JobDetail.url_path
+:value: >
+   '<int:job>'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobDetail.url_path
+```
+
+````
+
+````{py:attribute} name
+:canonical: fairdm.contrib.import_export.plugins.JobDetail.name
+:value: >
+   'job'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobDetail.name
+```
+
+````
+
+````{py:attribute} template_name
+:canonical: fairdm.contrib.import_export.plugins.JobDetail.template_name
+:value: >
+   'import_export/import_job.html'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobDetail.template_name
+```
+
+````
+
+````{py:attribute} per_page
+:canonical: fairdm.contrib.import_export.plugins.JobDetail.per_page
+:value: >
+   100
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobDetail.per_page
+```
+
+````
+
+````{py:attribute} ACTIONS
+:canonical: fairdm.contrib.import_export.plugins.JobDetail.ACTIONS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobDetail.ACTIONS
+```
+
+````
+
+````{py:attribute} CHECK_STATUSES
+:canonical: fairdm.contrib.import_export.plugins.JobDetail.CHECK_STATUSES
+:value: >
+   ()
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobDetail.CHECK_STATUSES
+```
+
+````
+
+````{py:attribute} TITLES
+:canonical: fairdm.contrib.import_export.plugins.JobDetail.TITLES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobDetail.TITLES
+```
+
+````
+
+````{py:property} step
+:canonical: fairdm.contrib.import_export.plugins.JobDetail.step
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobDetail.step
+```
+
+````
+
+````{py:method} get_page_title()
+:canonical: fairdm.contrib.import_export.plugins.JobDetail.get_page_title
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobDetail.get_page_title
+```
+
+````
+
+````{py:method} get_page_lead()
+:canonical: fairdm.contrib.import_export.plugins.JobDetail.get_page_lead
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobDetail.get_page_lead
+```
+
+````
+
+````{py:method} get(request, *args, **kwargs)
+:canonical: fairdm.contrib.import_export.plugins.JobDetail.get
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobDetail.get
+```
+
+````
+
+````{py:method} post(request, *args, **kwargs)
+:canonical: fairdm.contrib.import_export.plugins.JobDetail.post
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobDetail.post
+```
+
+````
+
+````{py:method} rows_shown()
+:canonical: fairdm.contrib.import_export.plugins.JobDetail.rows_shown
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobDetail.rows_shown
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.contrib.import_export.plugins.JobDetail.get_context_data
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobDetail.get_context_data
+```
+
+````
+
+````{py:method} tiles(job)
+:canonical: fairdm.contrib.import_export.plugins.JobDetail.tiles
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobDetail.tiles
+```
+
+````
+
+`````
+
+`````{py:class} JobStatus(**kwargs)
+:canonical: fairdm.contrib.import_export.plugins.JobStatus
+
+Bases: {py:obj}`fairdm.contrib.import_export.plugins.JobPage`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobStatus
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobStatus.__init__
+```
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.import_export.plugins.JobStatus.url_path
+:value: >
+   '<int:job>/status'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobStatus.url_path
+```
+
+````
+
+````{py:attribute} name
+:canonical: fairdm.contrib.import_export.plugins.JobStatus.name
+:value: >
+   'status'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobStatus.name
+```
+
+````
+
+````{py:method} get(request, *args, **kwargs)
+:canonical: fairdm.contrib.import_export.plugins.JobStatus.get
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobStatus.get
+```
+
+````
+
+`````
+
+`````{py:class} JobProblems(**kwargs)
+:canonical: fairdm.contrib.import_export.plugins.JobProblems
+
+Bases: {py:obj}`fairdm.contrib.import_export.plugins.JobPage`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobProblems
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobProblems.__init__
+```
+
+````{py:attribute} url_path
+:canonical: fairdm.contrib.import_export.plugins.JobProblems.url_path
+:value: >
+   '<int:job>/problems.xlsx'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobProblems.url_path
+```
+
+````
+
+````{py:attribute} name
+:canonical: fairdm.contrib.import_export.plugins.JobProblems.name
+:value: >
+   'problems'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobProblems.name
+```
+
+````
+
+````{py:attribute} CONTENT_TYPE
+:canonical: fairdm.contrib.import_export.plugins.JobProblems.CONTENT_TYPE
+:value: >
+   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobProblems.CONTENT_TYPE
+```
+
+````
+
+````{py:method} get(request, *args, **kwargs)
+:canonical: fairdm.contrib.import_export.plugins.JobProblems.get
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobProblems.get
+```
+
+````
+
+````{py:method} describe(schema, problem)
+:canonical: fairdm.contrib.import_export.plugins.JobProblems.describe
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobProblems.describe
+```
+
+````
+
+`````

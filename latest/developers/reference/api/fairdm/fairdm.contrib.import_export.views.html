@@ -8,8 +8,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="developers/reference/api/fairdm/fairdm.contrib.import_export.views.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="Views for importing and exporting dataset records, publishing, and package downloads. Module Contents: Classes:,, BaseImportExportView, Base view for importing and exporting a dataset’s records wit..." />
-<meta name="description" content="Views for importing and exporting dataset records, publishing, and package downloads. Module Contents: Classes:,, BaseImportExportView, Base view for importing and exporting a dataset’s records wit..." />
+<meta property="og:description" content="Views for importing and exporting dataset records, publishing, and package downloads. Module Contents: Classes:,, DatasetPublishConfirm, Ask the user to confirm publishing a dataset.,, DatasetPacka..." />
+<meta name="description" content="Views for importing and exporting dataset records, publishing, and package downloads. Module Contents: Classes:,, DatasetPublishConfirm, Ask the user to confirm publishing a dataset.,, DatasetPacka..." />
 
     <title>fairdm.contrib.import_export.views &#8212; fairdm 0.6.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/sphinx-daisyui.css?v=aedd34d4" />
@@ -59,7 +59,7 @@ commentsRunWhenDOMLoaded(addUtterances);
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
     <link rel="next" title="fairdm.contrib.import_export.formats" href="fairdm.contrib.import_export.formats.html" />
-    <link rel="prev" title="fairdm.contrib.import_export.widgets" href="fairdm.contrib.import_export.widgets.html" /> 
+    <link rel="prev" title="fairdm.contrib.import_export.undo" href="fairdm.contrib.import_export.undo.html" /> 
   <meta name="color-scheme" content="light dark">
   <script src="../../../../_static/scripts/mode.js" data-light-theme="light" data-dark-theme="dark" data-default-mode="auto" data-themes=""></script>
   <script defer src="../../../../_static/scripts/keys.js"></script>
@@ -300,6 +300,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../record-editing-pages.html">Record editing pages</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../record-fields.html">Record fields</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../records-export.html">Records export</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../records-import.html">Records import</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../rest-api.html">REST API</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../sample-model.html">Sample model</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../settings.html">Settings</a></li>
@@ -373,39 +374,6 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#module-contents">Module Contents</a><ul class="daisy-toc-list">
 <li><a class="daisy-toc-link reference internal" href="#classes">Classes</a></li>
 <li><a class="daisy-toc-link reference internal" href="#api">API</a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.from_encoding"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.from_encoding</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.model"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.model</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.form_class"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.form_class</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.success_url"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.success_url</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.import_kwargs"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.import_kwargs</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.get_context_data"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.get_context_data()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.export_formats"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.export_formats</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.import_formats"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.import_formats</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.dispatch"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.dispatch()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.get_resource"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.get_resource()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.get_resource_model"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.get_resource_model()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.get_resource_qs"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.get_resource_qs()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.get_dataset_format"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.get_dataset_format()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.result_has_errors"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.result_has_errors()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.form_invalid"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.form_invalid()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.get_import_kwargs"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.get_import_kwargs()</span></code></a></li>
-</ul>
-</li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView"><code class="docutils literal notranslate"><span class="pre">DataImportView</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView.name"><code class="docutils literal notranslate"><span class="pre">DataImportView.name</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView.title"><code class="docutils literal notranslate"><span class="pre">DataImportView.title</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView.heading_config"><code class="docutils literal notranslate"><span class="pre">DataImportView.heading_config</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView.sections"><code class="docutils literal notranslate"><span class="pre">DataImportView.sections</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView.form_class"><code class="docutils literal notranslate"><span class="pre">DataImportView.form_class</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView.template_name"><code class="docutils literal notranslate"><span class="pre">DataImportView.template_name</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView.import_kwargs"><code class="docutils literal notranslate"><span class="pre">DataImportView.import_kwargs</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView.check"><code class="docutils literal notranslate"><span class="pre">DataImportView.check()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView.form_valid"><code class="docutils literal notranslate"><span class="pre">DataImportView.form_valid()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView.handle_import"><code class="docutils literal notranslate"><span class="pre">DataImportView.handle_import()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView.get_success_url"><code class="docutils literal notranslate"><span class="pre">DataImportView.get_success_url()</span></code></a></li>
-</ul>
-</li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DatasetPublishConfirm"><code class="docutils literal notranslate"><span class="pre">DatasetPublishConfirm</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DatasetPublishConfirm.name"><code class="docutils literal notranslate"><span class="pre">DatasetPublishConfirm.name</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DatasetPublishConfirm.title"><code class="docutils literal notranslate"><span class="pre">DatasetPublishConfirm.title</span></code></a></li>
@@ -415,14 +383,6 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DatasetPublishConfirm.form_config"><code class="docutils literal notranslate"><span class="pre">DatasetPublishConfirm.form_config</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DatasetPublishConfirm.check"><code class="docutils literal notranslate"><span class="pre">DatasetPublishConfirm.check()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DatasetPublishConfirm.get_context_data"><code class="docutils literal notranslate"><span class="pre">DatasetPublishConfirm.get_context_data()</span></code></a></li>
-</ul>
-</li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataExportView"><code class="docutils literal notranslate"><span class="pre">DataExportView</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataExportView.form_class"><code class="docutils literal notranslate"><span class="pre">DataExportView.form_class</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataExportView.get_file"><code class="docutils literal notranslate"><span class="pre">DataExportView.get_file()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataExportView.post"><code class="docutils literal notranslate"><span class="pre">DataExportView.post()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataExportView.get_basename"><code class="docutils literal notranslate"><span class="pre">DataExportView.get_basename()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataExportView.get_format"><code class="docutils literal notranslate"><span class="pre">DataExportView.get_format()</span></code></a></li>
 </ul>
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DatasetPackageDownloadView"><code class="docutils literal notranslate"><span class="pre">DatasetPackageDownloadView</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
@@ -440,10 +400,6 @@ commentsRunWhenDOMLoaded(addUtterances);
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.TableSchemaView"><code class="docutils literal notranslate"><span class="pre">TableSchemaView</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.TableSchemaView.get"><code class="docutils literal notranslate"><span class="pre">TableSchemaView.get()</span></code></a></li>
-</ul>
-</li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.UploadForm"><code class="docutils literal notranslate"><span class="pre">UploadForm</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.UploadForm.docfile"><code class="docutils literal notranslate"><span class="pre">UploadForm.docfile</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -464,29 +420,17 @@ commentsRunWhenDOMLoaded(addUtterances);
 <h3>Classes<a class="headerlink" aria-label="Link to this heading: Classes" href="#classes" title="Link to this heading">¶</a></h3>
 <div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="autosummary longtable docutils align-left">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView" title="fairdm.contrib.import_export.views.BaseImportExportView"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseImportExportView</span></code></a></p></td>
-<td><p>Base view for importing and exporting a dataset’s records with django-import-export.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.views.DataImportView" title="fairdm.contrib.import_export.views.DataImportView"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataImportView</span></code></a></p></td>
-<td><p>Import records from an uploaded spreadsheet into the current dataset.</p></td>
-</tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.views.DatasetPublishConfirm" title="fairdm.contrib.import_export.views.DatasetPublishConfirm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DatasetPublishConfirm</span></code></a></p></td>
 <td><p>Ask the user to confirm publishing a dataset.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.views.DataExportView" title="fairdm.contrib.import_export.views.DataExportView"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataExportView</span></code></a></p></td>
-<td><p>Download the current dataset’s records, or an empty template, in the chosen format.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.views.DatasetPackageDownloadView" title="fairdm.contrib.import_export.views.DatasetPackageDownloadView"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DatasetPackageDownloadView</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.views.DatasetPackageDownloadView" title="fairdm.contrib.import_export.views.DatasetPackageDownloadView"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DatasetPackageDownloadView</span></code></a></p></td>
 <td><p>Download a dataset and its metadata as a ZIP package.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.views.MetadataDownloadView" title="fairdm.contrib.import_export.views.MetadataDownloadView"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MetadataDownloadView</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.views.MetadataDownloadView" title="fairdm.contrib.import_export.views.MetadataDownloadView"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MetadataDownloadView</span></code></a></p></td>
 <td><p>Download a dataset’s DataCite metadata as XML.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.views.TableSchemaView" title="fairdm.contrib.import_export.views.TableSchemaView"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TableSchemaView</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.views.TableSchemaView" title="fairdm.contrib.import_export.views.TableSchemaView"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TableSchemaView</span></code></a></p></td>
 <td><p>Download the Frictionless Table Schema of a type’s file, open to everyone.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.views.UploadForm" title="fairdm.contrib.import_export.views.UploadForm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UploadForm</span></code></a></p></td>
-<td><p>Form with a single field for an uploaded file.</p></td>
 </tr>
 </tbody>
 </table>
@@ -494,220 +438,6 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="api">
 <h3>API<a class="headerlink" aria-label="Link to this heading: API" href="#api" title="Link to this heading">¶</a></h3>
-<dl class="py class">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.BaseImportExportView">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">BaseImportExportView</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: BaseImportExportView" href="#fairdm.contrib.import_export.views.BaseImportExportView" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.views.generic.FormView</span></code></p>
-<p>Base view for importing and exporting a dataset’s records with django-import-export.</p>
-<p>Attributes:
-from_encoding: Encoding used to read uploaded text files.
-model: The model whose records are imported and exported.
-form_class: The form class, set by subclasses.
-success_url: Where to send the user after success, set by subclasses.
-import_kwargs: Default keyword arguments for the import.</p>
-<p class="rubric">Initialization</p>
-<p>Constructor. Called in the URLconf; can contain helpful extra
-keyword arguments, and other things.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.BaseImportExportView.from_encoding">
-<span class="sig-name descname"><span class="pre">from_encoding</span></span><a class="headerlink" aria-label="Link to this definition: from_encoding" href="#fairdm.contrib.import_export.views.BaseImportExportView.from_encoding" title="Link to this definition">¶</a></dt>
-<dd><p>‘utf-8-sig’</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.BaseImportExportView.model">
-<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" aria-label="Link to this definition: model" href="#fairdm.contrib.import_export.views.BaseImportExportView.model" title="Link to this definition">¶</a></dt>
-<dd><p>None</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.BaseImportExportView.form_class">
-<span class="sig-name descname"><span class="pre">form_class</span></span><a class="headerlink" aria-label="Link to this definition: form_class" href="#fairdm.contrib.import_export.views.BaseImportExportView.form_class" title="Link to this definition">¶</a></dt>
-<dd><p>None</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.BaseImportExportView.success_url">
-<span class="sig-name descname"><span class="pre">success_url</span></span><a class="headerlink" aria-label="Link to this definition: success_url" href="#fairdm.contrib.import_export.views.BaseImportExportView.success_url" title="Link to this definition">¶</a></dt>
-<dd><p>None</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.BaseImportExportView.import_kwargs">
-<span class="sig-name descname"><span class="pre">import_kwargs</span></span><a class="headerlink" aria-label="Link to this definition: import_kwargs" href="#fairdm.contrib.import_export.views.BaseImportExportView.import_kwargs" title="Link to this definition">¶</a></dt>
-<dd><p>None</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.BaseImportExportView.get_context_data">
-<span class="sig-name descname"><span class="pre">get_context_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_context_data" href="#fairdm.contrib.import_export.views.BaseImportExportView.get_context_data" title="Link to this definition">¶</a></dt>
-<dd><p>Add the formats, the data type, the import result and which error details to show.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.BaseImportExportView.export_formats">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">export_formats</span></span><a class="headerlink" aria-label="Link to this definition: export_formats" href="#fairdm.contrib.import_export.views.BaseImportExportView.export_formats" title="Link to this definition">¶</a></dt>
-<dd><p>Map each export format’s title to its format class.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.BaseImportExportView.import_formats">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">import_formats</span></span><a class="headerlink" aria-label="Link to this definition: import_formats" href="#fairdm.contrib.import_export.views.BaseImportExportView.import_formats" title="Link to this definition">¶</a></dt>
-<dd><p>Map each import format’s title to its format class.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.BaseImportExportView.dispatch">
-<span class="sig-name descname"><span class="pre">dispatch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: dispatch" href="#fairdm.contrib.import_export.views.BaseImportExportView.dispatch" title="Link to this definition">¶</a></dt>
-<dd><p>Resolve the model being imported or exported before handling the request.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.BaseImportExportView.get_resource">
-<span class="sig-name descname"><span class="pre">get_resource</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_resource" href="#fairdm.contrib.import_export.views.BaseImportExportView.get_resource" title="Link to this definition">¶</a></dt>
-<dd><p>Return the resource for the resolved model, bound to the current dataset.</p>
-<p>Returns:
-An instance of the model’s registered resource class.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.BaseImportExportView.get_resource_model">
-<span class="sig-name descname"><span class="pre">get_resource_model</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_resource_model" href="#fairdm.contrib.import_export.views.BaseImportExportView.get_resource_model" title="Link to this definition">¶</a></dt>
-<dd><p>Resolve the model class named by the <code class="docutils literal notranslate"><span class="pre">type</span></code> query parameter.</p>
-<p>Without a <code class="docutils literal notranslate"><span class="pre">type</span></code> the first registered sample model is used.</p>
-<p>Returns:
-The model class for the requested type.</p>
-<p>Raises:
-ValueError: No models are registered, or <code class="docutils literal notranslate"><span class="pre">type</span></code> matches none.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.BaseImportExportView.get_resource_qs">
-<span class="sig-name descname"><span class="pre">get_resource_qs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_resource_qs" href="#fairdm.contrib.import_export.views.BaseImportExportView.get_resource_qs" title="Link to this definition">¶</a></dt>
-<dd><p>Return the current dataset’s records of the resolved model.</p>
-<p>Returns:
-A queryset filtered to the current dataset.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.BaseImportExportView.get_dataset_format">
-<span class="sig-name descname"><span class="pre">get_dataset_format</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_dataset_format" href="#fairdm.contrib.import_export.views.BaseImportExportView.get_dataset_format" title="Link to this definition">¶</a></dt>
-<dd><p>Choose the import format from the uploaded file’s extension.</p>
-<p>Args:
-file: The uploaded file.</p>
-<p>Returns:
-An instance of the matching import format.</p>
-<p>Raises:
-ValueError: The extension matches no import format.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.BaseImportExportView.result_has_errors">
-<span class="sig-name descname"><span class="pre">result_has_errors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">form</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: result_has_errors" href="#fairdm.contrib.import_export.views.BaseImportExportView.result_has_errors" title="Link to this definition">¶</a></dt>
-<dd><p>Re-render the form with the import errors listed.</p>
-<p>Args:
-result: The failed import result.
-form: The submitted form.</p>
-<p>Returns:
-The rendered response.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.BaseImportExportView.form_invalid">
-<span class="sig-name descname"><span class="pre">form_invalid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">form</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: form_invalid" href="#fairdm.contrib.import_export.views.BaseImportExportView.form_invalid" title="Link to this definition">¶</a></dt>
-<dd><p>Re-render the invalid form.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.BaseImportExportView.get_import_kwargs">
-<span class="sig-name descname"><span class="pre">get_import_kwargs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_import_kwargs" href="#fairdm.contrib.import_export.views.BaseImportExportView.get_import_kwargs" title="Link to this definition">¶</a></dt>
-<dd><p>Return the keyword arguments passed to the resource’s import, for subclasses to customise.</p>
-<p>Returns:
-A copy of <code class="docutils literal notranslate"><span class="pre">import_kwargs</span></code>.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.DataImportView">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">DataImportView</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: DataImportView" href="#fairdm.contrib.import_export.views.DataImportView" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView" title="fairdm.contrib.import_export.views.BaseImportExportView"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.contrib.import_export.views.BaseImportExportView</span></code></a></p>
-<p>Import records from an uploaded spreadsheet into the current dataset.</p>
-<p class="rubric">Initialization</p>
-<p>Constructor. Called in the URLconf; can contain helpful extra
-keyword arguments, and other things.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.DataImportView.name">
-<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" aria-label="Link to this definition: name" href="#fairdm.contrib.import_export.views.DataImportView.name" title="Link to this definition">¶</a></dt>
-<dd><p>‘import’</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.DataImportView.title">
-<span class="sig-name descname"><span class="pre">title</span></span><a class="headerlink" aria-label="Link to this definition: title" href="#fairdm.contrib.import_export.views.DataImportView.title" title="Link to this definition">¶</a></dt>
-<dd><p>‘_(…)’</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.DataImportView.heading_config">
-<span class="sig-name descname"><span class="pre">heading_config</span></span><a class="headerlink" aria-label="Link to this definition: heading_config" href="#fairdm.contrib.import_export.views.DataImportView.heading_config" title="Link to this definition">¶</a></dt>
-<dd><p>None</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.DataImportView.sections">
-<span class="sig-name descname"><span class="pre">sections</span></span><a class="headerlink" aria-label="Link to this definition: sections" href="#fairdm.contrib.import_export.views.DataImportView.sections" title="Link to this definition">¶</a></dt>
-<dd><p>None</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.DataImportView.form_class">
-<span class="sig-name descname"><span class="pre">form_class</span></span><a class="headerlink" aria-label="Link to this definition: form_class" href="#fairdm.contrib.import_export.views.DataImportView.form_class" title="Link to this definition">¶</a></dt>
-<dd><p>None</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.DataImportView.template_name">
-<span class="sig-name descname"><span class="pre">template_name</span></span><a class="headerlink" aria-label="Link to this definition: template_name" href="#fairdm.contrib.import_export.views.DataImportView.template_name" title="Link to this definition">¶</a></dt>
-<dd><p>‘import_export/import.html’</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.DataImportView.import_kwargs">
-<span class="sig-name descname"><span class="pre">import_kwargs</span></span><a class="headerlink" aria-label="Link to this definition: import_kwargs" href="#fairdm.contrib.import_export.views.DataImportView.import_kwargs" title="Link to this definition">¶</a></dt>
-<dd><p>None</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.DataImportView.check">
-<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: check" href="#fairdm.contrib.import_export.views.DataImportView.check" title="Link to this definition">¶</a></dt>
-<dd><p>Allow users holding the dataset’s import permission.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.DataImportView.form_valid">
-<span class="sig-name descname"><span class="pre">form_valid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">form</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: form_valid" href="#fairdm.contrib.import_export.views.DataImportView.form_valid" title="Link to this definition">¶</a></dt>
-<dd><p>Import the uploaded file and report success or re-render with the errors.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.DataImportView.handle_import">
-<span class="sig-name descname"><span class="pre">handle_import</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: handle_import" href="#fairdm.contrib.import_export.views.DataImportView.handle_import" title="Link to this definition">¶</a></dt>
-<dd><p>Import the rows of an uploaded file into the current dataset.</p>
-<p>Args:
-file: The uploaded file.</p>
-<p>Returns:
-The import result, or None when the file’s format cannot be resolved.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.DataImportView.get_success_url">
-<span class="sig-name descname"><span class="pre">get_success_url</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_success_url" href="#fairdm.contrib.import_export.views.DataImportView.get_success_url" title="Link to this definition">¶</a></dt>
-<dd><p>Send the user back to the dataset.</p>
-</dd></dl>
-
-</dd></dl>
-
 <dl class="py class">
 <dt class="sig sig-object py" id="fairdm.contrib.import_export.views.DatasetPublishConfirm">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">DatasetPublishConfirm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: DatasetPublishConfirm" href="#fairdm.contrib.import_export.views.DatasetPublishConfirm" title="Link to this definition">¶</a></dt>
@@ -762,56 +492,6 @@ keyword arguments, and other things.</p>
 <dt class="sig sig-object py" id="fairdm.contrib.import_export.views.DatasetPublishConfirm.get_context_data">
 <span class="sig-name descname"><span class="pre">get_context_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_context_data" href="#fairdm.contrib.import_export.views.DatasetPublishConfirm.get_context_data" title="Link to this definition">¶</a></dt>
 <dd><p>Add an empty confirmation form.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.DataExportView">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">DataExportView</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: DataExportView" href="#fairdm.contrib.import_export.views.DataExportView" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django_downloadview.VirtualDownloadView</span></code>, <a class="reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView" title="fairdm.contrib.import_export.views.BaseImportExportView"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.contrib.import_export.views.BaseImportExportView</span></code></a></p>
-<p>Download the current dataset’s records, or an empty template, in the chosen format.</p>
-<p class="rubric">Initialization</p>
-<p>Constructor. Called in the URLconf; can contain helpful extra
-keyword arguments, and other things.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.DataExportView.form_class">
-<span class="sig-name descname"><span class="pre">form_class</span></span><a class="headerlink" aria-label="Link to this definition: form_class" href="#fairdm.contrib.import_export.views.DataExportView.form_class" title="Link to this definition">¶</a></dt>
-<dd><p>None</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.DataExportView.get_file">
-<span class="sig-name descname"><span class="pre">get_file</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_file" href="#fairdm.contrib.import_export.views.DataExportView.get_file" title="Link to this definition">¶</a></dt>
-<dd><p>Export the records, or only the column headings when <code class="docutils literal notranslate"><span class="pre">template</span></code> is posted.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.DataExportView.post">
-<span class="sig-name descname"><span class="pre">post</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: post" href="#fairdm.contrib.import_export.views.DataExportView.post" title="Link to this definition">¶</a></dt>
-<dd><p>Stream the export file in the submitted format.</p>
-<p>Args:
-request: The POST request carrying the format.
-*args: Unused.
-**kwargs: Unused.</p>
-<p>Returns:
-The file response.</p>
-<p>Raises:
-ValueError: The submitted format is not valid.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.DataExportView.get_basename">
-<span class="sig-name descname"><span class="pre">get_basename</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_basename" href="#fairdm.contrib.import_export.views.DataExportView.get_basename" title="Link to this definition">¶</a></dt>
-<dd><p>Name the file after the model and the chosen format.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.DataExportView.get_format">
-<span class="sig-name descname"><span class="pre">get_format</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_format" href="#fairdm.contrib.import_export.views.DataExportView.get_format" title="Link to this definition">¶</a></dt>
-<dd><p>Return an instance of the chosen export format.</p>
-<p>Returns:
-The export format for the submitted format title.</p>
 </dd></dl>
 
 </dd></dl>
@@ -901,20 +581,6 @@ Http404: No import definition has the name.</p>
 
 </dd></dl>
 
-<dl class="py class">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.UploadForm">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">UploadForm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'id_%s'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">ErrorList</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_suffix</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">empty_permitted</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_required_attribute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renderer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bound_field_class</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: UploadForm" href="#fairdm.contrib.import_export.views.UploadForm" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">django.forms.Form</span></code></p>
-<p>Form with a single field for an uploaded file.</p>
-<p class="rubric">Initialization</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.views.UploadForm.docfile">
-<span class="sig-name descname"><span class="pre">docfile</span></span><a class="headerlink" aria-label="Link to this definition: docfile" href="#fairdm.contrib.import_export.views.UploadForm.docfile" title="Link to this definition">¶</a></dt>
-<dd><p>‘FileField(…)’</p>
-</dd></dl>
-
-</dd></dl>
-
 </section>
 </section>
 </section>
@@ -923,9 +589,9 @@ Http404: No import definition has the name.</p>
         </article>
         
           <nav class="daisy-prev-next mt-12 grid gap-3 border-t border-base-300 pt-6 sm:grid-cols-2" aria-label="Previous and next page">
-              <a href="fairdm.contrib.import_export.widgets.html" rel="prev" class="group flex items-center gap-3 rounded-box border border-base-300 p-4 transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
+              <a href="fairdm.contrib.import_export.undo.html" rel="prev" class="group flex items-center gap-3 rounded-box border border-base-300 p-4 transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
                 <svg class="size-4 shrink-0 opacity-60 transition group-hover:-translate-x-0.5" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" > <path d="m12 19-7-7 7-7" /> <path d="M19 12H5" /> </svg>
-                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Previous</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.import_export.widgets</span></code></span></span>
+                <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Previous</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.import_export.undo</span></code></span></span>
               </a>
               <a href="fairdm.contrib.import_export.formats.html" rel="next" class="group flex items-center justify-end gap-3 rounded-box border border-base-300 p-4 text-end transition hover:border-primary/50 hover:bg-base-200 focus-visible:bg-base-200">
                 <span class="min-w-0"><span class="daisy-prev-next-label block text-xs">Next</span><span class="block font-medium"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.import_export.formats</span></code></span></span>
@@ -943,39 +609,6 @@ Http404: No import definition has the name.</p>
 <li><a class="daisy-toc-link reference internal" href="#module-contents">Module Contents</a><ul class="daisy-toc-list">
 <li><a class="daisy-toc-link reference internal" href="#classes">Classes</a></li>
 <li><a class="daisy-toc-link reference internal" href="#api">API</a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.from_encoding"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.from_encoding</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.model"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.model</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.form_class"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.form_class</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.success_url"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.success_url</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.import_kwargs"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.import_kwargs</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.get_context_data"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.get_context_data()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.export_formats"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.export_formats</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.import_formats"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.import_formats</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.dispatch"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.dispatch()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.get_resource"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.get_resource()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.get_resource_model"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.get_resource_model()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.get_resource_qs"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.get_resource_qs()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.get_dataset_format"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.get_dataset_format()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.result_has_errors"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.result_has_errors()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.form_invalid"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.form_invalid()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.BaseImportExportView.get_import_kwargs"><code class="docutils literal notranslate"><span class="pre">BaseImportExportView.get_import_kwargs()</span></code></a></li>
-</ul>
-</li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView"><code class="docutils literal notranslate"><span class="pre">DataImportView</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView.name"><code class="docutils literal notranslate"><span class="pre">DataImportView.name</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView.title"><code class="docutils literal notranslate"><span class="pre">DataImportView.title</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView.heading_config"><code class="docutils literal notranslate"><span class="pre">DataImportView.heading_config</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView.sections"><code class="docutils literal notranslate"><span class="pre">DataImportView.sections</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView.form_class"><code class="docutils literal notranslate"><span class="pre">DataImportView.form_class</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView.template_name"><code class="docutils literal notranslate"><span class="pre">DataImportView.template_name</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView.import_kwargs"><code class="docutils literal notranslate"><span class="pre">DataImportView.import_kwargs</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView.check"><code class="docutils literal notranslate"><span class="pre">DataImportView.check()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView.form_valid"><code class="docutils literal notranslate"><span class="pre">DataImportView.form_valid()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView.handle_import"><code class="docutils literal notranslate"><span class="pre">DataImportView.handle_import()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataImportView.get_success_url"><code class="docutils literal notranslate"><span class="pre">DataImportView.get_success_url()</span></code></a></li>
-</ul>
-</li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DatasetPublishConfirm"><code class="docutils literal notranslate"><span class="pre">DatasetPublishConfirm</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DatasetPublishConfirm.name"><code class="docutils literal notranslate"><span class="pre">DatasetPublishConfirm.name</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DatasetPublishConfirm.title"><code class="docutils literal notranslate"><span class="pre">DatasetPublishConfirm.title</span></code></a></li>
@@ -985,14 +618,6 @@ Http404: No import definition has the name.</p>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DatasetPublishConfirm.form_config"><code class="docutils literal notranslate"><span class="pre">DatasetPublishConfirm.form_config</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DatasetPublishConfirm.check"><code class="docutils literal notranslate"><span class="pre">DatasetPublishConfirm.check()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DatasetPublishConfirm.get_context_data"><code class="docutils literal notranslate"><span class="pre">DatasetPublishConfirm.get_context_data()</span></code></a></li>
-</ul>
-</li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataExportView"><code class="docutils literal notranslate"><span class="pre">DataExportView</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataExportView.form_class"><code class="docutils literal notranslate"><span class="pre">DataExportView.form_class</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataExportView.get_file"><code class="docutils literal notranslate"><span class="pre">DataExportView.get_file()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataExportView.post"><code class="docutils literal notranslate"><span class="pre">DataExportView.post()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataExportView.get_basename"><code class="docutils literal notranslate"><span class="pre">DataExportView.get_basename()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DataExportView.get_format"><code class="docutils literal notranslate"><span class="pre">DataExportView.get_format()</span></code></a></li>
 </ul>
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.DatasetPackageDownloadView"><code class="docutils literal notranslate"><span class="pre">DatasetPackageDownloadView</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
@@ -1010,10 +635,6 @@ Http404: No import definition has the name.</p>
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.TableSchemaView"><code class="docutils literal notranslate"><span class="pre">TableSchemaView</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.TableSchemaView.get"><code class="docutils literal notranslate"><span class="pre">TableSchemaView.get()</span></code></a></li>
-</ul>
-</li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.UploadForm"><code class="docutils literal notranslate"><span class="pre">UploadForm</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.views.UploadForm.docfile"><code class="docutils literal notranslate"><span class="pre">UploadForm.docfile</span></code></a></li>
 </ul>
 </li>
 </ul>

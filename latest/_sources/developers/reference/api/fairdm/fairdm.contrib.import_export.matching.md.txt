@@ -1,0 +1,87 @@
+# {py:mod}`fairdm.contrib.import_export.matching`
+
+```{py:module} fairdm.contrib.import_export.matching
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.matching
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`HeadingMatcher <fairdm.contrib.import_export.matching.HeadingMatcher>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.matching.HeadingMatcher
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} HeadingMatcher(schema)
+:canonical: fairdm.contrib.import_export.matching.HeadingMatcher
+
+```{autodoc2-docstring} fairdm.contrib.import_export.matching.HeadingMatcher
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.matching.HeadingMatcher.__init__
+```
+
+````{py:method} normalise(heading)
+:canonical: fairdm.contrib.import_export.matching.HeadingMatcher.normalise
+:classmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.matching.HeadingMatcher.normalise
+```
+
+````
+
+````{py:method} match(heading)
+:canonical: fairdm.contrib.import_export.matching.HeadingMatcher.match
+
+```{autodoc2-docstring} fairdm.contrib.import_export.matching.HeadingMatcher.match
+```
+
+````
+
+````{py:method} match_columns(headings)
+:canonical: fairdm.contrib.import_export.matching.HeadingMatcher.match_columns
+
+```{autodoc2-docstring} fairdm.contrib.import_export.matching.HeadingMatcher.match_columns
+```
+
+````
+
+````{py:method} problems(job)
+:canonical: fairdm.contrib.import_export.matching.HeadingMatcher.problems
+
+```{autodoc2-docstring} fairdm.contrib.import_export.matching.HeadingMatcher.problems
+```
+
+````
+
+````{py:method} warnings(job)
+:canonical: fairdm.contrib.import_export.matching.HeadingMatcher.warnings
+
+```{autodoc2-docstring} fairdm.contrib.import_export.matching.HeadingMatcher.warnings
+```
+
+````
+
+````{py:method} needs_matching(job)
+:canonical: fairdm.contrib.import_export.matching.HeadingMatcher.needs_matching
+
+```{autodoc2-docstring} fairdm.contrib.import_export.matching.HeadingMatcher.needs_matching
+```
+
+````
+
+`````

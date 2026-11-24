@@ -569,8 +569,45 @@ window.runMermaid = runMermaid;</script>
   <h1>Source code for fairdm.contrib.import_export.apps</h1><div class="highlight"><pre>
 <span></span><span class="sd">"""App configuration for import and export."""</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">django.apps</span><span class="w"> </span><span class="kn">import</span> <span class="n">AppConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.apps</span><span class="w"> </span><span class="kn">import</span> <span class="n">AppConfig</span><span class="p">,</span> <span class="n">apps</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">django.db.models.signals</span><span class="w"> </span><span class="kn">import</span> <span class="n">post_migrate</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">django.utils.translation</span><span class="w"> </span><span class="kn">import</span> <span class="n">gettext_lazy</span> <span class="k">as</span> <span class="n">_</span>
+
+<span class="n">DISCARD_TASK</span> <span class="o">=</span> <span class="s2">"fairdm.contrib.import_export.tasks.discard_stale_jobs"</span>
+<span class="sd">"""The task path of the daily discard of imports left unfinished."""</span>
+
+
+<div class="viewcode-block" id="seed_discard_task">
+<a class="viewcode-back" href="../../../../developers/reference/api/fairdm/fairdm.contrib.import_export.apps.html#fairdm.contrib.import_export.apps.seed_discard_task">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">seed_discard_task</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Schedule the daily discard of stale imports at 02:30, if it is missing.</span>
+
+<span class="sd">    A task that exists is never touched, so a portal that changed its schedule or</span>
+<span class="sd">    switched it off keeps its choice. The task is found by its task path.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        **kwargs: The signal's arguments, unused.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">django.conf</span><span class="w"> </span><span class="kn">import</span> <span class="n">settings</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">django_celery_beat.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">CrontabSchedule</span><span class="p">,</span> <span class="n">PeriodicTask</span>
+
+    <span class="k">if</span> <span class="n">PeriodicTask</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">task</span><span class="o">=</span><span class="n">DISCARD_TASK</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">return</span>
+    <span class="n">crontab</span> <span class="o">=</span> <span class="n">CrontabSchedule</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get_or_create</span><span class="p">(</span>
+        <span class="n">minute</span><span class="o">=</span><span class="s2">"30"</span><span class="p">,</span>
+        <span class="n">hour</span><span class="o">=</span><span class="s2">"2"</span><span class="p">,</span>
+        <span class="n">day_of_week</span><span class="o">=</span><span class="s2">"*"</span><span class="p">,</span>
+        <span class="n">day_of_month</span><span class="o">=</span><span class="s2">"*"</span><span class="p">,</span>
+        <span class="n">month_of_year</span><span class="o">=</span><span class="s2">"*"</span><span class="p">,</span>
+        <span class="n">timezone</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">TIME_ZONE</span><span class="p">,</span>
+    <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">PeriodicTask</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">"Discard imports left unfinished for 30 days"</span><span class="p">,</span>
+        <span class="n">task</span><span class="o">=</span><span class="n">DISCARD_TASK</span><span class="p">,</span>
+        <span class="n">crontab</span><span class="o">=</span><span class="n">crontab</span><span class="p">,</span>
+        <span class="n">enabled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
 
 
 <div class="viewcode-block" id="FairDMImportExportConfig">
@@ -580,7 +617,18 @@ window.runMermaid = runMermaid;</script>
 
     <span class="n">name</span> <span class="o">=</span> <span class="s2">"fairdm.contrib.import_export"</span>
     <span class="n">label</span> <span class="o">=</span> <span class="s2">"fairdm_import_export"</span>
-    <span class="n">verbose_name</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">"Import / Export"</span><span class="p">)</span></div>
+    <span class="n">verbose_name</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">"Import / Export"</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FairDMImportExportConfig.ready">
+<a class="viewcode-back" href="../../../../developers/reference/api/fairdm/fairdm.contrib.import_export.apps.html#fairdm.contrib.import_export.apps.FairDMImportExportConfig.ready">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">ready</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Schedule the discard of stale imports once the beat tables exist."""</span>
+        <span class="n">post_migrate</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="n">seed_discard_task</span><span class="p">,</span>
+            <span class="n">sender</span><span class="o">=</span><span class="n">apps</span><span class="o">.</span><span class="n">get_app_config</span><span class="p">(</span><span class="s2">"django_celery_beat"</span><span class="p">),</span>
+            <span class="n">dispatch_uid</span><span class="o">=</span><span class="s2">"import_export.seed_discard_task"</span><span class="p">,</span>
+        <span class="p">)</span></div>
+</div>
 
 </pre></div>
 

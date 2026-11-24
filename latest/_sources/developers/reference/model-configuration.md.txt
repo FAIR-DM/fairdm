@@ -114,7 +114,7 @@ Each of these gives one component a field list of its own. Each has the type `li
 | `table_fields` | table | The columns of the listing table. |
 | `filterset_fields` | filter set | The filters of the listing. |
 | `serializer_fields` | serializer | The fields the API adds to those every sample or measurement carries. |
-| `resource_fields` | resource | The columns of the import and export resource. |
+| `resource_fields` | import and export | The columns of the type's import and export file. |
 | `admin_list_display` | admin | The fields the administration changelist draws its columns, search and filters from. The add and change forms show every field of the model. |
 
 ## Component classes
@@ -127,14 +127,13 @@ Each of these replaces one generated component. Each has the type `type | str | 
 | `table_class` | table | `django_tables2.Table` |
 | `filterset_class` | filter set | `django_filters.FilterSet` |
 | `serializer_class` | serializer | `rest_framework.serializers.BaseSerializer`, and the base serializer of the type's kind when the API loads: `BaseSampleSerializer` or `BaseMeasurementSerializer` |
-| `resource_class` | resource | `import_export.resources.ModelResource` |
 | `admin_class` | admin | `django.contrib.admin.ModelAdmin`, and `SampleChildAdmin` or `MeasurementChildAdmin` for the type's kind |
 
 A class option accepts the class or its dotted path. A path is imported when the instance is built, so a wrong path fails at start-up. A component whose class is set cannot also have a field list, whether declared on the configuration or inherited from its base. The registry refuses the configuration. See [How to customise a generated component](../how-to/customise-a-generated-component.md).
 
 ## Components
 
-The six components are the rows of `fairdm.registry.config.COMPONENTS`. A factory in `fairdm.registry.factories` builds each one when its class option is not set. `ComponentFactory` takes `model` and `fields`, `FormFactory` also takes `declared`, the names of `form_fields`, `FilterFactory` also takes `search_fields`, and each has a `generate()` method that returns the class.
+The five components are the rows of `fairdm.registry.config.COMPONENTS`. A factory in `fairdm.registry.factories` builds each one when its class option is not set. `ComponentFactory` takes `model` and `fields`, `FormFactory` also takes `declared`, the names of `form_fields`, `FilterFactory` also takes `search_fields`, and each has a `generate()` method that returns the class.
 
 | Component | Field list | Class | Factory | Left out of the framework's own choice |
 |---|---|---|---|---|
@@ -142,7 +141,6 @@ The six components are the rows of `fairdm.registry.config.COMPONENTS`. A factor
 | table | `table_fields` | `table_class` | `TableFactory` | |
 | filter set | `filterset_fields` | `filterset_class` | `FilterFactory` | |
 | serializer | `serializer_fields` | `serializer_class` | `SerializerFactory` | `options`, `tags` |
-| resource | `resource_fields` | `resource_class` | `ResourceFactory` | |
 | admin | `admin_list_display` | `admin_class` | `AdminFactory` | |
 
 What each factory chooses is in [What registering a type produces](../explanation/what-registering-a-type-produces.md).
@@ -169,9 +167,8 @@ The measurement base configuration changes the rule for three components. See [M
 | `get_table_class()` | The table class, in the same way. |
 | `get_filterset_class()` | The filter set class, generated with `get_search_fields()` as its search paths. |
 | `get_serializer_class()` | The serializer class. |
-| `get_resource_class()` | The resource class. |
 | `get_admin_class()` | The admin class. |
-| `resolve_fields(component)` | The flat list of field names for a component. `component` is `"form"`, `"table"`, `"filterset"`, `"serializer"`, `"resource"` or `"admin"`. |
+| `resolve_fields(component)` | The flat list of field names for a component. `component` is `"form"`, `"table"`, `"filterset"`, `"serializer"` or `"admin"`. |
 | `get_search_fields()` | `search_fields`, or `["name"]` when it is `None`. |
 | `get_default_fields(model)` | The framework's own choice of field names for a model. A class method. |
 | `get_display_name()` | `display_name`, or the model's `verbose_name` in title case. |

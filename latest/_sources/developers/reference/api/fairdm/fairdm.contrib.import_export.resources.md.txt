@@ -15,170 +15,147 @@
 :class: autosummary longtable
 :align: left
 
-* - {py:obj}`BaseFairDMResource <fairdm.contrib.import_export.resources.BaseFairDMResource>`
-  - ```{autodoc2-docstring} fairdm.contrib.import_export.resources.BaseFairDMResource
+* - {py:obj}`RecordResource <fairdm.contrib.import_export.resources.RecordResource>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.resources.RecordResource
     :summary:
     ```
-* - {py:obj}`SampleResource <fairdm.contrib.import_export.resources.SampleResource>`
-  - ```{autodoc2-docstring} fairdm.contrib.import_export.resources.SampleResource
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`changed_cells <fairdm.contrib.import_export.resources.changed_cells>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.resources.changed_cells
     :summary:
     ```
-* - {py:obj}`SampleWidget <fairdm.contrib.import_export.resources.SampleWidget>`
-  - ```{autodoc2-docstring} fairdm.contrib.import_export.resources.SampleWidget
-    :summary:
-    ```
-* - {py:obj}`MeasurementResource <fairdm.contrib.import_export.resources.MeasurementResource>`
-  - ```{autodoc2-docstring} fairdm.contrib.import_export.resources.MeasurementResource
+* - {py:obj}`build_resource <fairdm.contrib.import_export.resources.build_resource>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.resources.build_resource
     :summary:
     ```
 ````
 
 ### API
 
-`````{py:class} BaseFairDMResource(dataset, *args, **kwargs)
-:canonical: fairdm.contrib.import_export.resources.BaseFairDMResource
+````{py:exception} RowProblem(column: str, message: str)
+:canonical: fairdm.contrib.import_export.resources.RowProblem
+
+Bases: {py:obj}`Exception`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.resources.RowProblem
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.resources.RowProblem.__init__
+```
+
+````
+
+`````{py:class} RecordResource(dataset, mode: str = 'both', empty: str = 'keep')
+:canonical: fairdm.contrib.import_export.resources.RecordResource
 
 Bases: {py:obj}`fairdm.utils.location.resources.LocatedResourceMixin`, {py:obj}`import_export.resources.ModelResource`
 
-```{autodoc2-docstring} fairdm.contrib.import_export.resources.BaseFairDMResource
+```{autodoc2-docstring} fairdm.contrib.import_export.resources.RecordResource
 ```
 
 ```{rubric} Initialization
 ```
 
-```{autodoc2-docstring} fairdm.contrib.import_export.resources.BaseFairDMResource.__init__
+```{autodoc2-docstring} fairdm.contrib.import_export.resources.RecordResource.__init__
 ```
 
-````{py:method} for_delete(row, instance)
-:canonical: fairdm.contrib.import_export.resources.BaseFairDMResource.for_delete
-
-```{autodoc2-docstring} fairdm.contrib.import_export.resources.BaseFairDMResource.for_delete
-```
-
-````
-
-````{py:method} before_import_row(row, **kwargs)
-:canonical: fairdm.contrib.import_export.resources.BaseFairDMResource.before_import_row
-
-```{autodoc2-docstring} fairdm.contrib.import_export.resources.BaseFairDMResource.before_import_row
-```
-
-````
-
-````{py:method} get_import_order()
-:canonical: fairdm.contrib.import_export.resources.BaseFairDMResource.get_import_order
-
-```{autodoc2-docstring} fairdm.contrib.import_export.resources.BaseFairDMResource.get_import_order
-```
-
-````
-
-````{py:method} get_export_order()
-:canonical: fairdm.contrib.import_export.resources.BaseFairDMResource.get_export_order
-
-```{autodoc2-docstring} fairdm.contrib.import_export.resources.BaseFairDMResource.get_export_order
-```
-
-````
-
-`````
-
-``````{py:class} SampleResource(dataset, *args, **kwargs)
-:canonical: fairdm.contrib.import_export.resources.SampleResource
-
-Bases: {py:obj}`fairdm.contrib.import_export.resources.BaseFairDMResource`
-
-```{autodoc2-docstring} fairdm.contrib.import_export.resources.SampleResource
-```
-
-```{rubric} Initialization
-```
-
-```{autodoc2-docstring} fairdm.contrib.import_export.resources.SampleResource.__init__
-```
-
-`````{py:class} Meta
-:canonical: fairdm.contrib.import_export.resources.SampleResource.Meta
-
-```{autodoc2-docstring} fairdm.contrib.import_export.resources.SampleResource.Meta
-```
-
-````{py:attribute} fields
-:canonical: fairdm.contrib.import_export.resources.SampleResource.Meta.fields
+````{py:attribute} schema
+:canonical: fairdm.contrib.import_export.resources.RecordResource.schema
 :value: >
-   ('dataset', 'id', 'local_id', 'name', 'char_field')
+   None
 
-```{autodoc2-docstring} fairdm.contrib.import_export.resources.SampleResource.Meta.fields
+```{autodoc2-docstring} fairdm.contrib.import_export.resources.RecordResource.schema
 ```
 
 ````
 
-`````
+````{py:property} base_model
+:canonical: fairdm.contrib.import_export.resources.RecordResource.base_model
+:type: type
 
-````{py:method} get_instance(instance_loader, row)
-:canonical: fairdm.contrib.import_export.resources.SampleResource.get_instance
-
-```{autodoc2-docstring} fairdm.contrib.import_export.resources.SampleResource.get_instance
+```{autodoc2-docstring} fairdm.contrib.import_export.resources.RecordResource.base_model
 ```
 
 ````
 
-``````
+````{py:method} import_row(row, instance_loader, **kwargs)
+:canonical: fairdm.contrib.import_export.resources.RecordResource.import_row
 
-`````{py:class} SampleWidget(model=None, **kwargs)
-:canonical: fairdm.contrib.import_export.resources.SampleWidget
-
-Bases: {py:obj}`import_export.widgets.ForeignKeyWidget`
-
-```{autodoc2-docstring} fairdm.contrib.import_export.resources.SampleWidget
-```
-
-```{rubric} Initialization
-```
-
-```{autodoc2-docstring} fairdm.contrib.import_export.resources.SampleWidget.__init__
-```
-
-````{py:method} clean(value, row=None, *args, **kwargs)
-:canonical: fairdm.contrib.import_export.resources.SampleWidget.clean
-
-```{autodoc2-docstring} fairdm.contrib.import_export.resources.SampleWidget.clean
+```{autodoc2-docstring} fairdm.contrib.import_export.resources.RecordResource.import_row
 ```
 
 ````
 
-`````
+````{py:method} leave_out_other_dataset()
+:canonical: fairdm.contrib.import_export.resources.RecordResource.leave_out_other_dataset
 
-`````{py:class} MeasurementResource(dataset, *args, **kwargs)
-:canonical: fairdm.contrib.import_export.resources.MeasurementResource
-
-Bases: {py:obj}`fairdm.contrib.import_export.resources.BaseFairDMResource`
-
-```{autodoc2-docstring} fairdm.contrib.import_export.resources.MeasurementResource
-```
-
-```{rubric} Initialization
-```
-
-```{autodoc2-docstring} fairdm.contrib.import_export.resources.MeasurementResource.__init__
-```
-
-````{py:attribute} sample
-:canonical: fairdm.contrib.import_export.resources.MeasurementResource.sample
-:value: >
-   'Field(...)'
-
-```{autodoc2-docstring} fairdm.contrib.import_export.resources.MeasurementResource.sample
+```{autodoc2-docstring} fairdm.contrib.import_export.resources.RecordResource.leave_out_other_dataset
 ```
 
 ````
 
 ````{py:method} get_instance(instance_loader, row)
-:canonical: fairdm.contrib.import_export.resources.MeasurementResource.get_instance
+:canonical: fairdm.contrib.import_export.resources.RecordResource.get_instance
 
-```{autodoc2-docstring} fairdm.contrib.import_export.resources.MeasurementResource.get_instance
+```{autodoc2-docstring} fairdm.contrib.import_export.resources.RecordResource.get_instance
+```
+
+````
+
+````{py:method} init_instance(row=None)
+:canonical: fairdm.contrib.import_export.resources.RecordResource.init_instance
+
+```{autodoc2-docstring} fairdm.contrib.import_export.resources.RecordResource.init_instance
+```
+
+````
+
+````{py:method} import_instance(instance, row, **kwargs)
+:canonical: fairdm.contrib.import_export.resources.RecordResource.import_instance
+
+```{autodoc2-docstring} fairdm.contrib.import_export.resources.RecordResource.import_instance
+```
+
+````
+
+````{py:method} settle_empty_cells(instance, row) -> dict
+:canonical: fairdm.contrib.import_export.resources.RecordResource.settle_empty_cells
+
+```{autodoc2-docstring} fairdm.contrib.import_export.resources.RecordResource.settle_empty_cells
+```
+
+````
+
+````{py:method} skip_row(instance, original, row, import_validation_errors=None)
+:canonical: fairdm.contrib.import_export.resources.RecordResource.skip_row
+
+```{autodoc2-docstring} fairdm.contrib.import_export.resources.RecordResource.skip_row
 ```
 
 ````
 
 `````
+
+````{py:function} changed_cells(schema, original, instance, row) -> list[dict]
+:canonical: fairdm.contrib.import_export.resources.changed_cells
+
+```{autodoc2-docstring} fairdm.contrib.import_export.resources.changed_cells
+```
+````
+
+````{py:function} build_resource(schema, dataset, mode='both', empty='keep', user=None, columns=None) -> fairdm.contrib.import_export.resources.RecordResource
+:canonical: fairdm.contrib.import_export.resources.build_resource
+
+```{autodoc2-docstring} fairdm.contrib.import_export.resources.build_resource
+```
+````

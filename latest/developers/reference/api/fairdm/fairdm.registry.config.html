@@ -300,6 +300,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../record-editing-pages.html">Record editing pages</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../record-fields.html">Record fields</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../records-export.html">Records export</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../records-import.html">Records import</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../rest-api.html">REST API</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../sample-model.html">Sample model</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../settings.html">Settings</a></li>
@@ -421,7 +422,6 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.table_class"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.table_class</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.filterset_class"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.filterset_class</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.serializer_class"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.serializer_class</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.resource_class"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.resource_class</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.admin_class"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.admin_class</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.display_name"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.display_name</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.description"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.description</span></code></a></li>
@@ -432,7 +432,6 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.get_table_class"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.get_table_class()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.get_filterset_class"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.get_filterset_class()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.get_serializer_class"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.get_serializer_class()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.get_resource_class"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.get_resource_class()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.get_table_schema"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.get_table_schema()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.get_admin_class"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.get_admin_class()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.get_display_name"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.get_display_name()</span></code></a></li>
@@ -734,15 +733,13 @@ form_fields: Field list for the form component alone.
 table_fields: Field list for the table component alone.
 filterset_fields: Field list for the filterset component alone.
 serializer_fields: Field list for the serializer component alone.
-resource_fields: Field list for the import and export resource alone.
+resource_fields: Field list for the import and export columns alone.
 admin_list_display: Field list for the admin component alone.
 form_class: A form class, or its dotted path, replacing the generated one.
 table_class: A table class, or its dotted path, replacing the generated one.
 filterset_class: A filterset class, or its dotted path, replacing the
 generated one.
 serializer_class: A serializer class, or its dotted path, replacing the
-generated one.
-resource_class: A resource class, or its dotted path, replacing the
 generated one.
 admin_class: An admin class, or its dotted path, replacing the generated one.
 display_name: Human-readable name, defaulting to the model’s verbose name.
@@ -845,12 +842,6 @@ TypeError: An override names an attribute that cannot be overridden.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.registry.config.ModelConfiguration.resource_class">
-<span class="sig-name descname"><span class="pre">resource_class</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="fairdm.api.filters.html#fairdm.api.filters.OrganizationFilterSet.type" title="fairdm.api.filters.OrganizationFilterSet.type"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">import_export.resources.ModelResource</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" aria-label="Link to this definition: resource_class" href="#fairdm.registry.config.ModelConfiguration.resource_class" title="Link to this definition">¶</a></dt>
-<dd><p>None</p>
-</dd></dl>
-
-<dl class="py attribute">
 <dt class="sig sig-object py" id="fairdm.registry.config.ModelConfiguration.admin_class">
 <span class="sig-name descname"><span class="pre">admin_class</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="fairdm.api.filters.html#fairdm.api.filters.OrganizationFilterSet.type" title="fairdm.api.filters.OrganizationFilterSet.type"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ModelAdmin</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" aria-label="Link to this definition: admin_class" href="#fairdm.registry.config.ModelConfiguration.admin_class" title="Link to this definition">¶</a></dt>
 <dd><p>None</p>
@@ -920,12 +911,6 @@ The flat list of field names for that component.</p>
 <dt class="sig sig-object py" id="fairdm.registry.config.ModelConfiguration.get_serializer_class">
 <span class="sig-name descname"><span class="pre">get_serializer_class</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="fairdm.api.filters.html#fairdm.api.filters.OrganizationFilterSet.type" title="fairdm.api.filters.OrganizationFilterSet.type"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ModelSerializer</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/fairdm/registry/config.html#ModelConfiguration.get_serializer_class"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" aria-label="Link to this definition: get_serializer_class" href="#fairdm.registry.config.ModelConfiguration.get_serializer_class" title="Link to this definition">¶</a></dt>
 <dd><p>Return the REST serializer for this model. Override to build your own.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.registry.config.ModelConfiguration.get_resource_class">
-<span class="sig-name descname"><span class="pre">get_resource_class</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="fairdm.api.filters.html#fairdm.api.filters.OrganizationFilterSet.type" title="fairdm.api.filters.OrganizationFilterSet.type"><span class="pre">type</span></a><span class="p"><span class="pre">[</span></span><span class="pre">import_export.resources.ModelResource</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../../../../_modules/fairdm/registry/config.html#ModelConfiguration.get_resource_class"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" aria-label="Link to this definition: get_resource_class" href="#fairdm.registry.config.ModelConfiguration.get_resource_class" title="Link to this definition">¶</a></dt>
-<dd><p>Return the import and export resource. Override to build your own.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1065,7 +1050,6 @@ The flat list of field names for that component.</p>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.table_class"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.table_class</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.filterset_class"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.filterset_class</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.serializer_class"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.serializer_class</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.resource_class"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.resource_class</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.admin_class"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.admin_class</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.display_name"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.display_name</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.description"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.description</span></code></a></li>
@@ -1076,7 +1060,6 @@ The flat list of field names for that component.</p>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.get_table_class"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.get_table_class()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.get_filterset_class"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.get_filterset_class()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.get_serializer_class"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.get_serializer_class()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.get_resource_class"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.get_resource_class()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.get_table_schema"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.get_table_schema()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.get_admin_class"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.get_admin_class()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.registry.config.ModelConfiguration.get_display_name"><code class="docutils literal notranslate"><span class="pre">ModelConfiguration.get_display_name()</span></code></a></li>

@@ -8,8 +8,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="developers/reference/api/fairdm/fairdm.contrib.import_export.resources.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="django-import-export resources for samples and measurements. Module Contents: Classes:,, BaseFairDMResource, Shared base class for Sample and Measurement resources.,, SampleResource, Resource for i..." />
-<meta name="description" content="django-import-export resources for samples and measurements. Module Contents: Classes:,, BaseFairDMResource, Shared base class for Sample and Measurement resources.,, SampleResource, Resource for i..." />
+<meta property="og:description" content="The import of one type of record into one dataset. build_resource turns a type’s table schema into a RecordResource bound to a dataset. The resource does the reading, the checking and the saving of..." />
+<meta name="description" content="The import of one type of record into one dataset. build_resource turns a type’s table schema into a RecordResource bound to a dataset. The resource does the reading, the checking and the saving of..." />
 
     <title>fairdm.contrib.import_export.resources &#8212; fairdm 0.6.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/sphinx-daisyui.css?v=aedd34d4" />
@@ -300,6 +300,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../record-editing-pages.html">Record editing pages</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../record-fields.html">Record fields</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../records-export.html">Records export</a></li>
+<li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../records-import.html">Records import</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../rest-api.html">REST API</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../sample-model.html">Sample model</a></li>
 <li class="daisy-nav-item"><a class="daisy-nav-link reference internal" href="../../settings.html">Settings</a></li>
@@ -372,31 +373,23 @@ commentsRunWhenDOMLoaded(addUtterances);
             <nav class="collapse-content text-sm" aria-label="On this page"><ul class="daisy-toc-list">
 <li><a class="daisy-toc-link reference internal" href="#module-contents">Module Contents</a><ul class="daisy-toc-list">
 <li><a class="daisy-toc-link reference internal" href="#classes">Classes</a></li>
+<li><a class="daisy-toc-link reference internal" href="#functions">Functions</a></li>
 <li><a class="daisy-toc-link reference internal" href="#api">API</a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.BaseFairDMResource"><code class="docutils literal notranslate"><span class="pre">BaseFairDMResource</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.BaseFairDMResource.for_delete"><code class="docutils literal notranslate"><span class="pre">BaseFairDMResource.for_delete()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.BaseFairDMResource.before_import_row"><code class="docutils literal notranslate"><span class="pre">BaseFairDMResource.before_import_row()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.BaseFairDMResource.get_import_order"><code class="docutils literal notranslate"><span class="pre">BaseFairDMResource.get_import_order()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.BaseFairDMResource.get_export_order"><code class="docutils literal notranslate"><span class="pre">BaseFairDMResource.get_export_order()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.RowProblem"><code class="docutils literal notranslate"><span class="pre">RowProblem</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.RecordResource"><code class="docutils literal notranslate"><span class="pre">RecordResource</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.RecordResource.schema"><code class="docutils literal notranslate"><span class="pre">RecordResource.schema</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.RecordResource.base_model"><code class="docutils literal notranslate"><span class="pre">RecordResource.base_model</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.RecordResource.import_row"><code class="docutils literal notranslate"><span class="pre">RecordResource.import_row()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.RecordResource.leave_out_other_dataset"><code class="docutils literal notranslate"><span class="pre">RecordResource.leave_out_other_dataset()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.RecordResource.get_instance"><code class="docutils literal notranslate"><span class="pre">RecordResource.get_instance()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.RecordResource.init_instance"><code class="docutils literal notranslate"><span class="pre">RecordResource.init_instance()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.RecordResource.import_instance"><code class="docutils literal notranslate"><span class="pre">RecordResource.import_instance()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.RecordResource.settle_empty_cells"><code class="docutils literal notranslate"><span class="pre">RecordResource.settle_empty_cells()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.RecordResource.skip_row"><code class="docutils literal notranslate"><span class="pre">RecordResource.skip_row()</span></code></a></li>
 </ul>
 </li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.SampleResource"><code class="docutils literal notranslate"><span class="pre">SampleResource</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.SampleResource.Meta"><code class="docutils literal notranslate"><span class="pre">SampleResource.Meta</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.SampleResource.Meta.fields"><code class="docutils literal notranslate"><span class="pre">SampleResource.Meta.fields</span></code></a></li>
-</ul>
-</li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.SampleResource.get_instance"><code class="docutils literal notranslate"><span class="pre">SampleResource.get_instance()</span></code></a></li>
-</ul>
-</li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.SampleWidget"><code class="docutils literal notranslate"><span class="pre">SampleWidget</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.SampleWidget.clean"><code class="docutils literal notranslate"><span class="pre">SampleWidget.clean()</span></code></a></li>
-</ul>
-</li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.MeasurementResource"><code class="docutils literal notranslate"><span class="pre">MeasurementResource</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.MeasurementResource.sample"><code class="docutils literal notranslate"><span class="pre">MeasurementResource.sample</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.MeasurementResource.get_instance"><code class="docutils literal notranslate"><span class="pre">MeasurementResource.get_instance()</span></code></a></li>
-</ul>
-</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.changed_cells"><code class="docutils literal notranslate"><span class="pre">changed_cells()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.build_resource"><code class="docutils literal notranslate"><span class="pre">build_resource()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -408,24 +401,38 @@ commentsRunWhenDOMLoaded(addUtterances);
           
   <section id="module-fairdm.contrib.import_export.resources">
 <span id="fairdm-contrib-import-export-resources"></span><h1><a class="reference internal" href="#module-fairdm.contrib.import_export.resources" title="fairdm.contrib.import_export.resources"><code class="xref py py-mod docutils literal notranslate"><span class="pre">fairdm.contrib.import_export.resources</span></code></a><a class="headerlink" aria-label="Link to this heading: fairdm.contrib.import_export.resources" href="#module-fairdm.contrib.import_export.resources" title="Link to this heading">¶</a></h1>
-<p>django-import-export resources for samples and measurements.</p>
+<p>The import of one type of record into one dataset.</p>
+<p><code class="docutils literal notranslate"><span class="pre">build_resource</span></code> turns a type’s table schema into a <code class="docutils literal notranslate"><span class="pre">RecordResource</span></code> bound to a
+dataset. The resource does the reading, the checking and the saving of a file’s rows.
+What it adds to django-import-export:</p>
+<ul class="simple">
+<li><p>rows are matched to stored records by portal ID, then by Local ID within the dataset,</p></li>
+<li><p>the chosen mode leaves out the rows the person did not ask for, with the reason kept,</p></li>
+<li><p>an empty cell keeps the stored value unless the person asked for it to be cleared,</p></li>
+<li><p>every cell a row changes is kept as old and new, which the review screen shows.</p></li>
+</ul>
 <section id="module-contents">
 <h2>Module Contents<a class="headerlink" aria-label="Link to this heading: Module Contents" href="#module-contents" title="Link to this heading">¶</a></h2>
 <section id="classes">
 <h3>Classes<a class="headerlink" aria-label="Link to this heading: Classes" href="#classes" title="Link to this heading">¶</a></h3>
 <div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="autosummary longtable docutils align-left">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.resources.BaseFairDMResource" title="fairdm.contrib.import_export.resources.BaseFairDMResource"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseFairDMResource</span></code></a></p></td>
-<td><p>Shared base class for Sample and Measurement resources.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.resources.RecordResource" title="fairdm.contrib.import_export.resources.RecordResource"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RecordResource</span></code></a></p></td>
+<td><p>The import of one type into one dataset, built for a file by <code class="docutils literal notranslate"><span class="pre">build_resource</span></code>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.resources.SampleResource" title="fairdm.contrib.import_export.resources.SampleResource"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SampleResource</span></code></a></p></td>
-<td><p>Resource for importing and exporting samples.</p></td>
+</tbody>
+</table>
+</div>
+</section>
+<section id="functions">
+<h3>Functions<a class="headerlink" aria-label="Link to this heading: Functions" href="#functions" title="Link to this heading">¶</a></h3>
+<div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="autosummary longtable docutils align-left">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.resources.changed_cells" title="fairdm.contrib.import_export.resources.changed_cells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">changed_cells</span></code></a></p></td>
+<td><p>List the cells a row changes in a stored record.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.resources.SampleWidget" title="fairdm.contrib.import_export.resources.SampleWidget"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SampleWidget</span></code></a></p></td>
-<td><p>Resolve a sample from a UUID or from its name within the row’s dataset.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.resources.MeasurementResource" title="fairdm.contrib.import_export.resources.MeasurementResource"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MeasurementResource</span></code></a></p></td>
-<td><p>Resource for importing and exporting measurements.</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.import_export.resources.build_resource" title="fairdm.contrib.import_export.resources.build_resource"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_resource</span></code></a></p></td>
+<td><p>Build the resource that imports a file of a type into a dataset.</p></td>
 </tr>
 </tbody>
 </table>
@@ -433,115 +440,182 @@ commentsRunWhenDOMLoaded(addUtterances);
 </section>
 <section id="api">
 <h3>API<a class="headerlink" aria-label="Link to this heading: API" href="#api" title="Link to this heading">¶</a></h3>
+<dl class="py exception">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.RowProblem">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">RowProblem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">column</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: RowProblem" href="#fairdm.contrib.import_export.resources.RowProblem" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>A row that cannot be imported, with the column its problem belongs to.</p>
+<p>Attributes:
+column: The heading of the column the problem is in.
+message: What is wrong, in words the person can act on.</p>
+<p class="rubric">Initialization</p>
+<p>Keep the column and the message.</p>
+<p>Args:
+column: The heading of the column the problem is in.
+message: What is wrong.</p>
+</dd></dl>
+
 <dl class="py class">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.BaseFairDMResource">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">BaseFairDMResource</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: BaseFairDMResource" href="#fairdm.contrib.import_export.resources.BaseFairDMResource" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.RecordResource">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">RecordResource</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'both'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">empty</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'keep'</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: RecordResource" href="#fairdm.contrib.import_export.resources.RecordResource" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="fairdm.utils.location.resources.html#fairdm.utils.location.resources.LocatedResourceMixin" title="fairdm.utils.location.resources.LocatedResourceMixin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.utils.location.resources.LocatedResourceMixin</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">import_export.resources.ModelResource</span></code></p>
-<p>Shared base class for Sample and Measurement resources.</p>
-<p>A <code class="docutils literal notranslate"><span class="pre">location</span></code> among the fields is written and read as the four location columns.</p>
+<p>The import of one type into one dataset, built for a file by <code class="docutils literal notranslate"><span class="pre">build_resource</span></code>.</p>
+<p>Row numbers count from 1 in the order of the file.</p>
+<p>Attributes:
+schema: The columns of the type.
+dataset: The dataset the rows are added to and changed in.
+mode: <code class="docutils literal notranslate"><span class="pre">both</span></code>, <code class="docutils literal notranslate"><span class="pre">add</span></code> or <code class="docutils literal notranslate"><span class="pre">update</span></code>.
+empty: <code class="docutils literal notranslate"><span class="pre">keep</span></code> to leave a stored value where the cell is empty, <code class="docutils literal notranslate"><span class="pre">clear</span></code> to
+empty it.
+notes: Why a row was left out, by row number.
+changes: The cells an updated row changes, by row number, as listed by
+<code class="docutils literal notranslate"><span class="pre">changed_cells</span></code>.
+record_pks: The primary key of the stored record each row matched, by row
+number. A row that adds a record has none here: its record’s key is on the
+row’s result once it is saved.
+on_row: A function called with the number of rows done after each row, or None.
+row_number: The row being imported.
+rows_done: How many rows have been imported so far.
+located: The record the current row’s portal ID names, or None.</p>
+<p class="rubric">Initialization</p>
+<p>Keep the dataset and the options of the import.</p>
 <p>Args:
-dataset: The dataset that imported rows are attributed to.
-*args: Passed to <code class="docutils literal notranslate"><span class="pre">ModelResource</span></code>.
-**kwargs: Passed to <code class="docutils literal notranslate"><span class="pre">ModelResource</span></code>.</p>
-<p class="rubric">Initialization</p>
-<p>kwargs:
-An optional dict of kwargs.
-Subclasses can use kwargs to pass dynamic values to enhance import / exports.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.BaseFairDMResource.for_delete">
-<span class="sig-name descname"><span class="pre">for_delete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: for_delete" href="#fairdm.contrib.import_export.resources.BaseFairDMResource.for_delete" title="Link to this definition">¶</a></dt>
-<dd><p>Delete the row’s record when its <code class="docutils literal notranslate"><span class="pre">delete</span></code> column is <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.BaseFairDMResource.before_import_row">
-<span class="sig-name descname"><span class="pre">before_import_row</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: before_import_row" href="#fairdm.contrib.import_export.resources.BaseFairDMResource.before_import_row" title="Link to this definition">¶</a></dt>
-<dd><p>Attribute the row to the resource’s dataset.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.BaseFairDMResource.get_import_order">
-<span class="sig-name descname"><span class="pre">get_import_order</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_import_order" href="#fairdm.contrib.import_export.resources.BaseFairDMResource.get_import_order" title="Link to this definition">¶</a></dt>
-<dd><p>Append the dataset and sample columns to the import order.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.BaseFairDMResource.get_export_order">
-<span class="sig-name descname"><span class="pre">get_export_order</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_export_order" href="#fairdm.contrib.import_export.resources.BaseFairDMResource.get_export_order" title="Link to this definition">¶</a></dt>
-<dd><p>Leave the dataset column out of exports but keep it for import.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.SampleResource">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">SampleResource</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: SampleResource" href="#fairdm.contrib.import_export.resources.SampleResource" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#fairdm.contrib.import_export.resources.BaseFairDMResource" title="fairdm.contrib.import_export.resources.BaseFairDMResource"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.contrib.import_export.resources.BaseFairDMResource</span></code></a></p>
-<p>Resource for importing and exporting samples.</p>
-<p class="rubric">Initialization</p>
-<p>kwargs:
-An optional dict of kwargs.
-Subclasses can use kwargs to pass dynamic values to enhance import / exports.</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.SampleResource.Meta">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Meta</span></span><a class="headerlink" aria-label="Link to this definition: Meta" href="#fairdm.contrib.import_export.resources.SampleResource.Meta" title="Link to this definition">¶</a></dt>
-<dd><dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.SampleResource.Meta.fields">
-<span class="sig-name descname"><span class="pre">fields</span></span><a class="headerlink" aria-label="Link to this definition: fields" href="#fairdm.contrib.import_export.resources.SampleResource.Meta.fields" title="Link to this definition">¶</a></dt>
-<dd><p>(‘dataset’, ‘id’, ‘local_id’, ‘name’, ‘char_field’)</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.SampleResource.get_instance">
-<span class="sig-name descname"><span class="pre">get_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance_loader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">row</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_instance" href="#fairdm.contrib.import_export.resources.SampleResource.get_instance" title="Link to this definition">¶</a></dt>
-<dd><p>Find the existing sample by id, or by local id within the dataset.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.SampleWidget">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">SampleWidget</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: SampleWidget" href="#fairdm.contrib.import_export.resources.SampleWidget" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">import_export.widgets.ForeignKeyWidget</span></code></p>
-<p>Resolve a sample from a UUID or from its name within the row’s dataset.</p>
-<p>Args:
-model: The sample model. Defaults to <code class="docutils literal notranslate"><span class="pre">Sample</span></code>.
-**kwargs: Passed to <code class="docutils literal notranslate"><span class="pre">ForeignKeyWidget</span></code>.</p>
-<p class="rubric">Initialization</p>
-<p>:param coerce_to_string: If True, :meth:<code class="docutils literal notranslate"><span class="pre">~import_export.widgets.Widget.render</span></code>
-will return a string representation of the value, otherwise the value is
-returned.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.SampleWidget.clean">
-<span class="sig-name descname"><span class="pre">clean</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">row</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: clean" href="#fairdm.contrib.import_export.resources.SampleWidget.clean" title="Link to this definition">¶</a></dt>
-<dd><p>Look the sample up by UUID (a 23-character value starting with <code class="docutils literal notranslate"><span class="pre">s</span></code>), else by name.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.MeasurementResource">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">MeasurementResource</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: MeasurementResource" href="#fairdm.contrib.import_export.resources.MeasurementResource" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#fairdm.contrib.import_export.resources.BaseFairDMResource" title="fairdm.contrib.import_export.resources.BaseFairDMResource"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.contrib.import_export.resources.BaseFairDMResource</span></code></a></p>
-<p>Resource for importing and exporting measurements.</p>
-<p class="rubric">Initialization</p>
-<p>kwargs:
-An optional dict of kwargs.
-Subclasses can use kwargs to pass dynamic values to enhance import / exports.</p>
+dataset: The dataset the rows are added to and changed in.
+mode: <code class="docutils literal notranslate"><span class="pre">both</span></code>, <code class="docutils literal notranslate"><span class="pre">add</span></code> or <code class="docutils literal notranslate"><span class="pre">update</span></code>.
+empty: <code class="docutils literal notranslate"><span class="pre">keep</span></code> or <code class="docutils literal notranslate"><span class="pre">clear</span></code>.</p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.MeasurementResource.sample">
-<span class="sig-name descname"><span class="pre">sample</span></span><a class="headerlink" aria-label="Link to this definition: sample" href="#fairdm.contrib.import_export.resources.MeasurementResource.sample" title="Link to this definition">¶</a></dt>
-<dd><p>‘Field(…)’</p>
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.RecordResource.schema">
+<span class="sig-name descname"><span class="pre">schema</span></span><a class="headerlink" aria-label="Link to this definition: schema" href="#fairdm.contrib.import_export.resources.RecordResource.schema" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.RecordResource.base_model">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">base_model</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="fairdm.api.filters.html#fairdm.api.filters.OrganizationFilterSet.type" title="fairdm.api.filters.OrganizationFilterSet.type"><span class="pre">type</span></a></span><a class="headerlink" aria-label="Link to this definition: base_model" href="#fairdm.contrib.import_export.resources.RecordResource.base_model" title="Link to this definition">¶</a></dt>
+<dd><p>The model a portal ID is looked up in, whatever the record’s type.</p>
+<p>Returns:
+<code class="docutils literal notranslate"><span class="pre">Sample</span></code> or <code class="docutils literal notranslate"><span class="pre">Measurement</span></code>.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.MeasurementResource.get_instance">
-<span class="sig-name descname"><span class="pre">get_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance_loader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">row</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_instance" href="#fairdm.contrib.import_export.resources.MeasurementResource.get_instance" title="Link to this definition">¶</a></dt>
-<dd><p>Find the existing measurement by id, or by name within the dataset.</p>
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.RecordResource.import_row">
+<span class="sig-name descname"><span class="pre">import_row</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance_loader</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: import_row" href="#fairdm.contrib.import_export.resources.RecordResource.import_row" title="Link to this definition">¶</a></dt>
+<dd><p>Import one row, or leave it out when its portal ID names another dataset.</p>
+<p>Args:
+row: The row, as a dict of heading to cell.
+instance_loader: The loader django-import-export passes on.
+**kwargs: What django-import-export passes on, including <code class="docutils literal notranslate"><span class="pre">row_number</span></code>.</p>
+<p>Returns:
+The row’s result.</p>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.RecordResource.leave_out_other_dataset">
+<span class="sig-name descname"><span class="pre">leave_out_other_dataset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: leave_out_other_dataset" href="#fairdm.contrib.import_export.resources.RecordResource.leave_out_other_dataset" title="Link to this definition">¶</a></dt>
+<dd><p>Skip the current row and say why.</p>
+<p>An import adds and changes only this dataset’s records. Only a measurement has a
+way to use another dataset’s record, by naming one of its samples.</p>
+<p>Returns:
+A skipped row result.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.RecordResource.get_instance">
+<span class="sig-name descname"><span class="pre">get_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance_loader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">row</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_instance" href="#fairdm.contrib.import_export.resources.RecordResource.get_instance" title="Link to this definition">¶</a></dt>
+<dd><p>Find the stored record a row is about.</p>
+<p>Args:
+instance_loader: The loader django-import-export passes on.
+row: The row.</p>
+<p>Returns:
+The record the portal ID names, else the one with the Local ID in the
+dataset, else None.</p>
+<p>Raises:
+RowProblem: The portal ID names no record or a record of another type, or
+the Local ID is held by several records.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.RecordResource.init_instance">
+<span class="sig-name descname"><span class="pre">init_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">row</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: init_instance" href="#fairdm.contrib.import_export.resources.RecordResource.init_instance" title="Link to this definition">¶</a></dt>
+<dd><p>Start a new record in the dataset.</p>
+<p>Args:
+row: The row.</p>
+<p>Returns:
+An unsaved record of the type.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.RecordResource.import_instance">
+<span class="sig-name descname"><span class="pre">import_instance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">row</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: import_instance" href="#fairdm.contrib.import_export.resources.RecordResource.import_instance" title="Link to this definition">¶</a></dt>
+<dd><p>Settle the row’s empty cells, then read the rest into the record.</p>
+<p>Args:
+instance: The new or stored record.
+row: The row.
+**kwargs: What django-import-export passes on.</p>
+<p>Raises:
+ValidationError: The empty required cells and the cells that cannot be
+read, each under its column.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.RecordResource.settle_empty_cells">
+<span class="sig-name descname"><span class="pre">settle_empty_cells</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">row</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" aria-label="Link to this definition: settle_empty_cells" href="#fairdm.contrib.import_export.resources.RecordResource.settle_empty_cells" title="Link to this definition">¶</a></dt>
+<dd><p>Drop the empty cells that change nothing and refuse those that would.</p>
+<p>A new record has nothing to clear, so its empty cells are left to the model’s
+defaults. A stored record keeps its value where the cell is empty unless the
+person asked for empty cells to clear it.</p>
+<p>Args:
+instance: The new or stored record.
+row: The row, which loses the empty cells that are left out.</p>
+<p>Returns:
+The problems, by column: an empty cell in a column a record needs, on a new
+record or on one whose empty cells are to be cleared. Empty when none.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.RecordResource.skip_row">
+<span class="sig-name descname"><span class="pre">skip_row</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">original</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">row</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">import_validation_errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: skip_row" href="#fairdm.contrib.import_export.resources.RecordResource.skip_row" title="Link to this definition">¶</a></dt>
+<dd><p>Leave out a row the mode does not ask for, or one that changes nothing.</p>
+<p>Args:
+instance: The record with the row’s cells read into it.
+original: The record as it was stored, or an unsaved copy for a new one.
+row: The row.
+import_validation_errors: The problems found reading the row’s cells.</p>
+<p>Returns:
+Whether the row is left out.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.changed_cells">
+<span class="sig-name descname"><span class="pre">changed_cells</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">schema</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">original</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">instance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">row</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" aria-label="Link to this definition: changed_cells" href="#fairdm.contrib.import_export.resources.changed_cells" title="Link to this definition">¶</a></dt>
+<dd><p>List the cells a row changes in a stored record.</p>
+<p>Only the columns the row has are compared, as the cells an export would write.</p>
+<p>Args:
+schema: The type’s table schema.
+original: The record as it was stored.
+instance: The record with the row’s cells read into it.
+row: The row.</p>
+<p>Returns:
+One dict of <code class="docutils literal notranslate"><span class="pre">column</span></code>, <code class="docutils literal notranslate"><span class="pre">label</span></code>, <code class="docutils literal notranslate"><span class="pre">old</span></code> and <code class="docutils literal notranslate"><span class="pre">new</span></code> for each changed cell, in
+the order of the columns.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.resources.build_resource">
+<span class="sig-name descname"><span class="pre">build_resource</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">schema</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'both'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">empty</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'keep'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#fairdm.contrib.import_export.resources.RecordResource" title="fairdm.contrib.import_export.resources.RecordResource"><span class="pre">fairdm.contrib.import_export.resources.RecordResource</span></a></span></span><a class="headerlink" aria-label="Link to this definition: build_resource" href="#fairdm.contrib.import_export.resources.build_resource" title="Link to this definition">¶</a></dt>
+<dd><p>Build the resource that imports a file of a type into a dataset.</p>
+<p>Args:
+schema: The type’s table schema.
+dataset: The dataset the rows are added to and changed in.
+mode: <code class="docutils literal notranslate"><span class="pre">both</span></code>, <code class="docutils literal notranslate"><span class="pre">add</span></code> or <code class="docutils literal notranslate"><span class="pre">update</span></code>.
+empty: <code class="docutils literal notranslate"><span class="pre">keep</span></code> or <code class="docutils literal notranslate"><span class="pre">clear</span></code>.
+user: The person importing, whose view of the samples a measurement may name.
+columns: The headings the file has. Defaults to every importable column.</p>
+<p>Returns:
+A resource that reads those columns. It holds one widget per column, so a
+sample cell is looked up once for the whole file.</p>
 </dd></dl>
 
 </section>
@@ -571,31 +645,23 @@ Subclasses can use kwargs to pass dynamic values to enhance import / exports.</p
   <ul class="daisy-toc-list">
 <li><a class="daisy-toc-link reference internal" href="#module-contents">Module Contents</a><ul class="daisy-toc-list">
 <li><a class="daisy-toc-link reference internal" href="#classes">Classes</a></li>
+<li><a class="daisy-toc-link reference internal" href="#functions">Functions</a></li>
 <li><a class="daisy-toc-link reference internal" href="#api">API</a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.BaseFairDMResource"><code class="docutils literal notranslate"><span class="pre">BaseFairDMResource</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.BaseFairDMResource.for_delete"><code class="docutils literal notranslate"><span class="pre">BaseFairDMResource.for_delete()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.BaseFairDMResource.before_import_row"><code class="docutils literal notranslate"><span class="pre">BaseFairDMResource.before_import_row()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.BaseFairDMResource.get_import_order"><code class="docutils literal notranslate"><span class="pre">BaseFairDMResource.get_import_order()</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.BaseFairDMResource.get_export_order"><code class="docutils literal notranslate"><span class="pre">BaseFairDMResource.get_export_order()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.RowProblem"><code class="docutils literal notranslate"><span class="pre">RowProblem</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.RecordResource"><code class="docutils literal notranslate"><span class="pre">RecordResource</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.RecordResource.schema"><code class="docutils literal notranslate"><span class="pre">RecordResource.schema</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.RecordResource.base_model"><code class="docutils literal notranslate"><span class="pre">RecordResource.base_model</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.RecordResource.import_row"><code class="docutils literal notranslate"><span class="pre">RecordResource.import_row()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.RecordResource.leave_out_other_dataset"><code class="docutils literal notranslate"><span class="pre">RecordResource.leave_out_other_dataset()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.RecordResource.get_instance"><code class="docutils literal notranslate"><span class="pre">RecordResource.get_instance()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.RecordResource.init_instance"><code class="docutils literal notranslate"><span class="pre">RecordResource.init_instance()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.RecordResource.import_instance"><code class="docutils literal notranslate"><span class="pre">RecordResource.import_instance()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.RecordResource.settle_empty_cells"><code class="docutils literal notranslate"><span class="pre">RecordResource.settle_empty_cells()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.RecordResource.skip_row"><code class="docutils literal notranslate"><span class="pre">RecordResource.skip_row()</span></code></a></li>
 </ul>
 </li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.SampleResource"><code class="docutils literal notranslate"><span class="pre">SampleResource</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.SampleResource.Meta"><code class="docutils literal notranslate"><span class="pre">SampleResource.Meta</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.SampleResource.Meta.fields"><code class="docutils literal notranslate"><span class="pre">SampleResource.Meta.fields</span></code></a></li>
-</ul>
-</li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.SampleResource.get_instance"><code class="docutils literal notranslate"><span class="pre">SampleResource.get_instance()</span></code></a></li>
-</ul>
-</li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.SampleWidget"><code class="docutils literal notranslate"><span class="pre">SampleWidget</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.SampleWidget.clean"><code class="docutils literal notranslate"><span class="pre">SampleWidget.clean()</span></code></a></li>
-</ul>
-</li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.MeasurementResource"><code class="docutils literal notranslate"><span class="pre">MeasurementResource</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.MeasurementResource.sample"><code class="docutils literal notranslate"><span class="pre">MeasurementResource.sample</span></code></a></li>
-<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.MeasurementResource.get_instance"><code class="docutils literal notranslate"><span class="pre">MeasurementResource.get_instance()</span></code></a></li>
-</ul>
-</li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.changed_cells"><code class="docutils literal notranslate"><span class="pre">changed_cells()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.resources.build_resource"><code class="docutils literal notranslate"><span class="pre">build_resource()</span></code></a></li>
 </ul>
 </li>
 </ul>
