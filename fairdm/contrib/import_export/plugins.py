@@ -13,12 +13,12 @@ from django.core.files.base import ContentFile
 from django.db import transaction
 from django.http import Http404, HttpResponse
 from django.shortcuts import redirect
+from django.template.loader import render_to_string
 from django.urls import reverse as django_reverse
 from django.utils.http import content_disposition_header
 from django.utils.text import capfirst, slugify
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _l
-from django_cotton import render_component
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
 
@@ -741,14 +741,16 @@ class JobStatus(JobPage):
         done = ImportRun(job).progress() or 0
         percent = min(100, int(100 * done / job.row_count)) if job.row_count else 0
         return HttpResponse(
-            render_component(
-                request,
-                "import.progress",
-                percent=percent,
-                done=done,
-                total=job.row_count,
-                url=reverse(self.dataset, "imports-status", job=job.pk),
-                importing=job.status == Status.IMPORTING,
+            render_to_string(
+                "import_export/import_progress.html",
+                {
+                    "percent": percent,
+                    "done": done,
+                    "total": job.row_count,
+                    "url": reverse(self.dataset, "imports-status", job=job.pk),
+                    "importing": job.status == Status.IMPORTING,
+                },
+                request=request,
             )
         )
 
