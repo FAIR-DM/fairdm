@@ -85,12 +85,12 @@ def make_column():
 @pytest.fixture
 def added_definitions():
     """Remove the definitions a test registers once it has finished."""
-    from fairdm.contrib.import_export import definitions
+    from fairdm.contrib.import_export.definitions import import_definitions
 
-    before = dict(definitions.added)
-    yield definitions.added
-    definitions.added.clear()
-    definitions.added.update(before)
+    before = dict(import_definitions.added)
+    yield import_definitions.added
+    import_definitions.added.clear()
+    import_definitions.added.update(before)
 
 
 @pytest.fixture

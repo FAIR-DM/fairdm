@@ -51,77 +51,87 @@ class ImportDefinition:
         return registry.get_for_model(self.model).get_table_schema()
 
 
-added: dict[str, ImportDefinition] = {}
+class ImportDefinitions:
+    """The import definitions of a portal: the built-in ones and those it adds.
 
-
-def import_format_names() -> tuple[str, ...]:
-    """Name the formats the portal reads, from ``settings.IMPORT_FORMATS``.
-
-    Returns:
-        The lower-case title of each format that can be imported.
+    Attributes:
+        added: The definitions a project registered, by name.
     """
-    return tuple(
-        format_class().get_title().lower()
-        for format_class in settings.IMPORT_FORMATS
-        if format_class().can_import()
-    )
+
+    def __init__(self) -> None:
+        """Start with no definition added."""
+        self.added: dict[str, ImportDefinition] = {}
+
+    @staticmethod
+    def format_names() -> tuple[str, ...]:
+        """Name the formats the portal reads, from ``settings.IMPORT_FORMATS``.
+
+        Returns:
+            The lower-case title of each format that can be imported.
+        """
+        return tuple(
+            format_class().get_title().lower()
+            for format_class in settings.IMPORT_FORMATS
+            if format_class().can_import()
+        )
+
+    def built_in(self) -> list[ImportDefinition]:
+        """Build one definition per registered type, samples first.
+
+        Returns:
+            The definitions, named by each model's lower-case name.
+        """
+        formats = self.format_names()
+        return [
+            ImportDefinition(name=model._meta.model_name, model=model, formats=formats)
+            for model in [*registry.samples, *registry.measurements]
+        ]
+
+    def register(self, definition: ImportDefinition) -> ImportDefinition:
+        """Add a project's own definition.
+
+        Args:
+            definition: The definition to add.
+
+        Returns:
+            The definition, once added.
+
+        Raises:
+            ValueError: The name is already known, or the model is not registered.
+        """
+        if self.get(definition.name) is not None:
+            raise ValueError(f"An import definition named {definition.name!r} exists.")
+        if not registry.is_registered(definition.model):
+            raise ValueError(f"{definition.model.__name__} is not registered.")
+        self.added[definition.name] = definition
+        return definition
+
+    def all(self, kind: str | None = None) -> list[ImportDefinition]:
+        """List the definitions, built in first.
+
+        Args:
+            kind: ``sample`` or ``measurement`` to keep only that kind. Defaults to all.
+
+        Returns:
+            The matching definitions.
+        """
+        found = [*self.built_in(), *self.added.values()]
+        if kind:
+            found = [definition for definition in found if definition.kind == kind]
+        return found
+
+    def get(self, name: str) -> ImportDefinition | None:
+        """Find a definition by name.
+
+        Args:
+            name: The definition's name.
+
+        Returns:
+            The definition, or None when no definition has the name.
+        """
+        return next((d for d in self.all() if d.name == name), None)
 
 
-def built_in() -> list[ImportDefinition]:
-    """Build one definition per registered type, samples first.
-
-    Returns:
-        The definitions, named by each model's lower-case name.
-    """
-    formats = import_format_names()
-    return [
-        ImportDefinition(name=model._meta.model_name, model=model, formats=formats)
-        for model in [*registry.samples, *registry.measurements]
-    ]
-
-
-def register(definition: ImportDefinition) -> ImportDefinition:
-    """Add a project's own definition.
-
-    Args:
-        definition: The definition to add.
-
-    Returns:
-        The definition, once added.
-
-    Raises:
-        ValueError: The name is already known, or the model is not registered.
-    """
-    if get_definition(definition.name) is not None:
-        raise ValueError(f"An import definition named {definition.name!r} exists.")
-    if not registry.is_registered(definition.model):
-        raise ValueError(f"{definition.model.__name__} is not registered.")
-    added[definition.name] = definition
-    return definition
-
-
-def definitions(kind: str | None = None) -> list[ImportDefinition]:
-    """List the definitions, built in first.
-
-    Args:
-        kind: ``sample`` or ``measurement`` to keep only that kind. Defaults to all.
-
-    Returns:
-        The matching definitions.
-    """
-    found = [*built_in(), *added.values()]
-    if kind:
-        found = [definition for definition in found if definition.kind == kind]
-    return found
-
-
-def get_definition(name: str) -> ImportDefinition | None:
-    """Find a definition by name.
-
-    Args:
-        name: The definition's name.
-
-    Returns:
-        The definition, or None when no definition has the name.
-    """
-    return next((d for d in definitions() if d.name == name), None)
+import_definitions = ImportDefinitions()
+register = import_definitions.register
+get_definition = import_definitions.get

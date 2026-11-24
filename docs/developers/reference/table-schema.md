@@ -110,7 +110,7 @@ A `sample` cell never reveals a sample the person importing may not see. A porta
 
 ## Import definitions
 
-An import definition names a kind of file, the record type its rows fill and the formats it is offered in. FairDM builds one for every registered sample and measurement type, named after the model in lower case, such as `rocksample`. The built-in definitions offer the formats of the [`IMPORT_FORMATS`](settings.md#import_formats) setting that can import, by their lower-case titles, such as `csv` and `xlsx`. To add one of your own, see [How to register an import definition](../how-to/register-an-import-definition.md).
+An import definition names a kind of file, the record type its rows fill and the formats it is offered in. FairDM builds one for every registered sample and measurement type, named after the model in lower case, such as `rocksample`. The built-in definitions offer the formats of the [`IMPORT_FORMATS`](settings.md#import_formats) setting that can import, by their lower-case titles, such as `csv` and `xlsx`. They are held by `ImportDefinitions`, in `fairdm.contrib.import_export.definitions`, and the portal's one instance is `import_definitions`. `register` and `get_definition` in the same module are its methods of those names. To add one of your own, see [How to register an import definition](../how-to/register-an-import-definition.md).
 
 ## The column guide
 
