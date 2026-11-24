@@ -19,7 +19,7 @@ public name.
 
 ### Group 1
 
-- [ ] T001 [US1] Tests: `TestImportInstance` for `LocatedResourceMixin` in the test module that
+- [x] T001 [US1] Tests: `TestImportInstance` for `LocatedResourceMixin` in the test module that
   covers `fairdm/utils/location/resources.py` (a row with an invalid field and no location column
   is refused with that field's problem; the same with location columns reports the field's and the
   location's). The module is `tests/test_utils/test_location/test_resources.py`.
