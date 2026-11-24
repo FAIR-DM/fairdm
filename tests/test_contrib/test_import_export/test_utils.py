@@ -1,5 +1,8 @@
 """Tests for the dataset's DataCite metadata built by ``build_metadata``."""
 
+import csv
+import io
+
 import pytest
 from controlled_vocabularies.models import Record
 from defusedxml.ElementTree import fromstring
@@ -8,11 +11,16 @@ from django.test import RequestFactory
 from licensing.models import License
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
+from demo.models import RockSample
 from fairdm.contrib.contributors.models import Contribution
-from fairdm.contrib.import_export.utils import build_metadata
+from fairdm.contrib.import_export.utils import (
+    build_export_for_datatype,
+    build_metadata,
+)
 from fairdm.core.dataset.models import DatasetDate
 from fairdm.core.vocabularies import CONTRIBUTOR_ROLES, DATE_TYPES
 from fairdm.factories import DatasetFactory, OrganizationFactory, PersonFactory
+from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
 
 pytestmark = pytest.mark.django_db
@@ -246,3 +254,22 @@ class TestBuildMetadataGeoLocation:
             "south": 10.0,
             "north": 10.0,
         }
+
+
+class TestBuildExportForDatatype:
+    def test_it_writes_the_types_headings_and_each_records_cells_in_csv(self):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        rocks = [
+            RockSampleFactory(dataset=dataset, name=name)
+            for name in ("Granite A", "Basalt B")
+        ]
+        schema = registry.get_for_model(RockSample).get_table_schema()
+
+        written = build_export_for_datatype(
+            dataset, RockSample.objects.filter(dataset=dataset), "csv"
+        )
+
+        table = list(csv.reader(io.StringIO(written)))
+        assert table[0] == schema.headings
+        name = schema.headings.index("name")
+        assert sorted(row[name] for row in table[1:]) == sorted(r.name for r in rocks)

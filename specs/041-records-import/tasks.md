@@ -36,7 +36,7 @@ public name.
   templates `import_export/import.html` and `cotton/import_export/**`. Remove the tests that
   covered them. `DatasetPublishConfirm`, `DatasetPackageDownloadView`, `MetadataDownloadView`,
   `TableSchemaView` and the package builder stay.
-- [ ] T004 [US1] Tests first, then code: `build_export_for_datatype` in `utils.py` writes through
+- [x] T004 [US1] Tests first, then code: `build_export_for_datatype` in `utils.py` writes through
   `TableExport` and keeps its signature (a test in `test_utils.py` that it returns the rows'
   headings and cells for a registered type in `csv`).
 - [ ] T005 [US1] Remove the registry's `resource` component, `ResourceFactory`, `resource_class`
