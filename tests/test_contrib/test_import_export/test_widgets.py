@@ -7,6 +7,7 @@ import pytest
 from controlled_vocabularies.models import Record
 from django.contrib.auth.models import AnonymousUser
 from django.db import models
+from partial_dates.fields import PartialDateField
 
 from demo.factories import RockSampleFactory
 from demo.models import (
@@ -18,6 +19,7 @@ from demo.models import (
     XRFMeasurement,
 )
 from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.contrib.import_export.schema import field_column
 from fairdm.contrib.import_export.widgets import (
     ConceptCellWidget,
     SampleCellWidget,
@@ -78,17 +80,24 @@ class TestRoundTrip:
 
         assert widget.clean(widget.render(dt.time(14, 5, 42))).second == 42
 
-    def test_a_partial_date_reads_back_as_it_was_written(self, make_column):
-        widget = make_column("partial_date").widget()
+    @pytest.mark.parametrize("text", ["2024", "2024-06", "2024-06-30"])
+    def test_a_partial_date_reads_back_as_it_was_written(self, text):
+        model_field = PartialDateField()
+        model_field.set_attributes_from_name("found_on")
+        widget = field_column(model_field).widget()
+        stored = model_field.to_python(text)
 
-        for value in ("2024", "2024-06", "2024-06-30"):
-            assert widget.clean(widget.render(value)) == value
+        assert widget.clean(widget.render(stored)) == stored
 
-    def test_a_choice_reads_back_as_it_was_written(self, make_column):
-        column = make_column("choice", allowed=[("igneous", "Igneous rock")])
-        widget = column.widget()
+    def test_a_choice_reads_back_as_it_was_written(self):
+        model_field = models.IntegerField(choices=[(1, "One"), (2, "Two")])
+        model_field.set_attributes_from_name("rank")
+        widget = field_column(model_field).widget()
 
-        assert widget.clean(widget.render("igneous")) == "igneous"
+        read = widget.clean(widget.render(1))
+
+        assert read == 1
+        assert isinstance(read, int)
 
     def test_a_choice_reads_by_its_meaning(self, make_column):
         column = make_column("choice", allowed=[("igneous", "Igneous rock")])

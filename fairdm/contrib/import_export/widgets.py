@@ -84,6 +84,19 @@ class CellWidget(widgets.Widget):
             return str(int(value))
         return str(value).strip()
 
+    def stored(self, text: str):
+        """Turn text into the value the column's model field stores.
+
+        Args:
+            text: A cell's text that the column has accepted.
+
+        Returns:
+            The field's own value for the text, or the text when the column has no
+            model field.
+        """
+        model_field = self.column.model_field
+        return model_field.to_python(text) if model_field else text
+
     def some_of_the_allowed(self, limit: int) -> str:
         """List the first of the values a column allows.
 
@@ -476,7 +489,7 @@ class PartialDateCellWidget(CellWidget):
             **kwargs: What django-import-export passes on.
 
         Returns:
-            None for an empty cell, otherwise the text the field stores.
+            None for an empty cell, otherwise the value the field stores.
 
         Raises:
             ValueError: When the cell is not ``YYYY``, ``YYYY-MM`` or ``YYYY-MM-DD``, or
@@ -485,11 +498,11 @@ class PartialDateCellWidget(CellWidget):
         if self.is_empty(value):
             return None
         if isinstance(value, dt.date):
-            return value.isoformat()[:10]
+            return self.stored(value.isoformat()[:10])
         text = self.text_of(value)
         found = PARTIAL_DATE.fullmatch(text)
         if found and self.exists(*found.groups()):
-            return text
+            return self.stored(text)
         raise ValueError(
             _("“%(v)s” is not YYYY, YYYY-MM or YYYY-MM-DD.") % {"v": value}
         )
@@ -534,9 +547,9 @@ class ChoiceCellWidget(CellWidget):
         text = self.text_of(value)
         if not text:
             return None if getattr(self.column.model_field, "null", False) else ""
-        for stored, meaning in self.column.allowed:
-            if text.lower() in (stored.lower(), meaning.lower()):
-                return stored
+        for option, meaning in self.column.allowed:
+            if text.lower() in (option.lower(), meaning.lower()):
+                return self.stored(option)
         raise ValueError(
             _("“%(v)s” is not one of the allowed values: %(values)s.")
             % {"v": value, "values": self.some_of_the_allowed(CHOICES_SHOWN)}
