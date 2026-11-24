@@ -149,3 +149,28 @@ public name.
   migration is regenerated), the undo POST claims the job with a conditional update and queues
   the task, the job page shows the progress and the result, and a GET of an imported job no
   longer scans its rows.
+
+## Phase 6: Review fixes
+
+### Group 14
+
+- [ ] T029 [US1] A file cannot make a row wide or a sheet large: columns are capped while rows
+  stream, trailing empty cells dropped, the OpenDocument unpacked ceiling lowered, a cut file
+  refused, and a malformed spreadsheet refused instead of a server error.
+- [ ] T030 [US2] Undo restores a field the import filled when it was empty.
+- [ ] T031 [US1] A sample name longer than the row label no longer breaks the check.
+- [ ] T032 [US1] An uploaded file is stored under a name the person did not choose.
+
+### Group 15
+
+- [ ] T033 [US1] An empty required cell and the row's other problems are all reported.
+- [ ] T034 [US1] A file whose headings all match still shows the warnings about its columns.
+- [ ] T035 [US1] A check or an import that fails unexpectedly ends in a state the person can
+  leave.
+- [ ] T036 [US2] Undo refuses when an added record has gained related records, and holds the
+  records while it reads them.
+- [ ] T037 [US2] The file's new values kept in a row are cleared when the job is undone or
+  discarded.
+- [ ] T038 [US1] The problems and nothing-to-change pages offer to discard the import.
+- [ ] T039 [US1] The upgrade steps for the removed resource option are documented.
+
