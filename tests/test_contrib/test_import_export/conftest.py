@@ -191,13 +191,16 @@ def make_record(open_dataset):
 def named_rocks(open_dataset):
     """Five rocks of the open dataset, three of them granite."""
     names = ["Granite A", "Granite B", "Granite C", "Basalt A", "Basalt B"]
-    return [RockSampleFactory(dataset=open_dataset, name=name) for name in names]
+    return [
+        RockSampleFactory(dataset=open_dataset, name=name, rock_type=name.split()[0])
+        for name in names
+    ]
 
 
 @pytest.fixture
 def private_rocks():
     """Rocks no visitor may list: in a private dataset, an unpublished one, a private project."""
-    private = DatasetFactory(visibility=Visibility.PRIVATE, published=True)
+    private = DatasetFactory(visibility=Visibility.PRIVATE, published=False)
     unpublished = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
     hidden_project = ProjectFactory(visibility=Visibility.PRIVATE)
     inside = DatasetFactory(

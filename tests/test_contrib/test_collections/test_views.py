@@ -760,29 +760,34 @@ class TestOneSearchControl:
         assert "search" not in toolbar | panel
 
 
+def records_tab(holder, kind, model=None):
+    """Return the address of a dataset's, project's or contributor's records tab."""
+    kwargs = {"uuid": holder.uuid}
+    if model is not None:
+        kwargs["type"] = registry.get_for_model(model).get_slug()
+    namespace = (
+        "contributor" if hasattr(holder, "is_organization") else holder._meta.model_name
+    )
+    return reverse(f"{namespace}:{kind}", kwargs=kwargs)
+
+
 @pytest.mark.django_db
 class TestExportOnPages:
     """Every records table offers its export, and a table of the project's own does too."""
 
     @pytest.fixture
-    def holders(self, published_dataset, published_sample):
-        """A dataset, a project and a contributor, each holding the published rock."""
+    def holders(self):
+        """A public dataset, project and contributor, each listing one rock."""
         project = ProjectFactory(visibility=Visibility.PUBLIC)
-        released = DatasetFactory(
+        dataset = DatasetFactory(
             project=project, visibility=Visibility.PUBLIC, published=True
         )
-        RockSampleFactory(dataset=released)
+        rock = RockSampleFactory(dataset=dataset)
         person = PersonFactory()
         ContributionFactory(
-            content_object=published_sample,
-            contributor=person,
-            level=ContributionLevel.VIEW,
+            content_object=rock, contributor=person, level=ContributionLevel.VIEW
         )
-        return {
-            "dataset": published_dataset,
-            "project": project,
-            "contributor": person,
-        }
+        return {"dataset": dataset, "project": project, "contributor": person}
 
     def test_the_portal_listing_has_a_menu(self, client, published_sample):
         slug = registry.get_for_model(RockSample).get_slug()
@@ -792,17 +797,15 @@ class TestExportOnPages:
         assert response.context["export_menu"]["shown"] == 1
 
     @pytest.mark.parametrize("holder", ["dataset", "project", "contributor"])
-    def test_a_tab_of_each_kind_of_record_has_a_menu(
-        self, client, tab_url, holders, holder
-    ):
-        response = client.get(tab_url(holders[holder], "samples", RockSample))
+    def test_a_tab_of_each_kind_of_record_has_a_menu(self, client, holders, holder):
+        response = client.get(records_tab(holders[holder], "samples", RockSample))
 
         assert response.context["export_menu"]["shown"] == 1
 
-    def test_a_tab_with_no_records_has_no_menu(self, client, tab_url):
+    def test_a_tab_with_no_records_has_no_menu(self, client):
         empty = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
 
-        response = client.get(tab_url(empty, "samples"))
+        response = client.get(records_tab(empty, "samples"))
 
         assert response.context["export_menu"] is None
 

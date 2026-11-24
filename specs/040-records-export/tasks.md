@@ -35,7 +35,7 @@ reason before the code that makes it pass is written. Wording and appearance get
   `TestExportMenuContext` and `TestFileName` and `TestExportQueries` in
   `tests/test_contrib/test_import_export/test_mixins.py` (fixtures in that directory's `conftest.py`), and `TestExportOnPages` in
   `tests/test_contrib/test_collections/test_views.py`, as plan.md "Tests" describes.
-- [ ] T005 [US1] `fairdm/contrib/import_export/mixins.py` (`RecordExportMixin`) and
+- [x] T005 [US1] `fairdm/contrib/import_export/mixins.py` (`RecordExportMixin`) and
   `DataTableView` taking it, as plan.md "The mixin" describes. T004's request, visibility,
   stability and context tests go green. The placement tests wait for T007.
 

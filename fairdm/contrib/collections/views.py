@@ -8,6 +8,7 @@ from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
 from django_filters.filterset import FilterSet
 
+from fairdm.contrib.import_export.mixins import RecordExportMixin
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
 from fairdm.registry import registry
@@ -26,7 +27,7 @@ BOOKKEEPING_COLUMNS = (
 )
 
 
-class DataTableView(FairDMTableView):
+class DataTableView(RecordExportMixin, FairDMTableView):
     """Display the published records of one Sample or Measurement sub-type as a filterable table.
 
     Attributes:
