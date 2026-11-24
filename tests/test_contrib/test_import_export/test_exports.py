@@ -4,12 +4,14 @@ import csv
 import io
 import json
 import zipfile
+from dataclasses import replace
 from urllib.parse import unquote
 
 import pytest
 import tablib
 from django.http import HttpResponse
 from openpyxl import load_workbook
+from openpyxl.utils import column_index_from_string, get_column_letter
 
 from demo.models import RockSample, XRFMeasurement
 from fairdm.contrib.import_export.exports import (
@@ -77,7 +79,9 @@ def read_back():
             ]
             return lines[0], lines[1:]
         data = tablib.Dataset().load(body, format="ods")
-        return list(data.headers), [[str(v) for v in row] for row in data]
+        return list(data.headers), [
+            ["" if v is None else str(v) for v in row] for row in data
+        ]
 
     return read
 
@@ -174,7 +178,7 @@ class TestExportResponse:
         response, _schema = export_of(RockSample, RockSample.objects.all(), key)
         headings, rows = read_back(response, key)
         for heading in ("local_id", "latitude", "longitude"):
-            assert rows[0][headings.index(heading)] in ("", "None")
+            assert rows[0][headings.index(heading)] == ""
         assert rows[0][headings.index("latitude")] == ""
 
     @pytest.mark.parametrize("key", ["csv", "xlsx", "ods", "tsv"])
@@ -238,6 +242,19 @@ class TestSampleName:
         assert cells["sample_name"] == ""
         assert cells["sample"] == ""
 
+    def test_a_sample_type_keeps_a_column_that_is_named_like_the_sample_one(
+        self, make_record
+    ):
+        schema = registry.get_for_model(RockSample).get_table_schema()
+        renamed = [
+            replace(c, name="sample", attribute="name") if c.name == "name" else c
+            for c in schema.columns
+        ]
+        schema = replace(schema, columns=renamed)
+        record = make_record(RockSample)
+        cells = self.cells((schema, TableExport(schema)), record)
+        assert cells["sample"] == record.name
+
 
 class FakeQuerySet:
     """Hold records a test has already annotated, and hand them out like a queryset."""
@@ -282,6 +299,12 @@ class TestWorkbook:
         names = {row[0] for row in guide.iter_rows(values_only=True)}
         assert set(schema.headings) <= names
 
+    def test_a_control_character_a_spreadsheet_cannot_hold_is_left_out(self, schema):
+        row = [""] * len(schema.columns)
+        row[schema.headings.index("name")] = "a\x0bb"
+        data = self.book(schema, [row]).worksheets[0]
+        assert data.cell(row=2, column=schema.headings.index("name") + 1).value == "ab"
+
     def test_a_heading_note_carries_the_label_kind_and_unit(self, measured):
         data = self.book(measured).worksheets[0]
         column = next(c for c in measured.columns if c.unit and c.role == "field")
@@ -289,6 +312,7 @@ class TestWorkbook:
         assert str(column.label) in note.text
         assert str(column.kind_label) in note.text
         assert column.unit in note.text
+        assert str(column.format_hint) in note.text
 
     def test_a_required_column_says_so_and_an_export_column_is_not_read(self, measured):
         data = self.book(measured).worksheets[0]
@@ -319,6 +343,13 @@ class TestWorkbook:
             assert not validation.showErrorMessage
             assert allowed.title in validation.formula1
             assert str(validation.sqref).endswith("5000")
+            column = column_index_from_string(str(validation.sqref).split(":")[0][:-1])
+            heading = data.cell(row=1, column=column).value
+            position = listed.index(heading) + 1
+            letter = get_column_letter(position)
+            values = next(allowed.iter_cols(min_col=position, max_col=position))[1:]
+            last = 1 + len([c for c in values if c.value is not None])
+            assert validation.formula1.endswith(f"!${letter}$2:${letter}${last}")
 
     def test_the_validation_reaches_a_thousand_rows_past_the_data(self, schema):
         rows = [[""] * len(schema.columns) for _ in range(5000)]

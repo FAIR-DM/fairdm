@@ -15,6 +15,7 @@ from django.utils.text import slugify
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from openpyxl import Workbook
+from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 from openpyxl.comments import Comment
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
@@ -139,8 +140,9 @@ class TableExport:
         Yields:
             A list of cells, one per column, for each record.
         """
+        measurements = self.schema.kind == "measurement"
         for record in queryset.iterator(chunk_size=500):
-            hidden = not getattr(record, "sample_open", False)
+            hidden = measurements and not getattr(record, "sample_open", False)
             yield [
                 ""
                 if hidden and column.name in SAMPLE_COLUMNS
@@ -230,6 +232,8 @@ class TableExport:
     def write_text(self, sheet, row, column, value):
         """Write a cell as text, never as a formula.
 
+        Control characters a spreadsheet cannot hold are left out.
+
         Args:
             sheet: The worksheet.
             row: The cell's row, from 1.
@@ -239,6 +243,8 @@ class TableExport:
         Returns:
             The cell.
         """
+        if isinstance(value, str):
+            value = ILLEGAL_CHARACTERS_RE.sub("", value)
         cell = sheet.cell(row=row, column=column, value=value)
         if isinstance(value, str):
             cell.data_type = "s"

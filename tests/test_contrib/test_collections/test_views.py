@@ -15,7 +15,6 @@ from django.test import RequestFactory
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
-from fairdm.contrib.import_export.mixins import RecordExportMixin
 from pytest_django.asserts import assertContains
 
 import fairdm.contrib.collections as collections_pkg
@@ -37,6 +36,7 @@ from demo.models import (
 )
 from fairdm.contrib.collections.views import DataTableView
 from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.contrib.import_export.mixins import RecordExportMixin
 from fairdm.core.sample.models import Sample
 from fairdm.factories import (
     ContributionFactory,

@@ -8,7 +8,7 @@ Every table that lists the samples or measurements of one registered type has an
 
 - CSV and TSV are UTF-8. CSV starts with a byte order mark so Excel reads text in any script, and an import must read a file with one.
 - JSON is a list with one object per row, keyed by the column headings.
-- Excel holds the rows on its first sheet, the guide to the columns on its second and the allowed values of each column that has a fixed list on its third. The cells of those columns offer the values, and each heading carries a note with the column's label, type, unit, how to write it and whether a new record needs it. Every string is stored as text, so a name that starts with `=` is never run as a formula.
+- Excel holds the rows on its first sheet, the guide to the columns on its second and the allowed values of each column that has a fixed list on its third. The cells of those columns offer the values, and each heading carries a note with the column's label, type, unit, how to write it and whether a new record needs it. Every string is stored as text, so a name that starts with `=` is never run as a formula. Control characters that a spreadsheet cannot hold are left out of Excel files.
 
 `TableExport(schema)` writes a file. `TableExport(schema).workbook()` with no rows writes the same workbook with no data, which the import's template download uses.
 

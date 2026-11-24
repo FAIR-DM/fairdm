@@ -67,3 +67,8 @@ reason before the code that makes it pass is written. Wording and appearance get
   the prototype's at the same width.
 - [x] T012 [US1] Drop the mixin's own ordering by primary key, which the writer applies again: a
   mutation reversing it left every test green because it changed nothing.
+- [x] T013 [US1] Review fixes: leave control characters out of Excel cells, put the import
+  order of the collections view tests right, blank the sample columns only for measurements.
+- [x] T014 [US1] Review fixes: tests that name which column a list validation covers, that the
+  heading note carries the format hint, and that an empty cell is empty in every format.
+
