@@ -57,5 +57,13 @@ reason before the code that makes it pass is written. Wording and appearance get
 
 ### Group 5
 
-- [ ] T009 [US1] Documentation: the reference page, the `CHANGELOG.md` line and the `CONTEXT.md`
+- [x] T009 [US1] Documentation: the reference page, the `CHANGELOG.md` line and the `CONTEXT.md`
   glossary entry, as plan.md "Specifications and documents edited" describes.
+
+## Phase 4: Convergence
+
+- [x] T010 [US1] Wrap the lines over 88 characters that the conformance check found.
+- [x] T011 [US1] Give the menu the prototype's one-line format notes, so the menu is as tall as
+  the prototype's at the same width.
+- [x] T012 [US1] Drop the mixin's own ordering by primary key, which the writer applies again: a
+  mutation reversing it left every test green because it changed nothing.
