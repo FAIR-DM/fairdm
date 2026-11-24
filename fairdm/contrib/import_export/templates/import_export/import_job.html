@@ -78,8 +78,32 @@
           <p class="ie-lead">{% blocktranslate with who=job.imported_by.get_full_name|default:job.imported_by when=job.imported_at|naturaltime %}Imported by {{ who }} {{ when }}.{% endblocktranslate %}</p>
           <div class="ie-actions">
             <a class="btn btn-primary" href="{{ records_url }}"><i class="bi bi-table" aria-hidden="true"></i> {% blocktranslate with type=job.type_name %}See the {{ type }}{% endblocktranslate %}</a>
+            {% if not undo_blocked %}
+              <form method="post" data-ie-once>
+                {% csrf_token %}
+                <button type="submit" name="action" value="undo" class="btn btn-ghost"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> {% translate "Undo this import" %}</button>
+              </form>
+            {% endif %}
           </div>
         </c-import.panel>
+        {% if undo_blocked %}
+          <c-import.panel :title="_('This import cannot be undone')" tone="error" icon="exclamation-triangle-fill">
+            <p class="ie-lead">{% translate "A record it added or changed has been changed or deleted since, or a sample it added now has measurements. Undoing would lose that work, so nothing was touched." %}</p>
+            {% if conflicts.entries %}
+              <ul class="ie-conflicts">
+                {% for entry in conflicts.entries %}
+                  <li data-ie-conflict="{{ entry.pk }}">
+                    {{ entry.label }} ·
+                    {% if entry.reason == "deleted" %}{% translate "deleted since" %}{% elif entry.reason == "measurements" %}{% translate "has measurements" %}{% else %}{% translate "changed since" %}{% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+              {% if conflicts.more %}
+                <p class="ie-lead" data-ie-conflict-more="{{ conflicts.more }}">{% blocktranslate count n=conflicts.more %}and {{ n }} more record{% plural %}and {{ n }} more records{% endblocktranslate %}</p>
+              {% endif %}
+            {% endif %}
+          </c-import.panel>
+        {% endif %}
 
       {% elif job.status == "undone" %}
         <c-import.panel :title="_('This import was undone')" tone="info" icon="arrow-counterclockwise">

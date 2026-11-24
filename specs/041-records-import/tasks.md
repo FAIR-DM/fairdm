@@ -117,10 +117,10 @@ public name.
 
 ### Group 9
 
-- [ ] T021 [US2] Tests: `test_undo.py` and `TestDiscardStale` in `test_tasks.py`, and the undo and
+- [x] T021 [US2] Tests: `test_undo.py` and `TestDiscardStale` in `test_tasks.py`, and the undo and
   past-imports tests in `test_plugins.py` (`TestPastImports`, undo refused naming the records,
   undo done).
-- [ ] T022 [US2] `undo.py` (`ImportUndo`), the `undo` action and conflicts on the job page, `DatasetImports`,
+- [x] T022 [US2] `undo.py` (`ImportUndo`), the `undo` action and conflicts on the job page, `DatasetImports`,
   `discard_stale_jobs` and its periodic task registered in `apps.py`, as plan.md "Undo" describes.
   T021 goes green.
 

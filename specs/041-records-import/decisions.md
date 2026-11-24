@@ -229,3 +229,11 @@ type.
 **Why:** a job in `importing` with problem rows would otherwise match the check's own problem rows and end as `imported` with nothing written. A queued check that arrives after the job moved on would replace the rows of an imported job.
 
 **Revisit if:** the pages stop being the only way a job reaches `importing`.
+
+## D26 — undo runs in the request, claimed under the dataset lock
+
+**Decision:** the `undo` action calls `ImportUndo.undo` in the request. The job has no `undoing` status, so the claim is made inside the undo: the dataset row is locked, the job is read again, and the status moves from `imported` to `undone` with one conditional update after the records are changed, in the same transaction. A second post finds the job undone and changes nothing.
+
+**Why:** an `undoing` state needs a change to the `status` choices and so to `models.py` and a migration, outside this group. Undo also refuses before it writes, so there is no state worth showing while it runs.
+
+**Revisit if:** an undo of a 50,000-row import is measured at the browser pass to outlast a request, which would make it a task with an `undoing` status.

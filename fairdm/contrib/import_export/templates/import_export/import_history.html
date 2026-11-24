@@ -2,6 +2,11 @@
 {% load i18n %}
 {% block page.content %}
 <div class="ie ie-page">
+  {% if import_chooser %}
+    <div class="ie-actions">
+      <c-import.import-menu :chooser="import_chooser" label="{% translate 'Import a file' %}" />
+    </div>
+  {% endif %}
   <section class="ie-panel">
     {% if jobs %}
       <c-import.job-list :jobs="jobs" show_type />

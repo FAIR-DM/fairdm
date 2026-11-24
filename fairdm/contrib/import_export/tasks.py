@@ -3,10 +3,13 @@
 The portal runs a worker, so a task is only ever queued and never run in place.
 """
 
+from datetime import timedelta
+
 from celery import shared_task
 from celery.exceptions import SoftTimeLimitExceeded
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from .models import ImportJob
@@ -17,6 +20,15 @@ from .runner import ImportRun
 # before it is killed. See specs/041-records-import/research.md.
 CHECK_LIMITS = {"soft_time_limit": 2400, "time_limit": 2700}
 IMPORT_LIMITS = {"soft_time_limit": 2400, "time_limit": 2700}
+
+STALE_DAYS = 30
+STALE_STATUSES = (
+    ImportJob.Status.MATCHING,
+    ImportJob.Status.CHECKING,
+    ImportJob.Status.CHECKED,
+    ImportJob.Status.NOTHING,
+    ImportJob.Status.PROBLEMS,
+)
 
 
 def start(task, *args):
@@ -71,3 +83,26 @@ def import_job(job_pk, user_pk):
         run.perform(user)
     except SoftTimeLimitExceeded:
         run.stop(_("The import took too long and was stopped. Nothing was written."))
+
+
+@shared_task
+def discard_stale_jobs():
+    """Discard the imports left unfinished for 30 days and delete their files.
+
+    A job being imported is left alone. The rows of a discarded job are kept, so the
+    import is still listed with its counts.
+
+    Returns:
+        How many jobs were discarded.
+    """
+    cutoff = timezone.now() - timedelta(days=STALE_DAYS)
+    stale = ImportJob.objects.filter(created__lt=cutoff, status__in=STALE_STATUSES)
+    discarded = 0
+    for job in stale.iterator():
+        moved = ImportJob.objects.filter(pk=job.pk, status=job.status).update(
+            status=ImportJob.Status.DISCARDED
+        )
+        if moved:
+            ImportRun(job).delete_file()
+            discarded += 1
+    return discarded

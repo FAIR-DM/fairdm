@@ -38,6 +38,7 @@ from .matching import HeadingMatcher
 from .models import ImportJob, ImportRow
 from .reader import FileProblem, FileReader
 from .runner import ImportRun
+from .undo import ImportUndo
 
 STEPS = [
     ("file", _l("Choose a file")),
@@ -659,6 +660,8 @@ class JobDetail(JobPage):
         """
         job = self.job
         action = request.POST.get("action")
+        if action == "undo":
+            return self.undo(request)
         rule = self.ACTIONS.get(action)
         if rule is None or (action == "import" and not job.writes):
             return redirect(job.get_absolute_url())
@@ -680,6 +683,31 @@ class JobDetail(JobPage):
             )
             return redirect(reverse(self.dataset, "import", type=job.definition_name))
         return redirect(job.get_absolute_url())
+
+    def undo(self, request):
+        """Undo the import, or show the records that stand in the way.
+
+        The dataset is locked and the job's status read again inside the undo, so a
+        second post of the action finds the job already undone and changes nothing.
+
+        Args:
+            request: The request.
+
+        Returns:
+            A redirect to the job once it is undone or when there is nothing to undo,
+            otherwise the job's page with the records in the way listed.
+        """
+        job = self.job
+        found = ImportUndo(job).undo(request.user)
+        if found is None or not found["entries"]:
+            if found is not None:
+                messages.success(
+                    request,
+                    _("%(file)s was undone.") % {"file": job.filename},
+                )
+            return redirect(job.get_absolute_url())
+        self.refusal = found
+        return self.get(request)
 
     def rows_shown(self):
         """Choose the rows the page lists, by the outcome in ``?show=``.
@@ -741,6 +769,10 @@ class JobDetail(JobPage):
         context["written"] = job.status in (
             ImportJob.Status.IMPORTED,
             ImportJob.Status.UNDONE,
+        )
+        context["conflicts"] = getattr(self, "refusal", None)
+        context["undo_blocked"] = job.status == ImportJob.Status.IMPORTED and bool(
+            context["conflicts"] or ImportUndo(job).conflicts(None, limit=1)["entries"]
         )
         return context
 
