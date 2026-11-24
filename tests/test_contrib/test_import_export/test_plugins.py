@@ -1208,6 +1208,20 @@ class TestImportsList:
         page = parse(editor_client.get(reverse(open_dataset, "imports")))
         assert not page.select("[data-ie-job]")
 
+    def test_the_import_menu_sits_in_the_page_head(self, editor_client, open_dataset):
+        page = parse(editor_client.get(reverse(open_dataset, "imports")))
+        menu = page.select_one("button[aria-haspopup=dialog]")
+        assert menu is not None
+        assert menu.find_parent(class_="ie-page") is None
+        assert len(page.select("dialog[id^=ie-import-]")) == 1
+
+    def test_an_empty_dataset_offers_the_import_menu_in_the_empty_state(
+        self, editor_client, open_dataset
+    ):
+        page = parse(editor_client.get(reverse(open_dataset, "imports")))
+        empty = page.select_one(".ie-empty-block")
+        assert empty.select_one("button[aria-haspopup=dialog]") is not None
+
 
 @pytest.fixture
 def imported_job(make_job, open_dataset, editor):
