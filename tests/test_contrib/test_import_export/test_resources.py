@@ -479,6 +479,7 @@ class TestSampleCache:
         schema = registry.get_for_model(XRFMeasurement).get_table_schema()
         distinct = [sample.uuid for sample in samples]
 
+        self.cost_of(schema, open_dataset, distinct)  # warms process-wide caches
         once = self.cost_of(schema, open_dataset, distinct)
         many = self.cost_of(schema, open_dataset, distinct * 100)
 
