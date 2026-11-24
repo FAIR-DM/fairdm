@@ -101,6 +101,23 @@ def import_chooser(dataset, kind=None):
     return {"id": f"ie-import-{kind or 'all'}", "title": title, "groups": groups}
 
 
+def records_url(dataset, definition):
+    """Give the address of a dataset's records tab for a type.
+
+    Args:
+        dataset: The dataset.
+        definition: The import definition of the type.
+
+    Returns:
+        The address.
+    """
+    return reverse(
+        dataset,
+        f"{definition.kind}s",
+        type=registry.get_for_model(definition.model).get_slug(),
+    )
+
+
 class ImportPage(PrivateRecordNotFoundMixin, plugins.Plugin, FairDMTemplateView):
     """Shared by every import page: the permission, the step bar and the trail.
 
@@ -171,18 +188,6 @@ class DefinitionMixin:
         if self.definition is None:
             raise Http404(_("The portal has no record type of that name."))
         return super().dispatch(request, *args, **kwargs)
-
-    def records_url(self):
-        """Give the address of the dataset's records tab for the type.
-
-        Returns:
-            The address.
-        """
-        return reverse(
-            self.dataset,
-            f"{self.definition.kind}s",
-            type=registry.get_for_model(self.definition.model).get_slug(),
-        )
 
 
 @plugins.register(Dataset, menu=False)
@@ -317,11 +322,11 @@ class ImportStart(DefinitionMixin, ImportPage):
         context = super().get_context_data(**kwargs)
         schema = self.definition.table_schema()
         base = reverse(self.dataset, "import", type=self.definition.name)
-        records_url = self.records_url()
+        records = records_url(self.dataset, self.definition)
         count = self.definition.model.objects.filter(dataset=self.dataset).count()
         context["schema"] = schema
         context["count"] = count
-        context["records_url"] = records_url
+        context["records_url"] = records
         context["template_links"] = [
             {
                 "label": _("Excel template, with the column guide"),
@@ -337,7 +342,7 @@ class ImportStart(DefinitionMixin, ImportPage):
         context["current_links"] = [
             {
                 "label": label,
-                "url": f"{records_url}?export={key}&scope=all",
+                "url": f"{records}?export={key}&scope=all",
                 "icon": "arrow-repeat",
             }
             for label, key in (("Excel", "xlsx"), ("CSV", "csv"))
@@ -465,12 +470,19 @@ class JobPage(ImportPage):
         context["schema"] = definition.table_schema()
         context["start_url"] = reverse(self.dataset, "import", type=job.definition_name)
         context["columns_url"] = reverse(self.dataset, "imports-columns", job=job.pk)
-        context["records_url"] = reverse(
-            self.dataset,
-            f"{definition.kind}s",
-            type=registry.get_for_model(definition.model).get_slug(),
-        )
+        context["records_url"] = records_url(self.dataset, definition)
         return context
+
+    def progress_of(self):
+        """Read how far the job's run has got.
+
+        Returns:
+            The number of rows done and the share of the file that is, from 0 to 100.
+        """
+        job = self.job
+        done = ImportRun(job).progress() or 0
+        percent = min(100, int(100 * done / job.row_count)) if job.row_count else 0
+        return done, percent
 
 
 class JobColumns(JobPage):
@@ -757,11 +769,7 @@ class JobDetail(JobPage):
         context["shown_total"] = rows.count()
         context["tiles"] = self.tiles(job)
         context["mapped_headings"] = [h for h in job.headers if job.column_map.get(h)]
-        done = ImportRun(job).progress() or 0
-        context["progress"] = done
-        context["percent"] = (
-            min(100, int(100 * done / job.row_count)) if job.row_count else 0
-        )
+        context["progress"], context["percent"] = self.progress_of()
         context["status_url"] = reverse(self.dataset, "imports-status", job=job.pk)
         context["problems_url"] = reverse(self.dataset, "imports-problems", job=job.pk)
         context["mode_label"] = ImportJob.Mode(job.mode).label
@@ -825,8 +833,7 @@ class JobStatus(JobPage):
             response = HttpResponse("")
             response["HX-Refresh"] = "true"
             return response
-        done = ImportRun(job).progress() or 0
-        percent = min(100, int(100 * done / job.row_count)) if job.row_count else 0
+        done, percent = self.progress_of()
         return HttpResponse(
             render_to_string(
                 "import_export/import_progress.html",
