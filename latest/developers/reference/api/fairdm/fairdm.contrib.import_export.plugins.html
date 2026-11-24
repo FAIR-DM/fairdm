@@ -447,6 +447,8 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.name"><code class="docutils literal notranslate"><span class="pre">JobDetail.name</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.template_name"><code class="docutils literal notranslate"><span class="pre">JobDetail.template_name</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.per_page"><code class="docutils literal notranslate"><span class="pre">JobDetail.per_page</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.cell_limit"><code class="docutils literal notranslate"><span class="pre">JobDetail.cell_limit</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.blocked_shown"><code class="docutils literal notranslate"><span class="pre">JobDetail.blocked_shown</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.ACTIONS"><code class="docutils literal notranslate"><span class="pre">JobDetail.ACTIONS</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.CHECK_STATUSES"><code class="docutils literal notranslate"><span class="pre">JobDetail.CHECK_STATUSES</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.TITLES"><code class="docutils literal notranslate"><span class="pre">JobDetail.TITLES</span></code></a></li>
@@ -457,6 +459,8 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.post"><code class="docutils literal notranslate"><span class="pre">JobDetail.post()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.rows_shown"><code class="docutils literal notranslate"><span class="pre">JobDetail.rows_shown()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.get_context_data"><code class="docutils literal notranslate"><span class="pre">JobDetail.get_context_data()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.read_cells"><code class="docutils literal notranslate"><span class="pre">JobDetail.read_cells()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.undo_blocked"><code class="docutils literal notranslate"><span class="pre">JobDetail.undo_blocked()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.tiles"><code class="docutils literal notranslate"><span class="pre">JobDetail.tiles()</span></code></a></li>
 </ul>
 </li>
@@ -980,6 +984,8 @@ A redirect to the job, or this page again with the problems.</p>
 <p>One import: the check while it runs, its rows by outcome and the import.</p>
 <p>Attributes:
 per_page: How many rows a page lists.
+cell_limit: How many cells of the file a new row lists.
+blocked_shown: How many records in the way of an undo the page names.
 ACTIONS: For each action the statuses it may start from and the one it moves to.
 CHECK_STATUSES: The statuses in which the warnings about the file’s columns are
 shown.</p>
@@ -1008,6 +1014,18 @@ keyword arguments, and other things.</p>
 <dt class="sig sig-object py" id="fairdm.contrib.import_export.plugins.JobDetail.per_page">
 <span class="sig-name descname"><span class="pre">per_page</span></span><a class="headerlink" aria-label="Link to this definition: per_page" href="#fairdm.contrib.import_export.plugins.JobDetail.per_page" title="Link to this definition">¶</a></dt>
 <dd><p>100</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.plugins.JobDetail.cell_limit">
+<span class="sig-name descname"><span class="pre">cell_limit</span></span><a class="headerlink" aria-label="Link to this definition: cell_limit" href="#fairdm.contrib.import_export.plugins.JobDetail.cell_limit" title="Link to this definition">¶</a></dt>
+<dd><p>7</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.plugins.JobDetail.blocked_shown">
+<span class="sig-name descname"><span class="pre">blocked_shown</span></span><a class="headerlink" aria-label="Link to this definition: blocked_shown" href="#fairdm.contrib.import_export.plugins.JobDetail.blocked_shown" title="Link to this definition">¶</a></dt>
+<dd><p>3</p>
 </dd></dl>
 
 <dl class="py attribute">
@@ -1080,6 +1098,32 @@ The outcome shown, empty for every row, and the rows of it.</p>
 <dt class="sig sig-object py" id="fairdm.contrib.import_export.plugins.JobDetail.get_context_data">
 <span class="sig-name descname"><span class="pre">get_context_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_context_data" href="#fairdm.contrib.import_export.plugins.JobDetail.get_context_data" title="Link to this definition">¶</a></dt>
 <dd><p>Add the page of rows, the outcome tiles, the progress and the file facts.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.plugins.JobDetail.read_cells">
+<span class="sig-name descname"><span class="pre">read_cells</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rows</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: read_cells" href="#fairdm.contrib.import_export.plugins.JobDetail.read_cells" title="Link to this definition">¶</a></dt>
+<dd><p>Name the problem rows and list the new rows’ values, from the stored file.</p>
+<p>The stored rows keep no cell of the file, so this reads the file while it is
+still stored, as the download of the problems does. Once the file is deleted
+the rows keep the label the check gave them and list no value.</p>
+<p>Args:
+rows: The rows the page lists. Each gets a <code class="docutils literal notranslate"><span class="pre">cells</span></code> list of the heading
+and value of the cells it shows, and a problem row is labelled with
+its name cell when the file has one.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.plugins.JobDetail.undo_blocked">
+<span class="sig-name descname"><span class="pre">undo_blocked</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: undo_blocked" href="#fairdm.contrib.import_export.plugins.JobDetail.undo_blocked" title="Link to this definition">¶</a></dt>
+<dd><p>Work out whether the import can still be undone, as the undo will.</p>
+<p>The same rule the undo applies, read without locking. The undo request checks
+again, because a record can change between this page and the request.</p>
+<p>Returns:
+None when the job is not imported or nothing stands in the way. Otherwise
+a dict of <code class="docutils literal notranslate"><span class="pre">entries</span></code>, up to <code class="docutils literal notranslate"><span class="pre">blocked_shown</span></code> dicts of the record’s
+<code class="docutils literal notranslate"><span class="pre">label</span></code>, <code class="docutils literal notranslate"><span class="pre">reason</span></code> and <code class="docutils literal notranslate"><span class="pre">url</span></code> (empty for a deleted record), and
+<code class="docutils literal notranslate"><span class="pre">more</span></code>, how many further records are in the way.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1286,6 +1330,8 @@ The line.</p>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.name"><code class="docutils literal notranslate"><span class="pre">JobDetail.name</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.template_name"><code class="docutils literal notranslate"><span class="pre">JobDetail.template_name</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.per_page"><code class="docutils literal notranslate"><span class="pre">JobDetail.per_page</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.cell_limit"><code class="docutils literal notranslate"><span class="pre">JobDetail.cell_limit</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.blocked_shown"><code class="docutils literal notranslate"><span class="pre">JobDetail.blocked_shown</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.ACTIONS"><code class="docutils literal notranslate"><span class="pre">JobDetail.ACTIONS</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.CHECK_STATUSES"><code class="docutils literal notranslate"><span class="pre">JobDetail.CHECK_STATUSES</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.TITLES"><code class="docutils literal notranslate"><span class="pre">JobDetail.TITLES</span></code></a></li>
@@ -1296,6 +1342,8 @@ The line.</p>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.post"><code class="docutils literal notranslate"><span class="pre">JobDetail.post()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.rows_shown"><code class="docutils literal notranslate"><span class="pre">JobDetail.rows_shown()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.get_context_data"><code class="docutils literal notranslate"><span class="pre">JobDetail.get_context_data()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.read_cells"><code class="docutils literal notranslate"><span class="pre">JobDetail.read_cells()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.undo_blocked"><code class="docutils literal notranslate"><span class="pre">JobDetail.undo_blocked()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.plugins.JobDetail.tiles"><code class="docutils literal notranslate"><span class="pre">JobDetail.tiles()</span></code></a></li>
 </ul>
 </li>

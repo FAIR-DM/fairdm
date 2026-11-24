@@ -640,6 +640,26 @@ Bases: {py:obj}`fairdm.contrib.import_export.plugins.JobPage`
 
 ````
 
+````{py:attribute} cell_limit
+:canonical: fairdm.contrib.import_export.plugins.JobDetail.cell_limit
+:value: >
+   7
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobDetail.cell_limit
+```
+
+````
+
+````{py:attribute} blocked_shown
+:canonical: fairdm.contrib.import_export.plugins.JobDetail.blocked_shown
+:value: >
+   3
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobDetail.blocked_shown
+```
+
+````
+
 ````{py:attribute} ACTIONS
 :canonical: fairdm.contrib.import_export.plugins.JobDetail.ACTIONS
 :value: >
@@ -722,6 +742,22 @@ Bases: {py:obj}`fairdm.contrib.import_export.plugins.JobPage`
 :canonical: fairdm.contrib.import_export.plugins.JobDetail.get_context_data
 
 ```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobDetail.get_context_data
+```
+
+````
+
+````{py:method} read_cells(rows)
+:canonical: fairdm.contrib.import_export.plugins.JobDetail.read_cells
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobDetail.read_cells
+```
+
+````
+
+````{py:method} undo_blocked()
+:canonical: fairdm.contrib.import_export.plugins.JobDetail.undo_blocked
+
+```{autodoc2-docstring} fairdm.contrib.import_export.plugins.JobDetail.undo_blocked
 ```
 
 ````

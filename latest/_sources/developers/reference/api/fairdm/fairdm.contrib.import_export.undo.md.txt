@@ -55,6 +55,16 @@
 
 ````
 
+````{py:attribute} REASONS
+:canonical: fairdm.contrib.import_export.undo.ImportUndo.REASONS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.undo.ImportUndo.REASONS
+```
+
+````
+
 ````{py:method} digest(record)
 :canonical: fairdm.contrib.import_export.undo.ImportUndo.digest
 
@@ -71,7 +81,7 @@
 
 ````
 
-````{py:method} conflicts(limit=LIMIT)
+````{py:method} conflicts(limit=LIMIT, lock=True)
 :canonical: fairdm.contrib.import_export.undo.ImportUndo.conflicts
 
 ```{autodoc2-docstring} fairdm.contrib.import_export.undo.ImportUndo.conflicts

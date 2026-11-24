@@ -377,6 +377,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.undo.ImportUndo"><code class="docutils literal notranslate"><span class="pre">ImportUndo</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.undo.ImportUndo.CHUNK"><code class="docutils literal notranslate"><span class="pre">ImportUndo.CHUNK</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.undo.ImportUndo.LIMIT"><code class="docutils literal notranslate"><span class="pre">ImportUndo.LIMIT</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.undo.ImportUndo.REASONS"><code class="docutils literal notranslate"><span class="pre">ImportUndo.REASONS</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.undo.ImportUndo.digest"><code class="docutils literal notranslate"><span class="pre">ImportUndo.digest()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.undo.ImportUndo.chunks"><code class="docutils literal notranslate"><span class="pre">ImportUndo.chunks()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.undo.ImportUndo.conflicts"><code class="docutils literal notranslate"><span class="pre">ImportUndo.conflicts()</span></code></a></li>
@@ -426,7 +427,8 @@ commentsRunWhenDOMLoaded(addUtterances);
 job: The import the undo is about.
 done: How many records the undo has put back so far.
 CHUNK: How many records are read or deleted at a time.
-LIMIT: How many records in the way a refusal names.</p>
+LIMIT: How many records in the way a refusal names.
+REASONS: The words for each reason a record is in the way.</p>
 <p class="rubric">Initialization</p>
 <p>Keep the import.</p>
 <p>Args:
@@ -441,6 +443,12 @@ job: The import job.</p>
 <dt class="sig sig-object py" id="fairdm.contrib.import_export.undo.ImportUndo.LIMIT">
 <span class="sig-name descname"><span class="pre">LIMIT</span></span><a class="headerlink" aria-label="Link to this definition: LIMIT" href="#fairdm.contrib.import_export.undo.ImportUndo.LIMIT" title="Link to this definition">¶</a></dt>
 <dd><p>20</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="fairdm.contrib.import_export.undo.ImportUndo.REASONS">
+<span class="sig-name descname"><span class="pre">REASONS</span></span><a class="headerlink" aria-label="Link to this definition: REASONS" href="#fairdm.contrib.import_export.undo.ImportUndo.REASONS" title="Link to this definition">¶</a></dt>
+<dd><p>None</p>
 </dd></dl>
 
 <dl class="py method">
@@ -469,7 +477,7 @@ Tuples of up to <code class="docutils literal notranslate"><span class="pre">CHU
 
 <dl class="py method">
 <dt class="sig sig-object py" id="fairdm.contrib.import_export.undo.ImportUndo.conflicts">
-<span class="sig-name descname"><span class="pre">conflicts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">LIMIT</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: conflicts" href="#fairdm.contrib.import_export.undo.ImportUndo.conflicts" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">conflicts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">LIMIT</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lock</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: conflicts" href="#fairdm.contrib.import_export.undo.ImportUndo.conflicts" title="Link to this definition">¶</a></dt>
 <dd><p>List the records that stand in the way of an undo.</p>
 <p>A record is in the way when it no longer exists, when its stored values differ
 from what the import left, or when it is a sample the import added and it now
@@ -478,9 +486,12 @@ rows in a related table, such as descriptions, dates, identifiers,
 contributors, relations or children, as undoing would delete them with it.
 Who may undo is the dataset’s import permission, decided by the page, so no
 per-record permission is read here. The records are read with a lock, which
-holds until the transaction that called this ends, so call it inside one.</p>
+holds until the transaction that called this ends, so call it inside one.
+A page that only reports whether an undo would succeed passes <code class="docutils literal notranslate"><span class="pre">lock=False</span></code>.</p>
 <p>Args:
-limit: How many records to name.</p>
+limit: How many records to name.
+lock: Whether to lock the records read. Undo does; a page that reads the
+same rule to draw itself does not.</p>
 <p>Returns:
 A dict with <code class="docutils literal notranslate"><span class="pre">entries</span></code>, up to <code class="docutils literal notranslate"><span class="pre">limit</span></code> dicts of the record’s <code class="docutils literal notranslate"><span class="pre">pk</span></code>,
 its <code class="docutils literal notranslate"><span class="pre">label</span></code> and the <code class="docutils literal notranslate"><span class="pre">reason</span></code> (<code class="docutils literal notranslate"><span class="pre">deleted</span></code>, <code class="docutils literal notranslate"><span class="pre">changed</span></code> or
@@ -614,6 +625,7 @@ polymorphic record are handled as they are for a deletion by hand.</p>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.undo.ImportUndo"><code class="docutils literal notranslate"><span class="pre">ImportUndo</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.undo.ImportUndo.CHUNK"><code class="docutils literal notranslate"><span class="pre">ImportUndo.CHUNK</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.undo.ImportUndo.LIMIT"><code class="docutils literal notranslate"><span class="pre">ImportUndo.LIMIT</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.undo.ImportUndo.REASONS"><code class="docutils literal notranslate"><span class="pre">ImportUndo.REASONS</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.undo.ImportUndo.digest"><code class="docutils literal notranslate"><span class="pre">ImportUndo.digest()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.undo.ImportUndo.chunks"><code class="docutils literal notranslate"><span class="pre">ImportUndo.chunks()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.import_export.undo.ImportUndo.conflicts"><code class="docutils literal notranslate"><span class="pre">ImportUndo.conflicts()</span></code></a></li>
