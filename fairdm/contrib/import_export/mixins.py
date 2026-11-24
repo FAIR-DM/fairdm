@@ -78,7 +78,7 @@ class RecordExportMixin:
             filterset = self.get_filterset()
             if filterset is not None:
                 queryset = filterset.qs
-        queryset = queryset.order_by("pk").prefetch_related(None)
+        queryset = queryset.prefetch_related(None)
         relations = [
             column.attribute
             for column in definition.table_schema().columns
