@@ -312,7 +312,7 @@ page answers a person without it with a 404 through `handle_no_permission` (FR-0
 The Import buttons: a single type's table links straight to `import/<type>/`. The Samples and
 Measurements tabs before a type is chosen, their empty states and past imports render
 `c-import.import-menu`. The records tab passes `import_chooser` in its context, built only when
-`can_import` holds. The empty overview's Import data button stays the placeholder (issue 698).
+`can_import` holds. The empty overview of a dataset renders the same component for a person who holds `can_import` (issue 698).
 
 ## Tests
 

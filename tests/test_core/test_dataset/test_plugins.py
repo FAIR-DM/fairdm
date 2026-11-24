@@ -1442,7 +1442,7 @@ class TestOverviewFirstRun:
         page = _page(client, dataset).page
         return len(page.find_all("button", disabled=True))
 
-    def test_the_team_of_an_empty_dataset_is_offered_one_more_step_than_of_one_holding_data(
+    def test_the_import_data_button_of_an_empty_dataset_is_not_an_unavailable_step(
         self, client, holding
     ):
         Dataset.all_objects.filter(pk=holding.pk).update(published=True)
@@ -1451,7 +1451,7 @@ class TestOverviewFirstRun:
         with_data = self._unavailable_actions(client, holding)
         client.force_login(_team_member(empty, "change_dataset"))
 
-        assert self._unavailable_actions(client, empty) == with_data + 1
+        assert self._unavailable_actions(client, empty) == with_data
 
     def test_an_empty_dataset_draws_no_chart(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
