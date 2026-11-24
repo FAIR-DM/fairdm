@@ -1,6 +1,7 @@
 """Tests for fairdm/contrib/import_export/views.py."""
 
 import json
+from dataclasses import replace
 
 import pytest
 from django.urls import reverse
@@ -10,6 +11,8 @@ from demo.models import RockSample, XRFMeasurement
 from fairdm.registry import registry
 
 pytestmark = pytest.mark.django_db
+
+LONG_LIST = 50
 
 
 def address(model):
@@ -43,14 +46,19 @@ class TestTableSchemaView:
 
         assert [f["name"] for f in document["fields"]] == schema.headings
 
-    def test_a_long_list_of_allowed_values_is_not_cut(self, client, rock_config):
+    def test_a_long_list_of_allowed_values_is_not_cut(
+        self, client, rock_config, monkeypatch
+    ):
         schema = rock_config.get_table_schema()
-        longest = max(schema.columns, key=lambda column: len(column.allowed))
+        index = next(i for i, c in enumerate(schema.columns) if c.group == "own")
+        values = [(f"value-{n}", f"meaning {n}") for n in range(LONG_LIST)]
+        schema.columns[index] = replace(schema.columns[index], allowed=values)
+        monkeypatch.setattr(rock_config, "get_table_schema", lambda: schema)
 
         document = json.loads(client.get(address(RockSample)).content)
 
-        field = next(f for f in document["fields"] if f["name"] == longest.name)
-        assert field["constraints"]["enum"] == [v for v, _ in longest.allowed]
+        field = next(f for f in document["fields"] if f["name"] == schema.columns[index].name)
+        assert field["constraints"]["enum"] == [value for value, _ in values]
 
     def test_an_unknown_type_is_not_found(self, client):
         response = client.get(reverse("table_schema", args=["nosuchtype"]))
