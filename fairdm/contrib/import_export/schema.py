@@ -18,6 +18,7 @@ from decimal import Decimal
 
 from controlled_vocabularies.fields import ConceptField
 from controlled_vocabularies.models import Record
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
@@ -583,15 +584,7 @@ def field_column(
         column.max_length = model_field.max_length
     if isinstance(model_field, models.DecimalField):
         column.decimals = model_field.decimal_places
-    if isinstance(
-        model_field,
-        (
-            models.PositiveIntegerField,
-            models.PositiveSmallIntegerField,
-            models.PositiveBigIntegerField,
-        ),
-    ):
-        column.minimum = 0
+    column.minimum, column.maximum = stored_range(model_field)
     if kind == "quantity":
         column.unit = str(model_field.base_units)
     if kind == "choice":
@@ -600,6 +593,32 @@ def field_column(
         column.allowed = concept_choices(model_field)
     column.example = example_for(column)
     return column
+
+
+def stored_range(model_field) -> tuple[float | None, float | None]:
+    """Work out the smallest and largest number a model field stores.
+
+    Args:
+        model_field: The model field.
+
+    Returns:
+        The ``(minimum, maximum)`` its validators and, for a decimal field, its digits
+        allow. A side with no limit is None.
+    """
+    lowest, highest = [], []
+    for validator in model_field.validators:
+        if isinstance(validator, MinValueValidator):
+            lowest.append(validator.limit_value)
+        elif isinstance(validator, MaxValueValidator):
+            highest.append(validator.limit_value)
+    if isinstance(model_field, models.DecimalField):
+        places = model_field.decimal_places
+        largest = float(
+            10 ** (model_field.max_digits - places) - Decimal(10) ** -places
+        )
+        lowest.append(-largest)
+        highest.append(largest)
+    return (max(lowest) if lowest else None, min(highest) if highest else None)
 
 
 def concept_choices(model_field) -> list[tuple[str, str]]:

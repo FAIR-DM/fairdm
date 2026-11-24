@@ -5,6 +5,7 @@ import csv
 import frictionless
 import pytest
 from controlled_vocabularies.models import Record
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import connection, models
 from django.test.utils import CaptureQueriesContext
 from django.utils import translation
@@ -15,11 +16,13 @@ from demo.models import (
     ExampleMeasurement,
     ICP_MS_Measurement,
     RockSample,
+    SoilSample,
 )
 from fairdm.contrib.import_export.schema import (
     Column,
     TableSchema,
     build_table_schema,
+    field_column,
     kind_of,
 )
 from fairdm.contrib.import_export.widgets import render_cell
@@ -277,6 +280,37 @@ class TestColumnContents:
     def test_headings_are_unique(self, rock_config):
         columns = headings(rock_config)
         assert len(columns) == len(set(columns))
+
+
+class TestColumnRange:
+    """FR-004: a column's range is the range the field stores."""
+
+    def test_a_decimal_field_holds_no_more_whole_digits_than_it_stores(
+        self, column_of
+    ):
+        column = column_of(SoilSample, "ph_level")
+
+        assert (column.minimum, column.maximum) == (-99.99, 99.99)
+
+    def test_a_small_integer_field_has_its_database_range(self, column_of):
+        column = column_of(ExampleMeasurement, "positive_small_integer_field")
+
+        assert (column.minimum, column.maximum) == (0, 32767)
+
+    def test_a_validators_limits_are_the_columns_range(self):
+        model_field = models.IntegerField(
+            validators=[MinValueValidator(3), MaxValueValidator(9)]
+        )
+        model_field.set_attributes_from_name("depth")
+
+        column = field_column(model_field)
+
+        assert (column.minimum, column.maximum) == (3, 9)
+
+    def test_the_range_is_published_in_the_table_schema(self, column_of):
+        constraints = column_of(SoilSample, "ph_level").as_frictionless()["constraints"]
+
+        assert constraints["maximum"] == 99.99
 
 
 class TestKindOf:

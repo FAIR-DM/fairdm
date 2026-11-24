@@ -14,6 +14,7 @@ from demo.models import (
     ExampleMeasurement,
     ICP_MS_Measurement,
     RockSample,
+    SoilSample,
     XRFMeasurement,
 )
 from fairdm.contrib.contributors.choices import ContributionLevel
@@ -230,6 +231,23 @@ class TestRefusals:
     ):
         with pytest.raises(ValueError):
             column_of(*where).widget().clean(cell)
+
+    @pytest.mark.parametrize(
+        ("where", "cell"),
+        [
+            ((SoilSample, "ph_level"), "100"),
+            ((SoilSample, "ph_level"), "-100"),
+            ((ExampleMeasurement, "positive_small_integer_field"), "40000"),
+        ],
+    )
+    def test_a_number_the_field_cannot_store_is_refused(self, column_of, where, cell):
+        with pytest.raises(ValueError):
+            column_of(*where).widget().clean(cell)
+
+    def test_the_largest_number_the_field_stores_is_read(self, column_of):
+        column = column_of(SoilSample, "ph_level")
+
+        assert column.widget().clean("99.99") == Decimal("99.99")
 
     def test_text_over_the_longest_allowed_is_refused(self, column_of):
         column = column_of(*ROCK_TYPE)
