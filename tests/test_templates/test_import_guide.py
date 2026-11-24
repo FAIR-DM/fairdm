@@ -71,6 +71,7 @@ class TestGuideComponent:
             assert table.find("caption")
             headers = table.select("thead th")
             assert headers
+            assert len(headers) == len(table.select("thead [role=columnheader]"))
             assert {th["scope"] for th in headers} == {"col"}
             assert {th["role"] for th in headers} == {"columnheader"}
 
