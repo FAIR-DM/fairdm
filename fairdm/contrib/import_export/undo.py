@@ -1,4 +1,4 @@
-"""What an import keeps so that it can be told apart from later edits, and its undoing."""
+"""What an import keeps to tell it from later edits, and its undoing."""
 
 import hashlib
 import json

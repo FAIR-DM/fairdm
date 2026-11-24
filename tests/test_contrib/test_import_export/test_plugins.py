@@ -1004,7 +1004,7 @@ def imported_job(make_job, open_dataset, editor):
 
 
 class TestJobUndo:
-    """The undo action: one conditional step, refused while anything stands in the way."""
+    """The undo action: refused while anything stands in the way."""
 
     def post(self, client, address):
         """Post the undo action to a job's page."""
