@@ -916,7 +916,22 @@ class TestJobActions:
         assert checked_job.status == status
         queued.assert_not_called()
 
-    @pytest.mark.parametrize("status", [Status.CHECKED, Status.PROBLEMS])
+    @pytest.mark.parametrize(
+        "status", [Status.CHECKED, Status.PROBLEMS, Status.NOTHING]
+    )
+    def test_the_page_carries_the_discard_form(
+        self, editor_client, job_url, checked_job, status
+    ):
+        ImportJob.objects.filter(pk=checked_job.pk).update(status=status)
+        page = parse(editor_client.get(job_url(checked_job)))
+        button = page.select_one("button[name=action][value=discard]")
+        form = button.find_parent("form")
+        assert form.get("method", "").lower() == "post"
+        assert form.select_one("input[name=csrfmiddlewaretoken]")
+
+    @pytest.mark.parametrize(
+        "status", [Status.CHECKED, Status.PROBLEMS, Status.NOTHING]
+    )
     def test_discard_sets_the_job_aside_and_deletes_its_file(
         self, editor_client, job_url, checked_job, queued, status
     ):

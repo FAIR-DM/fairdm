@@ -622,6 +622,7 @@ class JobDetail(JobPage):
                 ImportJob.Status.MATCHING,
                 ImportJob.Status.CHECKED,
                 ImportJob.Status.PROBLEMS,
+                ImportJob.Status.NOTHING,
             ),
             ImportJob.Status.DISCARDED,
         ),

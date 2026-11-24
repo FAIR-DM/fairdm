@@ -171,6 +171,6 @@ public name.
   records while it reads them.
 - [x] T037 [US2] The file's new values kept in a row are cleared when the job is undone or
   discarded.
-- [ ] T038 [US1] The problems and nothing-to-change pages offer to discard the import.
+- [x] T038 [US1] The problems and nothing-to-change pages offer to discard the import.
 - [ ] T039 [US1] The upgrade steps for the removed resource option are documented.
 

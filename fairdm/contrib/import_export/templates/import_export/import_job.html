@@ -37,6 +37,7 @@
           <div class="ie-actions">
             {% if job.file %}<a class="btn btn-primary" href="{{ problems_url }}" download><i class="bi bi-file-earmark-excel" aria-hidden="true"></i> {% translate "Download the file with its problems marked" %}</a>{% endif %}
             <a class="btn btn-ghost" href="{{ start_url }}"><i class="bi bi-upload" aria-hidden="true"></i> {% translate "Upload a corrected file" %}</a>
+            <form method="post" class="ie-actions__form">{% csrf_token %}<button type="submit" name="action" value="discard" class="btn btn-ghost">{% translate "Don't import" %}</button></form>
           </div>
         </c-import.panel>
 
@@ -46,6 +47,7 @@
           <div class="ie-actions">
             <a class="btn btn-primary" href="{{ records_url }}"><i class="bi bi-table" aria-hidden="true"></i> {% translate "Back to the records" %}</a>
             <a class="btn btn-ghost" href="{{ columns_url }}">{% translate "Change the columns or options" %}</a>
+            <form method="post" class="ie-actions__form">{% csrf_token %}<button type="submit" name="action" value="discard" class="btn btn-ghost">{% translate "Don't import" %}</button></form>
           </div>
         </c-import.panel>
 
