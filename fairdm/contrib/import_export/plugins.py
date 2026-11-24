@@ -72,9 +72,9 @@ def import_chooser(dataset, kind=None):
     Returns:
         A dict with the dialog's ``id`` and ``title`` and its ``groups``, one for each
         kind with its ``kind``, ``title`` and ``entries``. Each entry holds the type's
-        ``name``, ``count`` of records in the dataset, import page ``url``, the labels of
-        the columns a new record ``required`` and the number of ``columns`` a file may
-        carry besides the portal ID.
+        ``name``, ``count`` of records in the dataset, import page ``url``, the
+        labels of the columns a new record ``required`` and the number of
+        ``columns`` a file may carry besides the portal ID.
     """
     titles = {"sample": _("Samples"), "measurement": _("Measurements")}
     groups = []
@@ -260,7 +260,8 @@ class ImportStart(DefinitionMixin, ImportPage):
         if len(set(named)) != len(named):
             raise FileProblem(
                 _(
-                    "Two columns have the same heading. Give each column its own heading."
+                    "Two columns have the same heading. "
+                    "Give each column its own heading."
                 ),
                 "unreadable",
             )
@@ -536,7 +537,7 @@ class JobColumns(JobPage):
         return redirect(job.get_absolute_url())
 
     def get_context_data(self, **kwargs):
-        """Add a row for each heading of the file, the unfilled fields and the problems."""
+        """Add a row for each heading, the unfilled fields and the problems."""
         context = super().get_context_data(**kwargs)
         job = self.job
         schema = context["schema"]
@@ -700,7 +701,7 @@ class JobDetail(JobPage):
         return show, rows
 
     def get_context_data(self, **kwargs):
-        """Add the page of rows, the outcome tiles, the progress and the file's facts."""
+        """Add the page of rows, the outcome tiles, the progress and the file facts."""
         context = super().get_context_data(**kwargs)
         job = self.job
         show, rows = self.rows_shown()

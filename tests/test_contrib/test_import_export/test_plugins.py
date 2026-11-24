@@ -741,7 +741,7 @@ class TestJobStatus:
 
     @pytest.fixture
     def running(self, checked_job, settings):
-        """A job being checked, two hundred rows long, with a cache that keeps values."""
+        """A job being checked, two hundred rows long, with a cache that keeps it."""
         settings.CACHES = {
             "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}
         }
