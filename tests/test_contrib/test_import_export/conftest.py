@@ -420,3 +420,59 @@ def schema_resource(schema, dataset, headings, user, **options):
     from fairdm.contrib.import_export.resources import build_resource
 
     return build_resource(schema, dataset, columns=headings, user=user, **options)
+
+
+@pytest.fixture
+def make_job(open_dataset):
+    """Return a function creating an import job over a CSV file of rows."""
+
+    def build(
+        rows,
+        model=RockSample,
+        dataset=None,
+        status="checking",
+        user=None,
+        column_map=None,
+        samples=None,
+        **options,
+    ):
+        """Create the job and store its file.
+
+        Args:
+            rows: One dict of heading to cell for each row.
+            model: The registered type the rows fill.
+            dataset: The dataset to import into. Defaults to the open dataset.
+            status: The job's status.
+            user: The person who uploaded the file.
+            column_map: Heading to column. Defaults to each heading meaning the
+                column of the same name.
+            samples: The example values to store on the job.
+            **options: ``mode`` and ``empty_cells`` for the job.
+
+        Returns:
+            The stored job.
+        """
+        from django.core.files.base import ContentFile
+
+        from fairdm.contrib.import_export.models import ImportJob
+
+        headings = list(dict.fromkeys(key for row in rows for key in row))
+        body = io.StringIO(newline="")
+        writer = csv.writer(body)
+        writer.writerow(headings)
+        writer.writerows([row.get(heading, "") for heading in headings] for row in rows)
+        return ImportJob.objects.create(
+            dataset=dataset or open_dataset,
+            definition_name=model._meta.model_name,
+            created_by=user,
+            file=ContentFile(body.getvalue().encode("utf-8"), name="records.csv"),
+            filename="records.csv",
+            file_format="csv",
+            status=status,
+            headers=headings,
+            samples=samples or {},
+            column_map=column_map or {heading: heading for heading in headings},
+            **options,
+        )
+
+    return build
