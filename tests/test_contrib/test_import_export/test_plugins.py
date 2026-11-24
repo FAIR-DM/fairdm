@@ -22,6 +22,7 @@ from fairdm.contrib.import_export.models import ImportJob, ImportRow
 from fairdm.contrib.import_export.plugins import import_chooser
 from fairdm.contrib.import_export.reader import FileReader
 from fairdm.contrib.import_export.runner import ImportRun
+from fairdm.contrib.import_export.undo import ImportUndo
 from fairdm.contrib.plugins import reverse
 from fairdm.factories import ContributionFactory, DatasetFactory, PersonFactory
 from fairdm.registry import registry
@@ -965,3 +966,208 @@ class TestImportsList:
     def test_an_empty_dataset_says_so(self, editor_client, open_dataset):
         page = parse(editor_client.get(reverse(open_dataset, "imports")))
         assert not page.select("[data-ie-job]")
+
+
+@pytest.fixture
+def imported_job(make_job, open_dataset, editor):
+    """An imported job that added one rock and changed another.
+
+    Returns:
+        The job, the added rock and the changed rock.
+    """
+    changed = RockSampleFactory(
+        dataset=open_dataset, local_id="OLD", hardness_mohs="7.0", rock_type="granite"
+    )
+    job = make_job(
+        [
+            {
+                "name": "Brand new",
+                "local_id": "NEW",
+                "rock_type": "basalt",
+                "collection_date": "2024-06-30",
+            },
+            {
+                "name": changed.name,
+                "local_id": "OLD",
+                "rock_type": "granite",
+                "collection_date": "2024-06-30",
+                "hardness_mohs": "6.5",
+            },
+        ]
+    )
+    ImportRun(job).check()
+    ImportJob.objects.filter(pk=job.pk).update(status=Status.IMPORTING)
+    ImportRun(job).perform(editor)
+    job.refresh_from_db()
+    added = RockSample.objects.get(dataset=open_dataset, local_id="NEW")
+    return job, added, RockSample.objects.get(pk=changed.pk)
+
+
+class TestJobUndo:
+    """The undo action: one conditional step, refused while anything stands in the way."""
+
+    def post(self, client, address):
+        """Post the undo action to a job's page."""
+        return client.post(address, {"action": "undo"})
+
+    def test_undo_deletes_what_was_added_and_restores_what_was_changed(
+        self, editor_client, editor, job_url, imported_job
+    ):
+        job, added, changed = imported_job
+        response = self.post(editor_client, job_url(job))
+        job.refresh_from_db()
+        changed.refresh_from_db()
+        assert response.status_code == 302
+        assert job.status == Status.UNDONE
+        assert job.undone_by == editor
+        assert not RockSample.objects.filter(pk=added.pk).exists()
+        assert str(changed.hardness_mohs) == "7.0"
+
+    def test_anyone_with_the_edit_level_may_undo_not_only_who_imported(
+        self, client, open_dataset, person_at, job_url, imported_job
+    ):
+        job, _added, _changed = imported_job
+        other = person_at(open_dataset, ContributionLevel.EDIT)
+        client.force_login(other)
+        self.post(client, job_url(job))
+        job.refresh_from_db()
+        assert job.status == Status.UNDONE
+        assert job.undone_by == other
+
+    def test_a_person_who_may_not_import_gets_a_404_and_nothing_changes(
+        self, client, open_dataset, person_at, job_url, imported_job
+    ):
+        job, added, _changed = imported_job
+        client.force_login(person_at(open_dataset, ContributionLevel.VIEW))
+        response = self.post(client, job_url(job))
+        job.refresh_from_db()
+        assert response.status_code == 404
+        assert job.status == Status.IMPORTED
+        assert RockSample.objects.filter(pk=added.pk).exists()
+
+    def test_a_refusal_changes_nothing_and_lists_the_records_in_the_way(
+        self, editor_client, job_url, imported_job
+    ):
+        job, added, changed = imported_job
+        RockSample.objects.filter(pk=changed.pk).update(rock_type="gabbro")
+        response = self.post(editor_client, job_url(job))
+        job.refresh_from_db()
+        listed = parse(response).select("[data-ie-conflict]")
+        assert response.status_code == 200
+        assert job.status == Status.IMPORTED
+        assert RockSample.objects.filter(pk=added.pk).exists()
+        assert [item["data-ie-conflict"] for item in listed] == [str(changed.pk)]
+
+    def test_a_refusal_shows_twenty_records_and_counts_the_rest(
+        self, editor_client, job_url, imported_job
+    ):
+        job, _added, _changed = imported_job
+        ImportRow.objects.bulk_create(
+            ImportRow(job=job, number=100 + n, line=n, outcome="new", record_pk=n)
+            for n in range(1, 31)
+        )
+        response = self.post(editor_client, job_url(job))
+        page = parse(response)
+        assert len(page.select("[data-ie-conflict]")) == 20
+        assert (
+            page.select_one("[data-ie-conflict-more]")["data-ie-conflict-more"] == "10"
+        )
+
+    def test_a_double_post_starts_one_undo(self, editor_client, job_url, imported_job):
+        job, _added, _changed = imported_job
+        with mock.patch.object(
+            ImportUndo,
+            "delete_created",
+            autospec=True,
+            side_effect=ImportUndo.delete_created,
+        ) as deleted:
+            self.post(editor_client, job_url(job))
+            self.post(editor_client, job_url(job))
+        assert deleted.call_count == 1
+
+    @pytest.mark.parametrize(
+        "status",
+        [
+            Status.CHECKED,
+            Status.PROBLEMS,
+            Status.UNDONE,
+            Status.DISCARDED,
+            Status.FAILED,
+        ],
+    )
+    def test_undo_is_refused_in_any_other_status(
+        self, editor_client, job_url, imported_job, status
+    ):
+        job, added, _changed = imported_job
+        ImportJob.objects.filter(pk=job.pk).update(status=status)
+        self.post(editor_client, job_url(job))
+        job.refresh_from_db()
+        assert job.status == status
+        assert RockSample.objects.filter(pk=added.pk).exists()
+
+    def test_the_undo_button_shows_on_an_imported_job_nothing_stands_in_the_way_of(
+        self, editor_client, job_url, imported_job
+    ):
+        job, _added, _changed = imported_job
+        page = parse(editor_client.get(job_url(job)))
+        assert page.select('form button[name="action"][value="undo"]')
+
+    def test_the_undo_button_is_not_shown_when_a_record_changed(
+        self, editor_client, job_url, imported_job
+    ):
+        job, _added, changed = imported_job
+        RockSample.objects.filter(pk=changed.pk).update(rock_type="gabbro")
+        page = parse(editor_client.get(job_url(job)))
+        assert not page.select('button[value="undo"]')
+
+    def test_another_datasets_job_cannot_be_undone_through_this_one(
+        self, editor_client, open_dataset, job_url, imported_job
+    ):
+        job, _added, _changed = imported_job
+        other = DatasetFactory()
+        response = self.post(editor_client, job_url(job, dataset=other))
+        job.refresh_from_db()
+        assert response.status_code == 404
+        assert job.status == Status.IMPORTED
+
+
+class TestPastImports:
+    """The dataset's list of imports, newest first."""
+
+    @pytest.fixture
+    def past_url(self, open_dataset):
+        """The past imports address."""
+        return reverse(open_dataset, "imports")
+
+    def test_it_lists_the_datasets_imports_newest_first(
+        self, editor_client, open_dataset, past_url
+    ):
+        older = ImportJobFactory(dataset=open_dataset, filename="older.csv")
+        newer = ImportJobFactory(dataset=open_dataset, filename="newer.csv")
+        ImportJobFactory(filename="elsewhere.csv")
+        page = parse(editor_client.get(past_url))
+        links = [a["href"] for a in page.select("[data-ie-job] a.ie-job__link")]
+        assert links == [newer.get_absolute_url(), older.get_absolute_url()]
+
+    def test_an_empty_dataset_says_so_and_offers_the_import_dialog(
+        self, editor_client, past_url
+    ):
+        page = parse(editor_client.get(past_url))
+        assert not page.select("[data-ie-job]")
+        assert page.select_one(".ie-empty")
+        assert page.select('button[aria-haspopup="dialog"]')
+        assert page.select("dialog")
+
+    def test_a_dataset_with_imports_offers_the_dialog_too(
+        self, editor_client, open_dataset, past_url
+    ):
+        ImportJobFactory(dataset=open_dataset)
+        page = parse(editor_client.get(past_url))
+        assert page.select('button[aria-haspopup="dialog"]')
+        assert page.select("dialog")
+
+    def test_a_person_who_may_not_import_gets_a_404(
+        self, client, open_dataset, person_at, past_url
+    ):
+        client.force_login(person_at(open_dataset, ContributionLevel.VIEW))
+        assert client.get(past_url).status_code == 404

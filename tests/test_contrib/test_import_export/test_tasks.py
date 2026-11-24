@@ -1,13 +1,19 @@
 """Tests for fairdm/contrib/import_export/tasks.py."""
 
+from datetime import timedelta
 from unittest import mock
 
 import pytest
+from django.core.files.storage import default_storage
 from django.db import transaction
+from django.utils import timezone
+from django_celery_beat.models import PeriodicTask
 
 from fairdm.contrib.import_export import tasks
+from fairdm.contrib.import_export.apps import DISCARD_TASK, seed_discard_task
 from fairdm.contrib.import_export.models import ImportJob
 from fairdm.contrib.import_export.runner import ImportRun
+from tests.factories import ImportJobFactory, ImportRowFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -105,3 +111,84 @@ class TestImportJob:
         tasks.import_job(job.pk, user.pk)
         job.refresh_from_db()
         assert job.imported_by == user
+
+
+class TestDiscardStale:
+    """An import left unfinished for 30 days is discarded and its file deleted."""
+
+    def old(self, job, days=31):
+        """Make the job's upload older by a number of days."""
+        ImportJob.objects.filter(pk=job.pk).update(
+            created=timezone.now() - timedelta(days=days)
+        )
+        job.refresh_from_db()
+        return job
+
+    @pytest.mark.parametrize(
+        "status",
+        [
+            Status.MATCHING,
+            Status.CHECKING,
+            Status.CHECKED,
+            Status.NOTHING,
+            Status.PROBLEMS,
+        ],
+    )
+    def test_an_unfinished_job_is_discarded_and_loses_its_file(self, status):
+        job = self.old(ImportJobFactory(with_file=True, status=status))
+        stored = job.file.name
+        tasks.discard_stale_jobs()
+        job.refresh_from_db()
+        assert job.status == Status.DISCARDED
+        assert not job.file
+        assert job.samples == {}
+        assert not default_storage.exists(stored)
+
+    def test_the_rows_are_kept(self):
+        job = self.old(ImportJobFactory(with_file=True))
+        ImportRowFactory(job=job)
+        ImportRowFactory(job=job)
+        tasks.discard_stale_jobs()
+        assert job.rows.count() == 2
+
+    def test_a_younger_job_is_left_alone(self):
+        job = self.old(ImportJobFactory(with_file=True), days=29)
+        tasks.discard_stale_jobs()
+        job.refresh_from_db()
+        assert job.status == Status.CHECKED
+        assert job.file
+
+    @pytest.mark.parametrize(
+        "status", [Status.IMPORTING, Status.IMPORTED, Status.UNDONE, Status.FAILED]
+    )
+    def test_a_job_with_a_result_or_at_work_is_left_alone(self, status):
+        job = self.old(ImportJobFactory(status=status))
+        tasks.discard_stale_jobs()
+        job.refresh_from_db()
+        assert job.status == status
+
+    def test_it_answers_how_many_it_discarded(self):
+        self.old(ImportJobFactory())
+        self.old(ImportJobFactory())
+        ImportJobFactory()
+        assert tasks.discard_stale_jobs() == 2
+
+
+class TestDiscardSchedule:
+    """The daily discard is scheduled once the beat tables exist."""
+
+    def test_the_periodic_task_exists(self):
+        assert PeriodicTask.objects.filter(task=DISCARD_TASK, enabled=True).count() == 1
+
+    def test_seeding_again_leaves_a_changed_schedule_unchanged(self):
+        scheduled = PeriodicTask.objects.get(task=DISCARD_TASK)
+        PeriodicTask.objects.filter(pk=scheduled.pk).update(enabled=False)
+        seed_discard_task()
+        scheduled.refresh_from_db()
+        assert scheduled.enabled is False
+        assert PeriodicTask.objects.filter(task=DISCARD_TASK).count() == 1
+
+    def test_seeding_recreates_a_missing_task(self):
+        PeriodicTask.objects.filter(task=DISCARD_TASK).delete()
+        seed_discard_task()
+        assert PeriodicTask.objects.filter(task=DISCARD_TASK).count() == 1
