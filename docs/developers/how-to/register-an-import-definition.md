@@ -10,31 +10,29 @@ You need a registered sample or measurement type. This guide uses `CoreSample`, 
 
 1. Choose a name for the definition. It must be a slug and must not be the name of a definition that exists. The built-in ones are named after the models, such as `coresample`.
 
-2. Create the definition and register it where your portal starts, in the `ready` method of your app's configuration. `register` raises `ValueError` when the name is taken or the model is not registered.
+2. Create the definition and register it in your portal's `config.py`, below the registration of the type itself. FairDM imports `config.py` when it starts, after every app is ready, so the type is registered by then. Do not register in an app's `ready` method: your apps start before FairDM's, the type is not registered yet and `register` raises `ValueError`. It raises the same error when the name is taken.
 
    ```python
-   # myportal/apps.py
-   from django.apps import AppConfig
+   # myportal/config.py
+   import fairdm
+   from fairdm.contrib.import_export.definitions import ImportDefinition, register
+   from fairdm.core.sample.config import BaseSampleConfiguration
+
+   from .models import CoreSample
 
 
-   class MyPortalConfig(AppConfig):
-       name = "myportal"
+   @fairdm.register
+   class CoreSampleConfiguration(BaseSampleConfiguration):
+       model = CoreSample
 
-       def ready(self):
-           from fairdm.contrib.import_export.definitions import (
-               ImportDefinition,
-               register,
-           )
 
-           from myportal.models import CoreSample
-
-           register(
-               ImportDefinition(
-                   name="field-cores",
-                   model=CoreSample,
-                   formats=("csv", "xlsx"),
-               )
-           )
+   register(
+       ImportDefinition(
+           name="field-cores",
+           model=CoreSample,
+           formats=("csv", "xlsx"),
+       )
+   )
    ```
 
 3. Check that the portal knows the definition. Its columns come from the type's configuration, so a change to `resource_fields` changes them.
