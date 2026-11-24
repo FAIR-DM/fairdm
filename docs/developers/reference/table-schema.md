@@ -69,9 +69,20 @@ The columns come in this order:
 
 The `resource_fields` of the configuration narrow the schema. When it lists fields, an optional field that it leaves out gets no column. A field that a new record cannot be saved without keeps its column, and so do the identifiers. `exclude` removes optional fields in the same way. `status` and the location columns appear when `resource_fields` is empty or names them. The location columns read by the rules in [Location fields](location-fields.md).
 
+## Which function builds which part
+
+`build_table_schema` walks the order above and calls one function for each part:
+
+- `identifier_columns` for the first group.
+- `field_column` for each of the type's own fields. It asks `kind_of` for the field's kind, `is_required` for whether a new record needs it, `stored_range` for the range the field stores and `concept_choices` for the allowed values of a concept field, with `concept_definition` for what each value means.
+- `location_columns` for the last group.
+- `example_for` for the example of every column, with `number_example` for numbers. The example comes from the column's kind and constraints and never from a stored record.
+
 ## Widgets
 
 A widget reads a cell into the value a model field stores and writes a stored value back as a cell. A value written by a widget is read back as the same value. A cell that cannot be read is refused with a message that names the problem, and django-import-export reports it on the row.
+
+Two functions are the way in. `widget_for(column, dataset=None, user=None)` returns the widget of a column, and `Column.widget()` calls it. `render_cell(column, instance)` writes the cell of a record, in the form the widget reads.
 
 ### The widget of each kind
 

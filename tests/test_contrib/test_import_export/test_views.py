@@ -57,7 +57,8 @@ class TestTableSchemaView:
 
         document = json.loads(client.get(address(RockSample)).content)
 
-        field = next(f for f in document["fields"] if f["name"] == schema.columns[index].name)
+        name = schema.columns[index].name
+        field = next(f for f in document["fields"] if f["name"] == name)
         assert field["constraints"]["enum"] == [value for value, _ in values]
 
     def test_an_unknown_type_is_not_found(self, client):

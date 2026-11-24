@@ -197,3 +197,12 @@ that no longer exists, and nothing loaded the module until the Table Schema rout
 the module loads. The rest of the module is untouched.
 
 **ADR:** none, local to this feature.
+
+## D21. The import definitions are one class with one instance
+
+The review found the registry written as module functions over a module dict, which a portal could
+only patch. `ImportDefinitions` now holds the added definitions and the lookups, and the module
+has one instance. `register` and `get_definition` stay importable from the module as that
+instance's bound methods, so the documented import path does not change.
+
+**ADR:** none, local to this feature.
