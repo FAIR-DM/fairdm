@@ -34,9 +34,9 @@ class ImportUndo:
     CHUNK = 500
     LIMIT = 20
     REASONS = {
-        "deleted": _l("deleted since"),
-        "measurements": _l("has measurements"),
-        "changed": _l("changed since"),
+        "deleted": _l("deleted since the import"),
+        "measurements": _l("has measurements recorded on it"),
+        "changed": _l("changed since the import"),
     }
 
     def __init__(self, job):
