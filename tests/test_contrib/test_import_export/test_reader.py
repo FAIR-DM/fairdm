@@ -3,6 +3,7 @@
 from unittest import mock
 
 import pytest
+
 from fairdm.contrib.import_export.reader import FileProblem, FileReader
 
 HEADINGS = ["Name", "Local ID", "Rock type"]

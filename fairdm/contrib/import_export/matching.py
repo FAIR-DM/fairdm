@@ -25,7 +25,7 @@ class HeadingMatcher:
     """
 
     def __init__(self, schema):
-        """Index the importable columns of the schema by every heading they answer to."""
+        """Index the importable columns by every heading they answer to."""
         self.schema = schema
         self.keys = {}
         for column in schema.importable:
@@ -137,7 +137,8 @@ class HeadingMatcher:
         if ("latitude" in mapped) != ("longitude" in mapped):
             warnings.append(
                 _(
-                    "Only one of latitude and longitude is matched. A location needs both."
+                    "Only one of latitude and longitude is matched. "
+                    "A location needs both."
                 )
             )
         return warnings
