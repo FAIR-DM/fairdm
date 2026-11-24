@@ -139,5 +139,5 @@ public name.
 - [x] T024 [US1] Mutation pass over the template, page and component tests the feature added:
   each is broken once in the behaviour it names, and one that stays green is rewritten until it
   fails.
-- [ ] T025 [US1] Cleanup of the feature's diff: behaviour-preserving simplification inside the
+- [x] T025 [US1] Cleanup of the feature's diff: behaviour-preserving simplification inside the
   files the feature touched.
