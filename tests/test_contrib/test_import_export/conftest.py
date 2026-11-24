@@ -291,3 +291,75 @@ def import_row(import_job):
     from tests.factories import ImportRowFactory
 
     return ImportRowFactory(job=import_job)
+
+
+@pytest.fixture
+def file_of():
+    """Return a function building the bytes of a file of rows in one of five formats."""
+
+    def build(kind, rows):
+        """Build the file.
+
+        Args:
+            kind: ``csv``, ``semicolon``, ``tsv``, ``xlsx`` or ``ods``.
+            rows: The rows, the first of which is the headings.
+
+        Returns:
+            The file's bytes.
+        """
+        if kind in ("csv", "semicolon", "tsv"):
+            delimiter = {"csv": ",", "semicolon": ";", "tsv": "\t"}[kind]
+            buffer = io.StringIO(newline="")
+            csv.writer(buffer, delimiter=delimiter).writerows(rows)
+            return buffer.getvalue().encode("utf-8")
+        if kind == "xlsx":
+            from openpyxl import Workbook
+
+            book = Workbook()
+            for row in rows:
+                book.active.append(list(row))
+            out = io.BytesIO()
+            book.save(out)
+            return out.getvalue()
+        return ods_of([rows])
+
+    return build
+
+
+def ods_of(sheets, repeated=None):
+    """Build an OpenDocument spreadsheet with odfpy.
+
+    Args:
+        sheets: A list of sheets, each a list of rows of strings.
+        repeated: A ``(sheet, row, column, times)`` tuple naming a cell that is
+            written once and repeated across ``times`` columns.
+
+    Returns:
+        The file's bytes.
+    """
+    from odf.opendocument import OpenDocumentSpreadsheet
+    from odf.table import Table, TableCell, TableRow
+    from odf.text import P
+
+    doc = OpenDocumentSpreadsheet()
+    for number, rows in enumerate(sheets):
+        table = Table(name=f"Sheet{number + 1}")
+        for row_number, row in enumerate(rows):
+            table_row = TableRow()
+            for column_number, value in enumerate(row):
+                cell = TableCell(valuetype="string")
+                if repeated and repeated[:3] == (number, row_number, column_number):
+                    cell.setAttribute("numbercolumnsrepeated", str(repeated[3]))
+                cell.addElement(P(text=value))
+                table_row.addElement(cell)
+            table.addElement(table_row)
+        doc.spreadsheet.addElement(table)
+    out = io.BytesIO()
+    doc.write(out)
+    return out.getvalue()
+
+
+@pytest.fixture
+def ods_file():
+    """Return the function that builds an OpenDocument file from sheets."""
+    return ods_of
