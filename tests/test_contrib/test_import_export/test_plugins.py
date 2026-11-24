@@ -11,6 +11,7 @@ import pytest
 from bs4 import BeautifulSoup
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
+from import_export.formats.base_formats import XLSX
 from openpyxl import load_workbook
 
 from demo.factories import RockSampleFactory, XRFMeasurementFactory
@@ -250,6 +251,50 @@ class TestImportStart:
         )
         assert editor_client.get(address).status_code == 404
 
+    def test_a_template_in_a_format_the_portal_does_not_read_is_a_404(
+        self, editor_client, open_dataset, settings
+    ):
+        settings.IMPORT_FORMATS = [XLSX]
+        address = reverse(open_dataset, "import-template", type="rocksample", fmt="csv")
+        assert editor_client.get(address).status_code == 404
+
+    def test_the_step_bar_marks_the_first_step(self, editor_client, start_url):
+        page = parse(editor_client.get(start_url))
+        steps = page.select("ol.ie-steps > li")
+        assert len(steps) == 4
+        assert [bool(step.get("aria-current")) for step in steps] == [
+            True,
+            False,
+            False,
+            False,
+        ]
+
+    def test_the_upload_form_posts_a_file_with_the_options(
+        self, editor_client, start_url
+    ):
+        form = parse(editor_client.get(start_url)).select_one("form[data-ie-upload]")
+        assert form["method"] == "post"
+        assert form["enctype"] == "multipart/form-data"
+        assert form.select_one("input[type=file][required]")
+        assert form.select_one("input[name=mode]")
+        assert form.select_one("input[name=empty]")
+        assert form.select_one("input[name=csrfmiddlewaretoken]")
+
+    def test_recent_imports_are_of_this_type_and_at_most_five(
+        self, editor_client, start_url, open_dataset, job_url
+    ):
+        rocks = [ImportJobFactory(dataset=open_dataset) for _ in range(6)]
+        other = ImportJobFactory(dataset=open_dataset, definition_name="xrfmeasurement")
+        page = parse(editor_client.get(start_url))
+        links = [a["href"] for a in page.select(".ie-side [data-ie-job] a")]
+        assert len(links) == 5
+        assert job_url(other) not in links
+        assert set(links) <= {job_url(job) for job in rocks}
+
+    def test_no_recent_imports_draws_no_list(self, editor_client, start_url):
+        page = parse(editor_client.get(start_url))
+        assert not page.select("[data-ie-job]")
+
 
 class TestUpload:
     """A file is read before any job is saved."""
@@ -326,6 +371,33 @@ class TestUpload:
         upload("rocks.csv", rock_csv)
         job = ImportJob.objects.get()
         assert job.samples["name"] == ["Granite A", "Basalt A"]
+
+    def test_the_examples_are_four_cut_values_and_skip_empty_cells(
+        self, upload, queued
+    ):
+        long = "A" * 50
+        rows = [long, "", "B", "C", "D", "E"]
+        body = "name,rock_type,collection_date\n" + "".join(
+            f"{name},granite,2024-06-30\n" for name in rows
+        )
+        upload("rocks.csv", body.encode())
+        job = ImportJob.objects.get()
+        assert job.samples["name"] == ["A" * 40, "B", "C", "D"]
+
+    def test_two_columns_with_one_heading_save_no_job(self, upload, queued):
+        response = upload("rocks.csv", b"name,name,rock_type\nA,B,granite\n")
+        assert response.status_code == 200
+        assert parse(response).select("[role=alert]")
+        assert ImportJob.objects.count() == 0
+
+    def test_a_format_the_portal_does_not_read_saves_no_job(
+        self, upload, rock_csv, queued, settings
+    ):
+        settings.IMPORT_FORMATS = [XLSX]
+        response = upload("rocks.csv", rock_csv)
+        assert response.status_code == 200
+        assert parse(response).select("[role=alert]")
+        assert ImportJob.objects.count() == 0
 
     def test_an_unmatched_heading_goes_to_matching(self, upload, queued, job_url):
         body = b"name,rock_type,collection_date,mystery\nA,granite,2024-06-30,x\n"
@@ -453,6 +525,20 @@ class TestJobColumns:
         assert matching_job.status == status
         queued.assert_not_called()
 
+    def test_a_job_past_the_check_is_not_shown_problems_with_a_new_match(
+        self, editor_client, job_url, matching_job, queued
+    ):
+        ImportJob.objects.filter(pk=matching_job.pk).update(status=Status.IMPORTED)
+        response = editor_client.post(
+            job_url(matching_job, "columns"), {"col-0": "name"}
+        )
+        assert response.status_code == 302
+        assert response.url == matching_job.get_absolute_url()
+
+    def test_the_form_carries_a_csrf_token(self, editor_client, job_url, matching_job):
+        page = parse(editor_client.get(job_url(matching_job, "columns")))
+        assert page.select_one("form.ie-stack input[name=csrfmiddlewaretoken]")
+
     def test_a_double_post_queues_one_check(
         self, editor_client, job_url, matching_job, queued
     ):
@@ -533,6 +619,104 @@ class TestJobDetail:
         response = editor_client.get(job_url(checked_job) + "?show=new&page=9")
         assert response.status_code == 200
         assert not self.rows_on(response)
+
+    def test_a_page_number_below_one_reads_as_the_first(
+        self, editor_client, job_url, checked_job
+    ):
+        add_rows(checked_job, Outcome.NEW, 3)
+        response = editor_client.get(job_url(checked_job) + "?show=new&page=-2")
+        assert len(self.rows_on(response)) == 3
+
+    def test_the_pager_links_to_the_pages_either_side(
+        self, editor_client, job_url, checked_job
+    ):
+        add_rows(checked_job, Outcome.NEW, 250)
+        address = job_url(checked_job) + "?show=new"
+        first = parse(editor_client.get(address)).select("nav.ie-pager a")
+        middle = parse(editor_client.get(address + "&page=2")).select("nav.ie-pager a")
+        last = parse(editor_client.get(address + "&page=3")).select("nav.ie-pager a")
+        assert [a["href"] for a in first] == ["?show=new&page=2"]
+        assert [a["href"] for a in middle] == ["?show=new&page=1", "?show=new&page=3"]
+        assert [a["href"] for a in last] == ["?show=new&page=2"]
+
+    def test_a_job_on_one_page_has_no_pager(self, editor_client, job_url, checked_job):
+        add_rows(checked_job, Outcome.NEW, 3)
+        page = parse(editor_client.get(job_url(checked_job) + "?show=new"))
+        assert not page.select("nav.ie-pager")
+
+    def test_new_and_changed_rows_have_a_tile_even_with_none(
+        self, editor_client, job_url, checked_job
+    ):
+        ImportJob.objects.filter(pk=checked_job.pk).update(
+            status=Status.NOTHING, summary={"unchanged": 3}
+        )
+        page = parse(editor_client.get(job_url(checked_job)))
+        assert page.select_one(".ie-tile--new.ie-tile--zero")
+        assert page.select_one(".ie-tile--update.ie-tile--zero")
+        assert page.select_one(".ie-tile--unchanged")
+        assert not page.select(".ie-tile--skipped")
+        assert not page.select(".ie-tile--problem")
+
+    @pytest.mark.parametrize(
+        ("status", "current"),
+        [
+            (Status.CHECKING, 2),
+            (Status.CHECKED, 2),
+            (Status.PROBLEMS, 2),
+            (Status.IMPORTING, 3),
+            (Status.IMPORTED, 3),
+            (Status.UNDONE, 3),
+        ],
+    )
+    def test_the_step_bar_follows_the_job(
+        self, editor_client, job_url, checked_job, status, current
+    ):
+        ImportJob.objects.filter(pk=checked_job.pk).update(status=status)
+        page = parse(editor_client.get(job_url(checked_job)))
+        steps = page.select("ol.ie-steps > li")
+        assert [i for i, step in enumerate(steps) if step.get("aria-current")] == [
+            current
+        ]
+
+    @pytest.mark.parametrize(
+        "status", [Status.CHECKED, Status.PROBLEMS, Status.NOTHING]
+    )
+    def test_a_job_that_may_be_matched_again_offers_to_do_so_or_to_check_again(
+        self, editor_client, job_url, checked_job, status
+    ):
+        ImportJob.objects.filter(pk=checked_job.pk).update(status=status)
+        page = parse(editor_client.get(job_url(checked_job)))
+        assert page.select(f'a[href="{job_url(checked_job, "columns")}"]')
+        assert page.select('form button[name=action][value="recheck"]')
+
+    @pytest.mark.parametrize(
+        "status", [Status.IMPORTED, Status.FAILED, Status.DISCARDED]
+    )
+    def test_a_job_past_the_check_offers_neither(
+        self, editor_client, job_url, checked_job, status
+    ):
+        ImportJob.objects.filter(pk=checked_job.pk).update(status=status)
+        page = parse(editor_client.get(job_url(checked_job)))
+        assert not page.select(f'a[href="{job_url(checked_job, "columns")}"]')
+        assert not page.select('button[value="recheck"]')
+
+    def test_a_problem_job_without_its_file_offers_no_download(
+        self, editor_client, job_url, checked_job
+    ):
+        ImportJob.objects.filter(pk=checked_job.pk).update(
+            status=Status.PROBLEMS, summary={"problem": 1}, file=""
+        )
+        page = parse(editor_client.get(job_url(checked_job)))
+        assert not page.select(f'a[href="{job_url(checked_job, "problems")}"]')
+
+    def test_a_running_job_lists_no_rows_even_when_it_has_some(
+        self, editor_client, job_url, checked_job
+    ):
+        add_rows(checked_job, Outcome.NEW, 2)
+        ImportJob.objects.filter(pk=checked_job.pk).update(status=Status.IMPORTING)
+        page = parse(editor_client.get(job_url(checked_job)))
+        assert not page.select(".ie-tiles")
+        assert not page.select("[data-ie-row]")
 
     def test_a_page_number_that_is_not_a_number_reads_as_the_first(
         self, editor_client, job_url, checked_job
@@ -768,6 +952,17 @@ class TestJobStatus:
         assert root["hx-trigger"] == "every 1s"
         assert root["hx-get"] == job_url(running, "status")
 
+    def test_an_import_is_labelled_apart_from_a_check(
+        self, editor_client, job_url, running
+    ):
+        def label():
+            page = parse(editor_client.get(job_url(running, "status")))
+            return page.select_one("[role=progressbar]")["aria-label"]
+
+        checking = label()
+        ImportJob.objects.filter(pk=running.pk).update(status=Status.IMPORTING)
+        assert label() != checking
+
     def test_a_job_with_no_progress_yet_reads_as_none_done(
         self, editor_client, job_url, running
     ):
@@ -884,6 +1079,30 @@ class TestJobProblems:
         ImportJob.objects.filter(pk=problem_job.pk).update(status=status)
         assert editor_client.get(job_url(problem_job, "problems")).status_code == 404
 
+    def test_a_problem_row_is_marked_and_the_others_are_not(
+        self, editor_client, job_url, problem_job
+    ):
+        sheet = self.sheet_of(editor_client.get(job_url(problem_job, "problems")))
+        marked = [row[0].fill.fill_type for row in sheet.iter_rows(min_row=2)]
+        assert [bool(kind) for kind in marked] == [False, True, False]
+
+    def test_a_problem_names_its_column_by_label(
+        self, editor_client, job_url, problem_job
+    ):
+        ImportRow.objects.filter(job=problem_job).update(
+            problems=[{"column": "rock_type", "message": "not a rock"}]
+        )
+        schema = import_definitions.get("rocksample").table_schema()
+        label = str(schema.get("rock_type").label)
+        sheet = self.sheet_of(editor_client.get(job_url(problem_job, "problems")))
+        assert sheet.cell(row=3, column=1).value == f"{label}: not a rock"
+
+    def test_it_is_a_404_when_the_stored_file_has_gone_from_storage(
+        self, editor_client, job_url, problem_job
+    ):
+        problem_job.file.storage.delete(problem_job.file.name)
+        assert editor_client.get(job_url(problem_job, "problems")).status_code == 404
+
     def test_it_is_a_404_once_the_file_is_gone(
         self, editor_client, job_url, problem_job
     ):
@@ -962,6 +1181,12 @@ class TestImportsList:
         page = parse(editor_client.get(reverse(open_dataset, "imports")))
         links = {a["href"] for a in page.select("[data-ie-job] a")}
         assert links == {job_url(job) for job in mine}
+
+    def test_each_job_names_its_type(self, editor_client, open_dataset):
+        job = ImportJobFactory(dataset=open_dataset)
+        page = parse(editor_client.get(reverse(open_dataset, "imports")))
+        meta = page.select_one("[data-ie-job] .ie-job__meta").get_text().lower()
+        assert job.type_name.lower() in meta
 
     def test_an_empty_dataset_says_so(self, editor_client, open_dataset):
         page = parse(editor_client.get(reverse(open_dataset, "imports")))

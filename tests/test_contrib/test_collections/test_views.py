@@ -4,6 +4,7 @@ import ast
 import datetime
 import importlib
 from pathlib import Path
+from unittest import mock
 
 import pytest
 from bs4 import BeautifulSoup
@@ -904,6 +905,17 @@ class TestImportOnPages:
         name = registry.get_for_model(model).get_slug()
         assert link["href"] == record_reverse(dataset, "import", type=name)
         assert not page.select_one(IMPORT_DIALOG)
+
+    def test_a_page_with_no_export_menu_still_has_the_import_button(
+        self, client, dataset
+    ):
+        self.sign_in(client, dataset, ContributionLevel.EDIT)
+
+        with mock.patch.object(RecordExportMixin, "export_menu", return_value=None):
+            page = self.page(client, records_tab(dataset, "samples"))
+
+        assert not page.select_one("[data-ie-menu]")
+        assert page.select_one(".ie-tools " + IMPORT_BUTTON)
 
     @pytest.mark.parametrize("tab", ["samples", "measurements"])
     def test_a_person_who_may_only_view_has_no_import_button(

@@ -172,6 +172,54 @@ class TestPanel:
         page = soup(render_markup('<c-import.panel title="T">x</c-import.panel>'))
         assert not page.select(".ie-count")
 
+    def test_a_bare_title_has_no_header_row(self, render_markup, soup):
+        page = soup(render_markup('<c-import.panel title="T">x</c-import.panel>'))
+        assert not page.select("section > header")
+        assert page.select_one("section > h2")
+
+    def test_a_count_moves_the_title_into_a_header_row(self, render_markup, soup):
+        page = soup(
+            render_markup('<c-import.panel title="T" count="7">x</c-import.panel>')
+        )
+        assert page.select_one("section > header > h2")
+
+    def test_the_action_slot_is_drawn_in_the_header_row(self, render_markup, soup):
+        page = soup(
+            render_markup(
+                '<c-import.panel title="T"><c-slot name="action">'
+                '<a id="more" href="/m/">More</a></c-slot>x</c-import.panel>'
+            )
+        )
+        assert page.select_one("section > header #more")
+
+    @pytest.mark.parametrize("size", ["side", "flush"])
+    def test_a_size_is_in_the_class(self, render_markup, soup, size):
+        page = soup(
+            render_markup(f'<c-import.panel title="T" size="{size}">x</c-import.panel>')
+        )
+        assert f"ie-panel--{size}" in page.select_one("section")["class"]
+
+    def test_a_plain_panel_has_no_size_class(self, render_markup, soup):
+        page = soup(render_markup('<c-import.panel title="T">x</c-import.panel>'))
+        assert page.select_one("section")["class"] == ["ie-panel"]
+
+    @pytest.mark.parametrize("tone", ["error", "ready", "done"])
+    def test_a_tone_is_in_the_class(self, render_markup, soup, tone):
+        page = soup(
+            render_markup(f'<c-import.panel title="T" tone="{tone}">x</c-import.panel>')
+        )
+        assert {"ie-hero", f"ie-hero--{tone}"} <= set(
+            page.select_one("section")["class"]
+        )
+
+    def test_an_info_tone_is_the_plain_highlight(self, render_markup, soup):
+        page = soup(
+            render_markup('<c-import.panel title="T" tone="info">x</c-import.panel>')
+        )
+        classes = page.select_one("section")["class"]
+        assert "ie-hero" in classes
+        assert "ie-hero--info" not in classes
+
 
 class TestAlert:
     """An alert that is announced when it is an error."""
