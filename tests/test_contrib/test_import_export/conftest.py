@@ -4,6 +4,7 @@ import csv
 import io
 
 import pytest
+import tablib
 from django.urls import reverse
 
 from demo.factories import (
@@ -363,3 +364,59 @@ def ods_of(sheets, repeated=None):
 def ods_file():
     """Return the function that builds an OpenDocument file from sheets."""
     return ods_of
+
+
+@pytest.fixture
+def run_import(open_dataset):
+    """Return a function that imports rows into a dataset through a type's resource."""
+
+    def run(model, rows, dataset=None, dry_run=False, user=None, **options):
+        """Import the rows.
+
+        Args:
+            model: The registered sample or measurement model.
+            rows: One dict of heading to cell for each row.
+            dataset: The dataset to import into. Defaults to the open dataset.
+            dry_run: Whether to roll everything back.
+            user: The person importing, or None for a visitor.
+            **options: ``mode`` and ``empty`` for the resource.
+
+        Returns:
+            The resource and the result of its import.
+        """
+        schema = registry.get_for_model(model).get_table_schema()
+        headings = list(dict.fromkeys(key for row in rows for key in row))
+        resource = schema_resource(
+            schema, dataset or open_dataset, headings, user, **options
+        )
+        data = tablib.Dataset(headers=headings)
+        for row in rows:
+            data.append([row.get(heading, "") for heading in headings])
+        result = resource.import_data(
+            data,
+            dry_run=dry_run,
+            raise_errors=False,
+            use_transactions=True,
+            retain_instance_in_row_result=True,
+        )
+        return resource, result
+
+    return run
+
+
+def schema_resource(schema, dataset, headings, user, **options):
+    """Build the resource for a file with these headings.
+
+    Args:
+        schema: The type's table schema.
+        dataset: The dataset the file is imported into.
+        headings: The file's headings.
+        user: The person importing, or None for a visitor.
+        **options: ``mode`` and ``empty``.
+
+    Returns:
+        The resource.
+    """
+    from fairdm.contrib.import_export.resources import build_resource
+
+    return build_resource(schema, dataset, columns=headings, user=user, **options)
