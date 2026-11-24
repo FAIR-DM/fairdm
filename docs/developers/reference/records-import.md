@@ -2,6 +2,54 @@
 
 A person with the edit level on a dataset imports a file of one registered sample or measurement type into it. This page describes what the import stores and how the options form is built. The columns of a file come from the type's [table schema](table-schema.md), and the generated API reference describes every class and argument in [`models`](api/fairdm/fairdm.contrib.import_export.models.md) and [`forms`](api/fairdm/fairdm.contrib.import_export.forms.md).
 
+## How an import works
+
+A person who holds the dataset's `import_data` permission uploads a file, chooses two options, checks the file and then imports it. Anyone else gets a 404 from every import page of the dataset. The import is in three steps, and nothing is written to the dataset until the third.
+
+1. **Upload.** The person picks the type, the options and the file. The file is read once so that a refused file shows its problem on the same page and leaves no job behind. When a heading matches no column, the person matches the columns by hand first.
+2. **Check.** A dry run reads every row and saves nothing. It gives each row an outcome, and the person reads the result before anything is written.
+3. **Import.** The rows the check showed are written in one transaction. The import checks again as it writes, and when the dataset has changed since the check it writes nothing and shows the new result.
+
+An imported job can be undone, and an unfinished one is discarded after 30 days.
+
+### Files and limits
+
+`FileReader` reads `csv`, `tsv`, `xlsx` and `ods` files, by their extension in any case. A file may be up to 20 MB and hold up to 50,000 rows of data. Only the first sheet of a workbook or spreadsheet is read. A text file is read as UTF-8, then Windows-1252, then Latin-1. A file over a limit, of another format, empty or with no rows is refused with a `FileProblem` that says why. See [Reading a file](#reading-a-file) for every limit.
+
+### The options and how rows find records
+
+The two options are what the file may do and what an empty cell means. A file may add new records and update existing ones, only add, or only update. An empty cell either keeps the stored value or clears it. A new record has nothing to clear, so its empty cells are left to the model's defaults.
+
+A row finds the record it is about by its portal ID first. The portal ID is looked up among all samples or all measurements, whatever their type, and it must name a record of the type being imported. A row with no portal ID finds its record by its Local ID within the dataset. A name never finds a record. A row with neither identifier is a new record when the options allow it. A portal ID that names no record, a Local ID that several records hold, and two rows that mean one record are problems. A portal ID that names a record of another dataset leaves the row out. See [Importing rows](#importing-rows).
+
+### The outcomes of a row
+
+Every row of the file ends with one outcome in `ImportRow`:
+
+- **New**: the row adds a record.
+- **Update**: the row changes a stored record, and the cells it changes are kept.
+- **Unchanged**: the row matches a stored record and changes nothing.
+- **Left out**: the options do not ask for the row, or it names a record of another dataset. The row keeps a note that says why.
+- **Problem**: a cell or the lookup is wrong. The row keeps each column that has a problem with its message.
+
+A job with any problem row is `problems` and imports nothing. A job whose rows are only unchanged or left out is `nothing`. Otherwise it is `checked` and ready to import.
+
+### Running the check and the import
+
+The portal's worker runs the check and the import as two tasks, `check_job` and `import_job`, so a portal must run a Celery worker. The person's page shows how many rows the phase has finished. The count is written to the cache after every tenth row and read by the page, so a cache that is cleared makes the count disappear and nothing else.
+
+Each task may run for 2,400 seconds before it is asked to stop and 2,700 seconds before it is killed. A file of 50,000 rows of the widest demo type took 11 minutes to check and 13 minutes to import on a development machine. A check that runs out of time ends the job as failed. An import that runs out of time has written nothing and returns the job to `checked`.
+
+### Undoing an import
+
+A person who holds the dataset's `import_data` permission can undo an imported job. Undo deletes the records the import added and restores the stored values of the records it updated, all in one transaction. It checks no permission on the records themselves.
+
+Undo is refused, and nothing is changed, when any record the import touched has changed since: a record that no longer exists, a record whose stored values differ from what the import left, or a sample the import added that now has measurements. The page names up to 20 of them and counts the rest. See `ImportUndo` in [Checking and importing a file](#checking-and-importing-a-file).
+
+### What is kept, and for how long
+
+The uploaded file is deleted as soon as the import ends in imported, undone, discarded or failed. The rows of a job keep the outcome of each row, never a cell of the file. A job left in matching, checking, ready to import, nothing to change or needs changes is discarded after 30 days by the daily task `discard_stale_jobs`, and its file is deleted. The rows of a discarded job stay, so the import is still listed with its counts. The task is scheduled at 02:30 through django-celery-beat. A portal may change its schedule or switch it off in the beat tables, because the app creates the schedule only when it is missing.
+
 ## What an import stores
 
 `ImportJob` is one file uploaded into one dataset, from upload to outcome. It holds the dataset, the registered type's name, who uploaded it, the stored file, the two options, the column map and a status. The status is one of matching columns, checking, ready to import, nothing to change, needs changes, importing, imported, undone, discarded or failed. The stored file is deleted when the import ends in imported, undone, discarded or failed, and deleting a job deletes it too, so a deleted dataset leaves no file behind. The values shown beside each heading on the column matching page are cleared with the file.

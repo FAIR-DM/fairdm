@@ -79,6 +79,19 @@ finds a record, the Local ID matches one, and an export-only column is written b
 
 Implemented by `Column` in `fairdm/contrib/import_export/schema.py`.
 
+### Import
+
+One file of one sample or measurement type uploaded into one dataset, from the upload until it is
+imported, undone, discarded or fails. It is checked before anything is written, and it can be
+undone for as long as none of the records it touched has changed. A person needs the dataset's
+`import_data` permission.
+
+Avoid "upload" for the whole process and "job" for it in prose: `ImportJob` is the class.
+
+Implemented by `ImportJob` and `ImportRow` in `fairdm/contrib/import_export/models.py`, run by
+`ImportRun` in `fairdm/contrib/import_export/runner.py` and undone by `ImportUndo` in
+`fairdm/contrib/import_export/undo.py`.
+
 ### Import definition
 
 The name of a kind of file, the sample or measurement model its rows fill and the formats it is
@@ -86,6 +99,17 @@ offered in. FairDM makes one for every registered type, named after the model in
 adds its own with `register`.
 
 Implemented by `ImportDefinition` in `fairdm/contrib/import_export/definitions.py`.
+
+### Local ID
+
+The creator's own identifier for a sample or a measurement within its dataset. Nothing makes it
+unique, so a Local ID held by several records finds none of them. A file's row finds its record
+by its portal ID first and by its Local ID in the dataset when it has none. It is not the portal
+ID, which the portal gives and never changes.
+
+Avoid "name" for it: a name never finds a record.
+
+Declared as `local_id` on `Sample` and `Measurement`.
 
 ### Export
 

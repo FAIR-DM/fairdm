@@ -128,7 +128,7 @@ public name.
 
 ### Group 10
 
-- [ ] T023 [US1] Documentation: `docs/developers/reference/records-import.md`, the `index.md`
+- [x] T023 [US1] Documentation: `docs/developers/reference/records-import.md`, the `index.md`
   entry, the `CHANGELOG.md` lines and the `CONTEXT.md` glossary entries, as plan.md
   "Specifications and documents edited" describes.
 
