@@ -438,6 +438,7 @@ class ImportRun:
         Returns:
             The text of each replaced value, by attribute name, written with
             ``field.value_to_string`` so a restore reads it with ``field.to_python``.
+            An empty value is ``None``, which a restore puts back as it is.
         """
         before = {}
         for field in record._meta.concrete_fields:
@@ -445,7 +446,8 @@ class ImportRun:
                 continue
             old = field.value_to_string(original)
             if old != field.value_to_string(record):
-                before[field.attname] = old
+                empty = field.value_from_object(original) is None
+                before[field.attname] = None if empty else old
         return before
 
     def delete_file(self):

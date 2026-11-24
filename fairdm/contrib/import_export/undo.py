@@ -252,6 +252,8 @@ class ImportUndo:
             for row in rows:
                 record = records[row.record_pk]
                 for attname, value in row.before.items():
-                    setattr(record, attname, fields[attname].to_python(value))
+                    if value is not None:
+                        value = fields[attname].to_python(value)
+                    setattr(record, attname, value)
                 record.save()
             self.advance(rows)
