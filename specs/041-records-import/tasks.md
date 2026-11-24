@@ -105,11 +105,11 @@ public name.
 
 ### Group 8
 
-- [ ] T019 [US1] Tests: `test_import_menu.py` (the component), `TestImportOnPages` in
+- [x] T019 [US1] Tests: `test_import_menu.py` (the component), `TestImportOnPages` in
   `tests/test_contrib/test_collections/test_views.py` (a single type's table links straight to its
   import page; a tab before a type is chosen and an empty tab open the dialog; a person who may
   not import sees no button; the dialog lists samples only, measurements only or both).
-- [ ] T020 [US1] `cotton/import/import_menu.html`, its placement in `record_lists/records.html`
+- [x] T020 [US1] `cotton/import/import_menu.html`, its placement in `record_lists/records.html`
   and `collections/listing.html` beside the Export menu, the records tab's `import_chooser`
   context. T019 and T016's placement tests go green.
 

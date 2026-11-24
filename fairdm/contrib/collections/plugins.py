@@ -26,6 +26,8 @@ from fairdm.contrib.autocomplete.filters import RecordMultipleFilter
 from fairdm.contrib.collections.tables import MeasurementTable, SampleTable
 from fairdm.contrib.collections.views import BOOKKEEPING_COLUMNS, DataTableView
 from fairdm.contrib.contributors.models import Contributor
+from fairdm.contrib.import_export.definitions import get_definition
+from fairdm.contrib.import_export.plugins import can_import, import_chooser
 from fairdm.contrib.plugins import Plugin, reverse
 from fairdm.contrib.plugins.mixins import PrivateRecordNotFoundMixin
 from fairdm.core.dataset.models import Dataset
@@ -556,7 +558,32 @@ class RecordsTab(PrivateRecordNotFoundMixin, Plugin, DataTableView):
         context["kind"] = self.base_model.__name__.lower()
         context["holder"] = self.holder
         context["own_page"] = self.is_own_page()
+        context.update(self.import_context())
         return context
+
+    def import_context(self):
+        """Say where the Import button leads, for a person who may import here.
+
+        Returns:
+            A dict with ``import_url``, the import page of the listed type, when the
+            address names a type, else ``import_chooser``, the dialog of the kind's
+            types. Both are None unless this is a dataset's tab and the user holds
+            ``dataset.import_data`` on it.
+        """
+        offer = {"import_url": None, "import_chooser": None}
+        if self.holder != "dataset" or not can_import(self.request, self.base_object):
+            return offer
+        definition = None
+        if self.chosen is not None and self.kwargs.get("type"):
+            definition = get_definition(self.model._meta.model_name)
+        if definition is not None:
+            offer["import_url"] = reverse(
+                self.base_object, "import", type=definition.name
+            )
+        else:
+            kind = self.base_model.__name__.lower()
+            offer["import_chooser"] = import_chooser(self.base_object, kind)
+        return offer
 
     def get_page_title(self):
         """Return the kind's plural name, which ends the breadcrumb trail."""

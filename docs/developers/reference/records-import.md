@@ -90,4 +90,6 @@ The tasks in `fairdm.contrib.import_export.tasks` run the two phases on the port
 
 `ImportJob.get_absolute_url()` is the address of the job's page.
 
-The pages are built from the components in `fairdm/templates/cotton/import/`: `c-import.steps`, `c-import.progress`, `c-import.panel`, `c-import.tag`, `c-import.outcome-badge`, `c-import.job-list`, `c-import.alert`, `c-import.choice` and `c-import.downloads`. Each component's file lists its props and slots in its own annotations.
+The pages are built from the components in `fairdm/templates/cotton/import/`: `c-import.steps`, `c-import.progress`, `c-import.panel`, `c-import.tag`, `c-import.outcome-badge`, `c-import.job-list`, `c-import.alert`, `c-import.choice`, `c-import.downloads` and `c-import.import-menu`. Each component's file lists its props and slots in its own annotations.
+
+`c-import.import-menu` takes a `chooser`, the dict `import_chooser` returns, and a `label`. It draws the Import button and, on `c-mvp.modal`, a dialog whose id is the chooser's `id` and which links each type to its import page. The Samples and Measurements tabs of a dataset put the button beside the Export menu for a person holding `dataset.import_data`, and in the empty state of an empty tab. A tab whose address names a type links straight to that type's import page instead, using `import_url`. `RecordsTab.import_context()` builds `import_url` and `import_chooser` for the page, and both are `None` on a project's or a contributor's tab and for a person who may not import.
