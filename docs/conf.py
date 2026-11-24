@@ -12,18 +12,11 @@ sys.path.append(str(BASE_DIR / "tests"))
 
 from fairdm_docs.conf import *  # type: ignore  # noqa: F403, E402
 
-# https://sphinx-book-theme.readthedocs.io/en/stable/reference.html
-# https://pydata-sphinx-theme.readthedocs.io/en/latest/user_guide/index.html
-# html_theme_options.update(
-#     {
-#         "announcement": (
-#             "⚠️FairDM is currently undergoing rapid development and the API may change without notice! ⚠️"
-#         ),
-#     }
-# )
+# Theme options: https://samueljennings.github.io/sphinx-daisyui/reference/options.html
 html_show_sphinx = False
-html_theme_options.update({
-       "logo": {
+html_theme_options.update(
+    {
+        "logo": {
             "image_light": "_static/fairdm_light.svg",
             "image_dark": "_static/fairdm_dark.svg",
         },
@@ -36,35 +29,21 @@ html_theme_options.update({
             "json_url": "https://docs.fairdm.org/switcher.json",
             "version_match": os.environ.get("DOCS_VERSION", "latest"),
         },
-        # With this on, the build fetches json_url and fails on the warning when
-        # the site cannot be reached.
+        # With this on, the build fetches json_url and warns when the site cannot be
+        # reached.
         "check_switcher": False,
-        "secondary_sidebar_items": {
-            "**": ["page-toc", "edit-this-page",],
-            "about/*": [],
-            "index": [],
-        },
+        "source_repository": "https://github.com/FAIR-DM/fairdm",
+        "source_branch": "main",
+        "source_directory": "docs",
         "icon_links": [
-        {
-            # Label for this link
-            "name": "GitHub",
-            # URL where the link will redirect
-            "url": "https://github.com/FAIR-DM/fairdm/",  # required
-            # Icon class (if "type": "fontawesome"), or path to local image (if "type": "local")
-            "icon": "fa-brands fa-github",
-            # The type of image to be used (see below for details)
-            "type": "fontawesome",
-        }
-   ]
-})
-
-html_context = {
-    # "github_url": "https://github.com", # or your GitHub Enterprise site
-    "github_user": "FAIR-DM",
-    "github_repo": "fairdm",
-    "github_version": "main",
-    "doc_path": "docs",
-}
+            {
+                "name": "GitHub",
+                "url": "https://github.com/FAIR-DM/fairdm/",
+                "icon": "github",
+            }
+        ],
+    }
+)
 
 exclude_patterns = [*exclude_patterns, "agents/**"]
 extensions = [*extensions, 'sphinxcontrib.mermaid', "autodoc2"]
