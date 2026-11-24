@@ -10,10 +10,8 @@ from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.db.models import Model
 from django.forms.widgets import Media
 from django.urls import URLPattern, path
-from django.utils.html import format_html
 from django.utils.text import capfirst
 from django.views.generic.base import View
-from easy_icons import icon
 
 from .access import can_open
 
@@ -243,10 +241,11 @@ class Plugin(PermissionRequiredMixin, View):
 
         if self.registered_model:
             meta = self.registered_model._meta
-            label = capfirst(meta.verbose_name_plural)
-            # A core record type leads its trail with the type's icon.
-            text = format_html("{}{}", icon(kind, **{"aria-hidden": "true"}), label) if kind else label
-            entry: dict[str, Any] = {"text": text}
+            entry: dict[str, Any] = {"text": capfirst(meta.verbose_name_plural)}
+            # A core record type leads its trail with the type's icon, which is also what the
+            # step shrinks to on a narrow trail.
+            if kind:
+                entry["icon"] = kind
             # A record type may have no list page; a trail entry that does not navigate is worse
             # than one that is plain text, so the link is added only when it resolves.
             for candidate in (f"{meta.model_name}-list", f"{meta.model_name}s"):
