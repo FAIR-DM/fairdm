@@ -99,7 +99,7 @@ public name.
   `job_list`), ported from the prototype as plan.md "What is ported" lists. Exports
   `template_response`-style functions beside `TableExport` for the template download and the
   problems workbook. T016 goes green except the placement tests.
-- [ ] T018 [US1] `fairdm/static/css/fairdm.css` ("Import and export" section, the import part of
+- [x] T018 [US1] `fairdm/static/css/fairdm.css` ("Import and export" section, the import part of
   the prototype's `tabular.css`, `tx-` renamed `ie-`) and `fairdm/static/js/import.js` linked from
   `base.html` with `defer`. No test.
 
