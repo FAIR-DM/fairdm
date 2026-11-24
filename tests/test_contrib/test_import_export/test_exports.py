@@ -18,7 +18,6 @@ from fairdm.contrib.import_export.exports import (
     format_for,
 )
 from fairdm.registry import registry
-from fairdm.utils.choices import Visibility
 
 TYPES = [*registry.samples, *registry.measurements]
 KEYS = [export_format.key for export_format in EXPORT_FORMATS]
@@ -120,8 +119,9 @@ class TestExportResponse:
         assert isinstance(response, HttpResponse)
         assert response.status_code == 200
         assert response["Content-Type"] == chosen.content_type
-        assert f'filename="records.{chosen.extension}"' in response["Content-Disposition"]
-        assert response["Content-Disposition"].startswith("attachment")
+        disposition = response["Content-Disposition"]
+        assert disposition.startswith("attachment")
+        assert f'filename="records.{chosen.extension}"' in disposition
 
     def test_a_name_in_any_script_still_names_the_file(self, make_record, export_of):
         make_record(RockSample)
@@ -136,7 +136,7 @@ class TestExportResponse:
     ):
         name = 'a,b\t"c"\nd'
         make_record(RockSample, name=name)
-        response, schema = export_of(RockSample, RockSample.objects.all(), key)
+        response, _schema = export_of(RockSample, RockSample.objects.all(), key)
         headings, rows = read_back(response, key)
         assert len(rows) == 1
         assert rows[0][headings.index("name")] == name
@@ -219,10 +219,7 @@ class TestSampleName:
     def cells(self, writer, record):
         schema, table = writer
         row = next(table.rows(FakeQuerySet([record])))
-        return {
-            heading: cell
-            for heading, cell in zip(schema.headings, row, strict=True)
-        }
+        return dict(zip(schema.headings, row, strict=True))
 
     def test_a_sample_the_viewer_may_open_is_named(self, make_record, writer):
         record = self.annotated(make_record, True)
@@ -298,12 +295,14 @@ class TestWorkbook:
         required = next(c for c in measured.columns if c.required)
         export = next(c for c in measured.columns if c.role == "export")
         index = {name: i + 1 for i, name in enumerate(measured.headings)}
-        assert "Required for new records." in data.cell(
-            row=1, column=index[required.name]
-        ).comment.text
-        assert "Not read on import." in data.cell(
-            row=1, column=index[export.name]
-        ).comment.text
+        assert (
+            "Required for new records."
+            in data.cell(row=1, column=index[required.name]).comment.text
+        )
+        assert (
+            "Not read on import."
+            in data.cell(row=1, column=index[export.name]).comment.text
+        )
 
     def test_each_listed_column_has_a_list_validation_pointing_at_its_range(
         self, schema
@@ -350,11 +349,10 @@ class TestWorkbook:
         column = next(c for c in schema.columns if c.name == "status")
         monkeypatch.setattr(column, "allowed", [(f"v{n}", "") for n in range(300)])
         allowed = self.book(schema).worksheets[2]
-        position = next(
-            c.column for c in allowed[1] if c.value == "status"
-        )
+        position = next(c.column for c in allowed[1] if c.value == "status")
         values = [
-            allowed.cell(row=r, column=position).value for r in range(2, allowed.max_row + 1)
+            allowed.cell(row=r, column=position).value
+            for r in range(2, allowed.max_row + 1)
         ]
         assert values == [f"v{n}" for n in range(300)]
 
