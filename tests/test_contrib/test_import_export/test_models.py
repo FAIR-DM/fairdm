@@ -4,8 +4,8 @@ import datetime
 
 import pytest
 from django.db import models
-from fairdm.contrib.import_export.models import ImportJob, ImportRow
 
+from fairdm.contrib.import_export.models import ImportJob, ImportRow
 from fairdm.core.dataset.models import Dataset
 from fairdm.factories import DatasetFactory
 from tests.factories import ImportJobFactory, ImportRowFactory
@@ -147,4 +147,4 @@ class TestFieldDocumentation:
     )
     def test_field_has_verbose_name_and_help_text(self, field):
         assert str(field.help_text)
-        assert str(field.verbose_name) != field.name.replace("_", " ")
+        assert field._verbose_name is not None

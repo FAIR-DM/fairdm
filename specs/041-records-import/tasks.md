@@ -52,7 +52,7 @@ public name.
 
 - [x] T006 [US1] Tests: `TestImportJob` and `TestImportRow` in
   `tests/test_contrib/test_import_export/test_models.py`, as plan.md "Tests" lists.
-- [ ] T007 [US1] `fairdm/contrib/import_export/models.py` (`ImportJob`, `ImportRow`) and
+- [x] T007 [US1] `fairdm/contrib/import_export/models.py` (`ImportJob`, `ImportRow`) and
   `migrations/0001_initial.py` (squashed to one file), `verbose_name`, `help_text` and the index on every
   field as plan.md "Data model" describes, the `post_delete` receiver that deletes the file, and
   `ImportJobFactory` and `ImportRowFactory` in `tests/factories.py` (DR-017, DR-018). T006
