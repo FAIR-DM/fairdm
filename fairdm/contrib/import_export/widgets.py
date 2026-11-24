@@ -312,15 +312,15 @@ class DateCellWidget(CellWidget):
             as the column's kind asks.
 
         Raises:
-            ValueError: When the text is not in a form the column reads.
+            ValueError: When the cell is not in a form the column reads.
         """
         if self.is_empty(value):
             return None
         kind = self.column.kind
-        if not isinstance(value, str):
-            return getattr(self, f"from_object_{kind}")(value)
-        text = value.strip()
-        parsed = getattr(self, f"from_text_{kind}")(text)
+        if isinstance(value, str):
+            parsed = getattr(self, f"from_text_{kind}")(value.strip())
+        else:
+            parsed = getattr(self, f"from_object_{kind}")(value)
         if parsed is None:
             raise ValueError(
                 _("“%(v)s” is not a date this column reads. Write it as %(example)s.")

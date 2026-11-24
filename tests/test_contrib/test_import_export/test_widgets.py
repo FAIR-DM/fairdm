@@ -211,6 +211,26 @@ class TestRefusals:
         with pytest.raises(ValueError):
             column_of(*where).widget().clean(cell)
 
+    @pytest.mark.parametrize(
+        ("where", "cell"),
+        [
+            (COLLECTED, 45000),
+            (COLLECTED, 45000.0),
+            (COLLECTED, dt.time(14, 5)),
+            (MOMENT, 45000),
+            (MOMENT, 45000.0),
+            (MOMENT, dt.time(14, 5)),
+            (CLOCK, 45000),
+            (CLOCK, 45000.0),
+            (CLOCK, dt.date(2024, 1, 1)),
+        ],
+    )
+    def test_a_cell_that_is_not_a_date_object_the_column_reads_is_refused(
+        self, column_of, where, cell
+    ):
+        with pytest.raises(ValueError):
+            column_of(*where).widget().clean(cell)
+
     def test_text_over_the_longest_allowed_is_refused(self, column_of):
         column = column_of(*ROCK_TYPE)
 
