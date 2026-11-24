@@ -141,7 +141,7 @@ public name.
   fails.
 - [x] T025 [US1] Cleanup of the feature's diff: behaviour-preserving simplification inside the
   files the feature touched.
-- [ ] T026 [US1] Browser pass: each page the feature adds or changes is loaded at 390 and 1280 px
+- [x] T026 [US1] Browser pass: each page the feature adds or changes is loaded at 390 and 1280 px
   with every state seeded, the script behaviour is driven once, and each fault is fixed.
-- [ ] T027 [US1] Look comparison with the prototype at 390 and 1400 px, element boxes and
+- [x] T027 [US1] Look comparison with the prototype at 390 and 1400 px, element boxes and
   computed styles, the measured result kept for the merge gate.

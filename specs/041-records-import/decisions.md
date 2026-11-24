@@ -274,3 +274,23 @@ type.
 
 **ADR:** none — local to this feature, revisit if the measured time says otherwise.
 
+
+## D27 — undo is confirmed in a dialog, as the prototype draws it
+
+**Decision:** the Undo button on an imported job opens a dialog that says what the undo deletes and restores, with "Keep it" and "Undo the import". The post of the `undo` action is unchanged and sits in the dialog's form.
+
+**Why:** the look comparison with the prototype found undo posting at once, on the one action that deletes records. The prototype asks first, and the plan carries the prototype's look into `main`.
+
+**Revisit if:** the pages stop carrying a destructive action behind a button of this kind.
+
+**ADR:** none — local to this feature.
+
+## D28 — measured at the browser pass: the undo of 50,000 rows outlasts a request
+
+**Decision:** nothing is redesigned here. On the branch's server a 50,000-row import of the simplest sample type was checked in 226 s and imported in 274 s by the worker. The job page of the imported job took 11.3 to 12.3 s to load (it scans every row to decide whether Undo shows) and the undo post took 43.4 s.
+
+**Why:** D26 named this measurement as the trigger to revisit. The undo is over the 15 s the browser pass allows, so it is reported as a finding, not fixed in the pass.
+
+**Revisit if:** now. A task with an `undoing` status, and a job page that decides whether Undo shows without reading every row, are the two changes the numbers point at.
+
+**ADR:** none — the revisit decides whether one is needed.
