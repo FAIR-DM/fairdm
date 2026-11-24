@@ -218,6 +218,22 @@ class TestImportStart:
         after = parse(editor_client.get(start_url))
         assert any("scope=all" in a["href"] for a in after.select("a[download]"))
 
+    def test_only_the_columns_panel_counts_and_it_counts_columns(
+        self, editor_client, start_url, open_dataset
+    ):
+        RockSampleFactory.create_batch(3, dataset=open_dataset)
+        page = parse(editor_client.get(start_url))
+        counts = {
+            panel.select_one(".ie-panel__title").get_text(strip=True): panel.select_one(
+                ".ie-count"
+            )
+            for panel in page.select("section.ie-panel")
+        }
+        schema = import_definitions.get("rocksample").table_schema()
+        columns = [c for c in counts.items() if c[1] is not None]
+        assert len(columns) == 1
+        assert int(columns[0][1].get_text()) == len(schema.columns)
+
     def test_the_type_of_a_measurement_has_a_page_too(
         self, editor_client, open_dataset
     ):

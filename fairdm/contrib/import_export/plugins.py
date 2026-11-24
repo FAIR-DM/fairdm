@@ -325,7 +325,8 @@ class ImportStart(DefinitionMixin, ImportPage):
         records = records_url(self.dataset, self.definition)
         count = self.definition.model.objects.filter(dataset=self.dataset).count()
         context["schema"] = schema
-        context["count"] = count
+        context["record_count"] = count
+        context["column_count"] = len(schema.columns)
         context["records_url"] = records
         context["template_links"] = [
             {
