@@ -122,9 +122,10 @@
         <div class="ov-empty-block">
           {% if can_manage %}
             <p class="ov-empty">{% translate "This dataset holds no samples or measurements yet. Import a spreadsheet or add records by hand to start building it." %}</p>
-            {% translate "Import data" as label %}
-            {% translate "Upload a spreadsheet against one of the portal's record types." as reason %}
-            <c-actions.pending label="{{ label }}" icon="import" reason="{{ reason }}" variant="primary" />
+            {% if import_chooser %}
+              {% translate "Import data" as label %}
+              <c-import.import-menu :chooser="import_chooser" label="{{ label }}" />
+            {% endif %}
           {% else %}
             <p class="ov-empty">{% translate "No samples or measurements have been added to this dataset yet." %}</p>
           {% endif %}

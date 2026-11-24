@@ -12,6 +12,7 @@ from partial_dates import Precision
 from fairdm import plugins
 from fairdm.contrib.activity.lines import recent_activity
 from fairdm.contrib.contributors.models import Person
+from fairdm.contrib.import_export.plugins import can_import, import_chooser
 from fairdm.contrib.plugins.access import has_perm
 from fairdm.contrib.plugins.mixins import (
     PrivateRecordNotFoundMixin,
@@ -201,6 +202,11 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         page.update(self.get_shared_context(page))
 
         page["activity"] = recent_activity(dataset, self.request)
+        page["import_chooser"] = (
+            import_chooser(dataset)
+            if shows_records and not data_types and can_import(self.request, dataset)
+            else None
+        )
 
         context["dataset"] = dataset
         context.update(page)
