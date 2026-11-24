@@ -59,7 +59,7 @@ public name.
   goes green. `makemigrations --check` is clean.
 - [x] T008 [US1] Tests: `TestImportOptionsForm` and `TestUploadForm` in
   `tests/test_contrib/test_import_export/test_forms.py`.
-- [ ] T009 [US1] `fairdm/contrib/import_export/forms.py`: `ImportOptionsForm` (with
+- [x] T009 [US1] `fairdm/contrib/import_export/forms.py`: `ImportOptionsForm` (with
   `CardSelect`, ported from the prototype's `forms.py`) and `UploadForm`. T008 goes green.
 
 ## Phase 2: User Story 1, a person fills a dataset from a spreadsheet of one type (P1)
