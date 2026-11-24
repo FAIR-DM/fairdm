@@ -145,3 +145,7 @@ public name.
   with every state seeded, the script behaviour is driven once, and each fault is fixed.
 - [x] T027 [US1] Look comparison with the prototype at 390 and 1400 px, element boxes and
   computed styles, the measured result kept for the merge gate.
+- [ ] T028 [US2] Undo runs as a task: the job gains an `undoing` status (the branch's one
+  migration is regenerated), the undo POST claims the job with a conditional update and queues
+  the task, the job page shows the progress and the result, and a GET of an imported job no
+  longer scans its rows.
