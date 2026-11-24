@@ -118,6 +118,7 @@ explanation covers why parts of FairDM work as they do. Explanation every reader
 - [Recent activity](reference/recent-activity.md)
 - [Record editing pages](reference/record-editing-pages.md)
 - [Record fields](reference/record-fields.md)
+- [Records export](reference/records-export.md)
 - [REST API](reference/rest-api.md)
 - [Sample model](reference/sample-model.md)
 - [Settings](reference/settings.md)
@@ -258,6 +259,7 @@ reference/profile-claiming
 reference/recent-activity
 reference/record-editing-pages
 reference/record-fields
+reference/records-export
 reference/rest-api
 reference/sample-model
 reference/settings

@@ -8,8 +8,10 @@ from pathlib import Path
 import pytest
 from bs4 import BeautifulSoup
 from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
+from django.test import RequestFactory
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
@@ -33,8 +35,15 @@ from demo.models import (
     XRFMeasurement,
 )
 from fairdm.contrib.collections.views import DataTableView
+from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.contrib.import_export.mixins import RecordExportMixin
 from fairdm.core.sample.models import Sample
-from fairdm.factories import DatasetFactory, ProjectFactory
+from fairdm.factories import (
+    ContributionFactory,
+    DatasetFactory,
+    PersonFactory,
+    ProjectFactory,
+)
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
 
@@ -749,3 +758,86 @@ class TestOneSearchControl:
 
         assert "q" in toolbar
         assert "search" not in toolbar | panel
+
+
+def records_tab(holder, kind, model=None):
+    """Return the address of a dataset's, project's or contributor's records tab."""
+    kwargs = {"uuid": holder.uuid}
+    if model is not None:
+        kwargs["type"] = registry.get_for_model(model).get_slug()
+    namespace = (
+        "contributor" if hasattr(holder, "is_organization") else holder._meta.model_name
+    )
+    return reverse(f"{namespace}:{kind}", kwargs=kwargs)
+
+
+@pytest.mark.django_db
+class TestExportOnPages:
+    """Every records table offers its export, and so does a project's own table."""
+
+    @pytest.fixture
+    def holders(self):
+        """A public dataset, project and contributor, each listing one rock."""
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
+        rock = RockSampleFactory(dataset=dataset)
+        person = PersonFactory()
+        ContributionFactory(
+            content_object=rock, contributor=person, level=ContributionLevel.VIEW
+        )
+        return {"dataset": dataset, "project": project, "contributor": person}
+
+    def test_the_portal_listing_has_a_menu(self, client, published_sample):
+        slug = registry.get_for_model(RockSample).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        assert response.context["export_menu"]["shown"] == 1
+
+    @pytest.mark.parametrize("holder", ["dataset", "project", "contributor"])
+    def test_a_tab_of_each_kind_of_record_has_a_menu(self, client, holders, holder):
+        response = client.get(records_tab(holders[holder], "samples", RockSample))
+
+        assert response.context["export_menu"]["shown"] == 1
+
+    def test_a_tab_with_no_records_has_no_menu(self, client):
+        empty = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+
+        response = client.get(records_tab(empty, "samples"))
+
+        assert response.context["export_menu"] is None
+
+    def test_a_listing_of_the_projects_own_inherits_the_menu(self, published_sample):
+        class OwnListing(DataTableView):
+            """A listing a project defines for itself."""
+
+        config = registry.get_for_model(RockSample)
+        request = RequestFactory().get("/")
+        request.user = AnonymousUser()
+
+        response = OwnListing.as_view(model=RockSample, model_config=config)(request)
+
+        assert issubclass(OwnListing, RecordExportMixin)
+        assert response.context_data["export_menu"]["shown"] == 1
+
+    def test_the_portal_listing_draws_the_menu(self, client, published_sample):
+        slug = registry.get_for_model(RockSample).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        assert b"data-ie-menu" in response.content
+
+    @pytest.mark.parametrize("holder", ["dataset", "project", "contributor"])
+    def test_a_tab_of_each_kind_of_record_draws_the_menu(self, client, holders, holder):
+        response = client.get(records_tab(holders[holder], "samples", RockSample))
+
+        assert b"data-ie-menu" in response.content
+
+    def test_a_tab_with_no_records_draws_no_menu(self, client):
+        empty = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+
+        response = client.get(records_tab(empty, "samples"))
+
+        assert b"data-ie-menu" not in response.content

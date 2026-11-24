@@ -87,6 +87,17 @@ adds its own with `register`.
 
 Implemented by `ImportDefinition` in `fairdm/contrib/import_export/definitions.py`.
 
+### Export
+
+The file a person downloads from the Export menu of a records table: the table's rows, or every row
+of the table, as CSV, Excel, OpenDocument, TSV or JSON, with the columns of the type's table schema
+and the portal ID first. Rows are in record order, never the table's sort.
+
+Avoid "download" for the feature and "report" for the file.
+
+Implemented by `TableExport` in `fairdm/contrib/import_export/exports.py` and `RecordExportMixin` in
+`fairdm/contrib/import_export/mixins.py`. The menu is `<c-import.export-menu>`.
+
 ### Column guide
 
 The page section that explains a table schema to the person filling in a file: one table for each

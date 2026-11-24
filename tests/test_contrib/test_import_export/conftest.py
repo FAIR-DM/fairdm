@@ -1,11 +1,49 @@
 """Fixtures for the import and export tests."""
 
-import pytest
+import csv
+import io
 
-from demo.models import ICP_MS_Measurement, RockSample, XRFMeasurement
+import pytest
+from django.urls import reverse
+
+from demo.factories import (
+    CustomParentSampleFactory,
+    CustomSampleFactory,
+    ExampleMeasurementFactory,
+    ICP_MS_MeasurementFactory,
+    RockSampleFactory,
+    SoilSampleFactory,
+    WaterSampleFactory,
+    XRFMeasurementFactory,
+)
+from demo.models import (
+    CustomParentSample,
+    CustomSample,
+    ExampleMeasurement,
+    ICP_MS_Measurement,
+    RockSample,
+    SoilSample,
+    WaterSample,
+    XRFMeasurement,
+)
 from fairdm.contrib.import_export.schema import Column
+from fairdm.core.measurement.models import Measurement
+from fairdm.factories import DatasetFactory, ProjectFactory
 from fairdm.registry import registry
 from fairdm.registry.config import ModelConfiguration
+from fairdm.utils.choices import Visibility
+
+RECORD_FACTORIES = {
+    RockSample: RockSampleFactory,
+    SoilSample: SoilSampleFactory,
+    WaterSample: WaterSampleFactory,
+    CustomParentSample: CustomParentSampleFactory,
+    CustomSample: CustomSampleFactory,
+    ExampleMeasurement: ExampleMeasurementFactory,
+    XRFMeasurement: XRFMeasurementFactory,
+    ICP_MS_Measurement: ICP_MS_MeasurementFactory,
+}
+"""The factory of each registered demo type."""
 
 
 @pytest.fixture
@@ -115,3 +153,125 @@ def factory_for():
         ),
     }
     return by_model.__getitem__
+
+
+@pytest.fixture
+def open_dataset():
+    """A published dataset anyone may see."""
+    return DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+
+
+@pytest.fixture
+def make_record(open_dataset):
+    """Return a function creating a stored record of any registered type."""
+
+    def build(model, **overrides):
+        """Create the record with its type's factory.
+
+        Args:
+            model: A registered sample or measurement model.
+            **overrides: Field values for the record.
+
+        Returns:
+            The stored record. A measurement is made on a new sample in the same
+            dataset unless the overrides give one.
+        """
+        factory_class = RECORD_FACTORIES[model]
+        overrides.setdefault("dataset", open_dataset)
+        if issubclass(model, Measurement):
+            overrides.setdefault(
+                "sample", RockSampleFactory(dataset=overrides["dataset"])
+            )
+        return factory_class(**overrides)
+
+    return build
+
+
+@pytest.fixture
+def named_rocks(open_dataset):
+    """Five rocks of the open dataset, three of them granite."""
+    names = ["Granite A", "Granite B", "Granite C", "Basalt A", "Basalt B"]
+    return [
+        RockSampleFactory(dataset=open_dataset, name=name, rock_type=name.split()[0])
+        for name in names
+    ]
+
+
+@pytest.fixture
+def private_rocks():
+    """Rocks no visitor may list: private, unpublished or in a private project."""
+    private = DatasetFactory(visibility=Visibility.PRIVATE, published=False)
+    unpublished = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
+    hidden_project = ProjectFactory(visibility=Visibility.PRIVATE)
+    inside = DatasetFactory(
+        project=hidden_project, visibility=Visibility.PUBLIC, published=True
+    )
+    return [
+        RockSampleFactory(dataset=dataset, name=f"Secret {number}")
+        for number, dataset in enumerate([private, unpublished, inside])
+    ]
+
+
+@pytest.fixture
+def listing_url():
+    """Return a function giving the address of a type's portal-wide listing."""
+
+    def build(model):
+        """Find the address.
+
+        Args:
+            model: A registered sample or measurement model.
+
+        Returns:
+            The listing's address.
+        """
+        return reverse(f"{registry.get_for_model(model).get_slug()}-list")
+
+    return build
+
+
+@pytest.fixture
+def tab_url():
+    """Return a function giving the address of a record's records tab."""
+
+    def build(holder, kind, model=None):
+        """Find the address.
+
+        Args:
+            holder: A dataset, project or contributor.
+            kind: ``samples`` or ``measurements``.
+            model: The registered type beneath the tab, or None for the first.
+
+        Returns:
+            The tab's address.
+        """
+        kwargs = {"uuid": holder.uuid}
+        if model is not None:
+            kwargs["type"] = registry.get_for_model(model).get_slug()
+        namespace = (
+            "contributor"
+            if hasattr(holder, "is_organization")
+            else holder._meta.model_name
+        )
+        return reverse(f"{namespace}:{kind}", kwargs=kwargs)
+
+    return build
+
+
+@pytest.fixture
+def csv_rows():
+    """Return a function reading a CSV response as one dict per row."""
+
+    def read(response):
+        """Read the file.
+
+        Args:
+            response: The export's response.
+
+        Returns:
+            A dict of heading to cell for each row.
+        """
+        text = response.content.decode("utf-8-sig")
+        return list(csv.DictReader(io.StringIO(text, newline="")))
+
+    return read

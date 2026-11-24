@@ -3,3 +3,7 @@
 {% block page.title %}
   <c-list.type-heading name="{{ page.title }}" kind="{{ kind }}" :entries="type_entries" />
 {% endblock page.title %}
+{% block page.actions %}
+  {% if export_menu %}<div class="ie-tools"><c-import.export-menu :menu="export_menu" /></div>{% endif %}
+  {{ block.super }}
+{% endblock page.actions %}
