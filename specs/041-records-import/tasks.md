@@ -154,12 +154,12 @@ public name.
 
 ### Group 14
 
-- [ ] T029 [US1] A file cannot make a row wide or a sheet large: columns are capped while rows
+- [x] T029 [US1] A file cannot make a row wide or a sheet large: columns are capped while rows
   stream, trailing empty cells dropped, the OpenDocument unpacked ceiling lowered, a cut file
   refused, and a malformed spreadsheet refused instead of a server error.
-- [ ] T030 [US2] Undo restores a field the import filled when it was empty.
-- [ ] T031 [US1] A sample name longer than the row label no longer breaks the check.
-- [ ] T032 [US1] An uploaded file is stored under a name the person did not choose.
+- [x] T030 [US2] Undo restores a field the import filled when it was empty.
+- [x] T031 [US1] A sample name longer than the row label no longer breaks the check.
+- [x] T032 [US1] An uploaded file is stored under a name the person did not choose.
 
 ### Group 15
 

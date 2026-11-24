@@ -1,10 +1,28 @@
 """The stored records of an import: one job per file and one row per row of it."""
 
+import uuid
+from pathlib import PurePath
+
 from django.conf import settings
 from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
+
+
+def import_file_path(instance, filename):
+    """Name the stored file of an upload by a random key, never by what it was called.
+
+    Args:
+        instance: The ``ImportJob`` the file belongs to.
+        filename: The name the file was uploaded with.
+
+    Returns:
+        ``imports/`` and a random 32-character key followed by the file's extension
+        in lower case. The upload's own name stays in ``ImportJob.filename``.
+    """
+    extension = PurePath(filename).suffix.lower()
+    return f"imports/{uuid.uuid4().hex}{extension}"
 
 
 class ImportJob(models.Model):
@@ -71,7 +89,7 @@ class ImportJob(models.Model):
     )
     file = models.FileField(
         _("file"),
-        upload_to="imports/%Y/%m/",
+        upload_to=import_file_path,
         blank=True,
         help_text=_("The uploaded file. Empty once the job has ended."),
     )
