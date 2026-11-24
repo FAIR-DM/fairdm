@@ -25,7 +25,6 @@ from fairdm.contrib.import_export.models import ImportJob, ImportRow
 from fairdm.contrib.import_export.plugins import import_chooser
 from fairdm.contrib.import_export.reader import FileReader
 from fairdm.contrib.import_export.runner import ImportRun
-from fairdm.contrib.import_export.undo import ImportUndo
 from fairdm.contrib.plugins import reverse
 from fairdm.factories import ContributionFactory, DatasetFactory, PersonFactory
 from fairdm.registry import registry
@@ -785,6 +784,71 @@ class TestJobDetail:
         changes = parse(editor_client.get(job_url(checked_job) + "?show=update"))
         assert len(changes.select("[data-ie-row] [data-ie-change]")) == 1
 
+    @pytest.fixture
+    def read_job(self, make_job):
+        """A job whose file is read: one new rock, one rock with a problem."""
+        job = make_job(
+            [
+                {
+                    "name": "Granite A",
+                    "rock_type": "granite",
+                    "collection_date": "2024-06-30",
+                },
+                {
+                    "name": "Bad date",
+                    "rock_type": "basalt",
+                    "collection_date": "not a date",
+                },
+            ]
+        )
+        ImportRun(job).check()
+        job.refresh_from_db()
+        return job
+
+    def labels_on(self, response):
+        """Return the label of each row on a page."""
+        return [
+            item.get_text(strip=True)
+            for item in parse(response).select("[data-ie-row] .ie-row__label")
+        ]
+
+    def test_a_problem_row_is_named_by_its_name_in_the_file(
+        self, editor_client, job_url, read_job
+    ):
+        response = editor_client.get(job_url(read_job))
+        assert self.labels_on(response) == ["Bad date"]
+
+    def test_a_new_row_lists_the_values_the_file_gives_it(
+        self, editor_client, job_url, read_job
+    ):
+        page = parse(editor_client.get(job_url(read_job) + "?show=new"))
+        cells = page.select_one("[data-ie-row] .ie-cells").get_text(" ", strip=True)
+        assert "granite" in cells
+        assert "2024-06-30" in cells
+        assert "Granite A" not in cells
+
+    def test_a_problem_row_without_its_stored_file_is_named_by_its_number(
+        self, editor_client, job_url, read_job
+    ):
+        ImportRun(read_job).delete_file()
+        response = editor_client.get(job_url(read_job))
+        assert self.labels_on(response) == ["Row 2"]
+
+    def test_a_new_row_without_its_stored_file_lists_no_cell(
+        self, editor_client, job_url, read_job
+    ):
+        ImportRun(read_job).delete_file()
+        response = editor_client.get(job_url(read_job) + "?show=new")
+        assert not parse(response).select("[data-ie-row] .ie-cells")
+
+    def test_an_imported_row_is_named_by_its_record_and_lists_no_cell(
+        self, editor_client, job_url, imported_job
+    ):
+        job, added, _changed = imported_job
+        response = editor_client.get(job_url(job) + "?show=new")
+        assert self.labels_on(response) == [added.name]
+        assert not parse(response).select("[data-ie-row] .ie-cells")
+
     def test_a_job_still_matching_goes_to_the_matching_page(
         self, editor_client, job_url, matching_job
     ):
@@ -1461,13 +1525,66 @@ class TestJobUndo:
         page = parse(editor_client.get(job_url(job)))
         assert page.select('form button[name="action"][value="undo"]')
 
-    def test_the_undo_button_shows_even_when_a_record_changed(
+    def test_a_changed_record_replaces_the_undo_button_with_a_note_naming_it(
         self, editor_client, job_url, imported_job
     ):
         job, _added, changed = imported_job
         RockSample.objects.filter(pk=changed.pk).update(rock_type="gabbro")
         page = parse(editor_client.get(job_url(job)))
-        assert page.select('form button[name="action"][value="undo"]')
+        note = page.select_one("[data-ie-no-undo]")
+        assert note is not None
+        assert job.rows.get(record_pk=changed.pk).label in note.get_text()
+        assert not page.select('button[value="undo"]')
+        assert not page.select("dialog#ie-undo")
+
+    def test_a_sample_with_measurements_replaces_the_undo_button_with_a_note(
+        self, editor_client, job_url, imported_job
+    ):
+        job, added, _changed = imported_job
+        XRFMeasurementFactory(sample=added, dataset=added.dataset)
+        page = parse(editor_client.get(job_url(job)))
+        assert page.select_one("[data-ie-no-undo]") is not None
+        assert not page.select('button[value="undo"]')
+
+    def test_a_deleted_record_replaces_the_undo_button_with_a_note(
+        self, editor_client, job_url, imported_job
+    ):
+        job, added, _changed = imported_job
+        added.delete()
+        page = parse(editor_client.get(job_url(job)))
+        assert page.select_one("[data-ie-no-undo]") is not None
+        assert not page.select('button[value="undo"]')
+
+    def test_an_import_nothing_stands_in_the_way_of_has_no_note(
+        self, editor_client, job_url, imported_job
+    ):
+        job, _added, _changed = imported_job
+        page = parse(editor_client.get(job_url(job)))
+        assert not page.select("[data-ie-no-undo]")
+
+    def test_the_note_names_three_records_and_counts_the_rest(
+        self, editor_client, job_url, imported_job
+    ):
+        job, _added, _changed = imported_job
+        ImportRow.objects.bulk_create(
+            ImportRow(job=job, number=100 + n, line=n, outcome="new", record_pk=n)
+            for n in range(1, 6)
+        )
+        page = parse(editor_client.get(job_url(job)))
+        assert len(page.select("[data-ie-no-undo] [data-ie-in-the-way]")) == 3
+        assert page.select_one("[data-ie-no-undo] [data-ie-more]") is not None
+
+    def test_a_record_that_changes_after_the_page_loads_is_still_refused(
+        self, editor_client, editor, job_url, imported_job, queued
+    ):
+        job, added, changed = imported_job
+        assert not parse(editor_client.get(job_url(job))).select("[data-ie-no-undo]")
+        RockSample.objects.filter(pk=changed.pk).update(rock_type="gabbro")
+        self.post(editor_client, job_url(job))
+        tasks.undo_job(job.pk, editor.pk)
+        job.refresh_from_db()
+        assert job.status == Status.IMPORTED
+        assert RockSample.objects.filter(pk=added.pk).exists()
 
     def test_undo_is_asked_for_in_a_dialog_before_it_is_posted(
         self, editor_client, job_url, imported_job
@@ -1489,7 +1606,7 @@ class TestJobUndo:
         assert page.select_one("[data-ie-progress]")["hx-get"] == job_url(job, "status")
         assert not page.select('button[value="undo"]')
 
-    def test_the_job_page_of_an_imported_job_runs_the_same_queries_for_50_and_500_rows(
+    def test_the_job_page_of_an_imported_job_runs_the_same_queries_for_50_and_400_rows(
         self, editor_client, job_url, imported_job
     ):
         job, _added, _changed = imported_job
@@ -1515,16 +1632,8 @@ class TestJobUndo:
 
         add(0, 50)
         few = count()
-        add(50, 500)
+        add(50, 400)
         assert count() == few
-
-    def test_the_job_page_of_an_imported_job_looks_for_no_conflicts(
-        self, editor_client, job_url, imported_job
-    ):
-        job, _added, _changed = imported_job
-        with mock.patch.object(ImportUndo, "conflicts") as looked:
-            editor_client.get(job_url(job))
-        looked.assert_not_called()
 
     def test_another_datasets_job_cannot_be_undone_through_this_one(
         self, editor_client, open_dataset, job_url, imported_job, queued

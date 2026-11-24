@@ -316,7 +316,10 @@ again, edit one of its records by hand, and check undo is refused, naming the re
   fixes `LocatedResourceMixin.import_instance` on `main`.
 - **FR-018**: The rows of a check MUST be shown by outcome, a page at a time. A file with any row
   needing changes MUST NOT be importable, and MUST be downloadable as a workbook with each row's
-  problems beside it and the cells at fault marked.
+  problems beside it and the cells at fault marked. A row MUST be named by the record it adds or
+  changes, or by the file's name cell for a row that needs changes, and a row that adds a record
+  MUST list the values the file gives it while the file is stored. Once the file is deleted the
+  rows list no value.
 
 **The import (US1)**
 
@@ -348,7 +351,9 @@ again, edit one of its records by hand, and check undo is refused, naming the re
 - **FR-026**: Undo MUST be refused, changing nothing and naming the records in the way, when any
   record the import added or changed has been changed or deleted since by any means, when a
   sample it added has measurements, or when the portal would refuse the person that deletion or
-  change by hand.
+  change by hand. The import's page MUST work out the same rule when it is drawn, and MUST
+  show a note naming the records in the way in place of the undo button when any is. The request
+  checks again, because a record can change between the page and the request.
 - **FR-027**: The uploaded file MUST be deleted when its import finishes: imported, undone,
   discarded or unreadable. The record of the import, its counts and its row outcomes MUST stay.
 - **FR-028**: An import left unfinished for 30 days MUST be recorded as discarded and its file

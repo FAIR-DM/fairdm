@@ -206,8 +206,10 @@ have. The per-record permission check is dropped.
 
 `ImportRow` holds the outcome, changes, problems, the record and its digest, and no copy of the
 file's cells. The problems workbook is built by reading the stored file again, which exists while
-an import can still have problems. When the file is deleted, the values shown on column matching
-are cleared with it, so no cell outlives the file (D4).
+an import can still have problems. The review page reads the stored file the same way to name a
+row that needs changes and to list the values of a row that adds a record. When the file is
+deleted, the values shown on column matching and on the rows are cleared with it, so no cell
+outlives the file (D4).
 
 **ADR:** none — local to this feature.
 
