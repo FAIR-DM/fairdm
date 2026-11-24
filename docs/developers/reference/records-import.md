@@ -72,7 +72,8 @@ The class attributes hold the limits and the formats:
 
 - `FORMATS` lists the formats read: `csv`, `tsv`, `xlsx` and `ods`. JSON and `.txt` files are refused.
 - `MAX_BYTES` is the largest file, 20 MB. `MAX_ROWS` is the most data rows, 50,000.
-- `MAX_UNCOMPRESSED` is the largest a workbook's or spreadsheet's first sheet may be once unpacked. `SHEET_ENTRIES` names the archive entry that holds the first sheet of each of the two formats.
+- `MAX_COLUMNS` is the most cells kept of a row, 1,024. A row is cut to it while it is read, and its empty cells at the end are dropped, so a file that claims thousands of columns, or repeats one value across them, costs only the cells it holds.
+- `MAX_UNCOMPRESSED` is the largest a workbook's first sheet may be once unpacked, 200 MB. `MAX_UNCOMPRESSED_ODS` is the largest an OpenDocument spreadsheet's content may be once unpacked, 24 MB, because odfpy builds the whole document in memory at about twenty times its size. A sheet of one-cell rows takes about 120 bytes a row, so the ceiling is about 200,000 such rows, and a file of the 50,000 rows `MAX_ROWS` allows fits while its rows average 480 bytes of XML, around four filled cells. `SHEET_ENTRIES` names the archive entry that holds the first sheet of each of the two formats.
 - `MAX_REPEAT` is the most empty cells one repeated cell of an OpenDocument row expands to.
 - `ENCODINGS` lists the text encodings tried in order: UTF-8 with or without a byte order mark, then Windows-1252, then Latin-1.
 
@@ -82,7 +83,7 @@ The class attributes hold the limits and the formats:
 
 An OpenDocument spreadsheet is read with odfpy and never with tablib, which drops repeated rows and fails on a second sheet. `read_ods` reads the first table only. `ods_rows` repeats a row as many times as it is repeated, and `ods_cells` repeats a cell likewise, giving text, a number, a date as text, a truth value or `None`.
 
-An Excel or OpenDocument file whose first sheet is larger than `MAX_UNCOMPRESSED` once unpacked is refused before it is opened. `check_unpacked(raw, fmt)` reads the size from the archive's index. `decode(raw)` reads the bytes of a text file in `ENCODINGS`, `blank(cell)` says whether a cell holds nothing, and `limited(rows)` is the iterator that stops a read at the row limit.
+An Excel file whose first sheet is larger than `MAX_UNCOMPRESSED` once unpacked, or an OpenDocument file larger than `MAX_UNCOMPRESSED_ODS`, is refused before it is opened. `check_unpacked(raw, fmt)` reads the size from the archive's index. `decode(raw)` reads the bytes of a text file in `ENCODINGS`, `blank(cell)` says whether a cell holds nothing, and `trimmed(row)` cuts a row to `MAX_COLUMNS` and drops its empty cells at the end, and `limited(rows)` is the iterator that stops a read at the row limit. A file whose rows go on past twice that limit counting blank ones is refused with `too_many_rows`, so it is never imported short. Any error a parser raises while it reads the rows, such as an OpenDocument number cell with no number, is refused as `unreadable`.
 
 ## Matching headings
 

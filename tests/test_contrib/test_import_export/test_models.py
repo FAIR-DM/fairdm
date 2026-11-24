@@ -1,6 +1,7 @@
 """Tests for fairdm/contrib/import_export/models.py."""
 
 import datetime
+import re
 
 import pytest
 from django.db import models
@@ -148,3 +149,25 @@ class TestFieldDocumentation:
     def test_field_has_verbose_name_and_help_text(self, field):
         assert str(field.help_text)
         assert field._verbose_name is not None
+
+
+class TestStoredFileName:
+    """An uploaded file is stored under a name nobody can guess."""
+
+    def test_the_stored_name_holds_neither_the_upload_nor_a_date(self, make_job):
+        from django.core.files.base import ContentFile
+
+        job = make_job([{"name": "a", "local_id": "A"}])
+        job.file.save("Rock-Sample-Template.XLSX", ContentFile(b"x"), save=False)
+
+        assert re.fullmatch(r"imports/[0-9a-f]{32}\.xlsx", job.file.name)
+
+    def test_two_uploads_of_one_name_are_stored_apart(self, make_job):
+        from django.core.files.base import ContentFile
+
+        job = make_job([{"name": "a", "local_id": "A"}])
+        job.file.save("same.csv", ContentFile(b"x"), save=False)
+        first = job.file.name
+        job.file.save("same.csv", ContentFile(b"x"), save=False)
+
+        assert job.file.name != first

@@ -537,3 +537,18 @@ class TestTimeLimits:
         from fairdm.contrib.import_export import tasks
 
         assert getattr(tasks, name).soft_time_limit >= 2 * seconds
+
+
+class TestLongLabel:
+    """A name as long as the name field allows is still checked."""
+
+    def test_a_280_character_name_reaches_checked(self, make_job, open_dataset):
+        job = make_job([rock("N" * 280, local_id="LONG")])
+
+        ImportRun(job).check()
+
+        job.refresh_from_db()
+        assert job.status == Status.CHECKED
+        row = job.rows.get()
+        assert len(row.label) <= ImportRow._meta.get_field("label").max_length
+        assert row.label.startswith("N" * 100)

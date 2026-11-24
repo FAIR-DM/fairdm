@@ -6,6 +6,8 @@ import pytest
 
 from fairdm.contrib.import_export.reader import FileProblem, FileReader
 
+from .conftest import ods_of
+
 HEADINGS = ["Name", "Local ID", "Rock type"]
 ROWS = [["Granite 1", "G-1", "granite"], ["Basalt 2", "B-2", "basalt"]]
 KINDS = ["csv", "semicolon", "tsv", "xlsx", "ods"]
@@ -285,3 +287,153 @@ class TestFileReader:
             headings, _rows, _lines = FileReader.parse(raw, "xlsx")
 
             assert headings == HEADINGS
+
+
+def xlsx_claiming(rows, dimension):
+    """Build a workbook whose sheet declares ``dimension`` as its used range."""
+    import io
+    import re
+    import zipfile
+
+    from openpyxl import Workbook
+
+    book = Workbook()
+    for row in rows:
+        book.active.append(list(row))
+    plain = io.BytesIO()
+    book.save(plain)
+    out = io.BytesIO()
+    with (
+        zipfile.ZipFile(io.BytesIO(plain.getvalue())) as source,
+        zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as target,
+    ):
+        for entry in source.namelist():
+            data = source.read(entry)
+            if entry == "xl/worksheets/sheet1.xml":
+                data = re.sub(
+                    rb'<dimension ref="[^"]*"',
+                    b'<dimension ref="%s"' % dimension.encode(),
+                    data,
+                )
+            target.writestr(entry, data)
+    return out.getvalue()
+
+
+def ods_with_cell(cell_xml):
+    """Build an OpenDocument file whose second row holds the given cell markup."""
+    import io
+    import zipfile
+
+    plain = ods_of([[["h"], ["x"]]])
+    out = io.BytesIO()
+    with (
+        zipfile.ZipFile(io.BytesIO(plain)) as source,
+        zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as target,
+    ):
+        for entry in source.namelist():
+            data = source.read(entry)
+            if entry == "content.xml":
+                marker = (
+                    b'<table:table-cell office:value-type="string">'
+                    b"<text:p>x</text:p></table:table-cell>"
+                )
+                assert marker in data
+                data = data.replace(marker, cell_xml.encode())
+            target.writestr(entry, data)
+    return out.getvalue()
+
+
+class TestReaderBounds:
+    """A small file never costs more memory than its real cells."""
+
+    def test_the_column_limit_is_a_thousand_and_twenty_four(self):
+        assert FileReader.MAX_COLUMNS == 1024
+
+    def test_a_value_repeated_across_many_columns_is_cut_while_it_is_read(self):
+        raw = ods_of([[["h"], ["x"]]], repeated=(0, 1, 0, 3_000_000))
+        assert len(raw) < 2000
+
+        grid = FileReader.read_grid(raw, "ods")
+
+        assert max(len(row) for row in grid) <= 1024
+
+    def test_a_workbook_claiming_the_last_column_is_not_padded_to_it(self):
+        raw = xlsx_claiming([["h"], ["x"], ["y"]], "A1:XFD3")
+
+        grid = FileReader.read_grid(raw, "xlsx")
+
+        assert max(len(row) for row in grid) <= 1024
+        assert FileReader.parse(raw, "xlsx")[1] == [["x"], ["y"]]
+
+    def test_trailing_empty_cells_are_dropped_from_a_row_read(self):
+        raw = xlsx_claiming([["h", "i"], ["x"]], "A1:ZZ2")
+
+        grid = FileReader.read_grid(raw, "xlsx")
+
+        assert grid == [["h", "i"], ["x"]]
+
+    def test_the_ods_ceiling_is_lower_than_the_workbook_one(self):
+        assert FileReader.MAX_UNCOMPRESSED_ODS < FileReader.MAX_UNCOMPRESSED
+
+    def test_an_ods_sheet_over_its_ceiling_is_refused_before_it_is_loaded(self):
+        import io
+        import zipfile
+
+        size = FileReader.MAX_UNCOMPRESSED_ODS + 1024
+        out = io.BytesIO()
+        with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr("content.xml", b" " * size)
+
+        with mock.patch("odf.opendocument.load") as loaded:
+            assert code_of(out.getvalue(), "rocks.ods") == "too_large_unpacked"
+
+        loaded.assert_not_called()
+
+
+class TestMalformedSheets:
+    """A spreadsheet that breaks while it is read is refused, never a crash."""
+
+    @pytest.mark.parametrize(
+        "cell",
+        [
+            '<table:table-cell office:value-type="float"/>',
+            '<table:table-cell office:value-type="float" office:value="abc"/>',
+            '<table:table-cell office:value-type="string" '
+            'table:number-columns-repeated="many"><text:p>x</text:p>'
+            "</table:table-cell>",
+        ],
+    )
+    def test_an_ods_cell_that_is_not_readable_is_unreadable(self, cell):
+        assert code_of(ods_with_cell(cell), "rocks.ods") == "unreadable"
+
+    def test_a_workbook_whose_sheet_breaks_part_way_is_unreadable(self):
+        import io
+        import zipfile
+
+        raw = xlsx_claiming([["h"]] + [[str(n)] for n in range(200)], "A1:A201")
+        out = io.BytesIO()
+        with (
+            zipfile.ZipFile(io.BytesIO(raw)) as source,
+            zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as target,
+        ):
+            for entry in source.namelist():
+                data = source.read(entry)
+                if entry == "xl/worksheets/sheet1.xml":
+                    data = data[: len(data) // 2]
+                target.writestr(entry, data)
+
+        assert code_of(out.getvalue(), "rocks.xlsx") == "unreadable"
+
+    def test_a_file_cut_by_the_blank_row_cap_is_refused(self, monkeypatch):
+        monkeypatch.setattr(FileReader, "MAX_ROWS", 3)
+        raw = b"A\n" + b"\n" * 30 + b"late\n"
+
+        assert code_of(raw) == "too_many_rows"
+
+    def test_a_file_of_blank_rows_ending_at_the_cap_is_not_cut(self, monkeypatch):
+        monkeypatch.setattr(FileReader, "MAX_ROWS", 3)
+        raw = b"A\nx\n" + b"\n" * 4
+
+        headings, rows, _lines = FileReader.parse(raw, "csv")
+
+        assert (headings, rows) == (["A"], [["x"]])

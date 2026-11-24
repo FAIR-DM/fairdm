@@ -312,3 +312,52 @@ class TestUndo:
         with mock.patch("fairdm.contrib.import_export.undo.cache") as cache:
             ImportUndo(job).undo(None)
         assert cache.set.called
+
+
+class TestUndoOfEmptyValues:
+    """An import that filled fields that were empty is undone to empty fields."""
+
+    def test_fields_that_were_empty_are_empty_again(
+        self, make_job, open_dataset, editor_for_undo
+    ):
+        record = RockSampleFactory(
+            dataset=open_dataset,
+            local_id="EMPTY",
+            hardness_mohs=None,
+            weight_grams=None,
+            location=None,
+        )
+        job = make_job(
+            [
+                {
+                    "name": record.name,
+                    "local_id": "EMPTY",
+                    "rock_type": record.rock_type,
+                    "collection_date": "2024-06-30",
+                    "hardness_mohs": "6.5",
+                    "weight_grams": "12",
+                    "latitude": "10",
+                    "longitude": "20",
+                }
+            ]
+        )
+        ImportRun(job).check()
+        ImportJob.objects.filter(pk=job.pk).update(status=ImportJob.Status.IMPORTING)
+        ImportRun(job).perform(editor_for_undo)
+        job.refresh_from_db()
+        filled = RockSample.objects.get(pk=record.pk)
+        assert filled.hardness_mohs is not None
+        assert filled.weight_grams is not None
+        assert filled.location is not None
+        ImportJob.objects.filter(pk=job.pk).update(status=ImportJob.Status.UNDOING)
+        job.refresh_from_db()
+
+        found = ImportUndo(job).undo(None)
+
+        assert found["entries"] == []
+        job.refresh_from_db()
+        assert job.status == ImportJob.Status.UNDONE
+        restored = RockSample.objects.get(pk=record.pk)
+        assert restored.hardness_mohs is None
+        assert restored.weight_grams is None
+        assert restored.location is None

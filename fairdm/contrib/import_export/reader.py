@@ -36,8 +36,12 @@ class FileReader:
         FORMATS: The formats that are read, as file extensions without the dot.
         MAX_BYTES: The largest file read.
         MAX_ROWS: The most data rows a file may hold.
-        MAX_UNCOMPRESSED: The largest a workbook's or spreadsheet's first sheet may
-            be once unpacked.
+        MAX_COLUMNS: The most cells kept of a row. Cells past it are never read.
+        MAX_UNCOMPRESSED: The largest a workbook's first sheet may be once unpacked.
+        MAX_UNCOMPRESSED_ODS: The largest an OpenDocument spreadsheet's content may
+            be once unpacked. odfpy builds the whole document in memory at about
+            twenty times the size of the XML, so this is far below
+            ``MAX_UNCOMPRESSED``.
         MAX_REPEAT: The most empty cells one repeated cell of an OpenDocument row
             is expanded to.
     """
@@ -45,7 +49,9 @@ class FileReader:
     FORMATS = ("csv", "tsv", "xlsx", "ods")
     MAX_BYTES = 20 * 1024 * 1024
     MAX_ROWS = 50_000
+    MAX_COLUMNS = 1024
     MAX_UNCOMPRESSED = 200 * 1024 * 1024
+    MAX_UNCOMPRESSED_ODS = 24 * 1024 * 1024
     MAX_REPEAT = 1024
     SHEET_ENTRIES = {"xlsx": "xl/worksheets/sheet1.xml", "ods": "content.xml"}
     ENCODINGS = ("utf-8-sig", "cp1252", "latin-1")
@@ -106,6 +112,19 @@ class FileReader:
         raise FileProblem(_("The file's text could not be read."), "unreadable")
 
     @classmethod
+    def too_many_rows(cls):
+        """Build the problem of a file with more rows than the limit.
+
+        Returns:
+            A ``FileProblem`` with code ``too_many_rows``.
+        """
+        return FileProblem(
+            _("The file has more than %(max)s rows. Split it into smaller files.")
+            % {"max": cls.MAX_ROWS},
+            "too_many_rows",
+        )
+
+    @classmethod
     def limited(cls, rows):
         """Pass rows on until one more than the limit has been read.
 
@@ -115,14 +134,38 @@ class FileReader:
         Yields:
             Rows up to the headings and ``MAX_ROWS + 1`` rows with a value. Blank rows
             are passed on so a row keeps its line number, up to twice the limit.
+
+        Raises:
+            FileProblem: With code ``too_many_rows`` when the file goes on past the
+                blank rows passed, so rows after them would be left out unseen.
         """
         wanted = cls.MAX_ROWS + 2
         filled = 0
+        rows = iter(rows)
         for count, row in enumerate(rows, start=1):
             yield row
             filled += not all(cls.blank(cell) for cell in row)
-            if filled >= wanted or count >= 2 * wanted:
+            if filled >= wanted:
                 return
+            if count >= 2 * wanted:
+                if next(rows, None) is not None:
+                    raise cls.too_many_rows()
+                return
+
+    @classmethod
+    def trimmed(cls, row):
+        """Cut a row to ``MAX_COLUMNS`` cells and drop its empty cells at the end.
+
+        Args:
+            row: A row as read.
+
+        Returns:
+            The row's cells as a list.
+        """
+        cells = list(row[: cls.MAX_COLUMNS])
+        while cells and cls.blank(cells[-1]):
+            cells.pop()
+        return cells
 
     @classmethod
     def check_unpacked(cls, raw, fmt):
@@ -136,8 +179,12 @@ class FileReader:
 
         Raises:
             FileProblem: With code ``unreadable`` when the file is not an archive and
-                ``too_large_unpacked`` when the sheet is over ``MAX_UNCOMPRESSED``.
+                ``too_large_unpacked`` when the sheet is over ``MAX_UNCOMPRESSED``, or
+                ``MAX_UNCOMPRESSED_ODS`` for an OpenDocument file.
         """
+        ceiling = cls.MAX_UNCOMPRESSED
+        if fmt == "ods":
+            ceiling = min(ceiling, cls.MAX_UNCOMPRESSED_ODS)
         try:
             with zipfile.ZipFile(io.BytesIO(raw)) as archive:
                 names = archive.namelist()
@@ -150,7 +197,7 @@ class FileReader:
             raise FileProblem(
                 _("The file is not a spreadsheet this page can open."), "unreadable"
             ) from None
-        if size > cls.MAX_UNCOMPRESSED:
+        if size > ceiling:
             raise FileProblem(
                 _("The file's first sheet is too large to open."), "too_large_unpacked"
             )
@@ -204,7 +251,7 @@ class FileReader:
         """Read the first sheet of an OpenDocument spreadsheet with odfpy.
 
         A repeated cell is read once for each repeat, and a repeated row likewise.
-        Repeated empty cells are cut at ``MAX_REPEAT``.
+        Repeated empty cells are cut at ``MAX_REPEAT`` and a row at ``MAX_COLUMNS``.
 
         Args:
             raw: The file's bytes.
@@ -273,7 +320,9 @@ class FileReader:
             repeat = int(cell.getAttribute("numbercolumnsrepeated") or 1)
             if value is None:
                 repeat = min(repeat, cls.MAX_REPEAT)
-            cells.extend([value] * repeat)
+            cells.extend([value] * min(repeat, cls.MAX_COLUMNS - len(cells)))
+            if len(cells) >= cls.MAX_COLUMNS:
+                break
         return cells
 
     @classmethod
@@ -281,7 +330,8 @@ class FileReader:
         """Read every row of a file, as lists of cells.
 
         Reading stops at the headings and ``MAX_ROWS + 1`` rows, so a file over the
-        limit is never read to its end.
+        limit is never read to its end. Each row is cut to ``MAX_COLUMNS`` cells with
+        its empty cells at the end dropped as it is read.
 
         Args:
             raw: The file's bytes.
@@ -291,7 +341,9 @@ class FileReader:
             The rows, headings first.
 
         Raises:
-            FileProblem: With code ``unreadable`` or ``too_large_unpacked``.
+            FileProblem: With code ``unreadable``, ``too_large_unpacked`` or
+                ``too_many_rows``. Any error a parser raises while it reads is
+                ``unreadable``.
         """
         if fmt in ("csv", "tsv"):
             rows = cls.read_csv(raw, fmt)
@@ -301,7 +353,14 @@ class FileReader:
             rows = cls.read_ods(raw)
         else:
             raise FileProblem(_("Unknown format."), "format")
-        return [list(row) for row in cls.limited(rows)]
+        try:
+            return list(cls.limited(cls.trimmed(row) for row in rows))
+        except FileProblem:
+            raise
+        except Exception:
+            raise FileProblem(
+                _("The file is not a spreadsheet this page can open."), "unreadable"
+            ) from None
 
     @classmethod
     def parse(cls, raw, fmt):
@@ -345,9 +404,5 @@ class FileReader:
         if not rows:
             raise FileProblem(_("The file has headings but no rows."), "no_rows")
         if len(rows) > cls.MAX_ROWS:
-            raise FileProblem(
-                _("The file has more than %(max)s rows. Split it into smaller files.")
-                % {"max": cls.MAX_ROWS},
-                "too_many_rows",
-            )
+            raise cls.too_many_rows()
         return headings, rows, lines
