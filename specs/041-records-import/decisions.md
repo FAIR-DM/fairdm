@@ -221,3 +221,11 @@ mean one record.
 
 **Revisit if:** a caller needs the class itself, for instance to subclass it for a project's
 type.
+
+## D25 — an import refuses a file with problem rows, and a run is its own class
+
+**Decision:** `ImportRun.confirm` raises `DatasetChanged` when any row the import's own run read is a problem, as well as when a row's outcome or changes differ from the check's. `check_job` does nothing unless the job is `checking`. The undone and discarded states delete the file through `ImportRun.delete_file`, which groups 7 and 9 call.
+
+**Why:** a job in `importing` with problem rows would otherwise match the check's own problem rows and end as `imported` with nothing written. A queued check that arrives after the job moved on would replace the rows of an imported job.
+
+**Revisit if:** the pages stop being the only way a job reaches `importing`.
