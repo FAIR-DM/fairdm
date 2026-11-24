@@ -1,0 +1,78 @@
+{# @description The guide to a record type's columns, laid out as one table for each group: what each column holds, whether it is needed, how to write it and an example. #}
+{# @prop schema:TableSchema | description:"The type's table schema, from its configuration's get_table_schema()." #}
+{% load i18n %}
+<c-vars schema />
+<section class="ie ie-guide">
+  {% for key, title, columns in schema.groups %}
+    <h3 class="ie-guide__group" id="guide-{{ key }}">{{ title }}</h3>
+    <table class="ie-guide__table" role="table" aria-labelledby="guide-{{ key }}">
+      <caption class="sr-only">{{ title }}</caption>
+      <thead role="rowgroup">
+        <tr class="ie-guide__row ie-guide__row--head" role="row">
+          <th scope="col" role="columnheader">{% translate "Heading" %}</th>
+          <th scope="col" role="columnheader">{% translate "What it holds" %}</th>
+          <th scope="col" role="columnheader">{% translate "How to write it" %}</th>
+          <th scope="col" role="columnheader">{% translate "Example" %}</th>
+        </tr>
+      </thead>
+      <tbody role="rowgroup">
+        {% for column in columns %}
+          <tr class="ie-guide__row{% if column.role == 'export' %} ie-guide__row--export{% endif %}" role="row" id="col-{{ column.name }}">
+            <th scope="row" role="rowheader" class="ie-guide__name">
+              <code class="ie-code">{{ column.name }}</code>
+              <span class="ie-guide__label">{{ column.label }}</span>
+              <span class="ie-guide__tags">
+                {% if column.required %}
+                  <span class="ie-tag ie-tag--required" data-tag="required">{% translate "Required for new records" %}</span>
+                {% elif column.role == "key" or column.role == "match" %}
+                  <span class="ie-tag ie-tag--key" data-tag="key">{% translate "Finds the record" %}</span>
+                {% elif column.role == "export" %}
+                  <span class="ie-tag" data-tag="export">{% translate "Export only" %}</span>
+                {% else %}
+                  <span class="ie-tag" data-tag="optional">{% translate "Optional" %}</span>
+                {% endif %}
+              </span>
+            </th>
+            <td class="ie-guide__what" role="cell">
+              {% if column.description %}<p>{{ column.description }}</p>{% endif %}
+              {% if column.shown_aliases %}
+                <p class="ie-guide__aliases">{% translate "Also recognised as" %}
+                  {% for alias in column.shown_aliases|slice:":4" %}<span class="ie-alias">{{ alias }}</span>{% endfor %}
+                </p>
+              {% endif %}
+            </td>
+            <td class="ie-guide__how" role="cell">
+              <span class="ie-guide__kind">{{ column.kind_label }}{% if column.unit %} · {% blocktranslate with unit=column.unit %}in {{ unit }}{% endblocktranslate %}{% endif %}</span>
+              <span class="ie-guide__hint">{{ column.format_hint }}</span>
+              {% if column.kind != "latitude" and column.kind != "longitude" %}
+                {% if column.minimum is not None and column.maximum is not None %}
+                  <span class="ie-guide__hint">{% blocktranslate with a=column.minimum b=column.maximum %}From {{ a }} to {{ b }}{% endblocktranslate %}</span>
+                {% elif column.minimum is not None %}
+                  <span class="ie-guide__hint">{% blocktranslate with a=column.minimum %}At least {{ a }}{% endblocktranslate %}</span>
+                {% elif column.maximum is not None %}
+                  <span class="ie-guide__hint">{% blocktranslate with b=column.maximum %}At most {{ b }}{% endblocktranslate %}</span>
+                {% endif %}
+              {% endif %}
+              {% if column.decimals is not None %}<span class="ie-guide__hint">{% blocktranslate count n=column.decimals %}At most {{ n }} decimal place{% plural %}At most {{ n }} decimal places{% endblocktranslate %}</span>{% endif %}
+              {% if column.allowed %}
+                {% with total=column.allowed|length %}
+                  <details class="ie-allowed">
+                    <summary>{% if total > 40 %}{% blocktranslate %}The first 40 of {{ total }} allowed values{% endblocktranslate %}{% else %}{% blocktranslate count n=total %}{{ n }} allowed value{% plural %}{{ n }} allowed values{% endblocktranslate %}{% endif %}</summary>
+                    <ul>
+                      {% for value, meaning in column.allowed|slice:":40" %}
+                        <li><code class="ie-code">{{ value }}</code>{% if meaning and meaning != value %}<span>{{ meaning|truncatechars:140 }}</span>{% endif %}</li>
+                      {% endfor %}
+                    </ul>
+                  </details>
+                {% endwith %}
+              {% endif %}
+            </td>
+            <td class="ie-guide__example" role="cell">
+              {% if column.example %}<code class="ie-code ie-code--example">{{ column.example }}</code>{% else %}<span class="ie-dim">—</span>{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endfor %}
+</section>

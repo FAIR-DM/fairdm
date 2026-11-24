@@ -5,10 +5,11 @@ from io import StringIO
 from django import forms
 from django.contrib import messages
 from django.core.files.base import ContentFile
+from django.http import Http404, JsonResponse
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
-from django.views.generic import FormView
+from django.views.generic import FormView, View
 from django.views.generic.detail import SingleObjectMixin
 from django_downloadview import VirtualDownloadView
 
@@ -17,8 +18,8 @@ from fairdm.core.models import Dataset
 from fairdm.forms import Form
 from fairdm.registry import registry
 from fairdm.utils.utils import user_guide
-from fairdm.views import FairDMModelFormMixin
 
+from .definitions import get_definition
 from .forms import ExportForm, ImportForm
 from .utils import DataPackage, get_export_formats, get_import_formats
 
@@ -238,7 +239,7 @@ class DataImportView(BaseImportExportView):
         return self.get_object().get_absolute_url()
 
 
-class DatasetPublishConfirm(FairDMModelFormMixin, FormView):
+class DatasetPublishConfirm(FormView):
     """Ask the user to confirm publishing a dataset."""
 
     name = "get-published"
@@ -370,6 +371,35 @@ class MetadataDownloadView(VirtualDownloadView):
     def get_basename(self):
         """Name the file after the dataset."""
         return f"{self.get_object()}.xml"
+
+
+class TableSchemaView(View):
+    """Download the Frictionless Table Schema of a type's file, open to everyone."""
+
+    def get(self, request, name):
+        """Answer with the type's Table Schema as a JSON file.
+
+        Args:
+            request: The request.
+            name: The import definition's name, which is the type's model name.
+
+        Returns:
+            The JSON document as a download.
+
+        Raises:
+            Http404: No import definition has the name.
+        """
+        definition = get_definition(name)
+        if definition is None:
+            raise Http404(name)
+        response = JsonResponse(
+            definition.table_schema().as_frictionless(),
+            json_dumps_params={"indent": 2},
+        )
+        response["Content-Disposition"] = (
+            f'attachment; filename="{name}-table-schema.json"'
+        )
+        return response
 
 
 class UploadForm(forms.Form):
