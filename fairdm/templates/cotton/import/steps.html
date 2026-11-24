@@ -1,0 +1,14 @@
+{# @description The steps of an import with the current one marked and those before it done. #}
+{# @prop steps:list | description:"Pairs of key and label, in the order the person takes them." #}
+{# @prop current:int | description:"The position of the current step, counting from 0, or -1 when none is current." #}
+{% load i18n %}
+<c-vars steps current />
+<ol class="ie-steps" aria-label="{% translate 'Import steps' %}">
+  {% for key, label in steps %}
+    <li class="ie-step{% if forloop.counter0 < current %} ie-step--done{% elif forloop.counter0 == current %} ie-step--current{% endif %}"
+        {% if forloop.counter0 == current %}aria-current="step"{% endif %}>
+      <span class="ie-step__dot">{% if forloop.counter0 < current %}<i class="bi bi-check-lg" aria-hidden="true"></i>{% else %}{{ forloop.counter }}{% endif %}</span>
+      <span class="ie-step__label">{{ label }}</span>
+    </li>
+  {% endfor %}
+</ol>

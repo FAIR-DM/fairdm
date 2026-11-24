@@ -200,6 +200,16 @@ class ImportJob(models.Model):
         """Name the job by its file."""
         return self.filename
 
+    def get_absolute_url(self):
+        """Give the address of the job's page under its dataset.
+
+        Returns:
+            The address.
+        """
+        from fairdm.contrib.plugins import reverse
+
+        return reverse(self.dataset, "imports-job", job=self.pk)
+
     @property
     def definition(self):
         """The import definition the file was read with.

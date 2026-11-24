@@ -93,7 +93,7 @@ public name.
 
 - [x] T016 [US1] Tests: `test_plugins.py` `TestPermission`, `TestImportStart`, `TestUpload`,
   `TestJobColumns`, `TestJobDetail`, `TestJobStatus`, `TestJobProblems`, `TestChooser`.
-- [ ] T017 [US1] `plugins.py` (the pages), the templates under
+- [x] T017 [US1] `plugins.py` (the pages), the templates under
   `fairdm/contrib/import_export/templates/import_export/` and the Cotton components under
   `fairdm/templates/cotton/import/` (`steps`, `progress`, `panel`, `tag`, `outcome_badge`,
   `job_list`), ported from the prototype as plan.md "What is ported" lists. Exports

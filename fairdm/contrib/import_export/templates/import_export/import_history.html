@@ -1,0 +1,15 @@
+{% extends "page_view.html" %}
+{% load i18n %}
+{% block page.content %}
+<div class="ie ie-page">
+  <section class="ie-panel">
+    {% if jobs %}
+      <c-import.job-list :jobs="jobs" show_type />
+    {% else %}
+      <div class="ie-empty-block">
+        <p class="ie-empty">{% translate "Nothing has been imported into this dataset yet." %}</p>
+      </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock page.content %}

@@ -740,8 +740,11 @@ class TestJobStatus:
     """The progress component, asked for every second while a job runs."""
 
     @pytest.fixture
-    def running(self, checked_job):
-        """A job being checked, two rows long."""
+    def running(self, checked_job, settings):
+        """A job being checked, two hundred rows long, with a cache that keeps values."""
+        settings.CACHES = {
+            "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}
+        }
         ImportJob.objects.filter(pk=checked_job.pk).update(
             status=Status.CHECKING, row_count=200
         )
@@ -944,7 +947,7 @@ class TestChooser:
         )
         schema = registry.get_for_model(RockSample).get_table_schema()
         assert entry["required"] == [str(c.label) for c in schema.required]
-        assert entry["columns"] == len(schema.importable)
+        assert entry["columns"] == len(schema.importable) - 1
 
 
 class TestImportsList:

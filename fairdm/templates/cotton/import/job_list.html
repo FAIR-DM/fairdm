@@ -1,0 +1,28 @@
+{# @description A list of imports, each linking to its page with the file, its size, who uploaded it and where it stands. #}
+{# @prop jobs:list | description:"The import jobs to list." #}
+{# @prop show_type:bool | description:"Name the record type of each file." #}
+{% load i18n humanize %}
+<c-vars jobs show_type />
+<ul class="ie-jobs">
+  {% for job in jobs %}
+    <li class="ie-job" data-ie-job>
+      <a class="ie-job__link" href="{{ job.get_absolute_url }}">
+        <span class="ie-job__main">
+          <span class="ie-job__file"><i class="bi bi-file-earmark-spreadsheet" aria-hidden="true"></i> {{ job.filename }}</span>
+          <span class="ie-job__meta">
+            {% if show_type %}{{ job.type_name|capfirst }} · {% endif %}
+            {% blocktranslate count n=job.row_count %}{{ n }} row{% plural %}{{ n }} rows{% endblocktranslate %}
+            · {{ job.created_by.get_full_name|default:job.created_by|default:_("someone") }} · <time datetime="{{ job.created|date:'c' }}" title="{{ job.created }}">{{ job.created|naturaltime }}</time>
+          </span>
+        </span>
+        <span class="ie-job__outcome">
+          {% if job.status == "imported" %}
+            {% if job.summary.new %}<span class="ie-delta ie-delta--new">{% blocktranslate with n=job.summary.new %}{{ n }} added{% endblocktranslate %}</span>{% endif %}
+            {% if job.summary.update %}<span class="ie-delta ie-delta--update">{% blocktranslate with n=job.summary.update %}{{ n }} changed{% endblocktranslate %}</span>{% endif %}
+          {% endif %}
+          <span class="ie-state ie-state--{{ job.status }}">{{ job.get_status_display }}</span>
+        </span>
+      </a>
+    </li>
+  {% endfor %}
+</ul>

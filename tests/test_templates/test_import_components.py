@@ -6,7 +6,6 @@ Wording and look are never asserted.
 """
 
 import pytest
-from django.template import engines
 from django_cotton import render_component
 
 from fairdm.contrib.import_export.forms import ImportOptionsForm
@@ -38,7 +37,7 @@ def render(request_):
 
 
 @pytest.fixture
-def render_markup(request_):
+def render_markup(child_template, render_template):
     """Return a function rendering a template string, for components with a slot."""
 
     def build(source, **context):
@@ -51,7 +50,7 @@ def render_markup(request_):
         Returns:
             The HTML.
         """
-        return engines["django"].from_string(source).render(context, request_)
+        return render_template(child_template(source), context)
 
     return build
 

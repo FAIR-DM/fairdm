@@ -1,0 +1,22 @@
+{# @description A bordered panel with a heading. A tone turns it into the highlighted panel that opens an outcome. #}
+{# @prop title:text | description:"The heading." #}
+{# @prop heading_id:text | description:"An id for the heading, which then labels the panel." #}
+{# @prop size:text | description:"side for the narrow column, flush for a panel whose content runs edge to edge. Empty for the usual panel." #}
+{# @prop tone:text | description:"info, error, ready or done for the highlighted panel. Empty for a plain one." #}
+{# @prop icon:text | description:"The name of an icon drawn before the heading." #}
+{# @prop count:int | description:"A number drawn beside the heading." #}
+{# @slot action | description:"A link drawn at the end of the heading's row." #}
+{# @slot default | description:"The panel's content." #}
+<c-vars title heading_id size tone icon count />
+<section class="ie-panel{% if size %} ie-panel--{{ size }}{% endif %}{% if tone == 'info' %} ie-hero{% elif tone %} ie-hero ie-hero--{{ tone }}{% endif %}"{% if heading_id %} aria-labelledby="{{ heading_id }}"{% endif %}>
+  {% if count or action %}
+    <header class="ie-panel__head{% if size == 'flush' %} ie-pad{% endif %}">
+      <h2 class="ie-panel__title"{% if heading_id %} id="{{ heading_id }}"{% endif %}>{% if icon %}<i class="bi bi-{{ icon }}" aria-hidden="true"></i> {% endif %}{{ title }}</h2>
+      {% if count %}<span class="ie-count">{{ count }}</span>{% endif %}
+      {{ action }}
+    </header>
+  {% elif title %}
+    <h2 class="ie-panel__title{% if size == 'flush' %} ie-pad{% endif %}"{% if heading_id %} id="{{ heading_id }}"{% endif %}>{% if icon %}<i class="bi bi-{{ icon }}" aria-hidden="true"></i> {% endif %}{{ title }}</h2>
+  {% endif %}
+  {{ slot }}
+</section>

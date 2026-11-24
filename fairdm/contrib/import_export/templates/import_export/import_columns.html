@@ -1,0 +1,82 @@
+{% extends "page_view.html" %}
+{% load i18n %}
+{% block page.content %}
+<div class="ie ie-page">
+  <c-import.steps :steps="steps" :current="step_index" />
+  <form method="post" class="ie-stack">
+    {% csrf_token %}
+    {% for problem in problems %}<c-import.alert kind="error">{{ problem }}</c-import.alert>{% endfor %}
+    {% for warning in warnings %}<c-import.alert kind="warning">{{ warning }}</c-import.alert>{% endfor %}
+
+    <section class="ie-panel">
+      <header class="ie-panel__head">
+        <h2 class="ie-panel__title">{% translate "Columns in your file" %}</h2>
+        <span class="ie-count">{{ rows|length }}</span>
+        <span class="ie-panel__sub">{% blocktranslate count n=matched %}{{ n }} column will be read. The rest are left out.{% plural %}{{ n }} columns will be read. The rest are left out.{% endblocktranslate %}</span>
+      </header>
+      <table class="ie-map">
+        <caption class="sr-only">{% translate "Column matches" %}</caption>
+        <thead>
+          <tr class="ie-map__row ie-map__row--head">
+            <th scope="col">{% translate "Your column" %}</th>
+            <th scope="col">{% translate "First values" %}</th>
+            <th scope="col">{% translate "Fills" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            <tr class="ie-map__row{% if not row.target %} ie-map__row--off{% endif %}">
+              <th scope="row" class="ie-map__heading">
+                <span class="ie-map__name">{{ row.heading }}</span>
+                {% if row.target and row.auto %}<c-import.tag kind="ok"><i class="bi bi-check2" aria-hidden="true"></i> {% translate "Recognised" %}</c-import.tag>
+                {% elif row.target %}<c-import.tag kind="key">{% translate "Your choice" %}</c-import.tag>
+                {% else %}<c-import.tag>{% translate "Left out" %}</c-import.tag>{% endif %}
+              </th>
+              <td class="ie-map__values">
+                {% for value in row.values %}<code class="ie-code">{{ value }}</code>{% empty %}<span class="ie-dim">{% translate "All empty" %}</span>{% endfor %}
+              </td>
+              <td class="ie-map__target">
+                <label class="sr-only" for="col-{{ row.index }}">{% blocktranslate with h=row.heading %}What “{{ h }}” fills{% endblocktranslate %}</label>
+                <select class="select select-sm ie-select" name="col-{{ row.index }}" id="col-{{ row.index }}">
+                  <option value="" {% if not row.target %}selected{% endif %}>{% translate "Leave this column out" %}</option>
+                  {% for option in options %}
+                    <option value="{{ option.name }}" {% if option.name == row.target %}selected{% endif %}>{{ option.label }}{% if option.required %} *{% endif %} ({{ option.name }})</option>
+                  {% endfor %}
+                </select>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <div class="ie-split ie-split--even">
+      <c-import.panel :title="_('Fields no column fills')">
+        {% if unfilled %}
+          <ul class="ie-unfilled">
+            {% for column in unfilled %}
+              <li>
+                <span>{{ column.label }} <code class="ie-code">{{ column.name }}</code></span>
+                {% if column.required %}<c-import.tag kind="required">{% translate "Required for new records" %}</c-import.tag>
+                {% else %}<span class="ie-dim">{% translate "Stored values stay as they are" %}</span>{% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="ie-empty">{% translate "Every field has a column." %}</p>
+        {% endif %}
+      </c-import.panel>
+      <c-import.panel :title="_('What the file may do')">
+        <c-import.choice :field="options_form.mode" hide_legend />
+        <c-import.choice :field="options_form.empty" />
+      </c-import.panel>
+    </div>
+
+    <div class="ie-actions ie-actions--bar">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-list-check" aria-hidden="true"></i> {% translate "Check the file" %}</button>
+      <a class="btn btn-ghost" href="{{ start_url }}">{% translate "Choose another file" %}</a>
+      <span class="ie-note">{% blocktranslate count n=job.row_count %}{{ n }} row will be checked. Nothing is written yet.{% plural %}{{ n }} rows will be checked. Nothing is written yet.{% endblocktranslate %}</span>
+    </div>
+  </form>
+</div>
+{% endblock page.content %}

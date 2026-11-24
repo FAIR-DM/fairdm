@@ -1,0 +1,70 @@
+{% extends "page_view.html" %}
+{% load i18n %}
+{% block page.actions %}
+  <a class="btn btn-sm btn-ghost" href="{{ records_url }}"><i class="bi bi-table" aria-hidden="true"></i> {% blocktranslate with type=schema.name %}{{ type }} in this dataset{% endblocktranslate %}</a>
+{% endblock page.actions %}
+{% block page.content %}
+<div class="ie ie-page">
+  <c-import.steps :steps="steps" :current="step_index" />
+
+  <div class="ie-split">
+    <form class="ie-panel ie-upload" method="post" enctype="multipart/form-data" data-ie-upload>
+      {% csrf_token %}
+      <h2 class="ie-panel__title">{% translate "Your file" %}</h2>
+      {% if upload_error %}<c-import.alert kind="error">{{ upload_error }}</c-import.alert>{% endif %}
+      <label class="ie-drop" data-ie-drop>
+        <input type="file" name="file" class="ie-drop__input" accept=".csv,.tsv,.xlsx,.ods" required data-ie-file aria-describedby="ie-formats">
+        <i class="bi bi-cloud-arrow-up ie-drop__icon" aria-hidden="true"></i>
+        <span class="ie-drop__text" data-ie-drop-text>
+          <strong>{% translate "Choose a file" %}</strong> <span class="ie-drop__or">{% translate "or drop it here" %}</span>
+        </span>
+        <span class="ie-drop__chosen" data-ie-chosen hidden></span>
+        <span class="ie-drop__formats" id="ie-formats">{{ formats|join:" · " }} · {% translate "up to 20 MB" %}</span>
+      </label>
+
+      <c-import.choice :field="options_form.mode" />
+      <c-import.choice :field="options_form.empty" />
+
+      <div class="ie-actions">
+        <button type="submit" class="btn btn-primary" data-ie-submit><i class="bi bi-upload" aria-hidden="true"></i> {% translate "Upload and check" %}</button>
+        <span class="ie-note">{% translate "Nothing is written until you have seen what the file would do." %}</span>
+      </div>
+    </form>
+
+    <aside class="ie-side">
+      <c-import.panel size="side" :title="_('Start from')">
+        <c-import.downloads :links="template_links" />
+        {% if count %}
+          <p class="ie-side__sub">{% blocktranslate count n=count with type=schema.name %}The {{ n }} {{ type }} already here, to edit and import back:{% plural %}The {{ n }} {{ type }} already here, to edit and import back:{% endblocktranslate %}</p>
+          <c-import.downloads :links="current_links" />
+        {% endif %}
+        <p class="ie-side__sub">{% translate "For software:" %} <a href="{{ schema_url }}" download>{% translate "the columns as a Table Schema" %}</a></p>
+      </c-import.panel>
+
+      <c-import.panel size="side" :title="_('How rows find their record')">
+        <ol class="ie-match">
+          <li><span class="ie-match__key">{% translate "Portal ID" %}</span><span>{% translate "updates the record it names, which must be in this dataset." %}</span></li>
+          <li><span class="ie-match__key">{% translate "Local ID" %}</span><span>{% translate "with no portal ID, updates the record with that Local ID here." %}</span></li>
+          <li><span class="ie-match__key">{% translate "Neither" %}</span><span>{% translate "adds a new record." %}</span></li>
+        </ol>
+        <p class="ie-note">{% translate "A name never finds a record: two samples may share one. To import the same file twice without adding its rows twice, keep the Portal ID or give every row a Local ID." %}</p>
+      </c-import.panel>
+
+      {% if recent %}
+        <c-import.panel size="side" :title="_('Recent imports')">
+          <c-slot name="action"><a class="ie-more" href="{{ imports_url }}">{% translate "See all" %}</a></c-slot>
+          <c-import.job-list :jobs="recent" />
+        </c-import.panel>
+      {% endif %}
+    </aside>
+  </div>
+
+  {% blocktranslate with type=schema.name asvar columns_title %}The columns of a {{ type }} file{% endblocktranslate %}
+  <c-import.panel :title="columns_title" heading_id="ie-columns" :count="schema.columns|length">
+    <p class="ie-lead">
+      {% translate "Put the headings in the first row, one record on each row after it. Columns may come in any order, and a file may leave out any column that is not required. Headings are matched without regard to case, spaces or underscores, and each label below works as a heading too." %}
+    </p>
+    <c-import.guide :schema="schema" />
+  </c-import.panel>
+</div>
+{% endblock page.content %}
