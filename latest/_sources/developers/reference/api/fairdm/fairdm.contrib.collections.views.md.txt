@@ -48,7 +48,7 @@
 `````{py:class} DataTableView(**kwargs)
 :canonical: fairdm.contrib.collections.views.DataTableView
 
-Bases: {py:obj}`fairdm.views.FairDMTableView`
+Bases: {py:obj}`fairdm.contrib.import_export.mixins.RecordExportMixin`, {py:obj}`fairdm.views.FairDMTableView`
 
 ```{autodoc2-docstring} fairdm.contrib.collections.views.DataTableView
 ```

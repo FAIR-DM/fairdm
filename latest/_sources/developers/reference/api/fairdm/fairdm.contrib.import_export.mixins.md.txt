@@ -1,0 +1,80 @@
+# {py:mod}`fairdm.contrib.import_export.mixins`
+
+```{py:module} fairdm.contrib.import_export.mixins
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.mixins
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`RecordExportMixin <fairdm.contrib.import_export.mixins.RecordExportMixin>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.mixins.RecordExportMixin
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} RecordExportMixin
+:canonical: fairdm.contrib.import_export.mixins.RecordExportMixin
+
+```{autodoc2-docstring} fairdm.contrib.import_export.mixins.RecordExportMixin
+```
+
+````{py:method} export_definition()
+:canonical: fairdm.contrib.import_export.mixins.RecordExportMixin.export_definition
+
+```{autodoc2-docstring} fairdm.contrib.import_export.mixins.RecordExportMixin.export_definition
+```
+
+````
+
+````{py:method} get(request, *args, **kwargs)
+:canonical: fairdm.contrib.import_export.mixins.RecordExportMixin.get
+
+```{autodoc2-docstring} fairdm.contrib.import_export.mixins.RecordExportMixin.get
+```
+
+````
+
+````{py:method} export_queryset(definition=None)
+:canonical: fairdm.contrib.import_export.mixins.RecordExportMixin.export_queryset
+
+```{autodoc2-docstring} fairdm.contrib.import_export.mixins.RecordExportMixin.export_queryset
+```
+
+````
+
+````{py:method} export_stem()
+:canonical: fairdm.contrib.import_export.mixins.RecordExportMixin.export_stem
+
+```{autodoc2-docstring} fairdm.contrib.import_export.mixins.RecordExportMixin.export_stem
+```
+
+````
+
+````{py:method} export_menu(context)
+:canonical: fairdm.contrib.import_export.mixins.RecordExportMixin.export_menu
+
+```{autodoc2-docstring} fairdm.contrib.import_export.mixins.RecordExportMixin.export_menu
+```
+
+````
+
+````{py:method} get_context_data(**kwargs)
+:canonical: fairdm.contrib.import_export.mixins.RecordExportMixin.get_context_data
+
+```{autodoc2-docstring} fairdm.contrib.import_export.mixins.RecordExportMixin.get_context_data
+```
+
+````
+
+`````

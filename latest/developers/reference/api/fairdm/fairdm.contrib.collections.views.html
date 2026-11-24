@@ -862,6 +862,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li class="toctree-l1"><a class="reference internal" href="../../recent-activity.html">Recent activity</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../record-editing-pages.html">Record editing pages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../record-fields.html">Record fields</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../records-export.html">Records export</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../rest-api.html">REST API</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../sample-model.html">Sample model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../settings.html">Settings</a></li>
@@ -1129,7 +1130,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <dl class="py class">
 <dt class="sig sig-object py" id="fairdm.contrib.collections.views.DataTableView">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">DataTableView</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fairdm.contrib.collections.views.DataTableView" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.views.FairDMTableView</span></code></p>
+<dd><p>Bases: <a class="reference internal" href="fairdm.contrib.import_export.mixins.html#fairdm.contrib.import_export.mixins.RecordExportMixin" title="fairdm.contrib.import_export.mixins.RecordExportMixin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.contrib.import_export.mixins.RecordExportMixin</span></code></a>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">fairdm.views.FairDMTableView</span></code></p>
 <p>Display the published records of one Sample or Measurement sub-type as a filterable table.</p>
 <p>Attributes:
 template_name_suffix: Suffix appended to the model name when resolving a template.

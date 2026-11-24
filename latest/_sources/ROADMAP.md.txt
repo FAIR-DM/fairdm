@@ -255,7 +255,7 @@ The capabilities a complete, dependable version of the framework is expected to 
 
 ### R21 — Tabular data goes in and comes back out
 
-*multi-feature · advances G11*
+*delivered in [#695](https://github.com/FAIR-DM/fairdm/issues/695), [#696](https://github.com/FAIR-DM/fairdm/issues/696) · advances G11*
 
 Import and export is written but nobody can reach it. The pages are not routed, one of the templates does not exist, and the work runs in the request rather than in the background. A research group's existing data arrives as spreadsheets, so this is the capability that decides whether a portal can be populated at all.
 
