@@ -1,0 +1,675 @@
+# {py:mod}`fairdm.contrib.import_export.widgets`
+
+```{py:module} fairdm.contrib.import_export.widgets
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`CellWidget <fairdm.contrib.import_export.widgets.CellWidget>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.widgets.CellWidget
+    :summary:
+    ```
+* - {py:obj}`TextCellWidget <fairdm.contrib.import_export.widgets.TextCellWidget>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.widgets.TextCellWidget
+    :summary:
+    ```
+* - {py:obj}`NumberCellWidget <fairdm.contrib.import_export.widgets.NumberCellWidget>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.widgets.NumberCellWidget
+    :summary:
+    ```
+* - {py:obj}`BooleanCellWidget <fairdm.contrib.import_export.widgets.BooleanCellWidget>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.widgets.BooleanCellWidget
+    :summary:
+    ```
+* - {py:obj}`DateCellWidget <fairdm.contrib.import_export.widgets.DateCellWidget>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.widgets.DateCellWidget
+    :summary:
+    ```
+* - {py:obj}`PartialDateCellWidget <fairdm.contrib.import_export.widgets.PartialDateCellWidget>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.widgets.PartialDateCellWidget
+    :summary:
+    ```
+* - {py:obj}`ChoiceCellWidget <fairdm.contrib.import_export.widgets.ChoiceCellWidget>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.widgets.ChoiceCellWidget
+    :summary:
+    ```
+* - {py:obj}`ConceptCellWidget <fairdm.contrib.import_export.widgets.ConceptCellWidget>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.widgets.ConceptCellWidget
+    :summary:
+    ```
+* - {py:obj}`SampleCellWidget <fairdm.contrib.import_export.widgets.SampleCellWidget>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.widgets.SampleCellWidget
+    :summary:
+    ```
+* - {py:obj}`QuantityCellWidget <fairdm.contrib.import_export.widgets.QuantityCellWidget>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.widgets.QuantityCellWidget
+    :summary:
+    ```
+````
+
+### Functions
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`widget_for <fairdm.contrib.import_export.widgets.widget_for>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.widgets.widget_for
+    :summary:
+    ```
+* - {py:obj}`render_cell <fairdm.contrib.import_export.widgets.render_cell>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.widgets.render_cell
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`TRUE <fairdm.contrib.import_export.widgets.TRUE>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.widgets.TRUE
+    :summary:
+    ```
+* - {py:obj}`FALSE <fairdm.contrib.import_export.widgets.FALSE>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.widgets.FALSE
+    :summary:
+    ```
+* - {py:obj}`DATE_FORMATS <fairdm.contrib.import_export.widgets.DATE_FORMATS>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.widgets.DATE_FORMATS
+    :summary:
+    ```
+* - {py:obj}`TIME_FORMATS <fairdm.contrib.import_export.widgets.TIME_FORMATS>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.widgets.TIME_FORMATS
+    :summary:
+    ```
+* - {py:obj}`PARTIAL_DATE <fairdm.contrib.import_export.widgets.PARTIAL_DATE>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.widgets.PARTIAL_DATE
+    :summary:
+    ```
+* - {py:obj}`QUANTITY <fairdm.contrib.import_export.widgets.QUANTITY>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.widgets.QUANTITY
+    :summary:
+    ```
+* - {py:obj}`CHOICES_SHOWN <fairdm.contrib.import_export.widgets.CHOICES_SHOWN>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.widgets.CHOICES_SHOWN
+    :summary:
+    ```
+* - {py:obj}`CONCEPTS_SHOWN <fairdm.contrib.import_export.widgets.CONCEPTS_SHOWN>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.widgets.CONCEPTS_SHOWN
+    :summary:
+    ```
+* - {py:obj}`LABEL_KEYS <fairdm.contrib.import_export.widgets.LABEL_KEYS>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.widgets.LABEL_KEYS
+    :summary:
+    ```
+* - {py:obj}`WIDGETS <fairdm.contrib.import_export.widgets.WIDGETS>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.widgets.WIDGETS
+    :summary:
+    ```
+````
+
+### API
+
+````{py:data} TRUE
+:canonical: fairdm.contrib.import_export.widgets.TRUE
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.TRUE
+```
+
+````
+
+````{py:data} FALSE
+:canonical: fairdm.contrib.import_export.widgets.FALSE
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.FALSE
+```
+
+````
+
+````{py:data} DATE_FORMATS
+:canonical: fairdm.contrib.import_export.widgets.DATE_FORMATS
+:value: >
+   ('%Y-%m-%d', '%d.%m.%Y')
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.DATE_FORMATS
+```
+
+````
+
+````{py:data} TIME_FORMATS
+:canonical: fairdm.contrib.import_export.widgets.TIME_FORMATS
+:value: >
+   ('%H:%M:%S', '%H:%M')
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.TIME_FORMATS
+```
+
+````
+
+````{py:data} PARTIAL_DATE
+:canonical: fairdm.contrib.import_export.widgets.PARTIAL_DATE
+:value: >
+   'compile(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.PARTIAL_DATE
+```
+
+````
+
+````{py:data} QUANTITY
+:canonical: fairdm.contrib.import_export.widgets.QUANTITY
+:value: >
+   'compile(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.QUANTITY
+```
+
+````
+
+````{py:data} CHOICES_SHOWN
+:canonical: fairdm.contrib.import_export.widgets.CHOICES_SHOWN
+:value: >
+   8
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.CHOICES_SHOWN
+```
+
+````
+
+````{py:data} CONCEPTS_SHOWN
+:canonical: fairdm.contrib.import_export.widgets.CONCEPTS_SHOWN
+:value: >
+   6
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.CONCEPTS_SHOWN
+```
+
+````
+
+````{py:data} LABEL_KEYS
+:canonical: fairdm.contrib.import_export.widgets.LABEL_KEYS
+:value: >
+   ('prefLabel', 'altLabel', 'notation', 'skos:prefLabel', 'skos:altLabel', 'skos:notation')
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.LABEL_KEYS
+```
+
+````
+
+`````{py:class} CellWidget(column)
+:canonical: fairdm.contrib.import_export.widgets.CellWidget
+
+Bases: {py:obj}`import_export.widgets.Widget`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.CellWidget
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.CellWidget.__init__
+```
+
+````{py:method} is_empty(value) -> bool
+:canonical: fairdm.contrib.import_export.widgets.CellWidget.is_empty
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.CellWidget.is_empty
+```
+
+````
+
+````{py:method} text_of(value) -> str
+:canonical: fairdm.contrib.import_export.widgets.CellWidget.text_of
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.CellWidget.text_of
+```
+
+````
+
+````{py:method} stored(text: str)
+:canonical: fairdm.contrib.import_export.widgets.CellWidget.stored
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.CellWidget.stored
+```
+
+````
+
+````{py:method} some_of_the_allowed(limit: int) -> str
+:canonical: fairdm.contrib.import_export.widgets.CellWidget.some_of_the_allowed
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.CellWidget.some_of_the_allowed
+```
+
+````
+
+````{py:method} render(value, obj=None, **kwargs)
+:canonical: fairdm.contrib.import_export.widgets.CellWidget.render
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.CellWidget.render
+```
+
+````
+
+`````
+
+`````{py:class} TextCellWidget(column)
+:canonical: fairdm.contrib.import_export.widgets.TextCellWidget
+
+Bases: {py:obj}`fairdm.contrib.import_export.widgets.CellWidget`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.TextCellWidget
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.TextCellWidget.__init__
+```
+
+````{py:method} clean(value, row=None, **kwargs)
+:canonical: fairdm.contrib.import_export.widgets.TextCellWidget.clean
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.TextCellWidget.clean
+```
+
+````
+
+`````
+
+`````{py:class} NumberCellWidget(column)
+:canonical: fairdm.contrib.import_export.widgets.NumberCellWidget
+
+Bases: {py:obj}`fairdm.contrib.import_export.widgets.CellWidget`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.NumberCellWidget
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.NumberCellWidget.__init__
+```
+
+````{py:method} parse(value) -> decimal.Decimal
+:canonical: fairdm.contrib.import_export.widgets.NumberCellWidget.parse
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.NumberCellWidget.parse
+```
+
+````
+
+````{py:method} check_places(number: decimal.Decimal) -> None
+:canonical: fairdm.contrib.import_export.widgets.NumberCellWidget.check_places
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.NumberCellWidget.check_places
+```
+
+````
+
+````{py:method} clean(value, row=None, **kwargs)
+:canonical: fairdm.contrib.import_export.widgets.NumberCellWidget.clean
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.NumberCellWidget.clean
+```
+
+````
+
+````{py:method} render(value, obj=None, **kwargs)
+:canonical: fairdm.contrib.import_export.widgets.NumberCellWidget.render
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.NumberCellWidget.render
+```
+
+````
+
+`````
+
+`````{py:class} BooleanCellWidget(column)
+:canonical: fairdm.contrib.import_export.widgets.BooleanCellWidget
+
+Bases: {py:obj}`fairdm.contrib.import_export.widgets.CellWidget`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.BooleanCellWidget
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.BooleanCellWidget.__init__
+```
+
+````{py:method} clean(value, row=None, **kwargs)
+:canonical: fairdm.contrib.import_export.widgets.BooleanCellWidget.clean
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.BooleanCellWidget.clean
+```
+
+````
+
+````{py:method} render(value, obj=None, **kwargs)
+:canonical: fairdm.contrib.import_export.widgets.BooleanCellWidget.render
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.BooleanCellWidget.render
+```
+
+````
+
+`````
+
+`````{py:class} DateCellWidget(column)
+:canonical: fairdm.contrib.import_export.widgets.DateCellWidget
+
+Bases: {py:obj}`fairdm.contrib.import_export.widgets.CellWidget`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.DateCellWidget
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.DateCellWidget.__init__
+```
+
+````{py:attribute} EXAMPLES
+:canonical: fairdm.contrib.import_export.widgets.DateCellWidget.EXAMPLES
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.DateCellWidget.EXAMPLES
+```
+
+````
+
+````{py:method} clean(value, row=None, **kwargs)
+:canonical: fairdm.contrib.import_export.widgets.DateCellWidget.clean
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.DateCellWidget.clean
+```
+
+````
+
+````{py:method} from_object_date(value)
+:canonical: fairdm.contrib.import_export.widgets.DateCellWidget.from_object_date
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.DateCellWidget.from_object_date
+```
+
+````
+
+````{py:method} from_object_datetime(value)
+:canonical: fairdm.contrib.import_export.widgets.DateCellWidget.from_object_datetime
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.DateCellWidget.from_object_datetime
+```
+
+````
+
+````{py:method} from_object_time(value)
+:canonical: fairdm.contrib.import_export.widgets.DateCellWidget.from_object_time
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.DateCellWidget.from_object_time
+```
+
+````
+
+````{py:method} from_text_date(text: str)
+:canonical: fairdm.contrib.import_export.widgets.DateCellWidget.from_text_date
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.DateCellWidget.from_text_date
+```
+
+````
+
+````{py:method} from_text_datetime(text: str)
+:canonical: fairdm.contrib.import_export.widgets.DateCellWidget.from_text_datetime
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.DateCellWidget.from_text_datetime
+```
+
+````
+
+````{py:method} from_text_time(text: str)
+:canonical: fairdm.contrib.import_export.widgets.DateCellWidget.from_text_time
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.DateCellWidget.from_text_time
+```
+
+````
+
+````{py:method} zoned(value: datetime.datetime) -> datetime.datetime
+:canonical: fairdm.contrib.import_export.widgets.DateCellWidget.zoned
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.DateCellWidget.zoned
+```
+
+````
+
+````{py:method} render(value, obj=None, **kwargs)
+:canonical: fairdm.contrib.import_export.widgets.DateCellWidget.render
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.DateCellWidget.render
+```
+
+````
+
+`````
+
+`````{py:class} PartialDateCellWidget(column)
+:canonical: fairdm.contrib.import_export.widgets.PartialDateCellWidget
+
+Bases: {py:obj}`fairdm.contrib.import_export.widgets.CellWidget`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.PartialDateCellWidget
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.PartialDateCellWidget.__init__
+```
+
+````{py:method} clean(value, row=None, **kwargs)
+:canonical: fairdm.contrib.import_export.widgets.PartialDateCellWidget.clean
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.PartialDateCellWidget.clean
+```
+
+````
+
+````{py:method} exists(year, month, day) -> bool
+:canonical: fairdm.contrib.import_export.widgets.PartialDateCellWidget.exists
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.PartialDateCellWidget.exists
+```
+
+````
+
+`````
+
+`````{py:class} ChoiceCellWidget(column)
+:canonical: fairdm.contrib.import_export.widgets.ChoiceCellWidget
+
+Bases: {py:obj}`fairdm.contrib.import_export.widgets.CellWidget`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.ChoiceCellWidget
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.ChoiceCellWidget.__init__
+```
+
+````{py:method} clean(value, row=None, **kwargs)
+:canonical: fairdm.contrib.import_export.widgets.ChoiceCellWidget.clean
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.ChoiceCellWidget.clean
+```
+
+````
+
+`````
+
+`````{py:class} ConceptCellWidget(column)
+:canonical: fairdm.contrib.import_export.widgets.ConceptCellWidget
+
+Bases: {py:obj}`fairdm.contrib.import_export.widgets.CellWidget`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.ConceptCellWidget
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.ConceptCellWidget.__init__
+```
+
+````{py:method} labels_of(data: dict) -> set[str]
+:canonical: fairdm.contrib.import_export.widgets.ConceptCellWidget.labels_of
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.ConceptCellWidget.labels_of
+```
+
+````
+
+````{py:method} lookup() -> dict
+:canonical: fairdm.contrib.import_export.widgets.ConceptCellWidget.lookup
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.ConceptCellWidget.lookup
+```
+
+````
+
+````{py:method} clean(value, row=None, **kwargs)
+:canonical: fairdm.contrib.import_export.widgets.ConceptCellWidget.clean
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.ConceptCellWidget.clean
+```
+
+````
+
+````{py:method} render(value, obj=None, **kwargs)
+:canonical: fairdm.contrib.import_export.widgets.ConceptCellWidget.render
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.ConceptCellWidget.render
+```
+
+````
+
+`````
+
+`````{py:class} SampleCellWidget(column, dataset=None, user=None)
+:canonical: fairdm.contrib.import_export.widgets.SampleCellWidget
+
+Bases: {py:obj}`fairdm.contrib.import_export.widgets.CellWidget`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.SampleCellWidget
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.SampleCellWidget.__init__
+```
+
+````{py:method} clean(value, row=None, **kwargs)
+:canonical: fairdm.contrib.import_export.widgets.SampleCellWidget.clean
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.SampleCellWidget.clean
+```
+
+````
+
+````{py:method} render(value, obj=None, **kwargs)
+:canonical: fairdm.contrib.import_export.widgets.SampleCellWidget.render
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.SampleCellWidget.render
+```
+
+````
+
+`````
+
+`````{py:class} QuantityCellWidget(column)
+:canonical: fairdm.contrib.import_export.widgets.QuantityCellWidget
+
+Bases: {py:obj}`fairdm.contrib.import_export.widgets.NumberCellWidget`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.QuantityCellWidget
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.QuantityCellWidget.__init__
+```
+
+````{py:method} clean(value, row=None, **kwargs)
+:canonical: fairdm.contrib.import_export.widgets.QuantityCellWidget.clean
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.QuantityCellWidget.clean
+```
+
+````
+
+````{py:method} render(value, obj=None, **kwargs)
+:canonical: fairdm.contrib.import_export.widgets.QuantityCellWidget.render
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.QuantityCellWidget.render
+```
+
+````
+
+`````
+
+````{py:data} WIDGETS
+:canonical: fairdm.contrib.import_export.widgets.WIDGETS
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.WIDGETS
+```
+
+````
+
+````{py:function} widget_for(column, dataset=None, user=None)
+:canonical: fairdm.contrib.import_export.widgets.widget_for
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.widget_for
+```
+````
+
+````{py:function} render_cell(column, instance) -> str
+:canonical: fairdm.contrib.import_export.widgets.render_cell
+
+```{autodoc2-docstring} fairdm.contrib.import_export.widgets.render_cell
+```
+````

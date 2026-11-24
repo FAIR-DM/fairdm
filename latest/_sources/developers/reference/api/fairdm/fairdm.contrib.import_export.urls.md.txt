@@ -27,7 +27,7 @@
 :canonical: fairdm.contrib.import_export.urls.urlpatterns
 :type: list[django.urls.URLPattern]
 :value: >
-   []
+   None
 
 ```{autodoc2-docstring} fairdm.contrib.import_export.urls.urlpatterns
 ```

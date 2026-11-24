@@ -39,6 +39,10 @@
   - ```{autodoc2-docstring} fairdm.contrib.import_export.views.MetadataDownloadView
     :summary:
     ```
+* - {py:obj}`TableSchemaView <fairdm.contrib.import_export.views.TableSchemaView>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.views.TableSchemaView
+    :summary:
+    ```
 * - {py:obj}`UploadForm <fairdm.contrib.import_export.views.UploadForm>`
   - ```{autodoc2-docstring} fairdm.contrib.import_export.views.UploadForm
     :summary:
@@ -323,7 +327,7 @@ Bases: {py:obj}`fairdm.contrib.import_export.views.BaseImportExportView`
 `````{py:class} DatasetPublishConfirm(**kwargs)
 :canonical: fairdm.contrib.import_export.views.DatasetPublishConfirm
 
-Bases: {py:obj}`fairdm.views.FairDMModelFormMixin`, {py:obj}`django.views.generic.FormView`
+Bases: {py:obj}`django.views.generic.FormView`
 
 ```{autodoc2-docstring} fairdm.contrib.import_export.views.DatasetPublishConfirm
 ```
@@ -557,6 +561,30 @@ Bases: {py:obj}`django_downloadview.VirtualDownloadView`
 :canonical: fairdm.contrib.import_export.views.MetadataDownloadView.get_basename
 
 ```{autodoc2-docstring} fairdm.contrib.import_export.views.MetadataDownloadView.get_basename
+```
+
+````
+
+`````
+
+`````{py:class} TableSchemaView(**kwargs)
+:canonical: fairdm.contrib.import_export.views.TableSchemaView
+
+Bases: {py:obj}`django.views.generic.View`
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.TableSchemaView
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.TableSchemaView.__init__
+```
+
+````{py:method} get(request, name)
+:canonical: fairdm.contrib.import_export.views.TableSchemaView.get
+
+```{autodoc2-docstring} fairdm.contrib.import_export.views.TableSchemaView.get
 ```
 
 ````

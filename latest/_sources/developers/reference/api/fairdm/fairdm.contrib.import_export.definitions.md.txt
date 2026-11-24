@@ -1,0 +1,191 @@
+# {py:mod}`fairdm.contrib.import_export.definitions`
+
+```{py:module} fairdm.contrib.import_export.definitions
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.definitions
+:allowtitles:
+```
+
+## Module Contents
+
+### Classes
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`ImportDefinition <fairdm.contrib.import_export.definitions.ImportDefinition>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.definitions.ImportDefinition
+    :summary:
+    ```
+* - {py:obj}`ImportDefinitions <fairdm.contrib.import_export.definitions.ImportDefinitions>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.definitions.ImportDefinitions
+    :summary:
+    ```
+````
+
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`import_definitions <fairdm.contrib.import_export.definitions.import_definitions>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.definitions.import_definitions
+    :summary:
+    ```
+* - {py:obj}`register <fairdm.contrib.import_export.definitions.register>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.definitions.register
+    :summary:
+    ```
+* - {py:obj}`get_definition <fairdm.contrib.import_export.definitions.get_definition>`
+  - ```{autodoc2-docstring} fairdm.contrib.import_export.definitions.get_definition
+    :summary:
+    ```
+````
+
+### API
+
+`````{py:class} ImportDefinition
+:canonical: fairdm.contrib.import_export.definitions.ImportDefinition
+
+```{autodoc2-docstring} fairdm.contrib.import_export.definitions.ImportDefinition
+```
+
+````{py:attribute} name
+:canonical: fairdm.contrib.import_export.definitions.ImportDefinition.name
+:type: str
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.definitions.ImportDefinition.name
+```
+
+````
+
+````{py:attribute} model
+:canonical: fairdm.contrib.import_export.definitions.ImportDefinition.model
+:type: type
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.definitions.ImportDefinition.model
+```
+
+````
+
+````{py:attribute} formats
+:canonical: fairdm.contrib.import_export.definitions.ImportDefinition.formats
+:type: tuple[str, ...]
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.definitions.ImportDefinition.formats
+```
+
+````
+
+````{py:property} kind
+:canonical: fairdm.contrib.import_export.definitions.ImportDefinition.kind
+:type: str
+
+```{autodoc2-docstring} fairdm.contrib.import_export.definitions.ImportDefinition.kind
+```
+
+````
+
+````{py:method} table_schema() -> fairdm.contrib.import_export.schema.TableSchema
+:canonical: fairdm.contrib.import_export.definitions.ImportDefinition.table_schema
+
+```{autodoc2-docstring} fairdm.contrib.import_export.definitions.ImportDefinition.table_schema
+```
+
+````
+
+`````
+
+`````{py:class} ImportDefinitions()
+:canonical: fairdm.contrib.import_export.definitions.ImportDefinitions
+
+```{autodoc2-docstring} fairdm.contrib.import_export.definitions.ImportDefinitions
+```
+
+```{rubric} Initialization
+```
+
+```{autodoc2-docstring} fairdm.contrib.import_export.definitions.ImportDefinitions.__init__
+```
+
+````{py:method} format_names() -> tuple[str, ...]
+:canonical: fairdm.contrib.import_export.definitions.ImportDefinitions.format_names
+:staticmethod:
+
+```{autodoc2-docstring} fairdm.contrib.import_export.definitions.ImportDefinitions.format_names
+```
+
+````
+
+````{py:method} built_in() -> list[fairdm.contrib.import_export.definitions.ImportDefinition]
+:canonical: fairdm.contrib.import_export.definitions.ImportDefinitions.built_in
+
+```{autodoc2-docstring} fairdm.contrib.import_export.definitions.ImportDefinitions.built_in
+```
+
+````
+
+````{py:method} register(definition: fairdm.contrib.import_export.definitions.ImportDefinition) -> fairdm.contrib.import_export.definitions.ImportDefinition
+:canonical: fairdm.contrib.import_export.definitions.ImportDefinitions.register
+
+```{autodoc2-docstring} fairdm.contrib.import_export.definitions.ImportDefinitions.register
+```
+
+````
+
+````{py:method} all(kind: str | None = None) -> list[fairdm.contrib.import_export.definitions.ImportDefinition]
+:canonical: fairdm.contrib.import_export.definitions.ImportDefinitions.all
+
+```{autodoc2-docstring} fairdm.contrib.import_export.definitions.ImportDefinitions.all
+```
+
+````
+
+````{py:method} get(name: str) -> fairdm.contrib.import_export.definitions.ImportDefinition | None
+:canonical: fairdm.contrib.import_export.definitions.ImportDefinitions.get
+
+```{autodoc2-docstring} fairdm.contrib.import_export.definitions.ImportDefinitions.get
+```
+
+````
+
+`````
+
+````{py:data} import_definitions
+:canonical: fairdm.contrib.import_export.definitions.import_definitions
+:value: >
+   'ImportDefinitions(...)'
+
+```{autodoc2-docstring} fairdm.contrib.import_export.definitions.import_definitions
+```
+
+````
+
+````{py:data} register
+:canonical: fairdm.contrib.import_export.definitions.register
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.definitions.register
+```
+
+````
+
+````{py:data} get_definition
+:canonical: fairdm.contrib.import_export.definitions.get_definition
+:value: >
+   None
+
+```{autodoc2-docstring} fairdm.contrib.import_export.definitions.get_definition
+```
+
+````

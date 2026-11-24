@@ -586,6 +586,14 @@ Bases: {py:obj}`typing.NamedTuple`
 
 ````
 
+````{py:method} get_table_schema() -> fairdm.contrib.import_export.schema.TableSchema
+:canonical: fairdm.registry.config.ModelConfiguration.get_table_schema
+
+```{autodoc2-docstring} fairdm.registry.config.ModelConfiguration.get_table_schema
+```
+
+````
+
 ````{py:method} get_admin_class() -> type[ModelAdmin]
 :canonical: fairdm.registry.config.ModelConfiguration.get_admin_class
 

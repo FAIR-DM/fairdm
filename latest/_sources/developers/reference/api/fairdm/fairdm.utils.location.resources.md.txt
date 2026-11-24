@@ -41,7 +41,29 @@
     ```
 ````
 
+### Data
+
+````{list-table}
+:class: autosummary longtable
+:align: left
+
+* - {py:obj}`LOCATION_COLUMNS <fairdm.utils.location.resources.LOCATION_COLUMNS>`
+  - ```{autodoc2-docstring} fairdm.utils.location.resources.LOCATION_COLUMNS
+    :summary:
+    ```
+````
+
 ### API
+
+````{py:data} LOCATION_COLUMNS
+:canonical: fairdm.utils.location.resources.LOCATION_COLUMNS
+:value: >
+   ('latitude', 'longitude', 'location_elevation', 'location_uncertainty')
+
+```{autodoc2-docstring} fairdm.utils.location.resources.LOCATION_COLUMNS
+```
+
+````
 
 `````{py:class} MeasureWidget()
 :canonical: fairdm.utils.location.resources.MeasureWidget

@@ -453,7 +453,7 @@ window.runMermaid = runMermaid;</script>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
   <meta name="docsearch:version" content="0.6.0" />
-    <meta name="docbuild:last-update" content="Nov 23, 2026"/>
+    <meta name="docbuild:last-update" content="Nov 24, 2026"/>
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -1177,6 +1177,8 @@ window.runMermaid = runMermaid;</script>
     <span class="kn">from</span><span class="w"> </span><span class="nn">django.db</span><span class="w"> </span><span class="kn">import</span> <span class="n">models</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">rest_framework.serializers</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelSerializer</span>
 
+    <span class="kn">from</span><span class="w"> </span><span class="nn">fairdm.contrib.import_export.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">TableSchema</span>
+
 
 <div class="viewcode-block" id="Authority">
 <a class="viewcode-back" href="../../../developers/reference/api/fairdm/fairdm.registry.config.html#fairdm.registry.config.Authority">[docs]</a>
@@ -1759,6 +1761,15 @@ window.runMermaid = runMermaid;</script>
     <span class="k">def</span><span class="w"> </span><span class="nf">get_resource_class</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">[</span><span class="n">ModelResource</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Return the import and export resource. Override to build your own."""</span>
         <span class="k">return</span> <span class="n">cast</span><span class="p">(</span><span class="nb">type</span><span class="p">[</span><span class="n">ModelResource</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_component_class</span><span class="p">(</span><span class="s2">"resource"</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="ModelConfiguration.get_table_schema">
+<a class="viewcode-back" href="../../../developers/reference/api/fairdm/fairdm.registry.config.html#fairdm.registry.config.ModelConfiguration.get_table_schema">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_table_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"TableSchema"</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Return the columns of this type's file. Override to build your own."""</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">fairdm.contrib.import_export.schema</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_table_schema</span>
+
+        <span class="k">return</span> <span class="n">build_table_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ModelConfiguration.get_admin_class">
