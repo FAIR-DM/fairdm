@@ -22,9 +22,6 @@ from .reader import FileProblem, FileReader
 from .resources import RowProblem
 from .undo import ImportUndo
 
-Status = ImportJob.Status
-Outcome = ImportRow.Outcome
-
 
 class DatasetChanged(Exception):
     """The import found something other than what the check showed.
@@ -168,7 +165,7 @@ class ImportRun:
         written = {
             row.number: (result.rows[row.number - 1].instance.pk, original)
             for row in rows
-            if row.outcome in (Outcome.NEW, Outcome.UPDATE)
+            if row.outcome in (ImportRow.Outcome.NEW, ImportRow.Outcome.UPDATE)
             for original in [getattr(result.rows[row.number - 1], "original", None)]
         }
         return rows, written
@@ -190,10 +187,10 @@ class ImportRun:
         )
         kind = row_result.import_type
         if kind == RowResult.IMPORT_TYPE_INVALID:
-            row.outcome = Outcome.PROBLEM
+            row.outcome = ImportRow.Outcome.PROBLEM
             row.problems = self.field_problems(row_result.validation_error)
         elif kind == RowResult.IMPORT_TYPE_ERROR:
-            row.outcome = Outcome.PROBLEM
+            row.outcome = ImportRow.Outcome.PROBLEM
             row.problems = [self.error_problem(row_result.errors[0].error)]
         else:
             self.describe_valid(row, row_result, resource)
@@ -211,16 +208,18 @@ class ImportRun:
         if instance is not None and instance.pk:
             row.label = row_result.object_repr or row.label
         if row_result.import_type == RowResult.IMPORT_TYPE_NEW:
-            row.outcome = Outcome.NEW
+            row.outcome = ImportRow.Outcome.NEW
             return
         if instance is not None and instance.pk:
             row.portal_id = instance.uuid
         if row_result.import_type == RowResult.IMPORT_TYPE_UPDATE:
-            row.outcome = Outcome.UPDATE
+            row.outcome = ImportRow.Outcome.UPDATE
             row.changes = resource.changes.get(row.number, [])
             return
         row.note = resource.notes.get(row.number, "")
-        row.outcome = Outcome.SKIPPED if row.note else Outcome.UNCHANGED
+        row.outcome = (
+            ImportRow.Outcome.SKIPPED if row.note else ImportRow.Outcome.UNCHANGED
+        )
 
     def field_problems(self, error):
         """List the problems of the cells a row failed validation on.
@@ -272,7 +271,7 @@ class ImportRun:
             pk = pk or resource.record_pks.get(row.number)
             if pk:
                 keys.setdefault(("pk", pk), []).append(row)
-            if row.outcome == Outcome.NEW and "local_id" in data.headers:
+            if row.outcome == ImportRow.Outcome.NEW and "local_id" in data.headers:
                 text = str(data[row.number - 1][data.headers.index("local_id")] or "")
                 if text.strip():
                     keys.setdefault(("local_id", text.strip()), []).append(row)
@@ -280,7 +279,7 @@ class ImportRun:
             if len(sharing) < 2:
                 continue
             for row in sharing:
-                row.outcome = Outcome.PROBLEM
+                row.outcome = ImportRow.Outcome.PROBLEM
                 row.changes = []
                 row.note = ""
                 if not row.problems:
@@ -307,12 +306,12 @@ class ImportRun:
             ImportRow.objects.bulk_create(rows, batch_size=self.CHUNK)
             job.row_count = len(rows)
             job.summary = dict(counts)
-            if counts[Outcome.PROBLEM]:
-                job.status = Status.PROBLEMS
-            elif counts[Outcome.NEW] + counts[Outcome.UPDATE]:
-                job.status = Status.CHECKED
+            if counts[ImportRow.Outcome.PROBLEM]:
+                job.status = ImportJob.Status.PROBLEMS
+            elif counts[ImportRow.Outcome.NEW] + counts[ImportRow.Outcome.UPDATE]:
+                job.status = ImportJob.Status.CHECKED
             else:
-                job.status = Status.NOTHING
+                job.status = ImportJob.Status.NOTHING
             job.checked_at = timezone.now()
             job.file_problems = []
             job.error = error
@@ -357,14 +356,14 @@ class ImportRun:
             with transaction.atomic():
                 Dataset.all_objects.select_for_update().get(pk=job.dataset_id)
                 job.refresh_from_db()
-                if job.status != Status.IMPORTING:
+                if job.status != ImportJob.Status.IMPORTING:
                     return
                 rows, written = self.run(dry_run=False, user=user)
                 self.confirm(rows)
                 self.record_outcomes(written)
                 job.imported_at = timezone.now()
                 job.imported_by = user
-                job.status = Status.IMPORTED
+                job.status = ImportJob.Status.IMPORTED
                 job.error = ""
                 job.save(
                     update_fields=["imported_at", "imported_by", "status", "error"]
@@ -391,7 +390,7 @@ class ImportRun:
             DatasetChanged: A row is a problem, or has another outcome or other changes
                 than the check showed.
         """
-        if any(row.outcome == Outcome.PROBLEM for row in rows):
+        if any(row.outcome == ImportRow.Outcome.PROBLEM for row in rows):
             raise DatasetChanged(rows)
         stored = list(
             self.job.rows.order_by("number").values_list("outcome", "changes")
@@ -465,7 +464,7 @@ class ImportRun:
         """
         job = self.job
         job.rows.all().delete()
-        job.status = Status.FAILED
+        job.status = ImportJob.Status.FAILED
         job.error = message
         job.file_problems = [message]
         job.save(update_fields=["status", "error", "file_problems"])
@@ -478,6 +477,6 @@ class ImportRun:
             message: What to tell the person, which says nothing was written.
         """
         job = self.job
-        job.status = Status.CHECKED
+        job.status = ImportJob.Status.CHECKED
         job.error = message
         job.save(update_fields=["status", "error"])
