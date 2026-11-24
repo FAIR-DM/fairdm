@@ -91,7 +91,7 @@ public name.
 
 ### Group 7
 
-- [ ] T016 [US1] Tests: `test_plugins.py` `TestPermission`, `TestImportStart`, `TestUpload`,
+- [x] T016 [US1] Tests: `test_plugins.py` `TestPermission`, `TestImportStart`, `TestUpload`,
   `TestJobColumns`, `TestJobDetail`, `TestJobStatus`, `TestJobProblems`, `TestChooser`.
 - [ ] T017 [US1] `plugins.py` (the pages), the templates under
   `fairdm/contrib/import_export/templates/import_export/` and the Cotton components under
