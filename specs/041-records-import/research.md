@@ -100,3 +100,12 @@ One line per piece of new code, the first place the search stopped.
   tasks are.
 - Row outcomes, undo data, change detection: a table of rows (new), a digest of each touched
   record's stored values (new, `hashlib` from the standard library).
+
+## Timing of a 50,000-row import
+
+One file of 50,000 new records of ICP-MS measurements, the demo portal's widest type at 18 columns, every row naming one existing sample, on the shared test PostGIS in a development worktree (one process, no other load):
+
+- The check (a dry run that saves and rolls back every record) took 668 seconds.
+- The import took 768 seconds, including the second run of the resource, the comparison with the check's rows, and reading every written record back in chunks of 500 for its digest.
+
+The tasks' soft limit is 2,400 seconds (a little over three times the longer run) and the hard limit is 2,700 seconds, so a slower worker or a busier database still finishes, and a file that is stuck is stopped within 45 minutes. The same file made only of rows that fail checking (50,000 problems) took 201 seconds to check.

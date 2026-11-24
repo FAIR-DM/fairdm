@@ -4,10 +4,10 @@ from unittest import mock
 
 import pytest
 from django.db import transaction
-from fairdm.contrib.import_export.runner import ImportRun
 
 from fairdm.contrib.import_export import tasks
 from fairdm.contrib.import_export.models import ImportJob
+from fairdm.contrib.import_export.runner import ImportRun
 
 pytestmark = pytest.mark.django_db
 
@@ -96,9 +96,9 @@ class TestImportJob:
         assert job.file
 
     def test_the_person_is_looked_up(self, make_job):
-        from fairdm.factories import PersonFactory
+        from fairdm.factories import UserFactory
 
-        user = PersonFactory().user
+        user = UserFactory()
         job = make_job([rock("A")])
         tasks.check_job(job.pk)
         ImportJob.objects.filter(pk=job.pk).update(status=Status.IMPORTING)

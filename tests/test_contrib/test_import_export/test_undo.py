@@ -1,12 +1,12 @@
 """Tests for fairdm/contrib/import_export/undo.py."""
 
 import pytest
-from fairdm.contrib.import_export.runner import ImportRun
-from fairdm.contrib.import_export.undo import ImportUndo
 
 from demo.factories import RockSampleFactory
 from demo.models import RockSample
 from fairdm.contrib.import_export.models import ImportJob
+from fairdm.contrib.import_export.runner import ImportRun
+from fairdm.contrib.import_export.undo import ImportUndo
 
 pytestmark = pytest.mark.django_db
 

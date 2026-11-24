@@ -83,9 +83,9 @@ public name.
 
 ### Group 6
 
-- [ ] T014 [US1] Tests: `test_runner.py` (check, perform, divergence, lock, file deletion,
+- [x] T014 [US1] Tests: `test_runner.py` (check, perform, divergence, lock, file deletion,
   round trip) and `test_tasks.py` `TestStart`.
-- [ ] T015 [US1] `runner.py` (`ImportRun`: `run`, `check`, `perform`, `progress`) and `tasks.py`
+- [x] T015 [US1] `runner.py` (`ImportRun`: `run`, `check`, `perform`, `progress`) and `tasks.py`
   (`check_job` and `import_job` with their own time limits, `start` with no inline fallback), as plan.md "The check and the import" describes. T014
   goes green.
 
