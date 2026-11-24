@@ -275,3 +275,19 @@ def csv_rows():
         return list(csv.DictReader(io.StringIO(text, newline="")))
 
     return read
+
+
+@pytest.fixture
+def import_job():
+    """A checked import job of rock samples in a new dataset, with no file stored."""
+    from tests.factories import ImportJobFactory
+
+    return ImportJobFactory()
+
+
+@pytest.fixture
+def import_row(import_job):
+    """One row of the import job, left as a new record."""
+    from tests.factories import ImportRowFactory
+
+    return ImportRowFactory(job=import_job)

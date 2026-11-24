@@ -50,7 +50,7 @@ public name.
 
 ### Group 3
 
-- [ ] T006 [US1] Tests: `TestImportJob` and `TestImportRow` in
+- [x] T006 [US1] Tests: `TestImportJob` and `TestImportRow` in
   `tests/test_contrib/test_import_export/test_models.py`, as plan.md "Tests" lists.
 - [ ] T007 [US1] `fairdm/contrib/import_export/models.py` (`ImportJob`, `ImportRow`) and
   `migrations/0001_initial.py` (squashed to one file), `verbose_name`, `help_text` and the index on every
