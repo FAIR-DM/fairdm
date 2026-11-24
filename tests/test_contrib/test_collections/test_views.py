@@ -821,3 +821,23 @@ class TestExportOnPages:
 
         assert issubclass(OwnListing, RecordExportMixin)
         assert response.context_data["export_menu"]["shown"] == 1
+
+    def test_the_portal_listing_draws_the_menu(self, client, published_sample):
+        slug = registry.get_for_model(RockSample).get_slug()
+
+        response = client.get(reverse(f"{slug}-list"))
+
+        assert b"data-ie-menu" in response.content
+
+    @pytest.mark.parametrize("holder", ["dataset", "project", "contributor"])
+    def test_a_tab_of_each_kind_of_record_draws_the_menu(self, client, holders, holder):
+        response = client.get(records_tab(holders[holder], "samples", RockSample))
+
+        assert b"data-ie-menu" in response.content
+
+    def test_a_tab_with_no_records_draws_no_menu(self, client):
+        empty = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+
+        response = client.get(records_tab(empty, "samples"))
+
+        assert b"data-ie-menu" not in response.content
