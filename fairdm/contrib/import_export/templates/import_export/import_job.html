@@ -82,9 +82,16 @@
           <p class="ie-lead">{% blocktranslate with who=job.imported_by.get_full_name|default:job.imported_by when=job.imported_at|naturaltime %}Imported by {{ who }} {{ when }}.{% endblocktranslate %}</p>
           <div class="ie-actions">
             <a class="btn btn-primary" href="{{ records_url }}"><i class="bi bi-table" aria-hidden="true"></i> {% blocktranslate with type=job.type_name %}See the {{ type }}{% endblocktranslate %}</a>
-            <button type="button" class="btn btn-ghost" aria-haspopup="dialog" onclick="document.getElementById('ie-undo').showModal()"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> {% translate "Undo this import" %}</button>
+            {% if undo_blocked %}
+              <span class="ie-note" data-ie-no-undo>{% translate "This import can no longer be undone:" %}
+                {% for e in undo_blocked.entries %}<span data-ie-in-the-way>{% if e.url %}<a href="{{ e.url }}">{{ e.label }}</a>{% else %}{{ e.label }}{% endif %} {{ e.reason }}</span>{% if not forloop.last %}, {% endif %}{% endfor %}{% if undo_blocked.more %} <span data-ie-more>{% blocktranslate count n=undo_blocked.more %}and {{ n }} more{% plural %}and {{ n }} more{% endblocktranslate %}</span>{% endif %}.
+              </span>
+            {% else %}
+              <button type="button" class="btn btn-ghost" aria-haspopup="dialog" onclick="document.getElementById('ie-undo').showModal()"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> {% translate "Undo this import" %}</button>
+            {% endif %}
           </div>
         </c-import.panel>
+        {% if not undo_blocked %}
         <dialog id="ie-undo" class="modal">
           <form method="post" class="modal-box ie-dialog" data-ie-once>
             {% csrf_token %}
@@ -101,6 +108,7 @@
           </form>
           <form method="dialog" class="modal-backdrop"><button>{% translate "Close" %}</button></form>
         </dialog>
+        {% endif %}
         {% if undo_refusal %}
           <c-import.panel :title="_('This import could not be undone')" tone="error" icon="exclamation-triangle-fill">
             <p class="ie-lead">{% translate "The undo did not go through and nothing was changed. A record the import added or changed may have been edited or deleted since, or a sample it added may now have measurements; undoing would lose that work." %}</p>
@@ -165,6 +173,10 @@
                     </dl>
                   {% elif row.note %}
                     <p class="ie-row__note">{{ row.note }}</p>
+                  {% elif row.cells %}
+                    <dl class="ie-cells">
+                      {% for heading, value in row.cells %}<div><dt>{{ heading }}</dt><dd>{{ value|truncatechars:40 }}</dd></div>{% endfor %}
+                    </dl>
                   {% endif %}
                 </li>
               {% endfor %}

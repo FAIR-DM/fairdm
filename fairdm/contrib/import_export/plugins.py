@@ -38,6 +38,7 @@ from .matching import HeadingMatcher
 from .models import ImportJob, ImportRow
 from .reader import FileProblem, FileReader
 from .runner import ImportRun
+from .undo import ImportUndo
 
 STEPS = [
     ("file", _l("Choose a file")),
@@ -597,6 +598,8 @@ class JobDetail(JobPage):
 
     Attributes:
         per_page: How many rows a page lists.
+        cell_limit: How many cells of the file a new row lists.
+        blocked_shown: How many records in the way of an undo the page names.
         ACTIONS: For each action the statuses it may start from and the one it moves to.
         CHECK_STATUSES: The statuses in which the warnings about the file's columns are
             shown.
@@ -606,6 +609,8 @@ class JobDetail(JobPage):
     name = "job"
     template_name = "import_export/import_job.html"
     per_page = 100
+    cell_limit = 7
+    blocked_shown = 3
     ACTIONS = {
         "import": ((ImportJob.Status.CHECKED,), ImportJob.Status.IMPORTING),
         "undo": ((ImportJob.Status.IMPORTED,), ImportJob.Status.UNDOING),
@@ -767,6 +772,7 @@ class JobDetail(JobPage):
                 }
                 for p in row.problems
             ]
+        self.read_cells(page_rows[: self.per_page])
         context["show"] = show
         context["page_rows"] = page_rows[: self.per_page]
         context["row_page"] = page
@@ -787,12 +793,79 @@ class JobDetail(JobPage):
         context["undo_refusal"] = (
             job.error.splitlines() if job.status == ImportJob.Status.IMPORTED else []
         )
+        context["undo_blocked"] = self.undo_blocked()
         context["warnings"] = (
             HeadingMatcher(context["schema"]).warnings(job)
             if job.status in self.CHECK_STATUSES
             else []
         )
         return context
+
+    def read_cells(self, rows):
+        """Name the problem rows and list the new rows' values, from the stored file.
+
+        The stored rows keep no cell of the file, so this reads the file while it is
+        still stored, as the download of the problems does. Once the file is deleted
+        the rows keep the label the check gave them and list no value.
+
+        Args:
+            rows: The rows the page lists. Each gets a ``cells`` list of the heading
+                and value of the cells it shows, and a problem row is labelled with
+                its name cell when the file has one.
+        """
+        job = self.job
+        for row in rows:
+            row.cells = []
+        if not job.file or not rows:
+            return
+        try:
+            with job.file.open("rb") as stored:
+                headings, grid, lines = FileReader.parse(stored.read(), job.file_format)
+        except (FileNotFoundError, FileProblem):
+            return
+        wanted = {row.line for row in rows}
+        found = {
+            line: dict(zip(headings, cells, strict=False))
+            for line, cells in zip(lines, grid, strict=True)
+            if line in wanted
+        }
+        name = next((h for h, column in job.column_map.items() if column == "name"), "")
+        shown = [
+            heading
+            for heading in headings
+            if job.column_map.get(heading) and heading != name
+        ][: self.cell_limit]
+        for row in rows:
+            values = found.get(row.line, {})
+            if row.outcome == ImportRow.Outcome.PROBLEM and values.get(name):
+                row.label = values[name]
+            elif row.outcome == ImportRow.Outcome.NEW:
+                row.cells = [(h, values[h]) for h in shown if values.get(h)]
+
+    def undo_blocked(self):
+        """Work out whether the import can still be undone, as the undo will.
+
+        The same rule the undo applies, read without locking. The undo request checks
+        again, because a record can change between this page and the request.
+
+        Returns:
+            None when the job is not imported or nothing stands in the way. Otherwise
+            a dict of ``entries``, up to ``blocked_shown`` dicts of the record's
+            ``label``, ``reason`` and ``url`` (empty for a deleted record), and
+            ``more``, how many further records are in the way.
+        """
+        job = self.job
+        if job.status != ImportJob.Status.IMPORTED:
+            return None
+        found = ImportUndo(job).conflicts(limit=self.blocked_shown, lock=False)
+        if not found["entries"]:
+            return None
+        records = job.model.objects.in_bulk(e["pk"] for e in found["entries"])
+        for entry in found["entries"]:
+            record = records.get(entry["pk"])
+            entry["url"] = record.get_absolute_url() if record else ""
+            entry["reason"] = ImportUndo.REASONS[entry["reason"]]
+        return found
 
     def tiles(self, job):
         """List the outcomes the job's rows fall in, each with its count.

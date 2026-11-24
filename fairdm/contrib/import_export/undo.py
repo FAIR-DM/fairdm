@@ -11,6 +11,7 @@ from django.db import transaction
 from django.db.models.fields.reverse_related import ForeignObjectRel
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _l
 
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.measurement.models import Measurement
@@ -27,10 +28,16 @@ class ImportUndo:
         done: How many records the undo has put back so far.
         CHUNK: How many records are read or deleted at a time.
         LIMIT: How many records in the way a refusal names.
+        REASONS: The words for each reason a record is in the way.
     """
 
     CHUNK = 500
     LIMIT = 20
+    REASONS = {
+        "deleted": _l("deleted since"),
+        "measurements": _l("has measurements"),
+        "changed": _l("changed since"),
+    }
 
     def __init__(self, job):
         """Keep the import.
@@ -78,7 +85,7 @@ class ImportUndo:
             strict=False,
         )
 
-    def conflicts(self, limit=LIMIT):
+    def conflicts(self, limit=LIMIT, lock=True):
         """List the records that stand in the way of an undo.
 
         A record is in the way when it no longer exists, when its stored values differ
@@ -89,9 +96,12 @@ class ImportUndo:
         Who may undo is the dataset's import permission, decided by the page, so no
         per-record permission is read here. The records are read with a lock, which
         holds until the transaction that called this ends, so call it inside one.
+        A page that only reports whether an undo would succeed passes ``lock=False``.
 
         Args:
             limit: How many records to name.
+            lock: Whether to lock the records read. Undo does; a page that reads the
+                same rule to draw itself does not.
 
         Returns:
             A dict with ``entries``, up to ``limit`` dicts of the record's ``pk``,
@@ -102,9 +112,12 @@ class ImportUndo:
         found = []
         for outcome in (ImportRow.Outcome.NEW, ImportRow.Outcome.UPDATE):
             for rows in self.chunks(outcome):
+                records = model.objects.all()
+                if lock:
+                    records = records.select_for_update(of=("self",))
                 present = {
                     record.pk: record
-                    for record in model.objects.select_for_update(of=("self",)).filter(
+                    for record in records.filter(
                         pk__in=[row.record_pk for row in rows]
                     )
                 }
@@ -257,12 +270,9 @@ class ImportUndo:
             One line for each record, with the reason it stands in the way, and a last
             line counting the records beyond those named.
         """
-        reasons = {
-            "deleted": _("deleted since"),
-            "measurements": _("has measurements"),
-            "changed": _("changed since"),
-        }
-        lines = [f"{e['label']} · {reasons[e['reason']]}" for e in found["entries"]]
+        lines = [
+            f"{e['label']} · {self.REASONS[e['reason']]}" for e in found["entries"]
+        ]
         if found["more"]:
             lines.append(_("and %(n)s more records in the way") % {"n": found["more"]})
         return "\n".join(lines)
