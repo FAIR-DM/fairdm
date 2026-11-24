@@ -554,6 +554,29 @@ class TestFrictionlessRefusals:
         assert not valid(write_file(tmp_path / "listed.csv", schema, rows), schema)
 
 
+class TestEmptyVocabulary:
+    """A concept column with no allowed values accepts only an empty cell."""
+
+    @pytest.fixture
+    def schema(self, rock_config, make_column):
+        """A schema of a text column and a concept column with an empty vocabulary."""
+        return TableSchema(
+            model=RockSample,
+            config=rock_config,
+            columns=[make_column("text"), make_column("concept", allowed=[])],
+        )
+
+    def test_a_value_in_the_column_fails(self, schema, tmp_path):
+        path = write_file(tmp_path / "any.csv", schema, [["a", "anything"]])
+
+        assert not valid(path, schema)
+
+    def test_an_empty_cell_in_the_column_passes(self, schema, tmp_path):
+        path = write_file(tmp_path / "none.csv", schema, [["a", ""]])
+
+        assert valid(path, schema)
+
+
 class TestFrictionlessDescriptor:
     def field(self, schema, name):
         """Return the descriptor of one column."""

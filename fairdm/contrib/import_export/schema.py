@@ -165,6 +165,9 @@ class Column:
             constraints["maximum"] = self.maximum
         if self.allowed:
             constraints["enum"] = [value for value, _meaning in self.allowed]
+        elif self.kind == "concept":
+            # An empty enum is not valid Table Schema, so only an empty cell passes.
+            constraints["maxLength"] = 0
         if self.kind == "partial_date":
             constraints["pattern"] = PARTIAL_DATE_PATTERN
         if constraints:
