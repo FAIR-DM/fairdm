@@ -107,3 +107,54 @@ The build adds to `CONTEXT.md`: **Import** (one file uploaded into one dataset, 
 outcome), **Import definition** if https://github.com/FAIR-DM/fairdm/issues/695 has not already
 added it, and **Local ID** (the creator's own identifier for a sample or measurement within its
 dataset), which the request uses and the glossary does not yet define.
+
+## D15 — The heading matcher is its own module, not a method of the schema
+
+The prototype's column model had `match(heading)`. On `main` the column model is FS-039's, and the
+import's rules (which column a heading means, which matches stop an import) belong to the import.
+`matching.py` takes a `TableSchema` and reads its columns' name, label, label without unit and
+aliases. Nothing in `schema.py` changes. **ADR:** none — local to this feature, nothing downstream
+inherits it.
+
+## D16 — Row outcomes are a table of rows
+
+`ImportRow` holds one row of a check each, with an index on the outcome. A 50,000-row file kept as
+one JSON value would be read whole by every page and every progress poll. The page reads one page
+of one outcome with a filter and a slice. The rows are replaced when a file is checked again. The
+cost is a second table and one `bulk_create` in chunks. **ADR:** to be written at S5 with D18.
+
+## D17 — Progress stays in the cache and is fetched by HTMX
+
+The check's progress is written while the dry run's transaction is open, and a database column
+written on the same connection is rolled back with it. The Redis cache the portal already runs
+holds it. The page asks for it with `hx-trigger="every 1s"` and the status view answers
+`HX-Refresh: true` when the run is over, so the person never reloads and the portal carries no
+polling script of its own. **ADR:** none — local to this feature.
+
+## D18 — Undo compares a digest of each touched record's stored values
+
+A record's `modified` is not enough (D7): a bulk update skips it and a deletion leaves nothing to
+compare. The import stores, for each record it adds or changes, a digest of every concrete field's
+stored value taken inside its transaction after the save. Undo recomputes it, and a missing record
+or a different digest stops the undo. Any save, even one that changes no value, moves `modified`
+and so counts as a change since. **ADR:** to be written at S5 with D16.
+
+## D19 — The registry's resource component is removed with its factory
+
+FR-023 replaces `ResourceFactory` with the dataset-bound resource. The `resource` component, the
+`resource_class` configuration option and `ModelConfiguration.get_resource_class()` go with it,
+since nothing would call them and the specification gives a portal no way to define its own import
+resource. `resource_fields` stays because the column model reads it. A portal that set
+`resource_class` has a configuration key the registry no longer reads, which the changelog states
+under "Removed". **ADR:** none — a removal, recorded in the changelog.
+
+## D20 — Undo asks for the change permission, not the delete permission
+
+Q1 of the specification lets anyone with the edit level undo, and FR-026 refuses where the portal
+would refuse the change by hand. The portal holds a record's deletion at the manage level and its
+change at the edit level. Reading "by hand" as a deletion would make an import that added records
+impossible to undo for the people the specification names. The import itself added those records
+at the edit level. So undo asks `change_<model>` of each record it touches, which an edit-level
+person holds, and refuses a record the person may not change. The portal has no rule about a
+dataset's published state that blocks a change, so there is nothing more to read. Reported at the
+merge gate for the orchestrator to confirm. **ADR:** none — local to this feature.
