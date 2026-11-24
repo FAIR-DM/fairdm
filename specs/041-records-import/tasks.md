@@ -39,7 +39,7 @@ public name.
 - [x] T004 [US1] Tests first, then code: `build_export_for_datatype` in `utils.py` writes through
   `TableExport` and keeps its signature (a test in `test_utils.py` that it returns the rows'
   headings and cells for a registered type in `csv`).
-- [ ] T005 [US1] Remove the registry's `resource` component, `ResourceFactory`, `resource_class`
+- [x] T005 [US1] Remove the registry's `resource` component, `ResourceFactory`, `resource_class`
   and `get_resource_class()` (D19). Rewrite or delete the registry tests that name them. Edit
   `docs/developers/how-to/import-and-export-locations.md`,
   `docs/developers/reference/model-configuration.md`, `docs/contributing/registry-system.md` and

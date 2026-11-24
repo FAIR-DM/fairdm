@@ -225,7 +225,7 @@ The pieces are in `fairdm.utils.location.resources`.
 | `CoordinateField(axis)` | The `latitude` or `longitude` field, for `axis` `"lat"` or `"lon"` |
 | `MeasureWidget` | Reads a number cell, writes the number itself or an empty cell for none, and refuses `nan` and infinite values |
 
-`fairdm.contrib.import_export.resources.BaseFairDMResource` includes `LocatedResourceMixin`. The resource the registry generates for a type does too, when the type's fields list `location`.
+A type whose fields list `location` has the four columns in its import and export file.
 
 ## In the API
 

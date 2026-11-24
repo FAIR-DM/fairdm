@@ -16,7 +16,7 @@ The FairDM registry system is a core component that enables automatic generation
                                 ▲              │ • Tables        │
                                 │              │ • Filters       │
                                 ▼              │ • Serializers   │
-┌─────────────────┐    ┌──────────────────┐    │ • Resources     │
+┌─────────────────┐    ┌──────────────────┐    │                 │
 │   Registry      │    │    Factories     │    │ • Admin         │
 │                 │    │                  │    └─────────────────┘
 │ • Model Storage │    │ Component        │
@@ -50,7 +50,7 @@ config = registry.get_for_model(MySample)
 form_class = config.get_form_class()        # ModelForm
 table_class = config.get_table_class()      # django-tables2 Table
 filter_class = config.get_filterset_class() # django-filter FilterSet
-# ... and get_serializer_class(), get_resource_class(), get_admin_class()
+# ... and get_serializer_class() and get_admin_class()
 ```
 
 Always call the accessor. It is the only public way to reach a component, so a configuration that
