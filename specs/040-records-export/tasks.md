@@ -41,14 +41,14 @@ reason before the code that makes it pass is written. Wording and appearance get
 
 ### Group 4
 
-- [ ] T006 [US1] Tests: `TestExportMenuComponent` in `tests/test_templates/test_export_menu.py`,
+- [x] T006 [US1] Tests: `TestExportMenuComponent` in `tests/test_templates/test_export_menu.py`,
   as plan.md "Tests" describes.
-- [ ] T007 [US1] `fairdm/templates/cotton/import/export_menu.html`, its `page.actions` placement in
+- [x] T007 [US1] `fairdm/templates/cotton/import/export_menu.html`, its `page.actions` placement in
   `fairdm/templates/record_lists/records.html` and
   `fairdm/contrib/collections/templates/collections/listing.html`, as plan.md "The component and its
   placement" describes, ported from the prototype's `partials/table_actions.html`. T006 and T004's
   placement tests go green.
-- [ ] T008 [US1] `fairdm/static/css/fairdm.css` (the `ie-tools` and `ie-menu` rules, ported from the
+- [x] T008 [US1] `fairdm/static/css/fairdm.css` (the `ie-tools` and `ie-menu` rules, ported from the
   prototype's `tabular.css` lines 300-315 with `tx-` renamed `ie-`) and
   `fairdm/static/js/export-menu.js` linked from `fairdm/templates/base.html` with `defer`, as plan.md
   "What is ported" lists. No test.
