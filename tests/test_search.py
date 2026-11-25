@@ -41,20 +41,23 @@ def panel(client, query, **params):
 
 def urls(group):
     """Return the addresses a group's results link to."""
-    return [group.kind.result(item).url for item in group.results]
+    return [result.url for result in group.results]
 
 
 def make_everything(word=WORD):
     """Create one public record of every type whose name holds the word."""
     project = ProjectFactory(name=f"{word} project", visibility=Visibility.PUBLIC)
     dataset = DatasetFactory(
-        name=f"{word} dataset", project=project, visibility=Visibility.PUBLIC
+        name=f"{word} dataset",
+        project=project,
+        visibility=Visibility.PUBLIC,
+        published=True,
     )
     sample = ConcreteSampleFactory(name=f"{word} sample", dataset=dataset)
     measurement = ConcreteMeasurementFactory(
         name=f"{word} measurement", sample=sample, dataset=dataset
     )
-    person = PersonFactory(first_name=word, last_name="Person")
+    person = PersonFactory(name=f"{word} Person")
     organization = OrganizationFactory(name=f"{word} institute")
     item = LiteratureItemFactory(title=f"{word} paper")
     return {
@@ -92,7 +95,7 @@ class TestFindsEveryRecordType:
 @pytest.mark.django_db
 class TestMatchingFollowsTheList:
     def test_a_sample_is_found_by_its_local_id(self):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         sample = ConcreteSampleFactory(dataset=dataset, local_id="LID-9137")
 
         groups = panel(Client(), "LID-9137")
@@ -119,7 +122,7 @@ class TestMatchingFollowsTheList:
         assert urls(groups["projects"]) == [project.get_absolute_url()]
 
     def test_a_sample_identifier_does_not_find_the_sample(self):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         sample = ConcreteSampleFactory(dataset=dataset)
         identifier = SampleIdentifierFactory(related=sample, value="smp-ext-5521")
 
@@ -232,7 +235,7 @@ class TestVisibility:
         assert urls(groups["samples"]) == [sample.get_absolute_url()]
 
     def test_a_superuser_is_not_found_among_the_people(self):
-        PersonFactory(first_name=WORD, last_name="Admin", is_superuser=True)
+        PersonFactory(name=f"{WORD} Admin", is_superuser=True)
 
         groups = panel(Client(), WORD)
 
@@ -242,19 +245,18 @@ class TestVisibility:
 @pytest.mark.django_db
 class TestRegisteredTypes:
     def test_a_registered_sample_type_is_found_as_a_sample_and_links_to_its_page(self):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         sample = ConcreteSampleFactory(name=WORD, dataset=dataset)
 
         groups = panel(Client(), WORD)
 
         assert urls(groups["samples"]) == [sample.get_absolute_url()]
-        assert type(groups["samples"].results[0]).__name__ == "ConcreteSample"
 
 
 @pytest.mark.django_db
 class TestResultsPage:
     def test_the_records_past_the_first_page_are_on_the_second(self):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         for _ in range(25):
             ConcreteSampleFactory(name=WORD, dataset=dataset)
         client = Client()

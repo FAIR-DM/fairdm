@@ -21,7 +21,7 @@ public name.
 
 - [x] T001 [US1] Tests: `tests/test_search.py` as plan.md "Tests" lists them (all eight
   classes). They fail because nothing is registered or mounted.
-- [ ] T002 [US1] `fairdm/search.py`: `RecordKind` and the seven kinds as plan.md "Modules"
+- [x] T002 [US1] `fairdm/search.py`: `RecordKind` and the seven kinds as plan.md "Modules"
   describes, and `register_kinds()`. Call it from `FairDMConfig.ready()` in `fairdm/apps.py`. The
   kind tests that do not need the address go green.
 - [ ] T003 [US1] Mount `path("search/", include("mvp.search.urls"))` in `fairdm/conf/urls.py` and
