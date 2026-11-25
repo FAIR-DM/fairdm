@@ -119,3 +119,58 @@ match too. FR-004 is corrected to say so.
 does for the same text. Reading the filter itself means the two cannot drift (D1).
 
 **ADR:** none — local to this feature, nothing downstream inherits it
+
+## D10. A type's own search fields match in its own table only
+
+**Ambiguity.** A registered sample or measurement type can add fields to its table's search through
+`search_fields` (default `["name"]`). The site search matches samples and measurements by the base
+fields only (name, local ID and portal ID), because it searches the base models (D5).
+
+**Chosen.** The site search uses the base filter. A field a type adds matches in that type's own
+table and not in the header. With the default registration the site search finds a superset of the
+table's matches.
+
+**Why.** Matching on a type's own fields would need one query per registered type. Parity for types
+that add search fields is a change to the specification, so it is not made here.
+
+**ADR:** none — local to this feature, nothing downstream inherits it
+
+## D11. Every record type's order ends with the primary key
+
+**Chosen.** Each kind orders by its name or title and then by primary key.
+
+**Why.** The results page pages twenty at a time. Two records with the same name in no fixed order
+could appear on two pages or on none. django-mvp's own sort rule says the same.
+
+**ADR:** none — local to this feature, nothing downstream inherits it
+
+## D12. The result line names the record's parent, as the record's card does
+
+**Chosen.** A dataset's result line names its project, a sample's names its dataset and its local
+ID, and a measurement's names its sample. Nothing wider: no description and no contributor names.
+
+**Why.** The portal's cards already name the parent, so nothing is disclosed that a person may not
+already see on a record they can open.
+
+**ADR:** none — local to this feature, nothing downstream inherits it
+
+## D13. The three search components are copied into the header block, not set as a layout widget
+
+**Chosen.** `base.html`'s `app.navbar.end` block gains the three components, as the prototype has
+them. The `layout.navbar.end` setting is left alone.
+
+**Why.** The look is ported from the prototype's block, and the header changes in
+https://github.com/FAIR-DM/fairdm/issues/719 edit the same block. The setting route would put the
+search in a second place the next feature has to find.
+
+**ADR:** none — local to this feature, nothing downstream inherits it
+
+## D14. A reference that is only a DOI prefix lists nothing
+
+**Chosen.** When the catalogue's search reads a query as no words, because it is only `doi:` or a
+DOI address prefix, the literature kind returns no references.
+
+**Why.** The catalogue's filter returns the unfiltered set for an empty term, which would list every
+reference for a query that names none.
+
+**ADR:** none — local to this feature, nothing downstream inherits it
