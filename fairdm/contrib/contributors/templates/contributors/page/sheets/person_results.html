@@ -1,16 +1,22 @@
 {% load i18n %}
 {% if found %}
-  <c-menu class="contrib-picks" aria-label="{% translate "People found" %}">
+  <ul class="contrib-picks" aria-label="{% translate "People found" %}">
     {% for person in found %}
-      <c-menu.item class="contrib-pick" hx-get="{{ step_url }}?person={{ person.uuid }}" hx-target="#contrib-sheet-step" hx-swap="outerHTML">
-        <c-mvp.avatar :for="person" alt="" size="sm" placeholder="{{ person.get_initials }}" only />
-        <span class="flex flex-col min-w-0">
-          <span>{{ person.name }}</span>
-          {% with affiliation=person.primary_affiliation %}{% if affiliation %}<span class="text-sm opacity-70">{{ affiliation.organization.name }}</span>{% endif %}{% endwith %}
-        </span>
-      </c-menu.item>
+      <li>
+        <button type="button" class="contrib-pick"
+                hx-get="{{ step_url }}?person={{ person.uuid }}"
+                hx-target="#contrib-sheet-step"
+                hx-swap="outerHTML">
+          <c-mvp.avatar :for="person" alt="" size="sm" placeholder="{{ person.get_initials }}" only />
+          <span class="contrib-pick-text">
+            <span class="contrib-pick-name">{{ person.name }}</span>
+            {% with affiliation=person.primary_affiliation %}{% if affiliation %}<span class="contrib-pick-sub">{{ affiliation.organization.name }}</span>{% endif %}{% endwith %}
+          </span>
+          <c-icon name="chevron-right" aria-hidden="true" />
+        </button>
+      </li>
     {% endfor %}
-  </c-menu>
+  </ul>
 {% else %}
   <p class="contrib-none">{% if query %}{% blocktranslate %}Nobody called “{{ query }}” is in the portal.{% endblocktranslate %}{% else %}{% translate "Everyone in the portal is already on this record." %}{% endif %}</p>
 {% endif %}
