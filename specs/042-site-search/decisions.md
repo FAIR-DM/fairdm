@@ -29,6 +29,8 @@ people and organization filters, and the literature catalogue's search.
 
 **Revisit if** R17 builds an index for the list searches. The site search then follows it.
 
+**ADR:** docs/adr/0048-the-site-search-matches-with-each-lists-own-search.md
+
 ## D2. A person who holds a level on a private record finds it
 
 **Ambiguity.** The issue says each kind shows what the person may see "the same way that record's
@@ -54,6 +56,8 @@ lets view every record.
 under Visibility. "Member" in `CONTEXT.md` means an affiliation to an organization, so it is not used
 for projects.
 
+**ADR:** none — follows the portal's existing rule that a record is shown to the people who may open it
+
 ## D3. The rest of a record type's matches are on the search's own results page
 
 **Ambiguity.** django-mvp lets a kind point "see all" at an address of its own. The prototype pointed
@@ -66,12 +70,16 @@ that record type, twenty to a page, as django-mvp does by default.
 ones the person holds a level on), so a link to it would lose matches. Samples and measurements have
 no list page, so the default keeps every record type the same.
 
+**ADR:** none — local to this feature, the default django-mvp behaviour
+
 ## D4. The record types and their order
 
 **Chosen.** Projects, datasets, samples, measurements, people, organizations, literature, the order of
 the issue and of the prototype. Each is registered by FairDM, so a portal gets all seven with no
 setting. A portal that wants fewer, or another order, uses django-mvp's `search.kinds` setting, which
 already exists.
+
+**ADR:** none — local to this feature, a list in one function
 
 ## D5. Registered sample and measurement types are found with no extra step
 
@@ -80,6 +88,8 @@ type is found as a sample or a measurement and links to its own page.
 
 **Why.** G2: registering a model is enough to get a working portal surface. A domain type that the
 search could not find until its developer registered something would break that.
+
+**ADR:** none — local to this feature, follows from searching the base models
 
 ## D6. The visitor's landing page keeps its own header
 
@@ -90,6 +100,8 @@ carries no search. Every other page does, the signed-in dashboard included.
 **Why.** The landing page is its own design, and the prototype left it alone. Adding the search to
 it is a change to that page, not part of finding a record.
 
+**ADR:** none — local to this feature, the landing page is left as it is
+
 ## D7. No look of FairDM's own
 
 **Chosen.** The results page, dialog, field and button are django-mvp's as they ship. The rule in
@@ -99,12 +111,16 @@ django-mvp (https://github.com/django-mvp/django-mvp/issues/724).
 **Why.** Sam, 2026-11-25: the search is built off what django-mvp provides and need not match the
 prototype exactly.
 
+**ADR:** none — local to this feature, nothing is added
+
 ## D8. Stories
 
 One story. Everything a person does with the search (open it, type, narrow to one record type, page
 through the rest) is one thing they set out to do, so these are scenarios under it. There is no
 developer story: a portal's developer does nothing to get the search, and limiting or reordering
 the record types is django-mvp's existing setting.
+
+**ADR:** none — a statement of how the feature is cut, nothing downstream inherits it
 
 ## D9. A dataset is found by the text the dataset list matches, descriptions and keywords included
 
@@ -195,5 +211,19 @@ from starting the second time.
 that the word "Published" appears nowhere on a page for an unpublished dataset.
 
 **Revisit if.** The test is written to look inside the card rather than the whole page.
+
+**ADR:** none — local to this feature, nothing downstream inherits it
+
+## D17. Two older tests are narrowed to leave the header's search out
+
+**Chosen.** The dataset listing's test that it offers one search control counts only the fields
+outside the header's search dialog. The overview page's test that a record without an image has
+nothing to open looks for dialogs other than the header's search dialog. Neither assertion is
+weakened: the listing still has exactly one search field of its own, and a record with no image
+still opens nothing.
+
+**Why.** Every page with the portal's header now carries the search dialog (FR-002), so a count
+over the whole page and a search for any dialog both meet it. The specifications those tests guard
+are about the listing's own toolbar and the record's image.
 
 **ADR:** none — local to this feature, nothing downstream inherits it

@@ -175,7 +175,14 @@ class TestDatasetListingSearch:
         DatasetFactory(visibility=Visibility.PUBLIC)
         response = client.get(reverse("dataset-list"))
         content = response.content.decode()
-        assert content.count('name="q"') == 1
+        page = BeautifulSoup(content, "html.parser")
+        # The header's site search dialog has its own field, which is not the listing's.
+        controls = [
+            field
+            for field in page.select('input[name="q"]')
+            if field.find_parent(id="mvp-search") is None
+        ]
+        assert len(controls) == 1
         assert 'name="search"' not in content
 
 

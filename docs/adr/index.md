@@ -54,4 +54,5 @@ do not restate earlier ones, only build past them.
 0045-recent-activity-is-recorded-hidden-and-read-through-the-records-rules
 0046-an-import-keeps-one-row-per-file-row-with-its-outcome
 0047-undo-compares-a-digest-of-each-touched-record
+0048-the-site-search-matches-with-each-lists-own-search
 ```

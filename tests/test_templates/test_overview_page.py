@@ -248,7 +248,8 @@ class TestHeaderImage:
         page = soup(render_template("overview/page.html", page_context))
 
         assert page.select_one("button[data-opens]") is None
-        assert page.find("dialog") is None
+        # The header's site search is a dialog too, and is not an image to open.
+        assert [d for d in page("dialog") if d.get("id") != "mvp-search"] == []
 
 
 @pytest.mark.django_db
