@@ -1,9 +1,9 @@
-{# @description FairDM's mobile dock: Home, Projects, Datasets, Search, and the sidebar toggle last. Shown below the sidebar's breakpoint, in place of django-mvp's menu-driven dock. #}
+{# @description FairDM's mobile dock: Home, Projects, Datasets, Profile (Log in for a visitor), and the sidebar toggle last. Shown below the sidebar's breakpoint, in place of django-mvp's menu-driven dock. #}
 {% comment %}
   Declared here rather than built from MobileFooterMenu. The item holding the current page is
   drawn filled and marked current: a record's own pages count as their list's section, and a
-  page only the sidebar reaches counts as Menu's. Search opens the site search dialog, which
-  base.html draws once per page.
+  page only the sidebar reaches counts as Menu's. Profile is the signed-in person's own profile,
+  current on its pages; someone else's profile is a Menu page.
 {% endcomment %}
 {% load i18n fairdm_dock %}
 {% dock_section as section %}
@@ -22,12 +22,18 @@
                  icon="{% if section == "datasets" %}dataset-current{% else %}dataset{% endif %}"
                  href="{% url "dataset-list" %}"
                  :active="{% if section == "datasets" %}True{% else %}False{% endif %}" />
-    <c-dock.item label="{% translate "Search" %}"
-                 icon="search"
-                 commandfor="mvp-search"
-                 command="show-modal"
-                 aria-haspopup="dialog"
-                 :active="{% if section == "search" %}True{% else %}False{% endif %}" />
+    {% if request.user.is_authenticated %}
+      <c-dock.item label="{% translate "Profile" %}"
+                   icon="{% if section == "profile" %}person-current{% else %}person{% endif %}"
+                   href="{{ request.user.get_absolute_url }}"
+                   :active="{% if section == "profile" %}True{% else %}False{% endif %}" />
+    {% else %}
+      {# A visitor has no profile, so the same place takes them to log in and back to this page. #}
+      {% url "account_login" as login_url %}
+      <c-dock.item label="{% translate "Log in" %}"
+                   icon="login"
+                   href="{{ login_url }}{% if request.path != login_url %}?next={{ request.get_full_path|urlencode }}{% endif %}" />
+    {% endif %}
     <c-dock.item label="{% translate "Menu" %}"
                  icon="menu"
                  toggle="mvp-app-toggle"

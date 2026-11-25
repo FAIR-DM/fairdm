@@ -169,6 +169,7 @@ EASY_ICONS = {
             "home-current": "bi bi-house-fill",
             "project-current": "bi bi-layers-fill",
             "dataset-current": "bi bi-folder-fill",
+            "person-current": "bi bi-person-fill",
             "dashboard": "bi bi-speedometer2",
             "email": "bi bi-envelope",
             "lock": "bi bi-lock",

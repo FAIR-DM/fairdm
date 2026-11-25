@@ -9,7 +9,6 @@ SECTIONS = {
     "home": {"namespaces": set(), "views": {"home"}},
     "projects": {"namespaces": {"project"}, "views": {"project-list", "project-create"}},
     "datasets": {"namespaces": {"dataset"}, "views": {"dataset-list", "dataset-create"}},
-    "search": {"namespaces": set(), "views": {"mvp-search"}},
 }
 
 
@@ -19,15 +18,25 @@ def dock_section(context):
 
     A project's or a dataset's own pages (its overview, contributors, samples, edit form) belong
     to Projects or Datasets, so the dock keeps showing where the reader is while they move
-    through a record's tabs. A page only the sidebar reaches belongs to Menu.
+    through a record's tabs. The signed-in person's own profile pages belong to Profile. A page
+    only the sidebar reaches, the search results and other people's profiles included, belongs
+    to Menu.
 
     Returns:
-        One of ``home``, ``projects``, ``datasets``, ``search`` or ``menu``.
+        One of ``home``, ``projects``, ``datasets``, ``profile`` or ``menu``.
     """
     request = context.get("request")
     match = getattr(request, "resolver_match", None)
     if match is None:
         return "menu"
+    user = getattr(request, "user", None)
+    if (
+        match.namespace == "contributor"
+        and user is not None
+        and user.is_authenticated
+        and match.kwargs.get("uuid") == str(user.uuid)
+    ):
+        return "profile"
     for section, holds in SECTIONS.items():
         if match.view_name in holds["views"] or match.namespace in holds["namespaces"]:
             return section
