@@ -7,7 +7,7 @@
                 hx-get="{{ step_url }}?person={{ person.uuid }}"
                 hx-target="#contrib-sheet-step"
                 hx-swap="outerHTML">
-          <c-mvp.avatar :for="person" alt="" size="sm" placeholder="{{ person.get_initials }}" only />
+          <c-contributor.avatar :contributor="person" size="sm" />
           <span class="contrib-pick-text">
             <span class="contrib-pick-name">{{ person.name }}</span>
             {% with affiliation=person.primary_affiliation %}{% if affiliation %}<span class="contrib-pick-sub">{{ affiliation.organization.name }}</span>{% endif %}{% endwith %}

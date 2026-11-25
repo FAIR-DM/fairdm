@@ -5,7 +5,7 @@
       {% for row in people_rows %}
         <c-mvp.reorder.row value="{{ row.credit.pk }}" label="{{ row.person.name }}">
           <span class="contrib-reorder-item">
-            <c-mvp.avatar :for="row.person" alt="" size="xs" placeholder="{{ row.person.get_initials }}" only />
+            <c-contributor.avatar :contributor="row.person" size="sm" />
             <span class="truncate">{{ row.person.name }}</span>
           </span>
         </c-mvp.reorder.row>

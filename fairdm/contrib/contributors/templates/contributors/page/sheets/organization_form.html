@@ -3,10 +3,10 @@
   {% if show_who %}
     <div class="contrib-who">
       {% if organization %}
-        <c-mvp.avatar :for="organization" alt="" size="sm" shape="rounded-xl" variant="neutral" placeholder="{{ organization.get_initials }}" only />
+        <c-contributor.avatar :contributor="organization" size="sm" />
         <span class="contrib-pick-name">{{ organization.name }}</span>
       {% else %}
-        <c-mvp.avatar alt="" size="sm" shape="rounded-xl" variant="neutral" placeholder="{{ new_name|slice:":2"|upper }}" only />
+        <c-mvp.avatar alt="" size="sm" shape="rounded-box" variant="base-300" placeholder="{{ new_name|slice:":2"|upper }}" only />
         <span class="contrib-pick-name">{{ new_name }}</span>
       {% endif %}
     </div>

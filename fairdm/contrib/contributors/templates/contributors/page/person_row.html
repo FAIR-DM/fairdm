@@ -5,16 +5,7 @@
                 lead="{% if credit.affiliation %}{{ credit.affiliation.name }}{% endif %}"
                 face_class="contrib-face"
                 data-contrib-row>
-  <c-mvp.avatar :for="person" alt="" size="md" placeholder="{{ person.get_initials }}" only />
-  <div class="list-col-grow contrib-body">
-    <a class="contrib-name" href="{{ person.get_absolute_url }}">{{ person.name }}</a>
-    <div class="contrib-sub">{% if credit.affiliation %}{{ credit.affiliation.name }}{% else %}—{% endif %}</div>
-    {% if row.roles %}
-      <ul class="contrib-roles" aria-label="{% translate "Roles" %}">
-        {% for role in row.roles %}<li class="badge badge-sm badge-soft badge-primary">{{ role }}</li>{% endfor %}
-      </ul>
-    {% endif %}
-  </div>
+  <c-contributor.item :contributor="credit" size="md" secondary="{% if not credit.affiliation %}—{% endif %}" class="list-col-grow" />
   {% if can_change %}
     <c-slot name="actions">
       <c-mvp.list.row.action text="{% translate "Edit" %}" icon="edit" main

@@ -36,23 +36,7 @@
 .contrib-list > li + li { border-top: 1px solid var(--color-base-200); }
 .contrib-list > li::after { display: none; }
 .contrib-face { align-items: start; gap: 0.75rem; padding: 0.75rem 0.5rem 0.75rem 0.875rem; }
-.contrib-face > .avatar { margin-block-start: 0.125rem; }
 .contrib-body { min-width: 0; display: flex; flex-direction: column; gap: 0.125rem; }
-.contrib-name {
-  font-weight: 600;
-  line-height: 1.35;
-  overflow-wrap: anywhere;
-  text-decoration: none;
-  /* Leave room so a long name never runs under the actions control. */
-  padding-inline-end: 0.25rem;
-}
-.contrib-name:hover { text-decoration: underline; }
-.contrib-sub {
-  font-size: 0.875rem;
-  line-height: 1.35;
-  color: color-mix(in oklab, var(--color-base-content) 68%, transparent);
-  overflow-wrap: anywhere;
-}
 .contrib-roles { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-block-start: 0.375rem; list-style: none; padding: 0; }
 .contrib-roles .badge { white-space: nowrap; }
 

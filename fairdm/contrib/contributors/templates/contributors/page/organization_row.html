@@ -4,9 +4,9 @@
                 label="{{ organization.name }}"
                 face_class="contrib-face"
                 data-contrib-row>
-  <c-mvp.avatar :for="organization" alt="" size="sm" shape="rounded-xl" variant="neutral" placeholder="{{ organization.get_initials }}" only />
+  <c-contributor.avatar :contributor="organization" size="md" />
   <div class="list-col-grow contrib-body">
-    <a class="contrib-name" href="{{ organization.get_absolute_url }}">{{ organization.name }}</a>
+    <c-contributor.name :contributor="organization" class="font-semibold" />
     {% if row.roles or row.people %}
       <ul class="contrib-roles" aria-label="{% translate "Roles" %}">
         {% for role in row.roles %}<li class="badge badge-sm badge-soft badge-primary">{{ role }}</li>{% endfor %}

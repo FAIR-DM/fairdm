@@ -7,7 +7,7 @@
                 hx-get="{{ step_url }}?organization={{ organization.uuid }}"
                 hx-target="#contrib-sheet-step"
                 hx-swap="outerHTML">
-          <c-mvp.avatar :for="organization" alt="" size="sm" shape="rounded-xl" variant="neutral" placeholder="{{ organization.get_initials }}" only />
+          <c-contributor.avatar :contributor="organization" size="sm" />
           <span class="contrib-pick-text">
             <span class="contrib-pick-name">{{ organization.name }}</span>
             {% if organization.city or organization.country %}<span class="contrib-pick-sub">{{ organization.city }}{% if organization.city and organization.country %}, {% endif %}{{ organization.country.name }}</span>{% endif %}

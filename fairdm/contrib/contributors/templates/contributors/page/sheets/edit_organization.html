@@ -1,6 +1,5 @@
 {% load i18n %}
 <c-mvp.sheet id="{{ sheet_id }}" title="{{ sheet_title }}" lead="{{ sheet_lead }}" class="contrib-sheet">
-  <c-slot name="art"><c-mvp.avatar :for="organization" alt="" size="md" shape="rounded-xl" variant="neutral" placeholder="{{ organization.get_initials }}" only /></c-slot>
   {% include "contributors/page/sheets/organization_form.html" %}
   <c-slot name="actions">
     <button type="button" class="btn btn-ghost" onclick="this.closest('dialog').close()">{% translate "Cancel" %}</button>

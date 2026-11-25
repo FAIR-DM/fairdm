@@ -69,8 +69,11 @@ picked.
 | `static/contributors/page.css` | The two-column container query (52rem and 72rem), row, chip, option list and notice styles |
 | `static/contributors/page.js` | Closes the sheet on `contrib:done`, times the notice, focuses the first field on a fine pointer |
 
-Avatars use django-mvp's size presets only: `md` for people rows and sheet art, `sm` for
-organization rows and search results, `xs` in the reorder list.
+A person's row is the contributors package's `c-contributor.item`, given the credit, so it draws
+the avatar, the linked name, the affiliation on this record and the role badges. An organization's
+row uses `c-contributor.avatar` and `c-contributor.name`, with its own badges. Every avatar in the
+page and its sheets is `c-contributor.avatar`, so people are round and organizations are grey
+boxes as everywhere else in the portal. The sheets have no art beside their title.
 
 ## Screens
 

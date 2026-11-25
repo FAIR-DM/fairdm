@@ -4,7 +4,7 @@
   {% if not credit %}
     <div class="contrib-who">
       {% if person %}
-        <c-mvp.avatar :for="person" alt="" size="sm" placeholder="{{ person.get_initials }}" only />
+        <c-contributor.avatar :contributor="person" size="sm" />
         <span class="contrib-pick-name">{{ person.name }}</span>
       {% else %}
         <c-mvp.avatar alt="" size="sm" placeholder="{{ new_name.first_name|slice:":1" }}{{ new_name.last_name|slice:":1" }}" only />
