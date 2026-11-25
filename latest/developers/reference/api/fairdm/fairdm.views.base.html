@@ -380,6 +380,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#fairdm.views.base.FairDMListView"><code class="docutils literal notranslate"><span class="pre">FairDMListView</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.views.base.FairDMListView.paginate_by"><code class="docutils literal notranslate"><span class="pre">FairDMListView.paginate_by</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.views.base.FairDMListView.grid"><code class="docutils literal notranslate"><span class="pre">FairDMListView.grid</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.views.base.FairDMListView.get_breadcrumbs"><code class="docutils literal notranslate"><span class="pre">FairDMListView.get_breadcrumbs()</span></code></a></li>
 </ul>
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.views.base.FairDMDetailView"><code class="docutils literal notranslate"><span class="pre">FairDMDetailView</span></code></a></li>
@@ -552,6 +553,14 @@ class ProjectListView(FairDMListView):
 <dt class="sig sig-object py" id="fairdm.views.base.FairDMListView.grid">
 <span class="sig-name descname"><span class="pre">grid</span></span><a class="headerlink" aria-label="Link to this definition: grid" href="#fairdm.views.base.FairDMListView.grid" title="Link to this definition">¶</a></dt>
 <dd><p>None</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.views.base.FairDMListView.get_breadcrumbs">
+<span class="sig-name descname"><span class="pre">get_breadcrumbs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: get_breadcrumbs" href="#fairdm.views.base.FairDMListView.get_breadcrumbs" title="Link to this definition">¶</a></dt>
+<dd><p>Lead a core record type’s list with the type’s icon.</p>
+<p>Returns:
+django-mvp’s trail, its first step carrying the listed type’s icon.</p>
 </dd></dl>
 
 </dd></dl>
@@ -778,6 +787,7 @@ class MeasurementTableView(FairDMTableView):
 <li><a class="daisy-toc-link reference internal" href="#fairdm.views.base.FairDMListView"><code class="docutils literal notranslate"><span class="pre">FairDMListView</span></code></a><ul class="daisy-toc-list daisy-toc-deep">
 <li><a class="daisy-toc-link reference internal" href="#fairdm.views.base.FairDMListView.paginate_by"><code class="docutils literal notranslate"><span class="pre">FairDMListView.paginate_by</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.views.base.FairDMListView.grid"><code class="docutils literal notranslate"><span class="pre">FairDMListView.grid</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.views.base.FairDMListView.get_breadcrumbs"><code class="docutils literal notranslate"><span class="pre">FairDMListView.get_breadcrumbs()</span></code></a></li>
 </ul>
 </li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.views.base.FairDMDetailView"><code class="docutils literal notranslate"><span class="pre">FairDMDetailView</span></code></a></li>

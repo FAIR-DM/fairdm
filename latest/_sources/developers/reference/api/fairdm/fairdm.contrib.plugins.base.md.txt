@@ -27,6 +27,10 @@
 :class: autosummary longtable
 :align: left
 
+* - {py:obj}`finish_trail <fairdm.contrib.plugins.base.finish_trail>`
+  - ```{autodoc2-docstring} fairdm.contrib.plugins.base.finish_trail
+    :summary:
+    ```
 * - {py:obj}`record_kind <fairdm.contrib.plugins.base.record_kind>`
   - ```{autodoc2-docstring} fairdm.contrib.plugins.base.record_kind
     :summary:
@@ -257,6 +261,22 @@ Bases: {py:obj}`django.contrib.auth.mixins.PermissionRequiredMixin`, {py:obj}`dj
 
 ````
 
+````{py:method} get_page_context() -> dict[str, typing.Any]
+:canonical: fairdm.contrib.plugins.base.Plugin.get_page_context
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.get_page_context
+```
+
+````
+
+````{py:method} get_finished_breadcrumbs() -> list[dict[str, typing.Any]]
+:canonical: fairdm.contrib.plugins.base.Plugin.get_finished_breadcrumbs
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.Plugin.get_finished_breadcrumbs
+```
+
+````
+
 ````{py:method} get_breadcrumbs() -> list[dict[str, typing.Any]]
 :canonical: fairdm.contrib.plugins.base.Plugin.get_breadcrumbs
 
@@ -266,6 +286,13 @@ Bases: {py:obj}`django.contrib.auth.mixins.PermissionRequiredMixin`, {py:obj}`dj
 ````
 
 `````
+
+````{py:function} finish_trail(trail: list[dict[str, typing.Any]], kind: str) -> list[dict[str, typing.Any]]
+:canonical: fairdm.contrib.plugins.base.finish_trail
+
+```{autodoc2-docstring} fairdm.contrib.plugins.base.finish_trail
+```
+````
 
 ````{py:function} record_kind(model: type[django.db.models.Model] | None) -> str
 :canonical: fairdm.contrib.plugins.base.record_kind

@@ -107,6 +107,14 @@ Bases: {py:obj}`meta.views.MetadataMixin`, {py:obj}`mvp.views.MVPListView`
 
 ````
 
+````{py:method} get_breadcrumbs()
+:canonical: fairdm.views.base.FairDMListView.get_breadcrumbs
+
+```{autodoc2-docstring} fairdm.views.base.FairDMListView.get_breadcrumbs
+```
+
+````
+
 `````
 
 ````{py:class} FairDMDetailView(**kwargs)

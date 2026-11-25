@@ -8,8 +8,8 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="developers/reference/api/fairdm/fairdm.contrib.plugins.base.html" />
 <meta property="og:site_name" content="fairdm" />
-<meta property="og:description" content="Plugin mixin base class for extending model detail views. Module Contents: Classes:,, Plugin, Mixin that turns a Django class-based view into a page attached to a core record.,,,, Functions:,, reco..." />
-<meta name="description" content="Plugin mixin base class for extending model detail views. Module Contents: Classes:,, Plugin, Mixin that turns a Django class-based view into a page attached to a core record.,,,, Functions:,, reco..." />
+<meta property="og:description" content="Plugin mixin base class for extending model detail views. Module Contents: Classes:,, Plugin, Mixin that turns a Django class-based view into a page attached to a core record.,,,, Functions:,, fini..." />
+<meta name="description" content="Plugin mixin base class for extending model detail views. Module Contents: Classes:,, Plugin, Mixin that turns a Django class-based view into a page attached to a core record.,,,, Functions:,, fini..." />
 
     <title>fairdm.contrib.plugins.base &#8212; fairdm 0.6.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/sphinx-daisyui.css?v=aedd34d4" />
@@ -397,9 +397,12 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.plugins.base.Plugin.get_queryset"><code class="docutils literal notranslate"><span class="pre">Plugin.get_queryset()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.plugins.base.Plugin.has_permission"><code class="docutils literal notranslate"><span class="pre">Plugin.has_permission()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.plugins.base.Plugin.get_context_data"><code class="docutils literal notranslate"><span class="pre">Plugin.get_context_data()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.plugins.base.Plugin.get_page_context"><code class="docutils literal notranslate"><span class="pre">Plugin.get_page_context()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.plugins.base.Plugin.get_finished_breadcrumbs"><code class="docutils literal notranslate"><span class="pre">Plugin.get_finished_breadcrumbs()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.plugins.base.Plugin.get_breadcrumbs"><code class="docutils literal notranslate"><span class="pre">Plugin.get_breadcrumbs()</span></code></a></li>
 </ul>
 </li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.plugins.base.finish_trail"><code class="docutils literal notranslate"><span class="pre">finish_trail()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.plugins.base.record_kind"><code class="docutils literal notranslate"><span class="pre">record_kind()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.plugins.base.record_crumb_class"><code class="docutils literal notranslate"><span class="pre">record_crumb_class()</span></code></a></li>
 </ul>
@@ -431,10 +434,13 @@ commentsRunWhenDOMLoaded(addUtterances);
 <h3>Functions<a class="headerlink" aria-label="Link to this heading: Functions" href="#functions" title="Link to this heading">¶</a></h3>
 <div aria-label="Table" class="daisy-sphinx-scroll" role="region" tabindex="0"><table class="autosummary longtable docutils align-left">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.plugins.base.record_kind" title="fairdm.contrib.plugins.base.record_kind"><code class="xref py py-obj docutils literal notranslate"><span class="pre">record_kind</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.plugins.base.finish_trail" title="fairdm.contrib.plugins.base.finish_trail"><code class="xref py py-obj docutils literal notranslate"><span class="pre">finish_trail</span></code></a></p></td>
+<td><p>Give a core record’s trail its icon and make its last step the current page.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.plugins.base.record_kind" title="fairdm.contrib.plugins.base.record_kind"><code class="xref py py-obj docutils literal notranslate"><span class="pre">record_kind</span></code></a></p></td>
 <td><p>Return the core record type a model is, of any registered type.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.contrib.plugins.base.record_crumb_class" title="fairdm.contrib.plugins.base.record_crumb_class"><code class="xref py py-obj docutils literal notranslate"><span class="pre">record_crumb_class</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.contrib.plugins.base.record_crumb_class" title="fairdm.contrib.plugins.base.record_crumb_class"><code class="xref py py-obj docutils literal notranslate"><span class="pre">record_crumb_class</span></code></a></p></td>
 <td><p>Return the classes that mark a core record’s breadcrumb with its record type’s colour.</p></td>
 </tr>
 </tbody>
@@ -614,6 +620,18 @@ ValueError: The mount has no model, or none of the model’s lookup kwargs are i
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.plugins.base.Plugin.get_page_context">
+<span class="sig-name descname"><span class="pre">get_page_context</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" aria-label="Link to this definition: get_page_context" href="#fairdm.contrib.plugins.base.Plugin.get_page_context" title="Link to this definition">¶</a></dt>
+<dd><p>Draw the header’s trail from :meth:<code class="docutils literal notranslate"><span class="pre">get_finished_breadcrumbs</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="fairdm.contrib.plugins.base.Plugin.get_finished_breadcrumbs">
+<span class="sig-name descname"><span class="pre">get_finished_breadcrumbs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" aria-label="Link to this definition: get_finished_breadcrumbs" href="#fairdm.contrib.plugins.base.Plugin.get_finished_breadcrumbs" title="Link to this definition">¶</a></dt>
+<dd><p>Return :meth:<code class="docutils literal notranslate"><span class="pre">get_breadcrumbs</span></code> passed through :func:<code class="docutils literal notranslate"><span class="pre">finish_trail</span></code>.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="fairdm.contrib.plugins.base.Plugin.get_breadcrumbs">
 <span class="sig-name descname"><span class="pre">get_breadcrumbs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" aria-label="Link to this definition: get_breadcrumbs" href="#fairdm.contrib.plugins.base.Plugin.get_breadcrumbs" title="Link to this definition">¶</a></dt>
 <dd><p>Build the breadcrumb trail from the model, the record and the page title.</p>
@@ -621,6 +639,19 @@ ValueError: The mount has no model, or none of the model’s lookup kwargs are i
 Breadcrumb dicts with a <code class="docutils literal notranslate"><span class="pre">text</span></code> key and, where a link resolves, an <code class="docutils literal notranslate"><span class="pre">href</span></code>.</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="fairdm.contrib.plugins.base.finish_trail">
+<span class="sig-name descname"><span class="pre">finish_trail</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trail</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" aria-label="Link to this definition: finish_trail" href="#fairdm.contrib.plugins.base.finish_trail" title="Link to this definition">¶</a></dt>
+<dd><p>Give a core record’s trail its icon and make its last step the current page.</p>
+<p>Args:
+trail: The breadcrumb dicts a plugin built.
+kind: The core record type the plugin serves, or an empty string.</p>
+<p>Returns:
+A copy of the trail. A core record type’s icon is on its first step, which is
+also what that step shrinks to on a narrow trail. The last step has no link, so
+it is drawn as the current page, as it is on a record’s own overview.</p>
 </dd></dl>
 
 <dl class="py function">
@@ -696,9 +727,12 @@ registered type, and an empty string for anything else.</p>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.plugins.base.Plugin.get_queryset"><code class="docutils literal notranslate"><span class="pre">Plugin.get_queryset()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.plugins.base.Plugin.has_permission"><code class="docutils literal notranslate"><span class="pre">Plugin.has_permission()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.plugins.base.Plugin.get_context_data"><code class="docutils literal notranslate"><span class="pre">Plugin.get_context_data()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.plugins.base.Plugin.get_page_context"><code class="docutils literal notranslate"><span class="pre">Plugin.get_page_context()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.plugins.base.Plugin.get_finished_breadcrumbs"><code class="docutils literal notranslate"><span class="pre">Plugin.get_finished_breadcrumbs()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.plugins.base.Plugin.get_breadcrumbs"><code class="docutils literal notranslate"><span class="pre">Plugin.get_breadcrumbs()</span></code></a></li>
 </ul>
 </li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.plugins.base.finish_trail"><code class="docutils literal notranslate"><span class="pre">finish_trail()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.plugins.base.record_kind"><code class="docutils literal notranslate"><span class="pre">record_kind()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.contrib.plugins.base.record_crumb_class"><code class="docutils literal notranslate"><span class="pre">record_crumb_class()</span></code></a></li>
 </ul>

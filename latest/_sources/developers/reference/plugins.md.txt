@@ -94,7 +94,8 @@ An inner `Media` class, written as on a Django form, adds stylesheets and script
 | `base_object` | Cached property | The core record the plugin hangs from, or `None` when it cannot be resolved. A record that does not exist raises a 404 |
 | `get_base_object` | `get_base_object()` | The record named by the address. Reads through the model's `all_objects` manager when it has one, so a private record is found and the plugin's own `check` or `permission` decides |
 | `has_permission` | `has_permission()` | The result of [`can_open`](#can_open) for this class, the request and the record |
-| `get_breadcrumbs` | `get_breadcrumbs()` | The trail: the model's plural name (linked when a list page resolves), the record, then `page_title`. A project, dataset, sample or measurement entry carries the `class` from `record_crumb_class()`, which marks it with its record type's colour |
+| `get_breadcrumbs` | `get_breadcrumbs()` | The trail: the plural name of the record's own type linked to its list page, the record linked to its page, then `page_title`. A type with no list page falls back to the served model's list, and is left out when neither has one. A project, dataset, sample or measurement entry carries the `class` from `record_crumb_class()`, which marks it with its record type's colour |
+| `get_finished_breadcrumbs` | `get_finished_breadcrumbs()` | `get_breadcrumbs()` passed through [`finish_trail`](#finish_trail). This is the trail the page header and the `breadcrumbs` context key both draw |
 
 `base_object` is separate from `self.object`, which stays whatever your view class makes it.
 
@@ -106,7 +107,7 @@ An inner `Media` class, written as on a Django form, adds stylesheets and script
 |---|---|
 | `base_object` | The core record |
 | `object` | The view's own object, or `base_object` when the view has none |
-| `breadcrumbs` | The trail from `get_breadcrumbs` |
+| `breadcrumbs` | The trail from `get_finished_breadcrumbs` |
 | `plugin_menu` | The record type's navigation menu. FairDM's base template draws it as tabs |
 | `record_kind` | `"project"`, `"dataset"`, `"sample"` or `"measurement"` from `record_kind(model)` for the record the plugin serves, or `""` for a contributor. The active tab is underlined in that type's colour, or the primary colour when it is empty |
 | `plugin_media` | The `Media` built from the inner `Media` class, or `None` |
@@ -235,6 +236,16 @@ slugify(text)
 ```
 
 Returns the slug a class name becomes. `URLTestPlugin` becomes `url-test-plugin`.
+
+### `finish_trail`
+
+```python
+from fairdm.contrib.plugins.base import finish_trail
+
+finish_trail(trail, kind)
+```
+
+Returns a copy of `trail` ready to draw. When `kind` is a core record type (`"project"`, `"dataset"`, `"sample"` or `"measurement"`) the first step carries that type's icon, which is all the step shows on a narrow screen. The last step loses its link, so it is drawn as the current page.
 
 ## Mixins
 

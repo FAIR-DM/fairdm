@@ -391,6 +391,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#can-open"><code class="docutils literal notranslate"><span class="pre">can_open</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#reverse"><code class="docutils literal notranslate"><span class="pre">reverse</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#slugify"><code class="docutils literal notranslate"><span class="pre">slugify</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#finish-trail"><code class="docutils literal notranslate"><span class="pre">finish_trail</span></code></a></li>
 </ul>
 </li>
 <li><a class="daisy-toc-link reference internal" href="#mixins">Mixins</a></li>
@@ -649,7 +650,11 @@ commentsRunWhenDOMLoaded(addUtterances);
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">get_breadcrumbs</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">get_breadcrumbs()</span></code></p></td>
-<td><p>The trail: the model’s plural name (linked when a list page resolves), the record, then <code class="docutils literal notranslate"><span class="pre">page_title</span></code>. A project, dataset, sample or measurement entry carries the <code class="docutils literal notranslate"><span class="pre">class</span></code> from <code class="docutils literal notranslate"><span class="pre">record_crumb_class()</span></code>, which marks it with its record type’s colour</p></td>
+<td><p>The trail: the plural name of the record’s own type linked to its list page, the record linked to its page, then <code class="docutils literal notranslate"><span class="pre">page_title</span></code>. A type with no list page falls back to the served model’s list, and is left out when neither has one. A project, dataset, sample or measurement entry carries the <code class="docutils literal notranslate"><span class="pre">class</span></code> from <code class="docutils literal notranslate"><span class="pre">record_crumb_class()</span></code>, which marks it with its record type’s colour</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">get_finished_breadcrumbs</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">get_finished_breadcrumbs()</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">get_breadcrumbs()</span></code> passed through <a class="reference internal" href="#finish-trail"><code class="docutils literal notranslate"><span class="pre">finish_trail</span></code></a>. This is the trail the page header and the <code class="docutils literal notranslate"><span class="pre">breadcrumbs</span></code> context key both draw</p></td>
 </tr>
 </tbody>
 </table>
@@ -673,7 +678,7 @@ commentsRunWhenDOMLoaded(addUtterances);
 <td><p>The view’s own object, or <code class="docutils literal notranslate"><span class="pre">base_object</span></code> when the view has none</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">breadcrumbs</span></code></p></td>
-<td><p>The trail from <code class="docutils literal notranslate"><span class="pre">get_breadcrumbs</span></code></p></td>
+<td><p>The trail from <code class="docutils literal notranslate"><span class="pre">get_finished_breadcrumbs</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">plugin_menu</span></code></p></td>
 <td><p>The record type’s navigation menu. FairDM’s base template draws it as tabs</p></td>
@@ -838,6 +843,15 @@ commentsRunWhenDOMLoaded(addUtterances);
 </pre></div>
 </div>
 <p>Returns the slug a class name becomes. <code class="docutils literal notranslate"><span class="pre">URLTestPlugin</span></code> becomes <code class="docutils literal notranslate"><span class="pre">url-test-plugin</span></code>.</p>
+</section>
+<section id="finish-trail">
+<h3><code class="docutils literal notranslate"><span class="pre">finish_trail</span></code><a class="headerlink" aria-label="Link to this heading: finish_trail" href="#finish-trail" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">fairdm.contrib.plugins.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">finish_trail</span>
+
+<span class="n">finish_trail</span><span class="p">(</span><span class="n">trail</span><span class="p">,</span> <span class="n">kind</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Returns a copy of <code class="docutils literal notranslate"><span class="pre">trail</span></code> ready to draw. When <code class="docutils literal notranslate"><span class="pre">kind</span></code> is a core record type (<code class="docutils literal notranslate"><span class="pre">&quot;project&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;dataset&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;sample&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;measurement&quot;</span></code>) the first step carries that type’s icon, which is all the step shows on a narrow screen. The last step loses its link, so it is drawn as the current page.</p>
 </section>
 </section>
 <section id="mixins">
@@ -1128,6 +1142,7 @@ members the page answers 200 and its empty state says that nobody is affiliated.
 <li><a class="daisy-toc-link reference internal" href="#can-open"><code class="docutils literal notranslate"><span class="pre">can_open</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#reverse"><code class="docutils literal notranslate"><span class="pre">reverse</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#slugify"><code class="docutils literal notranslate"><span class="pre">slugify</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#finish-trail"><code class="docutils literal notranslate"><span class="pre">finish_trail</span></code></a></li>
 </ul>
 </li>
 <li><a class="daisy-toc-link reference internal" href="#mixins">Mixins</a></li>
