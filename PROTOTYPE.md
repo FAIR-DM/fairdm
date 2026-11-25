@@ -55,7 +55,7 @@ literature.
 
 - The seven kinds in `fairdm/search.py`, as above.
 - `fairdm/templates/cotton/app/navbar.html` is a whole copy of django-mvp's navbar for one
-  added line. The fix belongs in django-mvp: a setting or slot for a title beside the icon.
+  added line. The fix belongs in django-mvp.
 - The `.mvp-search-form > i` rule in `fairdm/static/css/fairdm.css` repeats django-mvp's rule,
   which only matches an `<svg>` icon. The fix belongs in django-mvp: place the icon whatever its
   element.
@@ -112,6 +112,11 @@ literature's Item.
 - Projects in search are only the public ones, as on the project list. Feature 1 decides whether
   members find their private projects.
 - The visitor's landing page has no app header, so a wide screen shows no search field there.
+- At 320 px wide, the project, dataset and people lists scroll sideways by 16 px. That comes from
+  the list pages' filter panel, which this branch doesn't touch.
+- The header's search button is about 32 px square, below the 44 px touch target. It is
+  django-mvp's button as it ships.
+- The "Claim this profile" notice is squashed on narrow phones. That predates this branch.
 - The desktop search field reads "Search example.com" on the dev server because the dev
   database's Site is still `example.com`.
 
