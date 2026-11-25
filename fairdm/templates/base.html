@@ -44,6 +44,10 @@
 
 {% block app.navbar.end %}
   <c-actions.create-new />
+  {# Both open the same search dialog: the field on a wide screen, the button on a narrow one. #}
+  <c-mvp.search.field />
+  <c-mvp.search.button />
+  <c-mvp.search.dialog />
 {% endblock app.navbar.end %}
 
 {% block app.header.tray %}

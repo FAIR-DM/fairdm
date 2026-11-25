@@ -24,7 +24,7 @@ public name.
 - [x] T002 [US1] `fairdm/search.py`: `RecordKind` and the seven kinds as plan.md "Modules"
   describes, and `register_kinds()`. Call it from `FairDMConfig.ready()` in `fairdm/apps.py`. The
   kind tests that do not need the address go green.
-- [ ] T003 [US1] Mount `path("search/", include("mvp.search.urls"))` in `fairdm/conf/urls.py` and
+- [x] T003 [US1] Mount `path("search/", include("mvp.search.urls"))` in `fairdm/conf/urls.py` and
   add the three search components to the `app.navbar.end` block of `fairdm/templates/base.html`
   beside "Create new". `tests/test_search.py` is green and the portal's system checks pass.
 - [ ] T004 [US1] Documentation: `docs/developers/reference/site-search.md` as plan.md
