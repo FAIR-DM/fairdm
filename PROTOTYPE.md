@@ -50,6 +50,12 @@ with `HX-Trigger-After-Settle: {"mvp-sheet-open": {"id": "contrib-sheet"}}`. Mul
 `#contrib-sheet-step` inside the open sheet. The submit button sits in the sheet's foot and is
 bound to `form#contrib-form`; it hides itself on a step with no form.
 
+**Pickers are daisy-cotton menus.** The people and organization search results and the
+affiliation picker are `c-menu` with `c-menu.item` rows (and `c-menu.title` for the "From their
+profile" and "Other organizations" headings), the same component `c-mvp.sheet.menu` is built on, so
+they match the actions sheet. The chosen affiliation is the item marked `menu-active`, held in a
+hidden input.
+
 **Role chips.** Checkbox inputs styled as toggle chips (`.contrib-chips`), used wherever roles are
 picked.
 

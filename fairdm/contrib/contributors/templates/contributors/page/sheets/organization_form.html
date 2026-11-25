@@ -4,10 +4,10 @@
     <div class="contrib-who">
       {% if organization %}
         <c-mvp.avatar :for="organization" alt="" size="sm" shape="rounded-xl" variant="neutral" placeholder="{{ organization.get_initials }}" only />
-        <span class="contrib-pick-name">{{ organization.name }}</span>
+        <span class="font-semibold">{{ organization.name }}</span>
       {% else %}
         <c-mvp.avatar alt="" size="sm" shape="rounded-xl" variant="neutral" placeholder="{{ new_name|slice:":2"|upper }}" only />
-        <span class="contrib-pick-name">{{ new_name }}</span>
+        <span class="font-semibold">{{ new_name }}</span>
       {% endif %}
     </div>
   {% endif %}
