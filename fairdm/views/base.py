@@ -126,7 +126,7 @@ class FairDMListView(MetadataMixin, MVPListView):
         """Lead a core record type's list with the type's icon.
 
         Returns:
-            django-mvp's trail, its first step carrying the icon of the record type listed.
+            django-mvp's trail, its first step carrying the listed type's icon.
         """
         from fairdm.contrib.plugins.base import record_kind
 

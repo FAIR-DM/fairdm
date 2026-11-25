@@ -5,7 +5,6 @@ what it delivers: the data it was given, the links it draws and the names it car
 assistive technology. Wording is never asserted.
 """
 
-
 import pytest
 from django.contrib.gis.geos import Point as GEOSPoint
 
@@ -140,7 +139,9 @@ class TestIdentifiersCard:
         identifiers = [{"type": "DOI", "value": doi, "link": f"https://doi.org/{doi}"}]
 
         page = soup(
-            render_card("identifiers", identifiers=identifiers, portal_id="", local_id="")
+            render_card(
+                "identifiers", identifiers=identifiers, portal_id="", local_id=""
+            )
         )
 
         assert page.find("a", string=doi)["title"] == doi

@@ -233,7 +233,7 @@ class Plugin(PermissionRequiredMixin, View):
         return page
 
     def get_finished_breadcrumbs(self) -> list[dict[str, Any]]:
-        """Return :meth:`get_breadcrumbs` as the page draws it, through :func:`finish_trail`."""
+        """Return :meth:`get_breadcrumbs` passed through :func:`finish_trail`."""
         return finish_trail(self.get_breadcrumbs(), record_kind(self.registered_model))
 
     def get_breadcrumbs(self) -> list[dict[str, Any]]:
@@ -249,9 +249,10 @@ class Plugin(PermissionRequiredMixin, View):
         record_class = record_crumb_class(self.registered_model)
         obj = self.base_object
 
-        # The trail starts at the list of the record's own type: a soil sample's starts at the
-        # soil samples, which is a page, where the plugin may be mounted on every sample. A type
-        # with no list page gets no step, as every step but the last must be a page to go to.
+        # The trail starts at the list of the record's own type: a soil sample's starts
+        # at the soil samples, which is a page, where the plugin may be mounted on every
+        # sample. A type with no list page gets no step, as every step but the last
+        # must be a page to go to.
         models = [type(obj)] if obj is not None else []
         if self.registered_model:
             models.append(self.registered_model)
@@ -291,9 +292,9 @@ def finish_trail(trail: list[dict[str, Any]], kind: str) -> list[dict[str, Any]]
         kind: The core record type the plugin serves, or an empty string.
 
     Returns:
-        A copy of the trail. A core record type's icon is on its first step, which is also what
-        that step shrinks to on a narrow trail. The last step has no link, so it is drawn as the
-        current page, as it is on a record's own overview.
+        A copy of the trail. A core record type's icon is on its first step, which is
+        also what that step shrinks to on a narrow trail. The last step has no link, so
+        it is drawn as the current page, as it is on a record's own overview.
     """
     trail = [dict(crumb) for crumb in trail]
     if trail and kind:

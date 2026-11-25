@@ -928,7 +928,11 @@ class TestReachingTheRecord:
 @pytest.mark.django_db
 class TestTheNavigationTrail:
     def trail_of(self, rf, user, sample, **attrs):
-        view_class = type("Titled", (Plugin, TemplateView), {"template_name": "fairdm/plugin.html", **attrs})
+        view_class = type(
+            "Titled",
+            (Plugin, TemplateView),
+            {"template_name": "fairdm/plugin.html", **attrs},
+        )
         view = view_class()
         view.request = rf.get("/")
         view.request.user = user
@@ -966,7 +970,9 @@ class TestTheNavigationTrail:
             dataset=DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         )
         response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
-        assert response.context["page"]["breadcrumbs"] == response.context["breadcrumbs"]
+        assert (
+            response.context["page"]["breadcrumbs"] == response.context["breadcrumbs"]
+        )
 
     def test_no_entry_carries_a_placeholder_link(self, client):
         sample = RockSampleFactory(
