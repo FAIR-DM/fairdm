@@ -64,6 +64,10 @@ class FairDMConfig(AppConfig):
 
         self._check_production_configuration()
 
+        from fairdm.search import register_kinds
+
+        register_kinds()
+
         return super().ready()
 
     def _install_quantity_formatter(self) -> None:

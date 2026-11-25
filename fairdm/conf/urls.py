@@ -17,6 +17,7 @@ urlpatterns = [
     path("", include("fairdm.contrib.admin.urls")),
     path(r"jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
     path("literature/", include("literature.ui.urls")),
+    path("search/", include("mvp.search.urls")),
     # The search behind every concept field's form control.
     path("vocabularies/", include("controlled_vocabularies.urls")),
     path("", FairDMHomeView.as_view(), name="home"),
