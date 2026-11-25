@@ -1,0 +1,22 @@
+{% load i18n %}
+{% if found %}
+  <ul class="contrib-picks" aria-label="{% translate "Organizations found" %}">
+    {% for organization in found %}
+      <li>
+        <button type="button" class="contrib-pick"
+                hx-get="{{ step_url }}?organization={{ organization.uuid }}"
+                hx-target="#contrib-sheet-step"
+                hx-swap="outerHTML">
+          <c-mvp.avatar :for="organization" alt="" size="sm" shape="rounded-xl" variant="neutral" placeholder="{{ organization.get_initials }}" only />
+          <span class="contrib-pick-text">
+            <span class="contrib-pick-name">{{ organization.name }}</span>
+            {% if organization.city or organization.country %}<span class="contrib-pick-sub">{{ organization.city }}{% if organization.city and organization.country %}, {% endif %}{{ organization.country.name }}</span>{% endif %}
+          </span>
+          <c-icon name="chevron-right" aria-hidden="true" />
+        </button>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="contrib-none">{% if query %}{% blocktranslate %}No organization called “{{ query }}” is in the portal.{% endblocktranslate %}{% else %}{% translate "Every organization in the portal is already on this record." %}{% endif %}</p>
+{% endif %}

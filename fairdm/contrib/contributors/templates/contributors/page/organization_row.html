@@ -1,0 +1,39 @@
+{% load i18n %}
+{% with credit=row.credit organization=row.organization %}
+<c-mvp.list.row id="contrib-org-{{ organization.pk }}"
+                label="{{ organization.name }}"
+                face_class="contrib-face"
+                data-contrib-row>
+  <c-mvp.avatar :for="organization" alt="" size="sm" shape="rounded-xl" variant="neutral" placeholder="{{ organization.get_initials }}" only />
+  <div class="list-col-grow contrib-body">
+    <a class="contrib-name" href="{{ organization.get_absolute_url }}">{{ organization.name }}</a>
+    {% if row.roles or row.people %}
+      <ul class="contrib-roles" aria-label="{% translate "Roles" %}">
+        {% for role in row.roles %}<li class="badge badge-sm badge-soft badge-primary">{{ role }}</li>{% endfor %}
+        {% if row.people %}<li class="badge badge-sm badge-outline">{% translate "Affiliation" %}</li>{% endif %}
+      </ul>
+    {% endif %}
+  </div>
+  {% if can_change %}
+    <c-slot name="actions">
+      {% if credit %}
+        <c-mvp.list.row.action text="{% translate "Edit roles" %}" icon="edit" main
+                               label="{% blocktranslate with name=organization.name %}Edit the roles of {{ name }}{% endblocktranslate %}"
+                               hx-get="{{ row.edit_url }}"
+                               hx-target="#contrib-sheet-slot" hx-swap="innerHTML" />
+        {% if not row.people %}
+          <c-mvp.list.row.action text="{% translate "Remove" %}" icon="trash" danger leaves
+                                 label="{% blocktranslate with name=organization.name %}Remove {{ name }}{% endblocktranslate %}"
+                                 hx-post="{{ row.remove_url }}"
+                                 hx-target="#contrib-region" hx-swap="outerHTML" />
+        {% endif %}
+      {% else %}
+        <c-mvp.list.row.action text="{% translate "Edit roles" %}" icon="edit" main
+                               label="{% blocktranslate with name=organization.name %}Edit the roles of {{ name }}{% endblocktranslate %}"
+                               hx-get="{{ row.edit_url }}"
+                               hx-target="#contrib-sheet-slot" hx-swap="innerHTML" />
+      {% endif %}
+    </c-slot>
+  {% endif %}
+</c-mvp.list.row>
+{% endwith %}

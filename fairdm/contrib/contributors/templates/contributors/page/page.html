@@ -1,0 +1,11 @@
+{% extends "page_view.html" %}
+{% comment %}
+  Prototype: the Contributors page of a record. People in the main column, organizations beside
+  them. The region redraws after every change; sheets are drawn into the slot below it.
+{% endcomment %}
+{% block page.content %}
+  <div class="contrib-shell" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    {% include "contributors/page/region.html" %}
+    <div id="contrib-sheet-slot"></div>
+  </div>
+{% endblock page.content %}

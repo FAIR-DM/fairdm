@@ -1,0 +1,14 @@
+{% load i18n %}
+<fieldset class="contrib-fieldset">
+  <legend class="contrib-label">{% translate "Roles" %}</legend>
+  <div class="contrib-chips">
+    {% for role in roles %}
+      <label class="contrib-chip">
+        <input type="checkbox" name="roles" value="{{ role.pk }}" {% if role.pk in held_roles %}checked{% endif %}>
+        <span>{{ role }}</span>
+      </label>
+    {% empty %}
+      <p class="contrib-none">{% translate "This kind of record offers no roles." %}</p>
+    {% endfor %}
+  </div>
+</fieldset>

@@ -1,0 +1,21 @@
+{% load i18n %}
+<div id="contrib-sheet-step" class="contrib-step">
+  {% if show_who %}
+    <div class="contrib-who">
+      {% if organization %}
+        <c-mvp.avatar :for="organization" alt="" size="sm" shape="rounded-xl" variant="neutral" placeholder="{{ organization.get_initials }}" only />
+        <span class="contrib-pick-name">{{ organization.name }}</span>
+      {% else %}
+        <c-mvp.avatar alt="" size="sm" shape="rounded-xl" variant="neutral" placeholder="{{ new_name|slice:":2"|upper }}" only />
+        <span class="contrib-pick-name">{{ new_name }}</span>
+      {% endif %}
+    </div>
+  {% endif %}
+  <form id="contrib-form" class="contrib-fields"
+        hx-post="{{ action }}" hx-target="#contrib-region" hx-swap="outerHTML">
+    {% if show_who %}
+      {% if organization %}<input type="hidden" name="organization" value="{{ organization.uuid }}">{% else %}<input type="hidden" name="new_name" value="{{ new_name }}">{% endif %}
+    {% endif %}
+    {% include "contributors/page/sheets/roles_field.html" %}
+  </form>
+</div>

@@ -1,0 +1,74 @@
+{% load i18n %}
+<div id="contrib-region" class="contrib-page">
+  <section class="contrib-people" aria-labelledby="contrib-people-title">
+    <div class="contrib-head">
+      <h2 id="contrib-people-title" class="contrib-heading">{% translate "People" %}</h2>
+      <span class="badge badge-sm badge-neutral contrib-count" aria-label="{% blocktranslate count n=people_rows|length %}{{ n }} person{% plural %}{{ n }} people{% endblocktranslate %}">{{ people_rows|length }}</span>
+      {% if can_change %}
+        <button type="button"
+                class="btn btn-sm btn-primary contrib-add"
+                aria-label="{% translate "Add a person" %}"
+                hx-get="{{ urls.add_person }}"
+                hx-target="#contrib-sheet-slot"
+                hx-swap="innerHTML">
+          <c-icon name="plus" aria-hidden="true" /> {% translate "Add" %}
+        </button>
+      {% endif %}
+    </div>
+    {% if people_rows %}
+      <ul id="contrib-people" class="list contrib-list">
+        {% for row in people_rows %}
+          {% include "contributors/page/person_row.html" %}
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="contrib-empty">
+        <p>{% blocktranslate %}Nobody is credited on this {{ kind }} yet.{% endblocktranslate %}</p>
+      </div>
+    {% endif %}
+  </section>
+
+  <section class="contrib-orgs" aria-labelledby="contrib-orgs-title">
+    <div class="contrib-head">
+      <h2 id="contrib-orgs-title" class="contrib-heading">{% translate "Organizations" %}</h2>
+      <span class="badge badge-sm badge-neutral contrib-count" aria-label="{% blocktranslate count n=organization_rows|length %}{{ n }} organization{% plural %}{{ n }} organizations{% endblocktranslate %}">{{ organization_rows|length }}</span>
+      {% if can_change %}
+        <button type="button"
+                class="btn btn-sm btn-primary contrib-add"
+                aria-label="{% translate "Add an organization" %}"
+                hx-get="{{ urls.add_organization }}"
+                hx-target="#contrib-sheet-slot"
+                hx-swap="innerHTML">
+          <c-icon name="plus" aria-hidden="true" /> {% translate "Add" %}
+        </button>
+      {% endif %}
+    </div>
+    {% if organization_rows %}
+      <ul id="contrib-organizations" class="list contrib-list">
+        {% for row in organization_rows %}
+          {% include "contributors/page/organization_row.html" %}
+        {% endfor %}
+      </ul>
+    {% else %}
+      <div class="contrib-empty">
+        <p>{% translate "No organizations yet." %}</p>
+      </div>
+    {% endif %}
+  </section>
+
+  {% if toast %}
+    <div class="contrib-toast" role="status" data-contrib-toast>
+      <div class="alert {% if toast.tone == "error" %}alert-error{% else %}contrib-toast-box{% endif %}">
+        <span>{{ toast.text }}</span>
+        {% if toast.undo_url %}
+          <form hx-post="{{ toast.undo_url }}" hx-target="#contrib-region" hx-swap="outerHTML">
+            <input type="hidden" name="undo" value="{{ toast.undo }}">
+            <button type="submit" class="btn btn-sm btn-ghost contrib-undo">
+              <c-icon name="undo" aria-hidden="true" /> {% translate "Undo" %}
+            </button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+</div>

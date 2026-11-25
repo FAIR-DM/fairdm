@@ -1,0 +1,36 @@
+{% load i18n %}
+{% with credit=row.credit person=row.person %}
+<c-mvp.list.row id="contrib-person-{{ credit.pk }}"
+                label="{{ person.name }}"
+                lead="{% if credit.affiliation %}{{ credit.affiliation.name }}{% endif %}"
+                face_class="contrib-face"
+                data-contrib-row>
+  <c-mvp.avatar :for="person" alt="" size="md" placeholder="{{ person.get_initials }}" only />
+  <div class="list-col-grow contrib-body">
+    <a class="contrib-name" href="{{ person.get_absolute_url }}">{{ person.name }}</a>
+    <div class="contrib-sub">{% if credit.affiliation %}{{ credit.affiliation.name }}{% else %}—{% endif %}</div>
+    {% if row.roles %}
+      <ul class="contrib-roles" aria-label="{% translate "Roles" %}">
+        {% for role in row.roles %}<li class="badge badge-sm badge-soft badge-primary">{{ role }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+  {% if can_change %}
+    <c-slot name="actions">
+      <c-mvp.list.row.action text="{% translate "Edit" %}" icon="edit" main
+                             label="{% blocktranslate with name=person.name %}Edit {{ name }}{% endblocktranslate %}"
+                             hx-get="{{ row.edit_url }}"
+                             hx-target="#contrib-sheet-slot" hx-swap="innerHTML" />
+      {% if people_rows|length > 1 %}
+        <c-mvp.list.row.action text="{% translate "Reorder" %}" icon="drag"
+                               hx-get="{{ urls.reorder }}"
+                               hx-target="#contrib-sheet-slot" hx-swap="innerHTML" />
+      {% endif %}
+      <c-mvp.list.row.action text="{% translate "Remove" %}" icon="trash" danger leaves
+                             label="{% blocktranslate with name=person.name %}Remove {{ name }}{% endblocktranslate %}"
+                             hx-post="{{ row.remove_url }}"
+                             hx-target="#contrib-region" hx-swap="outerHTML" />
+    </c-slot>
+  {% endif %}
+</c-mvp.list.row>
+{% endwith %}
