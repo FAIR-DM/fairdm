@@ -150,9 +150,10 @@ the header of a list page and of a record page, and check which records come bac
 - **FR-003**: The search MUST find projects, datasets, samples, measurements, people, organizations
   and literature, one record type to a group, in that order. (US1)
 - **FR-004**: A record type MUST find a record by the same text that finds it in its own list's
-  search: projects and datasets by name, portal ID and external identifier, samples by name, local
-  ID and portal ID, measurements by name and portal ID, people and organizations by name, and
-  literature by what the literature catalogue's search matches. (US1)
+  search: projects by name, portal ID and external identifier, datasets by those and by their
+  descriptions and keywords, samples by name, local ID and portal ID, measurements by name and
+  portal ID, people and organizations by name, and literature by what the literature catalogue's
+  search matches. (US1)
 - **FR-005**: Each record type MUST list and count only the records the person may open: projects,
   datasets, samples and measurements by their visibility and the levels the person holds, people as
   the people list does, and organizations and literature as their lists do. (US1)

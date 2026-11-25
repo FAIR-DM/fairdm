@@ -1,0 +1,31 @@
+# Tasks: Find a record from anywhere in the portal
+
+**Input**: [spec.md](spec.md), [plan.md](plan.md), [research.md](research.md),
+[decisions.md](decisions.md)
+
+**Tests first**: test tasks come first and each is seen to fail for the right reason before the
+code that makes it pass is written. Wording and appearance get no tests.
+
+**How tests run**: from the worktree's own virtual environment against the shared test PostGIS
+(`. ../fairdm-042-env.sh; .venv/bin/python -m pytest tests/test_search.py -n0`).
+
+**Standards in every task**: no leading-underscore names, line length 88, no compatibility
+aliases, Cotton components and never `{% include %}`, a Google-style docstring on every new
+public name.
+
+**Format**: `[ID] [Story] Description`.
+
+## Phase 1: User Story 1 — A person finds a record from any page (P1)
+
+### Group 1
+
+- [ ] T001 [US1] Tests: `tests/test_search.py` as plan.md "Tests" lists them (all eight
+  classes). They fail because nothing is registered or mounted.
+- [ ] T002 [US1] `fairdm/search.py`: `RecordKind` and the seven kinds as plan.md "Modules"
+  describes, and `register_kinds()`. Call it from `FairDMConfig.ready()` in `fairdm/apps.py`. The
+  kind tests that do not need the address go green.
+- [ ] T003 [US1] Mount `path("search/", include("mvp.search.urls"))` in `fairdm/conf/urls.py` and
+  add the three search components to the `app.navbar.end` block of `fairdm/templates/base.html`
+  beside "Create new". `tests/test_search.py` is green and the portal's system checks pass.
+- [ ] T004 [US1] Documentation: `docs/developers/reference/site-search.md`, its entry in the
+  reference index, and the `CHANGELOG.md` entry under `Added`.

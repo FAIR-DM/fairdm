@@ -105,3 +105,17 @@ One story. Everything a person does with the search (open it, type, narrow to on
 through the rest) is one thing they set out to do, so these are scenarios under it. There is no
 developer story: a portal's developer does nothing to get the search, and limiting or reordering
 the record types is django-mvp's existing setting.
+
+## D9. A dataset is found by the text the dataset list matches, descriptions and keywords included
+
+**Ambiguity.** FR-004 listed the dataset's matching fields as name, portal ID and external
+identifier. The dataset list's search also matches descriptions and keywords. SC-004 says every
+record the list search finds is also found by the site search.
+
+**Chosen.** The dataset kind uses the dataset list's search as it is, so descriptions and keywords
+match too. FR-004 is corrected to say so.
+
+**Why.** A narrower rule would break SC-004 and let the header find fewer datasets than the list
+does for the same text. Reading the filter itself means the two cannot drift (D1).
+
+**ADR:** none — local to this feature, nothing downstream inherits it
