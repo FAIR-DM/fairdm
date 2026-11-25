@@ -908,11 +908,13 @@ class ContributionMove(ContributionPage):
     label=gettext_lazy("Contributors"),
     icon="users",
     order=150,
+    # Prototype: the new Contributors page (plugins/page.py) takes this tab and address.
+    menu=False,
 )
 class ContributionList(ContributionPage):
     """List a record's people and organizations, each in their own order, with the controls."""
 
-    url_path = "contributors"
+    url_path = "contributors-previous"
     template_name = "contributors/plugins/contribution_list.html"
     page_title = gettext_lazy("Contributors")
     extra_views = [
