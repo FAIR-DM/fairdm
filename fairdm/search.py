@@ -1,11 +1,12 @@
 """The portal's site search: the record types a person can find from any page.
 
-django-mvp draws the search page, the dialog and the header field. Each kind here finds
-records of one type by running the type's own list ``q`` filter over the records the person
-may open, so the header and the list page agree on what matches.
+django-mvp draws the search page, the dialog and the header field. Each kind here
+finds records of one type by running the type's own list ``q`` filter over the records
+the person may open, so the header and the list page agree on what matches.
 """
 
 from django.utils.translation import gettext_lazy as _
+from django_filters import FilterSet
 from literature.importers.normalizers import IdentifierNormalizer
 from literature.ui.filters import ItemFilterSet
 from mvp.search import Kind, Result, register
@@ -21,18 +22,19 @@ from fairdm.core.sample.filters import SampleFilter
 class RecordKind(Kind):
     """A kind that finds the records of one type with the type's own list search.
 
-    Subclasses set the four attributes django-mvp's ``Kind`` asks for, ``filterset_class``
-    and ``ordering``, and define :meth:`records` and :meth:`describe`.
+    Subclasses set the four attributes django-mvp's ``Kind`` asks for, plus
+    ``filterset_class`` and ``ordering``, and define :meth:`records` and
+    :meth:`describe`.
 
     Attributes:
-        filterset_class: The list's filter set. Only its ``q`` filter is used, and it is
-            never instantiated.
-        ordering: Field names the results are ordered by. Ends with ``"pk"``, because the
-            results page pages through them and one column alone is not a total order.
+        filterset_class: The list's filter set. Only its ``q`` filter is used, and it
+            is never instantiated.
+        ordering: Field names the results are ordered by. Ends with ``"pk"``, because
+            the results page pages through them and one column is not a total order.
     """
 
-    filterset_class = None
-    ordering = ("pk",)
+    filterset_class: type[FilterSet] | None = None
+    ordering: tuple[str, ...] = ("pk",)
 
     def records(self, user):
         """Return the records the person may open.
@@ -124,7 +126,7 @@ class DatasetKind(RecordKind):
     name = "datasets"
     label = _("Datasets")
     icon = "dataset"
-    description = _("Published collections of samples and measurements")
+    description = _("Collections of samples and measurements")
     filterset_class = DatasetFilter
     ordering = ("name", "pk")
 
