@@ -20,7 +20,7 @@ The panel holds these filters:
 
 Filters combine, so a dataset must match all of them. Under the toolbar a line gives the number of datasets that match and, when you have chosen a sort, the order the list is in.
 
-The screen has no **Add** button. Start a dataset from the **Create new** menu in the header instead. See [Create a Dataset](create-dataset.md).
+The screen has no **Add** button. Start a dataset from a project's page with its **Add dataset** button instead. See [Create a Dataset](create-dataset.md).
 
 ## The dataset cards
 

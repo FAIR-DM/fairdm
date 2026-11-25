@@ -8,7 +8,7 @@ You need to be [signed in](../account/sign-in.md).
 
 ## Steps
 
-1. In the header, select **Create new**, then **Project**. On the [Projects](projects.md) screen, the **Add** button does the same. The [Create a project](create-project.md) screen opens.
+1. Open [Projects](projects.md) and select **Add**. The [Create a project](create-project.md) screen opens.
 2. In **Project name**, type the project's full name. Others find the project by this name, so avoid an internal abbreviation.
 3. In **Status**, choose the stage the project is at.
 4. In **Visibility**, choose **Private** or **Public**. Public is already selected. Choose **Private** if the project should not be seen yet. You can change it later on [Edit details](edit-details.md).

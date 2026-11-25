@@ -9,7 +9,7 @@ A dataset holds a body of data together with the metadata that describes it: who
 
 ## Steps
 
-1. In the header, select **Create new**, then **Dataset**. On a project's page, the **Add dataset** button does the same. The [Create a Dataset](create-dataset.md) screen opens.
+1. On a project's page, select **Add dataset**. The [Create a Dataset](create-dataset.md) screen opens.
 2. In **Name**, type a descriptive name that says what the dataset holds. Others find the dataset by this name.
 3. In **Project**, choose the project the dataset belongs to. Leave it empty if the dataset belongs to none. You can attach it later on [Edit details](edit-details.md).
 4. In **License**, keep the portal's default or choose another licence.

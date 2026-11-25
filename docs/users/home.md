@@ -80,8 +80,6 @@ The dashboard is for signed-in users. It is headed **My Dashboard**. Under the h
 
 The body of the dashboard has no content of its own. It shows one placeholder line.
 
-The bar at the top of the dashboard carries the **Create new** button, which lets you start a project or a dataset from any screen that shows the bar.
-
 ## What you can do here
 
 - Sign in or create an account with [Sign in](account/sign-in.md) and [How to create an account](account/create-an-account.md).

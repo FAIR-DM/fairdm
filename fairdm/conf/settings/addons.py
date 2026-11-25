@@ -34,7 +34,6 @@ WAFFLE_CREATE_MISSING_SAMPLES = True
 FLEX_MENUS = {
     "renderers": {
         "sidebar": "mvp.renderers.SidebarRenderer",
-        "dock": "mvp.renderers.MobileFooterNavRenderer",
         "plugin-menu-renderer": "fairdm.contrib.plugins.menus.PluginMenuRenderer",
     }
 }
@@ -56,8 +55,9 @@ MVP_CONFIG = {
             "collapse": "icons",
         },
         # The sidebar drawer already carries the login and theme controls, so the default
-        # navbar copies would double them.
-        "navbar": {"end": []},
+        # navbar copies would double them. Below the sidebar's breakpoint the header shows
+        # the site's name beside its icon, and the dock carries the sidebar toggle.
+        "navbar": {"end": [], "mobile": {"site_name": True}},
     },
 }
 
@@ -163,6 +163,11 @@ EASY_ICONS = {
             "pending": "bi bi-clock",
             "loading": "bi bi-arrow-repeat",
             "home": "bi bi-house",
+            # The dock draws the current section's icon filled, as phone tab bars do.
+            "home-current": "bi bi-house-fill",
+            "project-current": "bi bi-layers-fill",
+            "dataset-current": "bi bi-folder-fill",
+            "person-current": "bi bi-person-fill",
             "dashboard": "bi bi-speedometer2",
             "email": "bi bi-envelope",
             "lock": "bi bi-lock",
