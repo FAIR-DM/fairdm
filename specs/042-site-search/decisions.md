@@ -174,3 +174,26 @@ DOI address prefix, the literature kind returns no references.
 reference for a query that names none.
 
 **ADR:** none — local to this feature, nothing downstream inherits it
+
+## D15. Registering the kinds twice leaves them as they are
+
+**Chosen.** `register_kinds()` skips a kind whose name is already registered.
+
+**Why.** `FairDMConfig.ready()` runs more than once in one process, and a test calls it again.
+django-mvp refuses a second registration under the same name, so an unguarded call stops the app
+from starting the second time.
+
+**Revisit if.** django-mvp makes registering the same instance again harmless.
+
+**ADR:** none — local to this feature, nothing downstream inherits it
+
+## D16. The dataset kind's description does not begin with "Published"
+
+**Chosen.** The dataset kind is described as "Collections of samples and measurements".
+
+**Why.** The dialog draws every kind's description on every page, and a dataset card's test asserts
+that the word "Published" appears nowhere on a page for an unpublished dataset.
+
+**Revisit if.** The test is written to look inside the card rather than the whole page.
+
+**ADR:** none — local to this feature, nothing downstream inherits it
