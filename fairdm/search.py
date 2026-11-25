@@ -133,7 +133,9 @@ class DatasetKind(RecordKind):
     ordering = ("name", "pk")
 
     def records(self, user):
-        """Return the datasets the person may open, marking those whose project they may.
+        """Return the datasets the person may open.
+
+        Each dataset is marked with whether the person may open its project.
 
         A person with a level on a dataset alone may open it inside a private project,
         and that project's name is not theirs to read.
@@ -194,7 +196,9 @@ class MeasurementKind(RecordKind):
     ordering = ("name", "pk")
 
     def records(self, user):
-        """Return the measurements the person may open, marking those whose sample they may.
+        """Return the measurements the person may open.
+
+        Each measurement is marked with whether the person may open its sample.
 
         A measurement follows its own dataset, so it can hang from a sample in a dataset
         the person may not open.
