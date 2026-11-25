@@ -91,6 +91,14 @@
   - ```{autodoc2-docstring} fairdm.templatetags.fairdm.permalink
     :summary:
     ```
+* - {py:obj}`on_own_profile <fairdm.templatetags.fairdm.on_own_profile>`
+  - ```{autodoc2-docstring} fairdm.templatetags.fairdm.on_own_profile
+    :summary:
+    ```
+* - {py:obj}`on_menu_page <fairdm.templatetags.fairdm.on_menu_page>`
+  - ```{autodoc2-docstring} fairdm.templatetags.fairdm.on_menu_page
+    :summary:
+    ```
 ````
 
 ### Data
@@ -282,5 +290,19 @@ Bases: {py:obj}`pint.delegates.formatter.plain.PrettyFormatter`
 :canonical: fairdm.templatetags.fairdm.permalink
 
 ```{autodoc2-docstring} fairdm.templatetags.fairdm.permalink
+```
+````
+
+````{py:function} on_own_profile(context)
+:canonical: fairdm.templatetags.fairdm.on_own_profile
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.on_own_profile
+```
+````
+
+````{py:function} on_menu_page(context, *sections)
+:canonical: fairdm.templatetags.fairdm.on_menu_page
+
+```{autodoc2-docstring} fairdm.templatetags.fairdm.on_menu_page
 ```
 ````

@@ -178,15 +178,15 @@ The groups are:
 ### `FLEX_MENUS`
 
 - **Type**: `dict`
-- **Default**: `{"renderers": {...}}` with three renderers. `sidebar` is `mvp.renderers.SidebarRenderer`, `dock` is `mvp.renderers.MobileFooterNavRenderer` and `plugin-menu-renderer` is `fairdm.contrib.plugins.menus.PluginMenuRenderer`.
+- **Default**: `{"renderers": {...}}` with two renderers. `sidebar` is `mvp.renderers.SidebarRenderer` and `plugin-menu-renderer` is `fairdm.contrib.plugins.menus.PluginMenuRenderer`.
 - **What it does**: Names the renderers that django-flex-menus uses to draw FairDM's menus.
-- **Accepts**: The format django-flex-menus reads. Add a renderer by assigning an item of `FLEX_MENUS["renderers"]`. Removing one of the three breaks the menu that uses it.
+- **Accepts**: The format django-flex-menus reads. Add a renderer by assigning an item of `FLEX_MENUS["renderers"]`. Removing one of the two breaks the menu that uses it. FairDM declares its mobile dock in `fairdm/templates/cotton/app/dock.html`, so no `dock` renderer is listed.
 
 ### `MVP_CONFIG`
 
 - **Type**: `dict`
-- **Default**: `{"brand": {"avatar_resolver": "fairdm.contrib.contributors.utils.helpers.avatar_url"}, "layout": {"sidebar": {"title": "FairDM", "collapse": "icons"}, "navbar": {"end": []}}}`
-- **What it does**: Configures django-mvp's page shell. `brand.avatar_resolver` is the function that returns the image of an avatar. The FairDM function returns the contributor's 150 by 150 thumbnail for sizes up to `md`, the 600 by 600 thumbnail for `lg` and larger, and `None` when the contributor has no image. `brand.icon_resolver` returns `brand/favicon.svg` for the browser tab and django-mvp's `brand/icon.svg` everywhere else. `layout.sidebar.title` is the text above the sidebar menu. `layout.navbar.end` is empty because the sidebar already carries the sign-in and theme controls. `theme` names the `fairdm` and `fairdm-dark` themes, defined in `fairdm/static/css/fairdm-theme.css`.
+- **Default**: `{"brand": {"avatar_resolver": "fairdm.contrib.contributors.utils.helpers.avatar_url"}, "layout": {"sidebar": {"title": "FairDM", "collapse": "icons"}, "navbar": {"end": [], "mobile": {"site_name": true}}}}`
+- **What it does**: Configures django-mvp's page shell. `brand.avatar_resolver` is the function that returns the image of an avatar. The FairDM function returns the contributor's 150 by 150 thumbnail for sizes up to `md`, the 600 by 600 thumbnail for `lg` and larger, and `None` when the contributor has no image. `brand.icon_resolver` returns `brand/favicon.svg` for the browser tab and django-mvp's `brand/icon.svg` everywhere else. `layout.sidebar.title` is the text above the sidebar menu. `layout.navbar.end` is empty because the sidebar already carries the sign-in and theme controls. `layout.navbar.mobile.site_name` shows the site's name, the same text as `layout.sidebar.title`, beside the header's icon below the sidebar's breakpoint. The header has no sidebar toggle there because the last item of the mobile dock opens the sidebar. `theme` names the `fairdm` and `fairdm-dark` themes, defined in `fairdm/static/css/fairdm-theme.css`.
 - **Accepts**: The format django-mvp reads. Assign items, such as `MVP_CONFIG["layout"]["sidebar"]["title"] = "My Portal"`. The avatar resolver is a dotted path to a function that takes the object and a size and returns an address or `None`.
 
 ### `PAGE_CONFIG`

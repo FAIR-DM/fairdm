@@ -401,6 +401,8 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><a class="daisy-toc-link reference internal" href="#fairdm.templatetags.fairdm.has_permission"><code class="docutils literal notranslate"><span class="pre">has_permission()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.templatetags.fairdm.get_related_field"><code class="docutils literal notranslate"><span class="pre">get_related_field()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.templatetags.fairdm.permalink"><code class="docutils literal notranslate"><span class="pre">permalink()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.templatetags.fairdm.on_own_profile"><code class="docutils literal notranslate"><span class="pre">on_own_profile()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.templatetags.fairdm.on_menu_page"><code class="docutils literal notranslate"><span class="pre">on_menu_page()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -477,6 +479,12 @@ commentsRunWhenDOMLoaded(addUtterances);
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#fairdm.templatetags.fairdm.permalink" title="fairdm.templatetags.fairdm.permalink"><code class="xref py py-obj docutils literal notranslate"><span class="pre">permalink</span></code></a></p></td>
 <td><p>Return a record’s absolute permalink for the current request.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#fairdm.templatetags.fairdm.on_own_profile" title="fairdm.templatetags.fairdm.on_own_profile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_own_profile</span></code></a></p></td>
+<td><p>Return whether the page shown is the signed-in person’s own profile.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#fairdm.templatetags.fairdm.on_menu_page" title="fairdm.templatetags.fairdm.on_menu_page"><code class="xref py py-obj docutils literal notranslate"><span class="pre">on_menu_page</span></code></a></p></td>
+<td><p>Return whether the page shown is one that only the sidebar reaches.</p></td>
 </tr>
 </tbody>
 </table>
@@ -717,6 +725,32 @@ record: Any record with a portal ID.</p>
 The absolute permalink, such as <code class="docutils literal notranslate"><span class="pre">https://portal.example/p1a2b3c4d5e6f/</span></code>.</p>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="fairdm.templatetags.fairdm.on_own_profile">
+<span class="sig-name descname"><span class="pre">on_own_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: on_own_profile" href="#fairdm.templatetags.fairdm.on_own_profile" title="Link to this definition">¶</a></dt>
+<dd><p>Return whether the page shown is the signed-in person’s own profile.</p>
+<p>Every page of a profile sits in the <code class="docutils literal notranslate"><span class="pre">contributor</span></code> namespace and names the person
+it belongs to by <code class="docutils literal notranslate"><span class="pre">uuid</span></code>, so someone else’s profile is not the signed-in
+person’s own.</p>
+<p>Args:
+context: The template context, which must hold <code class="docutils literal notranslate"><span class="pre">request</span></code>.</p>
+<p>Returns:
+<code class="docutils literal notranslate"><span class="pre">True</span></code> on a page of the signed-in person’s own profile.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="fairdm.templatetags.fairdm.on_menu_page">
+<span class="sig-name descname"><span class="pre">on_menu_page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">sections</span></span></em><span class="sig-paren">)</span><a class="headerlink" aria-label="Link to this definition: on_menu_page" href="#fairdm.templatetags.fairdm.on_menu_page" title="Link to this definition">¶</a></dt>
+<dd><p>Return whether the page shown is one that only the sidebar reaches.</p>
+<p>The dock’s Menu item is current on every page that no other dock item holds.</p>
+<p>Args:
+context: The template context, which must hold <code class="docutils literal notranslate"><span class="pre">request</span></code>.
+*sections: The <code class="docutils literal notranslate"><span class="pre">section</span></code> of each other dock item that holds part of the site.</p>
+<p>Returns:
+<code class="docutils literal notranslate"><span class="pre">True</span></code> when the page is in none of the sections and is not the signed-in
+person’s own profile.</p>
+</dd></dl>
+
 </section>
 </section>
 </section>
@@ -771,6 +805,8 @@ The absolute permalink, such as <code class="docutils literal notranslate"><span
 <li><a class="daisy-toc-link reference internal" href="#fairdm.templatetags.fairdm.has_permission"><code class="docutils literal notranslate"><span class="pre">has_permission()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.templatetags.fairdm.get_related_field"><code class="docutils literal notranslate"><span class="pre">get_related_field()</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#fairdm.templatetags.fairdm.permalink"><code class="docutils literal notranslate"><span class="pre">permalink()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.templatetags.fairdm.on_own_profile"><code class="docutils literal notranslate"><span class="pre">on_own_profile()</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#fairdm.templatetags.fairdm.on_menu_page"><code class="docutils literal notranslate"><span class="pre">on_menu_page()</span></code></a></li>
 </ul>
 </li>
 </ul>

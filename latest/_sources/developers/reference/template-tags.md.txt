@@ -30,6 +30,24 @@ A tag written `{% name ... %}` returns its value into the page. Add `as variable
 - **Returns**: `"active"` when the current request's path starts with `url`, and `""` otherwise.
 - **Needs**: `request` in the template context. Without it the tag raises `KeyError`.
 
+### `on_own_profile`
+
+```django
+{% on_own_profile as on_profile %}
+```
+
+- **Arguments**: none. It reads `request` from the template context.
+- **Returns**: `True` on a page of the signed-in person's own profile, and `False` on someone else's profile, on any other page and for a visitor.
+
+### `on_menu_page`
+
+```django
+{% on_menu_page "home" "project-list project-create project" as on_menu %}
+```
+
+- **Arguments**: one or more `section` strings, each the URL namespaces and view names that one dock item holds, as `<c-mvp.dock.item section="...">` takes them.
+- **Returns**: `True` when the page is in none of the sections and is not the signed-in person's own profile, and `False` otherwise. The mobile dock uses it to mark its Menu item current on every page that no other item holds.
+
 ### `notation`
 
 ```django

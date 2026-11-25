@@ -8,10 +8,6 @@ The tables give each attribute's type, its default and what it accepts. A blank 
 
 ## Actions
 
-### `c-actions.create-new`
-
-A dropdown button labelled "Create new" with a link to the project create page and one to the dataset create page. It renders only for a signed-in user and reads `user` from the template context, so it takes no attributes.
-
 ### `c-actions.pending`
 
 A disabled button for something a portal does not offer yet. It never submits or links. Its `title` and a screen-reader-only line carry the reason.

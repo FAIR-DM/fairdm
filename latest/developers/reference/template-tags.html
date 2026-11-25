@@ -371,6 +371,8 @@ commentsRunWhenDOMLoaded(addUtterances);
             <nav class="collapse-content text-sm" aria-label="On this page"><ul class="daisy-toc-list">
 <li><a class="daisy-toc-link reference internal" href="#the-fairdm-library">The <code class="docutils literal notranslate"><span class="pre">fairdm</span></code> library</a><ul class="daisy-toc-list">
 <li><a class="daisy-toc-link reference internal" href="#is-active"><code class="docutils literal notranslate"><span class="pre">is_active</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#on-own-profile"><code class="docutils literal notranslate"><span class="pre">on_own_profile</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#on-menu-page"><code class="docutils literal notranslate"><span class="pre">on_menu_page</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#notation"><code class="docutils literal notranslate"><span class="pre">notation</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#unit"><code class="docutils literal notranslate"><span class="pre">unit</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#get-registry-info"><code class="docutils literal notranslate"><span class="pre">get_registry_info</span></code></a></li>
@@ -445,6 +447,26 @@ commentsRunWhenDOMLoaded(addUtterances);
 <li><p><strong>Arguments</strong>: <code class="docutils literal notranslate"><span class="pre">url</span></code>, a path prefix.</p></li>
 <li><p><strong>Returns</strong>: <code class="docutils literal notranslate"><span class="pre">&quot;active&quot;</span></code> when the current request’s path starts with <code class="docutils literal notranslate"><span class="pre">url</span></code>, and <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> otherwise.</p></li>
 <li><p><strong>Needs</strong>: <code class="docutils literal notranslate"><span class="pre">request</span></code> in the template context. Without it the tag raises <code class="docutils literal notranslate"><span class="pre">KeyError</span></code>.</p></li>
+</ul>
+</section>
+<section id="on-own-profile">
+<h3><code class="docutils literal notranslate"><span class="pre">on_own_profile</span></code><a class="headerlink" aria-label="Link to this heading: on_own_profile" href="#on-own-profile" title="Link to this heading">¶</a></h3>
+<div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">on_own_profile</span> <span class="k">as</span> <span class="nv">on_profile</span> <span class="cp">%}</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><strong>Arguments</strong>: none. It reads <code class="docutils literal notranslate"><span class="pre">request</span></code> from the template context.</p></li>
+<li><p><strong>Returns</strong>: <code class="docutils literal notranslate"><span class="pre">True</span></code> on a page of the signed-in person’s own profile, and <code class="docutils literal notranslate"><span class="pre">False</span></code> on someone else’s profile, on any other page and for a visitor.</p></li>
+</ul>
+</section>
+<section id="on-menu-page">
+<h3><code class="docutils literal notranslate"><span class="pre">on_menu_page</span></code><a class="headerlink" aria-label="Link to this heading: on_menu_page" href="#on-menu-page" title="Link to this heading">¶</a></h3>
+<div class="highlight-django notranslate"><div class="highlight"><pre><span></span><span class="cp">{%</span> <span class="k">on_menu_page</span> <span class="s2">"home"</span> <span class="s2">"project-list project-create project"</span> <span class="k">as</span> <span class="nv">on_menu</span> <span class="cp">%}</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><strong>Arguments</strong>: one or more <code class="docutils literal notranslate"><span class="pre">section</span></code> strings, each the URL namespaces and view names that one dock item holds, as <code class="docutils literal notranslate"><span class="pre">&lt;c-mvp.dock.item</span> <span class="pre">section=&quot;...&quot;&gt;</span></code> takes them.</p></li>
+<li><p><strong>Returns</strong>: <code class="docutils literal notranslate"><span class="pre">True</span></code> when the page is in none of the sections and is not the signed-in person’s own profile, and <code class="docutils literal notranslate"><span class="pre">False</span></code> otherwise. The mobile dock uses it to mark its Menu item current on every page that no other item holds.</p></li>
 </ul>
 </section>
 <section id="notation">
@@ -712,6 +734,8 @@ commentsRunWhenDOMLoaded(addUtterances);
   <ul class="daisy-toc-list">
 <li><a class="daisy-toc-link reference internal" href="#the-fairdm-library">The <code class="docutils literal notranslate"><span class="pre">fairdm</span></code> library</a><ul class="daisy-toc-list">
 <li><a class="daisy-toc-link reference internal" href="#is-active"><code class="docutils literal notranslate"><span class="pre">is_active</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#on-own-profile"><code class="docutils literal notranslate"><span class="pre">on_own_profile</span></code></a></li>
+<li><a class="daisy-toc-link reference internal" href="#on-menu-page"><code class="docutils literal notranslate"><span class="pre">on_menu_page</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#notation"><code class="docutils literal notranslate"><span class="pre">notation</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#unit"><code class="docutils literal notranslate"><span class="pre">unit</span></code></a></li>
 <li><a class="daisy-toc-link reference internal" href="#get-registry-info"><code class="docutils literal notranslate"><span class="pre">get_registry_info</span></code></a></li>
