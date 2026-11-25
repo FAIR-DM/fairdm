@@ -137,6 +137,12 @@ class DatasetKind(RecordKind):
 
         A person with a level on a dataset alone may open it inside a private project,
         and that project's name is not theirs to read.
+
+        Args:
+            user: The signed-in user, or an anonymous one.
+
+        Returns:
+            The datasets, each carrying ``project_is_open``.
         """
         from fairdm.core.dataset.models import Dataset
 
@@ -192,6 +198,12 @@ class MeasurementKind(RecordKind):
 
         A measurement follows its own dataset, so it can hang from a sample in a dataset
         the person may not open.
+
+        Args:
+            user: The signed-in user, or an anonymous one.
+
+        Returns:
+            The measurements, each carrying ``sample_is_open``.
         """
         from fairdm.core.measurement.models import Measurement
         from fairdm.core.sample.models import Sample
