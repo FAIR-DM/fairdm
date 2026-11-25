@@ -1,0 +1,66 @@
+{# @description The header row: site icon and name, breadcrumb trail leading, actions trailing. Replaces django-mvp's own to add the site name beside the icon. #}
+{# @prop page:text | description:"The view's page metadata; the breadcrumb trail is drawn from page.breadcrumbs." #}
+{# @slot:start — Replaces the leading region: sidebar toggle, site icon, breadcrumb trail. #}
+{# @slot:breadcrumbs — The steps of the trail, as c-mvp.breadcrumbs.item components; replaces the trail the view declared. #}
+{# @slot:center — Content for the middle of the row; nothing is drawn there by default. #}
+{# @slot:end — Extra trailing content, drawn before the widgets listed in settings. #}
+{% comment %}
+  A copy of django-mvp's cotton/app/navbar.html, which has no way to draw the site's name beside
+  its icon. The only difference is that name, taken from the sidebar title, inside the brand link.
+{% endcomment %}
+{% load i18n %}
+{# The slots are declared so that an unfilled one is empty, rather than a #}
+{# page variable that happens to be called `start` or `end`. `page` is the #}
+{# view's page metadata, passed by the shell so the trail survives Cotton's #}
+{# context isolation. #}
+<c-vars start="" breadcrumbs="" center="" end="" page />
+{# The breadcrumb trail is the steps a template fills the slot with, or else #}
+{# `page.breadcrumbs`, already in context on an MVP view; a page with neither #}
+{# renders no navigation landmark at all, rather than an empty one for a #}
+{# screen reader to announce. #}
+<div class="navbar gap-2 px-3 w-full transition-shadow duration-100 print:hidden">
+  <div class="navbar-start w-auto grow min-w-0 gap-1">
+    {% if start.strip %}
+      {{ start }}
+    {% else %}
+      {# The sidebar toggle and site icon give way below the sidebar breakpoint, #}
+      {# where the sidebar header already draws both — layout.navbar.mobile.sidebar_toggle #}
+      {# puts the toggle back for a project without a mobile dock. #}
+      <c-drawer.button drawer="mvp-app-toggle"
+                       aria-label="{% trans "Open sidebar" %}"
+                       class="btn-ghost btn-square shrink-0 mvp-sidebar-hidden-only{% if not mvp_config.layout.navbar.mobile.sidebar_toggle %} mvp-desktop-only{% endif %}"
+                       only>
+        <c-icon name="menu" />
+      </c-drawer.button>
+      {# The site's name sits beside its icon, the same name the sidebar header shows. #}
+      <a href="/"
+         {% if not mvp_config.layout.sidebar.title %}aria-label="{% trans "Home" %}"{% endif %}
+         class="mvp-navbar-brand flex shrink-0 items-center gap-2 px-1 mvp-sidebar-hidden-only">
+        <c-mvp.brand.icon max-height="1.5rem" class="size-8 object-contain" />
+        {% if mvp_config.layout.sidebar.title %}<span class="mvp-navbar-title font-semibold whitespace-nowrap">{{ mvp_config.layout.sidebar.title }}</span>{% endif %}
+      </a>
+      {# The trail measures its own box and folds what does not fit (breadcrumbs.js). #}
+      {% if breadcrumbs.strip %}
+        <c-mvp.breadcrumbs class="text-sm" only>{{ breadcrumbs }}</c-mvp.breadcrumbs>
+      {% elif page.breadcrumbs %}
+        <c-mvp.breadcrumbs :items="page.breadcrumbs" class="text-sm" only />
+      {% endif %}
+    {% endif %}
+  </div>
+  {% if center.strip %}<div class="navbar-center w-auto shrink-0">{{ center }}</div>{% endif %}
+  <div class="navbar-end w-auto shrink-0 gap-3">
+    {# Outside the widgets so that filling the end region cannot lose it: #}
+    {# the htmx indicator (base.css rule) shows whenever a request is in flight. #}
+    <c-loading spinner
+               size="sm"
+               id="mvp-htmx-indicator"
+               aria-hidden="true"
+               only />
+    {# One list at every width. What gives way on a narrow window is the #}
+    {# project's call, made in the widget or in the block that fills this region. #}
+    {{ end }}
+    {% for widget in mvp_config.layout.navbar.end %}
+      <c-component :is="widget" />
+    {% endfor %}
+  </div>
+</div>

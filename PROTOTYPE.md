@@ -22,6 +22,10 @@ django-mvp's search button on a phone or tablet, its search field on a wide scre
 opens it too). Both open the same dialog with the field focused. The header draws no sidebar
 toggle on a phone. On a wide screen the dock is hidden.
 
+Below the sidebar's breakpoint, where the header shows the site's icon, the site's name sits
+beside it, the same name the sidebar header shows (`MVP_CONFIG["layout"]["sidebar"]["title"]`).
+On a wide screen the sidebar header already shows both, and the app header shows neither.
+
 Behind the header's search, django-mvp's site search is mounted at `/search/` with seven kinds:
 projects, datasets, samples (name, local ID or UUID), measurements, people, organizations and
 literature.
@@ -50,6 +54,8 @@ literature.
 ## Duplication to remove
 
 - The seven kinds in `fairdm/search.py`, as above.
+- `fairdm/templates/cotton/app/navbar.html` is a whole copy of django-mvp's navbar for one
+  added line. The fix belongs in django-mvp: a setting or slot for a title beside the icon.
 - The `.mvp-search-form > i` rule in `fairdm/static/css/fairdm.css` repeats django-mvp's rule,
   which only matches an `<svg>` icon. The fix belongs in django-mvp: place the icon whatever its
   element.
@@ -64,6 +70,7 @@ literature.
 | `fairdm/static/css/fairdm.css`, the `.mvp-search-form > i` block | Search page icon | Feature 1, or a django-mvp fix | django-mvp |
 | `fairdm/templates/base.html`, `app.navbar.end` | Header search button and field, the search dialog, no "Create new" | Feature 1 | same path |
 | `fairdm/conf/settings/addons.py` | `navbar.mobile.sidebar_toggle: False`, the `*-current` icon aliases | Feature 2 | same file |
+| `fairdm/templates/cotton/app/navbar.html` | django-mvp's navbar copied to add the site name beside the icon | Feature 2, or a django-mvp option for a header title | django-mvp |
 
 Screens to compare, each signed out, as `regular.user` and as `regular.user2`:
 
@@ -79,6 +86,7 @@ Screens to compare, each signed out, as `regular.user` and as `regular.user2`:
 | Search results | `/search/?q=alp` | 390, 1280 |
 | Header search field | `/datasets/` | 1280 |
 | Header search button | `/datasets/`, tap the search icon at the top right | 390, 820 |
+| Site name beside the logo | `/datasets/`, a dataset's samples tab | 320, 390, 820 |
 | Page bottom clears the dock | `/datasets/` scrolled to the end | 390 |
 
 Seeded with the portal's own `create_dev_accounts` and `generate_fake_data`.
@@ -95,6 +103,7 @@ literature's Item.
 - The current item's bar is an overline above the icon, not daisyUI's underline.
 - The header has no "Create new" button. Its right-hand end holds the search toggle.
 - The dock's fourth place is the signed-in person's profile.
+- The header shows the site's name next to its icon.
 
 ## Faked or skipped
 
