@@ -252,15 +252,16 @@ class Plugin(PermissionRequiredMixin, View):
         # The trail starts at the list of the record's own type: a soil sample's starts at the
         # soil samples, which is a page, where the plugin may be mounted on every sample. A type
         # with no list page gets no step, as every step but the last must be a page to go to.
-        for model in dict.fromkeys(m for m in (type(obj) if obj is not None else None, self.registered_model) if m):
-            meta = model._meta
+        models = [type(obj)] if obj is not None else []
+        if self.registered_model:
+            models.append(self.registered_model)
+        for meta in (model._meta for model in models):
             for candidate in (f"{meta.model_name}-list", f"{meta.model_name}s"):
-                try:
+                with contextlib.suppress(NoReverseMatch):
                     href = django_reverse(candidate)
-                except NoReverseMatch:
-                    continue
-                breadcrumbs.append({"text": capfirst(meta.verbose_name_plural), "href": href})
-                break
+                    text = capfirst(meta.verbose_name_plural)
+                    breadcrumbs.append({"text": text, "href": href})
+                    break
             if breadcrumbs:
                 break
 

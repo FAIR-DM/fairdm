@@ -121,6 +121,13 @@ class TestFairDMListView:
         response = ConcreteListView.as_view()(request)
         assert "grid_config" in response.context_data
 
+    def test_a_core_record_list_leads_its_trail_with_the_types_icon(self, rf):
+        request = rf.get("/")
+        request.user = AnonymousUser()
+        view = ConcreteListView()
+        view.setup(request)
+        assert view.get_breadcrumbs()[0]["icon"] == "project"
+
 
 @pytest.mark.django_db
 class TestFairDMDetailView:

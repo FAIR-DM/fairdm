@@ -586,12 +586,12 @@ class TestCoverage:
     ):
         page = soup(self.render(render_overview, located))
 
-        assert page.select_one(".ov-panel__more")["href"] == "/abc/samples/"
+        assert page.select_one(".more-link")["href"] == "/abc/samples/"
 
     def test_the_panel_has_no_edit_control(self, render_overview, soup, located):
         page = soup(self.render(render_overview, located))
 
-        assert page.select_one(".ov-panel__tools a:not(.ov-panel__more)") is None
+        assert page.select_one(".ov-panel__tools a:not(.more-link)") is None
 
     def test_the_panel_is_the_coverage_card(self, render_overview, soup, located):
         page = soup(self.render(render_overview, located))
