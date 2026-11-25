@@ -5,6 +5,7 @@ finds records of one type by running the type's own list ``q`` filter over the r
 the person may open, so the header and the list page agree on what matches.
 """
 
+from django.db.models import Exists, OuterRef
 from django.utils.translation import gettext_lazy as _
 from django_filters import FilterSet
 from literature.importers.normalizers import IdentifierNormalizer
@@ -132,14 +133,24 @@ class DatasetKind(RecordKind):
     ordering = ("name", "pk")
 
     def records(self, user):
-        """Return the datasets the person may open, with their project."""
+        """Return the datasets the person may open, marking those whose project they may.
+
+        A person with a level on a dataset alone may open it inside a private project,
+        and that project's name is not theirs to read.
+        """
         from fairdm.core.dataset.models import Dataset
 
-        return Dataset.all_objects.visible_to(user).select_related("project")
+        projects = ProjectKind().records(user).filter(pk=OuterRef("project_id"))
+        return (
+            Dataset.all_objects.visible_to(user)
+            .select_related("project")
+            .annotate(project_is_open=Exists(projects))
+        )
 
     def describe(self, item):
-        """Name the dataset's project."""
-        return (item.project.name if item.project_id else str(_("Dataset"))), ""
+        """Name the dataset's project when the person may open it."""
+        named = item.project_id and item.project_is_open
+        return (item.project.name if named else str(_("Dataset"))), ""
 
 
 class SampleKind(RecordKind):
@@ -177,16 +188,26 @@ class MeasurementKind(RecordKind):
     ordering = ("name", "pk")
 
     def records(self, user):
-        """Return the measurements the person may open, with their sample."""
-        from fairdm.core.measurement.models import Measurement
+        """Return the measurements the person may open, marking those whose sample they may.
 
-        return Measurement.objects.visible_to(user).select_related("sample")
+        A measurement follows its own dataset, so it can hang from a sample in a dataset
+        the person may not open.
+        """
+        from fairdm.core.measurement.models import Measurement
+        from fairdm.core.sample.models import Sample
+
+        samples = Sample.objects.visible_to(user).filter(pk=OuterRef("sample_id"))
+        return (
+            Measurement.objects.visible_to(user)
+            .select_related("sample")
+            .annotate(sample_is_open=Exists(samples))
+        )
 
     def describe(self, item):
-        """Name the measurement's type, then its sample."""
-        return (
-            str(item._meta.verbose_name).capitalize(),
-            item.sample.name if item.sample_id else "",
+        """Name the measurement's type, then its sample when the person may open it."""
+        named = item.sample_id and item.sample_is_open
+        return str(item._meta.verbose_name).capitalize(), (
+            item.sample.name if named else ""
         )
 
 

@@ -163,10 +163,13 @@ could appear on two pages or on none. django-mvp's own sort rule says the same.
 ## D12. The result line names the record's parent, as the record's card does
 
 **Chosen.** A dataset's result line names its project, a sample's names its dataset and its local
-ID, and a measurement's names its sample. Nothing wider: no description and no contributor names.
+ID, and a measurement's names its sample. A parent is named only when the person may open it: a
+person with a level on a dataset alone sees "Dataset" instead of the private project's name, and a
+measurement hanging from a sample in a dataset the person may not open names no sample. Nothing
+wider: no description and no contributor names.
 
-**Why.** The portal's cards already name the parent, so nothing is disclosed that a person may not
-already see on a record they can open.
+**Why.** The record's own page withholds the same names, so the result must too. A sample's dataset
+needs no check, because a sample follows its dataset's visibility.
 
 **ADR:** none — local to this feature, nothing downstream inherits it
 

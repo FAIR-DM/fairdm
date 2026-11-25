@@ -49,6 +49,11 @@ def urls(group):
     return [result.url for result in group.results]
 
 
+def lines(group):
+    """Return everything the group's results say under their titles, as one string."""
+    return " ".join(f"{r.where} {r.passage}" for r in group.results)
+
+
 def make_everything(word=WORD):
     """Create one public record of every type whose name holds the word."""
     project = ProjectFactory(name=f"{word} project", visibility=Visibility.PUBLIC)
@@ -190,6 +195,7 @@ class TestOrdering:
 
     @pytest.mark.parametrize("name", KIND_NAMES)
     def test_every_kind_ends_its_order_with_the_record_id(self, name):
+        """Read the order itself, as the database returns ties in no fixed order."""
         kind = next(k for k in registry.default_registry.active() if k.name == name)
         request = SimpleNamespace(user=AnonymousUser())
 
@@ -264,6 +270,84 @@ class TestVisibility:
         groups = panel(self.client_for(holder), WORD)
         assert urls(groups["datasets"]) == [dataset.get_absolute_url()]
         assert urls(groups["samples"]) == [sample.get_absolute_url()]
+
+    def test_a_person_with_a_portal_wide_right_finds_every_private_record(
+        self, private
+    ):
+        client = self.client_for(PersonFactory(is_superuser=True))
+
+        groups = panel(client, WORD)
+
+        assert urls(groups["projects"]) == [private.get_absolute_url()]
+
+    def test_a_measurement_does_not_name_a_sample_the_person_cannot_open(self):
+        hidden = DatasetFactory(project=None, visibility=Visibility.PRIVATE)
+        sample = ConcreteSampleFactory(name="secretsamplename", dataset=hidden)
+        shown = DatasetFactory(
+            project=None, visibility=Visibility.PUBLIC, published=True
+        )
+        ConcreteMeasurementFactory(name=WORD, sample=sample, dataset=shown)
+
+        group = panel(Client(), WORD)["measurements"]
+
+        assert "secretsamplename" not in lines(group)
+
+    def test_a_measurement_names_the_sample_to_a_person_who_may_open_it(self):
+        hidden = DatasetFactory(project=None, visibility=Visibility.PRIVATE)
+        sample = ConcreteSampleFactory(name="secretsamplename", dataset=hidden)
+        shown = DatasetFactory(
+            project=None, visibility=Visibility.PUBLIC, published=True
+        )
+        ConcreteMeasurementFactory(name=WORD, sample=sample, dataset=shown)
+        holder = PersonFactory()
+        ContributionFactory(
+            content_object=hidden, contributor=holder, level=ContributionLevel.VIEW
+        )
+
+        group = panel(self.client_for(holder), WORD)["measurements"]
+
+        assert "secretsamplename" in lines(group)
+
+    def test_a_dataset_does_not_name_a_project_the_person_cannot_open(self):
+        project = ProjectFactory(
+            name="secretprojectname", visibility=Visibility.PRIVATE
+        )
+        dataset = DatasetFactory(
+            name=WORD, project=project, visibility=Visibility.PRIVATE
+        )
+        holder = PersonFactory()
+        ContributionFactory(
+            content_object=dataset, contributor=holder, level=ContributionLevel.VIEW
+        )
+
+        group = panel(self.client_for(holder), WORD)["datasets"]
+
+        assert urls(group) == [dataset.get_absolute_url()]
+        assert "secretprojectname" not in lines(group)
+
+    def test_a_dataset_names_the_project_to_a_person_who_may_open_it(self):
+        project = ProjectFactory(
+            name="secretprojectname", visibility=Visibility.PRIVATE
+        )
+        DatasetFactory(name=WORD, project=project, visibility=Visibility.PRIVATE)
+        holder = PersonFactory()
+        ContributionFactory(
+            content_object=project, contributor=holder, level=ContributionLevel.VIEW
+        )
+
+        group = panel(self.client_for(holder), WORD)["datasets"]
+
+        assert "secretprojectname" in lines(group)
+
+    def test_a_dataset_names_its_public_project_to_a_visitor(self):
+        project = ProjectFactory(name="openprojectname", visibility=Visibility.PUBLIC)
+        DatasetFactory(
+            name=WORD, project=project, visibility=Visibility.PUBLIC, published=True
+        )
+
+        group = panel(Client(), WORD)["datasets"]
+
+        assert "openprojectname" in lines(group)
 
     def test_a_superuser_is_not_found_among_the_people(self):
         PersonFactory(name=f"{WORD} Admin", is_superuser=True)

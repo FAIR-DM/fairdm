@@ -23,9 +23,9 @@ A record the person may not open is neither listed nor counted. Each result link
 | Kind | Line under the title |
 |---|---|
 | Projects, people, organizations, literature | The record type |
-| Datasets | The dataset's project |
+| Datasets | The dataset's project, when the person may open that project |
 | Samples | The sample's type, then its local ID and dataset |
-| Measurements | The measurement's type, then its sample |
+| Measurements | The measurement's type, then its sample, when the person may open that sample |
 
 ## How matching works
 

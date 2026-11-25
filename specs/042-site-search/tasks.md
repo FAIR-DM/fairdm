@@ -35,3 +35,6 @@ public name.
   and `tests/test_templates/test_overview_page.py::TestHeaderImage::test_a_record_without_an_image_has_nothing_to_open`.
 - [x] T006 [US1] Tests for the header's field and button hooks, and for the order every kind returns
   (ends with the record id). Found by mutating the build and watching which tests stayed green.
+- [x] T007 [US1] Review fix: a measurement names its sample only when the person may open it.
+- [x] T008 [US1] Review fix: a dataset names its project only when the person may open it.
+- [x] T009 [US1] Review fix: a test for the portal-wide right on private projects.
