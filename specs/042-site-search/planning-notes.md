@@ -22,9 +22,10 @@ type.
 `fairdm/templates/base.html`, the `app.navbar.end` block: the header's search field and button and
 the search dialog, landing at the same path. The prototype places them with
 `<c-mvp.search.field />`, `<c-mvp.search.button />` and `<c-mvp.search.dialog />`, which is what
-django-mvp's `mvp.actions.search` action draws. They are ported, not redrawn. The "Create new"
-button in the same block is removed by https://github.com/FAIR-DM/fairdm/issues/719, not by this
-feature.
+django-mvp's `mvp.actions.search` action draws. They are ported, not redrawn. This feature lands before
+https://github.com/FAIR-DM/fairdm/issues/719, which waits on a django-mvp release. So the block
+keeps the "Create new" button that is there on `main` and adds the search beside it. Removing
+"Create new" is that issue's work, not this feature's.
 
 ## Shared piece: search kinds
 

@@ -183,5 +183,5 @@ the header of a list page and of a record page, and check which records come bac
 
 - django-mvp's search, as it ships in the version FairDM depends on, provides the results page, the
   dialog, the field, the button and the keyboard shortcut. FairDM adds no look of its own to them.
-- The header changes in https://github.com/FAIR-DM/fairdm/issues/719 and this feature touch the same
-  place in the header. Whichever lands second keeps both.
+- The header changes in https://github.com/FAIR-DM/fairdm/issues/719 touch the same place in the
+  header and land after this feature. This feature leaves what is already there in place.
