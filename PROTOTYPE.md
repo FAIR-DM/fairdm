@@ -34,20 +34,37 @@ literature.
 
 1. **Find a record from anywhere** (a new way to work with the site, so feature-request work).
    Anyone can search the portal's records from the header, and see the results grouped by
-   kind. Owns no models. Depends on django-mvp's `mvp.search`.
-2. **The FairDM dock** (changes a way that exists, the dock, so resolve work). Declare the dock in
-   the template with the five items above, mark the current section, drop the header's toggle on
-   a phone, and leave room at the bottom of the page. Needs nothing from feature 1.
+   kind. Owns no models. Built on what django-mvp's `mvp.search` already provides: its
+   results page, dialog, button and field are used as they ship, and the results need not
+   match this prototype exactly.
+2. **django-mvp's dock, header and search page** (changes to ways that exist in django-mvp, so
+   resolve work there, one session and one pull request):
+   - `c-dock.item` can be marked current for a whole section of the site (URL namespaces and
+     view names), and can take a second icon to draw while it is current.
+   - django-mvp's stylesheet draws the current dock item in the primary colour with a heavier
+     label and a bar above the icon, sizes the dock's icons up from the body text, and leaves
+     room at the bottom of the page for the dock below the sidebar's breakpoint.
+   - The menu-driven dock (`MobileFooterMenu`, `MobileFooterNavRenderer` and the menu path of
+     `app/dock.html`) is deprecated in favour of declaring the dock in a template.
+   - The header can show the site's name beside its icon below the sidebar's breakpoint.
+   - The search results page places its icon over the field whatever element the icon is.
+3. **The FairDM dock** (changes a way that exists, the dock, so resolve work). Declare the dock in
+   the template with the five items above using item 2's options, drop the header's toggle on a
+   phone, show the site name beside the icon through item 2's header option, remove "Create new"
+   everywhere it lives, and drop FairDM's `dock` renderer entry. Depends on a django-mvp release
+   carrying item 2, and needs nothing from feature 1.
 
 ## The shared pieces
 
 - **Which section a page belongs to.** `fairdm/templatetags/fairdm_dock.py` maps URL namespaces
-  and view names to dock items. The sidebar's own current-item logic in flex_menu matches view
-  names exactly, so a dataset's tabs don't mark "Datasets" in the sidebar either. The rebuild
-  could use the same mapping for both, or give django-mvp's `c-dock.item` a way to be current
-  on a whole namespace.
+  and view names to dock items. In `main` this becomes django-mvp's: `c-dock.item` is current
+  on a whole section (item 2). FairDM keeps only what is its own, the signed-in person's
+  profile and the Menu item holding every other page.
 - **Filled icons for the current item.** `home-current`, `project-current`, `dataset-current`
-  and `person-current` aliases in `EASY_ICONS` (`fairdm/conf/settings/addons.py`).
+  and `person-current` aliases in `EASY_ICONS` (`fairdm/conf/settings/addons.py`), passed as
+  the item's current icon (item 2).
+- **The dock's look.** The current item's colour, weight and overline, the icon size and the
+  room at the page bottom move from `fairdm.css` into django-mvp's stylesheet (item 2).
 - **Search kinds.** `fairdm/search.py` repeats the same shape seven times (model, fields to
   match, visibility, result line). The rebuild writes one base kind that takes those four.
 
@@ -55,22 +72,23 @@ literature.
 
 - The seven kinds in `fairdm/search.py`, as above.
 - `fairdm/templates/cotton/app/navbar.html` is a whole copy of django-mvp's navbar for one
-  added line. The fix belongs in django-mvp.
+  added line. Item 2 adds the option to django-mvp, and the copy never reaches `main`.
 - The `.mvp-search-form > i` rule in `fairdm/static/css/fairdm.css` repeats django-mvp's rule,
-  which only matches an `<svg>` icon. The fix belongs in django-mvp: place the icon whatever its
-  element.
+  which only matches an `<svg>` icon. Item 2 fixes it in django-mvp, and the rule never reaches
+  `main`.
 
 ## The look
 
 | File | What it holds | Ported by | Lands in `main` at |
 |---|---|---|---|
-| `fairdm/templates/cotton/app/dock.html` | The dock, declared with `c-dock` and `c-dock.item` | Feature 2 | same path |
-| `fairdm/templatetags/fairdm_dock.py` | The current-section tag | Feature 2 | same path |
-| `fairdm/static/css/fairdm.css`, the "Mobile dock" and "room for the dock" blocks at the end | Current item colour and weight, the overline, icon size, page bottom padding | Feature 2 | same file |
-| `fairdm/static/css/fairdm.css`, the `.mvp-search-form > i` block | Search page icon | Feature 1, or a django-mvp fix | django-mvp |
-| `fairdm/templates/base.html`, `app.navbar.end` | Header search button and field, the search dialog, no "Create new" | Feature 1 | same path |
-| `fairdm/conf/settings/addons.py` | `navbar.mobile.sidebar_toggle: False`, the `*-current` icon aliases | Feature 2 | same file |
-| `fairdm/templates/cotton/app/navbar.html` | django-mvp's navbar copied to add the site name beside the icon | Feature 2, or a django-mvp option for a header title | django-mvp |
+| `fairdm/templates/cotton/app/dock.html` | The dock, declared with `c-dock` and `c-dock.item` | Item 3 | same path |
+| `fairdm/templatetags/fairdm_dock.py` | The current-section tag | Items 2 and 3 | django-mvp's `c-dock.item`, with FairDM's profile and Menu rules in FairDM |
+| `fairdm/static/css/fairdm.css`, the "Mobile dock" and "room for the dock" blocks at the end | Current item colour and weight, the overline, icon size, page bottom padding | Item 2 | django-mvp's stylesheet |
+| `fairdm/static/css/fairdm.css`, the `.mvp-search-form > i` block | Search page icon | Item 2 | django-mvp |
+| `fairdm/templates/base.html`, `app.navbar.end` | Header search button and field, the search dialog | Feature 1 | same path |
+| `fairdm/templates/base.html`, `app.navbar.end` | No "Create new" | Item 3 | same path |
+| `fairdm/conf/settings/addons.py` | `navbar.mobile.sidebar_toggle: False`, the `*-current` icon aliases | Item 3 | same file |
+| `fairdm/templates/cotton/app/navbar.html` | django-mvp's navbar copied to add the site name beside the icon | Item 2 | a django-mvp header option, set by FairDM in item 3 |
 
 Screens to compare, each signed out, as `regular.user` and as `regular.user2`:
 
@@ -104,6 +122,13 @@ literature's Item.
 - The header has no "Create new" button. Its right-hand end holds the search toggle.
 - The dock's fourth place is the signed-in person's profile.
 - The header shows the site's name next to its icon.
+- The changes the dock, header and search page need are made in django-mvp, not carried in
+  FairDM: the dock component and its styles, a header option for the site name, and the search
+  page's icon.
+- django-mvp's menu-driven dock is deprecated.
+- "Create new" goes, and nothing replaces it here. It will come back somewhere else, later.
+- Search is built on what django-mvp's search already provides, and need not match this
+  prototype exactly.
 
 ## Faked or skipped
 
