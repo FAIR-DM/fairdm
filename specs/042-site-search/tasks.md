@@ -27,5 +27,6 @@ public name.
 - [ ] T003 [US1] Mount `path("search/", include("mvp.search.urls"))` in `fairdm/conf/urls.py` and
   add the three search components to the `app.navbar.end` block of `fairdm/templates/base.html`
   beside "Create new". `tests/test_search.py` is green and the portal's system checks pass.
-- [ ] T004 [US1] Documentation: `docs/developers/reference/site-search.md`, its entry in the
-  reference index, and the `CHANGELOG.md` entry under `Added`.
+- [ ] T004 [US1] Documentation: `docs/developers/reference/site-search.md` as plan.md
+  "Documentation" describes (a reference page, no steps), its entry in the reference index, and
+  the `CHANGELOG.md` entry under `Added`.

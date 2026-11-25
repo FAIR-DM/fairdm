@@ -44,7 +44,9 @@ person may open, so the header and the list cannot disagree on what matches.
   `filterset_class`, `ordering` (a tuple of field names). Methods:
   - `records(self, user)`: the records the person may open. The subclass defines it.
   - `find(self, query, request)`: `self.filterset_class.base_filters["q"].filter(
-    self.records(request.user), query).order_by(*self.ordering)`. Returns a queryset, so django-mvp
+    self.records(request.user), query).order_by(*self.ordering)`. Every kind's `ordering` ends
+    with `"pk"`, for example `("name", "pk")` and `("title", "pk")`, because the results page pages
+    twenty at a time and a single non-unique column is not a total order (D11). Returns a queryset, so django-mvp
     counts it with `count()` and slices it in the database.
   - `describe(self, item)`: the line under the title. The subclass defines it. Returns a
     `(where, passage)` pair.
@@ -58,7 +60,10 @@ person may open, so the header and the list cannot disagree on what matches.
     registered type is found as a sample and links to its own page (D5).
   - Measurements: `Measurement.objects.visible_to(user)`, `select_related("sample")`.
   - People: `Person.objects.real()`. Organizations: `Organization.objects.all()`.
-  - Literature: `Item.objects.all()` with `CatalogueSearchFilter` through `ItemFilterSet`.
+  - Literature: `Item.objects.all()` through `ItemFilterSet`. A query that is only a DOI prefix
+    (`doi:`) is read by the list's filter as no words and would return every reference, so
+    `find()` normalises the words as the filter does and returns `Item.objects.none()` when none
+    are left (D14).
 - `register_kinds()`: registers one instance of each, in the order of D4.
 
 ### `fairdm/apps.py`
@@ -79,9 +84,11 @@ The `app.navbar.end` block keeps `<c-actions.create-new />` and gains, after it,
 
 ### Documentation
 
-- `docs/developers/reference/site-search.md` (new): what the search finds, the order, how a type
-  is matched and shown, how to limit or reorder the types with `MVP_CONFIG["search"]["kinds"]`,
-  how to register a kind of your own. Linked from the reference index.
+- `docs/developers/reference/site-search.md` (new), a reference page and nothing more: the seven
+  record types in their order, the fields each matches, who sees what, that a type's own
+  `search_fields` match only in its own table (D10), and the names of django-mvp's
+  `MVP_CONFIG["search"]["kinds"]` setting and `register`, without steps. Linked from the
+  reference index.
 - `CHANGELOG.md`, `Added`: one entry in the file's style.
 
 ## Tests
@@ -94,17 +101,23 @@ The `app.navbar.end` block keeps `<c-actions.create-new />` and gains, after it,
   `/search/panel/?q=<word>`: every type appears as a group and each result links to its record
   (US1.3, FR-007, SC-002).
 - `TestMatchingFollowsTheList`: a sample by local ID, a project, dataset, sample and measurement
-  by portal ID, a project by external identifier, a dataset by description (US1.4, FR-004, D9). A
-  kind's `q` filter is the filter set's own: for each kind the matching field list equals its
-  filter set's (SC-004).
+  by portal ID, a project by external identifier, a dataset by description (US1.4, FR-004, D9).
+  For SC-004, for each kind that has a list page (projects, datasets, people, organizations,
+  literature): the primary keys the list page returns for a shared word, as a visitor, are a
+  subset of the primary keys the kind returns for the same word. The expected side comes from the
+  list's address, never from the filter the kind reads. A query that is only `doi:` lists no
+  literature (D14).
 - `TestVisibility`: a private project, its dataset, a sample and a measurement are absent for a
   visitor and for a person with no level, present for a person holding a level, and absent from
   the count (US1.5, US1.6, US1.7, SC-003). A public dataset inside a private project is hidden
-  from a person with no level (edge case). Superusers are not found among the people (US1.12).
+  from a person with no level (edge case). A private dataset that sits in no project, and a sample
+  of it, are absent for a visitor and for a person with no level, and present, and counted, for a
+  person holding a level on that dataset alone. Superusers are not found among the people (US1.12).
 - `TestRegisteredTypes`: a `ConcreteSample` is found among the samples and links to its own page
   (US1.11, FR-006).
 - `TestResultsPage`: more matches than a page shows are reachable at `/search/?q=<word>&kind=
-  samples` and page 2 returns the rest; a query matching nothing lists no group (US1.8, US1.9,
+  samples` and page 2 returns the rest (the records past the first page share one name, so a
+  missing tie-break fails the test); a query matching nothing lists no group (US1.8, US1.9,
   US1.10).
 - `TestHeader`: `/datasets/` as a visitor and as a signed-in person carries the dialog
   (`id="mvp-search"`) and the form's `data-mvp-search-form`; the landing page does not (US1.1,
