@@ -30,6 +30,8 @@ public name.
 - [x] T004 [US1] Documentation: `docs/developers/reference/site-search.md` as plan.md
   "Documentation" describes (a reference page, no steps), its entry in the reference index, and
   the `CHANGELOG.md` entry under `Added`.
-- [ ] T005 [US1] Narrow two tests the header's search overtook, as D17 describes:
+- [x] T005 [US1] Narrow two tests the header's search overtook, as D17 describes:
   `tests/test_core/test_dataset/test_views.py::TestDatasetListingSearch::test_the_listing_offers_no_second_search_control`
   and `tests/test_templates/test_overview_page.py::TestHeaderImage::test_a_record_without_an_image_has_nothing_to_open`.
+- [x] T006 [US1] Tests for the header's field and button hooks, and for the order every kind returns
+  (ends with the record id). Found by mutating the build and watching which tests stayed green.
