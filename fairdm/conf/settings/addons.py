@@ -57,7 +57,9 @@ MVP_CONFIG = {
         },
         # The sidebar drawer already carries the login and theme controls, so the default
         # navbar copies would double them.
-        "navbar": {"end": []},
+        # On a phone the dock carries the sidebar toggle in its last place, so the header
+        # draws none of its own.
+        "navbar": {"end": [], "mobile": {"sidebar_toggle": False}},
     },
 }
 
@@ -163,6 +165,10 @@ EASY_ICONS = {
             "pending": "bi bi-clock",
             "loading": "bi bi-arrow-repeat",
             "home": "bi bi-house",
+            # The dock draws the current section's icon filled, as phone tab bars do.
+            "home-current": "bi bi-house-fill",
+            "project-current": "bi bi-layers-fill",
+            "dataset-current": "bi bi-folder-fill",
             "dashboard": "bi bi-speedometer2",
             "email": "bi bi-envelope",
             "lock": "bi bi-lock",

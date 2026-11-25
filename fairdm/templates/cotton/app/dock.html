@@ -1,0 +1,36 @@
+{# @description FairDM's mobile dock: Home, Projects, Datasets, Search, and the sidebar toggle last. Shown below the sidebar's breakpoint, in place of django-mvp's menu-driven dock. #}
+{% comment %}
+  Declared here rather than built from MobileFooterMenu. The item holding the current page is
+  drawn filled and marked current: a record's own pages count as their list's section, and a
+  page only the sidebar reaches counts as Menu's. Search opens the site search dialog, which
+  base.html draws once per page.
+{% endcomment %}
+{% load i18n fairdm_dock %}
+{% dock_section as section %}
+<div class="mvp-dock-only">
+  <c-dock class="mvp-dock fairdm-dock {{ mvp_config.layout.dock.class }}"
+          aria-label="{% translate "Main" %}">
+    <c-dock.item label="{% translate "Home" %}"
+                 icon="{% if section == "home" %}home-current{% else %}home{% endif %}"
+                 href="{% url "home" %}"
+                 :active="{% if section == "home" %}True{% else %}False{% endif %}" />
+    <c-dock.item label="{% translate "Projects" %}"
+                 icon="{% if section == "projects" %}project-current{% else %}project{% endif %}"
+                 href="{% url "project-list" %}"
+                 :active="{% if section == "projects" %}True{% else %}False{% endif %}" />
+    <c-dock.item label="{% translate "Datasets" %}"
+                 icon="{% if section == "datasets" %}dataset-current{% else %}dataset{% endif %}"
+                 href="{% url "dataset-list" %}"
+                 :active="{% if section == "datasets" %}True{% else %}False{% endif %}" />
+    <c-dock.item label="{% translate "Search" %}"
+                 icon="search"
+                 commandfor="mvp-search"
+                 command="show-modal"
+                 aria-haspopup="dialog"
+                 :active="{% if section == "search" %}True{% else %}False{% endif %}" />
+    <c-dock.item label="{% translate "Menu" %}"
+                 icon="menu"
+                 toggle="mvp-app-toggle"
+                 :active="{% if section == "menu" %}True{% else %}False{% endif %}" />
+  </c-dock>
+</div>

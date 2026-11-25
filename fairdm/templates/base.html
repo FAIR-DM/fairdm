@@ -43,7 +43,10 @@
 {% endblock head %}
 
 {% block app.navbar.end %}
+  {# The search field shows only on a wide screen. On a phone the dock's Search item opens the same dialog. #}
+  <c-mvp.search.field />
   <c-actions.create-new />
+  <c-mvp.search.dialog />
 {% endblock app.navbar.end %}
 
 {% block app.header.tray %}
