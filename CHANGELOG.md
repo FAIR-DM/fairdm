@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- **The header has no "Create new" button, and `<c-actions.create-new>` is gone.** Start a project from the **Add** button on the Projects screen and a dataset from **Add dataset** on a project's page. A portal that used the component in its own templates removes it.
+- **The `dock` entry of `FLEX_MENUS["renderers"]` is gone.** The mobile dock is declared in a template, so nothing renders `MobileFooterMenu` any more. A portal that added items to `MobileFooterMenu` overrides `cotton/app/dock.html` with one `<c-mvp.dock.item>` for each.
 - **A type's configuration no longer builds an import and export resource.** `resource_class`, `get_resource_class()`, the `ResourceFactory` and `BaseFairDMResource`, `SampleResource` and `MeasurementResource` are gone, with the old import page and its form. `resource_fields` stays and lists the columns of a type's import and export file. A configuration that sets `resource_class` now raises `TypeError`. A dataset's ZIP package writes each type's file with the same columns as the Export menu.
 
   To upgrade a portal that set `resource_class` on a type's configuration:
@@ -28,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **On a phone or a tablet in portrait the dock holds Home, Projects, Datasets, Profile and Menu.** The current item draws a filled icon, and stays current on every page of its section: a project's or a dataset's own pages, its tabs included, count as Projects or Datasets. Profile is the signed-in person's own profile, and a visitor sees **Log in** there, which returns them to the page they were on. Menu opens the sidebar and is current on every other page. The header no longer draws a sidebar toggle on a phone, and shows the site's name beside its icon.
+- **FairDM now needs django-mvp 0.38**, which carries the dock item that is current on a whole section, the header's site name option and the deprecation of the menu-driven dock. The template tags `on_own_profile` and `on_menu_page` mark the dock's Profile and Menu items.
 - **FairDM now needs django-mvp 0.37, and its breadcrumb trail folds the way django-mvp's does.** On a narrow screen the first step shrinks to its icon and the middle steps fold away before the last one is cut short. A record's trail starts at the list of its own type, such as XRF Measurements, rather than the list of every measurement, leads with the type's icon, as a project, dataset, sample or measurement list does, and ends on the current page without a link to itself. A plugin's header and its `breadcrumbs` context now both come from the new `get_finished_breadcrumbs()`. See [Plugins](developers/reference/plugins.md).
 - **The sidebar's user menu has a link to the signed-in person's profile**, after the Account Center.
 - **The Identifiers card lists each label above its value.** A long link is cut short with an ellipsis and keeps its whole address in its tooltip, so it no longer pushes the page sideways.

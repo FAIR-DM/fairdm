@@ -1,0 +1,47 @@
+{# @description FairDM's mobile dock: Home, Projects, Datasets, Profile (Log in for a visitor), and the sidebar toggle last. Shown below the sidebar's breakpoint, in place of django-mvp's menu-driven dock. #}
+{% comment %}
+  Declared here rather than built from MobileFooterMenu. A record's own pages are current on
+  their list's item, and a page only the sidebar reaches is current on Menu. Profile is the
+  signed-in person's own profile, current on its pages. Someone else's profile is a Menu page.
+{% endcomment %}
+{% load fairdm i18n %}
+{% with home="home" projects="project-list project-create project" datasets="dataset-list dataset-create dataset" %}
+  <div class="mvp-dock-only">
+    <c-dock class="mvp-dock {{ mvp_config.layout.dock.class }}" aria-label="{% translate "Main" %}">
+      <c-mvp.dock.item label="{% translate "Home" %}"
+                       icon="home"
+                       current-icon="home-current"
+                       href="{% url "home" %}"
+                       section="{{ home }}" />
+      <c-mvp.dock.item label="{% translate "Projects" %}"
+                       icon="project"
+                       current-icon="project-current"
+                       href="{% url "project-list" %}"
+                       section="{{ projects }}" />
+      <c-mvp.dock.item label="{% translate "Datasets" %}"
+                       icon="dataset"
+                       current-icon="dataset-current"
+                       href="{% url "dataset-list" %}"
+                       section="{{ datasets }}" />
+      {% if request.user.is_authenticated %}
+        {% on_own_profile as on_profile %}
+        <c-mvp.dock.item label="{% translate "Profile" %}"
+                         icon="person"
+                         current-icon="person-current"
+                         href="{{ request.user.get_absolute_url }}"
+                         :active="on_profile" />
+      {% else %}
+        {# A visitor has no profile, so the same place takes them to log in and back to this page. #}
+        {% url "account_login" as login_url %}
+        <c-dock.item label="{% translate "Log in" %}"
+                     icon="login"
+                     href="{{ login_url }}{% if request.path != login_url %}?next={{ request.get_full_path|urlencode }}{% endif %}" />
+      {% endif %}
+      {% on_menu_page home projects datasets as on_menu %}
+      <c-mvp.dock.item label="{% translate "Menu" %}"
+                       icon="menu"
+                       toggle="mvp-app-toggle"
+                       :active="on_menu" />
+    </c-dock>
+  </div>
+{% endwith %}

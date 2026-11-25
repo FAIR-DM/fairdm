@@ -6,6 +6,7 @@ from django.db import models
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+from mvp.templatetags.mvp import in_section
 from pint.delegates.formatter.plain import PrettyFormatter
 from quantityfield import settings as qsettings
 
@@ -340,3 +341,46 @@ def permalink(context, record):
         The absolute permalink, such as ``https://portal.example/p1a2b3c4d5e6f/``.
     """
     return get_permalink(record, context["request"])
+
+
+@register.simple_tag(takes_context=True)
+def on_own_profile(context):
+    """Return whether the page shown is the signed-in person's own profile.
+
+    Every page of a profile sits in the ``contributor`` namespace and names the person
+    it belongs to by ``uuid``, so someone else's profile is not the signed-in
+    person's own.
+
+    Args:
+        context: The template context, which must hold ``request``.
+
+    Returns:
+        ``True`` on a page of the signed-in person's own profile.
+    """
+    request = context["request"]
+    match = request.resolver_match
+    return bool(
+        match
+        and request.user.is_authenticated
+        and match.namespace == "contributor"
+        and match.kwargs.get("uuid") == str(request.user.uuid)
+    )
+
+
+@register.simple_tag(takes_context=True)
+def on_menu_page(context, *sections):
+    """Return whether the page shown is one that only the sidebar reaches.
+
+    The dock's Menu item is current on every page that no other dock item holds.
+
+    Args:
+        context: The template context, which must hold ``request``.
+        *sections: The ``section`` of each other dock item that holds part of the site.
+
+    Returns:
+        ``True`` when the page is in none of the sections and is not the signed-in
+        person's own profile.
+    """
+    return not on_own_profile(context) and not any(
+        in_section(context, section) for section in sections
+    )

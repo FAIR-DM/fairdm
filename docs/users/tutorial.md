@@ -22,7 +22,7 @@ You arrive on a screen headed **My Dashboard**, with a greeting under the headin
 
 A project groups related datasets. See [The core data model](../explanation/the-core-data-model.md) for how projects, datasets and records fit together.
 
-1. In the bar at the top of the screen, select **Create new**, then **Project**.
+1. Open **Projects**, then select **Add**.
 2. In **Project name**, type `My first project`.
 3. In **Status**, choose **In progress**.
 4. In **Visibility**, choose **Private**, so that only people you give access to can open it while you learn.
@@ -32,7 +32,7 @@ The new project's page opens. Its heading is `My first project`. A badge beside 
 
 ## 3. Create a dataset in the project
 
-1. Select **Create new**, then **Dataset**.
+1. On the new project's page, in the **Datasets** panel, select **Add dataset**.
 2. In **Name**, type `My first dataset`.
 3. Select the **Project** field and start typing `My first`. Choose **My first project** from the list.
 4. Leave **License** as the portal offers it.
