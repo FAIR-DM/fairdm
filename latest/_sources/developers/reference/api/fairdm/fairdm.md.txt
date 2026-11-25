@@ -35,6 +35,7 @@ fairdm.core
 :maxdepth: 1
 
 fairdm.models
+fairdm.search
 fairdm.plugins
 fairdm.permissions
 fairdm.menus
