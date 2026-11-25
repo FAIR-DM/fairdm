@@ -74,7 +74,7 @@ class TestControlRoomPortalOverrides:
 
         module = settings_module(after=f"DJ_REDIS_PANEL_SETTINGS = {portal_dict!r}")
 
-        assert portal_dict == module.DJ_REDIS_PANEL_SETTINGS
+        assert module.DJ_REDIS_PANEL_SETTINGS == portal_dict
 
     def test_a_portal_can_remove_the_control_room_apps(
         self, isolated_env, settings_module
