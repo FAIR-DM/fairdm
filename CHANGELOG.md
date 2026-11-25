@@ -27,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **FairDM now needs django-mvp 0.37, and its breadcrumb trail folds the way django-mvp's does.** On a narrow screen the first step shrinks to its icon and the middle steps fold away before the last one is cut short. A record's trail starts at the list of its own type, such as XRF Measurements, rather than the list of every measurement, leads with the type's icon, as a project, dataset, sample or measurement list does, and ends on the current page without a link to itself. A plugin's header and its `breadcrumbs` context now both come from the new `get_finished_breadcrumbs()`. See [Plugins](developers/reference/plugins.md).
+- **The sidebar's user menu has a link to the signed-in person's profile**, after the Account Center.
+- **The Identifiers card lists each label above its value.** A long link is cut short with an ellipsis and keeps its whole address in its tooltip, so it no longer pushes the page sideways.
+- **The See all and View all links in card and panel headings are plain links with an arrow after the text**, in place of buttons. They are drawn by a new `<c-more-link>` component.
 - **FairDM now needs django-mvp 0.36 and django-mvp-forms 0.11.** `Person` gains a `preferences` field, which stores the timezone and language a person picks on django-mvp's preferences page. Run `migrate` to add it. FairDM installs `object_preferences` and lists `mvp.middleware.PreferencesMiddleware` below the locale middleware, so a signed-in person sees pages in the language and times in the timezone they chose. A portal that sets `MIDDLEWARE` itself must add it there.
 - **Notification emails carry FairDM's logo.** FairDM ships `brand/email/logo.png` and `brand/email/logo_dark.png`, drawn from its logo, for the emails built on django-mvp's email layout. A portal with its own logo draws its own copies with `python manage.py mvp_email_logos`.
 

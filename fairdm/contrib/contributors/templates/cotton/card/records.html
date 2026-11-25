@@ -18,7 +18,7 @@
   </c-slot>
   <c-slot name="actions">
     {% if records.total and all_url %}
-      <c-button href="{{ all_url }}" text="{% translate 'View all' %}" size="sm" only />
+      <c-more-link href="{{ all_url }}" text="{% translate 'View all' %}" only />
     {% endif %}
   </c-slot>
   {% if records.shown %}

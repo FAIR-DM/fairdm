@@ -122,6 +122,20 @@ class FairDMListView(MetadataMixin, MVPListView):
     paginate_by = 25
     grid = {"cols": 1, "gap": 2}
 
+    def get_breadcrumbs(self):
+        """Lead a core record type's list with the type's icon.
+
+        Returns:
+            django-mvp's trail, its first step carrying the listed type's icon.
+        """
+        from fairdm.contrib.plugins.base import record_kind
+
+        trail = super().get_breadcrumbs()
+        kind = record_kind(getattr(self, "model", None))
+        if trail and kind:
+            trail[0] = {**trail[0], "icon": kind}
+        return trail
+
 
 class FairDMDetailView(MetadataMixin, MVPDetailView):
     """Object detail page with AdminLTE layout and SEO metadata support.

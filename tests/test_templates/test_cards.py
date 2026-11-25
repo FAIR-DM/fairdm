@@ -5,7 +5,6 @@ what it delivers: the data it was given, the links it draws and the names it car
 assistive technology. Wording is never asserted.
 """
 
-
 import pytest
 from django.contrib.gis.geos import Point as GEOSPoint
 
@@ -83,7 +82,7 @@ class TestIdentifiersCard:
         )
 
         assert page.find("a", string="10.1/x")["href"] == "https://doi.org/10.1/x"
-        assert page.find("td", string=lambda t: t and t.strip() == "G-1") is not None
+        assert page.find("dd", string=lambda t: t and t.strip() == "G-1") is not None
         assert page.find("a", string="G-1") is None
 
     def test_the_teams_own_id_is_listed(self, render_card):
@@ -135,12 +134,17 @@ class TestIdentifiersCard:
         assert page.find("a") is None
         assert len(page.find_all("button")) == 1
 
-    def test_the_table_is_named_for_assistive_technology(self, render_card, soup):
+    def test_a_long_link_keeps_its_whole_address_in_its_title(self, render_card, soup):
+        doi = "10.1/" + "x" * 120
+        identifiers = [{"type": "DOI", "value": doi, "link": f"https://doi.org/{doi}"}]
+
         page = soup(
-            render_card("identifiers", identifiers=[], portal_id="P", local_id="")
+            render_card(
+                "identifiers", identifiers=identifiers, portal_id="", local_id=""
+            )
         )
 
-        assert page.find("table").find("caption").get_text(strip=True)
+        assert page.find("a", string=doi)["title"] == doi
 
 
 @pytest.mark.django_db

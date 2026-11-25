@@ -927,14 +927,52 @@ class TestReachingTheRecord:
 
 @pytest.mark.django_db
 class TestTheNavigationTrail:
-    def test_the_record_entry_links_to_the_record(self, client):
+    def trail_of(self, rf, user, sample, **attrs):
+        view_class = type(
+            "Titled",
+            (Plugin, TemplateView),
+            {"template_name": "fairdm/plugin.html", **attrs},
+        )
+        view = view_class()
+        view.request = rf.get("/")
+        view.request.user = user
+        view.kwargs = {"uuid": sample.uuid}
+        view.registered_model = Sample
+        return view.get_finished_breadcrumbs()
+
+    def test_the_record_entry_links_to_the_record_below_it(self, rf, plain_user):
+        sample = RockSampleFactory()
+        trail = self.trail_of(rf, plain_user, sample, page_title="Analysis")
+        record_entry = next(e for e in trail if e["text"] == str(sample))
+        assert record_entry["href"] == sample.get_absolute_url()
+
+    def test_the_last_entry_is_the_current_page_and_links_nowhere(self, client):
         sample = RockSampleFactory(
             dataset=DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         )
         response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
         trail = response.context["breadcrumbs"]
-        record_entry = next(e for e in trail if e["text"] == str(sample))
-        assert record_entry["href"] == sample.get_absolute_url()
+        assert trail[-1]["text"] == str(sample)
+        assert "href" not in trail[-1]
+
+    def test_the_trail_starts_at_the_list_of_the_records_own_type(self, rf, plain_user):
+        sample = RockSampleFactory()
+        first = self.trail_of(rf, plain_user, sample)[0]
+        assert first["text"] == "Rock Samples"
+        assert first["href"] == reverse("rocksample-list")
+
+    def test_the_first_entry_carries_the_record_types_icon(self, rf, plain_user):
+        sample = RockSampleFactory()
+        assert self.trail_of(rf, plain_user, sample)[0]["icon"] == "sample"
+
+    def test_the_header_draws_the_same_trail(self, client):
+        sample = RockSampleFactory(
+            dataset=DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        )
+        response = client.get(reverse("sample:overview", kwargs={"uuid": sample.uuid}))
+        assert (
+            response.context["page"]["breadcrumbs"] == response.context["breadcrumbs"]
+        )
 
     def test_no_entry_carries_a_placeholder_link(self, client):
         sample = RockSampleFactory(

@@ -72,13 +72,13 @@ class TestActivityPanel:
     def test_a_more_url_draws_a_link_to_it(self, render_overview, soup, two_days):
         html = render_overview("activity", days=two_days, more_url="/all/")
 
-        link = soup(html).select_one('a.ov-panel__more[href="/all/"]')
+        link = soup(html).select_one('a.more-link[href="/all/"]')
         assert link is not None
 
     def test_no_more_url_draws_no_link(self, render_overview, soup, two_days):
         html = render_overview("activity", days=two_days, more_url="")
 
-        assert soup(html).select_one("a.ov-panel__more") is None
+        assert soup(html).select_one("a.more-link") is None
 
 
 @pytest.mark.django_db

@@ -546,12 +546,13 @@ class TestOverviewCitation:
 class TestOverviewBreadcrumbs:
     """FR-047 and US-4 scenario 10."""
 
-    def test_the_trail_leads_from_the_list_of_measurements_to_the_measurement(
+    def test_the_trail_leads_from_the_list_of_its_type_to_the_measurement(
         self, client, xrf
     ):
         trail = _page(client, xrf).context["breadcrumbs"]
 
-        assert [entry["text"] for entry in trail] == ["Measurements", str(xrf)]
+        assert [entry["text"] for entry in trail] == ["XRF Measurements", str(xrf)]
+        assert trail[0]["href"] == reverse("xrfmeasurement-list")
 
 
 @pytest.mark.django_db
