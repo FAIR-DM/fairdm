@@ -146,3 +146,7 @@
 .contrib-toast-box { background: var(--color-neutral); color: var(--color-neutral-content); border: 0; }
 .contrib-toast-box .contrib-undo { color: inherit; }
 .contrib-toast[data-gone] { display: none; }
+
+/* django-mvp 0.37.0 leaves the sheet's action menu at daisyUI's fit-content width, so the rows
+   and their hover stop at the longest label. Drop this once django-mvp fixes it. */
+.mvp-sheet-menu { width: 100%; }
