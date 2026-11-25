@@ -1,6 +1,10 @@
 """Tests for the portal's site search kinds, their address and the header."""
 
+from types import SimpleNamespace
+
 import pytest
+from bs4 import BeautifulSoup
+from django.contrib.auth.models import AnonymousUser
 from django.test import Client
 from django.urls import reverse
 from mvp.search import registry
@@ -175,6 +179,26 @@ class TestMatchingFollowsTheList:
 
 
 @pytest.mark.django_db
+class TestOrdering:
+    def test_results_are_ordered_by_name(self):
+        for name in ("c", "a", "b"):
+            OrganizationFactory(name=f"{WORD} {name}")
+
+        found = panel(Client(), WORD)["organizations"]
+
+        assert [r.title for r in found.results] == [f"{WORD} {n}" for n in "abc"]
+
+    @pytest.mark.parametrize("name", KIND_NAMES)
+    def test_every_kind_ends_its_order_with_the_record_id(self, name):
+        kind = next(k for k in registry.default_registry.active() if k.name == name)
+        request = SimpleNamespace(user=AnonymousUser())
+
+        ordering = kind.find(WORD, request).query.order_by
+
+        assert ordering[-1] == "pk"
+
+
+@pytest.mark.django_db
 class TestVisibility:
     @pytest.fixture
     def private(self):
@@ -298,6 +322,10 @@ class TestHeader:
 
         assert 'id="mvp-search"' in html
         assert "data-mvp-search-form" in html
+        # The wide-screen field and the narrow-screen button both open the dialog.
+        page = BeautifulSoup(html, "html.parser")
+        assert len(page.select('button[commandfor="mvp-search"]')) == 2
+        assert page.select_one("button[data-mvp-search-open]") is not None
 
     def test_the_landing_page_carries_neither(self):
         html = Client().get(reverse("home")).content.decode()
