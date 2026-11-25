@@ -20,6 +20,8 @@ urlpatterns = [
     # The search behind every concept field's form control.
     path("vocabularies/", include("controlled_vocabularies.urls")),
     path("", FairDMHomeView.as_view(), name="home"),
+    # The site search the dock's Search item and the header's search field open.
+    path("search/", include("mvp.search.urls")),
     path("", include("fairdm.core.urls")),
     path("", include("fairdm.contrib.collections.urls")),
     path("", include("fairdm.contrib.contributors.urls")),
