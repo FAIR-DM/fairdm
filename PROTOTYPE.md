@@ -16,8 +16,10 @@ bottom of every page holds five items, in this order:
 | Search | opens the site search dialog (`#mvp-search`) | the search results page (`mvp-search`) |
 | Menu | toggles the sidebar drawer (`mvp-app-toggle`) | every other page |
 
-The header draws no sidebar toggle on a phone. On a wide screen the dock is hidden and the
-header carries django-mvp's search field, which Ctrl K also opens.
+The header has no "Create new" button at any width. Its right-hand end holds the site search:
+django-mvp's search button on a phone or tablet, its search field on a wide screen (Ctrl K
+opens it too). Both open the same dialog with the field focused. The header draws no sidebar
+toggle on a phone. On a wide screen the dock is hidden.
 
 Behind the Search item, django-mvp's site search is mounted at `/search/` with seven kinds:
 projects, datasets, samples (name, local ID or UUID), measurements, people, organizations and
@@ -60,7 +62,7 @@ literature.
 | `fairdm/templatetags/fairdm_dock.py` | The current-section tag | Feature 2 | same path |
 | `fairdm/static/css/fairdm.css`, the "Mobile dock" and "room for the dock" blocks at the end | Current item colour and weight, the overline, icon size, page bottom padding | Feature 2 | same file |
 | `fairdm/static/css/fairdm.css`, the `.mvp-search-form > i` block | Search page icon | Feature 1, or a django-mvp fix | django-mvp |
-| `fairdm/templates/base.html`, `app.navbar.end` | Header search field and the search dialog | Feature 1 | same path |
+| `fairdm/templates/base.html`, `app.navbar.end` | Header search button and field, the search dialog, no "Create new" | Feature 1 | same path |
 | `fairdm/conf/settings/addons.py` | `navbar.mobile.sidebar_toggle: False`, the `*-current` icon aliases | Feature 2 | same file |
 
 Screens to compare, each signed out, as `regular.user` and as `regular.user2`:
@@ -74,6 +76,7 @@ Screens to compare, each signed out, as `regular.user` and as `regular.user2`:
 | Search dialog from the dock | any page, tap Search, type `sample` | 390 |
 | Search results | `/search/?q=alp` | 390, 1280 |
 | Header search field | `/datasets/` | 1280 |
+| Header search button | `/datasets/`, tap the search icon at the top right | 390, 820 |
 | Page bottom clears the dock | `/datasets/` scrolled to the end | 390 |
 
 Seeded with the portal's own `create_dev_accounts` and `generate_fake_data`.
@@ -88,6 +91,7 @@ literature's Item.
 - The sidebar toggle goes in the dock, in the last place, and the header has none on a phone.
 - The dock is declared in the template, not built from `MobileFooterMenu`.
 - The current item's bar is an overline above the icon, not daisyUI's underline.
+- The header has no "Create new" button. Its right-hand end holds the search toggle.
 
 ## Faked or skipped
 
