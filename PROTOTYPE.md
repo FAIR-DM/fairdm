@@ -58,7 +58,7 @@ literature.
 |---|---|---|---|
 | `fairdm/templates/cotton/app/dock.html` | The dock, declared with `c-dock` and `c-dock.item` | Feature 2 | same path |
 | `fairdm/templatetags/fairdm_dock.py` | The current-section tag | Feature 2 | same path |
-| `fairdm/static/css/fairdm.css`, the "Mobile dock" and "room for the dock" blocks at the end | Current item colour and weight, icon size, page bottom padding | Feature 2 | same file |
+| `fairdm/static/css/fairdm.css`, the "Mobile dock" and "room for the dock" blocks at the end | Current item colour and weight, the overline, icon size, page bottom padding | Feature 2 | same file |
 | `fairdm/static/css/fairdm.css`, the `.mvp-search-form > i` block | Search page icon | Feature 1, or a django-mvp fix | django-mvp |
 | `fairdm/templates/base.html`, `app.navbar.end` | Header search field and the search dialog | Feature 1 | same path |
 | `fairdm/conf/settings/addons.py` | `navbar.mobile.sidebar_toggle: False`, the `*-current` icon aliases | Feature 2 | same file |
@@ -87,6 +87,7 @@ literature's Item.
 
 - The sidebar toggle goes in the dock, in the last place, and the header has none on a phone.
 - The dock is declared in the template, not built from `MobileFooterMenu`.
+- The current item's bar is an overline above the icon, not daisyUI's underline.
 
 ## Faked or skipped
 

@@ -1819,7 +1819,7 @@ a.ov-row__title:hover { text-decoration: underline; }
 
 
 /* Mobile dock. The item holding the current page takes the primary colour and a heavier label,
- * on top of its filled icon and daisyUI's bar, so it reads at a glance and not by colour alone.
+ * on top of its filled icon and the bar above it, so it reads at a glance and not by colour alone.
  * Icons are sized up from the body text so each target reads as a button, not a word. */
 .fairdm-dock > * { color: color-mix(in oklab, var(--color-base-content) 70%, transparent); }
 .fairdm-dock i { font-size: 1.25rem; line-height: 1; }
@@ -1827,6 +1827,8 @@ a.ov-row__title:hover { text-decoration: underline; }
 .fairdm-dock > .dock-active { color: var(--color-primary); }
 .fairdm-dock > .dock-active .dock-label { font-weight: 600; }
 .fairdm-dock > .dock-active::after { background-color: var(--color-primary); }
+/* The current item's bar is an overline above the icon, not daisyUI's underline. */
+.fairdm-dock > *::after { top: 0; bottom: auto; width: 2.5rem; }
 [data-theme="fairdm-dark"] .fairdm-dock > .dock-active { color: var(--color-base-content); }
 [data-theme="fairdm-dark"] .fairdm-dock > .dock-active::after { background-color: var(--color-base-content); }
 
