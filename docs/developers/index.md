@@ -123,6 +123,7 @@ explanation covers why parts of FairDM work as they do. Explanation every reader
 - [REST API](reference/rest-api.md)
 - [Sample model](reference/sample-model.md)
 - [Settings](reference/settings.md)
+- [Site search](reference/site-search.md)
 - [Table schema](reference/table-schema.md)
 - [Template tags](reference/template-tags.md)
 - [Test factories](reference/factories.md)
@@ -265,6 +266,7 @@ reference/records-import
 reference/rest-api
 reference/sample-model
 reference/settings
+reference/site-search
 reference/table-schema
 reference/template-tags
 reference/factories
