@@ -93,7 +93,8 @@ class TestDockTags:
     def test_a_visitor_sees_log_in_in_place_of_profile(self, client):
         response = client.get(reverse("project-list"))
         dock = BeautifulSoup(response.content, "html.parser").select_one(".dock")
-        labels = [item.get_text(strip=True) for item in dock.find_all(["a", "button", "label"])]
+        items = dock.find_all(["a", "button", "label"])
+        labels = [item.get_text(strip=True) for item in items]
 
         assert labels == ["Home", "Projects", "Datasets", "Log in", "Menu"]
 

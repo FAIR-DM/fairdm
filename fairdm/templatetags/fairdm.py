@@ -347,8 +347,9 @@ def permalink(context, record):
 def on_own_profile(context):
     """Return whether the page shown is the signed-in person's own profile.
 
-    Every page of a profile sits in the ``contributor`` namespace and names the person it
-    belongs to by ``uuid``, so someone else's profile is not the signed-in person's own.
+    Every page of a profile sits in the ``contributor`` namespace and names the person
+    it belongs to by ``uuid``, so someone else's profile is not the signed-in
+    person's own.
 
     Args:
         context: The template context, which must hold ``request``.
@@ -374,11 +375,11 @@ def on_menu_page(context, *sections):
 
     Args:
         context: The template context, which must hold ``request``.
-        *sections: The ``section`` of each other dock item that holds a section of the site.
+        *sections: The ``section`` of each other dock item that holds part of the site.
 
     Returns:
-        ``True`` when the page is in none of the sections and is not the signed-in person's
-        own profile.
+        ``True`` when the page is in none of the sections and is not the signed-in
+        person's own profile.
     """
     return not on_own_profile(context) and not any(
         in_section(context, section) for section in sections

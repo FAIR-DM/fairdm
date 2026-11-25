@@ -55,8 +55,9 @@ MVP_CONFIG = {
             "collapse": "icons",
         },
         # The sidebar drawer already carries the login and theme controls, so the default
-        # navbar copies would double them. Below the sidebar's breakpoint the header shows
-        # the site's name beside its icon, and the dock carries the sidebar toggle.
+        # navbar copies would double them. Below the sidebar's breakpoint the header
+        # shows the site's name beside its icon, and the dock carries the sidebar
+        # toggle.
         "navbar": {"end": [], "mobile": {"site_name": True}},
     },
 }
