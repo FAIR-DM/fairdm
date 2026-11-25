@@ -17,6 +17,7 @@ from fairdm.factories import (
     SampleIdentifierFactory,
     UserFactory,
 )
+from fairdm.search import register_kinds
 from fairdm.utils.choices import Visibility
 from tests.factories import ConcreteMeasurementFactory, ConcreteSampleFactory
 
@@ -77,6 +78,12 @@ class TestRegisteredKinds:
         active = registry.default_registry.active()
 
         assert [kind.name for kind in active] == KIND_NAMES
+
+    def test_registering_again_leaves_the_seven_kinds_as_they_are(self):
+        register_kinds()
+
+        names = [kind.name for kind in registry.default_registry.active()]
+        assert names == KIND_NAMES
 
 
 @pytest.mark.django_db

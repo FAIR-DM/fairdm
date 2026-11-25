@@ -10,6 +10,7 @@ from django_filters import FilterSet
 from literature.importers.normalizers import IdentifierNormalizer
 from literature.ui.filters import ItemFilterSet
 from mvp.search import Kind, Result, register
+from mvp.search.registry import default_registry
 
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.filters import OrganizationFilter, PersonFilter
@@ -271,7 +272,11 @@ class LiteratureKind(RecordKind):
 
 
 def register_kinds():
-    """Register every kind, in the order the results page shows their groups."""
+    """Register every kind, in the order the results page shows their groups.
+
+    Safe to call again: a kind that is already registered is left as it is, because
+    ``FairDMConfig.ready()`` can run more than once in one process.
+    """
     for kind in (
         ProjectKind(),
         DatasetKind(),
@@ -281,4 +286,5 @@ def register_kinds():
         OrganizationKind(),
         LiteratureKind(),
     ):
-        register(kind)
+        if kind.name not in default_registry.kinds:
+            register(kind)
