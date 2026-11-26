@@ -29,16 +29,10 @@
     registries();
   });
 
-  // Live search of ORCID or ROR with Tom Select, its results always open beneath the field, as in
-  // Tom Select's own inline remote example. Picking a match fills the name fields of the form.
+  // Live search of ORCID or ROR with Tom Select, its results opening beneath the field as the
+  // person types. Picking a match closes the results and fills the name fields of the form.
   function registries() {
     if (!window.TomSelect) return;
-    if (!TomSelect.prototype.contribNoClose) {
-      TomSelect.define("no_close", function () {
-        this.close = function () {};
-      });
-      TomSelect.prototype.contribNoClose = true;
-    }
     document.querySelectorAll("dialog[open] [data-contrib-registry]").forEach((field) => {
       const select = field.querySelector("select");
       if (!select || select.tomselect) return;
@@ -51,7 +45,7 @@
         maxOptions: 10,
         create: false,
         dropdownParent: results,
-        plugins: ["no_close"],
+        closeAfterSelect: true,
         shouldLoad: (query) => query.trim().length > 1,
         score: () => () => 1,
         load: (query, callback) => {
@@ -73,6 +67,8 @@
           const item = ts.options[value];
           if (!item || !form) return;
           ts.setTextboxValue("");
+          ts.close();
+          ts.blur();
           if (field.dataset.contribRegistryKind === "orcid") {
             form.elements.first_name.value = item.given || "";
             form.elements.last_name.value = item.family || "";

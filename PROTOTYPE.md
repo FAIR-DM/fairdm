@@ -20,7 +20,7 @@ record:
 - adds a person who is already in the portal, by searching for them by name;
 - adds someone who isn't in the portal yet, starting from their ORCID iD: the field searches the
   public ORCID registry as they type and lists the matches beneath it, each match as wide as the
-  list with the ORCID iD icon before its iD, and picking one fills the
+  list with the ORCID iD icon before its iD, and picking one closes the list and fills the
   given and family names; with names alone, Continue lists the people ORCID has under those names,
   with "Add them by name alone" to skip; someone picked from ORCID is offered the employers on
   their ORCID record as their affiliation;
@@ -127,6 +127,7 @@ credit order, then those that are only the affiliation of a person on the record
 
 ## Decisions
 
+- 2026-11-26: Picking a match in the ORCID or ROR field closes its list.
 - 2026-11-26: ORCID matches in the iD field's list fill the list's width, and each iD has the
   ORCID iD icon before it.
 - 2026-11-26: A row's actions sheet shows the avatar again, then the name and, for a person, their
