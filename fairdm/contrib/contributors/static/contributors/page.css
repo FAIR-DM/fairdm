@@ -99,16 +99,22 @@
 .contrib-option-name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .contrib-option-note { font-size: 0.75rem; color: color-mix(in oklab, var(--color-base-content) 60%, transparent); }
 
-/* A registry's live search: its results always open beneath the field, as in Tom Select's own
-   inline example. */
-[data-contrib-registry-results] .ts-dropdown {
-  position: static !important; width: auto !important; box-shadow: none; border: 0; margin: 0.25rem 0 0;
-  background: transparent;
+/* A registry's live search: its results open beneath the field, each row as wide as the list.
+   django-mvp's Tom Select theme pads the list and each option, so these rules are pinned to the
+   sheet to outrank it. */
+#contrib-sheet [data-contrib-registry-results] .ts-dropdown {
+  position: static !important; width: auto !important; margin: 0.25rem 0 0; overflow: hidden;
 }
-[data-contrib-registry-results] .ts-dropdown-content { max-height: none; overflow: visible; padding: 0; }
-[data-contrib-registry-results] .ts-dropdown .option { padding: 0; border-radius: var(--radius-field); }
-[data-contrib-registry-results] .ts-dropdown .option.active { background: var(--color-base-200); color: inherit; }
+#contrib-sheet [data-contrib-registry-results] .ts-dropdown-content { max-height: none; overflow: visible; padding: 0.25rem !important; }
+#contrib-sheet [data-contrib-registry-results] .ts-dropdown .option { padding: 0 !important; border-radius: var(--radius-field); }
+#contrib-sheet [data-contrib-registry-results] .ts-dropdown .option::before,
+#contrib-sheet [data-contrib-registry-results] .ts-dropdown .option::after { display: none; }
+#contrib-sheet [data-contrib-registry-results] .ts-dropdown .option.active { background: var(--color-base-200); color: inherit; }
 [data-contrib-registry-results] .ts-dropdown:not(:has(.option, .loading)) { display: none !important; }
+
+/* The iD line of an ORCID match: the ORCID iD icon, then the iD. */
+.contrib-pick-id { display: inline-flex; align-items: center; gap: 0.375rem; }
+.contrib-orcid-icon { width: 1rem; height: 1rem; flex: none; }
 
 /* Role chips: a checkbox drawn as a pill. */
 .contrib-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }

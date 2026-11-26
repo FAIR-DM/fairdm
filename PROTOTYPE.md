@@ -19,7 +19,8 @@ record:
   with roles of its own shows them;
 - adds a person who is already in the portal, by searching for them by name;
 - adds someone who isn't in the portal yet, starting from their ORCID iD: the field searches the
-  public ORCID registry as they type and lists the matches beneath it, and picking one fills the
+  public ORCID registry as they type and lists the matches beneath it, each match as wide as the
+  list with the ORCID iD icon before its iD, and picking one fills the
   given and family names; with names alone, Continue lists the people ORCID has under those names,
   with "Add them by name alone" to skip; someone picked from ORCID is offered the employers on
   their ORCID record as their affiliation;
@@ -126,6 +127,8 @@ credit order, then those that are only the affiliation of a person on the record
 
 ## Decisions
 
+- 2026-11-26: ORCID matches in the iD field's list fill the list's width, and each iD has the
+  ORCID iD icon before it.
 - 2026-11-26: A row's actions sheet shows the avatar again, then the name and, for a person, their
   affiliation on this project.
 - 2026-11-26: Adding an organization that isn't in the portal works the same way against ROR: its
@@ -166,6 +169,8 @@ credit order, then those that are only the affiliation of a person on the record
 
 ## Faked or skipped
 
+- django-mvp's Tom Select theme pads the list and each option. `page.css` outranks it by pinning
+  the registry list's rules to `#contrib-sheet`.
 - A focused field's outline was cut off at the sides of a sheet, because the sheet body scrolls
   with no inline padding (https://github.com/django-mvp/django-mvp/issues/735). `page.css` gives
   `[data-mvp-sheet-body]` 0.25rem of inline padding and the same negative margin until django-mvp
