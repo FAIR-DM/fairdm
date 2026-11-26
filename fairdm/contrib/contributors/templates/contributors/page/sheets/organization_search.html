@@ -22,7 +22,7 @@
   </div>
   <div class="contrib-new" x-show="q.trim().length > 1">
     <button type="button" class="btn btn-sm btn-ghost"
-            @click="htmx.ajax('GET', '{{ step_url }}?new_name=' + encodeURIComponent(q.trim()), {target: '#contrib-sheet-step', swap: 'outerHTML'})">
+            @click="htmx.ajax('GET', '{{ step_url }}?form=1&new_name=' + encodeURIComponent(q.trim()), {target: '#contrib-sheet-step', swap: 'outerHTML'})">
       <c-icon name="plus" aria-hidden="true" /> <span>{% translate "Add" %} “<span x-text="q.trim()"></span>” {% translate "as a new organization" %}</span>
     </button>
   </div>

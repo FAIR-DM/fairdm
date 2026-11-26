@@ -113,9 +113,9 @@ def organization_for(entry):
 
 
 def initials_of(record, organization=False):
-    """The initials an avatar shows for a registry record: a person's two, an organization's first two letters."""
+    """The initials an avatar shows for a registry record, by the rule the portal's own avatars use."""
     if organization:
-        return record["name"][:2].upper()
+        return Organization(name=record["name"]).get_initials()
     return f"{record.get('given', '')[:1]}{record.get('family', '')[:1]}".upper() or record["name"][:1].upper()
 
 
@@ -347,7 +347,7 @@ class ContributorsBase(ContributionPage):
         if contributor is not None:
             return {"contributor": contributor, "title": contributor.name}
         if organization:
-            return {"title": new_name, "initials": new_name[:2].upper(), "organization": True}
+            return {"title": new_name, "initials": Organization(name=new_name).get_initials(), "organization": True}
         first, last = new_name.get("first_name", ""), new_name.get("last_name", "")
         return {"title": f"{first} {last}".strip(), "initials": f"{first[:1]}{last[:1]}".upper()}
 
@@ -820,29 +820,32 @@ class AddOrganization(ContributorsBase):
     def get(self, request, *args, **kwargs):
         """Open the sheet at its search step, or answer a search, or draw the roles step."""
         self.require_change()
-        if request.GET.get("organization") or request.GET.get("new_name"):
-            organization = None
-            if request.GET.get("organization"):
-                organization = get_object_or_404(Organization, uuid=request.GET["organization"])
-            context = {
-                "organization": organization,
-                "new_name": request.GET.get("new_name", "").strip(),
-                "show_who": True,
-                "credit": None,
-                **self.role_context(None),
-                "action": self.record_url("contributors-add-organization"),
-                "submit_text": _("Add to the %(kind)s") % {"kind": self.access.kind},
-            }
-            context["head"] = self.head_for(organization, context["new_name"], organization=True)
-            context["back_url"] = self.record_url("contributors-add-organization") + "?back=1"
-            return self.step_response("contributors/page/sheets/organization_form.html", context)
+        new_name = request.GET.get("new_name", "").strip()
+        ror = request.GET.get("ror", "").strip()
+        if request.GET.get("form") or (request.GET.get("new_name") is not None and not new_name and not ror):
+            return self.new_organization_step(new_name, ror)
+        if ror:
+            try:
+                record = Ror().fetch(ror)
+            except RegistryUnavailable:
+                record = None
+            if record is None:
+                return self.new_organization_step(new_name, "", _("ROR has no record under that ID."))
+            known = Ror().known(record)
+            return self.roles_step(known, record["name"], "" if known else record["id"], back=self.step_url(ror=record["id"], form=1))
+        if new_name and not request.GET.get("skip"):
+            return self.ror_matches_step(new_name)
+        if new_name:
+            return self.roles_step(None, new_name, back=self.step_url(new_name=new_name, form=1))
+        if request.GET.get("organization"):
+            return self.roles_step(get_object_or_404(Organization, uuid=request.GET["organization"]))
         query = request.GET.get("q", "").strip()
         listed = Contribution.objects.for_entity(self.base_object).values_list("contributor_id", flat=True)
         found = Organization.objects.exclude(pk__in=listed)
         if query:
             found = found.filter(name__icontains=query)
         context = {"found": found.order_by("name")[:12], "query": query, "step_url": self.record_url("contributors-add-organization")}
-        title = _("Add an organization to this %(kind)s") % {"kind": self.access.kind}
+        title = self.title()
         if request.headers.get("HX-Target") == "contrib-organization-results":
             return self.step_response("contributors/page/sheets/organization_results.html", context, chrome=False)
         if request.GET.get("back"):
@@ -850,11 +853,94 @@ class AddOrganization(ContributorsBase):
             return self.step_response("contributors/page/sheets/organization_search.html", context)
         return self.sheet_response("contributors/page/sheets/add_organization.html", context, title)
 
+    def title(self):
+        """The sheet's own title."""
+        return _("Add an organization to this %(kind)s") % {"kind": self.access.kind}
+
+    def step_url(self, **query):
+        """The address of a step of this sheet, carrying what is known of the organization."""
+        query = {key: value for key, value in query.items() if value}
+        return self.record_url("contributors-add-organization") + "?" + urlencode(query)
+
+    def new_organization_step(self, new_name, ror="", error=""):
+        """The step that adds an organization not in the portal: its ROR ID, then its name."""
+        option = None
+        if ror:
+            try:
+                option = Ror().fetch(ror)
+            except RegistryUnavailable:
+                option = None
+        return self.step_response(
+            "contributors/page/sheets/new_organization.html",
+            {
+                "error": error,
+                "new_name": new_name,
+                "ror_option": option,
+                "step_url": self.record_url("contributors-add-organization"),
+                "ror_search_url": self.record_url("contributors-registry", which="ror"),
+                "submit_text": _("Continue"),
+                "submit_form": "contrib-new-form",
+                "back_url": self.record_url("contributors-add-organization") + "?back=1",
+                "head": {"title": self.title()},
+            },
+        )
+
+    def ror_matches_step(self, new_name):
+        """The step that shows what ROR finds under the name given, to pick from or skip."""
+        try:
+            found = Ror().search(new_name)
+            unavailable = False
+        except RegistryUnavailable:
+            found, unavailable = {"results": [], "more": False}, True
+        return self.step_response(
+            "contributors/page/sheets/ror_matches.html",
+            {
+                "found": [{**record, "initials": initials_of(record, True)} for record in found["results"]],
+                "unavailable": unavailable,
+                "new_name": new_name,
+                "pick_url": self.record_url("contributors-add-organization"),
+                "skip_url": self.step_url(new_name=new_name, skip=1),
+                "back_url": self.step_url(new_name=new_name, form=1),
+                "head": {"title": self.title()},
+            },
+        )
+
+    def roles_step(self, organization, new_name="", ror="", back=""):
+        """The step that picks the organization's roles on this record.
+
+        Args:
+            organization: The organization, when it is in the portal.
+            new_name: The name of one not in the portal yet.
+            ror: Its ROR ID, when it was picked from ROR.
+            back: Where Back goes; the search step when not given.
+        """
+        context = {
+            "organization": organization,
+            "new_name": new_name,
+            "ror": ror,
+            "show_who": True,
+            "credit": None,
+            **self.role_context(None),
+            "action": self.record_url("contributors-add-organization"),
+            "submit_text": _("Add to the %(kind)s") % {"kind": self.access.kind},
+            "head": self.head_for(organization, new_name, organization=True),
+            "back_url": back or self.record_url("contributors-add-organization") + "?back=1",
+        }
+        return self.step_response("contributors/page/sheets/organization_form.html", context)
+
     def post(self, request, *args, **kwargs):
         """List the organization with its roles."""
         self.require_change()
         if request.POST.get("organization"):
             organization = get_object_or_404(Organization, uuid=request.POST["organization"])
+        elif request.POST.get("ror"):
+            try:
+                record = Ror().fetch(request.POST["ror"].strip())
+            except RegistryUnavailable:
+                record = None
+            if record is None:
+                return self.region_response(toast={"text": _("ROR could not be reached. Try again."), "tone": "error"})
+            organization = Ror().known(record) or Ror().profile(record)
         else:
             name = request.POST.get("new_name", "").strip()
             if not name:

@@ -33,7 +33,12 @@ record:
 - reorders the people in a sheet by their drag handles, and with the eye beside each name chooses
   whether that person appears in the record's citation (on) or is credited but left out of formal
   citations (off); the order and the eyes are saved together;
-- adds an organization from the portal or by a new name, with roles;
+- adds an organization from the portal, with roles;
+- adds an organization that isn't in the portal yet, starting from its ROR ID: the field searches
+  the ROR registry, starting with the name typed in the portal search, and picking a match fills
+  the name; with a name alone, Continue lists what ROR has under that name, with "Add it by name
+  alone" to skip; one picked from ROR is added with its ROR ID, or is the portal's own when the
+  portal already holds that ID;
 - edits an organization's roles, or gives roles to an organization that is only there as an
   affiliation;
 - removes an organization that no one is credited from.
@@ -117,6 +122,9 @@ credit order, then those that are only the affiliation of a person on the record
 
 ## Decisions
 
+- 2026-11-26: Adding an organization that isn't in the portal works the same way against ROR: its
+  ROR ID first, searched live, then its name, and a name alone leads to ROR's matches with a way to
+  skip.
 - 2026-11-26: Adding someone new starts with their ORCID iD, then given names and family name. The
   ORCID field searches the public ORCID registry live and lists the matches under it. Picking one
   fills the names. Names alone lead to a step listing ORCID's matches, with a way to skip and add
@@ -164,7 +172,7 @@ credit order, then those that are only the affiliation of a person on the record
 
 - The affiliation search filters, in the browser, a list of every organization in the portal. A
   real build needs a server-side search once the portal holds many organizations.
-- New organizations are created by name only, with no ROR lookup.
+- The ROR matches for a name alone are ROR's own search, so a partial name can rank poorly.
 - The affiliations offered from an ORCID record are its employments only, not its education. Each
   is matched to a portal organization by its ROR ID or its name, and created when there is none.
 - The ORCID search asks the public ORCID API from the server on each keystroke past two

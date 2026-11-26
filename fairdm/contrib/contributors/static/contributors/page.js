@@ -81,6 +81,11 @@
           }
         },
       });
+      const query = field.dataset.contribRegistryQuery;
+      if (query) {
+        ts.setTextboxValue(query);
+        ts.load(query);
+      }
       if (matchMedia("(pointer: fine)").matches) ts.focus();
     });
   }

@@ -108,6 +108,7 @@
 [data-contrib-registry-results] .ts-dropdown-content { max-height: none; overflow: visible; padding: 0; }
 [data-contrib-registry-results] .ts-dropdown .option { padding: 0; border-radius: var(--radius-field); }
 [data-contrib-registry-results] .ts-dropdown .option.active { background: var(--color-base-200); color: inherit; }
+[data-contrib-registry-results] .ts-dropdown:not(:has(.option, .loading)) { display: none !important; }
 
 /* Role chips: a checkbox drawn as a pill. */
 .contrib-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }

@@ -3,7 +3,7 @@
   <form id="contrib-form" class="contrib-fields"
         hx-post="{{ action }}" hx-target="#contrib-region" hx-swap="outerHTML">
     {% if show_who %}
-      {% if organization %}<input type="hidden" name="organization" value="{{ organization.uuid }}">{% else %}<input type="hidden" name="new_name" value="{{ new_name }}">{% endif %}
+      {% if organization %}<input type="hidden" name="organization" value="{{ organization.uuid }}">{% else %}<input type="hidden" name="new_name" value="{{ new_name }}">{% if ror %}<input type="hidden" name="ror" value="{{ ror }}">{% endif %}{% endif %}
     {% endif %}
     {% include "contributors/page/sheets/roles_field.html" %}
   </form>

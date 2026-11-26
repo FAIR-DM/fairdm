@@ -1,0 +1,20 @@
+{% load i18n %}
+{# An organization not in the portal yet: its ROR ID first, searched live in the ROR registry, then its name. #}
+<div id="contrib-sheet-step" class="contrib-step">
+  <form id="contrib-new-form" class="contrib-fields" hx-get="{{ step_url }}" hx-target="#contrib-sheet-step" hx-swap="outerHTML">
+    <div class="contrib-field" data-contrib-registry="{{ ror_search_url }}" data-contrib-registry-kind="ror"{% if new_name and not ror_option %} data-contrib-registry-query="{{ new_name }}"{% endif %}>
+      <label class="contrib-label" for="contrib-ror">{% translate "ROR ID" %}</label>
+      <select id="contrib-ror" name="ror" class="select w-full"
+              placeholder="{% translate "Search ROR by name or ID" %}" autocomplete="off">
+        <option value=""></option>
+        {% if ror_option %}<option value="{{ ror_option.id }}" selected>{{ ror_option.name }} · {{ ror_option.shown_id }}</option>{% endif %}
+      </select>
+      <div data-contrib-registry-results></div>
+    </div>
+    <label class="contrib-field">
+      <span class="contrib-label">{% translate "Name" %}</span>
+      <input class="input w-full{% if error %} input-error{% endif %}" type="text" name="new_name" value="{% if ror_option %}{{ ror_option.name }}{% else %}{{ new_name }}{% endif %}" autocomplete="off">
+      {% if error %}<span class="contrib-error">{{ error }}</span>{% endif %}
+    </label>
+  </form>
+</div>
