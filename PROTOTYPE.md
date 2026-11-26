@@ -22,7 +22,8 @@ record:
   project", and adds them with a button that names them ("Add Aiko"): the organizations on their profile first, marked
   Current or Past, then every other organization in the portal, with a search box that filters
   the list;
-- picks the person's roles from the roles this kind of record offers, as toggle chips;
+- picks the person's roles from the roles this kind of record offers, as toggle chips, with
+  Project Member ticked and locked for anyone being added;
 - edits a person's affiliation and roles;
 - removes a person, with an Undo button in the notice that follows;
 - reorders the people in a sheet by their drag handles, and with the eye beside each name chooses
@@ -112,6 +113,8 @@ credit order, then those that are only the affiliation of a person on the record
 
 ## Decisions
 
+- 2026-11-26: Anyone added, person or organization, gets Project Member, ticked and not
+  removable. Someone who already holds it keeps it when edited.
 - 2026-11-26: The multi-step sheets have a Back button in the foot, between Cancel and the main
   button, that returns to the previous step.
 - 2026-11-26: Once a person or organization is picked, the next step's head shows their avatar

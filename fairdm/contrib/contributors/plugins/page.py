@@ -307,10 +307,43 @@ class ContributorsBase(ContributionPage):
         """The roles this kind of record offers."""
         return Crediting(self.base_object).offered_roles()
 
-    def chosen_roles(self):
-        """The roles ticked in the posted form, limited to the offered ones."""
+    def chosen_roles(self, held=()):
+        """The roles ticked in the posted form, limited to the offered ones.
+
+        Project Member can't be taken away: it is kept for anyone being added, and for anyone
+        who holds it.
+
+        Args:
+            held: The roles the contributor holds now, or None when they are being added.
+        """
         offered = {str(role.pk): role for role in self.offered_roles()}
-        return [offered[pk] for pk in self.request.POST.getlist("roles") if pk in offered]
+        chosen = [offered[pk] for pk in self.request.POST.getlist("roles") if pk in offered]
+        for pk in self.locked_roles(held):
+            if str(pk) in offered and offered[str(pk)] not in chosen:
+                chosen.append(offered[str(pk)])
+        return chosen
+
+    def locked_roles(self, held):
+        """The roles ticked and not removable: Project Member, for anyone added or holding it.
+
+        Args:
+            held: The pks of the roles the contributor holds now, or None when they are being
+                added.
+        """
+        member = role_by_slug(MEMBER)
+        if member is None or member.pk not in {role.pk for role in self.offered_roles()}:
+            return set()
+        return {member.pk} if held is None or member.pk in held else set()
+
+    def role_context(self, credit):
+        """The roles to offer, the ones ticked, and the ones that can't be unticked.
+
+        Args:
+            credit: The contribution being edited, or None when the contributor is being added.
+        """
+        held = {role.pk for role in credit.roles.all()} if credit else None
+        locked = self.locked_roles(held)
+        return {"roles": self.offered_roles(), "held_roles": (held or set()) | locked, "locked_roles": locked}
 
     def affiliation_choices(self, person):
         """The organizations to credit a person from: theirs first, then every other one.
@@ -352,8 +385,7 @@ class ContributorsBase(ContributionPage):
             "person": person,
             "credit": credit,
             "new_name": new_name or {},
-            "roles": self.offered_roles(),
-            "held_roles": {role.pk for role in credit.roles.all()} if credit else set(),
+            **self.role_context(credit),
             "theirs": theirs,
             "others": others,
             "current_affiliation": credit.affiliation_id if credit else (theirs[0][0].pk if theirs and theirs[0][1] == _("Current") else None),
@@ -446,7 +478,7 @@ class AddPersonStep(ContributorsBase):
         crediting = Crediting(self.base_object)
         try:
             credit = crediting.add(person, organization=self.chosen_affiliation())
-            crediting.update(credit, roles=self.chosen_roles())
+            crediting.update(credit, roles=self.chosen_roles(held=None))
         except ValidationError as error:
             return self.region_response(toast={"text": " ".join(error.messages), "tone": "error"})
         return self.region_response(toast={"text": _("%(name)s added.") % {"name": person.name}})
@@ -467,8 +499,7 @@ class EditCredit(ContributorsBase):
             context = {
                 "organization": contributor,
                 "credit": credit,
-                "roles": self.offered_roles(),
-                "held_roles": {role.pk for role in credit.roles.all()},
+                **self.role_context(credit),
                 "action": self.record_url("contributors-edit", pk=credit.pk),
                 "submit_text": _("Save"),
             }
@@ -486,9 +517,9 @@ class EditCredit(ContributorsBase):
         contributor = credit.contributor.get_real_instance()
         try:
             if contributor.is_organization:
-                crediting.update(credit, roles=self.chosen_roles())
+                crediting.update(credit, roles=self.chosen_roles(held={role.pk for role in credit.roles.all()}))
             else:
-                crediting.update(credit, roles=self.chosen_roles(), organization=self.chosen_affiliation())
+                crediting.update(credit, roles=self.chosen_roles(held={role.pk for role in credit.roles.all()}), organization=self.chosen_affiliation())
         except ValidationError as error:
             return self.region_response(toast={"text": " ".join(error.messages), "tone": "error"})
         return self.region_response(toast={"text": _("%(name)s saved.") % {"name": contributor.name}})
@@ -507,8 +538,7 @@ class CreditOrganization(ContributorsBase):
         context = {
             "organization": organization,
             "credit": None,
-            "roles": self.offered_roles(),
-            "held_roles": set(),
+            **self.role_context(None),
             "action": self.record_url("contributors-credit-organization", pk=organization.pk),
             "submit_text": _("Save"),
         }
@@ -522,7 +552,7 @@ class CreditOrganization(ContributorsBase):
         try:
             crediting.list_organization(organization)
             credit = self.base_object.contributors.get(contributor=organization)
-            crediting.update(credit, roles=self.chosen_roles())
+            crediting.update(credit, roles=self.chosen_roles(held=None))
         except ValidationError as error:
             return self.region_response(toast={"text": " ".join(error.messages), "tone": "error"})
         return self.region_response(toast={"text": _("%(name)s saved.") % {"name": organization.name}})
@@ -635,8 +665,7 @@ class AddOrganization(ContributorsBase):
                 "new_name": request.GET.get("new_name", "").strip(),
                 "show_who": True,
                 "credit": None,
-                "roles": self.offered_roles(),
-                "held_roles": set(),
+                **self.role_context(None),
                 "action": self.record_url("contributors-add-organization"),
                 "submit_text": _("Add to the %(kind)s") % {"kind": self.access.kind},
             }
@@ -671,7 +700,7 @@ class AddOrganization(ContributorsBase):
         try:
             crediting.list_organization(organization)
             credit = self.base_object.contributors.get(contributor=organization)
-            crediting.update(credit, roles=self.chosen_roles())
+            crediting.update(credit, roles=self.chosen_roles(held=None))
         except ValidationError as error:
             return self.region_response(toast={"text": " ".join(error.messages), "tone": "error"})
         return self.region_response(toast={"text": _("%(name)s added.") % {"name": organization.name}})

@@ -4,7 +4,12 @@
   <div class="contrib-chips">
     {% for role in roles %}
       <label class="contrib-chip">
-        <input type="checkbox" name="roles" value="{{ role.pk }}" {% if role.pk in held_roles %}checked{% endif %}>
+        {% if role.pk in locked_roles %}
+          <input type="hidden" name="roles" value="{{ role.pk }}">
+          <input type="checkbox" value="{{ role.pk }}" checked disabled data-contrib-locked>
+        {% else %}
+          <input type="checkbox" name="roles" value="{{ role.pk }}" {% if role.pk in held_roles %}checked{% endif %}>
+        {% endif %}
         <span>{{ role }}</span>
       </label>
     {% empty %}

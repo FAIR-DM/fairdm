@@ -111,6 +111,7 @@
 .contrib-chip input:checked + span {
   background: var(--color-primary); border-color: var(--color-primary); color: var(--color-primary-content);
 }
+.contrib-chip input:disabled, .contrib-chip:has(input:disabled) { cursor: default; }
 .contrib-chip input:focus-visible + span { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 
 
