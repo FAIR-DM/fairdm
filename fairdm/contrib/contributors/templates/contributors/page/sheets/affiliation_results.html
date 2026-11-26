@@ -1,0 +1,54 @@
+{% load i18n %}
+{% if orcid %}
+  <p class="contrib-group">{% translate "From their ORCID record" %}</p>
+  <ul class="contrib-picks" aria-label="{% translate "From their ORCID record" %}">
+    {% for entry in orcid %}
+      <li>
+        <button type="button" class="contrib-pick" hx-get="{{ entry.url }}" hx-target="#contrib-sheet-step" hx-swap="outerHTML" data-contrib-orcid-affiliation>
+          <c-mvp.avatar alt="" size="sm" placeholder="{{ entry.initials }}" shape="rounded-box" variant="base-300" only />
+          <span class="contrib-pick-text"><span class="contrib-pick-name">{{ entry.name }}</span></span>
+          {% if entry.current %}<span class="badge badge-sm badge-soft badge-neutral flex-none" data-contrib-current>{% translate "Current" %}</span>{% endif %}
+          <c-icon name="chevron-right" aria-hidden="true" />
+        </button>
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}
+{% if theirs %}
+  <p class="contrib-group">{% translate "From their profile" %}</p>
+  <ul class="contrib-picks" aria-label="{% translate "From their profile" %}">
+    {% for org, current, url in theirs %}
+      <li>
+        <button type="button" class="contrib-pick" hx-get="{{ url }}" hx-target="#contrib-sheet-step" hx-swap="outerHTML">
+          <c-contributor.avatar :contributor="org" size="sm" />
+          <span class="contrib-pick-text">
+            <span class="contrib-pick-name">{{ org.name }}</span>
+            {% if org.city or org.country %}<span class="contrib-pick-sub">{{ org.city }}{% if org.city and org.country %}, {% endif %}{{ org.country.name }}</span>{% endif %}
+          </span>
+          {% if current %}<span class="badge badge-sm badge-soft badge-neutral flex-none" data-contrib-current>{% translate "Current" %}</span>{% endif %}
+          <c-icon name="chevron-right" aria-hidden="true" />
+        </button>
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}
+{% if others %}
+  {% if orcid or theirs %}<p class="contrib-group">{% translate "Other organizations" %}</p>{% endif %}
+  <ul class="contrib-picks" aria-label="{% translate "Organizations in the portal" %}" data-contrib-portal-organizations>
+    {% for org, url in others %}
+      <li>
+        <button type="button" class="contrib-pick" hx-get="{{ url }}" hx-target="#contrib-sheet-step" hx-swap="outerHTML">
+          <c-contributor.avatar :contributor="org" size="sm" />
+          <span class="contrib-pick-text">
+            <span class="contrib-pick-name">{{ org.name }}</span>
+            {% if org.city or org.country %}<span class="contrib-pick-sub">{{ org.city }}{% if org.city and org.country %}, {% endif %}{{ org.country.name }}</span>{% endif %}
+          </span>
+          <c-icon name="chevron-right" aria-hidden="true" />
+        </button>
+      </li>
+    {% endfor %}
+  </ul>
+{% elif not orcid and not theirs %}
+  <p class="contrib-none">{% if query %}{% blocktranslate %}No organization called “{{ query }}” is in the portal.{% endblocktranslate %}{% else %}{% translate "The portal has no organizations yet." %}{% endif %}</p>
+{% endif %}
+{% if new_row %}{% include "contributors/page/sheets/new_row.html" %}{% endif %}

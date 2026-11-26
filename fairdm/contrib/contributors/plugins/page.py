@@ -27,7 +27,7 @@ from fairdm.core.measurement.models import Measurement
 from fairdm.core.project.models import Project
 from fairdm.core.sample.models import Sample
 
-from fairdm.core.vocabularies import ORCID
+from fairdm.core.vocabularies import ORCID, ROR
 
 from ..models import Contribution, Contributor, ContributorIdentifier, Organization, Person
 from ..services.crediting import Crediting
@@ -477,23 +477,9 @@ class ContributorsBase(ContributionPage):
         others = Organization.objects.exclude(pk__in=known).order_by("name")
         return theirs, others
 
-    def chosen_affiliation(self, orcid=""):
-        """The organization picked in the posted form, or None.
-
-        Args:
-            orcid: The ORCID iD of the person being added, whose ORCID record's affiliations the
-                form may offer. One of those is found in the portal by its ROR ID or its name, or
-                made.
-
-        Raises:
-            RegistryUnavailable: ROR could not be asked for an organization to make.
-        """
+    def chosen_affiliation(self):
+        """The organization picked in the posted edit form, or None."""
         value = self.request.POST.get("affiliation", "")
-        if not value:
-            return None
-        if value.startswith("registry:") and orcid:
-            chosen = next((a for a in orcid_affiliations(orcid) if a["value"] == value), None)
-            return organization_for(chosen) if chosen else None
         return Organization.objects.filter(pk=value).first() if value.isdigit() else None
 
     def credit_form_context(self, person, credit=None, new_name=None):
@@ -616,27 +602,167 @@ class AddPersonStep(ContributorsBase):
                 return self.new_person_step(new_name, error)
             elif not request.GET.get("skip"):
                 return self.orcid_matches_step(typed, via, narrowed, only_list=bool(request.GET.get("list")))
-        context = self.credit_form_context(person, new_name=new_name)
-        if new_name and new_name.get("orcid") and person is None:
-            context["registry_affiliations"] = orcid_affiliations(new_name["orcid"])
-            current = [a for a in context["registry_affiliations"] if a["current"]]
-            if current:
-                context["current_affiliation"] = current[0]["value"]
-        context["action"] = self.record_url("contributors-add-person-step")
-        context["head"] = self.head_for(person, new_name)
         if request.GET.get("person"):
-            context["back_url"] = self.record_url("contributors-add-person") + "?back=1"
+            back_url = self.record_url("contributors-add-person") + "?back=1"
         elif request.GET.get("matches"):
-            context["back_url"] = self.step_url(typed, via=via, **narrowed)
+            back_url = self.step_url(typed, via=via, **narrowed)
         elif request.GET.get("skip"):
-            context["back_url"] = self.step_url(typed, via=via, confirm=1, given=1, **narrowed)
+            back_url = self.step_url(typed, via=via, confirm=1, given=1, **narrowed)
         elif via == "search":
-            context["back_url"] = self.record_url("contributors-add-person") + "?" + urlencode({"back": 1, "q": request.GET["orcid"]})
+            back_url = self.record_url("contributors-add-person") + "?" + urlencode({"back": 1, "q": request.GET["orcid"]})
         else:
-            context["back_url"] = self.step_url(new_name, form=1)
-        context["submit_text"] = _("Add %(name)s") % {"name": first_name_of(person, new_name)}
-        context["submit_icon"] = "add"
-        return self.step_response("contributors/page/sheets/credit_form.html", context)
+            back_url = self.step_url(new_name, form=1)
+        return self.affiliation_flow(person, new_name, back_url)
+
+    # The affiliation steps. They carry everything the person's step was asked with, plus their own
+    # keys: which of them it is (``stage``), the name searched for (``aq``), and the organization
+    # picked: one in the portal (``org``), one from ROR or an ORCID record (``ror``, with its
+    # ``org_name``), one by name alone (``org_name``), or none (``none``).
+    AFFILIATION_KEYS = ("stage", "aq", "org", "ror", "org_name", "none", "from")
+
+    def affiliation_flow(self, person, new_name, back_url):
+        """The steps that find the person's affiliation on this record, then pick their roles.
+
+        The first step lists the organizations on their ORCID record or their profile, then the
+        portal's, filtered by a search. A name that isn't in the portal is a New row, which leads to
+        what ROR has under that name ("Do you mean?"), to pick from or to add by name alone. Picking
+        any of them leads to the roles step, with the organization shown as their affiliation.
+        """
+        request = self.request
+        carried = {key: value for key, value in request.GET.items() if key not in self.AFFILIATION_KEYS}
+        here = self.record_url("contributors-add-person-step") + "?" + urlencode(carried)
+        stage = request.GET.get("stage", "")
+        query = request.GET.get("aq", "").strip()
+        head = self.head_for(person, new_name)
+        if stage == "roles":
+            return self.person_roles_step(person, new_name, here, head)
+        if stage == "ror":
+            try:
+                found = Ror().search(query)
+                unavailable = False
+            except RegistryUnavailable:
+                found, unavailable = {"results": [], "more": False}, True
+            return self.step_response(
+                "contributors/page/sheets/ror_matches.html",
+                {
+                    "found": [{**record, "initials": initials_of(record, True)} for record in found["results"]],
+                    "unavailable": unavailable,
+                    "pick_url": here + "&" + urlencode({"stage": "roles", "from": "ror", "aq": query}),
+                    "next_url": here + "&" + urlencode({"stage": "roles", "org_name": query, "aq": query}),
+                    "next_text": _("Add by name alone"),
+                    "back_url": here + "&" + urlencode({"aq": query}),
+                    "head": {"title": _("Do you mean?"), "lead": _("Powered by the Research Organization Registry (ROR)")},
+                },
+            )
+        context = self.affiliation_results(person, new_name, here, query)
+        if stage == "results":
+            return self.step_response("contributors/page/sheets/affiliation_results.html", context, chrome=False)
+        context.update(
+            {
+                "here": here,
+                "next_url": here + "&" + urlencode({"stage": "roles", "none": 1}),
+                "next_text": _("No affiliation"),
+                "back_url": back_url,
+                "head": head,
+            }
+        )
+        return self.step_response("contributors/page/sheets/affiliation_search.html", context)
+
+    def affiliation_results(self, person, new_name, here, query):
+        """The organizations the affiliation step lists for a search, in their groups.
+
+        Returns:
+            The context of ``affiliation_results.html``: ``orcid`` (the organizations on the
+            person's ORCID record), ``theirs`` (those on their profile, as ``(organization,
+            current)``), ``others`` (the portal's, up to twelve) and ``new_row``, each row with the
+            address of the roles step it leads to.
+        """
+        needle = query.lower()
+        orcid = []
+        if new_name and new_name.get("orcid") and person is None:
+            for entry in orcid_affiliations(new_name["orcid"]):
+                if needle in entry["name"].lower():
+                    picked = {"stage": "roles", "from": "orcid", "org_name": entry["name"], "aq": query}
+                    if entry["ror"]:
+                        picked["ror"] = entry["ror"]
+                    orcid.append({**entry, "initials": Organization(name=entry["name"]).get_initials()[:3], "url": here + "&" + urlencode(picked)})
+        theirs, others = self.affiliation_choices(person)
+        theirs = [(org, note == _("Current")) for org, note in theirs if needle in org.name.lower()]
+        # An organization on their ORCID record that the portal holds, by name or ROR ID, is listed once, in the ORCID group.
+        named = {entry["name"].lower() for entry in orcid}
+        rors = [Ror().identifier_in(entry["ror"]) for entry in orcid if entry["ror"]]
+        rors += [f"https://ror.org/{ror}" for ror in rors]
+        others = others.exclude(identifiers__type_id=ROR, identifiers__value__in=rors) if rors else others
+        others = others.filter(name__icontains=query) if query else others
+        others = [org for org in others[:40] if org.name.lower() not in named][:12]
+        shown = [entry["name"] for entry in orcid] + [org.name for org, _current in theirs] + [org.name for org in others]
+        context = {
+            "query": query,
+            "orcid": orcid,
+            "theirs": [(org, current, here + "&" + urlencode({"stage": "roles", "org": org.uuid, "aq": query})) for org, current in theirs],
+            "others": [(org, here + "&" + urlencode({"stage": "roles", "org": org.uuid, "aq": query})) for org in others],
+        }
+        if len(query) > 1 and not any(name.lower() == needle for name in shown) and not Organization.objects.filter(name__iexact=query).exists():
+            context["new_row"] = {
+                "name": query,
+                "initials": Organization(name=query).get_initials()[:3],
+                "organization": True,
+                "url": here + "&" + urlencode({"stage": "ror", "aq": query}),
+            }
+        return context
+
+    def picked_affiliation(self, data):
+        """The organization picked in the affiliation steps, as it would be credited, without making it.
+
+        Args:
+            data: The step's query or the posted form, holding ``org``, ``ror`` and ``org_name``.
+
+        Returns:
+            ``(organization, entry)``: the portal's organization, or None, and for one not in the
+            portal yet ``entry``, its ``name`` and ``ror``, that ``organization_for`` makes it from.
+            Both None for no affiliation.
+        """
+        if data.get("org"):
+            return Organization.objects.filter(uuid=data["org"]).first(), None
+        ror, name = data.get("ror", "").strip(), data.get("org_name", "").strip()
+        if ror:
+            try:
+                record = Ror().fetch(ror)
+            except RegistryUnavailable:
+                record = None
+            if record:
+                held = Ror().known(record) or Organization.objects.filter(name__iexact=name or record["name"]).first()
+                entry = {"name": name or record["name"], "ror": record["id"], "shown_id": record.get("shown_id", ""), "detail": record.get("detail", "")}
+                return held, None if held else entry
+        if name:
+            held = Organization.objects.filter(name__iexact=name).first()
+            return held, None if held else {"name": name, "ror": ""}
+        return None, None
+
+    def person_roles_step(self, person, new_name, here, head):
+        """The step that picks the person's roles, with the affiliation chosen shown above them."""
+        request = self.request
+        organization, entry = self.picked_affiliation(request.GET)
+        query = request.GET.get("aq", "")
+        if request.GET.get("from") == "ror":
+            back = here + "&" + urlencode({"stage": "ror", "aq": query})
+        else:
+            back = here + "&" + urlencode({"aq": query}) if query else here
+        context = {
+            "person": person,
+            "credit": None,
+            "new_name": new_name or {},
+            **self.role_context(None),
+            "affiliation": organization,
+            "new_affiliation": entry,
+            "initials": Organization(name=entry["name"]).get_initials()[:3] if entry else "",
+            "action": self.record_url("contributors-add-person-step"),
+            "head": head,
+            "back_url": back,
+            "submit_text": _("Add %(name)s") % {"name": first_name_of(person, new_name)},
+            "submit_icon": "add",
+        }
+        return self.step_response("contributors/page/sheets/person_roles.html", context)
 
     def step_url(self, new_name, **extra):
         """The address of this step for someone new, carrying what is known of them."""
@@ -748,7 +874,10 @@ class AddPersonStep(ContributorsBase):
             person = Person.objects.create_unclaimed(first, last)
         crediting = Crediting(self.base_object)
         try:
-            credit = crediting.add(person, organization=self.chosen_affiliation(orcid=orcid))
+            organization, entry = self.picked_affiliation(request.POST)
+            if entry:
+                organization = organization_for(entry)
+            credit = crediting.add(person, organization=organization)
             crediting.update(credit, roles=self.chosen_roles(held=None))
         except (ValidationError, RegistryUnavailable) as error:
             text = " ".join(error.messages) if isinstance(error, ValidationError) else _("ROR could not be reached. Try again.")

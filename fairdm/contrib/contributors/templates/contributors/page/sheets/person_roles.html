@@ -1,0 +1,41 @@
+{% load i18n %}
+{# The last step of Add a person: the affiliation chosen on the step before, and their roles. The submit button is in the sheet's foot. #}
+<div id="contrib-sheet-step" class="contrib-step">
+  <form id="contrib-form" class="contrib-fields" data-contrib-roles-step
+        hx-post="{{ action }}" hx-target="#contrib-region" hx-swap="outerHTML">
+    {% if person %}<input type="hidden" name="person" value="{{ person.uuid }}">{% else %}
+      <input type="hidden" name="first_name" value="{{ new_name.first_name }}">
+      <input type="hidden" name="last_name" value="{{ new_name.last_name }}">
+      {% if new_name.orcid %}<input type="hidden" name="orcid" value="{{ new_name.orcid }}">{% endif %}
+    {% endif %}
+    {% if affiliation %}<input type="hidden" name="org" value="{{ affiliation.uuid }}">{% elif new_affiliation %}
+      <input type="hidden" name="org_name" value="{{ new_affiliation.name }}">
+      {% if new_affiliation.ror %}<input type="hidden" name="ror" value="{{ new_affiliation.ror }}">{% endif %}
+    {% endif %}
+
+    <div class="contrib-fieldset">
+      <p class="contrib-label">{% blocktranslate %}Affiliation on this {{ kind }}{% endblocktranslate %}</p>
+      <div class="contrib-chosen" data-contrib-chosen-affiliation>
+        {% if affiliation %}
+          <c-contributor.avatar :contributor="affiliation" size="sm" />
+          <span class="contrib-pick-text">
+            <span class="contrib-pick-name">{{ affiliation.name }}</span>
+            {% if affiliation.city or affiliation.country %}<span class="contrib-pick-sub">{{ affiliation.city }}{% if affiliation.city and affiliation.country %}, {% endif %}{{ affiliation.country.name }}</span>{% endif %}
+          </span>
+        {% elif new_affiliation %}
+          <c-mvp.avatar alt="" size="sm" placeholder="{{ initials }}" shape="rounded-box" variant="base-300" only />
+          <span class="contrib-pick-text">
+            <span class="contrib-pick-name">{{ new_affiliation.name }}</span>
+            {% if new_affiliation.detail %}<span class="contrib-pick-sub">{{ new_affiliation.detail }}</span>{% endif %}
+            {% if new_affiliation.shown_id %}<span class="contrib-pick-sub">{{ new_affiliation.shown_id }}</span>{% endif %}
+          </span>
+          <span class="badge badge-sm badge-success flex-none">{% translate "New" %}</span>
+        {% else %}
+          <span class="contrib-pick-text"><span class="contrib-pick-name">{% translate "No affiliation" %}</span></span>
+        {% endif %}
+      </div>
+    </div>
+
+    {% include "contributors/page/sheets/roles_field.html" %}
+  </form>
+</div>

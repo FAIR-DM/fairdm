@@ -1,14 +1,8 @@
 {% load i18n %}
-{# A person's affiliation on this record and their roles. The submit button is in the sheet's foot. #}
+{# Edit a person: their affiliation on this record and their roles. The submit button is in the sheet's foot. #}
 <div id="contrib-sheet-step" class="contrib-step">
   <form id="contrib-form" class="contrib-fields"
         hx-post="{{ action }}" hx-target="#contrib-region" hx-swap="outerHTML">
-    {% if person and not credit %}<input type="hidden" name="person" value="{{ person.uuid }}">{% endif %}
-    {% if not person %}
-      <input type="hidden" name="first_name" value="{{ new_name.first_name }}">
-      <input type="hidden" name="last_name" value="{{ new_name.last_name }}">
-      {% if new_name.orcid %}<input type="hidden" name="orcid" value="{{ new_name.orcid }}">{% endif %}
-    {% endif %}
 
     <fieldset class="contrib-fieldset" x-data="{ q: '' }">
       <legend class="contrib-label">{% blocktranslate %}Select their affiliation on this {{ kind }}{% endblocktranslate %}</legend>
@@ -19,17 +13,6 @@
                aria-label="{% translate "Find an organization" %}">
       </label>
       <div class="contrib-options" role="radiogroup" aria-label="{% translate "Affiliation" %}">
-        {% if registry_affiliations %}
-          <p class="contrib-group" x-show="!q">{% translate "From their ORCID record" %}</p>
-          {% for entry in registry_affiliations %}
-            <label class="contrib-option" data-name="{{ entry.name|lower }}" x-show="!q || $el.dataset.name.includes(q.toLowerCase())" data-contrib-registry-affiliation>
-              <input type="radio" class="radio radio-sm radio-primary" name="affiliation" value="{{ entry.value }}" {% if entry.value == current_affiliation %}checked{% endif %}>
-              <span class="contrib-option-name">{{ entry.name }}</span>
-              <span class="contrib-option-note">{{ entry.note }}</span>
-            </label>
-          {% endfor %}
-          <p class="contrib-group" x-show="!q">{% translate "Other organizations" %}</p>
-        {% endif %}
         {% if theirs %}
           <p class="contrib-group" x-show="!q">{% translate "From their profile" %}</p>
           {% for org, note in theirs %}

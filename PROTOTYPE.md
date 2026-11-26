@@ -29,13 +29,21 @@ record:
   the list is asked again as they type;
 - picks someone from ORCID's matches, or chooses Add by name alone (the foot's main button), which
   asks them to check the given names and family name, guessed from the name (the last word is the
-  family name), before the affiliation step; someone picked from ORCID is offered every
-  organization on their ORCID record as their affiliation, past ones and education included;
-- picks the person's affiliation on this record, under "Select their affiliation on this
-  project", and adds them with a button that names them ("Add Aiko"): the organizations on their profile first, marked
-  Current or Past, then every other organization in the portal, with a search box that filters
-  the list;
-- picks the person's roles from the roles this kind of record offers, as toggle chips, with
+  family name), before the affiliation step;
+- finds the person's affiliation on this record in a step drawn like Add an organization, under
+  "Select their affiliation on this project": a search kept at the top, then, as rows with an
+  avatar and a chevron, every organization on their ORCID record (past ones and education
+  included, the current ones marked with a grey Current badge) or on their portal profile, then
+  the portal's other organizations; the search filters them all;
+- finds an affiliation that isn't in the portal from the same step: the name typed shows as a New
+  row, which goes to what ROR has under that name ("Do you mean?", powered by ROR), to pick from
+  or to add by name alone; it is made in the portal, with its ROR ID when picked from ROR, when
+  the person is added;
+- chooses No affiliation (the affiliation step's main button) instead;
+- picks the person's roles on the last step, which shows the affiliation chosen (marked New when
+  it isn't in the portal yet) above the roles, and adds them with a button that names them
+  ("Add Aiko"); Back returns to the step the affiliation was picked on;
+- picks the roles from the roles this kind of record offers, as toggle chips, with
   Project Member ticked and locked for anyone being added;
 - edits a person's affiliation and roles;
 - removes a person, with an Undo button in the notice that follows;
@@ -100,7 +108,7 @@ picked.
 | `templates/contributors/page/region.html` | Both columns, their headings, counts and Add buttons, and the notice |
 | `templates/contributors/page/person_row.html` | A person's row and actions |
 | `templates/contributors/page/organization_row.html` | An organization's row and actions |
-| `templates/contributors/page/sheets/*.html` | Add person (search, ORCID matches with their Name and Affiliation fields, name check, details), edit person, add organization, edit organization roles, reorder |
+| `templates/contributors/page/sheets/*.html` | Add person (search, ORCID matches with their Name and Affiliation fields, name check, affiliation search and results, roles with the affiliation chosen), edit person, add organization, edit organization roles, reorder. The ROR matches (`ror_matches.html`) and the New row (`new_row.html`) serve both add sheets |
 | `static/contributors/page.css` | The two-column container query (52rem and 72rem), row, chip, option list and notice styles |
 | `static/contributors/page.js` | Closes the sheet on `contrib:done`, times the notice, focuses the first field on a fine pointer, runs the ORCID and ROR searches |
 
@@ -139,6 +147,16 @@ credit order, then those that are only the affiliation of a person on the record
 
 ## Decisions
 
+- 2026-11-26: The affiliation step of Add a person is its own step, drawn like Add an
+  organization: a search at the top, organizations as rows, a typed name that isn't in the portal
+  as a New row leading to ROR's "Do you mean?", and Add by name alone. Picking any row goes on to
+  the roles step, which shows the affiliation chosen. Someone added by name alone can now be given
+  an organization that isn't in the portal; it is made in the portal when they are added.
+- 2026-11-26: The affiliation step's main button is No affiliation, with an arrow, since it leads
+  on to the roles. There is no radio list: a person's affiliation is picked by tapping its row.
+- 2026-11-26: Only what a person has made public on ORCID can be offered. Sam's own record lists
+  one employment (GFZ), so no past affiliation shows for him; a record with past ones, such as
+  0000-0002-2700-4605, shows them.
 - 2026-11-26: The person search has no "Add someone new" button. The New row replaces it, and an
   ORCID iD typed in the search shows its person as a row, so starting from an iD still works.
 - 2026-11-26: ORCID is searched on its name fields only. ORCID read the bare name against every
@@ -230,8 +248,20 @@ credit order, then those that are only the affiliation of a person on the record
 - Without the up and down buttons, the reorder list has no way to move a row by keyboard. The
   reorder component's handle needs keyboard moves before the buttons can go for real.
 
-- The affiliation search filters, in the browser, a list of every organization in the portal. A
-  real build needs a server-side search once the portal holds many organizations.
+- The edit sheet's affiliation search filters, in the browser, a list of every organization in the
+  portal. Add a person's affiliation step searches on the server and lists twelve at most.
+- An organization from an ORCID record is matched to the portal's by its ROR ID or its exact name,
+  and a portal organization with the same ROR ID is left out of Other organizations. ORCID often
+  identifies an organization another way: Sam's record gives GFZ a Funder Registry ID, so
+  "Helmholtz-Zentrum Potsdam - Deutsches GeoForschungsZentrum GFZ" can't be matched to the portal's
+  "GFZ Helmholtz Centre for Geosciences". Both are listed, and picking ORCID's makes a second GFZ.
+  The rebuild needs to match ORCID's other identifiers (Funder Registry, Ringgold, GRID) through ROR.
+- ROR renamed the University of Adelaide to Adelaide University, so a search for "University of
+  Adelaide" finds it under the new name.
+- The affiliation steps carry everything the earlier steps knew in their address, and ask ORCID
+  again (from the cache) on each of them.
+- An avatar's initials in the affiliation step are cut to three letters, since a one-word acronym
+  ("ORCID") overflows the small avatar. The portal's own rule allows five.
 - The step that asks for a ROR ID and a name can no longer be reached: a new organization starts
   from its New row. The step, and its live ROR search, are still on the branch.
 - The ROR matches for a name alone are ROR's own search, so a partial name can rank poorly.
