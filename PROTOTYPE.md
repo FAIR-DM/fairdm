@@ -17,7 +17,8 @@ record:
   with a Project Leader badge, then the rest; an
   organization people are credited from, with no roles of its own, shows Project Member, and one
   with roles of its own shows them;
-- adds a person who is already in the portal, by searching for them by name;
+- adds a person who is already in the portal, by searching for them by name; a name that isn't
+  in the portal shows as one more row of the results, marked New;
 - adds someone who isn't in the portal yet, starting from their ORCID iD: the field searches the
   public ORCID registry as they type and lists the matches beneath it, each match as wide as the
   list with the ORCID iD icon before its iD, and picking one closes the list and fills the
@@ -35,7 +36,8 @@ record:
 - reorders the people in a sheet by their drag handles, and with the eye beside each name chooses
   whether that person appears in the record's citation (on) or is credited but left out of formal
   citations (off); the order and the eyes are saved together;
-- adds an organization from the portal, with roles;
+- adds an organization from the portal, with roles; a name that isn't in the portal shows as one
+  more row of the results, drawn like the portal's own rows and marked New;
 - adds an organization that isn't in the portal yet, starting from its ROR ID: the field searches
   the ROR registry, starting with the name typed in the portal search, and picking a match fills
   the name; with a name alone, Continue opens "Do you mean?", powered by the Research Organization
@@ -131,6 +133,9 @@ credit order, then those that are only the affiliation of a person on the record
 
 ## Decisions
 
+- 2026-11-26: A name typed in Add a person or Add an organization that isn't in the portal shows as a
+  row drawn like the portal's own, with avatar initials, the name, a green New badge and a chevron,
+  in place of the "Add as a new organization" button.
 - 2026-11-26: Someone from ORCID is offered every organization on their public ORCID record, ended
   ones, education, qualifications, invited positions, memberships and services included, current
   ones first.

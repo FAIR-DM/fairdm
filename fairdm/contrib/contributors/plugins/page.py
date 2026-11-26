@@ -125,6 +125,12 @@ def organization_for(entry):
     return Ror().profile(record) if record else Organization.objects.create(name=entry["name"])
 
 
+def split_name(typed):
+    """Given names and family name from a name typed whole: the last word is the family name."""
+    words = typed.split()
+    return {"first_name": " ".join(words[:-1]), "last_name": words[-1] if words else ""}
+
+
 def initials_of(record, organization=False):
     """The initials an avatar shows for a registry record, by the rule the portal's own avatars use."""
     if organization:
@@ -518,8 +524,15 @@ class AddPerson(ContributorsBase):
         found = Person.objects.real().exclude(pk__in=listed).exclude(is_superuser=True)
         if query:
             found = found.filter(Q(name__icontains=query) | Q(first_name__icontains=query) | Q(last_name__icontains=query))
-        found = found.order_by("name")[:12]
+        found = list(found.order_by("name")[:12])
         context = {"found": found, "query": query, "step_url": self.record_url("contributors-add-person-step")}
+        if len(query) > 1 and not any(person.name.lower() == query.lower() for person in found):
+            typed = split_name(query)
+            context["new_row"] = {
+                "name": query,
+                "initials": f"{typed['first_name'][:1]}{typed['last_name'][:1]}".upper(),
+                "url": AddPersonStep.step_url(self, typed, form=1),
+            }
         title = _("Add a person to this %(kind)s") % {"kind": self.access.kind}
         if request.headers.get("HX-Target") == "contrib-person-results":
             return self.step_response("contributors/page/sheets/person_results.html", context, chrome=False)
@@ -883,7 +896,15 @@ class AddOrganization(ContributorsBase):
         found = Organization.objects.exclude(pk__in=listed)
         if query:
             found = found.filter(name__icontains=query)
-        context = {"found": found.order_by("name")[:12], "query": query, "step_url": self.record_url("contributors-add-organization")}
+        found = list(found.order_by("name")[:12])
+        context = {"found": found, "query": query, "step_url": self.record_url("contributors-add-organization")}
+        if len(query) > 1 and not any(organization.name.lower() == query.lower() for organization in found):
+            context["new_row"] = {
+                "name": query,
+                "initials": Organization(name=query).get_initials(),
+                "organization": True,
+                "url": self.step_url(new_name=query, form=1),
+            }
         title = self.title()
         if request.headers.get("HX-Target") == "contrib-organization-results":
             return self.step_response("contributors/page/sheets/organization_results.html", context, chrome=False)

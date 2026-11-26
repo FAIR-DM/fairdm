@@ -1,0 +1,22 @@
+{% load i18n %}
+{# The name typed in a search, as one more row of the results, for someone or something not in the portal yet: drawn like the portal's own rows, with a New badge. #}
+<ul class="contrib-picks" aria-label="{% translate "Not in the portal yet" %}">
+  <li>
+    <button type="button" class="contrib-pick"
+            hx-get="{{ new_row.url }}"
+            hx-target="#contrib-sheet-step"
+            hx-swap="outerHTML"
+            data-contrib-new-row>
+      {% if new_row.organization %}
+        <c-mvp.avatar alt="" size="sm" placeholder="{{ new_row.initials }}" shape="rounded-box" variant="base-300" only />
+      {% else %}
+        <c-mvp.avatar alt="" size="sm" placeholder="{{ new_row.initials }}" only />
+      {% endif %}
+      <span class="contrib-pick-text">
+        <span class="contrib-pick-name">{{ new_row.name }}</span>
+      </span>
+      <span class="badge badge-sm badge-success flex-none">{% translate "New" %}</span>
+      <c-icon name="chevron-right" aria-hidden="true" />
+    </button>
+  </li>
+</ul>
