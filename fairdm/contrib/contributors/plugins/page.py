@@ -51,6 +51,13 @@ def role_by_slug(slug):
     return Record.objects.filter(uri=f"https://w3id.org/fairdm/vocabularies/contributor-roles/{slug}").first()
 
 
+def first_name_of(person, new_name=None):
+    """The first of a person's given names, or their family name when they have none."""
+    given = person.first_name if person else (new_name or {}).get("first_name", "")
+    family = person.last_name if person else (new_name or {}).get("last_name", "")
+    return (given.split() or [family or (person.name if person else "")])[0]
+
+
 def record_key(credit):
     """The key that names a contribution's record in the faked citation list."""
     return f"{credit.content_type_id}:{credit.object_id}"
@@ -241,16 +248,37 @@ class ContributorsBase(ContributionPage):
             "sheet_lead": lead,
             "base_object": self.base_object,
             "kind": self.access.kind,
+            "foot": self.foot(context),
         }
         html = render_to_string(template, context, request=self.request)
         response = HttpResponse(html)
         response["HX-Trigger-After-Settle"] = json.dumps({"mvp-sheet-open": {"id": SHEET_ID}})
         return response
 
-    def step_response(self, template, context):
-        """Answer with the next step of an open sheet: only its body changes."""
+    def step_response(self, template, context, chrome=True):
+        """Answer with the next step of an open sheet: its body, and with ``chrome`` its foot.
+
+        Args:
+            template: The step's template.
+            context: What it draws.
+            chrome: Whether the answer also replaces the sheet's foot, out of band. A list of
+                search results answers without it.
+        """
         context = {**context, "sheet_id": SHEET_ID, "base_object": self.base_object, "kind": self.access.kind}
-        return HttpResponse(render_to_string(template, context, request=self.request))
+        html = render_to_string(template, context, request=self.request)
+        if chrome:
+            foot = {"foot": self.foot(context), "oob": True}
+            html += render_to_string("contributors/page/sheets/foot.html", foot, request=self.request)
+        return HttpResponse(html)
+
+    @staticmethod
+    def foot(context):
+        """The sheet foot's main button, from the step's context: its words, icon and form."""
+        return {
+            "submit": context.get("submit_text", ""),
+            "icon": context.get("submit_icon", ""),
+            "form": context.get("submit_form", ""),
+        }
 
     # ------------------------------------------------------------------ shared form parts
 
@@ -331,7 +359,7 @@ class AddPerson(ContributorsBase):
         found = found.order_by("name")[:12]
         context = {"found": found, "query": query, "step_url": self.record_url("contributors-add-person-step")}
         if request.headers.get("HX-Target") == "contrib-person-results":
-            return self.step_response("contributors/page/sheets/person_results.html", context)
+            return self.step_response("contributors/page/sheets/person_results.html", context, chrome=False)
         return self.sheet_response(
             "contributors/page/sheets/add_person.html",
             context,
@@ -365,11 +393,14 @@ class AddPersonStep(ContributorsBase):
                         "error": _("Give their family name.") if "last_name" in request.GET else "",
                         "new_name": new_name,
                         "step_url": self.record_url("contributors-add-person-step"),
+                        "submit_text": _("Continue"),
+                        "submit_form": "contrib-new-form",
                     },
                 )
         context = self.credit_form_context(person, new_name=new_name)
         context["action"] = self.record_url("contributors-add-person-step")
-        context["submit_text"] = _("Add to the %(kind)s") % {"kind": self.access.kind}
+        context["submit_text"] = _("Add %(name)s") % {"name": first_name_of(person, new_name)}
+        context["submit_icon"] = "add"
         return self.step_response("contributors/page/sheets/credit_form.html", context)
 
     def post(self, request, *args, **kwargs):
@@ -536,7 +567,7 @@ class Reorder(ContributorsBase):
         self.require_change()
         return self.sheet_response(
             "contributors/page/sheets/reorder.html",
-            {"people_rows": self.people(), "action": self.record_url("contributors-reorder")},
+            {"people_rows": self.people(), "action": self.record_url("contributors-reorder"), "submit_text": _("Save order")},
             _("Reorder people"),
         )
 
@@ -588,7 +619,7 @@ class AddOrganization(ContributorsBase):
             found = found.filter(name__icontains=query)
         context = {"found": found.order_by("name")[:12], "query": query, "step_url": self.record_url("contributors-add-organization")}
         if request.headers.get("HX-Target") == "contrib-organization-results":
-            return self.step_response("contributors/page/sheets/organization_results.html", context)
+            return self.step_response("contributors/page/sheets/organization_results.html", context, chrome=False)
         return self.sheet_response(
             "contributors/page/sheets/add_organization.html",
             context,

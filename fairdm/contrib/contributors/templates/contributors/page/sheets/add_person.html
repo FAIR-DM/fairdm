@@ -29,8 +29,5 @@
       </button>
     </div>
   </div>
-  <c-slot name="actions">
-    <button type="button" class="btn btn-ghost" onclick="this.closest('dialog').close()">{% translate "Cancel" %}</button>
-    <button type="submit" class="btn btn-primary" form="contrib-form" data-contrib-submit>{% translate "Add" %}</button>
-  </c-slot>
+  <c-slot name="actions">{% include "contributors/page/sheets/foot.html" %}</c-slot>
 </c-mvp.sheet>

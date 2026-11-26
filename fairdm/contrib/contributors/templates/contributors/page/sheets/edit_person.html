@@ -1,8 +1,5 @@
 {% load i18n %}
 <c-mvp.sheet id="{{ sheet_id }}" title="{{ sheet_title }}" lead="{{ sheet_lead }}" full class="contrib-sheet">
   {% include "contributors/page/sheets/credit_form.html" %}
-  <c-slot name="actions">
-    <button type="button" class="btn btn-ghost" onclick="this.closest('dialog').close()">{% translate "Cancel" %}</button>
-    <button type="submit" class="btn btn-primary" form="contrib-form" data-contrib-submit>{{ submit_text }}</button>
-  </c-slot>
+  <c-slot name="actions">{% include "contributors/page/sheets/foot.html" %}</c-slot>
 </c-mvp.sheet>

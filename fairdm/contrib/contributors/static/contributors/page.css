@@ -113,8 +113,6 @@
 }
 .contrib-chip input:focus-visible + span { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 
-/* The foot's submit only shows once the sheet holds a form to send. */
-.contrib-sheet:not(:has(#contrib-form)) [data-contrib-submit] { display: none; }
 
 /* Reorder by the handle only: the reorder list's up and down buttons are left out. */
 .contrib-reorder [data-mvp-reorder-up], .contrib-reorder [data-mvp-reorder-down] { display: none; }

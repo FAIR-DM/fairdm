@@ -18,7 +18,8 @@ record:
   with roles of its own shows them;
 - adds a person who is already in the portal, by searching for them by name;
 - adds someone who isn't in the portal yet, by given and family name;
-- picks the person's affiliation on this record: the organizations on their profile first, marked
+- picks the person's affiliation on this record, under "Select their affiliation on this
+  project", and adds them with a button that names them ("Add Aiko"): the organizations on their profile first, marked
   Current or Past, then every other organization in the portal, with a search box that filters
   the list;
 - picks the person's roles from the roles this kind of record offers, as toggle chips;
@@ -51,8 +52,10 @@ the open sheet.
 
 **Forms open in one sheet slot.** Add and Edit fetch a sheet into `#contrib-sheet-slot` and open it
 with `HX-Trigger-After-Settle: {"mvp-sheet-open": {"id": "contrib-sheet"}}`. Multi-step adds swap
-`#contrib-sheet-step` inside the open sheet. The submit button sits in the sheet's foot and is
-bound to `form#contrib-form`; it hides itself on a step with no form.
+`#contrib-sheet-step` inside the open sheet. Every sheet's foot is the same: Cancel, small, on the
+left, and the step's main button filling the rest of the width (`sheets/foot.html`). Each step
+answers with its own foot too, swapped in out of band as `#contrib-sheet-actions`, so a step with
+nothing to send shows Cancel alone.
 
 **Role chips.** Checkbox inputs styled as toggle chips (`.contrib-chips`), used wherever roles are
 picked.
@@ -105,6 +108,10 @@ credit order, then those that are only the affiliation of a person on the record
 
 ## Decisions
 
+- 2026-11-26: The affiliation step reads "Select their affiliation on this project". Its button
+  carries the add icon and the person's first name ("Add Aiko"). Every sheet's foot has Cancel,
+  small, on the left and the main button filling the rest, including Continue on the step that
+  adds someone new.
 - 2026-11-26: In Add a person and Add an organization the search box stays at the top of the
   sheet while the results scroll under it. "Not in the portal yet? Add someone new" stays below
   the results.
