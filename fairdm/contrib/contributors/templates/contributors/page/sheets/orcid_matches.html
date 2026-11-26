@@ -1,0 +1,39 @@
+{% load i18n %}
+{# Who ORCID finds under the names given: pick one, or skip and add them by name alone. #}
+<div id="contrib-sheet-step" class="contrib-step" data-contrib-matches>
+  <p class="contrib-label">{% blocktranslate with name=new_name.first_name|add:" "|add:new_name.last_name %}Is {{ name }} one of these people in ORCID?{% endblocktranslate %}</p>
+  {% if found %}
+    <ul class="contrib-picks" aria-label="{% translate "People found in ORCID" %}">
+      {% for record in found %}
+        <li>
+          <button type="button" class="contrib-pick"
+                  hx-get="{{ pick_url }}?orcid={{ record.id }}"
+                  hx-target="#contrib-sheet-step"
+                  hx-swap="outerHTML">
+            <c-mvp.avatar alt="" size="sm" placeholder="{{ record.given|slice:":1"|upper }}{{ record.family|slice:":1"|upper }}" only />
+            <span class="contrib-pick-text">
+              <span class="contrib-pick-name">{{ record.name }}</span>
+              <span class="contrib-pick-sub">{{ record.detail }}</span>
+              <span class="contrib-pick-sub">{{ record.shown_id }}</span>
+            </span>
+            <c-icon name="chevron-right" aria-hidden="true" />
+          </button>
+        </li>
+      {% endfor %}
+    </ul>
+  {% elif unavailable %}
+    <p class="contrib-none">{% translate "ORCID could not be reached." %}</p>
+  {% else %}
+    <p class="contrib-none">{% translate "ORCID has nobody by that name." %}</p>
+  {% endif %}
+  <div class="contrib-new">
+    <span>{% translate "Not one of them, or no ORCID iD?" %}</span>
+    <button type="button" class="btn btn-sm btn-ghost"
+            hx-get="{{ skip_url }}"
+            hx-target="#contrib-sheet-step"
+            hx-swap="outerHTML"
+            data-contrib-skip>
+      {% translate "Add them by name alone" %} <c-icon name="chevron-right" aria-hidden="true" />
+    </button>
+  </div>
+</div>

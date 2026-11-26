@@ -13,7 +13,7 @@ from urllib.parse import urlencode
 from controlled_vocabularies.models import Record
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db.models import Q
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.utils.translation import gettext as _
@@ -29,6 +29,7 @@ from fairdm.core.sample.models import Sample
 
 from ..models import Contribution, Contributor, Organization, Person
 from ..services.crediting import Crediting
+from ..services.registries import JSON, Orcid, RegistryUnavailable, Ror, ask
 from .shared import ContributionPage
 
 __all__ = ["Contributors"]
@@ -57,6 +58,65 @@ def first_name_of(person, new_name=None):
     given = person.first_name if person else (new_name or {}).get("first_name", "")
     family = person.last_name if person else (new_name or {}).get("last_name", "")
     return (given.split() or [family or (person.name if person else "")])[0]
+
+
+def orcid_affiliations(orcid_id):
+    """The employments on a person's public ORCID record, current ones first.
+
+    Args:
+        orcid_id: The bare ORCID iD.
+
+    Returns:
+        One dictionary per employment: ``value`` (the form's value for it), ``name``, ``ror``
+        (the ROR ID ORCID gives for it, or an empty string), ``current`` and ``note``. Empty when
+        ORCID can't be reached.
+    """
+
+    def read(body):
+        found = []
+        for group in body.get("affiliation-group") or []:
+            for summary in group["summaries"]:
+                employment = summary["employment-summary"]
+                organization = employment["organization"]
+                place = organization.get("disambiguated-organization") or {}
+                ror = place.get("disambiguated-organization-identifier", "") if place.get("disambiguation-source") == "ROR" else ""
+                current = employment.get("end-date") is None
+                found.append({"name": organization["name"], "ror": ror, "current": current})
+        return found
+
+    try:
+        found = ask(f"https://pub.orcid.org/v3.0/{orcid_id}/employments", read, headers=JSON) or []
+    except RegistryUnavailable:
+        return []
+    seen, rows = set(), []
+    for entry in sorted(found, key=lambda e: not e["current"]):
+        if entry["name"].lower() in seen:
+            continue
+        seen.add(entry["name"].lower())
+        rows.append({**entry, "note": _("Current") if entry["current"] else _("Past")})
+    for place, row in enumerate(rows):
+        row["value"] = f"registry:{place}"
+    return rows
+
+
+def organization_for(entry):
+    """The portal's organization for an affiliation on an ORCID record: found by ROR ID or name, or made.
+
+    Raises:
+        RegistryUnavailable: ROR could not be asked for an organization to make.
+    """
+    record = Ror().fetch(entry["ror"]) if entry["ror"] else None
+    held = (Ror().known(record) if record else None) or Organization.objects.filter(name__iexact=entry["name"]).first()
+    if held:
+        return held
+    return Ror().profile(record) if record else Organization.objects.create(name=entry["name"])
+
+
+def initials_of(record, organization=False):
+    """The initials an avatar shows for a registry record: a person's two, an organization's first two letters."""
+    if organization:
+        return record["name"][:2].upper()
+    return f"{record.get('given', '')[:1]}{record.get('family', '')[:1]}".upper() or record["name"][:1].upper()
 
 
 def record_key(credit):
@@ -371,12 +431,24 @@ class ContributorsBase(ContributionPage):
         others = Organization.objects.exclude(pk__in=known).order_by("name")
         return theirs, others
 
-    def chosen_affiliation(self):
-        """The organization picked in the posted form, or None."""
-        pk = self.request.POST.get("affiliation")
-        if not pk:
+    def chosen_affiliation(self, orcid=""):
+        """The organization picked in the posted form, or None.
+
+        Args:
+            orcid: The ORCID iD of the person being added, whose ORCID record's affiliations the
+                form may offer. One of those is found in the portal by its ROR ID or its name, or
+                made.
+
+        Raises:
+            RegistryUnavailable: ROR could not be asked for an organization to make.
+        """
+        value = self.request.POST.get("affiliation", "")
+        if not value:
             return None
-        return Organization.objects.filter(pk=pk).first()
+        if value.startswith("registry:") and orcid:
+            chosen = next((a for a in orcid_affiliations(orcid) if a["value"] == value), None)
+            return organization_for(chosen) if chosen else None
+        return Organization.objects.filter(pk=value).first() if value.isdigit() else None
 
     def credit_form_context(self, person, credit=None, new_name=None):
         """What the form for a person's affiliation and roles draws."""
@@ -427,10 +499,16 @@ class AddPersonStep(ContributorsBase):
     url_path = "add-person/details"
 
     def get(self, request, *args, **kwargs):
-        """Draw the details step for a chosen person, or for someone new."""
+        """Draw the next step for a chosen person, or for someone new.
+
+        Someone new is given by ORCID iD, or by name. An iD goes straight to their affiliation,
+        offering the affiliations on their ORCID record. A name alone first shows the people ORCID
+        finds by that name, to pick from or to skip.
+        """
         self.require_change()
         person = None
         new_name = None
+        orcid = None
         if request.GET.get("person"):
             person = get_object_or_404(Person, uuid=request.GET["person"])
         else:
@@ -439,36 +517,94 @@ class AddPersonStep(ContributorsBase):
                 "last_name": request.GET.get("last_name", "").strip(),
                 "orcid": request.GET.get("orcid", "").strip(),
             }
-            if not new_name["last_name"] or request.GET.get("form"):
-                return self.step_response(
-                    "contributors/page/sheets/new_person.html",
-                    {
-                        "error": _("Give their family name.") if "last_name" in request.GET and not new_name["last_name"] else "",
-                        "new_name": new_name,
-                        "step_url": self.record_url("contributors-add-person-step"),
-                        "submit_text": _("Continue"),
-                        "submit_form": "contrib-new-form",
-                        "back_url": self.record_url("contributors-add-person") + "?back=1",
-                    },
-                )
+            if new_name["orcid"] and not request.GET.get("form"):
+                try:
+                    orcid = Orcid().fetch(new_name["orcid"])
+                except RegistryUnavailable:
+                    orcid = None
+                if orcid is None:
+                    return self.new_person_step(new_name, _("ORCID has no public record under that iD."))
+                person = Orcid().known(orcid)
+                if person is None:
+                    new_name.update(first_name=orcid["given"], last_name=orcid["family"], orcid=orcid["id"])
+            elif not new_name["last_name"] or request.GET.get("form"):
+                error = ""
+                if "last_name" in request.GET and not new_name["last_name"] and not request.GET.get("form"):
+                    error = _("Give their family name, or pick them from ORCID.")
+                return self.new_person_step(new_name, error)
+            elif not request.GET.get("skip"):
+                return self.orcid_matches_step(new_name)
         context = self.credit_form_context(person, new_name=new_name)
+        if new_name and new_name.get("orcid") and person is None:
+            context["registry_affiliations"] = orcid_affiliations(new_name["orcid"])
+            current = [a for a in context["registry_affiliations"] if a["current"]]
+            if current:
+                context["current_affiliation"] = current[0]["value"]
         context["action"] = self.record_url("contributors-add-person-step")
         context["head"] = self.head_for(person, new_name)
-        if person:
+        if request.GET.get("person"):
             context["back_url"] = self.record_url("contributors-add-person") + "?back=1"
         else:
-            context["back_url"] = self.record_url("contributors-add-person-step") + "?" + urlencode(
-                {"first_name": new_name["first_name"], "last_name": new_name["last_name"], "form": 1}
-            )
+            context["back_url"] = self.step_url(new_name, form=1)
         context["submit_text"] = _("Add %(name)s") % {"name": first_name_of(person, new_name)}
         context["submit_icon"] = "add"
         return self.step_response("contributors/page/sheets/credit_form.html", context)
 
+    def step_url(self, new_name, **extra):
+        """The address of this step for someone new, carrying what is known of them."""
+        query = {key: value for key, value in new_name.items() if value}
+        return self.record_url("contributors-add-person-step") + "?" + urlencode({**query, **extra})
+
+    def new_person_step(self, new_name, error=""):
+        """The step that adds someone new: their ORCID iD, then their names."""
+        return self.step_response(
+            "contributors/page/sheets/new_person.html",
+            {
+                "error": error,
+                "new_name": new_name,
+                "step_url": self.record_url("contributors-add-person-step"),
+                "orcid_search_url": self.record_url("contributors-registry", which="orcid"),
+                "submit_text": _("Continue"),
+                "submit_form": "contrib-new-form",
+                "back_url": self.record_url("contributors-add-person") + "?back=1",
+                "head": {"title": _("Add a person to this %(kind)s") % {"kind": self.access.kind}},
+            },
+        )
+
+    def orcid_matches_step(self, new_name):
+        """The step that shows who ORCID finds under the names given, to pick from or skip."""
+        try:
+            found = Orcid().search(f"{new_name['first_name']} {new_name['last_name']}".strip())
+            unavailable = False
+        except RegistryUnavailable:
+            found, unavailable = {"results": [], "more": False}, True
+        return self.step_response(
+            "contributors/page/sheets/orcid_matches.html",
+            {
+                "found": found["results"],
+                "unavailable": unavailable,
+                "new_name": new_name,
+                "pick_url": self.record_url("contributors-add-person-step"),
+                "skip_url": self.step_url(new_name, skip=1),
+                "back_url": self.step_url(new_name, form=1),
+                "head": {"title": _("Add a person to this %(kind)s") % {"kind": self.access.kind}},
+            },
+        )
+
     def post(self, request, *args, **kwargs):
         """Add the person with their affiliation and roles."""
         self.require_change()
+        orcid = request.POST.get("orcid", "").strip()
         if request.POST.get("person"):
             person = get_object_or_404(Person, uuid=request.POST["person"])
+        elif orcid:
+            try:
+                record = Orcid().fetch(orcid)
+            except RegistryUnavailable:
+                record = None
+            if record is None:
+                return self.region_response(toast={"text": _("ORCID could not be reached. Try again."), "tone": "error"})
+            person = Orcid().profile(record)
         else:
             first = request.POST.get("first_name", "").strip()
             last = request.POST.get("last_name", "").strip()
@@ -477,10 +613,11 @@ class AddPersonStep(ContributorsBase):
             person = Person.objects.create_unclaimed(first, last)
         crediting = Crediting(self.base_object)
         try:
-            credit = crediting.add(person, organization=self.chosen_affiliation())
+            credit = crediting.add(person, organization=self.chosen_affiliation(orcid=orcid))
             crediting.update(credit, roles=self.chosen_roles(held=None))
-        except ValidationError as error:
-            return self.region_response(toast={"text": " ".join(error.messages), "tone": "error"})
+        except (ValidationError, RegistryUnavailable) as error:
+            text = " ".join(error.messages) if isinstance(error, ValidationError) else _("ROR could not be reached. Try again.")
+            return self.region_response(toast={"text": text, "tone": "error"})
         return self.region_response(toast={"text": _("%(name)s added.") % {"name": person.name}})
 
 
@@ -644,6 +781,33 @@ class Reorder(ContributorsBase):
         return self.region_response(toast={"text": _("New order saved.")})
 
 
+class RegistrySearch(ContributorsBase):
+    """Search ORCID for people or ROR for organizations, for the live search in the add sheets."""
+
+    name = "registry"
+    url_path = "registry/<str:which>"
+
+    def get(self, request, *args, **kwargs):
+        """Answer with up to ten matches, each with the markup its option is drawn with."""
+        self.require_change()
+        registry = {"orcid": Orcid, "ror": Ror}.get(kwargs["which"])
+        query = request.GET.get("q", "").strip()
+        if registry is None or len(query) < 2:
+            return JsonResponse({"results": []})
+        try:
+            found = registry().search(query)["results"]
+        except RegistryUnavailable:
+            return JsonResponse({"results": [], "unavailable": True})
+        organization = kwargs["which"] == "ror"
+        for record in found:
+            record["html"] = render_to_string(
+                "contributors/page/sheets/registry_option.html",
+                {"record": record, "organization": organization, "initials": initials_of(record, organization)},
+                request=request,
+            )
+        return JsonResponse({"results": found})
+
+
 # ---------------------------------------------------------------------- organizations
 
 
@@ -722,6 +886,7 @@ class Contributors(ContributorsBase):
     extra_views = [
         AddPerson,
         AddPersonStep,
+        RegistrySearch,
         EditCredit,
         CreditOrganization,
         RemoveCredit,

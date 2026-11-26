@@ -17,7 +17,11 @@ record:
   organization people are credited from, with no roles of its own, shows Project Member, and one
   with roles of its own shows them;
 - adds a person who is already in the portal, by searching for them by name;
-- adds someone who isn't in the portal yet, by given and family name;
+- adds someone who isn't in the portal yet, starting from their ORCID iD: the field searches the
+  public ORCID registry as they type and lists the matches beneath it, and picking one fills the
+  given and family names; with names alone, Continue lists the people ORCID has under those names,
+  with "Add them by name alone" to skip; someone picked from ORCID is offered the employers on
+  their ORCID record as their affiliation;
 - picks the person's affiliation on this record, under "Select their affiliation on this
   project", and adds them with a button that names them ("Add Aiko"): the organizations on their profile first, marked
   Current or Past, then every other organization in the portal, with a search box that filters
@@ -79,7 +83,7 @@ picked.
 | `templates/contributors/page/organization_row.html` | An organization's row and actions |
 | `templates/contributors/page/sheets/*.html` | Add person (search, new person, details), edit person, add organization, edit organization roles, reorder |
 | `static/contributors/page.css` | The two-column container query (52rem and 72rem), row, chip, option list and notice styles |
-| `static/contributors/page.js` | Closes the sheet on `contrib:done`, times the notice, focuses the first field on a fine pointer |
+| `static/contributors/page.js` | Closes the sheet on `contrib:done`, times the notice, focuses the first field on a fine pointer, runs the ORCID and ROR searches |
 
 A person's row is the contributors package's `c-contributor.item`, given the credit, so it draws
 the avatar, the linked name, the affiliation on this record and the role badges. An organization's
@@ -113,6 +117,10 @@ credit order, then those that are only the affiliation of a person on the record
 
 ## Decisions
 
+- 2026-11-26: Adding someone new starts with their ORCID iD, then given names and family name. The
+  ORCID field searches the public ORCID registry live and lists the matches under it. Picking one
+  fills the names. Names alone lead to a step listing ORCID's matches, with a way to skip and add
+  them by name. Someone from ORCID is offered the affiliations on their ORCID record.
 - 2026-11-26: Anyone added, person or organization, gets Project Member, ticked and not
   removable. Someone who already holds it keeps it when edited.
 - 2026-11-26: The multi-step sheets have a Back button in the foot, between Cancel and the main
@@ -156,7 +164,11 @@ credit order, then those that are only the affiliation of a person on the record
 
 - The affiliation search filters, in the browser, a list of every organization in the portal. A
   real build needs a server-side search once the portal holds many organizations.
-- New people and organizations are created by name only, with no ORCID or ROR lookup.
+- New organizations are created by name only, with no ROR lookup.
+- The affiliations offered from an ORCID record are its employments only, not its education. Each
+  is matched to a portal organization by its ROR ID or its name, and created when there is none.
+- The ORCID search asks the public ORCID API from the server on each keystroke past two
+  characters, with no rate limiting of its own.
 - Undo carries the removed credit's details (contributor, roles, affiliation, level, order) in a
   hidden field and recreates it.
 - The existing Contributors tab is hidden on this branch and moved to `contributors-previous/`.

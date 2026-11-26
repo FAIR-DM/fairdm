@@ -99,6 +99,16 @@
 .contrib-option-name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .contrib-option-note { font-size: 0.75rem; color: color-mix(in oklab, var(--color-base-content) 60%, transparent); }
 
+/* A registry's live search: its results always open beneath the field, as in Tom Select's own
+   inline example. */
+[data-contrib-registry-results] .ts-dropdown {
+  position: static !important; width: auto !important; box-shadow: none; border: 0; margin: 0.25rem 0 0;
+  background: transparent;
+}
+[data-contrib-registry-results] .ts-dropdown-content { max-height: none; overflow: visible; padding: 0; }
+[data-contrib-registry-results] .ts-dropdown .option { padding: 0; border-radius: var(--radius-field); }
+[data-contrib-registry-results] .ts-dropdown .option.active { background: var(--color-base-200); color: inherit; }
+
 /* Role chips: a checkbox drawn as a pill. */
 .contrib-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .contrib-chip { position: relative; cursor: pointer; }

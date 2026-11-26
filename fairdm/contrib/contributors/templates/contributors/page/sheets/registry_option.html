@@ -1,0 +1,13 @@
+{# One match from ORCID or ROR, drawn like a pick in the portal's own search: avatar, name, what tells namesakes apart, and the identifier. #}
+<div class="contrib-pick">
+  {% if organization %}
+    <c-mvp.avatar alt="" size="sm" placeholder="{{ initials }}" shape="rounded-box" variant="base-300" only />
+  {% else %}
+    <c-mvp.avatar alt="" size="sm" placeholder="{{ initials }}" only />
+  {% endif %}
+  <span class="contrib-pick-text">
+    <span class="contrib-pick-name">{{ record.name }}</span>
+    <span class="contrib-pick-sub">{{ record.detail }}</span>
+    <span class="contrib-pick-sub">{{ record.shown_id }}</span>
+  </span>
+</div>

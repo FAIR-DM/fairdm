@@ -1,13 +1,23 @@
 {% load i18n %}
+{# Someone not in the portal yet: their ORCID iD first, searched live in the ORCID registry, then their names. #}
 <div id="contrib-sheet-step" class="contrib-step">
   <form id="contrib-new-form" class="contrib-fields" hx-get="{{ step_url }}" hx-target="#contrib-sheet-step" hx-swap="outerHTML">
+    <div class="contrib-field" data-contrib-registry="{{ orcid_search_url }}" data-contrib-registry-kind="orcid">
+      <label class="contrib-label" for="contrib-orcid">{% translate "ORCID iD" %}</label>
+      <select id="contrib-orcid" name="orcid" class="select w-full"
+              placeholder="{% translate "Search ORCID by name or iD" %}" autocomplete="off">
+        <option value=""></option>
+        {% if new_name.orcid %}<option value="{{ new_name.orcid }}" selected>{{ new_name.first_name }} {{ new_name.last_name }} · {{ new_name.orcid }}</option>{% endif %}
+      </select>
+      <div data-contrib-registry-results></div>
+    </div>
     <label class="contrib-field">
       <span class="contrib-label">{% translate "Given names" %}</span>
-      <input class="input w-full" type="text" name="first_name" value="{{ new_name.first_name }}" autocomplete="off" data-contrib-autofocus>
+      <input class="input w-full" type="text" name="first_name" value="{{ new_name.first_name }}" autocomplete="off">
     </label>
     <label class="contrib-field">
       <span class="contrib-label">{% translate "Family name" %}</span>
-      <input class="input w-full{% if error %} input-error{% endif %}" type="text" name="last_name" value="{{ new_name.last_name }}" autocomplete="off" required>
+      <input class="input w-full{% if error %} input-error{% endif %}" type="text" name="last_name" value="{{ new_name.last_name }}" autocomplete="off">
       {% if error %}<span class="contrib-error">{{ error }}</span>{% endif %}
     </label>
   </form>
