@@ -19,8 +19,7 @@ record:
   with roles of its own shows them;
 - adds a person who is already in the portal, by searching for them by name or ORCID iD; a name
   that isn't in the portal shows as one more row of the results, marked New, and choosing it goes
-  straight to the people ORCID has under that name ("Do you mean?", powered by ORCID); there is no
-  separate "Add someone new" button;
+  straight to the people ORCID has under that name ("Do you mean?", powered by ORCID);
 - types an ORCID iD in the same search: the person holding it in the portal is listed, or, when
   nobody does, their public ORCID record shows as a New row (name, employer, the iD with the ORCID
   iD icon), which goes straight to their affiliation;
@@ -53,13 +52,10 @@ record:
   whether that person appears in the record's citation (on) or is credited but left out of formal
   citations (off); the order and the eyes are saved together;
 - adds an organization from the portal, with roles; a name that isn't in the portal shows as one
-  more row of the results, drawn like the portal's own rows and marked New, and choosing it goes straight to what ROR
-  has under that name ("Do you mean?");
-- adds an organization that isn't in the portal yet, starting from its ROR ID: the field searches
-  the ROR registry, starting with the name typed in the portal search, and picking a match fills
-  the name; with a name alone, Continue opens "Do you mean?", powered by the Research Organization
-  Registry (ROR): what ROR has under that name, with Add by name alone as the foot's main button; one picked from ROR is added with its ROR ID, or is the portal's own when the
-  portal already holds that ID;
+  more row of the results, drawn like the portal's own rows and marked New, and choosing it goes
+  straight to what ROR has under that name ("Do you mean?", powered by the Research Organization
+  Registry), with Add by name alone as the foot's main button; one picked from ROR is added with
+  its ROR ID, or is the portal's own when the portal already holds that ID;
 - edits an organization's roles, or gives roles to an organization that is only there as an
   affiliation;
 - removes an organization that no one is credited from.
@@ -77,8 +73,8 @@ trigger forced to `inline-flex`). On a touch screen the same actions are also re
 the row; Edit is the long-swipe action.
 
 **Every change answers with the whole region.** Each form posts with htmx and the server returns
-`#contrib-region` (both columns, both counts and the notice), so the counts and the Affiliation
-badges never drift from the lists. A successful save sends `HX-Trigger: contrib:done`, which closes
+`#contrib-region` (both columns, both counts and the notice), so the counts and the badges
+never drift from the lists. A successful save sends `HX-Trigger: contrib:done`, which closes
 the open sheet.
 
 **Forms open in one sheet slot.** Add and Edit fetch a sheet into `#contrib-sheet-slot` and open it
@@ -170,9 +166,8 @@ credit order, then those that are only the affiliation of a person on the record
 - 2026-11-26: The organizations on someone's ORCID record keep the heading "From their ORCID
   record". Current ones carry a small grey Current badge. Past ones carry none. The edit sheet
   marks the organizations on a person's profile the same way.
-- 2026-11-26: Only what a person has made public on ORCID can be offered. Sam's own record lists
-  one employment (GFZ), so no past affiliation shows for him; a record with past ones, such as
-  0000-0002-2700-4605, shows them.
+- 2026-11-26: Only what a person has made public on ORCID can be offered. A record that lists one
+  employment offers that one; a record with past ones, such as 0000-0002-2700-4605, shows them.
 - 2026-11-26: The person search has no "Add someone new" button. The New row replaces it, and an
   ORCID iD typed in the search shows its person as a row, so starting from an iD still works.
 - 2026-11-26: ORCID is searched on its name fields only. ORCID read the bare name against every
@@ -205,13 +200,8 @@ credit order, then those that are only the affiliation of a person on the record
   ORCID iD icon before it.
 - 2026-11-26: A row's actions sheet shows the avatar again, then the name and, for a person, their
   affiliation on this project.
-- 2026-11-26: Adding an organization that isn't in the portal works the same way against ROR: its
-  ROR ID first, searched live, then its name, and a name alone leads to ROR's matches with a way to
-  skip.
-- 2026-11-26: Adding someone new starts with their ORCID iD, then given names and family name. The
-  ORCID field searches the public ORCID registry live and lists the matches under it. Picking one
-  fills the names. Names alone lead to a step listing ORCID's matches, with a way to skip and add
-  them by name. Someone from ORCID is offered the affiliations on their ORCID record.
+- 2026-11-26: Someone picked from ORCID is offered the affiliations on their ORCID record. An
+  organization picked from ROR is added with its ROR ID.
 - 2026-11-26: Anyone added, person or organization, gets Project Member, ticked and not
   removable. Someone who already holds it keeps it when edited, and so does an organization that
   is only there as someone's affiliation, since its row shows Project Member.
@@ -219,26 +209,24 @@ credit order, then those that are only the affiliation of a person on the record
   returns to the previous step.
 - 2026-11-26: Once a person or organization is picked, the next step's head shows their avatar
   and name in place of "Add a person to this project".
-- 2026-11-26: The affiliation step reads "Select their affiliation on this project". Its button
-  carries the add icon and the person's first name ("Add Aiko"). The main button of every
-  sheet's foot fills the width beside Back, including Continue on the step that adds someone new.
+- 2026-11-26: The affiliation step reads "Select their affiliation on this project". The roles
+  step's button carries the add icon and the person's first name ("Add Aiko"). The main button of
+  every sheet's foot fills the width beside Back.
 - 2026-11-26: In Add a person and Add an organization the search box stays at the top of the
-  sheet while the results scroll under it. "Not in the portal yet? Add someone new" stays below
-  the results.
+  sheet while the results scroll under it.
 - 2026-11-26: Every sheet's head is one line. Where the title and the line under it said the same
-  thing, the two are now one title, such as "Add a person to this project".
+  thing, there is one title, such as "Add a person to this project".
 - 2026-11-26: Organizations aren't ordered by hand but have a default order. The affiliations of
   Project Leaders come first with a Project Leader badge. The "Affiliation" badge is gone:
   organizations people are credited from show Project Member, and organizations credited
   directly keep their roles.
 - 2026-11-26: The reorder sheet has no up and down buttons. Each row is the name, then an eye that
   puts the person in the citation or leaves them out, then the drag handle.
-
-- The sheet is used at every width, with no dropdown even for a mouse.
-- Remove happens at once and offers Undo, rather than asking for confirmation first.
-- An organization that people are credited from can't be removed, only given roles.
-- Changes need the manage level on the record.
-- Organizations aren't reordered.
+- 2026-11-26: The sheet is used at every width, with no dropdown even for a mouse.
+- 2026-11-26: Remove happens at once and offers Undo, rather than asking for confirmation first.
+- 2026-11-26: An organization that people are credited from can't be removed, only given roles.
+- 2026-11-26: Changes need the manage level on the record.
+- 2026-11-26: Organizations aren't reordered.
 
 ## Faked or skipped
 
@@ -256,20 +244,21 @@ credit order, then those that are only the affiliation of a person on the record
   draws its own line under the title only when it opens.
 - Back is the prototype's own button in the sheet's foot. django-mvp's sheet has no Back of its
   own.
-
 - The Project Leader and Project Member badges of an organization are worked out when the page is
   drawn, not stored on its credit.
-
 - Whether a person appears in the citation is kept in their `config`, as a list of the records
   they are left out of. The contribution needs a field for it.
 - Without the up and down buttons, the reorder list has no way to move a row by keyboard. The
   reorder component's handle needs keyboard moves before the buttons can go for real.
-
 - The edit sheet's affiliation search filters, in the browser, a list of every organization in the
   portal. Add a person's affiliation step searches on the server and lists twelve at most.
-- An organization from an ORCID record is matched to the portal's by its ROR ID or its exact name,
-  and a portal organization with the same ROR ID is left out of Other organizations. ORCID often
-  identifies an organization another way: Sam's record gives GFZ a Funder Registry ID, so
+- The affiliations offered from an ORCID record come from all its public affiliation sections
+  (employments, educations, qualifications, invited positions, memberships, services), each
+  organization once by name or ROR ID, current ones first, then by the year they ended. Each is
+  matched to a portal organization by its ROR ID or its exact name, and created when there is
+  none. A portal organization with the same ROR ID is left out of Other organizations. Only what a
+  person has made public on ORCID can be offered.
+- ORCID often identifies an organization another way: one record gives GFZ a Funder Registry ID, so
   "Helmholtz-Zentrum Potsdam - Deutsches GeoForschungsZentrum GFZ" can't be matched to the portal's
   "GFZ Helmholtz Centre for Geosciences". Both are listed, and picking ORCID's makes a second GFZ.
   The rebuild needs to match ORCID's other identifiers (Funder Registry, Ringgold, GRID) through ROR.
@@ -282,11 +271,6 @@ credit order, then those that are only the affiliation of a person on the record
 - The step that asks for a ROR ID and a name can no longer be reached: a new organization starts
   from its New row. The step, and its live ROR search, are still on the branch.
 - The ROR matches for a name alone are ROR's own search, so a partial name can rank poorly.
-- The affiliations offered from an ORCID record come from all its public affiliation sections
-  (employments, educations, qualifications, invited positions, memberships, services), each
-  organization once by name or ROR ID, current ones first, then by the year they ended. Each is
-  matched to a portal organization by its ROR ID or its name, and created when there is none.
-  Only what a person has made public on ORCID can be offered.
 - The ORCID search asks the public ORCID API from the server on each keystroke past two
   characters, with no rate limiting of its own. A name search can ask ORCID twice (the phrase,
   then every word), and "Do you mean?" asks again as its Name and Affiliation are typed.
