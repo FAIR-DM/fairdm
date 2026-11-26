@@ -105,6 +105,8 @@ credit order, then those that are only the affiliation of a person on the record
 
 ## Decisions
 
+- 2026-11-26: Every sheet's head is one line. Where the title and the line under it said the same
+  thing, the two are now one title, such as "Add a person to this project".
 - 2026-11-26: Organizations aren't ordered by hand but have a default order. The affiliations of
   Project Leaders come first with a Project Leader badge. The "Affiliation" badge is gone:
   organizations people are credited from show Project Member, and organizations credited

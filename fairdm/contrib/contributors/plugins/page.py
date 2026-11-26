@@ -335,8 +335,7 @@ class AddPerson(ContributorsBase):
         return self.sheet_response(
             "contributors/page/sheets/add_person.html",
             context,
-            _("Add a person"),
-            _("To this %(kind)s") % {"kind": self.access.kind},
+            _("Add a person to this %(kind)s") % {"kind": self.access.kind},
         )
 
 
@@ -413,11 +412,11 @@ class EditCredit(ContributorsBase):
                 "action": self.record_url("contributors-edit", pk=credit.pk),
                 "submit_text": _("Save"),
             }
-            return self.sheet_response("contributors/page/sheets/edit_organization.html", context, contributor.name, _("Roles on this %(kind)s") % {"kind": self.access.kind})
+            return self.sheet_response("contributors/page/sheets/edit_organization.html", context, contributor.name)
         context = self.credit_form_context(contributor, credit=credit)
         context["action"] = self.record_url("contributors-edit", pk=credit.pk)
         context["submit_text"] = _("Save")
-        return self.sheet_response("contributors/page/sheets/edit_person.html", context, contributor.name, _("On this %(kind)s") % {"kind": self.access.kind})
+        return self.sheet_response("contributors/page/sheets/edit_person.html", context, contributor.name)
 
     def post(self, request, *args, **kwargs):
         """Save the edit."""
@@ -453,7 +452,7 @@ class CreditOrganization(ContributorsBase):
             "action": self.record_url("contributors-credit-organization", pk=organization.pk),
             "submit_text": _("Save"),
         }
-        return self.sheet_response("contributors/page/sheets/edit_organization.html", context, organization.name, _("Roles on this %(kind)s") % {"kind": self.access.kind})
+        return self.sheet_response("contributors/page/sheets/edit_organization.html", context, organization.name)
 
     def post(self, request, *args, **kwargs):
         """List the organization with the chosen roles."""
@@ -539,7 +538,6 @@ class Reorder(ContributorsBase):
             "contributors/page/sheets/reorder.html",
             {"people_rows": self.people(), "action": self.record_url("contributors-reorder")},
             _("Reorder people"),
-            _("The order they are credited and cited in"),
         )
 
     def post(self, request, *args, **kwargs):
@@ -594,8 +592,7 @@ class AddOrganization(ContributorsBase):
         return self.sheet_response(
             "contributors/page/sheets/add_organization.html",
             context,
-            _("Add an organization"),
-            _("To this %(kind)s") % {"kind": self.access.kind},
+            _("Add an organization to this %(kind)s") % {"kind": self.access.kind},
         )
 
     def post(self, request, *args, **kwargs):
