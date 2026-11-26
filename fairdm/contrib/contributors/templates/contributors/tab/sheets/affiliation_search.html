@@ -1,0 +1,24 @@
+{% load i18n %}
+{# The affiliation step of Add a person, drawn like Add an organization: a search kept at the top, the organizations on their ORCID record or profile first, then the portal's, and a name that isn't in the portal as a New row. #}
+<div id="contrib-sheet-step" class="contrib-step" data-contrib-affiliation-step>
+  <div class="sticky top-0 z-10 flex flex-col gap-2 bg-base-100 pb-1">
+    <p class="contrib-label" id="contrib-affiliation-label">{% blocktranslate %}Select their affiliation on this {{ kind }}{% endblocktranslate %}</p>
+    <label class="input contrib-search">
+      <c-icon name="search" aria-hidden="true" />
+      <input type="search"
+             name="aq"
+             value="{{ query }}"
+             autocomplete="off"
+             placeholder="{% translate "Search organizations" %}"
+             aria-labelledby="contrib-affiliation-label"
+             hx-get="{{ here }}&stage=results"
+             hx-trigger="input changed delay:250ms, search"
+             hx-target="#contrib-affiliation-results"
+             hx-swap="innerHTML"
+             data-contrib-autofocus>
+    </label>
+  </div>
+  <div id="contrib-affiliation-results">
+    <c-contributor.tab.affiliation-results />
+  </div>
+</div>

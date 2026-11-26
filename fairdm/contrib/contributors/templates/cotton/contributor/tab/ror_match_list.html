@@ -1,0 +1,17 @@
+{# @description What ROR finds under a name: one pick each, or why nothing was found. Reads found, pick_url and problem from the page. #}
+{% load i18n %}
+{% if found %}
+  <ul class="contrib-picks" aria-label="{% translate "Organizations found in ROR" %}">
+    {% for record in found %}
+      <c-contributor.tab.pick url="{{ pick_url }}&ror={{ record.id|urlencode }}" name="{{ record.name }}" sub="{{ record.detail }}" sub2="{{ record.shown_id }}">
+        <c-slot name="avatar"><c-mvp.avatar alt="" size="sm" placeholder="{{ record.initials }}" shape="rounded-box" variant="base-300" only /></c-slot>
+      </c-contributor.tab.pick>
+    {% endfor %}
+  </ul>
+{% elif problem == "limited" %}
+  <p class="contrib-none">{% translate "You have searched a lot just now. Try again in a minute." %}</p>
+{% elif problem == "unavailable" %}
+  <p class="contrib-none">{% translate "ROR could not be reached." %}</p>
+{% else %}
+  <p class="contrib-none">{% translate "ROR has no organization by that name." %}</p>
+{% endif %}

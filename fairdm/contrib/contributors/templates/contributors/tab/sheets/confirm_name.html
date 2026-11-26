@@ -1,0 +1,15 @@
+{% load i18n %}
+{# Someone added by name alone: their given names and family name, guessed from the name typed (the last word as the family name), for the user to confirm before their affiliation. #}
+<div id="contrib-sheet-step" class="contrib-step">
+  <form id="contrib-name-form" class="contrib-fields" hx-get="{{ step_url }}" hx-target="#contrib-sheet-step" hx-swap="outerHTML">
+    {% for key, value in carried.items %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endfor %}
+    <label class="contrib-field">
+      <span class="contrib-label">{% translate "Given names" %}</span>
+      <input class="input w-full" type="text" name="first_name" value="{{ names.first_name }}" autocomplete="off" data-contrib-autofocus>
+    </label>
+    <label class="contrib-field">
+      <span class="contrib-label">{% translate "Family name" %}</span>
+      <input class="input w-full" type="text" name="last_name" value="{{ names.last_name }}" autocomplete="off" required>
+    </label>
+  </form>
+</div>

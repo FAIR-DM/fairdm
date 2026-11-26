@@ -1,0 +1,7 @@
+{% extends "page_view.html" %}
+{% block page.content %}
+  <div class="contrib-shell" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    <c-contributor.tab.region />
+    <div id="contrib-sheet-slot"></div>
+  </div>
+{% endblock page.content %}

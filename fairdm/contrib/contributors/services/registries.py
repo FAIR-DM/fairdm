@@ -530,7 +530,9 @@ class Orcid:
                     found.append(
                         {
                             "name": organization["name"],
-                            "ror": (Ror().identifier_in(value) or "") if source == "ROR" else "",
+                            "ror": (Ror().identifier_in(value) or "")
+                            if source == "ROR"
+                            else "",
                             "source": "" if source == "ROR" else source,
                             "value": "" if source == "ROR" else value,
                             "current": not ended,

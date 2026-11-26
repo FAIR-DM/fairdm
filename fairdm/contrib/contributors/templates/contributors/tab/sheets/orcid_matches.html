@@ -1,0 +1,24 @@
+{% load i18n %}
+{# Who ORCID finds under a name: a name and an affiliation at the top narrow the list as the user types; pick one, or add them by name alone with the main button in the foot. #}
+<div id="contrib-sheet-step" class="contrib-step" data-contrib-matches>
+  <form id="contrib-narrow" class="contrib-narrow"
+        hx-get="{{ list_url }}"
+        hx-trigger="input changed delay:400ms, submit"
+        hx-target="#contrib-orcid-matches"
+        hx-swap="innerHTML"
+        hx-sync="this:replace"
+        role="search"
+        aria-label="{% translate "Narrow the ORCID matches" %}">
+    <label class="input contrib-search">
+      <span class="label contrib-narrow-label">{% translate "Name" %}</span>
+      <input type="search" name="find" value="{{ find }}" autocomplete="off" data-contrib-autofocus>
+    </label>
+    <label class="input contrib-search">
+      <span class="label contrib-narrow-label">{% translate "Affiliation" %}</span>
+      <input type="search" name="at" value="{{ at }}" autocomplete="off" placeholder="{% translate "Any" %}">
+    </label>
+  </form>
+  <div id="contrib-orcid-matches">
+    <c-contributor.tab.orcid-match-list />
+  </div>
+</div>

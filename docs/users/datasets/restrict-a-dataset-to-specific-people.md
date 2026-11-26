@@ -12,7 +12,7 @@ You need the **Can manage** level on the dataset or on the project above it. Onl
 2. Under **Visibility**, choose **Private**.
 3. Select **Save & continue**. The dataset page shows a **Private** badge.
 4. Open the **Contributors** tab. Read who is listed and what each person may do. Below the lists, the **Access from the project** card names anyone who can open the dataset because of what they hold on its project. Those people are changed on the project, through its **Manage there** button.
-5. For each person who should have access and is not listed, select **Add person** and choose them. They join with the **Can view** level. [How to let a colleague into a private record](../contributors/let-a-colleague-into-a-private-record.md) shows the choices.
+5. For each person who should have access and is not listed, select **Add** beside **People** and choose them. They join with the **Can view** level. [How to let a colleague into a private record](../contributors/let-a-colleague-into-a-private-record.md) shows the choices.
 6. For each person who should change the dataset, select **Edit** beside their name, choose **Can edit** or **Can manage**, and select **Save**.
 7. Ask one of the people you listed to open the dataset from a link.
 

@@ -1,0 +1,10 @@
+{# @description The roles step for an organization: who it is, when it is being added, and the roles to tick. Reads action, show_who, organization, new_name and ror from the page. #}
+<div id="contrib-sheet-step" class="contrib-step">
+  <form id="contrib-form" class="contrib-fields"
+        hx-post="{{ action }}" hx-target="#contrib-region" hx-swap="outerHTML">
+    {% if show_who %}
+      {% if organization %}<input type="hidden" name="organization" value="{{ organization.uuid }}">{% else %}<input type="hidden" name="new_name" value="{{ new_name }}">{% if ror %}<input type="hidden" name="ror" value="{{ ror }}">{% endif %}{% endif %}
+    {% endif %}
+    <c-contributor.tab.roles-field />
+  </form>
+</div>

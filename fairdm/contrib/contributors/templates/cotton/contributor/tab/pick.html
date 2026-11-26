@@ -1,0 +1,24 @@
+{# @description One row of a sheet's results: a button that loads the next step, with the contributor's avatar, name and a line under it, and a badge when it is new. Pass url, name and optionally sub, initials, organization, badge and current; leave the avatar to the avatar slot. #}
+{# @prop attrs — Any other attribute is put on the button. #}
+{# @prop url:text | description:"Where the button goes." #}
+{# @prop name:text | description:"The name shown." #}
+{# @prop sub:text | description:"The muted line under the name." #}
+{# @prop sub2:text | description:"A second muted line." #}
+{# @prop badge:text | description:"A badge after the text, for example New." #}
+{# @prop current:boolean | description:"Show the Current badge." #}
+{# @slot avatar — The avatar drawn before the text. #}
+{% load i18n %}
+<c-vars url name sub sub2 badge current />
+<li>
+  <button type="button" class="contrib-pick" hx-get="{{ url }}" hx-target="#contrib-sheet-step" hx-swap="outerHTML" {{ attrs }}>
+    {{ avatar }}
+    <span class="contrib-pick-text">
+      <span class="contrib-pick-name">{{ name }}</span>
+      {% if sub %}<span class="contrib-pick-sub">{{ sub }}</span>{% endif %}
+      {% if sub2 %}<span class="contrib-pick-sub">{{ sub2 }}</span>{% endif %}
+    </span>
+    {% if current %}<span class="badge badge-sm badge-soft badge-neutral flex-none" data-contrib-current>{% translate "Current" %}</span>{% endif %}
+    {% if badge %}<span class="badge badge-sm badge-success flex-none">{{ badge }}</span>{% endif %}
+    <c-icon name="chevron-right" aria-hidden="true" />
+  </button>
+</li>

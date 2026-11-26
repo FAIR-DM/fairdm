@@ -52,13 +52,13 @@ The dataset's page opens again, with a message that begins **Saved**. The card t
 ## 5. Credit a colleague
 
 1. Select **Contributors** in the strip of page links near the top of the page.
-2. On the **Contributors** screen, select **Add person**. The list under **People** shows you, because the portal credited you when you created the dataset.
-3. On the **Add a person** screen, stay on the **Already in the portal** tab. In **Search the people in this portal**, type your colleague's name and select **Search**.
-4. Select **Choose** beside your colleague's name.
-5. Under **Their affiliation for this dataset**, leave the choice the portal selected, then select **Add to this dataset**.
-6. On the **Edit a contributor** screen, under **What they may do on this dataset**, choose **Can edit**, then select **Save**.
+2. On the **Contributors** screen, select **Add** beside **People**. The list shows you, because the portal credited you when you created the dataset.
+3. In the sheet that opens, type your colleague's name and select the match.
+4. Under **Select their affiliation**, leave the choice the portal selected, or pick another, and continue.
+5. Leave the roles as they are and select **Add**. Your colleague joins at the **Can view** level.
+6. On your colleague's row, open the menu and select **Edit**. Under **Select their access**, choose **Can edit**, then select **Save**.
 
-The **Contributors** screen opens again with a message ending **was saved.** Your colleague appears under **People** with a **Can edit** badge beside their name. See [How access to a record is decided](../explanation/how-access-to-a-record-is-decided.md) for what each level allows.
+The sheet closes with a message that your colleague was saved, and they appear under **People**. See [How access to a record is decided](../explanation/how-access-to-a-record-is-decided.md) for what each level allows.
 
 ## What you have created
 

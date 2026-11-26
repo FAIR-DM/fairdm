@@ -51,18 +51,14 @@ A credit lists a person on a project, dataset, sample or measurement, with the r
 
    The codes are listed in [Crediting](../reference/crediting.md#refusal-codes). Show the user the message, or attach it to a form field.
 
-5. If your page lets the user choose the organization, use `AffiliationChoice`. It offers the person's own affiliations, another organization by name, or none. Call `organization()` inside the transaction that saves the credit, so that an organization made for a save that is then refused is not kept.
+5. If your page lets the user choose the organization, offer the person's own affiliations first and any other organization after them, and pass the one chosen as `organization`. Make an organization the user named inside the transaction that saves the credit, so that one made for a save that is then refused is not kept.
 
    ```python
    from django.db import transaction
 
-   from fairdm.contrib.contributors.plugins.shared import AffiliationChoice
-
-   choice = AffiliationChoice(request.POST, person=person)
-   if choice.is_valid():
-       with transaction.atomic():
-           organization = choice.organization()
-           Crediting(dataset).add(person, organization=organization)
+   with transaction.atomic():
+       organization = Organization.objects.create(name=typed_name)
+       Crediting(dataset).add(person, organization=organization)
    ```
 
 6. Check the credit. Read the people on the record in the order the team set, and the roles each holds.

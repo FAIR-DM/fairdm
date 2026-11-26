@@ -1,0 +1,24 @@
+{# @description The name typed in a search, as one more row of the results, for someone or something not in the portal yet: drawn like the portal's own rows, with a New badge. Reads new_row from the page. #}
+{% load i18n easy_icons %}
+<ul class="contrib-picks" aria-label="{% translate "Not in the portal yet" %}">
+  <li>
+    <button type="button" class="contrib-pick"
+            hx-get="{{ new_row.url }}"
+            hx-target="#contrib-sheet-step"
+            hx-swap="outerHTML"
+            data-contrib-new-row>
+      {% if new_row.organization %}
+        <c-mvp.avatar alt="" size="sm" placeholder="{{ new_row.initials }}" shape="rounded-box" variant="base-300" only />
+      {% else %}
+        <c-mvp.avatar alt="" size="sm" placeholder="{{ new_row.initials }}" only />
+      {% endif %}
+      <span class="contrib-pick-text">
+        <span class="contrib-pick-name">{{ new_row.name }}</span>
+        {% if new_row.detail %}<span class="contrib-pick-sub">{{ new_row.detail }}</span>{% endif %}
+        {% if new_row.orcid %}<span class="contrib-pick-sub contrib-pick-id">{% icon "orcid" class="contrib-orcid-icon" aria_hidden="true" %}<span>{{ new_row.orcid }}</span></span>{% endif %}
+      </span>
+      <span class="badge badge-sm badge-success flex-none">{% translate "New" %}</span>
+      <c-icon name="chevron-right" aria-hidden="true" />
+    </button>
+  </li>
+</ul>

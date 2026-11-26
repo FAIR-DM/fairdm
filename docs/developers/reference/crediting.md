@@ -1,6 +1,6 @@
 # Crediting
 
-This page lists `Crediting`, the one place the contributors of a project, dataset, sample or measurement change, and the classes around it: the organization choice (`AffiliationChoice`), the two forms for people and organizations typed in by hand (`NewPersonForm`, `NewOrganizationForm`), the ORCID and ROR lookups (`Orcid`, `Ror`) and the pages of the Contributors tab. It does not cover the `Contribution` model, which is in [Contributor models](contributor-models.md), or the levels a credit carries, which are in [Contribution levels and record access](contribution-levels-and-record-access.md). For the task, see [How to credit a person on a record](../how-to/credit-a-person-on-a-record.md).
+This page lists `Crediting`, the one place the contributors of a project, dataset, sample or measurement change, and the classes around it: the ORCID and ROR lookups (`Orcid`, `Ror`), the level choices and the views of the Contributors tab. It does not cover the `Contribution` model, which is in [Contributor models](contributor-models.md), or the levels a credit carries, which are in [Contribution levels and record access](contribution-levels-and-record-access.md). For the task, see [How to credit a person on a record](../how-to/credit-a-person-on-a-record.md).
 
 ## The Crediting class
 
@@ -15,7 +15,7 @@ Each refusal is a `ValidationError` with a code, so a page can attach it to a fi
 | `add(contributor, *, organization=None)` | `Contribution` | Lists the contributor last among its own kind. A person starts at the view level, an organization with no level. `organization` is the organization a person is credited from on this record, which is listed on the record too when it is not already. `None` credits the person from none. Ignored for an organization. Adds no roles |
 | `update(contribution, *, roles, level=None, organization=UNCHANGED)` | `None` | Replaces the roles with `roles` (concepts of the contributor roles vocabulary, possibly none). For a person it also sets `level` when one is given and `organization` when it is not `UNCHANGED`. `level` and `organization` are ignored for an organization |
 | `remove(contribution)` | `None` | Deletes the credit, and the level goes with it |
-| `move(contribution, direction)` | `None` | Moves the credit one place earlier (`"up"`) or later (`"down"`) among the credits of its own kind. Changes nothing for the first moving earlier or the last moving later |
+| `move(contribution, direction)` | `None` | Moves the credit one place earlier (`"up"`) or later (`"down"`) among the credits of its own kind. Changes nothing for the first moving earlier or the last moving later. The Contributors tab orders people with `mvp.ordering.save_order` instead, so a whole order is saved at once |
 | `make_creator(user, *, roles=())` | `Contribution` or `None` | Lists the person who made the record at the manage level, with the named roles, or raises their existing entry to it. Does nothing and returns `None` for a superuser. The roles are names, and are not checked against the record type's group |
 | `offered_roles()` | `list` of concepts | The concepts of the collection the record's `CONTRIBUTOR_ROLES` names, in the collection's order |
 | `credited_from()` | `dict` | Organization id to the list of people credited from it on this record, in their order |
@@ -45,7 +45,7 @@ The `credited_from` refusal carries the people in `params["people"]`, so a page 
 
 ### Order
 
-A record names its people in one order and its organizations in another. `Crediting.move` is the only code that changes either. It swaps `order` with the neighbour of the same kind on the same record. Credits that share an order value are told apart by their creation order, so a move gives the same result every time. `add` places a contributor last. `update` and `remove` leave the others' order as it is.
+A record names its people in one order and its organizations in another. `Crediting.move` and the tab's reorder sheet change the people's order, and the sheet saves it in one write. It swaps `order` with the neighbour of the same kind on the same record. Credits that share an order value are told apart by their creation order, so a move gives the same result every time. `add` places a contributor last. `update` and `remove` leave the others' order as it is.
 
 `Contribution.objects.for_entity(record).people()` and `.organizations()` read the two lists, each ordered by `order` then `pk`. `RecordOverviewPlugin.get_contributions()` returns the two lists one after the other, people first. `get_credits()` follows that order and gives a person credited with no organization an `affiliation` of `None`.
 
@@ -53,63 +53,18 @@ A record names its people in one order and its organizations in another. `Credit
 
 A record that has someone who counts as able to manage it, as `RecordAccess(record).managers()` reckons, keeps one. `update` and `remove` refuse a change that would take the record from at least one such person to none, whoever asks. A record that has none already may lose or raise anyone. The person's own level and the level they hold from a record above are both read, so lowering a manager who also manages through the dataset is allowed.
 
-## AffiliationChoice
-
-`AffiliationChoice` is a form in `fairdm.contrib.contributors.plugins.shared`. It is the choice of the organization a person is credited from on one record, and the form behind the `c-contribution.affiliation` component.
-
-| Argument | Type | Default | What it does |
-|---|---|---|---|
-| `person` | `Person` or `None` | `None` | The person, when they are already in the portal. Their affiliations become the options, the current primary one first |
-| `credit` | `Contribution` or `None` | `None` | The person's credit on the record, when it is being edited. Its organization is selected |
-| `suggested` | `str` | `""` | An organization name to offer, such as an employer from ORCID |
-
-| Field | Accepts |
-|---|---|
-| `affiliation` | `org:<id>` for one of the person's affiliations, `other` for an organization named in `affiliation_name`, or `none`. An empty value means `none`. Any other value is refused with the code `invalid_choice` |
-| `affiliation_name` | The organization's name, up to the length of `Contributor.name`. Required when `affiliation` is `other` |
-
-| Member | Returns | What it does |
-|---|---|---|
-| `organization()` | `Organization` or `None` | The organization chosen. For `other`, it finds an organization with that name (ignoring case) or creates one. Call it inside the transaction that saves the credit, so that an organization made for a save that is then refused is not kept |
-| `choice()` | `dict` | The options, which one is selected, the name typed for another organization, and every organization name for the suggestions. A refused form keeps what was entered |
-| `problem` | Property, `str` or `None` | The first error message |
-| `held_by(person)` | `list` of `dict` | Static. One `{"value", "organization", "note"}` for each of the person's affiliations |
-
-## NewPersonForm and NewOrganizationForm
-
-Both are forms in `fairdm.contrib.contributors.plugins.shared`. They are behind the by-hand tab of the add pages. `save()` makes the contributor and does nothing else, so a page can make it, make the organization chosen and write the credit in one transaction.
-
-`NewPersonForm`:
-
-| Field | Type | Accepts |
-|---|---|---|
-| `given` | `CharField` | The given name, up to the length of `Person.first_name`. Required |
-| `family` | `CharField` | The family name, up to the length of `Person.last_name`. Required |
-| `confirmed` | `BooleanField` | Whether the user has seen the profiles that share the name. Optional |
-
-A posted `email` is ignored. `save()` returns an active, unclaimed `Person` with an unusable password and no account. `same_name` lists up to five people whose name matches, and the form is not valid while it is not empty unless `confirmed` is sent. The error has the code `same_name`.
-
-`NewOrganizationForm`:
-
-| Field | Type | Accepts |
-|---|---|---|
-| `name` | `CharField` | The name. Required |
-| `city` | `CharField` | A city. Optional |
-| `country` | `CharField` | A country name or a code from the country field's list. Anything else is refused with the code `invalid_country`. Optional |
-| `website` | `URLField` | A web address. A missing scheme is read as `https`. It is stored in the organization's `links`. Optional |
-
-The form is never valid while `same_name` holds an organization with the same name (ignoring case). The error has the code `same_name`.
-
 ## Orcid and Ror
 
-`Orcid` and `Ror` are in `fairdm.contrib.contributors.services.registries`. They are two plain classes with no shared base, and the add pages search them. Each has the same four methods.
+`Orcid` and `Ror` are in `fairdm.contrib.contributors.services.registries`. They are two plain classes with no shared base, and the Contributors tab searches them. Each has the same four methods, and each has more.
 
 | Method | Returns | What it does |
 |---|---|---|
-| `search(term)` | `{"results": [...], "more": bool}` | Searches by name, or by identifier when `term` has the form of one or is the address of one. Returns at most `RESULTS_SHOWN` (10) records and whether the registry holds more. ORCID records of people with no public name and ROR records of organizations that are not active are left out |
+| `search(term)` | `{"results": [...], "more": bool}` | Searches by name, or by identifier when `term` has the form of one or is the address of one. Returns at most `RESULTS_SHOWN` (10) records and whether the registry holds more. `Orcid().search(term, affiliation="")` also takes the name of an affiliation to narrow by. A name is searched as a phrase over the given and family names first, then by each word with the last as a prefix ORCID records of people with no public name and ROR records of organizations that are not active are left out |
 | `fetch(identifier)` | record or `None` | Fetches one record. `None` when the identifier is malformed (no request is made), the registry has no such record, or the record cannot be chosen |
 | `known(record)` | `Person`, `Organization` or `None` | The contributor the portal already holds under the record's identifier. A ROR identifier stored as an address is found too |
 | `profile(record)` | `Person` or `Organization` | The contributor that `known` finds, or a new one with the name and the identifier and nothing else. A new person has no email, an unusable password and no account. A profile is never matched by name |
+
+`Orcid().affiliations(orcid_id)` returns every organization on a person's public ORCID record, ended ones included, each once and the current ones first, as `{"name", "ror", "current"}`. An empty list means ORCID has none listed or could not be asked. `Ror().resolve(source, value)` finds the ROR ID of an organization another registry names: `source` is `"FUNDREF"`, `"GRID"` or `"RINGGOLD"`. It returns the bare ROR ID or `None`. ROR indexes Funder Registry and GRID IDs, and has no Ringgold field, so a Ringgold ID resolves only when the organization's record happens to carry it.
 
 A record is a plain dictionary:
 
@@ -133,6 +88,8 @@ The module also holds:
 | `RESULTS_SHOWN` | `10` | The most matches a search returns |
 | `TIMEOUT` | `5` | The seconds a registry has to answer a search or lookup |
 | `FETCH_TIMEOUT` | `10` | The seconds a registry has to answer `fetch_record` |
+| `SEARCHES_PER_MINUTE` | `60` | The most registry searches one person may make in a minute |
+| `SearchLimitReached` | Exception, a `RegistryUnavailable` | Raised by `count_search(user)` past the limit. The count is kept in the default cache |
 | `KEPT` | `300` | The seconds an answer is kept in the default cache, by address, parameters and active language. An answer of "no such record" is kept. A failure is not |
 
 Search terms go in the request's parameters and never into the address. No identifier reaches an address unless it matches `ORCID_PATTERN` or `ROR_PATTERN`, both in `fairdm.contrib.contributors.models`. Saving the identifier queues the sync that every `ContributorIdentifier` queues, so a worker fills in the rest of the profile later.
@@ -143,41 +100,33 @@ Search terms go in the request's parameters and never into the address. No ident
 
 ## The Contributors tab
 
-`ContributionList` in `fairdm.contrib.contributors.plugins.shared` is the plugin behind the **Contributors** tab. It is registered on `Project`, `Dataset`, `Sample` and `Measurement`, with the label "Contributors", the icon `users` and order 150. Registered sample and measurement types inherit it, and their roles, levels and addresses are read from the core model they extend.
+`ContributionList` in `fairdm.contrib.contributors.plugins.tab` is the plugin behind the **Contributors** tab. It is registered on `Project`, `Dataset`, `Sample` and `Measurement`, with the label "Contributors", the icon `users` and order 150. Registered sample and measurement types inherit it, and their roles, levels and addresses are read from the core model they extend.
 
-The pages share the base class `ContributionPage`, which works out the record, its kind and whether the viewer may manage it. A page opens only when the record's overview would. A page that changes anything answers 403 to a signed-in person who cannot manage the record and sends a visitor to sign in.
+The tab is one page, `contributors/tab/page.html`, whose body is the Cotton component `c-contributor.tab.region`. Every change answers with that region drawn again, and the sheets that collect a change are drawn into the page by htmx. The views share the base class `ContributorsBase` in `plugins/tab_base.py`, which extends `ContributionPage` and so opens only when the record's overview would. The views that change anything answer 403 to a signed-in person who cannot manage the record and send a visitor to sign in.
 
-| Class | `url_path` | Method | What it does |
+| Class | Extra view `name` | Method | What it does |
 |---|---|---|---|
-| `ContributionList` | `contributors` | GET | Lists the people and the organizations, each in their own order |
-| `ContributionAddPerson` | `add-person` | GET, POST | Adds a person from the portal, from ORCID or by hand |
-| `ContributionAddOrganization` | `add-organization` | GET, POST | Adds an organization from the portal, from ROR or by hand |
-| `ContributionEdit` | `<int:pk>/edit` | GET, POST | Sets a contributor's roles and, for a person, the level and the organization |
-| `ContributionRemove` | `<int:pk>/remove` | GET, POST | Confirms, then removes a contributor |
-| `ContributionMove` | `<int:pk>/move` | POST | Moves a contributor one place. A `direction` of `up` or `down` is required, and anything else answers 400 |
+| `ContributionList` | none | GET | The two lists, and for a manager the people who hold access from a record above |
+| `AddPerson` | `add-person` | GET | The sheet's search of the portal's people |
+| `AddPersonStep` | `add-person-step` | GET, POST | The later steps: who they are, their affiliation, their roles. A POST adds the person |
+| `AddOrganization` | `add-organization` | GET, POST | The organization sheet and its steps. A POST lists the organization |
+| `EditCredit` | `edit` | GET, POST | Sets a contributor's roles and, for a person, the affiliation and the level |
+| `CreditOrganization` | `credit-organization` | GET, POST | Gives an organization that is only someone's affiliation roles of its own |
+| `RemoveCredit` | `remove` | POST | Removes a contributor and answers with an Undo |
+| `UndoRemove` | `undo` | POST | Puts a removed contributor back from the signed token in `undo`, valid for five minutes |
+| `Reorder` | `reorder` | GET, POST | Saves the order of the people |
 
-`ContributionAddPerson` and `ContributionAddOrganization` share the base `ContributionAdd`:
-
-| Attribute | Type | Default | What it does |
-|---|---|---|---|
-| `is_person` | `bool` | `True` | Whether the page adds a person |
-| `registry_class` | `Orcid` or `Ror` | `Orcid` (`Ror` on the organization page) | The registry behind the second tab |
-| `form_class` | form | `NewPersonForm` (`NewOrganizationForm` on the organization page) | The form behind the by-hand tab |
-| `results_shown` | `int` | `20` | The most matches the portal search lists |
-
-The page offers three tabs, `portal`, `registry` and `new`, and `via` in the address or the form names the one to open. The portal search reads `q` and the registry search reads `rq`. The context's `adding` carries `registry_results`, `registry_more` and `registry_unavailable`. A registry that cannot be reached leaves the other two tabs working, and the page answers 200. Choosing a registry record only fetches it. Adding posts the identifier, and the page fetches the record again before it makes a profile.
-
-A refused add or edit answers 422 and draws the page again with what was entered.
-
-Addresses resolve with the plugin `reverse`:
+Addresses resolve with the plugin `reverse`, and an extra view's name is prefixed with the plugin's:
 
 ```python
 from fairdm.contrib.plugins import reverse
 
 reverse(dataset, "contribution-list")
-reverse(dataset, "contribution-list-contribution-add-person")
-reverse(dataset, "contribution-list-contribution-edit", pk=contribution.pk)
-reverse(sample, "contribution-list-contribution-remove", pk=contribution.pk)
+reverse(dataset, "contribution-list-add-person")
+reverse(dataset, "contribution-list-edit", pk=contribution.pk)
+reverse(sample, "contribution-list-remove", pk=contribution.pk)
 ```
+
+Everyone added to a record that offers the role holds Project Member, ticked and locked in the roles field, and someone who holds it keeps it on edit. A registry search counts against `SEARCHES_PER_MINUTE`, and a registry that cannot be reached, or a person who has searched too often, is told so in the step and nothing is added.
 
 See [Plugins](plugins.md) for the plugin registration arguments.

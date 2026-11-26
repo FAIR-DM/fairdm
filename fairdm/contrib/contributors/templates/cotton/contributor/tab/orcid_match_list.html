@@ -1,0 +1,19 @@
+{# @description The ORCID matches of the "Do you mean?" step, answered again each time its name or affiliation changes. Reads found, pick_url, problem and at from the page. #}
+{% load i18n %}
+{% if found %}
+  <ul class="contrib-picks" aria-label="{% translate "People found in ORCID" %}">
+    {% for record in found %}
+      <c-contributor.tab.pick url="{{ pick_url }}&orcid={{ record.id }}" name="{{ record.name }}" sub="{{ record.detail }}" sub2="{{ record.shown_id }}">
+        <c-slot name="avatar"><c-mvp.avatar alt="" size="sm" placeholder="{{ record.given|slice:":1"|upper }}{{ record.family|slice:":1"|upper }}" only /></c-slot>
+      </c-contributor.tab.pick>
+    {% endfor %}
+  </ul>
+{% elif problem == "limited" %}
+  <p class="contrib-none">{% translate "You have searched a lot just now. Try again in a minute." %}</p>
+{% elif problem == "unavailable" %}
+  <p class="contrib-none">{% translate "ORCID could not be reached." %}</p>
+{% elif at %}
+  <p class="contrib-none">{% translate "ORCID has nobody by that name with that affiliation." %}</p>
+{% else %}
+  <p class="contrib-none">{% translate "ORCID has nobody by that name." %}</p>
+{% endif %}
