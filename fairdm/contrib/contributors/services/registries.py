@@ -182,11 +182,46 @@ class Orcid:
         candidate = text.removeprefix("https://orcid.org/")
         return candidate if re.fullmatch(ORCID_PATTERN, candidate) else None
 
-    def search(self, term):
+    @staticmethod
+    def words_of(text):
+        """The words of a name or an organization, with nothing ORCID's query language reads."""
+        return [w for w in re.sub(r"[^\w'\-.]+", " ", text).split() if w.strip("-.'")]
+
+    @classmethod
+    def all_words(cls, field, words):
+        """A clause that needs every word in ``field``, the last one possibly typed in part."""
+        *whole, last = words
+        parts = [f'"{w}"' for w in whole]
+        parts.append(f"{last}*" if re.fullmatch(r"\w+", last) else f'"{last}"')
+        return f"{field}:({' AND '.join(parts)})"
+
+    def queries_for(self, term, affiliation=""):
+        """The fielded queries a name search tries in turn, the strictest first.
+
+        ORCID's search reads a bare term against every field of a record and joins the words with
+        OR, so a name alone finds thousands of unrelated people. Each query here asks the name
+        fields only: first the name as typed, as a phrase, then every word of it in any order with
+        the last word as a prefix, so a name still being typed or given family name first is found.
+        An affiliation narrows each query to people with an organization of that name on their
+        record.
+        """
+        words = self.words_of(term)
+        if not words:
+            return []
+        narrowed = ""
+        if self.words_of(affiliation):
+            narrowed = " AND " + self.all_words("affiliation-org-name", self.words_of(affiliation))
+        phrase = f'given-and-family-names:"{" ".join(words)}"'
+        loose = self.all_words("given-and-family-names", words)
+        return [phrase + narrowed, loose + narrowed]
+
+    def search(self, term, affiliation=""):
         """Search by name, or by iD when the term is one.
 
         Args:
             term: A name, an ORCID iD or the address of one.
+            affiliation: Part of the name of an organization on the person's record, to narrow a
+                name search.
 
         Returns:
             ``{"results": [...], "more": bool}``: at most ``RESULTS_SHOWN`` records of people with
@@ -197,13 +232,18 @@ class Orcid:
         """
         term = term.strip()
         identifier = self.identifier_in(term)
-        query = f"orcid:{identifier}" if identifier else term
-        return ask(
-            self.SEARCH,
-            self.results_from,
-            params={"q": query, "rows": RESULTS_SHOWN},
-            headers=JSON,
-        )
+        queries = [f"orcid:{identifier}"] if identifier else self.queries_for(term, affiliation)
+        found = {"results": [], "more": False}
+        for query in queries:
+            found = ask(
+                self.SEARCH,
+                self.results_from,
+                params={"q": query, "rows": RESULTS_SHOWN},
+                headers=JSON,
+            )
+            if found["results"]:
+                break
+        return found
 
     def results_from(self, body):
         """Read a search answer, leaving out records with no public name.
