@@ -54,10 +54,6 @@ class ContributionList(ContributorsBase):
         Reorder,
     ]
 
-    def get_page_lead(self):
-        """Name the record the contributors belong to."""
-        return str(self.base_object)
-
     def get_context_data(self, **kwargs):
         """Add the region's context."""
         context = super().get_context_data(**kwargs)
