@@ -740,7 +740,7 @@ class AddPersonStep(ContributorsBase):
         return None, None
 
     def person_roles_step(self, person, new_name, here, head):
-        """The step that picks the person's roles, with the affiliation chosen shown above them."""
+        """The step that picks the person's roles. The sheet's head shows the affiliation chosen under their name."""
         request = self.request
         organization, entry = self.picked_affiliation(request.GET)
         query = request.GET.get("aq", "")
@@ -757,7 +757,7 @@ class AddPersonStep(ContributorsBase):
             "new_affiliation": entry,
             "initials": Organization(name=entry["name"]).get_initials()[:3] if entry else "",
             "action": self.record_url("contributors-add-person-step"),
-            "head": head,
+            "head": {**head, "lead": organization.name if organization else (entry or {}).get("name", ""), "lead_new": bool(entry)},
             "back_url": back,
             "submit_text": _("Add %(name)s") % {"name": first_name_of(person, new_name)},
             "submit_icon": "add",

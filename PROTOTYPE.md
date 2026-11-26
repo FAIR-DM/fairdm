@@ -40,11 +40,13 @@ record:
   or to add by name alone; it is made in the portal, with its ROR ID when picked from ROR, when
   the person is added;
 - chooses No affiliation (the affiliation step's main button) instead;
-- picks the person's roles on the last step, which shows the affiliation chosen (marked New when
-  it isn't in the portal yet) above the roles, and adds them with a button that names them
-  ("Add Aiko"); Back returns to the step the affiliation was picked on;
-- picks the roles from the roles this kind of record offers, as toggle chips, with
-  Project Member ticked and locked for anyone being added;
+- picks the person's roles on the last step, whose head shows the person like a row of the list:
+  their avatar, their name, and under it the affiliation chosen, muted, with a small green New
+  badge when it isn't in the portal yet (no line for No affiliation); they are added with a button
+  that names them ("Add Aiko"); Back returns to the step the affiliation was picked on;
+- picks the roles from the roles this kind of record offers, as toggle chips under "Select roles"
+  and a line saying what roles are for, linked to a documentation page on what each role means,
+  with Project Member ticked and locked for anyone being added;
 - edits a person's affiliation and roles;
 - removes a person, with an Undo button in the notice that follows;
 - reorders the people in a sheet by their drag handles, and with the eye beside each name chooses
@@ -147,6 +149,14 @@ credit order, then those that are only the affiliation of a person on the record
 
 ## Decisions
 
+- 2026-11-26: The roles step of Add a person has no "Affiliation on this project" box, since there
+  is nothing to pick in it. The sheet's head shows the person as a list row does: avatar, name,
+  and the affiliation chosen as the muted line under the name. One not in the portal yet carries a
+  small green New badge after its name. With No affiliation there is no line.
+- 2026-11-26: The roles field reads "Select roles", with a help line ("Roles say how this person is
+  credited on this project.", or "this organization") and a link to a new documentation page,
+  Contributor roles, listing each kind's roles with their meanings from the roles vocabulary. The
+  same field is used in Add a person, Add an organization and both edit sheets.
 - 2026-11-26: The affiliation step of Add a person is its own step, drawn like Add an
   organization: a search at the top, organizations as rows, a typed name that isn't in the portal
   as a New row leading to ROR's "Do you mean?", and Add by name alone. Picking any row goes on to

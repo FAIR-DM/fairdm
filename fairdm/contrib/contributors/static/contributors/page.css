@@ -74,11 +74,6 @@
 .contrib-pick-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .contrib-pick-name { font-weight: 600; overflow-wrap: anywhere; }
 .contrib-pick-sub { font-size: 0.8125rem; color: color-mix(in oklab, var(--color-base-content) 65%, transparent); }
-/* The affiliation picked in Add a person, shown above the roles: drawn like a result row, in a box, with nothing to press. */
-.contrib-chosen {
-  display: flex; align-items: center; gap: 0.75rem; min-height: 3rem; padding: 0.5rem;
-  border: 1px solid var(--color-base-300); border-radius: var(--radius-field);
-}
 .contrib-none { font-size: 0.9375rem; color: color-mix(in oklab, var(--color-base-content) 65%, transparent); padding: 0.5rem; }
 .contrib-new {
   display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;
