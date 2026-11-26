@@ -246,7 +246,8 @@ class ContributorsBase(ContributionPage):
         """Order the organizations and give each the badges it shows.
 
         The affiliations of the people who lead the record come first, in the order those people
-        are credited, and show Project Leader. An organization people are credited from, with no
+        are credited, then organizations that are Project Leader themselves, and all of them show
+        Project Leader. An organization people are credited from, with no
         roles of its own, shows Project Member. One with roles of its own keeps them.
 
         Args:
@@ -264,7 +265,10 @@ class ContributorsBase(ContributionPage):
                 led_from.append(affiliation)
         for row in rows:
             badges = [str(role) for role in row["roles"]]
-            row["leads"] = row["organization"].pk in led_from
+            own_lead = any(role.slug == LEADER for role in row["roles"])
+            row["leads"] = row["organization"].pk in led_from or own_lead
+            if row["organization"].pk not in led_from and own_lead:
+                led_from.append(row["organization"].pk)
             if row["leads"] and leader and str(leader) not in badges:
                 badges.insert(0, str(leader))
             if not badges and row["people"] and member:
@@ -395,13 +399,30 @@ class ContributorsBase(ContributionPage):
             return set()
         return {member.pk} if held is None or member.pk in held else set()
 
+    @staticmethod
+    def held_by(credit):
+        """The pks of the roles a contribution holds, or None when it counts as just added.
+
+        An organization listed with no roles of its own is there as someone's affiliation and
+        shows Project Member, so it is treated as just added.
+
+        Args:
+            credit: The contribution, or None when the contributor is being added.
+        """
+        if credit is None:
+            return None
+        held = {role.pk for role in credit.roles.all()}
+        if not held and credit.contributor.get_real_instance().is_organization:
+            return None
+        return held
+
     def role_context(self, credit):
         """The roles to offer, the ones ticked, and the ones that can't be unticked.
 
         Args:
             credit: The contribution being edited, or None when the contributor is being added.
         """
-        held = {role.pk for role in credit.roles.all()} if credit else None
+        held = self.held_by(credit)
         locked = self.locked_roles(held)
         return {"roles": self.offered_roles(), "held_roles": (held or set()) | locked, "locked_roles": locked}
 
@@ -654,9 +675,9 @@ class EditCredit(ContributorsBase):
         contributor = credit.contributor.get_real_instance()
         try:
             if contributor.is_organization:
-                crediting.update(credit, roles=self.chosen_roles(held={role.pk for role in credit.roles.all()}))
+                crediting.update(credit, roles=self.chosen_roles(held=self.held_by(credit)))
             else:
-                crediting.update(credit, roles=self.chosen_roles(held={role.pk for role in credit.roles.all()}), organization=self.chosen_affiliation())
+                crediting.update(credit, roles=self.chosen_roles(held=self.held_by(credit)), organization=self.chosen_affiliation())
         except ValidationError as error:
             return self.region_response(toast={"text": " ".join(error.messages), "tone": "error"})
         return self.region_response(toast={"text": _("%(name)s saved.") % {"name": contributor.name}})

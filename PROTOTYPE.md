@@ -13,7 +13,8 @@ record:
 - sees, for each person, their avatar, name, the affiliation recorded on this record (an em dash
   when there is none) and their roles as a row of badges;
 - sees the organizations in a set order it can't change: the affiliations of the people who are
-  Project Leader on the record first, each with a Project Leader badge, then the rest; an
+  Project Leader on the record first, then organizations that are Project Leader themselves, each
+  with a Project Leader badge, then the rest; an
   organization people are credited from, with no roles of its own, shows Project Member, and one
   with roles of its own shows them;
 - adds a person who is already in the portal, by searching for them by name;
@@ -119,7 +120,8 @@ organization, an organization people are credited from can't be removed, and the
 can't be removed.
 
 The organizations column starts with the affiliations of the people who hold Project Leader on the
-record, in those people's credit order. The rest follow: the organizations credited directly, in
+record, in those people's credit order, then any organization that holds Project Leader itself. The
+rest follow: the organizations credited directly, in
 credit order, then those that are only the affiliation of a person on the record, by name.
 
 ## Decisions
@@ -134,7 +136,8 @@ credit order, then those that are only the affiliation of a person on the record
   fills the names. Names alone lead to a step listing ORCID's matches, with a way to skip and add
   them by name. Someone from ORCID is offered the affiliations on their ORCID record.
 - 2026-11-26: Anyone added, person or organization, gets Project Member, ticked and not
-  removable. Someone who already holds it keeps it when edited.
+  removable. Someone who already holds it keeps it when edited, and so does an organization that
+  is only there as someone's affiliation, since its row shows Project Member.
 - 2026-11-26: The multi-step sheets have a Back button in the foot, between Cancel and the main
   button, that returns to the previous step.
 - 2026-11-26: Once a person or organization is picked, the next step's head shows their avatar
