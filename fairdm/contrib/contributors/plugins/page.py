@@ -60,40 +60,53 @@ def first_name_of(person, new_name=None):
     return (given.split() or [family or (person.name if person else "")])[0]
 
 
+# The sections of an ORCID record that name an organization the person belongs or belonged to, in
+# the order they are offered when nothing else separates them.
+ORCID_AFFILIATIONS = ("employment", "education", "qualification", "invited-position", "membership", "service")
+
+
 def orcid_affiliations(orcid_id):
-    """The employments on a person's public ORCID record, current ones first.
+    """Every organization on a person's public ORCID record, current ones first, then the most recent.
+
+    Read from all of the record's affiliation sections (employments, educations, qualifications,
+    invited positions, memberships and services), ended ones included, each organization once.
 
     Args:
         orcid_id: The bare ORCID iD.
 
     Returns:
-        One dictionary per employment: ``value`` (the form's value for it), ``name``, ``ror``
+        One dictionary per organization: ``value`` (the form's value for it), ``name``, ``ror``
         (the ROR ID ORCID gives for it, or an empty string), ``current`` and ``note``. Empty when
         ORCID can't be reached.
     """
 
     def read(body):
         found = []
-        for group in body.get("affiliation-group") or []:
-            for summary in group["summaries"]:
-                employment = summary["employment-summary"]
-                organization = employment["organization"]
-                place = organization.get("disambiguated-organization") or {}
-                ror = place.get("disambiguated-organization-identifier", "") if place.get("disambiguation-source") == "ROR" else ""
-                current = employment.get("end-date") is None
-                found.append({"name": organization["name"], "ror": ror, "current": current})
+        for rank, section in enumerate(ORCID_AFFILIATIONS):
+            for group in (body.get(f"{section}s") or {}).get("affiliation-group") or []:
+                for summary in group["summaries"]:
+                    entry = summary.get(f"{section}-summary") or {}
+                    organization = entry.get("organization") or {}
+                    if not organization.get("name"):
+                        continue
+                    place = organization.get("disambiguated-organization") or {}
+                    ror = place.get("disambiguated-organization-identifier", "") if place.get("disambiguation-source") == "ROR" else ""
+                    ended = entry.get("end-date") or {}
+                    year = int(((ended.get("year") or {}).get("value")) or 0)
+                    found.append({"name": organization["name"], "ror": ror, "current": not ended, "year": year, "rank": rank})
         return found
 
     try:
-        found = ask(f"https://pub.orcid.org/v3.0/{orcid_id}/employments", read, headers=JSON) or []
+        found = ask(f"https://pub.orcid.org/v3.0/{orcid_id}/activities", read, headers=JSON) or []
     except RegistryUnavailable:
         return []
     seen, rows = set(), []
-    for entry in sorted(found, key=lambda e: not e["current"]):
-        if entry["name"].lower() in seen:
+    for entry in sorted(found, key=lambda e: (not e["current"], -e["year"], e["rank"])):
+        keys = {entry["name"].lower()} | ({entry["ror"]} if entry["ror"] else set())
+        if keys & seen:
             continue
-        seen.add(entry["name"].lower())
-        rows.append({**entry, "note": _("Current") if entry["current"] else _("Past")})
+        seen |= keys
+        rows.append({"name": entry["name"], "ror": entry["ror"], "current": entry["current"], "note": _("Current") if entry["current"] else _("Past")})
     for place, row in enumerate(rows):
         row["value"] = f"registry:{place}"
     return rows

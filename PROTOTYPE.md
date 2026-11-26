@@ -22,8 +22,8 @@ record:
   public ORCID registry as they type and lists the matches beneath it, each match as wide as the
   list with the ORCID iD icon before its iD, and picking one closes the list and fills the
   given and family names; with names alone, Continue opens "Do you mean?", powered by ORCID: the
-  people ORCID has under those names, with Add by name alone as the foot's main button; someone picked from ORCID is offered the employers on
-  their ORCID record as their affiliation;
+  people ORCID has under those names, with Add by name alone as the foot's main button; someone picked from ORCID is offered every
+  organization on their ORCID record as their affiliation, past ones and education included;
 - picks the person's affiliation on this record, under "Select their affiliation on this
   project", and adds them with a button that names them ("Add Aiko"): the organizations on their profile first, marked
   Current or Past, then every other organization in the portal, with a search box that filters
@@ -131,6 +131,9 @@ credit order, then those that are only the affiliation of a person on the record
 
 ## Decisions
 
+- 2026-11-26: Someone from ORCID is offered every organization on their public ORCID record, ended
+  ones, education, qualifications, invited positions, memberships and services included, current
+  ones first.
 - 2026-11-26: No sheet has a Cancel button. Its foot is Back where there is a step to go back to,
   and the main button.
 - 2026-11-26: Every button that leads on to another step has a right arrow on its right.
@@ -204,8 +207,11 @@ credit order, then those that are only the affiliation of a person on the record
 - The affiliation search filters, in the browser, a list of every organization in the portal. A
   real build needs a server-side search once the portal holds many organizations.
 - The ROR matches for a name alone are ROR's own search, so a partial name can rank poorly.
-- The affiliations offered from an ORCID record are its employments only, not its education. Each
-  is matched to a portal organization by its ROR ID or its name, and created when there is none.
+- The affiliations offered from an ORCID record come from all its public affiliation sections
+  (employments, educations, qualifications, invited positions, memberships, services), each
+  organization once by name or ROR ID, current ones first, then by the year they ended. Each is
+  matched to a portal organization by its ROR ID or its name, and created when there is none.
+  Only what a person has made public on ORCID can be offered.
 - The ORCID search asks the public ORCID API from the server on each keystroke past two
   characters, with no rate limiting of its own.
 - Undo carries the removed credit's details (contributor, roles, affiliation, level, order) in a
