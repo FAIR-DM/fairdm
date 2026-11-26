@@ -105,6 +105,9 @@ credit order, then those that are only the affiliation of a person on the record
 
 ## Decisions
 
+- 2026-11-26: In Add a person and Add an organization the search box stays at the top of the
+  sheet while the results scroll under it. "Not in the portal yet? Add someone new" stays below
+  the results.
 - 2026-11-26: Every sheet's head is one line. Where the title and the line under it said the same
   thing, the two are now one title, such as "Add a person to this project".
 - 2026-11-26: Organizations aren't ordered by hand but have a default order. The affiliations of

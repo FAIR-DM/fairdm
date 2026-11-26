@@ -1,6 +1,7 @@
 {% load i18n %}
 <c-mvp.sheet id="{{ sheet_id }}" title="{{ sheet_title }}" lead="{{ sheet_lead }}" full class="contrib-sheet">
   <div id="contrib-sheet-step" class="contrib-step">
+    <div class="sticky top-0 z-10 bg-base-100 pb-1">
     <label class="input contrib-search">
       <c-icon name="search" aria-hidden="true" />
       <input type="search"
@@ -14,6 +15,7 @@
              hx-swap="innerHTML"
              data-contrib-autofocus>
     </label>
+    </div>
     <div id="contrib-person-results">
       {% include "contributors/page/sheets/person_results.html" %}
     </div>
