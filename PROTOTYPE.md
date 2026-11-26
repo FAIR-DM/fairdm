@@ -166,6 +166,10 @@ credit order, then those that are only the affiliation of a person on the record
 
 ## Faked or skipped
 
+- A focused field's outline was cut off at the sides of a sheet, because the sheet body scrolls
+  with no inline padding (https://github.com/django-mvp/django-mvp/issues/735). `page.css` gives
+  `[data-mvp-sheet-body]` 0.25rem of inline padding and the same negative margin until django-mvp
+  fixes it. The rule goes once it does.
 - django-mvp's list row has no way to give its sheet art, so the contributors app carries a copy of
   `cotton/mvp/list/row/index.html` that passes an `art` slot through. The copy applies to every list
   row in the portal while the app is installed.

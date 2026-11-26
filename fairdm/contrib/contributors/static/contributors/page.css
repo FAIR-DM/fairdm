@@ -144,3 +144,9 @@
 
 /* The row sheet's art is the contributor's own avatar, which brings its own shape and colour. */
 [data-contrib-row] [data-mvp-sheet-head] span[aria-hidden="true"]:has(.avatar) { background: none; }
+
+/* Temporary, until https://github.com/django-mvp/django-mvp/issues/735 is fixed: the sheet body
+   scrolls with no inline padding, so a focused field's outline (2px wide, 2px off the field) is cut
+   off at the left and right. Room for the whole outline, taken back with a negative margin so the
+   content keeps its width. Drop this rule once django-mvp fixes the issue. */
+[data-mvp-sheet-body] { padding-inline: 0.25rem; margin-inline: -0.25rem; }
