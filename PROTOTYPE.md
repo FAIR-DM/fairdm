@@ -17,14 +17,19 @@ record:
   with a Project Leader badge, then the rest; an
   organization people are credited from, with no roles of its own, shows Project Member, and one
   with roles of its own shows them;
-- adds a person who is already in the portal, by searching for them by name; a name that isn't
-  in the portal shows as one more row of the results, marked New, and choosing it goes straight to
-  the people ORCID has under that name ("Do you mean?");
-- adds someone who isn't in the portal yet, starting from their ORCID iD: the field searches the
-  public ORCID registry as they type and lists the matches beneath it, each match as wide as the
-  list with the ORCID iD icon before its iD, and picking one closes the list and fills the
-  given and family names; with names alone, Continue opens "Do you mean?", powered by ORCID: the
-  people ORCID has under those names, with Add by name alone as the foot's main button; someone picked from ORCID is offered every
+- adds a person who is already in the portal, by searching for them by name or ORCID iD; a name
+  that isn't in the portal shows as one more row of the results, marked New, and choosing it goes
+  straight to the people ORCID has under that name ("Do you mean?", powered by ORCID); there is no
+  separate "Add someone new" button;
+- types an ORCID iD in the same search: the person holding it in the portal is listed, or, when
+  nobody does, their public ORCID record shows as a New row (name, employer, the iD with the ORCID
+  iD icon), which goes straight to their affiliation;
+- on "Do you mean?", narrows ORCID's matches with a Name field (prefilled with the name typed) and
+  an Affiliation field, both full width and kept at the top of the sheet while the list scrolls;
+  the list is asked again as they type;
+- picks someone from ORCID's matches, or chooses Add by name alone (the foot's main button), which
+  asks them to check the given names and family name, guessed from the name (the last word is the
+  family name), before the affiliation step; someone picked from ORCID is offered every
   organization on their ORCID record as their affiliation, past ones and education included;
 - picks the person's affiliation on this record, under "Select their affiliation on this
   project", and adds them with a button that names them ("Add Aiko"): the organizations on their profile first, marked
@@ -70,8 +75,7 @@ the open sheet.
 with `HX-Trigger-After-Settle: {"mvp-sheet-open": {"id": "contrib-sheet"}}`. Multi-step adds swap
 `#contrib-sheet-step` inside the open sheet. Every sheet's foot is the same: Back, small, on the
 left on a later step, and the step's main button filling the rest of the width (`sheets/foot.html`). A button
-that leads on to another step has a right arrow after its words: Continue, Add by name alone and
-Add someone new. Each step
+that leads on to another step has a right arrow after its words: Continue and Add by name alone. Each step
 answers with its own foot too, swapped in out of band as `#contrib-sheet-actions`, so a step with
 nothing to send has an empty foot. There is no Cancel: tapping outside, dragging the sheet down or
 its close button closes it. A step about one person or organization also swaps the sheet's
@@ -96,7 +100,7 @@ picked.
 | `templates/contributors/page/region.html` | Both columns, their headings, counts and Add buttons, and the notice |
 | `templates/contributors/page/person_row.html` | A person's row and actions |
 | `templates/contributors/page/organization_row.html` | An organization's row and actions |
-| `templates/contributors/page/sheets/*.html` | Add person (search, new person, details), edit person, add organization, edit organization roles, reorder |
+| `templates/contributors/page/sheets/*.html` | Add person (search, ORCID matches with their Name and Affiliation fields, name check, details), edit person, add organization, edit organization roles, reorder |
 | `static/contributors/page.css` | The two-column container query (52rem and 72rem), row, chip, option list and notice styles |
 | `static/contributors/page.js` | Closes the sheet on `contrib:done`, times the notice, focuses the first field on a fine pointer, runs the ORCID and ROR searches |
 
@@ -135,6 +139,18 @@ credit order, then those that are only the affiliation of a person on the record
 
 ## Decisions
 
+- 2026-11-26: The person search has no "Add someone new" button. The New row replaces it, and an
+  ORCID iD typed in the search shows its person as a row, so starting from an iD still works.
+- 2026-11-26: ORCID is searched on its name fields only. ORCID read the bare name against every
+  field of a record and joined the words with OR, so "Kirsten Elger" found 3,737 people with her
+  last. The search now asks for the name as a phrase in given and family names, then, when that
+  finds nobody, for every word in any order with the last one as a prefix. An iD is still asked
+  as `orcid:<iD>`. The iD field's live search and "Do you mean?" both use it.
+- 2026-11-26: "Do you mean?" for a person has a Name and an Affiliation field above the matches,
+  which narrow ORCID's search to people with an organization of that name on their record.
+- 2026-11-26: Add by name alone goes to a step, titled "Check their name", with Given names and
+  Family name guessed from the name (the last word as the family name) for the user to correct,
+  before the affiliation and roles.
 - 2026-11-26: Choosing a New row skips the step that asks for an ORCID iD or ROR ID and the name,
   since the name is already typed, and goes straight to "Do you mean?". Back from there returns to
   the search with the name still in it.
@@ -225,7 +241,16 @@ credit order, then those that are only the affiliation of a person on the record
   matched to a portal organization by its ROR ID or its name, and created when there is none.
   Only what a person has made public on ORCID can be offered.
 - The ORCID search asks the public ORCID API from the server on each keystroke past two
-  characters, with no rate limiting of its own.
+  characters, with no rate limiting of its own. A name search can ask ORCID twice (the phrase,
+  then every word), and "Do you mean?" asks again as its Name and Affiliation are typed.
+- The affiliation narrowing needs every word of the affiliation in an organization name on the
+  record, the last one as a prefix. "Oxford" finds "University of Oxford"; an abbreviation such as
+  "GFZ" only finds records whose organization name contains it.
+- The step that asks for an ORCID iD and names (`sheets/new_person.html`), with its live ORCID
+  dropdown, can no longer be reached from the person search. It is still on the branch.
+- The guess at given and family names takes the last word as the family name. Names with a
+  multi-part family name ("al Haddad", "van der Berg") have to be corrected by hand on the check
+  step.
 - Undo carries the removed credit's details (contributor, roles, affiliation, level, order) in a
   hidden field and recreates it.
 - The existing Contributors tab is hidden on this branch and moved to `contributors-previous/`.

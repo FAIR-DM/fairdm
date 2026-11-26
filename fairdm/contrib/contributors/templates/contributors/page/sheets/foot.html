@@ -7,7 +7,7 @@
     </button>
   {% endif %}
   {% if foot.next %}
-    <button type="button" class="btn btn-primary min-w-0 flex-1" hx-get="{{ foot.next }}" hx-target="#contrib-sheet-step" hx-swap="outerHTML" data-contrib-submit data-contrib-skip>
+    <button type="button" class="btn btn-primary min-w-0 flex-1" hx-get="{{ foot.next }}"{% if foot.next_include %} hx-include="{{ foot.next_include }}"{% endif %} hx-target="#contrib-sheet-step" hx-swap="outerHTML" data-contrib-submit data-contrib-skip>
       <span class="truncate">{{ foot.next_text }}</span>
       <c-icon name="arrow-right" aria-hidden="true" />
     </button>

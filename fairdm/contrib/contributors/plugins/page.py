@@ -386,6 +386,7 @@ class ContributorsBase(ContributionPage):
             "back": context.get("back_url", ""),
             "next": context.get("next_url", ""),
             "next_text": context.get("next_text", ""),
+            "next_include": context.get("next_include", ""),
             "arrow": context.get("submit_arrow", False),
         }
 
@@ -575,14 +576,18 @@ class AddPersonStep(ContributorsBase):
         """Draw the next step for a chosen person, or for someone new.
 
         Someone new is given by ORCID iD, or by name. An iD goes straight to their affiliation,
-        offering the affiliations on their ORCID record. A name alone first shows the people ORCID
-        finds by that name, to pick from or to skip. A name typed in the search (``via=search``)
-        comes straight to those matches, and Back from them returns to the search.
+        offering the affiliations on their ORCID record. A name first shows the people ORCID finds
+        by that name ("Do you mean?"), which a name and an affiliation narrow (``find`` and ``at``),
+        to pick from or to skip. Skipping (``confirm``) asks the user to confirm the given names and
+        family name, guessed from the name, before their affiliation. A name or an iD typed in the
+        search (``via=search``) comes straight here, and Back returns to the search.
         """
         self.require_change()
         person = None
         new_name = None
         orcid = None
+        via = request.GET.get("via", "")
+        narrowed = {key: request.GET[key].strip() for key in ("find", "at") if request.GET.get(key, "").strip()}
         if request.GET.get("person"):
             person = get_object_or_404(Person, uuid=request.GET["person"])
         else:
@@ -591,7 +596,6 @@ class AddPersonStep(ContributorsBase):
                 "last_name": request.GET.get("last_name", "").strip(),
                 "orcid": request.GET.get("orcid", "").strip(),
             }
-            via = request.GET.get("via", "")
             typed = {**new_name, "orcid": ""}
             if new_name["orcid"] and not request.GET.get("form"):
                 try:
@@ -603,13 +607,15 @@ class AddPersonStep(ContributorsBase):
                 person = Orcid().known(orcid)
                 if person is None:
                     new_name.update(first_name=orcid["given"], last_name=orcid["family"], orcid=orcid["id"])
-            elif not new_name["last_name"] or request.GET.get("form"):
+            elif request.GET.get("confirm") or (request.GET.get("skip") and not new_name["last_name"]):
+                return self.confirm_name_step(typed, narrowed, via, request.GET.get("given") or request.GET.get("skip"))
+            elif (not new_name["last_name"] and not narrowed.get("find")) or request.GET.get("form"):
                 error = ""
                 if "last_name" in request.GET and not new_name["last_name"] and not request.GET.get("form"):
                     error = _("Give their family name, or pick them from ORCID.")
                 return self.new_person_step(new_name, error)
             elif not request.GET.get("skip"):
-                return self.orcid_matches_step(new_name, via)
+                return self.orcid_matches_step(typed, via, narrowed, only_list=bool(request.GET.get("list")))
         context = self.credit_form_context(person, new_name=new_name)
         if new_name and new_name.get("orcid") and person is None:
             context["registry_affiliations"] = orcid_affiliations(new_name["orcid"])
@@ -620,8 +626,12 @@ class AddPersonStep(ContributorsBase):
         context["head"] = self.head_for(person, new_name)
         if request.GET.get("person"):
             context["back_url"] = self.record_url("contributors-add-person") + "?back=1"
-        elif request.GET.get("matches") or request.GET.get("skip"):
-            context["back_url"] = self.step_url(typed, via=via)
+        elif request.GET.get("matches"):
+            context["back_url"] = self.step_url(typed, via=via, **narrowed)
+        elif request.GET.get("skip"):
+            context["back_url"] = self.step_url(typed, via=via, confirm=1, given=1, **narrowed)
+        elif via == "search":
+            context["back_url"] = self.record_url("contributors-add-person") + "?" + urlencode({"back": 1, "q": request.GET["orcid"]})
         else:
             context["back_url"] = self.step_url(new_name, form=1)
         context["submit_text"] = _("Add %(name)s") % {"name": first_name_of(person, new_name)}
@@ -650,33 +660,69 @@ class AddPersonStep(ContributorsBase):
             },
         )
 
-    def orcid_matches_step(self, new_name, via=""):
-        """The step that shows who ORCID finds under the names given, to pick from or skip.
+    def orcid_matches_step(self, new_name, via="", narrowed=None, only_list=False):
+        """The step that shows who ORCID finds under a name, to pick from or skip.
 
         Args:
-            new_name: The names given.
+            new_name: The names first given, which Back to the search returns with.
             via: ``"search"`` when the names were typed in the search, where Back then returns.
+            narrowed: The name (``find``) and affiliation (``at``) the user narrowed the search
+                to; the names first given when there are none.
+            only_list: Whether to answer with the list of matches alone, as the narrowing
+                fields ask for while the user types.
         """
+        typed = f"{new_name['first_name']} {new_name['last_name']}".strip()
+        narrowed = narrowed or {}
+        find = narrowed.get("find", typed)
+        at = narrowed.get("at", "")
         try:
-            found = Orcid().search(f"{new_name['first_name']} {new_name['last_name']}".strip())
+            found = Orcid().search(find, affiliation=at) if find else {"results": []}
             unavailable = False
         except RegistryUnavailable:
             found, unavailable = {"results": [], "more": False}, True
+        context = {
+            "found": found["results"],
+            "unavailable": unavailable,
+            "new_name": new_name,
+            "find": find,
+            "at": at,
+            "list_url": self.step_url(new_name, via=via, list=1),
+            "pick_url": self.step_url(new_name, via=via, matches=1, **{k: v for k, v in (("find", find), ("at", at)) if v}),
+            "next_url": self.step_url(new_name, confirm=1, via=via),
+            "next_include": "#contrib-narrow",
+            "next_text": _("Add by name alone"),
+            "back_url": (
+                self.record_url("contributors-add-person") + "?" + urlencode({"back": 1, "q": find})
+                if via == "search"
+                else self.step_url(new_name, form=1)
+            ),
+            "head": {"title": _("Do you mean?"), "lead": _("Powered by ORCID")},
+        }
+        if only_list:
+            return self.step_response("contributors/page/sheets/orcid_match_list.html", context, chrome=False)
+        return self.step_response("contributors/page/sheets/orcid_matches.html", context)
+
+    def confirm_name_step(self, new_name, narrowed, via, given=False):
+        """The step that asks the user to confirm someone's given names and family name.
+
+        A name can't be split into the two reliably, so the step guesses (the last word is the
+        family name) and the user corrects it. It follows Add by name alone, guessing from the
+        name last searched; Back from the affiliation step returns to it with the names given
+        (``given``).
+        """
+        typed = f"{new_name['first_name']} {new_name['last_name']}".strip()
+        names = new_name if given else split_name(narrowed.get("find") or typed)
         return self.step_response(
-            "contributors/page/sheets/orcid_matches.html",
+            "contributors/page/sheets/confirm_name.html",
             {
-                "found": found["results"],
-                "unavailable": unavailable,
-                "new_name": new_name,
-                "pick_url": self.step_url(new_name, via=via, matches=1),
-                "next_url": self.step_url(new_name, skip=1, via=via),
-                "next_text": _("Add by name alone"),
-                "back_url": (
-                    self.record_url("contributors-add-person") + "?" + urlencode({"back": 1, "q": f"{new_name['first_name']} {new_name['last_name']}".strip()})
-                    if via == "search"
-                    else self.step_url(new_name, form=1)
-                ),
-                "head": {"title": _("Do you mean?"), "lead": _("Powered by ORCID")},
+                "names": names,
+                "carried": {"via": via, "skip": 1, **narrowed},
+                "step_url": self.record_url("contributors-add-person-step"),
+                "submit_text": _("Continue"),
+                "submit_arrow": True,
+                "submit_form": "contrib-name-form",
+                "back_url": self.step_url(new_name, via=via, **narrowed),
+                "head": {"title": _("Check their name")},
             },
         )
 

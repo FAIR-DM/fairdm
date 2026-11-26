@@ -77,7 +77,7 @@ class Command(BaseCommand):
         # Leftovers from trying the page out.
         Organization.objects.filter(name__startswith="Svalbard Science Forum").delete()
         Organization.objects.filter(name="ETH Zürich").delete()
-        Person.objects.filter(last_name="Haddad", is_claimed=False).delete()
+        Person.objects.filter(last_name__in=["Haddad", "al Haddad"], is_claimed=False).delete()
         Person.objects.filter(last_name__in=["Peters", "Goring"], is_claimed=False).delete()
         from fairdm.contrib.contributors.plugins.page import UNCITED
 

@@ -1,0 +1,28 @@
+{% load i18n %}
+{# The ORCID matches of the "Do you mean?" step, answered again each time its name or affiliation changes. #}
+{% if found %}
+  <ul class="contrib-picks" aria-label="{% translate "People found in ORCID" %}">
+    {% for record in found %}
+      <li>
+        <button type="button" class="contrib-pick"
+                hx-get="{{ pick_url }}&orcid={{ record.id }}"
+                hx-target="#contrib-sheet-step"
+                hx-swap="outerHTML">
+          <c-mvp.avatar alt="" size="sm" placeholder="{{ record.given|slice:":1"|upper }}{{ record.family|slice:":1"|upper }}" only />
+          <span class="contrib-pick-text">
+            <span class="contrib-pick-name">{{ record.name }}</span>
+            <span class="contrib-pick-sub">{{ record.detail }}</span>
+            <span class="contrib-pick-sub">{{ record.shown_id }}</span>
+          </span>
+          <c-icon name="chevron-right" aria-hidden="true" />
+        </button>
+      </li>
+    {% endfor %}
+  </ul>
+{% elif unavailable %}
+  <p class="contrib-none">{% translate "ORCID could not be reached." %}</p>
+{% elif at %}
+  <p class="contrib-none">{% translate "ORCID has nobody by that name with that affiliation." %}</p>
+{% else %}
+  <p class="contrib-none">{% translate "ORCID has nobody by that name." %}</p>
+{% endif %}

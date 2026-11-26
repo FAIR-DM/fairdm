@@ -1,28 +1,24 @@
 {% load i18n %}
-{# Who ORCID finds under the names given: pick one, or add them by name alone with the main button in the foot. #}
+{# Who ORCID finds under a name: a name and an affiliation at the top narrow the list as the user types; pick one, or add them by name alone with the main button in the foot. #}
 <div id="contrib-sheet-step" class="contrib-step" data-contrib-matches>
-  {% if found %}
-    <ul class="contrib-picks" aria-label="{% translate "People found in ORCID" %}">
-      {% for record in found %}
-        <li>
-          <button type="button" class="contrib-pick"
-                  hx-get="{{ pick_url }}&orcid={{ record.id }}"
-                  hx-target="#contrib-sheet-step"
-                  hx-swap="outerHTML">
-            <c-mvp.avatar alt="" size="sm" placeholder="{{ record.given|slice:":1"|upper }}{{ record.family|slice:":1"|upper }}" only />
-            <span class="contrib-pick-text">
-              <span class="contrib-pick-name">{{ record.name }}</span>
-              <span class="contrib-pick-sub">{{ record.detail }}</span>
-              <span class="contrib-pick-sub">{{ record.shown_id }}</span>
-            </span>
-            <c-icon name="chevron-right" aria-hidden="true" />
-          </button>
-        </li>
-      {% endfor %}
-    </ul>
-  {% elif unavailable %}
-    <p class="contrib-none">{% translate "ORCID could not be reached." %}</p>
-  {% else %}
-    <p class="contrib-none">{% translate "ORCID has nobody by that name." %}</p>
-  {% endif %}
+  <form id="contrib-narrow" class="contrib-narrow"
+        hx-get="{{ list_url }}"
+        hx-trigger="input changed delay:400ms, submit"
+        hx-target="#contrib-orcid-matches"
+        hx-swap="innerHTML"
+        hx-sync="this:replace"
+        role="search"
+        aria-label="{% translate "Narrow the ORCID matches" %}">
+    <label class="input contrib-search">
+      <span class="label contrib-narrow-label">{% translate "Name" %}</span>
+      <input type="search" name="find" value="{{ find }}" autocomplete="off" data-contrib-autofocus>
+    </label>
+    <label class="input contrib-search">
+      <span class="label contrib-narrow-label">{% translate "Affiliation" %}</span>
+      <input type="search" name="at" value="{{ at }}" autocomplete="off" placeholder="{% translate "Any" %}">
+    </label>
+  </form>
+  <div id="contrib-orcid-matches">
+    {% include "contributors/page/sheets/orcid_match_list.html" %}
+  </div>
 </div>
