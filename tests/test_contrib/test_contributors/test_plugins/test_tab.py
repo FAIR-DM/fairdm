@@ -1,8 +1,8 @@
 """Tests for a record's Contributors tab as a page, through the test client.
 
-The tab is opened on a project, a dataset, a registered sample type and a registered measurement
-type, as a manager, as a signed-in reader and as a visitor. Elements are found by id, link target
-and context value. Nothing here asserts a sentence or a layout.
+The tab is opened on a project, a dataset, a registered sample type and a registered
+measurement type, as a manager, as a signed-in reader and as a visitor. Elements are
+found by id, link target and context value. Nothing here asserts a sentence or a layout.
 """
 
 import pytest

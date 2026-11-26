@@ -129,4 +129,17 @@ reverse(sample, "contribution-list-remove", pk=contribution.pk)
 
 Everyone added to a record that offers the role holds Project Member, ticked and locked in the roles field, and someone who holds it keeps it on edit. A registry search counts against `SEARCHES_PER_MINUTE`, and a registry that cannot be reached, or a person who has searched too often, is told so in the step and nothing is added.
 
+### Helpers
+
+The views lean on a few functions, which a project that builds its own step on the tab can call too.
+
+| Function | Module | Returns |
+|---|---|---|
+| `role_by_slug(slug)` | `plugins.tab_base` | The contributor role with that slug, or `None` |
+| `first_name_of(person, new_name=None)` | `plugins.tab_base` | The first of a person's given names, or their family name when they have none |
+| `initials_of(record, organization=False)` | `plugins.tab_base` | The initials an avatar shows for a registry record |
+| `affiliation_choices(person)` | `plugins.tab_base` | `(theirs, others)`: the organizations on the person's profile as `(organization, current)` pairs, then every other organization |
+| `split_name(typed)` | `plugins.tab_people` | `{"first_name", "last_name"}` from a name typed whole: the last word is the family name |
+| `portal_organization(entry)` | `plugins.tab_people` | The portal's organization for one picked from ORCID or ROR, made only when no ROR ID or name matches |
+
 See [Plugins](plugins.md) for the plugin registration arguments.

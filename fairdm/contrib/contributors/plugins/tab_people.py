@@ -1,9 +1,9 @@
 """Adding a person on a record's Contributors tab, in steps drawn in one sheet.
 
-The steps are: find someone in the portal or by ORCID iD, then (for someone not in the portal)
-who ORCID has under their name, the name checked, their affiliation on the record, and their
-roles. Each step is a GET that answers with the next step, carrying what the earlier ones
-learned in its address, and the last step posts.
+The steps are: find someone in the portal or by ORCID iD, then (for someone not in the
+portal) who ORCID has under their name, the name checked, their affiliation on the
+record, and their roles. Each step is a GET that answers with the next step, carrying
+what the earlier ones learned in its address, and the last step posts.
 """
 
 from urllib.parse import urlencode
@@ -32,18 +32,22 @@ PORTAL_RESULTS = 12
 
 
 def split_name(typed):
-    """Return given names and family name from a name typed whole: the last word is the family name."""
+    """Return given names and family name from a name typed whole: the last word is the
+    family name.
+    """
     words = typed.split()
     return {"first_name": " ".join(words[:-1]), "last_name": words[-1] if words else ""}
 
 
 def portal_organization(entry):
-    """Return the portal's organization for one picked from ORCID or ROR, making it if need be.
+    """Return the portal's organization for one picked from ORCID or ROR, making it if
+    need be.
 
     It is found by its ROR ID, then by its name, and made only when neither matches.
 
     Args:
-        entry: The organization's ``name`` and ``ror`` (an empty string when it has none).
+        entry: The organization's ``name`` and ``ror`` (an empty string when it has
+            none).
 
     Raises:
         RegistryUnavailable: ROR could not be asked for an organization to make.
@@ -62,13 +66,17 @@ def portal_organization(entry):
 
 
 class AddPerson(ContributorsBase):
-    """The Add person sheet: find someone in the portal, or start someone new from the search."""
+    """The Add person sheet: find someone in the portal, or start someone new from the
+    search.
+    """
 
     name = "add-person"
     url_path = "add-person"
 
     def get(self, request, *args, **kwargs):
-        """Open the sheet at its search step, answer a search, or return to the search."""
+        """Open the sheet at its search step, answer a search, or return
+        to the search.
+        """
         query = request.GET.get("q", "").strip()
         listed = Contribution.objects.for_entity(self.base_object).values_list(
             "contributor_id", flat=True
@@ -98,7 +106,9 @@ class AddPerson(ContributorsBase):
             typed = split_name(query)
             context["new_row"] = {
                 "name": query,
-                "initials": f"{typed['first_name'][:1]}{typed['last_name'][:1]}".upper(),
+                "initials": (
+                    f"{typed['first_name'][:1]}{typed['last_name'][:1]}".upper()
+                ),
                 "url": AddPersonStep.step_url(self, typed, via="search"),
             }
         title = _("Add a person to this %(kind)s") % {"kind": self.access.kind}
@@ -123,9 +133,9 @@ class AddPerson(ContributorsBase):
             holders: A queryset of the ids of the people holding it in the portal.
 
         Returns:
-            Context for the results: ``identifier``, and either ``listed_already`` (the person
-            holding it is on the record already), a ``new_row`` for their public ORCID record,
-            or ``problem`` when ORCID could not be asked.
+            Context for the results: ``identifier``, and either ``listed_already`` (the
+            person holding it is on the record already), a ``new_row`` for their public
+            ORCID record, or ``problem`` when ORCID could not be asked.
         """
         context = {"identifier": identifier}
         on_record = Contribution.objects.for_entity(self.base_object)
@@ -153,13 +163,15 @@ class AddPersonStep(ContributorsBase):
     url_path = "add-person/details"
 
     AFFILIATION_KEYS = ("stage", "aq", "org", "ror", "org_name", "none", "from")
-    """What the affiliation steps add to the address: which of them it is (``stage``), the name
-    searched for (``aq``), and the organization picked: one in the portal (``org``), one from
-    ROR or an ORCID record (``ror`` with its ``org_name``), one by name alone (``org_name``), or
-    none (``none``)."""
+    """What the affiliation steps add to the address: which of them it is (``stage``),
+    the name searched for (``aq``), and the organization picked: one in the portal
+    (``org``), one from ROR or an ORCID record (``ror`` with its ``org_name``), one by
+    name alone (``org_name``), or none (``none``)."""
 
     def step_url(self, new_name, **extra):
-        """Return the address of this step for someone new, carrying what is known of them."""
+        """Return the address of this step for someone new, carrying what is known of
+        them.
+        """
         query = {key: value for key, value in new_name.items() if value}
         return (
             self.record_url("contribution-list-add-person-step")
@@ -178,12 +190,13 @@ class AddPersonStep(ContributorsBase):
     def get(self, request, *args, **kwargs):
         """Draw the next step for a chosen person, or for someone new.
 
-        Someone new is given by ORCID iD, or by name. An iD goes straight to their affiliation,
-        offering the affiliations on their ORCID record. A name first shows the people ORCID
-        finds by that name ("Do you mean?"), which a name and an affiliation narrow (``find``
-        and ``at``), to pick from or to skip. Skipping (``confirm``) asks for the given names and
-        family name, guessed from the name, before the affiliation. A name or an iD typed in the
-        search (``via=search``) comes straight here, and Back returns to the search.
+        Someone new is given by ORCID iD, or by name. An iD goes straight to their
+        affiliation, offering the affiliations on their ORCID record. A name first shows
+        the people ORCID finds by that name ("Do you mean?"), which a name and an
+        affiliation narrow (``find`` and ``at``), to pick from or to skip. Skipping
+        (``confirm``) asks for the given names and family name, guessed from the name,
+        before the affiliation. A name or an iD typed in the search (``via=search``)
+        comes straight here, and Back returns to the search.
         """
         via = request.GET.get("via", "")
         narrowed = {
@@ -214,7 +227,9 @@ class AddPersonStep(ContributorsBase):
         )
 
     def orcid_person(self, orcid_id, typed, via, narrowed):
-        """Continue with someone picked from ORCID: the person the portal holds, or a new one."""
+        """Continue with someone picked from ORCID: the person the portal holds, or a
+        new one.
+        """
         record, problem = self.search_registry(Orcid().fetch, orcid_id)
         if record is None:
             return self.orcid_matches_step(
@@ -237,13 +252,14 @@ class AddPersonStep(ContributorsBase):
     # ------------------------------------------------------------------ affiliation
 
     def affiliation_flow(self, person, new_name, back_url):
-        """Draw the steps that find the person's affiliation on this record, then their roles.
+        """Draw the steps that find the person's affiliation on this record, then their
+        roles.
 
-        The first step lists the organizations on their ORCID record or their profile, then the
-        portal's, filtered by a search. A name that isn't in the portal is a New row, which
-        leads to what ROR has under that name ("Do you mean?"), to pick from or to add by name
-        alone. Picking any of them leads to the roles step, with the organization shown as their
-        affiliation.
+        The first step lists the organizations on their ORCID record or their profile,
+        then the portal's, filtered by a search. A name that isn't in the portal is a
+        New row, which leads to what ROR has under that name ("Do you mean?"), to pick
+        from or to add by name alone. Picking any of them leads to the roles step, with
+        the organization shown as their affiliation.
         """
         request = self.request
         carried = {
@@ -311,13 +327,14 @@ class AddPersonStep(ContributorsBase):
         )
 
     def affiliation_results(self, person, new_name, here, query):
-        """Return the organizations the affiliation step lists for a search, in their groups.
+        """Return the organizations the affiliation step lists for a search, in their
+        groups.
 
         Returns:
-            The context of ``affiliation_results.html``: ``orcid`` (the organizations on the
-            person's ORCID record), ``theirs`` (those on their profile), ``others`` (the
-            portal's, up to twelve) and ``new_row``, each with the address of the roles step it
-            leads to, and ``problem`` when ORCID could not be asked.
+            The context of ``affiliation_results.html``: ``orcid`` (the organizations on
+            the person's ORCID record), ``theirs`` (those on their profile), ``others``
+            (the portal's, up to twelve) and ``new_row``, each with the address of the
+            roles step it leads to, and ``problem`` when ORCID could not be asked.
         """
         needle = query.lower()
         orcid, problem = [], ""
@@ -396,12 +413,13 @@ class AddPersonStep(ContributorsBase):
         """Return the organization picked in the affiliation steps, without making it.
 
         Args:
-            data: The step's query or the posted form, holding ``org``, ``ror`` and ``org_name``.
+            data: The step's query or the posted form, holding ``org``, ``ror`` and
+                ``org_name``.
 
         Returns:
-            ``(organization, entry)``: the portal's organization, or None, and for one not in
-            the portal yet ``entry``, its ``name`` and ``ror``, that ``portal_organization``
-            makes it from. Both None for no affiliation.
+            ``(organization, entry)``: the portal's organization, or None, and for one
+            not in the portal yet ``entry``, its ``name`` and ``ror``, that
+            ``portal_organization`` makes it from. Both None for no affiliation.
         """
         if data.get("org"):
             return Organization.objects.filter(uuid=data["org"]).first(), None
@@ -423,7 +441,9 @@ class AddPersonStep(ContributorsBase):
         return None, None
 
     def person_roles_step(self, person, new_name, here, head):
-        """Draw the step that picks the person's roles, the affiliation chosen under their name."""
+        """Draw the step that picks the person's roles, the affiliation chosen under
+        their name.
+        """
         organization, entry = self.picked_affiliation(self.request.GET)
         query = self.request.GET.get("aq", "")
         if self.request.GET.get("from") == "ror":
@@ -454,11 +474,12 @@ class AddPersonStep(ContributorsBase):
 
         Args:
             typed: The names first given, which Back to the search returns with.
-            via: ``"search"`` when the names were typed in the search, where Back then returns.
-            narrowed: The name (``find``) and affiliation (``at``) the user narrowed the search
-                to, the names first given when there are none.
-            only_list: Whether to answer with the list of matches alone, as the narrowing
-                fields ask for while the user types.
+            via: ``"search"`` when the names were typed in the search, where Back then
+                returns.
+            narrowed: The name (``find``) and affiliation (``at``) the user narrowed the
+                search to, the names first given when there are none.
+            only_list: Whether to answer with the list of matches alone, as the
+                narrowing fields ask for while the user types.
             problem: What went wrong asking ORCID for a person picked from the list.
         """
         name = f"{typed['first_name']} {typed['last_name']}".strip()
@@ -493,9 +514,10 @@ class AddPersonStep(ContributorsBase):
     def confirm_name_step(self, typed, narrowed, via, given=False):
         """Draw the step that asks for someone's given names and family name.
 
-        A name can't be split into the two reliably, so the step guesses (the last word is the
-        family name) and the user corrects it. It follows Add by name alone, guessing from the
-        name last searched. Back from the affiliation step returns to it with the names given.
+        A name can't be split into the two reliably, so the step guesses (the last word
+        is the family name) and the user corrects it. It follows Add by name alone,
+        guessing from the name last searched. Back from the affiliation step returns to
+        it with the names given.
         """
         name = f"{typed['first_name']} {typed['last_name']}".strip()
         names = typed if given else split_name(narrowed.get("find") or name)

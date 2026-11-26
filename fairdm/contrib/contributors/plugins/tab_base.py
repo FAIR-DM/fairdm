@@ -1,9 +1,9 @@
 """What every view of a record's Contributors tab shares.
 
-People are listed in the main column and organizations beside them. Each row has one actions
-control that opens a sheet. Adding, editing and reordering happen in sheets, and every change
-answers with the whole region drawn again, so both columns and their counts always agree. The
-changes themselves are made by ``Crediting``.
+People are listed in the main column and organizations beside them. Each row has one
+actions control that opens a sheet. Adding, editing and reordering happen in sheets, and
+every change answers with the whole region drawn again, so both columns and their counts
+always agree. The changes themselves are made by ``Crediting``.
 """
 
 import json
@@ -22,7 +22,9 @@ from ..services.registries import RegistryUnavailable, SearchLimitReached, count
 from .shared import ContributionPage
 
 SHEET_ID = "contrib-sheet"
-"""The id of the one sheet the tab opens, which every step of an add or an edit is drawn in."""
+"""The id of the one sheet the tab opens, which every step of an add or an edit is drawn
+in.
+"""
 
 ROLES_DOCS_URL = "https://docs.fairdm.org/latest/reference/contributor-roles.html"
 """Where the page that says what each contributor role means is published."""
@@ -38,11 +40,13 @@ def role_by_slug(slug):
 
 
 def first_name_of(person, new_name=None):
-    """Return the first of a person's given names, or their family name when they have none.
+    """Return the first of a person's given names, or their family name when they have
+    none.
 
     Args:
         person: The person, or None for someone not yet in the portal.
-        new_name: For someone not yet in the portal, their ``first_name`` and ``last_name``.
+        new_name: For someone not yet in the portal, their ``first_name`` and
+            ``last_name``.
     """
     given = person.first_name if person else (new_name or {}).get("first_name", "")
     family = person.last_name if person else (new_name or {}).get("last_name", "")
@@ -50,7 +54,9 @@ def first_name_of(person, new_name=None):
 
 
 def initials_of(record, organization=False):
-    """Return the initials an avatar shows for a registry record, by the portal's own rule."""
+    """Return the initials an avatar shows for a registry record, by the portal's own
+    rule.
+    """
     if organization:
         return Organization(name=record["name"]).get_initials()
     given, family = record.get("given", ""), record.get("family", "")
@@ -58,7 +64,9 @@ def initials_of(record, organization=False):
 
 
 class ContributorsBase(ContributionPage):
-    """What every view of the tab shares: reading the lists, answering, and the roles field."""
+    """What every view of the tab shares: reading the lists, answering, and the roles
+    field.
+    """
 
     manager_only = True
     region_template = "cotton/contributor/tab/region.html"
@@ -106,16 +114,17 @@ class ContributorsBase(ContributionPage):
     def organizations(self, people):
         """Return every organization on the record in the order the tab shows them.
 
-        An organization is on the tab when it is listed with roles or is the affiliation of
-        someone listed.
+        An organization is on the tab when it is listed with roles or is the affiliation
+        of someone listed.
 
         Args:
             people: The rows from ``people``, whose affiliations count.
 
         Returns:
-            One row per organization: the affiliations of the people who lead the record first,
-            then organizations that lead it themselves, then the organizations credited
-            directly in their order, then those that are only an affiliation, by name.
+            One row per organization: the affiliations of the people who lead the record
+            first, then organizations that lead it themselves, then the organizations
+            credited directly in their order, then those that are only an affiliation,
+            by name.
         """
         credited_from = {}
         for row in people:
@@ -177,17 +186,19 @@ class ContributorsBase(ContributionPage):
     def in_default_order(self, rows, people):
         """Order the organizations and give each the badges it shows.
 
-        The affiliations of the people who lead the record come first, in the order those people
-        are credited, then organizations that are Project Leader themselves, and all of them
-        show Project Leader. An organization people are credited from, with no roles of its own,
-        shows Project Member. One with roles of its own keeps them.
+        The affiliations of the people who lead the record come first, in the order
+        those people are credited, then organizations that are Project Leader
+        themselves, and all of them show Project Leader. An organization people are
+        credited from, with no roles of its own, shows Project Member. One with roles of
+        its own keeps them.
 
         Args:
             rows: The organization rows, listed ones first, then affiliations by name.
             people: The rows from ``people``.
 
         Returns:
-            The rows in their default order, each with ``badges``, the role labels it shows.
+            The rows in their default order, each with ``badges``, the role labels it
+            shows.
         """
         leader, member = role_by_slug(LEADER), role_by_slug(MEMBER)
         led_from = []
@@ -220,8 +231,8 @@ class ContributorsBase(ContributionPage):
             people: The rows from ``people``.
 
         Returns:
-            One entry per person with their ``level`` label and the record it comes from, none
-            for anyone who cannot see levels.
+            One entry per person with their ``level`` label and the record it comes
+            from, none for anyone who cannot see levels.
         """
         credited = {row["person"].pk for row in people}
         return [
@@ -269,7 +280,8 @@ class ContributorsBase(ContributionPage):
         """Answer with the region drawn again, and close the open sheet.
 
         Args:
-            toast: The notice to show, with its ``text``, optionally ``tone`` and an undo.
+            toast: The notice to show, with its ``text``, optionally ``tone`` and an
+                undo.
             close_sheet: Whether the answer tells the page to close the open sheet.
         """
         html = render_to_string(
@@ -306,13 +318,14 @@ class ContributorsBase(ContributionPage):
         return response
 
     def step_response(self, template, context, chrome=True):
-        """Answer with the next step of the open sheet: its body, and with ``chrome`` its foot.
+        """Answer with the next step of the open sheet: its body, and with ``chrome``
+        its foot.
 
         Args:
             template: The step's template.
             context: What it draws.
-            chrome: Whether the answer also replaces the sheet's foot and head, out of band. A
-                list of search results answers without it.
+            chrome: Whether the answer also replaces the sheet's foot and head, out of
+                band. A list of search results answers without it.
         """
         context = {
             **context,
@@ -338,10 +351,12 @@ class ContributorsBase(ContributionPage):
         """Return the sheet's title on a step about one person or organization.
 
         Args:
-            contributor: The person or organization, or None for one not yet in the portal.
+            contributor: The person or organization, or None for one not yet in the
+                portal.
             new_name: For a person not yet in the portal, their ``first_name`` and
                 ``last_name``; for an organization, its name.
-            organization: Whether a contributor not yet in the portal is an organization.
+            organization: Whether a contributor not yet in the portal is an
+                organization.
         """
         if contributor is not None:
             return {"contributor": contributor, "title": contributor.name}
@@ -378,8 +393,9 @@ class ContributorsBase(ContributionPage):
             call: The registry method to call.
 
         Returns:
-            ``(answer, problem)``: the answer, or None and ``"limited"`` when the person has
-            searched too often, or ``"unavailable"`` when the registry could not be asked.
+            ``(answer, problem)``: the answer, or None and ``"limited"`` when the person
+            has searched too often, or ``"unavailable"`` when the registry could not be
+            asked.
         """
         try:
             count_search(self.request.user)
@@ -390,7 +406,9 @@ class ContributorsBase(ContributionPage):
             return None, "unavailable"
 
     def registry_refusal(self, registry, problem):
-        """Answer a change that could not be made because a registry could not be asked."""
+        """Answer a change that could not be made because a registry could
+        not be asked.
+        """
         text = _("You are searching too fast. Wait a moment and try again.")
         if problem != "limited":
             text = _("%(registry)s could not be reached. Try again.") % {
@@ -410,8 +428,8 @@ class ContributorsBase(ContributionPage):
         Project Member is kept for anyone being added and for anyone who holds it.
 
         Args:
-            held: The pks of the roles the contributor holds now, or None when they are being
-                added.
+            held: The pks of the roles the contributor holds now, or None when they are
+                being added.
         """
         member = role_by_slug(MEMBER)
         if member is None or member.pk not in {r.pk for r in self.offered_roles()}:
@@ -422,8 +440,8 @@ class ContributorsBase(ContributionPage):
         """Return the roles ticked in the posted form, limited to the offered ones.
 
         Args:
-            held: The pks of the roles the contributor holds now, or None when they are being
-                added.
+            held: The pks of the roles the contributor holds now, or None when they are
+                being added.
         """
         offered = {str(role.pk): role for role in self.offered_roles()}
         chosen = [
@@ -436,10 +454,11 @@ class ContributorsBase(ContributionPage):
 
     @staticmethod
     def held_by(credit):
-        """Return the pks of the roles a contribution holds, or None when it counts as new.
+        """Return the pks of the roles a contribution holds, or None when it counts as
+        new.
 
-        An organization listed with no roles of its own is there as someone's affiliation and
-        shows Project Member, so it is treated as just added.
+        An organization listed with no roles of its own is there as someone's
+        affiliation and shows Project Member, so it is treated as just added.
 
         Args:
             credit: The contribution, or None when the contributor is being added.
@@ -452,10 +471,12 @@ class ContributorsBase(ContributionPage):
         return held
 
     def role_context(self, credit):
-        """Return the roles to offer, the ones ticked and the ones that can't be unticked.
+        """Return the roles to offer, the ones ticked and the ones that can't be
+        unticked.
 
         Args:
-            credit: The contribution being edited, or None when the contributor is being added.
+            credit: The contribution being edited, or None when the contributor is being
+                added.
         """
         held = self.held_by(credit)
         locked = self.locked_roles(held)
@@ -468,15 +489,16 @@ class ContributorsBase(ContributionPage):
 
 
 def affiliation_choices(person):
-    """Return the organizations to credit a person from: theirs first, then every other one.
+    """Return the organizations to credit a person from: theirs first, then every other
+    one.
 
     Args:
         person: The person, or None for someone not yet in the portal.
 
     Returns:
-        ``(theirs, others)``: ``theirs`` is a list of ``(organization, current)`` for the
-        organizations on the person's profile, current ones first, and ``others`` every other
-        organization by name.
+        ``(theirs, others)``: ``theirs`` is a list of ``(organization, current)`` for
+        the organizations on the person's profile, current ones first, and ``others``
+        every other organization by name.
     """
     theirs = []
     if person is not None:

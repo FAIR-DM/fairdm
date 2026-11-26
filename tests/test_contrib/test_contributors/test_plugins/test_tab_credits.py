@@ -1,4 +1,6 @@
-"""Tests for changing, removing and reordering what a record credits, through the test client."""
+"""Tests for changing, removing and reordering what a record credits, through the test
+client.
+"""
 
 import pytest
 from bs4 import BeautifulSoup

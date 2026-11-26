@@ -1,4 +1,6 @@
-"""Tests for adding an organization to a record's Contributors tab, through the test client."""
+"""Tests for adding an organization to a record's Contributors tab, through the test
+client.
+"""
 
 import pytest
 import requests

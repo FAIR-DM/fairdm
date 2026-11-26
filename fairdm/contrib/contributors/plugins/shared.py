@@ -1,7 +1,8 @@
-"""What every page of a record's Contributors tab shares: the record, its kind and who may manage it.
+"""What every page of a record's Contributors tab shares: the record, its kind and who
+may manage it.
 
-Every page opens only when the record's overview would, and a page that changes anything asks
-whether the viewer can manage the record on every request.
+Every page opens only when the record's overview would, and a page that changes anything
+asks whether the viewer can manage the record on every request.
 """
 
 from django.contrib.auth.views import redirect_to_login
@@ -24,7 +25,9 @@ from ..choices import ContributionLevel
 
 
 def level_choices(record, floor=None):
-    """Return the three levels as the edit page draws them, marking those below ``floor``."""
+    """Return the three levels as the edit page draws them, marking those below
+    ``floor``.
+    """
     kind = RecordAccess(record).kind
     hints = {
         ContributionLevel.VIEW: _("Open this %(kind)s while it is private.")
@@ -32,7 +35,8 @@ def level_choices(record, floor=None):
         ContributionLevel.EDIT: _("Also change this %(kind)s and the data in it.")
         % {"kind": kind},
         ContributionLevel.MANAGE: _(
-            "Also change its contributors and their access, change its visibility and delete it."
+            "Also change its contributors and their access, change its visibility and "
+            "delete it."
         ),
     }
     return [
@@ -58,7 +62,9 @@ class ContributionPage(Plugin, FairDMTemplateView):
 
     @property
     def overview(self):
-        """The overview plugin of the record's kind, whose check decides who may open the record."""
+        """The overview plugin of the record's kind, whose check decides who may open
+        the record.
+        """
         from fairdm.core.dataset.plugins import Overview as DatasetOverview
         from fairdm.core.measurement.plugins import Overview as MeasurementOverview
         from fairdm.core.project.plugins import Overview as ProjectOverview
@@ -72,7 +78,9 @@ class ContributionPage(Plugin, FairDMTemplateView):
         }[self.access.model]
 
     def dispatch(self, request, *args, **kwargs):
-        """Answer as the overview does when the record is closed to the viewer, then refuse a page for changing contributors to anyone who may not manage the record."""
+        """Answer as the overview does when the record is closed to the viewer, then
+        refuse a page for changing contributors to anyone who may not manage the record.
+        """
         if not can_open(self.overview, request, self.base_object):
             raise Http404(
                 _("No %(kind)s matches the given query.") % {"kind": self.access.kind}
@@ -97,11 +105,15 @@ class ContributionPage(Plugin, FairDMTemplateView):
 
     @cached_property
     def can_see_levels(self):
-        """Whether the viewer may be told what people may do: only someone who can manage."""
+        """Whether the viewer may be told what people may do: only someone who can
+        manage.
+        """
         return self.access.can_manage(self.request.user)
 
     def get_context_data(self, **kwargs):
-        """Add the record's kind, the tab's address and whether the viewer may manage."""
+        """Add the record's kind, the tab's address and whether the
+        viewer may manage.
+        """
         context = super().get_context_data(**kwargs)
         record = self.base_object
         context.update(

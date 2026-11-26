@@ -1,7 +1,8 @@
 """Adding an organization on a record's Contributors tab, in steps drawn in one sheet.
 
-The steps are: find an organization in the portal, or start one from the search, then what ROR
-has under that name ("Do you mean?"), and the organization's roles. The last step posts.
+The steps are: find an organization in the portal, or start one from the search, then
+what ROR has under that name ("Do you mean?"), and the organization's roles. The last
+step posts.
 """
 
 from urllib.parse import urlencode
@@ -30,7 +31,9 @@ class AddOrganization(ContributorsBase):
         return _("Add an organization to this %(kind)s") % {"kind": self.access.kind}
 
     def step_url(self, **query):
-        """Return the address of a step of this sheet, carrying what is known of the organization."""
+        """Return the address of a step of this sheet, carrying what is known of the
+        organization.
+        """
         query = {key: value for key, value in query.items() if value}
         return (
             self.record_url("contribution-list-add-organization")
@@ -57,7 +60,9 @@ class AddOrganization(ContributorsBase):
         return self.search_step()
 
     def search_step(self):
-        """Open the sheet, answer a search of the portal, or draw the search again for Back."""
+        """Open the sheet, answer a search of the portal, or draw the search again for
+        Back.
+        """
         request = self.request
         query = request.GET.get("q", "").strip()
         listed = Contribution.objects.for_entity(self.base_object).values_list(

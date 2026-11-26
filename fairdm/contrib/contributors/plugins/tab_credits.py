@@ -20,7 +20,9 @@ UNDO_SECONDS = 300
 
 
 class EditCredit(ContributorsBase):
-    """Edit one contributor: a person's affiliation, access level and roles, or an organization's roles."""
+    """Edit one contributor: a person's affiliation, access level and roles, or an
+    organization's roles.
+    """
 
     name = "edit"
     url_path = "<int:pk>/edit"
@@ -74,7 +76,9 @@ class EditCredit(ContributorsBase):
         )
 
     def chosen_affiliation(self):
-        """Return the organization picked in the posted form, None for no affiliation."""
+        """Return the organization picked in the posted form, None
+        for no affiliation.
+        """
         value = self.request.POST.get("affiliation", "")
         return (
             Organization.objects.filter(pk=value).first() if value.isdigit() else None
@@ -91,7 +95,9 @@ class EditCredit(ContributorsBase):
 
 
 class CreditOrganization(ContributorsBase):
-    """Give an organization that is only someone's affiliation roles of its own on the record."""
+    """Give an organization that is only someone's affiliation roles of its own on the
+    record.
+    """
 
     name = "credit-organization"
     url_path = "organization/<int:pk>/roles"
@@ -167,7 +173,9 @@ class UndoRemove(ContributorsBase):
     url_path = "undo"
 
     def post(self, request, *args, **kwargs):
-        """Recreate the removed contribution in its old place, with its roles and level."""
+        """Recreate the removed contribution in its old place, with its
+        roles and level.
+        """
         try:
             kept = signing.loads(
                 request.POST.get("undo", ""), salt=UNDO_SALT, max_age=UNDO_SECONDS

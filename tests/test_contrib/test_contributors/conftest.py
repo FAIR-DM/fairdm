@@ -278,8 +278,9 @@ def contributor_population(db):
 def credited_world(db):
     """A person credited on public and private records of every kind.
 
-    Each private record has its own mate, credited there under a role held nowhere else, so a
-    test can tell a role or a collaborator that is known only through a private record.
+    Each private record has its own mate, credited there under a role held nowhere else,
+    so a test can tell a role or a collaborator that is known only through a private
+    record.
     """
     person = PersonFactory(
         email="credited@example.com",
@@ -400,7 +401,8 @@ def organization_profile_data():
 
 @pytest.fixture
 def record_chain(db):
-    """A project, a dataset in it, a sample in that dataset, and a measurement of the sample.
+    """A project, a dataset in it, a sample in that dataset, and a measurement of the
+    sample.
 
     The measurement belongs to a second dataset of the same project, so it is not in its
     sample's dataset.
@@ -450,7 +452,8 @@ class FakeResponse:
 
 
 class RegistryNetwork:
-    """Stands in for ``requests.get``: answers the addresses it was told about, records each call.
+    """Stands in for ``requests.get``: answers the addresses it was told about, records
+    each call.
 
     A request to an address it was not told about fails the test.
     """
@@ -468,8 +471,8 @@ class RegistryNetwork:
             body: The decoded body.
             status: The status code.
             headers: The response headers.
-            when: Parameters the request must carry for this answer, each value matching.
-                An answer with ``when`` is preferred over one without.
+            when: Parameters the request must carry for this answer, each value
+                matching. An answer with ``when`` is preferred over one without.
         """
         response = FakeResponse(status, body, headers)
         if when:
