@@ -154,6 +154,9 @@ credit order, then those that are only the affiliation of a person on the record
   an organization that isn't in the portal; it is made in the portal when they are added.
 - 2026-11-26: The affiliation step's main button is No affiliation, with an arrow, since it leads
   on to the roles. There is no radio list: a person's affiliation is picked by tapping its row.
+- 2026-11-26: The organizations on someone's ORCID record keep the heading "From their ORCID
+  record". Current ones carry a small grey Current badge. Past ones carry none. The edit sheet
+  marks the organizations on a person's profile the same way.
 - 2026-11-26: Only what a person has made public on ORCID can be offered. Sam's own record lists
   one employment (GFZ), so no past affiliation shows for him; a record with past ones, such as
   0000-0002-2700-4605, shows them.

@@ -108,7 +108,6 @@
 .contrib-option:hover { background: var(--color-base-200); }
 .contrib-option[hidden] { display: none; }
 .contrib-option-name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-.contrib-option-note { font-size: 0.75rem; color: color-mix(in oklab, var(--color-base-content) 60%, transparent); }
 
 /* A registry's live search: its results open beneath the field, each row as wide as the list.
    django-mvp's Tom Select theme pads the list and each option, so these rules are pinned to the

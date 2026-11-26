@@ -19,7 +19,7 @@
             <label class="contrib-option" data-name="{{ org.name|lower }}" x-show="!q || $el.dataset.name.includes(q.toLowerCase())">
               <input type="radio" class="radio radio-sm radio-primary" name="affiliation" value="{{ org.pk }}" {% if org.pk == current_affiliation %}checked{% endif %}>
               <span class="contrib-option-name">{{ org.name }}</span>
-              <span class="contrib-option-note">{{ note }}</span>
+              {% if note == "Current" %}<span class="badge badge-sm badge-soft badge-neutral flex-none" data-contrib-current>{% translate "Current" %}</span>{% endif %}
             </label>
           {% endfor %}
           <p class="contrib-group" x-show="!q">{% translate "Other organizations" %}</p>
