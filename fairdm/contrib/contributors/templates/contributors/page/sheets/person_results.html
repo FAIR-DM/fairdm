@@ -18,6 +18,6 @@
     {% endfor %}
   </ul>
 {% else %}
-  <p class="contrib-none">{% if query %}{% blocktranslate %}Nobody called “{{ query }}” is in the portal.{% endblocktranslate %}{% else %}{% translate "Everyone in the portal is already on this record." %}{% endif %}</p>
+  <p class="contrib-none">{% if listed_already %}{% blocktranslate %}The person with that ORCID iD is already on this {{ kind }}.{% endblocktranslate %}{% elif identifier and unavailable %}{% translate "ORCID could not be reached." %}{% elif identifier and not new_row %}{% translate "ORCID has no public record under that iD." %}{% elif identifier %}{% translate "Nobody with that ORCID iD is in the portal." %}{% elif query %}{% blocktranslate %}Nobody called “{{ query }}” is in the portal.{% endblocktranslate %}{% else %}{% translate "Everyone in the portal is already on this record." %}{% endif %}</p>
 {% endif %}
 {% if new_row %}{% include "contributors/page/sheets/new_row.html" %}{% endif %}

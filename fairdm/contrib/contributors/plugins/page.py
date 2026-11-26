@@ -27,7 +27,9 @@ from fairdm.core.measurement.models import Measurement
 from fairdm.core.project.models import Project
 from fairdm.core.sample.models import Sample
 
-from ..models import Contribution, Contributor, Organization, Person
+from fairdm.core.vocabularies import ORCID
+
+from ..models import Contribution, Contributor, ContributorIdentifier, Organization, Person
 from ..services.crediting import Crediting
 from ..services.registries import JSON, Orcid, RegistryUnavailable, Ror, ask
 from .shared import ContributionPage
@@ -522,11 +524,32 @@ class AddPerson(ContributorsBase):
         query = request.GET.get("q", "").strip()
         listed = Contribution.objects.for_entity(self.base_object).values_list("contributor_id", flat=True)
         found = Person.objects.real().exclude(pk__in=listed).exclude(is_superuser=True)
-        if query:
+        identifier = Orcid().identifier_in(query)
+        holders = ContributorIdentifier.objects.filter(type_id=ORCID, value=identifier).values("related_id")
+        if identifier:
+            found = found.filter(pk__in=holders)
+        elif query:
             found = found.filter(Q(name__icontains=query) | Q(first_name__icontains=query) | Q(last_name__icontains=query))
         found = list(found.order_by("name")[:12])
         context = {"found": found, "query": query, "step_url": self.record_url("contributors-add-person-step")}
-        if len(query) > 1 and not any(person.name.lower() == query.lower() for person in found):
+        if identifier and not found:
+            context["identifier"] = identifier
+            if Contribution.objects.for_entity(self.base_object).filter(contributor_id__in=holders).exists():
+                context["listed_already"] = True
+            else:
+                try:
+                    record = Orcid().fetch(identifier)
+                except RegistryUnavailable:
+                    record, context["unavailable"] = None, True
+                if record:
+                    context["new_row"] = {
+                        "name": record["name"],
+                        "initials": initials_of(record),
+                        "detail": record["detail"],
+                        "orcid": record["id"],
+                        "url": AddPersonStep.step_url(self, {}, orcid=record["id"], via="search"),
+                    }
+        elif len(query) > 1 and not any(person.name.lower() == query.lower() for person in found):
             typed = split_name(query)
             context["new_row"] = {
                 "name": query,

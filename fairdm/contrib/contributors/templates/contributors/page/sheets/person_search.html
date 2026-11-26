@@ -8,8 +8,8 @@
              name="q"
              value="{{ query }}"
              autocomplete="off"
-             placeholder="{% translate "Search people by name" %}"
-             aria-label="{% translate "Search people by name" %}"
+             placeholder="{% translate "Search by name or ORCID iD" %}"
+             aria-label="{% translate "Search by name or ORCID iD" %}"
              hx-get="{{ request.path }}"
              hx-trigger="input changed delay:250ms, search"
              hx-target="#contrib-person-results"
@@ -19,14 +19,5 @@
   </div>
   <div id="contrib-person-results">
     {% include "contributors/page/sheets/person_results.html" %}
-  </div>
-  <div class="contrib-new">
-    <span>{% translate "Not in the portal yet?" %}</span>
-    <button type="button" class="btn btn-sm btn-ghost"
-            hx-get="{{ step_url }}?new=1"
-            hx-target="#contrib-sheet-step"
-            hx-swap="outerHTML">
-      <c-icon name="plus" aria-hidden="true" /> {% translate "Add someone new" %} <c-icon name="arrow-right" aria-hidden="true" />
-    </button>
   </div>
 </div>

@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n easy_icons %}
 {# The name typed in a search, as one more row of the results, for someone or something not in the portal yet: drawn like the portal's own rows, with a New badge. #}
 <ul class="contrib-picks" aria-label="{% translate "Not in the portal yet" %}">
   <li>
@@ -14,6 +14,8 @@
       {% endif %}
       <span class="contrib-pick-text">
         <span class="contrib-pick-name">{{ new_row.name }}</span>
+        {% if new_row.detail %}<span class="contrib-pick-sub">{{ new_row.detail }}</span>{% endif %}
+        {% if new_row.orcid %}<span class="contrib-pick-sub contrib-pick-id">{% icon "orcid" class="contrib-orcid-icon" aria_hidden="true" %}<span>{{ new_row.orcid }}</span></span>{% endif %}
       </span>
       <span class="badge badge-sm badge-success flex-none">{% translate "New" %}</span>
       <c-icon name="chevron-right" aria-hidden="true" />
