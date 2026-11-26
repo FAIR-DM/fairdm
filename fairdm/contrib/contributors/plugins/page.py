@@ -365,6 +365,7 @@ class ContributorsBase(ContributionPage):
             "back": context.get("back_url", ""),
             "next": context.get("next_url", ""),
             "next_text": context.get("next_text", ""),
+            "arrow": context.get("submit_arrow", False),
         }
 
     # ------------------------------------------------------------------ shared form parts
@@ -588,6 +589,7 @@ class AddPersonStep(ContributorsBase):
                 "step_url": self.record_url("contributors-add-person-step"),
                 "orcid_search_url": self.record_url("contributors-registry", which="orcid"),
                 "submit_text": _("Continue"),
+                "submit_arrow": True,
                 "submit_form": "contrib-new-form",
                 "back_url": self.record_url("contributors-add-person") + "?back=1",
                 "head": {"title": _("Add a person to this %(kind)s") % {"kind": self.access.kind}},
@@ -903,6 +905,7 @@ class AddOrganization(ContributorsBase):
                 "step_url": self.record_url("contributors-add-organization"),
                 "ror_search_url": self.record_url("contributors-registry", which="ror"),
                 "submit_text": _("Continue"),
+                "submit_arrow": True,
                 "submit_form": "contrib-new-form",
                 "back_url": self.record_url("contributors-add-organization") + "?back=1",
                 "head": {"title": self.title()},

@@ -1,5 +1,5 @@
 {% load i18n %}
-{# A sheet's foot: Cancel, small, on the left, Back on a later step, and the step's main button filling the rest. Each step brings its own. #}
+{# A sheet's foot: Cancel, small, on the left, Back on a later step, and the step's main button filling the rest, with a right arrow when it leads on to another step. Each step brings its own. #}
 <div id="contrib-sheet-actions" class="flex items-center gap-2"{% if oob %} hx-swap-oob="true"{% endif %}>
   <button type="button" class="btn btn-ghost" onclick="this.closest('dialog').close()">{% translate "Cancel" %}</button>
   {% if foot.back %}
@@ -10,11 +10,13 @@
   {% if foot.next %}
     <button type="button" class="btn btn-primary min-w-0 flex-1" hx-get="{{ foot.next }}" hx-target="#contrib-sheet-step" hx-swap="outerHTML" data-contrib-submit data-contrib-skip>
       <span class="truncate">{{ foot.next_text }}</span>
+      <c-icon name="arrow-right" aria-hidden="true" />
     </button>
   {% elif foot.submit %}
     <button type="submit" class="btn btn-primary min-w-0 flex-1" form="{{ foot.form|default:"contrib-form" }}" data-contrib-submit>
       {% if foot.icon %}<c-icon name="{{ foot.icon }}" aria-hidden="true" />{% endif %}
       <span class="truncate">{{ foot.submit }}</span>
+      {% if foot.arrow %}<c-icon name="arrow-right" aria-hidden="true" />{% endif %}
     </button>
   {% endif %}
 </div>
