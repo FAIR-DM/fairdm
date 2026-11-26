@@ -62,7 +62,8 @@ def initials_of(record, organization=False):
     rule.
 
     Args:
-        record: A registry record with ``name`` and, for a person, ``given`` and ``family``.
+        record: A registry record with ``name`` and, for a person, ``given`` and
+            ``family``.
         organization: Whether the record is an organization.
     """
     if organization:
@@ -419,7 +420,8 @@ class ContributorsBase(ContributionPage):
 
         Args:
             registry: The registry's name, shown in the message.
-            problem: ``limited`` when the user searched too fast, otherwise the registry could not be reached.
+            problem: ``limited`` when the user searched too fast, otherwise the
+                registry could not be reached.
         """
         text = _("You are searching too fast. Wait a moment and try again.")
         if problem != "limited":
