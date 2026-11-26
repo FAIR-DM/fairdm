@@ -1451,7 +1451,7 @@ wheels = [
 
 [[package]]
 name = "django-mvp"
-version = "0.39.2"
+version = "0.39.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "coloraide" },
@@ -1470,9 +1470,9 @@ dependencies = [
     { name = "modelsearch" },
     { name = "tinycss2" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/cd/8e/09a4920de3ab2b428830ac5f1d629d71833f51e221255c5330836d049d35/django_mvp-0.39.2.tar.gz", hash = "sha256:f4f677d3b4bb7fb0102ed1d8580b519fbf02cde5ac2e20b4935ca47f15ca9113", size = 407898, upload-time = "2026-11-26T16:05:19.664Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/42/3a/cf4effb3b203934ec21c725c6580c9be0569d3913a82cca85961748b16ec/django_mvp-0.39.3.tar.gz", hash = "sha256:4e3c8cd05cb64a99f4d41de014474a339308da0432da9b9b4e54a41d1ff42476", size = 408415, upload-time = "2026-11-26T23:13:37.737Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/65/51/6925e0892fdcac9a0578c1e41a023e1d98607256ea8314dd1571db5a1ea0/django_mvp-0.39.2-py3-none-any.whl", hash = "sha256:208ab6b5f2d8cfa0fc47b72bdfb0cf1c5a7af4c6da4748150a0a0824102d7830", size = 483723, upload-time = "2026-11-26T16:05:18.236Z" },
+    { url = "https://files.pythonhosted.org/packages/5c/0f/5fbd9dd707c4e196e6a3194f6d8e033c9a21c77adeeb830050e2849187f3/django_mvp-0.39.3-py3-none-any.whl", hash = "sha256:6ed586402596bdb6d0b438e75a36565a187ce409fd9d99bf9a76e6294924f047", size = 484258, upload-time = "2026-11-26T23:13:36.121Z" },
 ]
 
 [[package]]
@@ -2146,7 +2146,7 @@ requires-dist = [
     { name = "django-literature", extras = ["ui"], specifier = ">=0.4.0,<0.5.0" },
     { name = "django-meta", specifier = ">=2.1.0,<3.0.0" },
     { name = "django-model-utils", specifier = ">=4.3.1,<6.0.0" },
-    { name = "django-mvp", specifier = ">=0.39.2,<0.40.0" },
+    { name = "django-mvp", specifier = ">=0.39.3,<0.40.0" },
     { name = "django-mvp-accounts", extras = ["api"], specifier = ">=0.4.0,<0.5.0" },
     { name = "django-mvp-charts", specifier = ">=0.3.0,<0.4.0" },
     { name = "django-mvp-community", extras = ["activity"], specifier = ">=0.1.4,<0.2.0" },
