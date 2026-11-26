@@ -288,6 +288,44 @@ credit order, then those that are only the affiliation of a person on the record
 - Nothing is seeded for samples or measurements, though the page is registered on them.
 - On a phone, django-mvp's one-time swipe hint on the first row clips the three action labels.
 
+## The split
+
+Nothing here is a new feature. Every piece changes the Contributors tab that FS-022 specifies, so it
+is built as fixes to that tab, each editing FS-022 (and FS-036 for the citation) to match.
+
+**First, in one pull request (no migration):**
+
+- The tab rebuilt from this branch: the two columns, the rows with their one action toggle and
+  sheet, Edit, Remove with Undo in place of a confirmation, Reorder in a sheet, and the
+  organizations' set order. FS-022's tab search and the reordering of organizations go. Access
+  levels stay: a person's Edit sheet keeps the level choice, and a manager still sees who holds
+  access from a record above. The old tab's pages and the two row components that opened their
+  actions as a dropdown (`cotton/contribution/organization.html`,
+  `cotton/contributor/card/contribution.html`) are removed: they are the only rows in the
+  repository with dropdown actions. A row can still be moved without dragging, by the drag
+  handle's arrow keys.
+- Add a person and Add an organization, with the portal search, the New row, ORCID's and ROR's
+  "Do you mean?", the name check, the affiliation step and the roles step.
+- An organization on someone's ORCID record is matched to the portal's through ROR by its other
+  identifiers (Funder Registry, Ringgold, GRID), so picking it does not make a second one.
+- The Contributor roles documentation page.
+- Everyone added holds Project Member, ticked and locked.
+
+**Then, once that has merged (it carries a migration):**
+
+- Leaving a person out of a record's citation while still crediting them: a field on the
+  contribution, the eye in the reorder sheet, and citations and exports that leave them out.
+
+**In django-mvp, beside the first pull request, then released:** the list row passes art to its
+actions sheet, the sheet's line under its title can be swapped, Tom Select's list is laid out to
+fit inside a sheet, and the reorder handle moves a row with the arrow keys. The first pull request
+moves to that release before it merges, and drops this branch's copy of the list row, the title
+workaround and the Tom Select overrides.
+
+**Shared pieces, all built by the first pull request:** the sheet foot (Back and a main button),
+the sheet head, the roles field, the New row and the ROR matches step. The second reuses the
+reorder sheet.
+
 ## What it replaces
 
 The Contributors tab on every core record type.
