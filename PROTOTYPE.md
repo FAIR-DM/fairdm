@@ -64,12 +64,13 @@ the open sheet.
 
 **Forms open in one sheet slot.** Add and Edit fetch a sheet into `#contrib-sheet-slot` and open it
 with `HX-Trigger-After-Settle: {"mvp-sheet-open": {"id": "contrib-sheet"}}`. Multi-step adds swap
-`#contrib-sheet-step` inside the open sheet. Every sheet's foot is the same: Cancel, small, on the
-left, and the step's main button filling the rest of the width (`sheets/foot.html`). A button
+`#contrib-sheet-step` inside the open sheet. Every sheet's foot is the same: Back, small, on the
+left on a later step, and the step's main button filling the rest of the width (`sheets/foot.html`). A button
 that leads on to another step has a right arrow after its words: Continue, Add by name alone and
 Add someone new. Each step
 answers with its own foot too, swapped in out of band as `#contrib-sheet-actions`, so a step with
-nothing to send shows Cancel alone. A step about one person or organization also swaps the sheet's
+nothing to send has an empty foot. There is no Cancel: tapping outside, dragging the sheet down or
+its close button closes it. A step about one person or organization also swaps the sheet's
 title for their avatar and name (`sheets/head.html`, into `#contrib-sheet-title`), and a match
 step swaps it for "Do you mean?" with the registry named in a muted line under it. A later step's
 foot has Back, which fetches the previous step into `#contrib-sheet-step`; the search steps are
@@ -130,6 +131,8 @@ credit order, then those that are only the affiliation of a person on the record
 
 ## Decisions
 
+- 2026-11-26: No sheet has a Cancel button. Its foot is Back where there is a step to go back to,
+  and the main button.
 - 2026-11-26: Every button that leads on to another step has a right arrow on its right.
 - 2026-11-26: The ORCID and ROR match steps are titled "Do you mean?", with "Powered by ORCID" or
   "Powered by the Research Organization Registry (ROR)" muted under the title and no question line
@@ -149,14 +152,13 @@ credit order, then those that are only the affiliation of a person on the record
 - 2026-11-26: Anyone added, person or organization, gets Project Member, ticked and not
   removable. Someone who already holds it keeps it when edited, and so does an organization that
   is only there as someone's affiliation, since its row shows Project Member.
-- 2026-11-26: The multi-step sheets have a Back button in the foot, between Cancel and the main
-  button, that returns to the previous step.
+- 2026-11-26: The multi-step sheets have a Back button in the foot, before the main button, that
+  returns to the previous step.
 - 2026-11-26: Once a person or organization is picked, the next step's head shows their avatar
   and name in place of "Add a person to this project".
 - 2026-11-26: The affiliation step reads "Select their affiliation on this project". Its button
-  carries the add icon and the person's first name ("Add Aiko"). Every sheet's foot has Cancel,
-  small, on the left and the main button filling the rest, including Continue on the step that
-  adds someone new.
+  carries the add icon and the person's first name ("Add Aiko"). The main button of every
+  sheet's foot fills the width beside Back, including Continue on the step that adds someone new.
 - 2026-11-26: In Add a person and Add an organization the search box stays at the top of the
   sheet while the results scroll under it. "Not in the portal yet? Add someone new" stays below
   the results.
