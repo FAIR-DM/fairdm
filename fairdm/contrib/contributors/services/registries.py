@@ -35,6 +35,9 @@ KEPT = 300
 
 JSON = {"Accept": "application/json"}
 
+SEARCHES_PER_MINUTE = 60
+"""The most registry searches one person may make in a minute."""
+
 
 FETCH_TIMEOUT = 10
 """The seconds a registry has to answer a fetch of one record for a profile."""
@@ -111,6 +114,32 @@ class RegistryUnavailable(Exception):
     """
 
 
+class SearchLimitReached(RegistryUnavailable):
+    """Signal that a person has searched the registries more often than they may in a minute."""
+
+
+def count_search(user):
+    """Count one registry search against a person, refusing it past the limit.
+
+    The count is kept in the default cache for the minute it began in, so it is shared by every
+    process and forgotten after a minute.
+
+    Args:
+        user: The signed-in person searching.
+
+    Raises:
+        SearchLimitReached: The person has made ``SEARCHES_PER_MINUTE`` searches this minute.
+    """
+    key = f"fairdm:registry-searches:{user.pk}"
+    cache.add(key, 0, 60)
+    try:
+        used = cache.incr(key)
+    except ValueError:
+        return  # A cache that keeps nothing cannot count.
+    if used > SEARCHES_PER_MINUTE:
+        raise SearchLimitReached(f"{user.pk} searched too often")
+
+
 def ask(address, parse, *, params=None, headers=None, missing_ok=False):
     """Request an address from a registry and read its answer, unless it is kept.
 
@@ -169,6 +198,7 @@ class Orcid:
 
     SEARCH = "https://pub.orcid.org/v3.0/expanded-search/"
     RECORD = "https://pub.orcid.org/v3.0/{}/record"
+    ACTIVITIES = "https://pub.orcid.org/v3.0/{}/activities"
 
     def identifier_in(self, text):
         """Pick an ORCID iD out of text that is one, or an address of one.
@@ -182,11 +212,55 @@ class Orcid:
         candidate = text.removeprefix("https://orcid.org/")
         return candidate if re.fullmatch(ORCID_PATTERN, candidate) else None
 
-    def search(self, term):
+    @staticmethod
+    def words_of(text):
+        """Return the words of a name or an organization, with nothing ORCID's query language reads."""
+        return [w for w in re.sub(r"[^\w'\-.]+", " ", text).split() if w.strip("-.'")]
+
+    @classmethod
+    def all_words(cls, field, words):
+        """Return a clause needing every word in ``field``, the last one possibly typed in part."""
+        *whole, last = words
+        parts = [f'"{w}"' for w in whole]
+        parts.append(f"{last}*" if re.fullmatch(r"\w+", last) else f'"{last}"')
+        return f"{field}:({' AND '.join(parts)})"
+
+    def queries_for(self, term, affiliation=""):
+        """Return the fielded queries a name search tries in turn, the strictest first.
+
+        ORCID reads a bare term against every field of a record and joins its words with OR, so
+        a name alone finds thousands of unrelated people. Each query here asks the name fields
+        only: first the name as typed, as a phrase, then every word of it in any order with the
+        last word as a prefix, so a name still being typed or given family name first is found.
+        An affiliation narrows each query to people with an organization of that name on their
+        record.
+
+        Args:
+            term: The name searched for.
+            affiliation: Part of the name of an organization on the person's record.
+
+        Returns:
+            The queries, none when the term has no words.
+        """
+        words = self.words_of(term)
+        if not words:
+            return []
+        narrowed = ""
+        if self.words_of(affiliation):
+            narrowed = " AND " + self.all_words(
+                "affiliation-org-name", self.words_of(affiliation)
+            )
+        phrase = f'given-and-family-names:"{" ".join(words)}"'
+        loose = self.all_words("given-and-family-names", words)
+        return [phrase + narrowed, loose + narrowed]
+
+    def search(self, term, affiliation=""):
         """Search by name, or by iD when the term is one.
 
         Args:
             term: A name, an ORCID iD or the address of one.
+            affiliation: Part of the name of an organization on the person's record, to narrow
+                a name search.
 
         Returns:
             ``{"results": [...], "more": bool}``: at most ``RESULTS_SHOWN`` records of people with
@@ -197,13 +271,22 @@ class Orcid:
         """
         term = term.strip()
         identifier = self.identifier_in(term)
-        query = f"orcid:{identifier}" if identifier else term
-        return ask(
-            self.SEARCH,
-            self.results_from,
-            params={"q": query, "rows": RESULTS_SHOWN},
-            headers=JSON,
+        queries = (
+            [f"orcid:{identifier}"]
+            if identifier
+            else self.queries_for(term, affiliation)
         )
+        found = {"results": [], "more": False}
+        for query in queries:
+            found = ask(
+                self.SEARCH,
+                self.results_from,
+                params={"q": query, "rows": RESULTS_SHOWN},
+                headers=JSON,
+            )
+            if found["results"]:
+                break
+        return found
 
     def results_from(self, body):
         """Read a search answer, leaving out records with no public name.
@@ -364,6 +447,99 @@ class Orcid:
                 person.identifiers.create(type_id=ORCID, value=record["id"])
             return person
 
+    AFFILIATION_SECTIONS = (
+        "employment",
+        "education",
+        "qualification",
+        "invited-position",
+        "membership",
+        "service",
+    )
+    """The sections of an ORCID record that name an organization the person belongs or belonged
+    to, in the order they are offered when nothing else separates them."""
+
+    def affiliations(self, orcid_id):
+        """Return every organization on a person's public ORCID record.
+
+        All the affiliation sections are read, ended ones included, each organization once. ORCID
+        identifies an organization by its ROR ID, or by a Funder Registry, Ringgold or GRID ID,
+        and the last three are resolved to a ROR ID through ROR.
+
+        Args:
+            orcid_id: The bare ORCID iD.
+
+        Returns:
+            One dictionary per organization, current ones first, then the most recently ended:
+            ``name``, ``ror`` (its ROR ID, or an empty string when none could be found) and
+            ``current``. Empty when ORCID could not be reached.
+        """
+        try:
+            found = ask(
+                self.ACTIVITIES.format(orcid_id), self.affiliations_from, headers=JSON
+            )
+        except RegistryUnavailable:
+            return []
+        rows, seen = [], set()
+        for entry in sorted(
+            found, key=lambda e: (not e["current"], -e["year"], e["rank"])
+        ):
+            ror = entry["ror"] or self.ror_for(entry["source"], entry["value"])
+            keys = {entry["name"].lower()} | ({ror} if ror else set())
+            if keys & seen:
+                continue
+            seen |= keys
+            rows.append(
+                {"name": entry["name"], "ror": ror, "current": entry["current"]}
+            )
+        return rows
+
+    @staticmethod
+    def ror_for(source, value):
+        """Return the ROR ID of an organization ORCID identifies another way, or an empty string."""
+        if not source or not value:
+            return ""
+        try:
+            return Ror().resolve(source, value) or ""
+        except RegistryUnavailable:
+            return ""
+
+    def affiliations_from(self, body):
+        """Read the affiliation sections of an activities answer.
+
+        Args:
+            body: The decoded answer.
+
+        Returns:
+            One dictionary per entry: ``name``, ``source`` and ``value`` of the identifier ORCID
+            gives (``ror`` holds the bare ROR ID itself when that is the source), ``current``, the
+            ``year`` it ended and the section's ``rank``.
+        """
+        found = []
+        for rank, section in enumerate(self.AFFILIATION_SECTIONS):
+            groups = (body.get(f"{section}s") or {}).get("affiliation-group") or []
+            for group in groups:
+                for summary in group["summaries"]:
+                    entry = summary.get(f"{section}-summary") or {}
+                    organization = entry.get("organization") or {}
+                    if not organization.get("name"):
+                        continue
+                    place = organization.get("disambiguated-organization") or {}
+                    source = place.get("disambiguation-source") or ""
+                    value = place.get("disambiguated-organization-identifier") or ""
+                    ended = entry.get("end-date") or {}
+                    found.append(
+                        {
+                            "name": organization["name"],
+                            "ror": (Ror().identifier_in(value) or "") if source == "ROR" else "",
+                            "source": "" if source == "ROR" else source,
+                            "value": "" if source == "ROR" else value,
+                            "current": not ended,
+                            "year": int(((ended.get("year") or {}).get("value")) or 0),
+                            "rank": rank,
+                        }
+                    )
+        return found
+
 
 class Ror:
     """Search ROR for organizations, fetch one record, and make a profile from it.
@@ -508,3 +684,39 @@ class Ror:
                     type_id=ROR, value=self.identifier_in(record["id"])
                 )
             return organization
+
+    EXTERNAL_IDS = {"FUNDREF": "fundref", "GRID": "grid", "RINGGOLD": "ringgold"}
+    """The ways ORCID identifies an organization other than by its ROR ID."""
+
+    def resolve(self, source, value):
+        """Find the ROR ID of an organization another registry identifies.
+
+        ORCID names many organizations by their Funder Registry, Ringgold or GRID ID. ROR lists
+        the identifiers it knows for an organization, so a search on one finds it. An identifier
+        that no organization holds, or that several do, finds nothing.
+
+        Args:
+            source: The registry as ORCID names it: ``FUNDREF``, ``GRID`` or ``RINGGOLD``.
+            value: The identifier, in the form ORCID gives it.
+
+        Returns:
+            The bare ROR ID, or None.
+
+        Raises:
+            RegistryUnavailable: ROR could not be asked or answered badly.
+        """
+        if source not in self.EXTERNAL_IDS:
+            return None
+        bare = value.strip().rsplit("/", 1)[-1]
+        if not re.fullmatch(r"[\w.\-]+", bare):
+            return None
+        return ask(
+            self.SEARCH,
+            self.sole_id_from,
+            params={"query.advanced": f'external_ids.all:"{bare}"'},
+        )
+
+    def sole_id_from(self, body):
+        """Read the ROR ID of the one active organization an identifier search found."""
+        records = [r for r in map(self.record_of, body["items"]) if r is not None]
+        return self.identifier_in(records[0]["id"]) if len(records) == 1 else None

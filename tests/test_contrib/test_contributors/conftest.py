@@ -457,11 +457,25 @@ class RegistryNetwork:
 
     def __init__(self):
         self.answers = {}
+        self.conditional = {}
         self.calls = []
 
-    def answer(self, address, body, status=200, headers=None):
-        """Answer a request to the address with a status, a decoded body and headers."""
-        self.answers[address] = FakeResponse(status, body, headers)
+    def answer(self, address, body, status=200, headers=None, when=None):
+        """Answer a request to the address with a status, a decoded body and headers.
+
+        Args:
+            address: The address requested.
+            body: The decoded body.
+            status: The status code.
+            headers: The response headers.
+            when: Parameters the request must carry for this answer, each value matching.
+                An answer with ``when`` is preferred over one without.
+        """
+        response = FakeResponse(status, body, headers)
+        if when:
+            self.conditional.setdefault(address, []).append((when, response))
+        else:
+            self.answers[address] = response
 
     def fail(self, address, error):
         """Raise the error when the address is requested, as a dead network would."""
@@ -477,9 +491,16 @@ class RegistryNetwork:
                 extra=extra,
             )
         )
-        if url not in self.answers:
+        outcome = next(
+            (
+                response
+                for when, response in self.conditional.get(url, [])
+                if all((params or {}).get(key) == value for key, value in when.items())
+            ),
+            self.answers.get(url),
+        )
+        if outcome is None:
             raise AssertionError(f"Unexpected request to {url}")
-        outcome = self.answers[url]
         if isinstance(outcome, Exception):
             raise outcome
         return outcome

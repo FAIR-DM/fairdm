@@ -18,9 +18,12 @@ from fairdm.contrib.contributors.models import (
     Person,
 )
 from fairdm.contrib.contributors.services.registries import (
+    SEARCHES_PER_MINUTE,
     Orcid,
     RegistryUnavailable,
     Ror,
+    SearchLimitReached,
+    count_search,
 )
 from fairdm.core.vocabularies import IDENTIFIER_TYPES
 from fairdm.factories import (
@@ -79,7 +82,7 @@ class TestSearchOrcid:
         assert results[2]["employer"] == ""
         assert results[2]["detail"]
 
-    def test_the_term_goes_in_the_parameters_with_a_limit_and_a_timeout(
+    def test_the_name_goes_in_the_parameters_as_a_phrase_with_a_limit_and_a_timeout(
         self, registry_network, recorded
     ):
         registry_network.answer(ORCID_SEARCH, recorded("orcid-search"))
@@ -88,10 +91,45 @@ class TestSearchOrcid:
 
         (call,) = registry_network.calls
         assert call.url == ORCID_SEARCH
-        assert call.params["q"] == "Carberry & rows=1000"
+        assert call.params["q"] == 'given-and-family-names:"Carberry rows 1000"'
         assert 0 < call.params["rows"] <= 25
         assert call.headers["Accept"] == "application/json"
         assert call.timeout == 5
+
+    def test_a_name_nobody_has_as_a_phrase_is_asked_again_with_every_word(
+        self, registry_network, recorded
+    ):
+        registry_network.answer(
+            ORCID_SEARCH,
+            {"expanded-result": [], "num-found": 0},
+            when={"q": 'given-and-family-names:"Carberry Jo"'},
+        )
+        registry_network.answer(
+            ORCID_SEARCH,
+            recorded("orcid-search"),
+            when={"q": 'given-and-family-names:("Carberry" AND Jo*)'},
+        )
+
+        found = Orcid().search("Carberry Jo")
+
+        assert [call.params["q"] for call in registry_network.calls] == [
+            'given-and-family-names:"Carberry Jo"',
+            'given-and-family-names:("Carberry" AND Jo*)',
+        ]
+        assert found["results"]
+
+    def test_an_affiliation_narrows_the_name_to_people_with_that_organization(
+        self, registry_network, recorded
+    ):
+        registry_network.answer(ORCID_SEARCH, recorded("orcid-search"))
+
+        Orcid().search("Josiah Carberry", affiliation="Brown Uni")
+
+        (call,) = registry_network.calls
+        assert call.params["q"] == (
+            'given-and-family-names:"Josiah Carberry"'
+            ' AND affiliation-org-name:("Brown" AND Uni*)'
+        )
 
     def test_an_orcid_id_searches_by_identifier(self, registry_network, recorded):
         registry_network.answer(ORCID_SEARCH, recorded("orcid-search-by-id"))
@@ -114,7 +152,9 @@ class TestSearchOrcid:
 
         Orcid().search("0000-0002-1825")
 
-        assert registry_network.calls[0].params["q"] == "0000-0002-1825"
+        assert registry_network.calls[0].params["q"] == (
+            'given-and-family-names:"0000-0002-1825"'
+        )
 
     def test_a_record_with_no_public_name_is_left_out(self, registry_network, recorded):
         body = recorded("orcid-search")
@@ -712,3 +752,139 @@ class TestAnswersAreKept:
             Orcid().search("Carberry")
 
         assert len(registry_network.calls) == 2
+
+
+@pytest.mark.django_db
+class TestOrcidAffiliations:
+    ACTIVITIES = "https://pub.orcid.org/v3.0/{}/activities"
+
+    def test_every_section_is_read_with_current_organizations_first(
+        self, registry_network, recorded
+    ):
+        registry_network.answer(
+            self.ACTIVITIES.format(JOSIAH), recorded("orcid-activities")
+        )
+        registry_network.answer(ROR_SEARCH, {"number_of_results": 0, "items": []})
+
+        found = Orcid().affiliations(JOSIAH)
+
+        assert [(row["name"], row["current"]) for row in found] == [
+            ("GFZ Helmholtz Centre for Geosciences", True),
+            ("Helmholtz-Zentrum Potsdam - Deutsches GeoForschungsZentrum GFZ", True),
+            ("Deutsche Forschungsgemeinschaft", False),
+            ("University of Somewhere", False),
+            ("Old College", False),
+        ]
+
+    def test_an_organization_ORCID_names_by_grid_is_the_one_ROR_names_by_that_grid(
+        self, registry_network, recorded
+    ):
+        registry_network.answer(
+            self.ACTIVITIES.format(JOSIAH), recorded("orcid-activities")
+        )
+        registry_network.answer(
+            ROR_SEARCH,
+            recorded("ror-by-external-id"),
+            when={"query.advanced": 'external_ids.all:"grid.23731.34"'},
+        )
+        registry_network.answer(ROR_SEARCH, {"number_of_results": 0, "items": []})
+
+        found = Orcid().affiliations(JOSIAH)
+
+        assert [row["name"] for row in found] == [
+            "GFZ Helmholtz Centre for Geosciences",
+            "Deutsche Forschungsgemeinschaft",
+            "University of Somewhere",
+            "Old College",
+        ]
+        assert found[0]["ror"] == GFZ
+
+    def test_a_funder_registry_id_is_looked_up_by_its_number(
+        self, registry_network, recorded
+    ):
+        registry_network.answer(
+            self.ACTIVITIES.format(JOSIAH), recorded("orcid-activities")
+        )
+        registry_network.answer(ROR_SEARCH, {"number_of_results": 0, "items": []})
+
+        Orcid().affiliations(JOSIAH)
+
+        asked = [call.params["query.advanced"] for call in registry_network.calls[1:]]
+        assert 'external_ids.all:"501100001659"' in asked
+
+    def test_an_organization_with_no_identifier_ROR_can_resolve_has_no_ror_id(
+        self, registry_network, recorded
+    ):
+        registry_network.answer(
+            self.ACTIVITIES.format(JOSIAH), recorded("orcid-activities")
+        )
+        registry_network.answer(ROR_SEARCH, {"number_of_results": 0, "items": []})
+
+        found = Orcid().affiliations(JOSIAH)
+
+        assert {row["name"]: row["ror"] for row in found}["Old College"] == ""
+
+    def test_ORCID_that_cannot_be_reached_gives_no_organizations(
+        self, registry_network
+    ):
+        registry_network.fail(self.ACTIVITIES.format(JOSIAH), requests.Timeout("slow"))
+
+        assert Orcid().affiliations(JOSIAH) == []
+
+
+@pytest.mark.django_db
+class TestResolveToRor:
+    def test_an_identifier_one_organization_holds_gives_its_ror_id(
+        self, registry_network, recorded
+    ):
+        registry_network.answer(ROR_SEARCH, recorded("ror-by-external-id"))
+
+        assert Ror().resolve("GRID", "grid.23731.34") == GFZ
+
+    def test_an_identifier_several_organizations_hold_gives_nothing(
+        self, registry_network, recorded
+    ):
+        registry_network.answer(ROR_SEARCH, recorded("ror-search"))
+
+        assert Ror().resolve("GRID", "grid.23731.34") is None
+
+    def test_a_registry_ROR_does_not_index_makes_no_request(self, registry_network):
+        assert Ror().resolve("DOI", "10.1/2") is None
+        assert registry_network.calls == []
+
+    def test_an_identifier_with_quotes_in_it_makes_no_request(self, registry_network):
+        assert Ror().resolve("GRID", 'x" OR "y') is None
+        assert registry_network.calls == []
+
+    def test_ROR_that_cannot_be_reached_raises(self, registry_network):
+        registry_network.fail(ROR_SEARCH, requests.Timeout("slow"))
+
+        with pytest.raises(RegistryUnavailable):
+            Ror().resolve("GRID", "grid.23731.34")
+
+
+class TestSearchLimit:
+    @pytest.fixture(autouse=True)
+    def keeping_cache(self, settings):
+        """Give the run a cache that keeps what it is given, emptied afterwards."""
+        settings.CACHES = {
+            "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}
+        }
+        yield
+        cache.clear()
+
+    def test_a_person_may_search_up_to_the_limit_in_a_minute(self, db):
+        person = PersonFactory()
+
+        for _ in range(SEARCHES_PER_MINUTE):
+            count_search(person)
+
+        with pytest.raises(SearchLimitReached):
+            count_search(person)
+
+    def test_one_person_s_searches_do_not_count_against_another(self, db):
+        busy, quiet = PersonFactory(), PersonFactory()
+        for _ in range(SEARCHES_PER_MINUTE):
+            count_search(busy)
+
+        count_search(quiet)
