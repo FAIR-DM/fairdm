@@ -1,0 +1,29 @@
+{% load i18n %}
+{# The search step of the sheet: drawn inside it when it opens, and again when Back returns to it. #}
+<div id="contrib-sheet-step" class="contrib-step" x-data="{ q: '' }">
+  <div class="sticky top-0 z-10 bg-base-100 pb-1">
+    <label class="input contrib-search">
+      <c-icon name="search" aria-hidden="true" />
+      <input type="search"
+             name="q"
+             x-model="q"
+             autocomplete="off"
+             placeholder="{% translate "Search organizations" %}"
+             aria-label="{% translate "Search organizations" %}"
+             hx-get="{{ request.path }}"
+             hx-trigger="input changed delay:250ms, search"
+             hx-target="#contrib-organization-results"
+             hx-swap="innerHTML"
+             data-contrib-autofocus>
+    </label>
+  </div>
+  <div id="contrib-organization-results">
+    {% include "contributors/page/sheets/organization_results.html" %}
+  </div>
+  <div class="contrib-new" x-show="q.trim().length > 1">
+    <button type="button" class="btn btn-sm btn-ghost"
+            @click="htmx.ajax('GET', '{{ step_url }}?new_name=' + encodeURIComponent(q.trim()), {target: '#contrib-sheet-step', swap: 'outerHTML'})">
+      <c-icon name="plus" aria-hidden="true" /> <span>{% translate "Add" %} “<span x-text="q.trim()"></span>” {% translate "as a new organization" %}</span>
+    </button>
+  </div>
+</div>

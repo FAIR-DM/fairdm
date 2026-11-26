@@ -56,7 +56,10 @@ with `HX-Trigger-After-Settle: {"mvp-sheet-open": {"id": "contrib-sheet"}}`. Mul
 left, and the step's main button filling the rest of the width (`sheets/foot.html`). Each step
 answers with its own foot too, swapped in out of band as `#contrib-sheet-actions`, so a step with
 nothing to send shows Cancel alone. A step about one person or organization also swaps the sheet's
-title for their avatar and name (`sheets/head.html`, into `#contrib-sheet-title`).
+title for their avatar and name (`sheets/head.html`, into `#contrib-sheet-title`). A later step's
+foot has Back, which fetches the previous step into `#contrib-sheet-step`; the search steps are
+their own templates (`sheets/person_search.html`, `sheets/organization_search.html`) so Back can
+return to them.
 
 **Role chips.** Checkbox inputs styled as toggle chips (`.contrib-chips`), used wherever roles are
 picked.
@@ -109,6 +112,8 @@ credit order, then those that are only the affiliation of a person on the record
 
 ## Decisions
 
+- 2026-11-26: The multi-step sheets have a Back button in the foot, between Cancel and the main
+  button, that returns to the previous step.
 - 2026-11-26: Once a person or organization is picked, the next step's head shows their avatar
   and name in place of "Add a person to this project".
 - 2026-11-26: The affiliation step reads "Select their affiliation on this project". Its button
@@ -134,6 +139,9 @@ credit order, then those that are only the affiliation of a person on the record
 - Organizations aren't reordered.
 
 ## Faked or skipped
+
+- Back is the prototype's own button in the sheet's foot. django-mvp's sheet has no Back of its
+  own.
 
 - The Project Leader and Project Member badges of an organization are worked out when the page is
   drawn, not stored on its credit.

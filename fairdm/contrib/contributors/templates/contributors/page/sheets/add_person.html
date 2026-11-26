@@ -1,33 +1,5 @@
 {% load i18n %}
 <c-mvp.sheet id="{{ sheet_id }}" title="{{ sheet_title }}" lead="{{ sheet_lead }}" full class="contrib-sheet">
-  <div id="contrib-sheet-step" class="contrib-step">
-    <div class="sticky top-0 z-10 bg-base-100 pb-1">
-    <label class="input contrib-search">
-      <c-icon name="search" aria-hidden="true" />
-      <input type="search"
-             name="q"
-             autocomplete="off"
-             placeholder="{% translate "Search people by name" %}"
-             aria-label="{% translate "Search people by name" %}"
-             hx-get="{{ request.path }}"
-             hx-trigger="input changed delay:250ms, search"
-             hx-target="#contrib-person-results"
-             hx-swap="innerHTML"
-             data-contrib-autofocus>
-    </label>
-    </div>
-    <div id="contrib-person-results">
-      {% include "contributors/page/sheets/person_results.html" %}
-    </div>
-    <div class="contrib-new">
-      <span>{% translate "Not in the portal yet?" %}</span>
-      <button type="button" class="btn btn-sm btn-ghost"
-              hx-get="{{ step_url }}?new=1"
-              hx-target="#contrib-sheet-step"
-              hx-swap="outerHTML">
-        <c-icon name="plus" aria-hidden="true" /> {% translate "Add someone new" %}
-      </button>
-    </div>
-  </div>
+  {% include "contributors/page/sheets/person_search.html" %}
   <c-slot name="actions">{% include "contributors/page/sheets/foot.html" %}</c-slot>
 </c-mvp.sheet>

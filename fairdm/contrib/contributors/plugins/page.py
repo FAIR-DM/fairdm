@@ -8,6 +8,7 @@ This is prototype code on a branch that is never merged. See PROTOTYPE.md.
 """
 
 import json
+from urllib.parse import urlencode
 
 from controlled_vocabularies.models import Record
 from django.core.exceptions import PermissionDenied, ValidationError
@@ -297,6 +298,7 @@ class ContributorsBase(ContributionPage):
             "submit": context.get("submit_text", ""),
             "icon": context.get("submit_icon", ""),
             "form": context.get("submit_form", ""),
+            "back": context.get("back_url", ""),
         }
 
     # ------------------------------------------------------------------ shared form parts
@@ -377,13 +379,13 @@ class AddPerson(ContributorsBase):
             found = found.filter(Q(name__icontains=query) | Q(first_name__icontains=query) | Q(last_name__icontains=query))
         found = found.order_by("name")[:12]
         context = {"found": found, "query": query, "step_url": self.record_url("contributors-add-person-step")}
+        title = _("Add a person to this %(kind)s") % {"kind": self.access.kind}
         if request.headers.get("HX-Target") == "contrib-person-results":
             return self.step_response("contributors/page/sheets/person_results.html", context, chrome=False)
-        return self.sheet_response(
-            "contributors/page/sheets/add_person.html",
-            context,
-            _("Add a person to this %(kind)s") % {"kind": self.access.kind},
-        )
+        if request.GET.get("back"):
+            context["head"] = {"title": title}
+            return self.step_response("contributors/page/sheets/person_search.html", context)
+        return self.sheet_response("contributors/page/sheets/add_person.html", context, title)
 
 
 class AddPersonStep(ContributorsBase):
@@ -405,20 +407,27 @@ class AddPersonStep(ContributorsBase):
                 "last_name": request.GET.get("last_name", "").strip(),
                 "orcid": request.GET.get("orcid", "").strip(),
             }
-            if not new_name["last_name"]:
+            if not new_name["last_name"] or request.GET.get("form"):
                 return self.step_response(
                     "contributors/page/sheets/new_person.html",
                     {
-                        "error": _("Give their family name.") if "last_name" in request.GET else "",
+                        "error": _("Give their family name.") if "last_name" in request.GET and not new_name["last_name"] else "",
                         "new_name": new_name,
                         "step_url": self.record_url("contributors-add-person-step"),
                         "submit_text": _("Continue"),
                         "submit_form": "contrib-new-form",
+                        "back_url": self.record_url("contributors-add-person") + "?back=1",
                     },
                 )
         context = self.credit_form_context(person, new_name=new_name)
         context["action"] = self.record_url("contributors-add-person-step")
         context["head"] = self.head_for(person, new_name)
+        if person:
+            context["back_url"] = self.record_url("contributors-add-person") + "?back=1"
+        else:
+            context["back_url"] = self.record_url("contributors-add-person-step") + "?" + urlencode(
+                {"first_name": new_name["first_name"], "last_name": new_name["last_name"], "form": 1}
+            )
         context["submit_text"] = _("Add %(name)s") % {"name": first_name_of(person, new_name)}
         context["submit_icon"] = "add"
         return self.step_response("contributors/page/sheets/credit_form.html", context)
@@ -632,6 +641,7 @@ class AddOrganization(ContributorsBase):
                 "submit_text": _("Add to the %(kind)s") % {"kind": self.access.kind},
             }
             context["head"] = self.head_for(organization, context["new_name"], organization=True)
+            context["back_url"] = self.record_url("contributors-add-organization") + "?back=1"
             return self.step_response("contributors/page/sheets/organization_form.html", context)
         query = request.GET.get("q", "").strip()
         listed = Contribution.objects.for_entity(self.base_object).values_list("contributor_id", flat=True)
@@ -639,13 +649,13 @@ class AddOrganization(ContributorsBase):
         if query:
             found = found.filter(name__icontains=query)
         context = {"found": found.order_by("name")[:12], "query": query, "step_url": self.record_url("contributors-add-organization")}
+        title = _("Add an organization to this %(kind)s") % {"kind": self.access.kind}
         if request.headers.get("HX-Target") == "contrib-organization-results":
             return self.step_response("contributors/page/sheets/organization_results.html", context, chrome=False)
-        return self.sheet_response(
-            "contributors/page/sheets/add_organization.html",
-            context,
-            _("Add an organization to this %(kind)s") % {"kind": self.access.kind},
-        )
+        if request.GET.get("back"):
+            context["head"] = {"title": title}
+            return self.step_response("contributors/page/sheets/organization_search.html", context)
+        return self.sheet_response("contributors/page/sheets/add_organization.html", context, title)
 
     def post(self, request, *args, **kwargs):
         """List the organization with its roles."""
