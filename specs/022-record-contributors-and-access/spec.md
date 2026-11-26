@@ -45,16 +45,19 @@ one. Editing a contributor sets both their contribution roles and what they may 
 - Q: Is there a separate page for granting access? → A: No. Access is set per contributor in the
   Contributors tab.
 
-### Session 2026-10-06: the maintainer's rulings on a working prototype
+### Session 2026-10-06: the maintainer's rulings on the tab's design
 
-- Q: Are people and organizations one list? → A: No. People are listed in the main column and
-  organizations in a narrower column beside it. Each list has its own order.
-- Q: Is adding a contributor one page? → A: No. Adding a person and adding an organization are
-  separate pages, each reached from its own list.
-- Q: Must a contributor already have a profile in the portal? → A: No. A person can be found in the
-  portal, looked up in ORCID, or entered by hand. An organization can be found in the portal,
-  looked up in ROR, or entered by hand. The three ways are offered side by side on one page, and
-  moving between them does not reload it.
+- Q: Are people and organizations one list? → A: No. The tab shows a People list and an
+  Organizations list, each with a count and its own Add button. People have an order set by hand.
+  Organizations follow a fixed order.
+- Q: Is adding a contributor one page? → A: No. Adding a person and adding an organization are each
+  one sheet that opens over the tab from its own list. Changes are made in sheets, and the lists
+  redraw after each change with a short notice.
+- Q: Must a contributor already have a profile in the portal? → A: No. A person is found by
+  searching the portal's people, or by asking ORCID who it knows under a name. They can also be
+  added by name alone. An organization is found by searching the portal's organizations, or is
+  added as a new one, which asks ROR, or by name alone. There are no separate tabs for these
+  ways. The sheet moves through steps and Back returns one step.
 - Q: Which organization is a person shown with on a record? → A: The one they were at for that
   work. It is chosen when the person is added and can be changed later. It defaults to their
   primary affiliation, and may be any of their affiliations past or present, any other
@@ -96,12 +99,19 @@ one. Editing a contributor sets both their contribution roles and what they may 
 - Q: What happens to an organization that was listed because a person is credited from it, when
   that person leaves the record or is credited from somewhere else? → A: It stays. It no longer has
   anyone credited from it, so it can be removed by hand.
-- Q: A person looked up in ORCID, or an organization looked up in ROR, is already in the portal.
-  What happens? → A: The existing profile is used. No second one is made.
-- Q: What is kept about a person or organization entered by hand? → A: A person's name and nothing
-  else. No email address is asked for: an address stored on a profile nobody has claimed could be
+- Q: A person chosen from ORCID, or an organization chosen from ROR, is already in the portal.
+  What happens? → A: The existing profile is used. No second one is made. Organizations from ORCID
+  are matched by ROR ID. An ORCID affiliation that carries a Funder Registry, Ringgold or GRID ID
+  instead is resolved to a ROR ID through ROR's API, cached, and then matched by ROR ID. A Ringgold
+  ID resolves only when the ROR record happens to carry it. An organization is made only when
+  nothing matches by ROR ID or by name.
+- Q: Who holds the Project Member role? → A: Everyone added to a record that offers it, person or
+  organization. The role is ticked and locked in the roles field, and a holder keeps it when
+  edited.
+- Q: What is kept about a person or organization added by name alone? → A: A person's name and
+  nothing else. No email address is asked for: an address stored on a profile nobody has claimed could be
   used to take the profile over through the portal's password reset. An organization's name, and
-  its city, country and website if given. The person has a profile and no account.
+  its ROR ID if one was found. The person has a profile and no account.
 - Q: When the last-manager rule is applied, who counts? → A: A person with an active account who
   can manage the record, whether they are listed on it or hold that level from a record above.
   People who can act only through a portal role do not count, so a record never depends on portal
@@ -115,7 +125,8 @@ one. Editing a contributor sets both their contribution roles and what they may 
 ### User Story 1 - A research team credits the people and organizations behind any record (Priority: P1)
 
 A data manager opens a dataset their team is preparing and goes to its Contributors tab. It shows
-the people credited on the dataset in one list and the organizations in another beside it. They add
+the people credited on the dataset in one list and the organizations in another, each with a count
+and an Add button. They add
 three colleagues who are already in the portal, give each the contribution roles that describe what
 they did, correct a role that was wrong, and remove someone who was added by mistake. They add the
 funder as an organization in its own right. Later they do the same on one sample, to credit the
@@ -138,8 +149,8 @@ and remove one contributor. Then open each Contributors tab signed out.
    credited on the record, each with their contribution roles and the organization they are
    credited from there, and separately the organizations on the record.
 2. **Given** a person who can manage a record, **When** they open its Contributors tab, **Then**
-   the way to add a person is offered with the people and the way to add an organization is offered
-   with the organizations, and each leads to its own page.
+   an Add button is offered with the people and another with the organizations, and each opens its
+   own sheet over the tab.
 3. **Given** a person who can manage a record, **When** they add a person or an organization that
    is already in the portal, **Then** that contributor is listed on the record and named wherever
    the record names its contributors.
@@ -149,11 +160,13 @@ and remove one contributor. Then open each Contributors tab signed out.
 5. **Given** a person who can manage a record, **When** they change a contributor's roles and save,
    **Then** the record shows the new roles for a person, and the contributor's access is unchanged
    unless it was changed in the same edit.
-6. **Given** a contributor already on a record, **When** someone looks for them in order to add
-   them again, **Then** they are shown as already listed and no second entry can be made.
-7. **Given** a person who can manage a record, **When** they remove a person and confirm, **Then**
-   that person is no longer listed on the record or named anywhere the record names its
-   contributors.
+6. **Given** a contributor already on a record, **When** someone searches the portal in order to add
+   them again, **Then** they are not offered and no second entry can be made.
+7. **Given** a person who can manage a record, **When** they remove a person, **Then** the removal
+   happens at once and a notice offers Undo. The person is not listed on the record or named
+   anywhere the record names its contributors. **When** Undo is used within the time the notice
+   allows, **Then** the person returns with the same roles, level, organization and place in the
+   order.
 8. **Given** a contributor added without a contribution role, **When** the record is opened,
    **Then** they are listed as a contributor with no role.
 9. **Given** an organization on a record, **When** anyone who may open the record views the tab,
@@ -161,23 +174,22 @@ and remove one contributor. Then open each Contributors tab signed out.
    page.
 10. **Given** a signed-in person who cannot manage the record, or a visitor who is not signed in,
     **When** they open the Contributors tab of a record they may open, **Then** they see the people
-    and the organizations, and nothing for adding, editing, removing or reordering is offered.
+    and the organizations, and no control for adding, editing, removing or reordering is offered.
     **When** they request any of those directly, **Then** they are refused and nothing is changed.
 11. **Given** a sample or measurement of a type a portal has registered, **When** its page is
     opened, **Then** the Contributors tab behaves as it does on any other sample or measurement,
     with no work by the portal's developer.
 12. **Given** a record with no contributors, **When** its Contributors tab is opened by someone who
-    can manage it, **Then** both lists say they are empty and the ways to add a person and an
-    organization are still offered.
+    can manage it, **Then** both lists say they are empty and both Add buttons are still offered.
 
 ---
 
 ### User Story 2 - A person is credited from where they were at the time (Priority: P1)
 
 A researcher did the fieldwork for a dataset while at one institute and has since moved to another,
-which is now the affiliation on their profile. The dataset's manager adds them and is asked which
-organization they should be credited from for this dataset. The researcher's current institute is
-offered first, with their earlier ones beneath it. The manager picks the earlier institute. The
+which is now the affiliation on their profile. The dataset's manager adds them and, in the affiliation step, is asked which
+organization they should be credited from for this dataset. The researcher's own affiliations are
+offered first, current and earlier, ahead of every other organization in the portal. The manager picks the earlier institute. The
 dataset shows the researcher with that institute, the institute appears among the dataset's
 organizations, and neither changes when the researcher moves again next year.
 
@@ -193,10 +205,11 @@ again. Then try to remove the organization.
 **Acceptance Scenarios**:
 
 1. **Given** a manager adding a person who has affiliations, **When** the person has been chosen,
-   **Then** the manager is asked which organization the person is credited from on this record,
-   with the person's primary affiliation already selected and their other affiliations, past and
-   present, offered.
-2. **Given** that choice, **When** the manager wants an organization the person has no recorded
+   **Then** the manager is asked which organization the person is credited from on this record.
+   The organizations from the person's ORCID record are offered first when they came from ORCID,
+   then those from their portal profile, then the rest of the portal's organizations, searchable
+   by name.
+2. **Given** that step, **When** the manager wants an organization the person has no recorded
    affiliation with, or no organization at all, **Then** both can be chosen.
 3. **Given** a person added with an organization, **When** the record's Contributors tab is opened,
    **Then** the person is shown with that organization, and the organization is among the record's
@@ -206,15 +219,15 @@ again. Then try to remove the organization.
    that was chosen for it.
 5. **Given** a person credited on a record with no organization, **When** the tab is opened,
    **Then** they are shown with none, whatever their profile says.
-6. **Given** a person on a record, **When** a manager edits them, **Then** the same choice of
-   organization is offered with the current one selected, and saving a different one changes the
-   record and nothing else.
+6. **Given** a person on a record, **When** a manager opens their Edit sheet, **Then** the same
+   choice is offered with the person's own affiliations first, any other organization, or none,
+   and the current one selected. Saving a different one changes the record and nothing else.
 7. **Given** an organization that one or more people on a record are credited from, **When** a
    manager looks at it on the tab, **Then** removing it is not offered and the reason is given.
    **When** removal is requested directly, **Then** it is refused, nothing is changed, and the
    people credited from it are named.
-8. **Given** an organization nobody on the record is credited from, **When** a manager removes it
-   and confirms, **Then** it is no longer listed.
+8. **Given** an organization nobody on the record is credited from, **When** a manager removes it,
+   **Then** it is not listed and a notice offers Undo.
 9. **Given** an organization that was listed through one person, **When** that person is removed or
    credited from a different organization, **Then** the organization stays on the record and can
    now be removed.
@@ -227,58 +240,74 @@ again. Then try to remove the organization.
 ### User Story 3 - Someone who is not in the portal yet can be credited (Priority: P2)
 
 A dataset's manager needs to credit a collaborator from another university who has never used the
-portal. On the page for adding a person they search the portal first and find nobody. Without
-leaving the page they switch to looking the collaborator up by ORCID, find them by name, check the
-institution shown against the one they expect, and add them. For a retired technician with no ORCID
-iD they switch to entering a person by hand and give a name. Adding an organization works the same
-way, with ROR in place of ORCID. Whichever way is used, they land on the new contributor's entry
-to say what that contributor did.
+portal. In the sheet for adding a person they search the portal's people by name and find nobody.
+The name they typed appears as a New row. They choose it and the sheet asks ORCID who it knows
+under that name. Typing in the name and affiliation boxes narrows the list. They find the
+collaborator, check the institution shown against the one they expect, and go on to the
+affiliation and the roles. For a retired technician with no ORCID iD they add the person by name
+alone. Adding an organization works the same way, with ROR in place of ORCID. Whichever way is
+used, the person or organization is on the record once the sheet is confirmed.
 
 **Why this priority**: The first two stories work for anyone already in the portal. Most teams will
 meet someone who is not within the first dataset they credit. It comes second only because the
 stories before it are what it adds people to.
 
-**Independent Test**: On a seeded dataset, add one person by each of the three ways and one
-organization by each of the three ways. Search each registry for something that does not exist.
-Enter by hand a name the portal already has.
+**Independent Test**: On a seeded dataset, add one person found in the portal, one chosen from
+ORCID and one added by name alone, and add one organization found in the portal, one chosen from
+ROR and one added by name alone. Search for a name and an ORCID iD nobody has. Add by name alone a
+name the portal already has.
 
 **Acceptance Scenarios**:
 
-1. **Given** the page for adding a person, **When** it is opened, **Then** three ways are offered:
-   someone already in the portal, someone looked up in ORCID, and someone entered by hand. The page
-   for adding an organization offers the portal, ROR, and entry by hand.
-2. **Given** either page, **When** the manager moves from one way to another, **Then** the page is
-   not reloaded and what was typed or found in the first is still there on return.
-3. **Given** a search in one of the ways, **When** it returns, **Then** the manager is still on
-   that way.
-4. **Given** a search of ORCID by name or by ORCID iD, **When** there are matches, **Then** each
+1. **Given** the sheet for adding a person, **When** it is opened, **Then** it begins with a search
+   of the portal's people not yet on the record, by name or by ORCID iD. A name or ORCID iD nobody
+   in the portal has appears as a New row. The sheet for adding an organization begins with a
+   search of the portal's organizations not yet on the record, with a New row for a name the
+   portal lacks.
+2. **Given** either sheet, **When** the manager goes back a step, **Then** the sheet returns one
+   step and what was typed or chosen in the earlier steps is still there. **When** the sheet is
+   closed, **Then** nobody is added.
+3. **Given** a New row for a person, **When** it is chosen, **Then** the sheet asks ORCID who it
+   knows under that name, and typing in the name and affiliation boxes narrows the list. Each match
    shows enough to tell namesakes apart, and one can be chosen. **When** there are none, **Then**
-   the page says so and the other ways remain available.
-5. **Given** a search of ROR by name or by ROR ID, **When** there are matches, **Then** each shows
-   enough to tell similar organizations apart, and one can be chosen.
-6. **Given** a search of a registry that is still running, **When** the manager is waiting,
-   **Then** the page shows that it is searching.
-7. **Given** a person chosen from ORCID, **When** they are added, **Then** a profile is made for
+   the step says so and the person can still be added by name alone.
+4. **Given** a New row for an organization, **When** it is chosen, **Then** the sheet asks ROR.
+   Each match shows enough to tell similar organizations apart, and one can be chosen, or the
+   organization can be added by name alone.
+5. **Given** a person chosen from ORCID, **When** they are added, **Then** a profile is made for
    them with their name and ORCID iD, they are on the record, and they have no account.
-8. **Given** an organization chosen from ROR, **When** it is added, **Then** a profile is made for
+6. **Given** an organization chosen from ROR, **When** it is added, **Then** a profile is made for
    it with its name and ROR ID and it is on the record.
-9. **Given** a match from ORCID or ROR that the portal already holds under the same identifier,
+7. **Given** a match from ORCID or ROR that the portal already holds under the same identifier,
    **When** it is added, **Then** the existing profile is used and no second one is made.
-10. **Given** a person entered by hand with a given name and a family name, **When** they are
-    added, **Then** a profile is made for them with no account and they are on the record.
-    **When** either name is missing, **Then** nothing is made and the field says what is needed.
-11. **Given** a person entered by hand whose name matches a profile already in the portal,
-    **When** the manager submits, **Then** the matching profiles are offered before anything is
-    made, and the manager can still make the new profile.
-12. **Given** an organization entered by hand whose name matches one already in the portal,
-    **When** the manager submits, **Then** the existing organization is offered and no second one
+8. **Given** a person added by name alone, **When** the given names and family name are confirmed
+   and both are present, **Then** a profile is made for them with no account and they are on the
+   record. **When** the family name is missing, **Then** nothing is made and the field says what
+   is needed.
+9. **Given** a person added by name alone whose name matches a profile already in the portal,
+   **When** the manager confirms, **Then** the matching profiles are offered before anything is
+   made, and the manager can still make the new profile.
+10. **Given** an organization added by name alone whose name matches one already in the portal,
+    **When** the manager confirms, **Then** the existing organization is offered and no second one
     is made.
-13. **Given** a person being added by any of the three ways, **When** they are added, **Then** the
-    organization they are credited from on this record is asked for as in the previous story.
-14. **Given** a contributor added by any way, **When** the adding is done, **Then** the manager
-    arrives where that contributor's roles, and a person's access, are set.
-15. **Given** a registry that cannot be reached, **When** the manager searches it, **Then** the
-    page says the search is unavailable, and the portal search and entry by hand still work.
+11. **Given** an organization picked from a person's ORCID affiliations, **When** the portal holds
+    an organization with the same ROR ID, **Then** that organization is used. **When** the ORCID
+    affiliation carries a Funder Registry, Ringgold or GRID ID instead, **Then** it is resolved
+    to a ROR ID through ROR and matched by ROR ID. **When** nothing matches by ROR ID or by name,
+    **Then** an organization is made.
+12. **Given** a person being added, **When** they reach the affiliation step, **Then** the
+    organization they are credited from on this record is asked for as in the previous story, and
+    the roles step follows.
+13. **Given** a person or organization being added, **When** the roles step is reached, **Then**
+    Project Member is ticked and locked where the record offers that role. **When** the manager
+    chooses Add, **Then** the sheet closes, the lists redraw with a short notice, and a newly added
+    person starts at the view level.
+14. **Given** a registry that cannot be reached, or a manager who has exceeded the limit of 60
+    searches a minute, **When** they search, **Then** the step says the registry is unavailable or
+    the limit has been reached, and nothing is added from it. The portal search and adding by name
+    alone still work.
+15. **Given** repeated ORCID or ROR searches within five minutes, **When** the same search is made
+    again, **Then** it is served from a cache and does not reach the registry again.
 
 ---
 
@@ -385,37 +414,43 @@ second manager and try again.
 ### User Story 6 - The team decides the order its contributors are named in (Priority: P2)
 
 A dataset is about to be cited in a paper, and the order of its authors matters to the people on
-it. The dataset's manager opens the Contributors tab, moves the lead author to the top of the
-people and the supervisor to the end, and puts the host institute ahead of the funder among the
-organizations. The citation on the overview now names them in that order.
+it. The dataset's manager opens the Contributors tab and chooses Reorder. A sheet lists the people
+with a drag handle on each. They drag the lead author to the top and the supervisor to the end, and
+choose Save order. The citation on the overview now names the people in that order. The
+organizations are not ordered by hand. They follow a fixed order derived from the people and from
+how each organization is credited, so the host institute of the lead author comes ahead of a
+funder.
 
 **Why this priority**: Order decides how a record is cited, and a wrong order is a real grievance.
 It comes after the stories that create the lists it sorts.
 
 **Independent Test**: Load development data. Sign in as the manager of a seeded dataset with
-several people and several organizations, change the order of each, then read the overview and the
-citation.
+several people and several organizations, reorder the people, then read the tab, the overview and
+the citation.
 
 **Acceptance Scenarios**:
 
-1. **Given** a record with several people, **When** someone who can manage it moves one of them
-   earlier or later, **Then** the tab lists the people in the new order for every viewer, and the
-   organizations are unmoved.
-2. **Given** a record with several organizations, **When** someone who can manage it moves one of
-   them earlier or later, **Then** the tab lists the organizations in the new order, and the people
-   are unmoved.
-3. **Given** a record whose contributors have been reordered, **When** its overview or its citation
+1. **Given** a record with several people, **When** someone who can manage it chooses Reorder,
+   **Then** a sheet lists the people with a drag handle on each. **When** they move one and choose
+   Save order, **Then** the tab lists the people in the new order for every viewer. **When** they
+   close the sheet without saving, **Then** the order is unchanged.
+2. **Given** a record with several organizations, **When** its tab is opened, **Then** the
+   organizations are listed in a fixed order: the affiliations of the people who lead the record
+   first, then organizations that lead it themselves, then those credited directly, in their
+   order, then those that are only an affiliation, by name. No control for moving an organization
+   is offered.
+3. **Given** a record whose people have been reordered, **When** its overview or its citation
    names people, **Then** those it names appear in the people's order. **When** it names
-   organizations too, **Then** they follow the people, in the organizations' order.
-4. **Given** a record with contributors in a set order, **When** a person is added, **Then** they
-   are placed last among the people. **When** an organization is added, **Then** it is placed last
-   among the organizations. Nobody else moves.
-5. **Given** a record with contributors in a set order, **When** one is removed or has their roles,
-   organization or level changed, **Then** the others keep their order.
+   organizations too, **Then** they follow the people, in the organizations' fixed order.
+4. **Given** a record with people in a set order, **When** a person is added, **Then** they are
+   placed last among the people. Nobody else moves.
+5. **Given** a record with people in a set order, **When** one is removed or has their roles,
+   organization or level changed, **Then** the others keep their order. **When** a removal is
+   undone, **Then** the person returns to the place they held.
 6. **Given** someone who cannot manage the record, **When** they request a change of order,
    **Then** they are refused and the order is unchanged.
-7. **Given** a manager moving contributors without a pointing device, or without dragging,
-   **When** they move one, **Then** they can.
+7. **Given** a manager reordering without a pointing device, **When** they focus a handle and use
+   the arrow keys, **Then** they can move the person and save the order.
 
 ---
 
@@ -474,20 +509,22 @@ Manager, Developer and Portal Administrator accounts.
   credited from.
 - Two organizations may be merged. People credited from either on a record are then credited from
   the one that remains, and it appears on the record once.
-- A person who is removed and later added again starts at the view level with no roles, and their
-  organization is asked for again.
+- A person who is removed and later added again, other than by Undo, starts at the view level with
+  only the roles the record locks on, and their organization is asked for again.
 - An organization a person is credited from on a record may be deleted from the portal. The person
   stays on the record with no organization.
-- The organization typed for a person's credit may not be in the portal. It is made as a new
-  organization with that name.
-- A search of the portal, of ORCID or of ROR may match many entries. The page stays usable and says
+- The organization chosen for a person's credit may not be in the portal. A New row makes it,
+  asking ROR first or adding it by name alone.
+- A search of the portal, of ORCID or of ROR may match many entries. The step stays usable and says
   when there are more than it shows.
 - An ORCID record may have no public name, and a ROR record may be withdrawn. Neither can be
   chosen.
-- A record with hundreds of people stays usable: the tab can be searched by name, and a change to
-  one contributor does not disturb the rest.
-- A contributor's name may be very long or in a non-Latin script. The tab does not break at any
-  breakpoint.
+- A record with hundreds of people stays usable: a change to one contributor redraws the lists
+  and does not disturb the rest.
+- A removal may be undone only while its signed token is valid, five minutes. After that the
+  person or organization must be added again and starts at the view level.
+- A contributor's name may be very long or in a non-Latin script. The tab and its sheets do not
+  break at any breakpoint.
 - An organization may have no logo. Its initials stand in for it.
 - A record that does not exist, and a private record the viewer may not open, give the same answer
   on the Contributors tab as on the overview.
@@ -501,65 +538,80 @@ Manager, Developer and Portal Administrator accounts.
 - **FR-001**: Projects, datasets, samples and measurements MUST each have a Contributors tab beside
   the overview, including every sample and measurement type a portal registers, with no work by the
   portal's developer.
-- **FR-002**: The tab MUST list the record's people and its organizations as two separate lists,
-  each in its own order, to anyone who may open the record.
+- **FR-002**: The tab MUST list the record's people and its organizations as two separate lists of
+  rows, each headed by a count and, for a manager, an Add button, to anyone who may open the
+  record. The people are in the order set by hand and the organizations in a fixed order.
 - **FR-003**: Each person MUST be shown with their contribution roles on the record and the
   organization they are credited from there, if any.
 - **FR-004**: Each organization MUST be shown by its logo and its name and nothing more, and MUST
   lead to the organization's own page. An organization without a logo MUST still be recognisable.
-- **FR-005**: The tab MUST be searchable by contributor name across both lists.
-- **FR-006**: Each person's level, the access people hold from a record above, and every control
-  for changing contributors MUST be shown only to someone who may manage the record.
-- **FR-007**: Managing contributors MUST happen on the tab and the pages it leads to. It MUST NOT
+- **FR-005**: Every change on the tab MUST be made in a sheet opened over the tab. After each
+  change the lists MUST redraw and a short notice MUST say what happened.
+- **FR-006**: A person's level, the access people hold from a record above, and every control for
+  changing contributors MUST be shown only to someone who may manage the record. A manager MUST see
+  a person's level only in that person's Edit sheet, and rows MUST NOT carry a level badge.
+- **FR-007**: Managing contributors MUST happen on the tab and in the sheets it opens. It MUST NOT
   appear as an entry in the Manage menu, as a page action or as an overview card, and there MUST
   NOT be a separate page for granting access.
 - **FR-008**: Where a record's overview links to its contributors, the link MUST lead to this tab.
-- **FR-009**: An empty list MUST say that it is empty, and MUST still offer a manager the way to
-  add to it.
+- **FR-009**: An empty list MUST say that it is empty, and MUST still offer a manager its Add
+  button.
 
 **Adding a contributor**
 
-- **FR-010**: Adding a person and adding an organization MUST be separate pages, each reached from
-  its own list on the tab. The page for a person MUST add only a person and the page for an
-  organization only an organization, whatever the request names, and the account that stands
-  for visitors MUST never be added.
-- **FR-011**: The page for adding a person MUST offer three ways: a person already in the portal, a
-  person looked up in ORCID, and a person entered by hand. The page for adding an organization MUST
-  offer an organization already in the portal, one looked up in ROR, and one entered by hand.
-- **FR-012**: Moving between the three ways MUST NOT reload the page or discard what was entered or
-  found in another. A search MUST leave the manager on the way they searched in.
-- **FR-013**: The portal search MUST match by name and MUST mark the people or organizations
-  already on the record, which MUST NOT be addable again. A contributor MUST appear on a record at
-  most once.
-- **FR-014**: The ORCID search MUST accept a name or an ORCID iD, and the ROR search a name or a
-  ROR ID. Each match MUST show enough to tell it from others of a similar name. While a search is
-  running the page MUST show that it is. When nothing matches the page MUST say so.
-- **FR-015**: When a registry cannot be reached, the page MUST say that its search is unavailable,
-  and the other two ways MUST keep working.
+- **FR-010**: Adding a person and adding an organization MUST each be one sheet, opened from its own
+  list. The sheet for a person MUST add only a person and the sheet for an organization only an
+  organization, whatever the request names, and the account that stands for visitors MUST never be
+  added.
+- **FR-011**: The sheet for adding a person MUST move through four steps: a search of the portal's
+  people, ORCID's matches for a new name, the person's affiliation on this record, and their roles
+  followed by Add. The sheet for adding an organization MUST search the portal's organizations,
+  offer ROR's matches for a new name, and then ask for roles followed by Add. Back MUST return one
+  step, keeping what was entered. Closing the sheet MUST add nobody.
+- **FR-012**: The portal search MUST match people by name or ORCID iD and organizations by name. It
+  MUST offer only those not yet on the record. A name or ORCID iD that nobody in the portal has
+  MUST appear as a New row.
+- **FR-013**: A contributor MUST appear on a record at most once.
+- **FR-014**: ORCID's matches for a new person MUST show enough to tell namesakes apart, and typing
+  in the name and affiliation boxes MUST narrow the list. ROR's matches for a new organization MUST
+  show enough to tell similar organizations apart. A match MAY be chosen, or the person or
+  organization MAY be added by name alone. When nothing matches the step MUST say so.
+- **FR-015**: ORCID and ROR searches MUST go through a server-side cache of five minutes and a limit
+  of 60 searches a minute for each person. When a registry cannot be reached, or the limit has been
+  reached, the step MUST say so and nothing MUST be added from it. Searching the portal and adding
+  by name alone MUST keep working.
 - **FR-016**: Adding a match from ORCID MUST make a person with that name and ORCID iD and no
   account. Adding a match from ROR MUST make an organization with that name and ROR ID. Where the
   portal already holds a profile with the same identifier, that profile MUST be used.
-- **FR-017**: A person entered by hand MUST have a given name and a family name, and MUST be made
-  with no account and no email address. The page MUST NOT ask for one. An organization entered by
-  hand MUST have a name, and MAY have a city, a country and a website.
-- **FR-018**: When a person entered by hand has the same name as a profile in the portal, the
+- **FR-017**: A person added by name alone MUST have a family name, with given names confirmed in
+  the step, and MUST be made with no account and no email address. The sheet MUST NOT ask for one.
+  An organization added by name alone MUST have a name.
+- **FR-018**: When a person added by name alone has the same name as a profile in the portal, the
   matching profiles MUST be offered before anything is made, and making the new profile MUST remain
-  possible. When an organization entered by hand has the same name as one in the portal, the
+  possible. When an organization added by name alone has the same name as one in the portal, the
   existing one MUST be offered and no second one made.
 - **FR-019**: When a submission is refused, nothing MUST be made or added, each field at fault MUST
   say what is wrong, and everything else that was entered MUST remain.
-- **FR-020**: After a contributor is added, the manager MUST arrive where that contributor's roles,
-  and a person's organization and level, are set.
+- **FR-020**: After a contributor is added, the sheet MUST close, the lists MUST redraw with the new
+  contributor in place and a notice MUST say so.
 
 **The organization a person is credited from**
 
 - **FR-021**: A person's entry on a record MUST carry the organization they are credited from on
   that record, or none.
-- **FR-022**: That organization MUST be asked for whenever a person is added, by any of the three
-  ways, and MUST be changeable when the person is edited.
-- **FR-023**: The choice MUST offer the person's affiliations, past and present, with their primary
-  affiliation selected to begin with. It MUST also allow any other organization, and no
-  organization. An organization that is not in the portal MUST be made from the name given.
+- **FR-022**: That organization MUST be asked for whenever a person is added, in the affiliation
+  step, and MUST be changeable when the person is edited.
+- **FR-023**: When a person is added, the choice MUST offer the organizations from their ORCID
+  record first when they were chosen from ORCID, then those from their portal profile, then the rest
+  of the portal's organizations, searchable by name. When a person is edited, it MUST offer their
+  own affiliations first and any other organization. It MUST also allow no organization. An
+  organization the portal lacks MUST be made through a New row, asking ROR or adding it by name
+  alone.
+- **FR-023a**: An organization picked from a person's ORCID affiliations MUST be matched in the
+  portal by ROR ID. An affiliation that carries a Funder Registry, Ringgold or GRID ID instead MUST
+  be resolved to a ROR ID through ROR's API, cached, and then matched by ROR ID. A Ringgold ID
+  resolves only when the ROR record carries it. An organization MUST be made only when nothing
+  matches by ROR ID or by name.
 - **FR-024**: The organization MUST be kept with the record. A later change to the person's
   affiliations or primary affiliation MUST NOT change it, and a person credited with no
   organization MUST be shown with none.
@@ -575,13 +627,20 @@ Manager, Developer and Portal Administrator accounts.
 
 - **FR-028**: Someone who may manage a record MUST be able to edit a contributor and remove one, on
   all four record types.
-- **FR-029**: Editing a contributor MUST allow setting their contribution roles and, for a person,
-  their organization and their level, in one place and saved together.
+- **FR-029**: Editing a person MUST happen in one sheet that sets their affiliation on this record,
+  their contribution roles and their access level, saved together. The sheet MUST offer the three
+  levels each with a hint. The level the person holds from a record above MUST be the lowest
+  offered and lower ones MUST be disabled. A refusal MUST save nothing. Editing an organization
+  MUST happen in a sheet of roles only. The roles field MUST link to a page explaining what each
+  role means.
 - **FR-030**: The contribution roles offered MUST be those the roles vocabulary groups for the
   record's type. A role from another type's group MUST be refused.
-- **FR-031**: A contributor MAY hold no contribution role.
-- **FR-032**: Removing a contributor MUST ask for confirmation first and MUST say what goes with
-  them.
+- **FR-031**: A contributor on a record that does not offer Project Member MAY hold no
+  contribution role.
+- **FR-032**: Removing a contributor MUST act at once and show a notice with Undo, with no
+  confirmation step first. The notice MUST stay for a few seconds. Undo MUST
+  restore the same roles, level, affiliation and place in the order while its signed token is
+  valid, five minutes.
 - **FR-033**: Every change to a record's contributors MUST be checked when it is requested and
   again when it is saved. A request from someone who may not manage the record MUST be refused and
   change nothing. A visitor who is not signed in MUST be sent to sign in first.
@@ -619,7 +678,9 @@ Manager, Developer and Portal Administrator accounts.
 - **FR-046**: A person listed on a record MUST be able to open it at their level whatever the
   visibility of the records above it, and MUST gain nothing over those records from it.
 - **FR-047**: The tab MUST show a manager the people who hold a level on the record from a record
-  above without being listed on it, with the level and where it comes from.
+  above without being listed on it, with the level and where it comes from. They MUST be shown in a
+  short list below the people headed "Access from other records", in the same row style with no
+  actions.
 
 **Who gets into a private record**
 
@@ -647,15 +708,22 @@ Manager, Developer and Portal Administrator accounts.
 
 **Order**
 
-- **FR-057**: Someone who may manage a record MUST be able to move a person earlier or later among
-  the record's people, and an organization earlier or later among its organizations. Moving one
-  MUST be possible without dragging.
+- **FR-057**: Someone who may manage a record MUST be able to reorder its people in a Reorder sheet
+  that lists them with a drag handle, saved with Save order. Moving a person MUST also be possible
+  with the arrow keys on the handle. Organizations MUST NOT be reordered by hand.
 - **FR-058**: Wherever a record names people, including its citation, those named MUST appear in
   the people's order. Where it names organizations as well, they MUST follow the people, in the
-  organizations' order.
-- **FR-059**: A newly added person MUST be placed last among the people and a newly added
-  organization last among the organizations. Removing or editing a contributor MUST NOT change the
-  order of the others.
+  organizations' fixed order.
+- **FR-059**: A newly added person MUST be placed last among the people. Removing or editing a
+  contributor MUST NOT change the order of the others. The organizations MUST be listed in this
+  fixed order: the affiliations of the people who lead the record, then organizations that lead it
+  themselves, then those credited directly in their order, then those that are only an
+  affiliation, by name.
+
+**Project Member**
+
+- **FR-070**: Every person or organization added to a record that offers the Project Member role
+  MUST hold it, ticked and locked in the roles field. A holder MUST keep it when edited.
 
 **Portal roles**
 
@@ -681,7 +749,7 @@ Manager, Developer and Portal Administrator accounts.
 **Documentation**
 
 - **FR-066**: The documentation for portal users MUST describe how people and organizations are
-  added, edited, removed and reordered on a record, how the organization a person is credited from
+  added, edited, removed with Undo and reordered on a record, how the organization a person is credited from
   is chosen and why it does not follow their profile, what each level allows and how a colleague is
   let into a private record.
 - **FR-067**: The documentation for portal administrators MUST say how per-record levels and portal
@@ -722,7 +790,7 @@ Manager, Developer and Portal Administrator accounts.
   first among the people in under two minutes, on a dataset, a sample, a measurement and a project
   alike.
 - **SC-002**: A manager can credit a person who has never used the portal, and an organization the
-  portal has never held, without leaving the record's pages and without asking anyone for help.
+  portal has never held, without leaving the record's Contributors tab and without asking anyone for help.
 - **SC-003**: A team can let a colleague into its private dataset, and later take that access away,
   without anyone opening the administration interface.
 - **SC-004**: For every seeded account and every seeded record, what the account can open, change
@@ -747,7 +815,7 @@ Manager, Developer and Portal Administrator accounts.
   on the record's overview and in its citation, on all four record types.
 - **SC-012**: The permissions held by each portal role are the same after this feature as before
   it.
-- **SC-013**: The Contributors tab and the two pages for adding do not scroll sideways at widths of
+- **SC-013**: The Contributors tab and its sheets do not scroll sideways at widths of
   375, 768, 1024 and 1440 pixels.
 - **SC-014**: Each example in the documentation this feature adds or changes runs as written.
 
@@ -766,7 +834,7 @@ Manager, Developer and Portal Administrator accounts.
 - Nobody is told when they are added to a record, and there is no way to ask for access to one. A
   manager who adds a colleague passes the address on themself. Asking a record's team for early
   access is part of the contact feature.
-- Nobody is invited or emailed by this feature. A person made from ORCID or by hand has a profile
+- Nobody is invited or emailed by this feature. A person made from ORCID or by name alone has a profile
   that the existing claiming process can later attach to an account.
 - A profile made from ORCID or ROR takes the name and the identifier. Filling in the rest of it
   from the registry, and keeping it in step afterwards, belong to identifier synchronisation.
