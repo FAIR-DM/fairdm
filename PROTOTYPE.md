@@ -22,7 +22,9 @@ record:
 - picks the person's roles from the roles this kind of record offers, as toggle chips;
 - edits a person's affiliation and roles;
 - removes a person, with an Undo button in the notice that follows;
-- reorders the people in a sheet with drag handles and up/down buttons, then saves;
+- reorders the people in a sheet by their drag handles, and with the eye beside each name chooses
+  whether that person appears in the record's citation (on) or is credited but left out of formal
+  citations (off); the order and the eyes are saved together;
 - adds an organization from the portal or by a new name, with roles;
 - edits an organization's roles, or gives roles to an organization that is only there as an
   affiliation;
@@ -100,6 +102,9 @@ organizations that are only the affiliation of a person on the record, by name.
 
 ## Decisions
 
+- 2026-11-26: The reorder sheet has no up and down buttons. Each row is the name, then an eye that
+  puts the person in the citation or leaves them out, then the drag handle.
+
 - The sheet is used at every width, with no dropdown even for a mouse.
 - Remove happens at once and offers Undo, rather than asking for confirmation first.
 - An organization that people are credited from carries an "Affiliation" badge and can't be
@@ -108,6 +113,11 @@ organizations that are only the affiliation of a person on the record, by name.
 - Organizations aren't reordered.
 
 ## Faked or skipped
+
+- Whether a person appears in the citation is kept in their `config`, as a list of the records
+  they are left out of. The contribution needs a field for it.
+- Without the up and down buttons, the reorder list has no way to move a row by keyboard. The
+  reorder component's handle needs keyboard moves before the buttons can go for real.
 
 - The affiliation search filters, in the browser, a list of every organization in the portal. A
   real build needs a server-side search once the portal holds many organizations.

@@ -34,6 +34,35 @@ __all__ = ["Contributors"]
 
 SHEET_ID = "contrib-sheet"
 
+UNCITED = "prototype_uncited"
+"""Faked: where a person left out of the record's citation is noted, in their ``config``.
+
+A contribution has no field for it, so the prototype keeps a list of the records each person is
+credited on but not cited in. The rebuild needs a field on the contribution.
+"""
+
+
+def record_key(credit):
+    """The key that names a contribution's record in the faked citation list."""
+    return f"{credit.content_type_id}:{credit.object_id}"
+
+
+def is_cited(credit):
+    """Whether the person a contribution credits appears in the record's citation."""
+    return record_key(credit) not in (credit.contributor.config or {}).get(UNCITED, [])
+
+
+def set_cited(credit, cited):
+    """Put the person a contribution credits in the record's citation, or leave them out."""
+    contributor = credit.contributor
+    config = dict(contributor.config or {})
+    left_out = set(config.get(UNCITED, []))
+    (left_out.discard if cited else left_out.add)(record_key(credit))
+    config[UNCITED] = sorted(left_out)
+    if config != (contributor.config or {}):
+        contributor.config = config
+        contributor.save(update_fields=["config"])
+
 
 class ContributorsBase(ContributionPage):
     """What every view of the prototype page shares."""
@@ -79,6 +108,7 @@ class ContributorsBase(ContributionPage):
                     "credit": credit,
                     "person": person,
                     "roles": list(credit.roles.all()),
+                    "cited": is_cited(credit),
                     "edit_url": self.record_url("contributors-edit", pk=credit.pk),
                     "remove_url": self.record_url("contributors-remove", pk=credit.pk),
                 }
@@ -473,13 +503,16 @@ class Reorder(ContributorsBase):
         )
 
     def post(self, request, *args, **kwargs):
-        """Save the order."""
+        """Save the order, and who appears in the citation."""
         self.require_change()
         people = Contribution.objects.for_entity(self.base_object).people()
         try:
             save_order(people, request.POST.getlist("order"), field="order")
         except InvalidOrder:
             return HttpResponseBadRequest()
+        cited = set(request.POST.getlist("cited"))
+        for credit in people.select_related("contributor"):
+            set_cited(credit, str(credit.pk) in cited)
         return self.region_response(toast={"text": _("New order saved.")})
 
 

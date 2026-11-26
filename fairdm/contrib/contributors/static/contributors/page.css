@@ -116,7 +116,8 @@
 /* The foot's submit only shows once the sheet holds a form to send. */
 .contrib-sheet:not(:has(#contrib-form)) [data-contrib-submit] { display: none; }
 
-.contrib-reorder-item { display: inline-flex; align-items: center; gap: 0.625rem; min-width: 0; }
+/* Reorder by the handle only: the reorder list's up and down buttons are left out. */
+.contrib-reorder [data-mvp-reorder-up], .contrib-reorder [data-mvp-reorder-down] { display: none; }
 
 /* Toast, clear of the mobile dock. */
 .contrib-toast {
