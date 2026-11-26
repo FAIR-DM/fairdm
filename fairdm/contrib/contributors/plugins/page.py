@@ -531,7 +531,7 @@ class AddPerson(ContributorsBase):
             context["new_row"] = {
                 "name": query,
                 "initials": f"{typed['first_name'][:1]}{typed['last_name'][:1]}".upper(),
-                "url": AddPersonStep.step_url(self, typed, form=1),
+                "url": AddPersonStep.step_url(self, typed, via="search"),
             }
         title = _("Add a person to this %(kind)s") % {"kind": self.access.kind}
         if request.headers.get("HX-Target") == "contrib-person-results":
@@ -553,7 +553,8 @@ class AddPersonStep(ContributorsBase):
 
         Someone new is given by ORCID iD, or by name. An iD goes straight to their affiliation,
         offering the affiliations on their ORCID record. A name alone first shows the people ORCID
-        finds by that name, to pick from or to skip.
+        finds by that name, to pick from or to skip. A name typed in the search (``via=search``)
+        comes straight to those matches, and Back from them returns to the search.
         """
         self.require_change()
         person = None
@@ -567,6 +568,8 @@ class AddPersonStep(ContributorsBase):
                 "last_name": request.GET.get("last_name", "").strip(),
                 "orcid": request.GET.get("orcid", "").strip(),
             }
+            via = request.GET.get("via", "")
+            typed = {**new_name, "orcid": ""}
             if new_name["orcid"] and not request.GET.get("form"):
                 try:
                     orcid = Orcid().fetch(new_name["orcid"])
@@ -583,7 +586,7 @@ class AddPersonStep(ContributorsBase):
                     error = _("Give their family name, or pick them from ORCID.")
                 return self.new_person_step(new_name, error)
             elif not request.GET.get("skip"):
-                return self.orcid_matches_step(new_name)
+                return self.orcid_matches_step(new_name, via)
         context = self.credit_form_context(person, new_name=new_name)
         if new_name and new_name.get("orcid") and person is None:
             context["registry_affiliations"] = orcid_affiliations(new_name["orcid"])
@@ -594,6 +597,8 @@ class AddPersonStep(ContributorsBase):
         context["head"] = self.head_for(person, new_name)
         if request.GET.get("person"):
             context["back_url"] = self.record_url("contributors-add-person") + "?back=1"
+        elif request.GET.get("matches") or request.GET.get("skip"):
+            context["back_url"] = self.step_url(typed, via=via)
         else:
             context["back_url"] = self.step_url(new_name, form=1)
         context["submit_text"] = _("Add %(name)s") % {"name": first_name_of(person, new_name)}
@@ -622,8 +627,13 @@ class AddPersonStep(ContributorsBase):
             },
         )
 
-    def orcid_matches_step(self, new_name):
-        """The step that shows who ORCID finds under the names given, to pick from or skip."""
+    def orcid_matches_step(self, new_name, via=""):
+        """The step that shows who ORCID finds under the names given, to pick from or skip.
+
+        Args:
+            new_name: The names given.
+            via: ``"search"`` when the names were typed in the search, where Back then returns.
+        """
         try:
             found = Orcid().search(f"{new_name['first_name']} {new_name['last_name']}".strip())
             unavailable = False
@@ -635,10 +645,14 @@ class AddPersonStep(ContributorsBase):
                 "found": found["results"],
                 "unavailable": unavailable,
                 "new_name": new_name,
-                "pick_url": self.record_url("contributors-add-person-step"),
-                "next_url": self.step_url(new_name, skip=1),
+                "pick_url": self.step_url(new_name, via=via, matches=1),
+                "next_url": self.step_url(new_name, skip=1, via=via),
                 "next_text": _("Add by name alone"),
-                "back_url": self.step_url(new_name, form=1),
+                "back_url": (
+                    self.record_url("contributors-add-person") + "?" + urlencode({"back": 1, "q": f"{new_name['first_name']} {new_name['last_name']}".strip()})
+                    if via == "search"
+                    else self.step_url(new_name, form=1)
+                ),
                 "head": {"title": _("Do you mean?"), "lead": _("Powered by ORCID")},
             },
         )
@@ -884,11 +898,12 @@ class AddOrganization(ContributorsBase):
             if record is None:
                 return self.new_organization_step(new_name, "", _("ROR has no record under that ID."))
             known = Ror().known(record)
-            return self.roles_step(known, record["name"], "" if known else record["id"], back=self.step_url(ror=record["id"], form=1))
+            back = self.step_url(new_name=new_name) if new_name else self.step_url(ror=record["id"], form=1)
+            return self.roles_step(known, record["name"], "" if known else record["id"], back=back)
         if new_name and not request.GET.get("skip"):
             return self.ror_matches_step(new_name)
         if new_name:
-            return self.roles_step(None, new_name, back=self.step_url(new_name=new_name, form=1))
+            return self.roles_step(None, new_name, back=self.step_url(new_name=new_name))
         if request.GET.get("organization"):
             return self.roles_step(get_object_or_404(Organization, uuid=request.GET["organization"]))
         query = request.GET.get("q", "").strip()
@@ -903,7 +918,7 @@ class AddOrganization(ContributorsBase):
                 "name": query,
                 "initials": Organization(name=query).get_initials(),
                 "organization": True,
-                "url": self.step_url(new_name=query, form=1),
+                "url": self.step_url(new_name=query),
             }
         title = self.title()
         if request.headers.get("HX-Target") == "contrib-organization-results":
@@ -959,10 +974,10 @@ class AddOrganization(ContributorsBase):
                 "found": [{**record, "initials": initials_of(record, True)} for record in found["results"]],
                 "unavailable": unavailable,
                 "new_name": new_name,
-                "pick_url": self.record_url("contributors-add-organization"),
+                "pick_url": self.step_url(new_name=new_name),
                 "next_url": self.step_url(new_name=new_name, skip=1),
                 "next_text": _("Add by name alone"),
-                "back_url": self.step_url(new_name=new_name, form=1),
+                "back_url": self.record_url("contributors-add-organization") + "?" + urlencode({"back": 1, "q": new_name}),
                 "head": {"title": _("Do you mean?"), "lead": _("Powered by the Research Organization Registry (ROR)")},
             },
         )

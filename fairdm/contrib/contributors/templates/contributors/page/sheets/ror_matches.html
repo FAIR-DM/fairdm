@@ -6,7 +6,7 @@
       {% for record in found %}
         <li>
           <button type="button" class="contrib-pick"
-                  hx-get="{{ pick_url }}?ror={{ record.id|urlencode }}"
+                  hx-get="{{ pick_url }}&ror={{ record.id|urlencode }}"
                   hx-target="#contrib-sheet-step"
                   hx-swap="outerHTML">
             <c-mvp.avatar alt="" size="sm" placeholder="{{ record.initials }}" shape="rounded-box" variant="base-300" only />

@@ -18,7 +18,8 @@ record:
   organization people are credited from, with no roles of its own, shows Project Member, and one
   with roles of its own shows them;
 - adds a person who is already in the portal, by searching for them by name; a name that isn't
-  in the portal shows as one more row of the results, marked New;
+  in the portal shows as one more row of the results, marked New, and choosing it goes straight to
+  the people ORCID has under that name ("Do you mean?");
 - adds someone who isn't in the portal yet, starting from their ORCID iD: the field searches the
   public ORCID registry as they type and lists the matches beneath it, each match as wide as the
   list with the ORCID iD icon before its iD, and picking one closes the list and fills the
@@ -37,7 +38,8 @@ record:
   whether that person appears in the record's citation (on) or is credited but left out of formal
   citations (off); the order and the eyes are saved together;
 - adds an organization from the portal, with roles; a name that isn't in the portal shows as one
-  more row of the results, drawn like the portal's own rows and marked New;
+  more row of the results, drawn like the portal's own rows and marked New, and choosing it goes straight to what ROR
+  has under that name ("Do you mean?");
 - adds an organization that isn't in the portal yet, starting from its ROR ID: the field searches
   the ROR registry, starting with the name typed in the portal search, and picking a match fills
   the name; with a name alone, Continue opens "Do you mean?", powered by the Research Organization
@@ -133,6 +135,9 @@ credit order, then those that are only the affiliation of a person on the record
 
 ## Decisions
 
+- 2026-11-26: Choosing a New row skips the step that asks for an ORCID iD or ROR ID and the name,
+  since the name is already typed, and goes straight to "Do you mean?". Back from there returns to
+  the search with the name still in it.
 - 2026-11-26: A name typed in Add a person or Add an organization that isn't in the portal shows as a
   row drawn like the portal's own, with avatar initials, the name, a green New badge and a chevron,
   in place of the "Add as a new organization" button.
@@ -211,6 +216,8 @@ credit order, then those that are only the affiliation of a person on the record
 
 - The affiliation search filters, in the browser, a list of every organization in the portal. A
   real build needs a server-side search once the portal holds many organizations.
+- The step that asks for a ROR ID and a name can no longer be reached: a new organization starts
+  from its New row. The step, and its live ROR search, are still on the branch.
 - The ROR matches for a name alone are ROR's own search, so a partial name can rank poorly.
 - The affiliations offered from an ORCID record come from all its public affiliation sections
   (employments, educations, qualifications, invited positions, memberships, services), each
