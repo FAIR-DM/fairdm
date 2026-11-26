@@ -76,7 +76,7 @@ An organization holds no level. A role says how a person took part and never cha
 
 ## The roles each kind offers
 
-The roles on the Edit a contributor screen depend on the record's kind.
+The roles on the Edit a contributor screen depend on the record's kind. What each one means is in [Contributor roles](../../reference/contributor-roles.md).
 
 | Record | Roles |
 |---|---|

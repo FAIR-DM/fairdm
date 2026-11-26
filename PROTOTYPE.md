@@ -96,7 +96,10 @@ their own templates (`sheets/person_search.html`, `sheets/organization_search.ht
 return to them.
 
 **Role chips.** Checkbox inputs styled as toggle chips (`.contrib-chips`), used wherever roles are
-picked.
+picked (`sheets/roles_field.html`): adding a person or an organization, and editing either. The
+field is labelled "Select roles", with "Roles say how this person (or organization) is credited on
+this project." under it and a link, "What each role means", to `docs/reference/contributor-roles.md`
+as published.
 
 **The undo notice.** A fixed notice at the bottom of the screen, raised above the dock below
 1024 px, gone after six seconds unless hovered or focused.
@@ -239,12 +242,13 @@ credit order, then those that are only the affiliation of a person on the record
 
 ## Faked or skipped
 
+- The "What each role means" link points at
+  https://docs.fairdm.org/latest/reference/contributor-roles.html. The page
+  (`docs/reference/contributor-roles.md`) is on this branch only, so the link is dead until
+  FairDM's documentation is published with it. The meanings are the vocabulary's definitions,
+  reworded so each names the kind of record.
 - django-mvp's Tom Select theme pads the list and each option. `page.css` outranks it by pinning
   the registry list's rules to `#contrib-sheet`.
-- A focused field's outline was cut off at the sides of a sheet, because the sheet body scrolls
-  with no inline padding (https://github.com/django-mvp/django-mvp/issues/735). `page.css` gives
-  `[data-mvp-sheet-body]` 0.25rem of inline padding and the same negative margin until django-mvp
-  fixes it. The rule goes once it does.
 - django-mvp's list row has no way to give its sheet art, so the contributors app carries a copy of
   `cotton/mvp/list/row/index.html` that passes an `art` slot through. The copy applies to every list
   row in the portal while the app is installed.

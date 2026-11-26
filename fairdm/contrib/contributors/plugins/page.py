@@ -46,6 +46,14 @@ credited on but not cited in. The rebuild needs a field on the contribution.
 """
 
 
+ROLES_DOCS_URL = "https://docs.fairdm.org/latest/reference/contributor-roles.html"
+"""Where the page that says what each contributor role means is published.
+
+Faked: the page (``docs/reference/contributor-roles.md``) is on this branch only, so the address
+is not live until FairDM's documentation is published with it.
+"""
+
+
 LEADER = "project-leader"
 MEMBER = "project-member"
 
@@ -449,7 +457,12 @@ class ContributorsBase(ContributionPage):
         """
         held = self.held_by(credit)
         locked = self.locked_roles(held)
-        return {"roles": self.offered_roles(), "held_roles": (held or set()) | locked, "locked_roles": locked}
+        return {
+            "roles": self.offered_roles(),
+            "held_roles": (held or set()) | locked,
+            "locked_roles": locked,
+            "roles_docs_url": ROLES_DOCS_URL,
+        }
 
     def affiliation_choices(self, person):
         """The organizations to credit a person from: theirs first, then every other one.

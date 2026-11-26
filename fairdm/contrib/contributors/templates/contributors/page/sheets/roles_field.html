@@ -1,6 +1,10 @@
 {% load i18n %}
-<fieldset class="contrib-fieldset">
-  <legend class="contrib-label">{% translate "Roles" %}</legend>
+<fieldset class="contrib-fieldset" aria-describedby="contrib-roles-help">
+  <legend class="contrib-label">{% translate "Select roles" %}</legend>
+  <p class="contrib-help" id="contrib-roles-help" data-contrib-roles-help>
+    {% if organization or show_who %}{% blocktranslate %}Roles say how this organization is credited on this {{ kind }}.{% endblocktranslate %}{% else %}{% blocktranslate %}Roles say how this person is credited on this {{ kind }}.{% endblocktranslate %}{% endif %}
+    <a href="{{ roles_docs_url }}" target="_blank" rel="noopener" class="link">{% translate "What each role means" %}</a>
+  </p>
   <div class="contrib-chips">
     {% for role in roles %}
       <label class="contrib-chip">

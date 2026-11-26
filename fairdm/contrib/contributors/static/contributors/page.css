@@ -85,6 +85,9 @@
 .contrib-field { display: flex; flex-direction: column; gap: 0.375rem; }
 .contrib-fieldset { display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
 .contrib-label { font-weight: 600; font-size: 0.9375rem; }
+/* The line under a field's label that says what it is for. */
+.contrib-help { font-size: 0.8125rem; color: color-mix(in oklab, var(--color-base-content) 65%, transparent); margin-top: -0.25rem; }
+.contrib-help .link { white-space: nowrap; }
 .contrib-error { color: var(--color-error); font-size: 0.8125rem; }
 .contrib-options {
   display: flex; flex-direction: column;
