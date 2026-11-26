@@ -363,6 +363,8 @@ class ContributorsBase(ContributionPage):
             "icon": context.get("submit_icon", ""),
             "form": context.get("submit_form", ""),
             "back": context.get("back_url", ""),
+            "next": context.get("next_url", ""),
+            "next_text": context.get("next_text", ""),
         }
 
     # ------------------------------------------------------------------ shared form parts
@@ -606,9 +608,10 @@ class AddPersonStep(ContributorsBase):
                 "unavailable": unavailable,
                 "new_name": new_name,
                 "pick_url": self.record_url("contributors-add-person-step"),
-                "skip_url": self.step_url(new_name, skip=1),
+                "next_url": self.step_url(new_name, skip=1),
+                "next_text": _("Add by name alone"),
                 "back_url": self.step_url(new_name, form=1),
-                "head": {"title": _("Add a person to this %(kind)s") % {"kind": self.access.kind}},
+                "head": {"title": _("Do you mean?"), "lead": _("Powered by ORCID")},
             },
         )
 
@@ -920,9 +923,10 @@ class AddOrganization(ContributorsBase):
                 "unavailable": unavailable,
                 "new_name": new_name,
                 "pick_url": self.record_url("contributors-add-organization"),
-                "skip_url": self.step_url(new_name=new_name, skip=1),
+                "next_url": self.step_url(new_name=new_name, skip=1),
+                "next_text": _("Add by name alone"),
                 "back_url": self.step_url(new_name=new_name, form=1),
-                "head": {"title": self.title()},
+                "head": {"title": _("Do you mean?"), "lead": _("Powered by the Research Organization Registry (ROR)")},
             },
         )
 

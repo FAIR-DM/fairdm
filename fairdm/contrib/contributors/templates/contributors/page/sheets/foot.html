@@ -7,7 +7,11 @@
       <c-icon name="chevron-left" aria-hidden="true" /> {% translate "Back" %}
     </button>
   {% endif %}
-  {% if foot.submit %}
+  {% if foot.next %}
+    <button type="button" class="btn btn-primary min-w-0 flex-1" hx-get="{{ foot.next }}" hx-target="#contrib-sheet-step" hx-swap="outerHTML" data-contrib-submit data-contrib-skip>
+      <span class="truncate">{{ foot.next_text }}</span>
+    </button>
+  {% elif foot.submit %}
     <button type="submit" class="btn btn-primary min-w-0 flex-1" form="{{ foot.form|default:"contrib-form" }}" data-contrib-submit>
       {% if foot.icon %}<c-icon name="{{ foot.icon }}" aria-hidden="true" />{% endif %}
       <span class="truncate">{{ foot.submit }}</span>

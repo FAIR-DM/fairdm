@@ -21,8 +21,8 @@ record:
 - adds someone who isn't in the portal yet, starting from their ORCID iD: the field searches the
   public ORCID registry as they type and lists the matches beneath it, each match as wide as the
   list with the ORCID iD icon before its iD, and picking one closes the list and fills the
-  given and family names; with names alone, Continue lists the people ORCID has under those names,
-  with "Add them by name alone" to skip; someone picked from ORCID is offered the employers on
+  given and family names; with names alone, Continue opens "Do you mean?", powered by ORCID: the
+  people ORCID has under those names, with Add by name alone as the foot's main button; someone picked from ORCID is offered the employers on
   their ORCID record as their affiliation;
 - picks the person's affiliation on this record, under "Select their affiliation on this
   project", and adds them with a button that names them ("Add Aiko"): the organizations on their profile first, marked
@@ -38,8 +38,8 @@ record:
 - adds an organization from the portal, with roles;
 - adds an organization that isn't in the portal yet, starting from its ROR ID: the field searches
   the ROR registry, starting with the name typed in the portal search, and picking a match fills
-  the name; with a name alone, Continue lists what ROR has under that name, with "Add it by name
-  alone" to skip; one picked from ROR is added with its ROR ID, or is the portal's own when the
+  the name; with a name alone, Continue opens "Do you mean?", powered by the Research Organization
+  Registry (ROR): what ROR has under that name, with Add by name alone as the foot's main button; one picked from ROR is added with its ROR ID, or is the portal's own when the
   portal already holds that ID;
 - edits an organization's roles, or gives roles to an organization that is only there as an
   affiliation;
@@ -68,7 +68,8 @@ with `HX-Trigger-After-Settle: {"mvp-sheet-open": {"id": "contrib-sheet"}}`. Mul
 left, and the step's main button filling the rest of the width (`sheets/foot.html`). Each step
 answers with its own foot too, swapped in out of band as `#contrib-sheet-actions`, so a step with
 nothing to send shows Cancel alone. A step about one person or organization also swaps the sheet's
-title for their avatar and name (`sheets/head.html`, into `#contrib-sheet-title`). A later step's
+title for their avatar and name (`sheets/head.html`, into `#contrib-sheet-title`), and a match
+step swaps it for "Do you mean?" with the registry named in a muted line under it. A later step's
 foot has Back, which fetches the previous step into `#contrib-sheet-step`; the search steps are
 their own templates (`sheets/person_search.html`, `sheets/organization_search.html`) so Back can
 return to them.
@@ -127,6 +128,9 @@ credit order, then those that are only the affiliation of a person on the record
 
 ## Decisions
 
+- 2026-11-26: The ORCID and ROR match steps are titled "Do you mean?", with "Powered by ORCID" or
+  "Powered by the Research Organization Registry (ROR)" muted under the title and no question line
+  in the body. Add by name alone is the foot's main button.
 - 2026-11-26: Picking a match in the ORCID or ROR field closes its list.
 - 2026-11-26: ORCID matches in the iD field's list fill the list's width, and each iD has the
   ORCID iD icon before it.
@@ -179,6 +183,8 @@ credit order, then those that are only the affiliation of a person on the record
 - django-mvp's list row has no way to give its sheet art, so the contributors app carries a copy of
   `cotton/mvp/list/row/index.html` that passes an `art` slot through. The copy applies to every list
   row in the portal while the app is installed.
+- The muted line under "Do you mean?" is drawn inside the sheet's title, since django-mvp's sheet
+  draws its own line under the title only when it opens.
 - Back is the prototype's own button in the sheet's foot. django-mvp's sheet has no Back of its
   own.
 

@@ -1,7 +1,6 @@
 {% load i18n %}
-{# What ROR finds under the name given: pick one, or skip and add the organization by name alone. #}
+{# What ROR finds under the name given: pick one, or add the organization by name alone with the main button in the foot. #}
 <div id="contrib-sheet-step" class="contrib-step" data-contrib-matches>
-  <p class="contrib-label">{% blocktranslate with name=new_name %}Is {{ name }} one of these organizations in ROR?{% endblocktranslate %}</p>
   {% if found %}
     <ul class="contrib-picks" aria-label="{% translate "Organizations found in ROR" %}">
       {% for record in found %}
@@ -26,14 +25,4 @@
   {% else %}
     <p class="contrib-none">{% translate "ROR has no organization by that name." %}</p>
   {% endif %}
-  <div class="contrib-new">
-    <span>{% translate "Not one of them, or not in ROR?" %}</span>
-    <button type="button" class="btn btn-sm btn-ghost"
-            hx-get="{{ skip_url }}"
-            hx-target="#contrib-sheet-step"
-            hx-swap="outerHTML"
-            data-contrib-skip>
-      {% translate "Add it by name alone" %} <c-icon name="chevron-right" aria-hidden="true" />
-    </button>
-  </div>
 </div>

@@ -1,7 +1,6 @@
 {% load i18n %}
-{# Who ORCID finds under the names given: pick one, or skip and add them by name alone. #}
+{# Who ORCID finds under the names given: pick one, or add them by name alone with the main button in the foot. #}
 <div id="contrib-sheet-step" class="contrib-step" data-contrib-matches>
-  <p class="contrib-label">{% blocktranslate with name=new_name.first_name|add:" "|add:new_name.last_name %}Is {{ name }} one of these people in ORCID?{% endblocktranslate %}</p>
   {% if found %}
     <ul class="contrib-picks" aria-label="{% translate "People found in ORCID" %}">
       {% for record in found %}
@@ -26,14 +25,4 @@
   {% else %}
     <p class="contrib-none">{% translate "ORCID has nobody by that name." %}</p>
   {% endif %}
-  <div class="contrib-new">
-    <span>{% translate "Not one of them, or no ORCID iD?" %}</span>
-    <button type="button" class="btn btn-sm btn-ghost"
-            hx-get="{{ skip_url }}"
-            hx-target="#contrib-sheet-step"
-            hx-swap="outerHTML"
-            data-contrib-skip>
-      {% translate "Add them by name alone" %} <c-icon name="chevron-right" aria-hidden="true" />
-    </button>
-  </div>
 </div>
