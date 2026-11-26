@@ -1,16 +1,5 @@
 {% load i18n %}
 <div id="contrib-sheet-step" class="contrib-step">
-  {% if show_who %}
-    <div class="contrib-who">
-      {% if organization %}
-        <c-contributor.avatar :contributor="organization" size="sm" />
-        <span class="contrib-pick-name">{{ organization.name }}</span>
-      {% else %}
-        <c-mvp.avatar alt="" size="sm" shape="rounded-box" variant="base-300" placeholder="{{ new_name|slice:":2"|upper }}" only />
-        <span class="contrib-pick-name">{{ new_name }}</span>
-      {% endif %}
-    </div>
-  {% endif %}
   <form id="contrib-form" class="contrib-fields"
         hx-post="{{ action }}" hx-target="#contrib-region" hx-swap="outerHTML">
     {% if show_who %}

@@ -1,17 +1,6 @@
 {% load i18n %}
 {# A person's affiliation on this record and their roles. The submit button is in the sheet's foot. #}
 <div id="contrib-sheet-step" class="contrib-step">
-  {% if not credit %}
-    <div class="contrib-who">
-      {% if person %}
-        <c-contributor.avatar :contributor="person" size="sm" />
-        <span class="contrib-pick-name">{{ person.name }}</span>
-      {% else %}
-        <c-mvp.avatar alt="" size="sm" placeholder="{{ new_name.first_name|slice:":1" }}{{ new_name.last_name|slice:":1" }}" only />
-        <span class="contrib-pick-name">{{ new_name.first_name }} {{ new_name.last_name }}</span>
-      {% endif %}
-    </div>
-  {% endif %}
   <form id="contrib-form" class="contrib-fields"
         hx-post="{{ action }}" hx-target="#contrib-region" hx-swap="outerHTML">
     {% if person and not credit %}<input type="hidden" name="person" value="{{ person.uuid }}">{% endif %}

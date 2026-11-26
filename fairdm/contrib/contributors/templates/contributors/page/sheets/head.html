@@ -1,0 +1,2 @@
+{# The sheet's title for this step, swapped into the sheet's head out of band: who the step is about, with their avatar, or the sheet's own title. #}
+<h2 id="{{ sheet_id }}-title" hx-swap-oob="innerHTML">{% if head.contributor %}<c-contributor.avatar :contributor="head.contributor" size="sm" class="font-normal" />{% elif head.initials %}<c-mvp.avatar alt="" size="sm" class="font-normal" placeholder="{{ head.initials }}"{% if head.organization %} shape="rounded-box" variant="base-300"{% endif %} only />{% endif %}<span class="min-w-0">{{ head.title }}</span></h2>

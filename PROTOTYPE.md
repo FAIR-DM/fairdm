@@ -55,7 +55,8 @@ with `HX-Trigger-After-Settle: {"mvp-sheet-open": {"id": "contrib-sheet"}}`. Mul
 `#contrib-sheet-step` inside the open sheet. Every sheet's foot is the same: Cancel, small, on the
 left, and the step's main button filling the rest of the width (`sheets/foot.html`). Each step
 answers with its own foot too, swapped in out of band as `#contrib-sheet-actions`, so a step with
-nothing to send shows Cancel alone.
+nothing to send shows Cancel alone. A step about one person or organization also swaps the sheet's
+title for their avatar and name (`sheets/head.html`, into `#contrib-sheet-title`).
 
 **Role chips.** Checkbox inputs styled as toggle chips (`.contrib-chips`), used wherever roles are
 picked.
@@ -108,6 +109,8 @@ credit order, then those that are only the affiliation of a person on the record
 
 ## Decisions
 
+- 2026-11-26: Once a person or organization is picked, the next step's head shows their avatar
+  and name in place of "Add a person to this project".
 - 2026-11-26: The affiliation step reads "Select their affiliation on this project". Its button
   carries the add icon and the person's first name ("Add Aiko"). Every sheet's foot has Cancel,
   small, on the left and the main button filling the rest, including Continue on the step that

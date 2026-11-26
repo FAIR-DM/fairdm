@@ -269,7 +269,26 @@ class ContributorsBase(ContributionPage):
         if chrome:
             foot = {"foot": self.foot(context), "oob": True}
             html += render_to_string("contributors/page/sheets/foot.html", foot, request=self.request)
+            if context.get("head"):
+                html += render_to_string("contributors/page/sheets/head.html", context, request=self.request)
         return HttpResponse(html)
+
+    @staticmethod
+    def head_for(contributor, new_name=None, organization=False):
+        """The sheet's title on a step about one person or organization: their avatar and name.
+
+        Args:
+            contributor: The person or organization, or None for one not yet in the portal.
+            new_name: For a person not yet in the portal, their ``first_name`` and ``last_name``;
+                for an organization, its name.
+            organization: Whether a contributor not yet in the portal is an organization.
+        """
+        if contributor is not None:
+            return {"contributor": contributor, "title": contributor.name}
+        if organization:
+            return {"title": new_name, "initials": new_name[:2].upper(), "organization": True}
+        first, last = new_name.get("first_name", ""), new_name.get("last_name", "")
+        return {"title": f"{first} {last}".strip(), "initials": f"{first[:1]}{last[:1]}".upper()}
 
     @staticmethod
     def foot(context):
@@ -399,6 +418,7 @@ class AddPersonStep(ContributorsBase):
                 )
         context = self.credit_form_context(person, new_name=new_name)
         context["action"] = self.record_url("contributors-add-person-step")
+        context["head"] = self.head_for(person, new_name)
         context["submit_text"] = _("Add %(name)s") % {"name": first_name_of(person, new_name)}
         context["submit_icon"] = "add"
         return self.step_response("contributors/page/sheets/credit_form.html", context)
@@ -611,6 +631,7 @@ class AddOrganization(ContributorsBase):
                 "action": self.record_url("contributors-add-organization"),
                 "submit_text": _("Add to the %(kind)s") % {"kind": self.access.kind},
             }
+            context["head"] = self.head_for(organization, context["new_name"], organization=True)
             return self.step_response("contributors/page/sheets/organization_form.html", context)
         query = request.GET.get("q", "").strip()
         listed = Contribution.objects.for_entity(self.base_object).values_list("contributor_id", flat=True)
