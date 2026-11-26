@@ -12,8 +12,10 @@ record:
   narrower column beside it (stacked below the people on a narrow screen);
 - sees, for each person, their avatar, name, the affiliation recorded on this record (an em dash
   when there is none) and their roles as a row of badges;
-- sees, for each organization, its roles as badges, plus an "Affiliation" badge when people on
-  the record are credited from it;
+- sees the organizations in a set order it can't change: the affiliations of the people who are
+  Project Leader on the record first, each with a Project Leader badge, then the rest; an
+  organization people are credited from, with no roles of its own, shows Project Member, and one
+  with roles of its own shows them;
 - adds a person who is already in the portal, by searching for them by name;
 - adds someone who isn't in the portal yet, by given and family name;
 - picks the person's affiliation on this record: the organizations on their profile first, marked
@@ -97,22 +99,29 @@ service for every change, so its rules hold: adding a person with an affiliation
 organization, an organization people are credited from can't be removed, and the last manager
 can't be removed.
 
-The organizations column is the organizations credited directly, in credit order, followed by the
-organizations that are only the affiliation of a person on the record, by name.
+The organizations column starts with the affiliations of the people who hold Project Leader on the
+record, in those people's credit order. The rest follow: the organizations credited directly, in
+credit order, then those that are only the affiliation of a person on the record, by name.
 
 ## Decisions
 
+- 2026-11-26: Organizations aren't ordered by hand but have a default order. The affiliations of
+  Project Leaders come first with a Project Leader badge. The "Affiliation" badge is gone:
+  organizations people are credited from show Project Member, and organizations credited
+  directly keep their roles.
 - 2026-11-26: The reorder sheet has no up and down buttons. Each row is the name, then an eye that
   puts the person in the citation or leaves them out, then the drag handle.
 
 - The sheet is used at every width, with no dropdown even for a mouse.
 - Remove happens at once and offers Undo, rather than asking for confirmation first.
-- An organization that people are credited from carries an "Affiliation" badge and can't be
-  removed, only given roles.
+- An organization that people are credited from can't be removed, only given roles.
 - Changes need the manage level on the record.
 - Organizations aren't reordered.
 
 ## Faked or skipped
+
+- The Project Leader and Project Member badges of an organization are worked out when the page is
+  drawn, not stored on its credit.
 
 - Whether a person appears in the citation is kept in their `config`, as a list of the records
   they are left out of. The contribution needs a field for it.

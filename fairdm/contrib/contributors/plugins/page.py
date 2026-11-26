@@ -42,6 +42,15 @@ credited on but not cited in. The rebuild needs a field on the contribution.
 """
 
 
+LEADER = "project-leader"
+MEMBER = "project-member"
+
+
+def role_by_slug(slug):
+    """The contributor role with this slug, or None."""
+    return Record.objects.filter(uri=f"https://w3id.org/fairdm/vocabularies/contributor-roles/{slug}").first()
+
+
 def record_key(credit):
     """The key that names a contribution's record in the faked citation list."""
     return f"{credit.content_type_id}:{credit.object_id}"
@@ -163,7 +172,38 @@ class ContributorsBase(ContributionPage):
                     "edit_url": self.record_url("contributors-credit-organization", pk=organization.pk),
                 }
             )
-        return rows
+        return self.in_default_order(rows, people)
+
+    def in_default_order(self, rows, people):
+        """Order the organizations and give each the badges it shows.
+
+        The affiliations of the people who lead the record come first, in the order those people
+        are credited, and show Project Leader. An organization people are credited from, with no
+        roles of its own, shows Project Member. One with roles of its own keeps them.
+
+        Args:
+            rows: The organization rows, listed ones first, then affiliations by name.
+            people: The rows from :meth:`people`.
+
+        Returns:
+            The rows in their default order, each with ``badges``, the role labels it shows.
+        """
+        leader, member = role_by_slug(LEADER), role_by_slug(MEMBER)
+        led_from = []
+        for row in people:
+            affiliation = row["credit"].affiliation_id
+            if affiliation and affiliation not in led_from and any(r.slug == LEADER for r in row["roles"]):
+                led_from.append(affiliation)
+        for row in rows:
+            badges = [str(role) for role in row["roles"]]
+            row["leads"] = row["organization"].pk in led_from
+            if row["leads"] and leader and str(leader) not in badges:
+                badges.insert(0, str(leader))
+            if not badges and row["people"] and member:
+                badges.append(str(member))
+            row["badges"] = badges
+        rank = {pk: place for place, pk in enumerate(led_from)}
+        return sorted(rows, key=lambda row: rank.get(row["organization"].pk, len(rank)))
 
     def region_context(self, toast=None):
         """Everything the page region draws."""

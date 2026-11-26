@@ -3,14 +3,14 @@
 <c-mvp.list.row id="contrib-org-{{ organization.pk }}"
                 label="{{ organization.name }}"
                 face_class="contrib-face"
-                data-contrib-row>
+                data-contrib-row
+                data-contrib-affiliation="{{ row.people|yesno:'yes,no' }}">
   <c-contributor.avatar :contributor="organization" size="md" />
   <div class="list-col-grow contrib-body">
     <c-contributor.name :contributor="organization" class="font-semibold" />
-    {% if row.roles or row.people %}
+    {% if row.badges %}
       <ul class="contrib-roles" aria-label="{% translate "Roles" %}">
-        {% for role in row.roles %}<li class="badge badge-sm badge-soft badge-primary">{{ role }}</li>{% endfor %}
-        {% if row.people %}<li class="badge badge-sm badge-outline">{% translate "Affiliation" %}</li>{% endif %}
+        {% for badge in row.badges %}<li class="badge badge-sm badge-soft badge-primary">{{ badge }}</li>{% endfor %}
       </ul>
     {% endif %}
   </div>
