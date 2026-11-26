@@ -34,6 +34,9 @@ PORTAL_RESULTS = 12
 def split_name(typed):
     """Return given names and family name from a name typed whole: the last word is the
     family name.
+
+    Args:
+        typed: The name as typed, whole.
     """
     words = typed.split()
     return {"first_name": " ".join(words[:-1]), "last_name": words[-1] if words else ""}
@@ -76,6 +79,11 @@ class AddPerson(ContributorsBase):
     def get(self, request, *args, **kwargs):
         """Open the sheet at its search step, answer a search, or return
         to the search.
+
+        Args:
+            request: The request.
+            *args: Unused URL arguments.
+            **kwargs: Unused URL keyword arguments.
         """
         query = request.GET.get("q", "").strip()
         listed = Contribution.objects.for_entity(self.base_object).values_list(
@@ -171,6 +179,10 @@ class AddPersonStep(ContributorsBase):
     def step_url(self, new_name, **extra):
         """Return the address of this step for someone new, carrying what is known of
         them.
+
+        Args:
+            new_name: What is known of the new person: ``first_name`` and ``last_name``.
+            **extra: Further query parameters for the step.
         """
         query = {key: value for key, value in new_name.items() if value}
         return (
@@ -197,6 +209,11 @@ class AddPersonStep(ContributorsBase):
         (``confirm``) asks for the given names and family name, guessed from the name,
         before the affiliation. A name or an iD typed in the search (``via=search``)
         comes straight here, and Back returns to the search.
+
+        Args:
+            request: The request.
+            *args: Unused URL arguments.
+            **kwargs: Unused URL keyword arguments.
         """
         via = request.GET.get("via", "")
         narrowed = {
@@ -229,6 +246,12 @@ class AddPersonStep(ContributorsBase):
     def orcid_person(self, orcid_id, typed, via, narrowed):
         """Continue with someone picked from ORCID: the person the portal holds, or a
         new one.
+
+        Args:
+            orcid_id: The ORCID iD picked.
+            typed: The names typed so far.
+            via: Where the step was reached from.
+            narrowed: The name and affiliation the search was narrowed by.
         """
         record, problem = self.search_registry(Orcid().fetch, orcid_id)
         if record is None:
@@ -260,6 +283,11 @@ class AddPersonStep(ContributorsBase):
         New row, which leads to what ROR has under that name ("Do you mean?"), to pick
         from or to add by name alone. Picking any of them leads to the roles step, with
         the organization shown as their affiliation.
+
+        Args:
+            person: The person the portal holds, or None for someone new.
+            new_name: The new person's names.
+            back_url: Where Back returns to.
         """
         request = self.request
         carried = {
@@ -329,6 +357,12 @@ class AddPersonStep(ContributorsBase):
     def affiliation_results(self, person, new_name, here, query):
         """Return the organizations the affiliation step lists for a search, in their
         groups.
+
+        Args:
+            person: The person the portal holds, or None for someone new.
+            new_name: The new person's names.
+            here: The address of this step.
+            query: What was typed in the affiliation search.
 
         Returns:
             The context of ``affiliation_results.html``: ``orcid`` (the organizations on
@@ -443,6 +477,12 @@ class AddPersonStep(ContributorsBase):
     def person_roles_step(self, person, new_name, here, head):
         """Draw the step that picks the person's roles, the affiliation chosen under
         their name.
+
+        Args:
+            person: The person the portal holds, or None for someone new.
+            new_name: The new person's names.
+            here: The address of the affiliation step.
+            head: The sheet's heading.
         """
         organization, entry = self.picked_affiliation(self.request.GET)
         query = self.request.GET.get("aq", "")
@@ -518,6 +558,12 @@ class AddPersonStep(ContributorsBase):
         is the family name) and the user corrects it. It follows Add by name alone,
         guessing from the name last searched. Back from the affiliation step returns to
         it with the names given.
+
+        Args:
+            typed: The given names and family name typed so far.
+            narrowed: The name and affiliation the search was narrowed by.
+            via: Where the step was reached from.
+            given: Whether the names were already given, so not guessed.
         """
         name = f"{typed['first_name']} {typed['last_name']}".strip()
         names = typed if given else split_name(narrowed.get("find") or name)

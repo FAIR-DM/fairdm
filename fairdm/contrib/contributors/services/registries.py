@@ -224,6 +224,9 @@ class Orcid:
     def words_of(text):
         """Return the words of a name or an organization, with nothing ORCID's query
         language reads.
+
+        Args:
+            text: A name or an organization.
         """
         return [w for w in re.sub(r"[^\w'\-.]+", " ", text).split() if w.strip("-.'")]
 
@@ -231,6 +234,10 @@ class Orcid:
     def all_words(cls, field, words):
         """Return a clause needing every word in ``field``, the last one possibly typed
         in part.
+
+        Args:
+            field: The ORCID field to search.
+            words: The words the field must contain.
         """
         *whole, last = words
         parts = [f'"{w}"' for w in whole]
@@ -511,6 +518,10 @@ class Orcid:
     def ror_for(source, value):
         """Return the ROR ID of an organization ORCID identifies another way, or an
         empty string.
+
+        Args:
+            source: The kind of identifier ORCID gives, such as ``FUNDREF``.
+            value: The identifier.
         """
         if not source or not value:
             return ""

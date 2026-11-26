@@ -175,6 +175,11 @@ class UndoRemove(ContributorsBase):
     def post(self, request, *args, **kwargs):
         """Recreate the removed contribution in its old place, with its
         roles and level.
+
+        Args:
+            request: The request.
+            *args: Unused URL arguments.
+            **kwargs: Unused URL keyword arguments.
         """
         try:
             kept = signing.loads(

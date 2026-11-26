@@ -35,7 +35,11 @@ ROLE_URI = "https://w3id.org/fairdm/vocabularies/contributor-roles/{}"
 
 
 def role_by_slug(slug):
-    """Return the contributor role with this slug, or None."""
+    """Return the contributor role with this slug, or None.
+
+    Args:
+        slug: The role's slug, such as ``data-collector``.
+    """
     return Record.objects.filter(uri=ROLE_URI.format(slug)).first()
 
 
@@ -56,6 +60,10 @@ def first_name_of(person, new_name=None):
 def initials_of(record, organization=False):
     """Return the initials an avatar shows for a registry record, by the portal's own
     rule.
+
+    Args:
+        record: A registry record with ``name`` and, for a person, ``given`` and ``family``.
+        organization: Whether the record is an organization.
     """
     if organization:
         return Organization(name=record["name"]).get_initials()
@@ -408,6 +416,10 @@ class ContributorsBase(ContributionPage):
     def registry_refusal(self, registry, problem):
         """Answer a change that could not be made because a registry could
         not be asked.
+
+        Args:
+            registry: The registry's name, shown in the message.
+            problem: ``limited`` when the user searched too fast, otherwise the registry could not be reached.
         """
         text = _("You are searching too fast. Wait a moment and try again.")
         if problem != "limited":
