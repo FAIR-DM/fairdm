@@ -78,6 +78,13 @@ class Command(BaseCommand):
         Organization.objects.filter(name__startswith="Svalbard Science Forum").delete()
         Organization.objects.filter(name="ETH Zürich").delete()
         Person.objects.filter(last_name="Haddad", is_claimed=False).delete()
+        Person.objects.filter(last_name__in=["Peters", "Goring"], is_claimed=False).delete()
+        from fairdm.contrib.contributors.plugins.page import UNCITED
+
+        for person in Person.objects.exclude(config={}).exclude(config__isnull=True):
+            if UNCITED in (person.config or {}):
+                person.config = {k: v for k, v in person.config.items() if k != UNCITED}
+                person.save(update_fields=["config"])
 
         organizations = {}
         for name, city, country in ORGANIZATIONS:
