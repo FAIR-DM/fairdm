@@ -94,7 +94,9 @@ A person's row is the contributors package's `c-contributor.item`, given the cre
 the avatar, the linked name, the affiliation on this record and the role badges. An organization's
 row uses `c-contributor.avatar` and `c-contributor.name`, with its own badges. Every avatar in the
 page and its sheets is `c-contributor.avatar`, so people are round and organizations are grey
-boxes as everywhere else in the portal. The sheets have no art beside their title.
+boxes as everywhere else in the portal. A row's actions sheet has the contributor's avatar before
+their name, and for a person the affiliation on this record under it. The other sheets have no
+art beside their title.
 
 ## Screens
 
@@ -122,6 +124,8 @@ credit order, then those that are only the affiliation of a person on the record
 
 ## Decisions
 
+- 2026-11-26: A row's actions sheet shows the avatar again, then the name and, for a person, their
+  affiliation on this project.
 - 2026-11-26: Adding an organization that isn't in the portal works the same way against ROR: its
   ROR ID first, searched live, then its name, and a name alone leads to ROR's matches with a way to
   skip.
@@ -159,6 +163,9 @@ credit order, then those that are only the affiliation of a person on the record
 
 ## Faked or skipped
 
+- django-mvp's list row has no way to give its sheet art, so the contributors app carries a copy of
+  `cotton/mvp/list/row/index.html` that passes an `art` slot through. The copy applies to every list
+  row in the portal while the app is installed.
 - Back is the prototype's own button in the sheet's foot. django-mvp's sheet has no Back of its
   own.
 

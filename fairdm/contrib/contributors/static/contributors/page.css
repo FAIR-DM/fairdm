@@ -141,3 +141,6 @@
 .contrib-toast-box { background: var(--color-neutral); color: var(--color-neutral-content); border: 0; }
 .contrib-toast-box .contrib-undo { color: inherit; }
 .contrib-toast[data-gone] { display: none; }
+
+/* The row sheet's art is the contributor's own avatar, which brings its own shape and colour. */
+[data-contrib-row] [data-mvp-sheet-head] span[aria-hidden="true"]:has(.avatar) { background: none; }

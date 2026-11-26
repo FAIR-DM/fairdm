@@ -5,6 +5,7 @@
                 lead="{% if credit.affiliation %}{{ credit.affiliation.name }}{% endif %}"
                 face_class="contrib-face"
                 data-contrib-row>
+  <c-slot name="art"><c-contributor.avatar :contributor="person" size="md" /></c-slot>
   <c-contributor.item :contributor="credit" size="md" secondary="{% if not credit.affiliation %}—{% endif %}" class="list-col-grow" />
   {% if can_change %}
     <c-slot name="actions">

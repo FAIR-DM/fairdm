@@ -5,6 +5,7 @@
                 face_class="contrib-face"
                 data-contrib-row
                 data-contrib-affiliation="{{ row.people|yesno:'yes,no' }}">
+  <c-slot name="art"><c-contributor.avatar :contributor="organization" size="md" /></c-slot>
   <c-contributor.avatar :contributor="organization" size="md" />
   <div class="list-col-grow contrib-body">
     <c-contributor.name :contributor="organization" class="font-semibold" />
