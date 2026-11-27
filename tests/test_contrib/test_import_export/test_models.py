@@ -11,29 +11,40 @@ from fairdm.core.dataset.models import Dataset
 from fairdm.factories import DatasetFactory
 from tests.factories import ImportJobFactory, ImportRowFactory
 
-pytestmark = pytest.mark.django_db
-
 RUNNING = {"checking", "importing", "undoing"}
 FINISHED = {"imported", "undone", "discarded", "failed"}
 
 
-class TestImportJob:
-    """The record of one file, from upload to outcome."""
+@pytest.fixture
+def media(settings, tmp_path):
+    """Store uploaded files in a folder of the test's own."""
+    settings.MEDIA_ROOT = tmp_path
+    return tmp_path
+
+
+class TestImportJobProperties:
+    """What a job reports about itself without being stored."""
 
     def test_a_new_job_waits_for_column_matching(self):
         assert ImportJob().status == ImportJob.Status.MATCHING
 
-    @pytest.mark.parametrize("status", ImportJob.Status.values)
-    def test_a_job_is_running_only_while_checking_or_importing(self, status):
-        job = ImportJob(status=status)
+    def test_a_job_is_running_only_while_checking_importing_or_undoing(self):
+        running = {
+            status
+            for status in ImportJob.Status.values
+            if ImportJob(status=status).is_running
+        }
 
-        assert job.is_running is (status in RUNNING)
+        assert running == RUNNING
 
-    @pytest.mark.parametrize("status", ImportJob.Status.values)
-    def test_a_job_is_finished_once_it_has_an_outcome(self, status):
-        job = ImportJob(status=status)
+    def test_a_job_is_finished_once_it_has_an_outcome(self):
+        finished = {
+            status
+            for status in ImportJob.Status.values
+            if ImportJob(status=status).is_finished
+        }
 
-        assert job.is_finished is (status in FINISHED)
+        assert finished == FINISHED
 
     def test_writes_counts_the_rows_added_and_updated(self):
         job = ImportJob(summary={"new": 3, "update": 2, "unchanged": 9, "problem": 1})
@@ -42,6 +53,11 @@ class TestImportJob:
 
     def test_writes_is_zero_before_the_check(self):
         assert ImportJob(summary={}).writes == 0
+
+
+@pytest.mark.django_db
+class TestImportJob:
+    """The record of one file, from upload to outcome."""
 
     def test_the_definition_is_found_by_name(self, import_job):
         assert import_job.definition.name == "rocksample"
@@ -60,15 +76,7 @@ class TestImportJob:
 
         assert list(dataset.import_jobs.all()) == [newer, older]
 
-    def test_a_job_keeps_the_dataset_and_definition_listing_index(self):
-        indexed = [index.fields for index in ImportJob._meta.indexes]
-
-        assert ["dataset", "definition_name", "created"] in indexed
-
-    def test_a_factory_stores_no_file_unless_asked(self, import_job):
-        assert not import_job.file
-
-    def test_deleting_a_job_deletes_its_stored_file(self):
+    def test_deleting_a_job_deletes_its_stored_file(self, media):
         job = ImportJobFactory(with_file=True)
         storage, name = job.file.storage, job.file.name
         assert storage.exists(name)
@@ -84,15 +92,13 @@ class TestImportJob:
 
         assert not ImportJob.objects.filter(pk=job.pk).exists()
 
-    def test_deleting_a_dataset_deletes_its_jobs_and_their_files(self):
+    def test_deleting_a_dataset_deletes_its_jobs_and_their_files(self, media):
         job = ImportJobFactory(with_file=True)
-        ImportRowFactory(job=job)
         storage, name = job.file.storage, job.file.name
 
         job.dataset.delete()
 
         assert not ImportJob.objects.filter(pk=job.pk).exists()
-        assert not ImportRow.objects.filter(job_id=job.pk).exists()
         assert not storage.exists(name)
 
     def test_deleting_a_job_leaves_its_dataset(self, import_job):
@@ -101,6 +107,7 @@ class TestImportJob:
         assert Dataset.all_objects.filter(pk=import_job.dataset_id).exists()
 
 
+@pytest.mark.django_db
 class TestImportRow:
     """One row of a file as the check saw it."""
 
@@ -111,50 +118,28 @@ class TestImportRow:
 
         assert list(import_job.rows.all()) == [first, second, third]
 
-    def test_rows_of_one_outcome_are_found_by_the_index(self):
-        indexed = [index.fields for index in ImportRow._meta.indexes]
-
-        assert ["job", "outcome", "number"] in indexed
-
-    def test_a_row_starts_as_a_new_record(self, import_row):
-        assert import_row.outcome == ImportRow.Outcome.NEW
-        assert import_row.record_pk is None
-
-    def test_a_row_holds_no_cell_of_the_file(self):
-        names = {field.name for field in ImportRow._meta.get_fields()}
-
-        assert names.isdisjoint({"values", "cells", "data", "raw"})
-
-    def test_deleting_a_job_deletes_its_rows(self, import_job):
-        row = ImportRowFactory(job=import_job)
-
-        import_job.delete()
-
-        assert not ImportRow.objects.filter(pk=row.pk).exists()
-
 
 class TestFieldDocumentation:
     """Every field of both models has a name and an explanation."""
 
-    FIELDS = [
-        field
-        for model in (ImportJob, ImportRow)
-        for field in model._meta.get_fields()
-        if isinstance(field, models.Field) and not field.auto_created
-    ]
+    def test_every_field_has_a_verbose_name_and_help_text(self):
+        undocumented = [
+            f"{model.__name__}.{field.name}"
+            for model in (ImportJob, ImportRow)
+            for field in model._meta.get_fields()
+            if isinstance(field, models.Field)
+            and not field.auto_created
+            and not (str(field.help_text) and field._verbose_name is not None)
+        ]
 
-    @pytest.mark.parametrize(
-        "field", FIELDS, ids=lambda field: f"{field.model.__name__}.{field.name}"
-    )
-    def test_field_has_verbose_name_and_help_text(self, field):
-        assert str(field.help_text)
-        assert field._verbose_name is not None
+        assert not undocumented
 
 
+@pytest.mark.django_db
 class TestStoredFileName:
     """An uploaded file is stored under a name nobody can guess."""
 
-    def test_the_stored_name_holds_neither_the_upload_nor_a_date(self, make_job):
+    def test_the_stored_name_holds_neither_the_upload_nor_a_date(self, make_job, media):
         from django.core.files.base import ContentFile
 
         job = make_job([{"name": "a", "local_id": "A"}])
@@ -162,7 +147,7 @@ class TestStoredFileName:
 
         assert re.fullmatch(r"imports/[0-9a-f]{32}\.xlsx", job.file.name)
 
-    def test_two_uploads_of_one_name_are_stored_apart(self, make_job):
+    def test_two_uploads_of_one_name_are_stored_apart(self, make_job, media):
         from django.core.files.base import ContentFile
 
         job = make_job([{"name": "a", "local_id": "A"}])

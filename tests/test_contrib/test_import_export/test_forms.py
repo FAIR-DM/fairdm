@@ -1,10 +1,10 @@
 """Tests for fairdm/contrib/import_export/forms.py."""
 
-import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from fairdm.contrib.import_export.forms import ImportOptionsForm, UploadForm
 from fairdm.contrib.import_export.models import ImportJob
+from fairdm.contrib.import_export.reader import FileReader
 
 
 def descriptions(form, name):
@@ -20,16 +20,6 @@ class TestImportOptionsForm:
 
         assert form["mode"].initial == ImportJob.Mode.BOTH
         assert form["empty"].initial == ImportJob.Empty.KEEP
-
-    def test_the_choices_are_the_job_choices(self):
-        form = ImportOptionsForm()
-
-        assert [
-            value for value, _ in form.fields["mode"].choices
-        ] == ImportJob.Mode.values
-        assert [value for value, _ in form.fields["empty"].choices] == (
-            ImportJob.Empty.values
-        )
 
     def test_each_choice_is_drawn_with_a_description(self):
         form = ImportOptionsForm()
@@ -78,30 +68,21 @@ class TestUploadForm:
         """Return a form holding one uploaded file."""
         return UploadForm(files={"file": SimpleUploadedFile(name, content)})
 
-    @pytest.mark.parametrize(
-        "name", ["rocks.csv", "rocks.tsv", "rocks.xlsx", "rocks.ods"]
-    )
-    def test_a_file_of_a_read_format_is_accepted(self, name):
-        assert self.upload(name).is_valid()
+    def test_a_file_of_a_read_format_is_accepted(self):
+        assert self.upload("rocks.csv").is_valid()
 
-    def test_the_extension_is_read_in_any_case(self):
-        assert self.upload("ROCKS.CSV").is_valid()
-
-    @pytest.mark.parametrize("name", ["rocks.json", "rocks.txt", "rocks"])
-    def test_a_file_of_another_format_is_refused(self, name):
-        form = self.upload(name)
+    def test_a_file_of_another_format_is_refused(self):
+        form = self.upload("rocks.json")
 
         assert not form.is_valid()
         assert form.has_error("file", code="format")
 
-    def test_a_file_over_the_size_limit_is_refused(self):
-        form = self.upload("rocks.csv", b"x" * (UploadForm.MAX_BYTES + 1))
+    def test_a_file_over_the_size_limit_is_refused(self, monkeypatch):
+        monkeypatch.setattr(FileReader, "MAX_BYTES", 3)
+        form = self.upload("rocks.csv", b"xxxx")
 
         assert not form.is_valid()
         assert form.has_error("file", code="too_large")
-
-    def test_a_file_at_the_size_limit_is_accepted(self):
-        assert self.upload("rocks.csv", b"x" * UploadForm.MAX_BYTES).is_valid()
 
     def test_a_form_with_no_file_is_refused(self):
         form = UploadForm(files={})

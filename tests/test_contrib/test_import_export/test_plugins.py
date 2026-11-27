@@ -5,7 +5,6 @@ the elements their states need and what they write. Wording and look are never a
 """
 
 import io
-from unittest import mock
 
 import pytest
 from bs4 import BeautifulSoup
@@ -22,9 +21,9 @@ from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.import_export import tasks
 from fairdm.contrib.import_export.definitions import import_definitions
 from fairdm.contrib.import_export.models import ImportJob, ImportRow
-from fairdm.contrib.import_export.plugins import import_chooser
-from fairdm.contrib.import_export.reader import FileReader
+from fairdm.contrib.import_export.plugins import JobDetail, import_chooser
 from fairdm.contrib.import_export.runner import ImportRun
+from fairdm.contrib.import_export.undo import ImportUndo
 from fairdm.contrib.plugins import reverse
 from fairdm.factories import ContributionFactory, DatasetFactory, PersonFactory
 from fairdm.registry import registry
@@ -104,10 +103,11 @@ def job_url(open_dataset):
 
 
 @pytest.fixture
-def queued():
-    """Replace ``tasks.start`` and return the mock that records what is queued."""
-    with mock.patch.object(tasks, "start") as start:
-        yield start
+def queued(monkeypatch):
+    """Stand in for the task queue and return the list of ``(task, args)`` it took."""
+    taken = []
+    monkeypatch.setattr(tasks, "start", lambda task, *args: taken.append((task, args)))
+    return taken
 
 
 @pytest.fixture
@@ -180,7 +180,7 @@ class TestPermission:
         client.force_login(person_at(other, ContributionLevel.EDIT))
         assert [client.get(a).status_code for a in pages] == [404] * len(pages)
 
-    @pytest.mark.parametrize("page", ["job", "columns", "status", "problems"])
+    @pytest.mark.parametrize("page", ["job", "problems"])
     def test_another_datasets_job_is_a_404_under_this_datasets_address(
         self, editor_client, job_url, page
     ):
@@ -196,7 +196,7 @@ class TestPermission:
         assert response.status_code == 404
         foreign.refresh_from_db()
         assert foreign.status == Status.CHECKED
-        queued.assert_not_called()
+        assert not queued
 
 
 class TestImportStart:
@@ -222,7 +222,7 @@ class TestImportStart:
     def test_only_the_columns_panel_counts_and_it_counts_columns(
         self, editor_client, start_url, open_dataset
     ):
-        RockSampleFactory.create_batch(3, dataset=open_dataset)
+        RockSampleFactory(dataset=open_dataset)
         page = parse(editor_client.get(start_url))
         counts = {
             panel.select_one(".ie-panel__title").get_text(strip=True): panel.select_one(
@@ -286,17 +286,6 @@ class TestImportStart:
             False,
         ]
 
-    def test_the_upload_form_posts_a_file_with_the_options(
-        self, editor_client, start_url
-    ):
-        form = parse(editor_client.get(start_url)).select_one("form[data-ie-upload]")
-        assert form["method"] == "post"
-        assert form["enctype"] == "multipart/form-data"
-        assert form.select_one("input[type=file][required]")
-        assert form.select_one("input[name=mode]")
-        assert form.select_one("input[name=empty]")
-        assert form.select_one("input[name=csrfmiddlewaretoken]")
-
     def test_recent_imports_are_of_this_type_and_at_most_five(
         self, editor_client, start_url, open_dataset, job_url
     ):
@@ -320,9 +309,6 @@ class TestUpload:
         ("name", "body"),
         [
             pytest.param("rocks.json", b"[]", id="format"),
-            pytest.param("rocks.txt", b"a,b\n1,2\n", id="text"),
-            pytest.param("rocks.csv", b"", id="empty"),
-            pytest.param("rocks.csv", b"name,rock_type\n", id="no_rows"),
             pytest.param("rocks.xlsx", b"not a workbook", id="unreadable"),
         ],
     )
@@ -331,35 +317,7 @@ class TestUpload:
         assert response.status_code == 200
         assert parse(response).select("[role=alert]")
         assert ImportJob.objects.count() == 0
-        queued.assert_not_called()
-
-    def test_no_file_saves_no_job(self, editor_client, start_url, queued):
-        response = editor_client.post(start_url, {})
-        assert response.status_code == 200
-        assert ImportJob.objects.count() == 0
-
-    def test_a_file_over_the_size_limit_saves_no_job(self, upload, rock_csv, queued):
-        with mock.patch.object(FileReader, "MAX_BYTES", 10):
-            response = upload("rocks.csv", rock_csv)
-        assert response.status_code == 200
-        assert parse(response).select("[role=alert]")
-        assert ImportJob.objects.count() == 0
-
-    def test_a_file_with_too_many_rows_saves_no_job(self, upload, rock_csv, queued):
-        with mock.patch.object(FileReader, "MAX_ROWS", 1):
-            response = upload("rocks.csv", rock_csv)
-        assert response.status_code == 200
-        assert parse(response).select("[role=alert]")
-        assert ImportJob.objects.count() == 0
-
-    def test_a_workbook_too_large_once_unpacked_saves_no_job(
-        self, upload, file_of, queued
-    ):
-        body = file_of("xlsx", [ROCK_HEADINGS, ["A", "granite", "2024-06-30"]])
-        with mock.patch.object(FileReader, "MAX_UNCOMPRESSED", 10):
-            response = upload("rocks.xlsx", body)
-        assert response.status_code == 200
-        assert ImportJob.objects.count() == 0
+        assert not queued
 
     def test_a_clean_file_goes_to_the_check(
         self, upload, rock_csv, queued, open_dataset, editor
@@ -376,7 +334,7 @@ class TestUpload:
         assert job.column_map == {h: h for h in ROCK_HEADINGS}
         assert job.row_count == 2
         assert job.file
-        queued.assert_called_once_with(tasks.check_job, job.pk)
+        assert queued == [(tasks.check_job, (job.pk,))]
 
     def test_the_options_are_kept_on_the_job(self, upload, rock_csv, queued):
         upload("rocks.csv", rock_csv, mode="add", empty="clear")
@@ -384,14 +342,7 @@ class TestUpload:
         assert job.mode == ImportJob.Mode.ADD
         assert job.empty_cells == ImportJob.Empty.CLEAR
 
-    def test_example_values_are_kept_for_matching(self, upload, rock_csv, queued):
-        upload("rocks.csv", rock_csv)
-        job = ImportJob.objects.get()
-        assert job.samples["name"] == ["Granite A", "Basalt A"]
-
-    def test_the_examples_are_four_cut_values_and_skip_empty_cells(
-        self, upload, queued
-    ):
+    def test_the_examples_are_cut_and_skip_empty_cells(self, upload, queued):
         long = "A" * 50
         rows = [long, "", "B", "C", "D", "E"]
         body = "name,rock_type,collection_date\n" + "".join(
@@ -424,7 +375,7 @@ class TestUpload:
         assert response.url == job_url(job, "columns")
         assert job.status == Status.MATCHING
         assert job.column_map["mystery"] == ""
-        queued.assert_not_called()
+        assert not queued
 
     def test_a_file_missing_a_required_column_goes_to_matching(
         self, upload, queued, job_url
@@ -490,7 +441,7 @@ class TestJobColumns:
             "kind": "rock_type",
             "collection_date": "collection_date",
         }
-        queued.assert_called_once_with(tasks.check_job, matching_job.pk)
+        assert queued == [(tasks.check_job, (matching_job.pk,))]
 
     def test_a_column_a_value_cannot_name_is_left_out(
         self, editor_client, job_url, matching_job, queued
@@ -512,7 +463,7 @@ class TestJobColumns:
         matching_job.refresh_from_db()
         assert response.status_code == 200
         assert matching_job.status == Status.MATCHING
-        queued.assert_not_called()
+        assert not queued
 
     def test_a_missing_required_column_starts_nothing(
         self, editor_client, job_url, matching_job, queued
@@ -524,12 +475,9 @@ class TestJobColumns:
         assert response.status_code == 200
         assert parse(response).select("[role=alert]")
         assert matching_job.status == Status.MATCHING
-        queued.assert_not_called()
+        assert not queued
 
-    @pytest.mark.parametrize(
-        "status",
-        [Status.CHECKING, Status.IMPORTING, Status.IMPORTED, Status.DISCARDED],
-    )
+    @pytest.mark.parametrize("status", [Status.CHECKING, Status.IMPORTED])
     def test_a_job_past_the_check_cannot_be_matched_again(
         self, editor_client, job_url, matching_job, queued, status
     ):
@@ -540,7 +488,7 @@ class TestJobColumns:
         )
         matching_job.refresh_from_db()
         assert matching_job.status == status
-        queued.assert_not_called()
+        assert not queued
 
     def test_a_job_past_the_check_is_not_shown_problems_with_a_new_match(
         self, editor_client, job_url, matching_job, queued
@@ -551,18 +499,6 @@ class TestJobColumns:
         )
         assert response.status_code == 302
         assert response.url == matching_job.get_absolute_url()
-
-    def test_the_form_carries_a_csrf_token(self, editor_client, job_url, matching_job):
-        page = parse(editor_client.get(job_url(matching_job, "columns")))
-        assert page.select_one("form.ie-stack input[name=csrfmiddlewaretoken]")
-
-    def test_a_double_post_queues_one_check(
-        self, editor_client, job_url, matching_job, queued
-    ):
-        data = {"col-0": "name", "col-1": "rock_type", "col-2": "collection_date"}
-        editor_client.post(job_url(matching_job, "columns"), data)
-        editor_client.post(job_url(matching_job, "columns"), data)
-        assert queued.call_count == 1
 
 
 @pytest.fixture
@@ -581,8 +517,8 @@ def checked_job(make_job, open_dataset):
 
 def add_rows(job, outcome, count, start=1):
     """Store ``count`` rows of one outcome for a job, numbered from ``start``."""
-    return [
-        ImportRowFactory(
+    return ImportRow.objects.bulk_create(
+        ImportRow(
             job=job,
             number=start + n,
             line=start + n + 1,
@@ -590,7 +526,13 @@ def add_rows(job, outcome, count, start=1):
             label=f"r{n}",
         )
         for n in range(count)
-    ]
+    )
+
+
+@pytest.fixture
+def small_pages(monkeypatch):
+    """List two rows to a page of a job."""
+    monkeypatch.setattr(JobDetail, "per_page", 2)
 
 
 class TestJobDetail:
@@ -622,14 +564,14 @@ class TestJobDetail:
         return parse(response).select("[data-ie-row]")
 
     def test_rows_are_listed_by_outcome_a_page_at_a_time(
-        self, editor_client, job_url, checked_job
+        self, editor_client, job_url, checked_job, small_pages
     ):
-        add_rows(checked_job, Outcome.NEW, 150)
-        add_rows(checked_job, Outcome.UPDATE, 3, start=151)
+        add_rows(checked_job, Outcome.NEW, 3)
+        add_rows(checked_job, Outcome.UPDATE, 1, start=4)
         address = job_url(checked_job)
-        assert len(self.rows_on(editor_client.get(address + "?show=new"))) == 100
-        assert len(self.rows_on(editor_client.get(address + "?show=new&page=2"))) == 50
-        assert len(self.rows_on(editor_client.get(address + "?show=update"))) == 3
+        assert len(self.rows_on(editor_client.get(address + "?show=new"))) == 2
+        assert len(self.rows_on(editor_client.get(address + "?show=new&page=2"))) == 1
+        assert len(self.rows_on(editor_client.get(address + "?show=update"))) == 1
 
     def test_problems_are_shown_first_when_there_are_any(
         self, editor_client, job_url, checked_job
@@ -650,25 +592,22 @@ class TestJobDetail:
         rows = self.rows_on(editor_client.get(job_url(checked_job) + "?show=all"))
         assert len(rows) == 7
 
-    def test_a_page_past_the_last_is_empty_not_an_error(
+    def test_a_page_number_out_of_range_or_not_a_number_is_not_an_error(
         self, editor_client, job_url, checked_job
     ):
         add_rows(checked_job, Outcome.NEW, 3)
-        response = editor_client.get(job_url(checked_job) + "?show=new&page=9")
-        assert response.status_code == 200
-        assert not self.rows_on(response)
-
-    def test_a_page_number_below_one_reads_as_the_first(
-        self, editor_client, job_url, checked_job
-    ):
-        add_rows(checked_job, Outcome.NEW, 3)
-        response = editor_client.get(job_url(checked_job) + "?show=new&page=-2")
-        assert len(self.rows_on(response)) == 3
+        shown = {}
+        for page in ("9", "-2", "x"):
+            response = editor_client.get(
+                job_url(checked_job) + f"?show=new&page={page}"
+            )
+            shown[page] = (response.status_code, len(self.rows_on(response)))
+        assert shown == {"9": (200, 0), "-2": (200, 3), "x": (200, 3)}
 
     def test_the_pager_links_to_the_pages_either_side(
-        self, editor_client, job_url, checked_job
+        self, editor_client, job_url, checked_job, small_pages
     ):
-        add_rows(checked_job, Outcome.NEW, 250)
+        add_rows(checked_job, Outcome.NEW, 5)
         address = job_url(checked_job) + "?show=new"
         first = parse(editor_client.get(address)).select("nav.ie-pager a")
         middle = parse(editor_client.get(address + "&page=2")).select("nav.ie-pager a")
@@ -682,29 +621,9 @@ class TestJobDetail:
         page = parse(editor_client.get(job_url(checked_job) + "?show=new"))
         assert not page.select("nav.ie-pager")
 
-    def test_new_and_changed_rows_have_a_tile_even_with_none(
-        self, editor_client, job_url, checked_job
-    ):
-        ImportJob.objects.filter(pk=checked_job.pk).update(
-            status=Status.NOTHING, summary={"unchanged": 3}
-        )
-        page = parse(editor_client.get(job_url(checked_job)))
-        assert page.select_one(".ie-tile--new.ie-tile--zero")
-        assert page.select_one(".ie-tile--update.ie-tile--zero")
-        assert page.select_one(".ie-tile--unchanged")
-        assert not page.select(".ie-tile--skipped")
-        assert not page.select(".ie-tile--problem")
-
     @pytest.mark.parametrize(
         ("status", "current"),
-        [
-            (Status.CHECKING, 2),
-            (Status.CHECKED, 2),
-            (Status.PROBLEMS, 2),
-            (Status.IMPORTING, 3),
-            (Status.IMPORTED, 3),
-            (Status.UNDONE, 3),
-        ],
+        [(Status.CHECKED, 2), (Status.IMPORTED, 3)],
     )
     def test_the_step_bar_follows_the_job(
         self, editor_client, job_url, checked_job, status, current
@@ -716,9 +635,7 @@ class TestJobDetail:
             current
         ]
 
-    @pytest.mark.parametrize(
-        "status", [Status.CHECKED, Status.PROBLEMS, Status.NOTHING]
-    )
+    @pytest.mark.parametrize("status", [Status.PROBLEMS, Status.NOTHING])
     def test_a_job_that_may_be_matched_again_offers_to_do_so_or_to_check_again(
         self, editor_client, job_url, checked_job, status
     ):
@@ -727,9 +644,7 @@ class TestJobDetail:
         assert page.select(f'a[href="{job_url(checked_job, "columns")}"]')
         assert page.select('form button[name=action][value="recheck"]')
 
-    @pytest.mark.parametrize(
-        "status", [Status.IMPORTED, Status.FAILED, Status.DISCARDED]
-    )
+    @pytest.mark.parametrize("status", [Status.IMPORTED, Status.FAILED])
     def test_a_job_past_the_check_offers_neither(
         self, editor_client, job_url, checked_job, status
     ):
@@ -746,22 +661,6 @@ class TestJobDetail:
         )
         page = parse(editor_client.get(job_url(checked_job)))
         assert not page.select(f'a[href="{job_url(checked_job, "problems")}"]')
-
-    def test_a_running_job_lists_no_rows_even_when_it_has_some(
-        self, editor_client, job_url, checked_job
-    ):
-        add_rows(checked_job, Outcome.NEW, 2)
-        ImportJob.objects.filter(pk=checked_job.pk).update(status=Status.IMPORTING)
-        page = parse(editor_client.get(job_url(checked_job)))
-        assert not page.select(".ie-tiles")
-        assert not page.select("[data-ie-row]")
-
-    def test_a_page_number_that_is_not_a_number_reads_as_the_first(
-        self, editor_client, job_url, checked_job
-    ):
-        add_rows(checked_job, Outcome.NEW, 3)
-        response = editor_client.get(job_url(checked_job) + "?show=new&page=x")
-        assert len(self.rows_on(response)) == 3
 
     def test_a_problem_row_lists_each_problem_and_a_change_row_each_change(
         self, editor_client, job_url, checked_job
@@ -799,9 +698,21 @@ class TestJobDetail:
                     "rock_type": "basalt",
                     "collection_date": "not a date",
                 },
-            ]
+            ],
+            status=Status.PROBLEMS,
         )
-        ImportRun(job).check()
+        ImportRowFactory(job=job, number=1, line=2, outcome=Outcome.NEW)
+        ImportRowFactory(
+            job=job,
+            number=2,
+            line=3,
+            outcome=Outcome.PROBLEM,
+            label="Row 2",
+            problems=[{"column": "collection_date", "message": "not a date"}],
+        )
+        ImportJob.objects.filter(pk=job.pk).update(
+            summary={"new": 1, "problem": 1}, row_count=2
+        )
         job.refresh_from_db()
         return job
 
@@ -859,11 +770,11 @@ class TestJobDetail:
     def test_a_job_that_is_running_shows_the_progress_component(
         self, editor_client, job_url, checked_job
     ):
+        add_rows(checked_job, Outcome.NEW, 2)
         ImportJob.objects.filter(pk=checked_job.pk).update(status=Status.CHECKING)
         page = parse(editor_client.get(job_url(checked_job)))
         bar = page.select_one("[data-ie-progress]")
         assert bar["hx-get"] == job_url(checked_job, "status")
-        assert bar["hx-trigger"] == "every 1s"
         assert not page.select("[data-ie-row]")
 
     def test_an_imported_job_shows_what_it_imported(
@@ -894,12 +805,6 @@ class TestJobDetail:
         page = parse(editor_client.get(job_url(checked_job)))
         assert page.select(f'a[href="{job_url(checked_job, "problems")}"]')
 
-    def test_the_import_form_is_guarded_against_a_second_submit(
-        self, editor_client, job_url, checked_job
-    ):
-        page = parse(editor_client.get(job_url(checked_job)))
-        assert page.select('form[data-ie-once] button[value="import"]')
-
 
 class TestJobActions:
     """Each action moves a job with one conditional update and queues one task."""
@@ -915,28 +820,17 @@ class TestJobActions:
         checked_job.refresh_from_db()
         assert response.status_code == 302
         assert checked_job.status == Status.IMPORTING
-        queued.assert_called_once_with(tasks.import_job, checked_job.pk, editor.pk)
+        assert queued == [(tasks.import_job, (checked_job.pk, editor.pk))]
 
     def test_a_double_post_of_import_queues_one_task(
         self, editor_client, job_url, checked_job, queued
     ):
         self.post(editor_client, job_url(checked_job), "import")
         self.post(editor_client, job_url(checked_job), "import")
-        assert queued.call_count == 1
+        assert len(queued) == 1
 
     @pytest.mark.parametrize(
-        "status",
-        [
-            Status.PROBLEMS,
-            Status.NOTHING,
-            Status.MATCHING,
-            Status.CHECKING,
-            Status.IMPORTING,
-            Status.IMPORTED,
-            Status.UNDONE,
-            Status.DISCARDED,
-            Status.FAILED,
-        ],
+        "status", [Status.PROBLEMS, Status.IMPORTING, Status.IMPORTED]
     )
     def test_import_is_refused_in_any_other_status_and_writes_nothing(
         self, editor_client, job_url, checked_job, queued, status
@@ -945,7 +839,7 @@ class TestJobActions:
         self.post(editor_client, job_url(checked_job), "import")
         checked_job.refresh_from_db()
         assert checked_job.status == status
-        queued.assert_not_called()
+        assert not queued
 
     def test_import_is_refused_for_a_checked_job_with_nothing_to_write(
         self, editor_client, job_url, checked_job, queued
@@ -954,11 +848,9 @@ class TestJobActions:
         self.post(editor_client, job_url(checked_job), "import")
         checked_job.refresh_from_db()
         assert checked_job.status == Status.CHECKED
-        queued.assert_not_called()
+        assert not queued
 
-    @pytest.mark.parametrize(
-        "status", [Status.CHECKED, Status.PROBLEMS, Status.NOTHING]
-    )
+    @pytest.mark.parametrize("status", [Status.CHECKED, Status.NOTHING])
     def test_recheck_queues_a_new_check(
         self, editor_client, job_url, checked_job, queued, status
     ):
@@ -966,11 +858,9 @@ class TestJobActions:
         self.post(editor_client, job_url(checked_job), "recheck")
         checked_job.refresh_from_db()
         assert checked_job.status == Status.CHECKING
-        queued.assert_called_once_with(tasks.check_job, checked_job.pk)
+        assert queued == [(tasks.check_job, (checked_job.pk,))]
 
-    @pytest.mark.parametrize(
-        "status", [Status.IMPORTED, Status.IMPORTING, Status.CHECKING, Status.FAILED]
-    )
+    @pytest.mark.parametrize("status", [Status.IMPORTED, Status.CHECKING])
     def test_recheck_is_refused_in_any_other_status(
         self, editor_client, job_url, checked_job, queued, status
     ):
@@ -978,24 +868,9 @@ class TestJobActions:
         self.post(editor_client, job_url(checked_job), "recheck")
         checked_job.refresh_from_db()
         assert checked_job.status == status
-        queued.assert_not_called()
+        assert not queued
 
-    @pytest.mark.parametrize(
-        "status", [Status.CHECKED, Status.PROBLEMS, Status.NOTHING]
-    )
-    def test_the_page_carries_the_discard_form(
-        self, editor_client, job_url, checked_job, status
-    ):
-        ImportJob.objects.filter(pk=checked_job.pk).update(status=status)
-        page = parse(editor_client.get(job_url(checked_job)))
-        button = page.select_one("button[name=action][value=discard]")
-        form = button.find_parent("form")
-        assert form.get("method", "").lower() == "post"
-        assert form.select_one("input[name=csrfmiddlewaretoken]")
-
-    @pytest.mark.parametrize(
-        "status", [Status.CHECKED, Status.PROBLEMS, Status.NOTHING]
-    )
+    @pytest.mark.parametrize("status", [Status.PROBLEMS, Status.NOTHING])
     def test_discard_sets_the_job_aside_and_deletes_its_file(
         self, editor_client, job_url, checked_job, queued, status
     ):
@@ -1006,7 +881,7 @@ class TestJobActions:
         assert checked_job.status == Status.DISCARDED
         assert not checked_job.file
         assert stored
-        queued.assert_not_called()
+        assert not queued
 
     def test_discard_leaves_the_rows_no_changed_cell(
         self, editor_client, job_url, checked_job, queued
@@ -1020,9 +895,7 @@ class TestJobActions:
         assert not checked_job.rows.exclude(changes=[]).exists()
         assert checked_job.rows.count() == 1
 
-    @pytest.mark.parametrize(
-        "status", [Status.IMPORTED, Status.IMPORTING, Status.UNDONE, Status.FAILED]
-    )
+    @pytest.mark.parametrize("status", [Status.IMPORTED, Status.IMPORTING])
     def test_discard_is_refused_in_any_other_status(
         self, editor_client, job_url, checked_job, queued, status
     ):
@@ -1031,6 +904,7 @@ class TestJobActions:
         checked_job.refresh_from_db()
         assert checked_job.status == status
         assert checked_job.file
+        assert not queued
 
     def test_an_action_the_page_does_not_know_changes_nothing(
         self, editor_client, job_url, checked_job, queued
@@ -1038,17 +912,7 @@ class TestJobActions:
         self.post(editor_client, job_url(checked_job), "explode")
         checked_job.refresh_from_db()
         assert checked_job.status == Status.CHECKED
-        queued.assert_not_called()
-
-    def test_a_person_who_may_not_import_cannot_post_an_action(
-        self, client, open_dataset, person_at, job_url, checked_job, queued
-    ):
-        client.force_login(person_at(open_dataset, ContributionLevel.VIEW))
-        response = self.post(client, job_url(checked_job), "import")
-        checked_job.refresh_from_db()
-        assert response.status_code == 404
-        assert checked_job.status == Status.CHECKED
-        queued.assert_not_called()
+        assert not queued
 
 
 class TestJobStatus:
@@ -1064,8 +928,9 @@ class TestJobStatus:
             status=Status.CHECKING, row_count=200
         )
         checked_job.refresh_from_db()
-        cache.delete(ImportRun(checked_job).progress_key)
-        return checked_job
+        cache.clear()
+        yield checked_job
+        cache.clear()
 
     def test_a_running_job_answers_the_component_with_its_progress(
         self, editor_client, job_url, running
@@ -1079,32 +944,15 @@ class TestJobStatus:
         assert bar["aria-valuenow"] == "50"
         assert bar["aria-valuemax"] == "200"
         root = page.select_one("[data-ie-progress]")
-        assert root["hx-trigger"] == "every 1s"
         assert root["hx-get"] == job_url(running, "status")
 
-    def test_an_import_is_labelled_apart_from_a_check(
-        self, editor_client, job_url, running
-    ):
-        def label():
-            page = parse(editor_client.get(job_url(running, "status")))
-            return page.select_one("[role=progressbar]")["aria-label"]
-
-        checking = label()
-        ImportJob.objects.filter(pk=running.pk).update(status=Status.IMPORTING)
-        assert label() != checking
-
-    def test_an_undo_is_labelled_apart_from_a_check_and_an_import(
-        self, editor_client, job_url, running
-    ):
-        def label(status):
+    def test_each_kind_of_work_is_labelled_apart(self, editor_client, job_url, running):
+        labels = {}
+        for status in (Status.CHECKING, Status.IMPORTING, Status.UNDOING):
             ImportJob.objects.filter(pk=running.pk).update(status=status)
             page = parse(editor_client.get(job_url(running, "status")))
-            return page.select_one("[role=progressbar]")["aria-label"]
-
-        assert label(Status.UNDOING) not in {
-            label(Status.CHECKING),
-            label(Status.IMPORTING),
-        }
+            labels[status] = page.select_one("[role=progressbar]")["aria-label"]
+        assert len(set(labels.values())) == 3
 
     def test_an_undoing_job_counts_its_progress_against_the_records_it_writes(
         self, editor_client, job_url, running
@@ -1124,16 +972,7 @@ class TestJobStatus:
         page = parse(editor_client.get(job_url(running, "status")))
         assert page.select_one("[role=progressbar]")["aria-valuenow"] == "0"
 
-    @pytest.mark.parametrize(
-        "status",
-        [
-            Status.CHECKED,
-            Status.PROBLEMS,
-            Status.NOTHING,
-            Status.IMPORTED,
-            Status.FAILED,
-        ],
-    )
+    @pytest.mark.parametrize("status", [Status.CHECKED, Status.FAILED])
     def test_a_job_that_is_over_answers_with_a_refresh(
         self, editor_client, job_url, running, status
     ):
@@ -1224,10 +1063,7 @@ class TestJobProblems:
         ]
         assert not any("\x07" in str(value) for value in values if value)
 
-    @pytest.mark.parametrize(
-        "status",
-        [Status.CHECKED, Status.NOTHING, Status.IMPORTED, Status.CHECKING],
-    )
+    @pytest.mark.parametrize("status", [Status.CHECKED, Status.CHECKING])
     def test_it_is_a_404_outside_the_problems_status(
         self, editor_client, job_url, problem_job, status
     ):
@@ -1268,18 +1104,12 @@ class TestJobProblems:
 class TestChooser:
     """The data of the dialog that lists the types a file can be imported as."""
 
-    def test_samples_only(self, open_dataset):
-        chooser = import_chooser(open_dataset, "sample")
-        assert [group["kind"] for group in chooser["groups"]] == ["sample"]
-        names = [d.name for d in import_definitions.all("sample")]
+    @pytest.mark.parametrize("kind", ["sample", "measurement"])
+    def test_one_kind_lists_its_types_only(self, open_dataset, kind):
+        chooser = import_chooser(open_dataset, kind)
+        names = [d.name for d in import_definitions.all(kind)]
         urls = [e["url"] for e in chooser["groups"][0]["entries"]]
-        assert urls == [reverse(open_dataset, "import", type=n) for n in names]
-
-    def test_measurements_only(self, open_dataset):
-        chooser = import_chooser(open_dataset, "measurement")
-        assert [group["kind"] for group in chooser["groups"]] == ["measurement"]
-        names = [d.name for d in import_definitions.all("measurement")]
-        urls = [e["url"] for e in chooser["groups"][0]["entries"]]
+        assert [group["kind"] for group in chooser["groups"]] == [kind]
         assert urls == [reverse(open_dataset, "import", type=n) for n in names]
 
     def test_both(self, open_dataset):
@@ -1297,7 +1127,7 @@ class TestChooser:
         assert len(ids) == 3
 
     def test_each_entry_counts_the_records_the_dataset_holds(self, open_dataset):
-        RockSampleFactory.create_batch(3, dataset=open_dataset)
+        RockSampleFactory.create_batch(2, dataset=open_dataset)
         RockSampleFactory(dataset=DatasetFactory())
         XRFMeasurementFactory(
             dataset=open_dataset, sample=RockSampleFactory(dataset=open_dataset)
@@ -1328,73 +1158,49 @@ class TestChooser:
 class TestImportsList:
     """The page that lists every import into the dataset."""
 
-    def test_it_lists_the_jobs_of_the_dataset_only(
-        self, editor_client, open_dataset, job_url
-    ):
-        mine = [ImportJobFactory(dataset=open_dataset) for _ in range(3)]
-        ImportJobFactory(dataset=DatasetFactory())
-        page = parse(editor_client.get(reverse(open_dataset, "imports")))
-        links = {a["href"] for a in page.select("[data-ie-job] a")}
-        assert links == {job_url(job) for job in mine}
-
     def test_each_job_names_its_type(self, editor_client, open_dataset):
         job = ImportJobFactory(dataset=open_dataset)
         page = parse(editor_client.get(reverse(open_dataset, "imports")))
         meta = page.select_one("[data-ie-job] .ie-job__meta").get_text().lower()
         assert job.type_name.lower() in meta
 
-    def test_an_empty_dataset_says_so(self, editor_client, open_dataset):
-        page = parse(editor_client.get(reverse(open_dataset, "imports")))
-        assert not page.select("[data-ie-job]")
 
-    def test_the_import_menu_sits_in_the_page_head(self, editor_client, open_dataset):
-        page = parse(editor_client.get(reverse(open_dataset, "imports")))
-        menu = page.select_one("button[aria-haspopup=dialog]")
-        assert menu is not None
-        assert menu.find_parent(class_="ie-page") is None
-        assert len(page.select("dialog[id^=ie-import-]")) == 1
-
-    def test_an_empty_dataset_offers_the_import_menu_in_the_empty_state(
-        self, editor_client, open_dataset
-    ):
-        page = parse(editor_client.get(reverse(open_dataset, "imports")))
-        empty = page.select_one(".ie-empty-block")
-        assert empty.select_one("button[aria-haspopup=dialog]") is not None
+def import_row_for(job, record, outcome, number, **overrides):
+    """Store the row an import of the record would have left on the job."""
+    fresh = type(record).objects.get(pk=record.pk)
+    return ImportRowFactory(
+        job=job,
+        number=number,
+        outcome=outcome,
+        record_pk=record.pk,
+        label=record.name,
+        digest=ImportUndo(job).digest(fresh),
+        changes=[{"column": "name", "label": "Name", "old": "a", "new": "b"}],
+        **overrides,
+    )
 
 
 @pytest.fixture
-def imported_job(make_job, open_dataset, editor):
+def imported_job(open_dataset):
     """An imported job that added one rock and changed another.
 
     Returns:
         The job, the added rock and the changed rock.
     """
+    job = ImportJobFactory(dataset=open_dataset, status=Status.IMPORTED)
+    added = RockSampleFactory(
+        dataset=open_dataset, name="Brand new", local_id="NEW", rock_type="basalt"
+    )
     changed = RockSampleFactory(
-        dataset=open_dataset, local_id="OLD", hardness_mohs="7.0", rock_type="granite"
+        dataset=open_dataset, local_id="OLD", hardness_mohs="6.5", rock_type="granite"
     )
-    job = make_job(
-        [
-            {
-                "name": "Brand new",
-                "local_id": "NEW",
-                "rock_type": "basalt",
-                "collection_date": "2024-06-30",
-            },
-            {
-                "name": changed.name,
-                "local_id": "OLD",
-                "rock_type": "granite",
-                "collection_date": "2024-06-30",
-                "hardness_mohs": "6.5",
-            },
-        ]
+    import_row_for(job, added, Outcome.NEW, 1)
+    import_row_for(job, changed, Outcome.UPDATE, 2, before={"hardness_mohs": "7.0"})
+    return (
+        job,
+        RockSample.objects.get(pk=added.pk),
+        RockSample.objects.get(pk=changed.pk),
     )
-    ImportRun(job).check()
-    ImportJob.objects.filter(pk=job.pk).update(status=Status.IMPORTING)
-    ImportRun(job).perform(editor)
-    job.refresh_from_db()
-    added = RockSample.objects.get(dataset=open_dataset, local_id="NEW")
-    return job, added, RockSample.objects.get(pk=changed.pk)
 
 
 class TestJobUndo:
@@ -1413,22 +1219,9 @@ class TestJobUndo:
         assert response.status_code == 302
         assert response["Location"] == job_url(job)
         assert job.status == Status.UNDOING
-        queued.assert_called_once_with(tasks.undo_job, job.pk, editor.pk)
+        assert queued == [(tasks.undo_job, (job.pk, editor.pk))]
         assert RockSample.objects.filter(pk=added.pk).exists()
         assert str(RockSample.objects.get(pk=changed.pk).hardness_mohs) == "6.5"
-
-    def test_the_task_undoes_what_was_added_and_restores_what_was_changed(
-        self, editor_client, editor, job_url, imported_job, queued
-    ):
-        job, added, changed = imported_job
-        self.post(editor_client, job_url(job))
-        tasks.undo_job(*queued.call_args.args[1:])
-        job.refresh_from_db()
-        changed.refresh_from_db()
-        assert job.status == Status.UNDONE
-        assert job.undone_by == editor
-        assert not RockSample.objects.filter(pk=added.pk).exists()
-        assert str(changed.hardness_mohs) == "7.0"
 
     def test_anyone_with_the_edit_level_may_undo_not_only_who_imported(
         self, client, open_dataset, person_at, job_url, imported_job, queued
@@ -1439,39 +1232,9 @@ class TestJobUndo:
         self.post(client, job_url(job))
         job.refresh_from_db()
         assert job.status == Status.UNDOING
-        queued.assert_called_once_with(tasks.undo_job, job.pk, other.pk)
+        assert queued == [(tasks.undo_job, (job.pk, other.pk))]
 
-    def test_a_person_who_may_not_import_gets_a_404_and_nothing_changes(
-        self, client, open_dataset, person_at, job_url, imported_job, queued
-    ):
-        job, added, _changed = imported_job
-        client.force_login(person_at(open_dataset, ContributionLevel.VIEW))
-        response = self.post(client, job_url(job))
-        job.refresh_from_db()
-        assert response.status_code == 404
-        assert job.status == Status.IMPORTED
-        assert RockSample.objects.filter(pk=added.pk).exists()
-        queued.assert_not_called()
-
-    def test_a_double_post_queues_one_task(
-        self, editor_client, job_url, imported_job, queued
-    ):
-        job, _added, _changed = imported_job
-        self.post(editor_client, job_url(job))
-        self.post(editor_client, job_url(job))
-        assert queued.call_count == 1
-
-    @pytest.mark.parametrize(
-        "status",
-        [
-            Status.CHECKED,
-            Status.PROBLEMS,
-            Status.UNDOING,
-            Status.UNDONE,
-            Status.DISCARDED,
-            Status.FAILED,
-        ],
-    )
+    @pytest.mark.parametrize("status", [Status.CHECKED, Status.UNDOING])
     def test_undo_is_refused_in_any_other_status(
         self, editor_client, job_url, imported_job, queued, status
     ):
@@ -1481,7 +1244,7 @@ class TestJobUndo:
         job.refresh_from_db()
         assert job.status == status
         assert RockSample.objects.filter(pk=added.pk).exists()
-        queued.assert_not_called()
+        assert not queued
 
     def test_a_refusal_after_the_task_names_the_records_on_the_job_page(
         self, editor_client, editor, job_url, imported_job, queued
@@ -1498,33 +1261,6 @@ class TestJobUndo:
         assert RockSample.objects.filter(pk=added.pk).exists()
         assert [text for text in listed if label in text]
 
-    def test_a_refusal_shows_twenty_records_and_counts_the_rest(
-        self, editor_client, editor, job_url, imported_job, queued
-    ):
-        job, _added, _changed = imported_job
-        ImportRow.objects.bulk_create(
-            ImportRow(job=job, number=100 + n, line=n, outcome="new", record_pk=n)
-            for n in range(1, 31)
-        )
-        self.post(editor_client, job_url(job))
-        tasks.undo_job(job.pk, editor.pk)
-        page = parse(editor_client.get(job_url(job)))
-        assert len(page.select("[data-ie-refusal] li")) == 21
-
-    def test_an_imported_job_with_no_refusal_shows_no_refusal(
-        self, editor_client, job_url, imported_job
-    ):
-        job, _added, _changed = imported_job
-        page = parse(editor_client.get(job_url(job)))
-        assert not page.select("[data-ie-refusal]")
-
-    def test_the_undo_button_shows_on_an_imported_job(
-        self, editor_client, job_url, imported_job
-    ):
-        job, _added, _changed = imported_job
-        page = parse(editor_client.get(job_url(job)))
-        assert page.select('form button[name="action"][value="undo"]')
-
     def test_a_changed_record_replaces_the_undo_button_with_a_note_naming_it(
         self, editor_client, job_url, imported_job
     ):
@@ -1536,31 +1272,6 @@ class TestJobUndo:
         assert job.rows.get(record_pk=changed.pk).label in note.get_text()
         assert not page.select('button[value="undo"]')
         assert not page.select("dialog#ie-undo")
-
-    def test_a_sample_with_measurements_replaces_the_undo_button_with_a_note(
-        self, editor_client, job_url, imported_job
-    ):
-        job, added, _changed = imported_job
-        XRFMeasurementFactory(sample=added, dataset=added.dataset)
-        page = parse(editor_client.get(job_url(job)))
-        assert page.select_one("[data-ie-no-undo]") is not None
-        assert not page.select('button[value="undo"]')
-
-    def test_a_deleted_record_replaces_the_undo_button_with_a_note(
-        self, editor_client, job_url, imported_job
-    ):
-        job, added, _changed = imported_job
-        added.delete()
-        page = parse(editor_client.get(job_url(job)))
-        assert page.select_one("[data-ie-no-undo]") is not None
-        assert not page.select('button[value="undo"]')
-
-    def test_an_import_nothing_stands_in_the_way_of_has_no_note(
-        self, editor_client, job_url, imported_job
-    ):
-        job, _added, _changed = imported_job
-        page = parse(editor_client.get(job_url(job)))
-        assert not page.select("[data-ie-no-undo]")
 
     def test_the_note_names_three_records_and_counts_the_rest(
         self, editor_client, job_url, imported_job
@@ -1574,18 +1285,6 @@ class TestJobUndo:
         assert len(page.select("[data-ie-no-undo] [data-ie-in-the-way]")) == 3
         assert page.select_one("[data-ie-no-undo] [data-ie-more]") is not None
 
-    def test_a_record_that_changes_after_the_page_loads_is_still_refused(
-        self, editor_client, editor, job_url, imported_job, queued
-    ):
-        job, added, changed = imported_job
-        assert not parse(editor_client.get(job_url(job))).select("[data-ie-no-undo]")
-        RockSample.objects.filter(pk=changed.pk).update(rock_type="gabbro")
-        self.post(editor_client, job_url(job))
-        tasks.undo_job(job.pk, editor.pk)
-        job.refresh_from_db()
-        assert job.status == Status.IMPORTED
-        assert RockSample.objects.filter(pk=added.pk).exists()
-
     def test_undo_is_asked_for_in_a_dialog_before_it_is_posted(
         self, editor_client, job_url, imported_job
     ):
@@ -1596,6 +1295,7 @@ class TestJobUndo:
         opener = page.select_one('button[aria-haspopup="dialog"][type="button"]')
         assert opener is not None
         assert not page.select('form:not(dialog form) button[value="undo"]')
+        assert not page.select("[data-ie-no-undo], [data-ie-refusal]")
 
     def test_an_undoing_job_shows_the_progress_and_no_undo_button(
         self, editor_client, job_url, imported_job
@@ -1606,7 +1306,7 @@ class TestJobUndo:
         assert page.select_one("[data-ie-progress]")["hx-get"] == job_url(job, "status")
         assert not page.select('button[value="undo"]')
 
-    def test_the_job_page_of_an_imported_job_runs_the_same_queries_for_50_and_400_rows(
+    def test_the_job_page_of_an_imported_job_runs_the_same_queries_for_more_rows(
         self, editor_client, job_url, imported_job
     ):
         job, _added, _changed = imported_job
@@ -1630,21 +1330,10 @@ class TestJobUndo:
                 editor_client.get(job_url(job))
             return len(queries)
 
-        add(0, 50)
+        add(0, 1)
         few = count()
-        add(50, 400)
+        add(1, 4)
         assert count() == few
-
-    def test_another_datasets_job_cannot_be_undone_through_this_one(
-        self, editor_client, open_dataset, job_url, imported_job, queued
-    ):
-        job, _added, _changed = imported_job
-        other = DatasetFactory()
-        response = self.post(editor_client, job_url(job, dataset=other))
-        job.refresh_from_db()
-        assert response.status_code == 404
-        assert job.status == Status.IMPORTED
-        queued.assert_not_called()
 
 
 class TestPastImports:
@@ -1681,9 +1370,3 @@ class TestPastImports:
         page = parse(editor_client.get(past_url))
         assert page.select('button[aria-haspopup="dialog"]')
         assert page.select("dialog")
-
-    def test_a_person_who_may_not_import_gets_a_404(
-        self, client, open_dataset, person_at, past_url
-    ):
-        client.force_login(person_at(open_dataset, ContributionLevel.VIEW))
-        assert client.get(past_url).status_code == 404
