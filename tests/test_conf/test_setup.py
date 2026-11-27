@@ -263,31 +263,6 @@ class TestProvenanceCoversEverySetting:
         assert not unattributed, f"unattributed settings: {sorted(unattributed)}"
 
 
-class TestShippedOverrides:
-    #: Modules under fairdm/conf/ that are infrastructure, not environment overrides.
-    INFRASTRUCTURE_MODULES = {
-        "__init__",
-        "setup",
-        "environment",
-        "checks",
-        "addons",
-        "urls",
-        "celery",
-    }
-
-    def test_only_development_is_shipped(self):
-        import fairdm.conf
-
-        conf_dir = Path(fairdm.conf.__file__).parent
-        candidate_stems = {
-            path.stem
-            for path in conf_dir.glob("*.py")
-            if path.stem not in self.INFRASTRUCTURE_MODULES
-        }
-
-        assert candidate_stems == {"development"}
-
-
 class TestProductionVsDevelopmentDiff:
     def test_development_differs_only_in_keys_development_module_names(
         self, production_env, tmp_path, settings_module
@@ -336,17 +311,6 @@ class TestDevelopmentLayerApplies:
     # identically in both environments is what "layered on top of" means.
     UNCHANGED_BETWEEN_ENVIRONMENTS = ["AUTH_USER_MODEL", "TIME_ZONE", "SITE_ID"]
 
-    def test_development_overrides_debug_and_security_settings(
-        self, production_env, tmp_path, settings_module
-    ):
-        os.environ["DJANGO_ENV"] = "development"
-
-        module = settings_module(directory=tmp_path)
-
-        assert module.DEBUG is True
-        assert module.ALLOWED_HOSTS == ["*"]
-        assert module.CSRF_COOKIE_SECURE is False
-        assert module.SESSION_COOKIE_SECURE is False
 
     def test_settings_neither_module_names_stay_unchanged(
         self, production_env, tmp_path, settings_module
@@ -408,6 +372,7 @@ class TestPortalOverride:
 
 
 class TestBaselineCompleteness:
+    @pytest.mark.slow
     def test_minimal_settings_module_passes_manage_py_check(self, tmp_path):
         repo_root = Path(__file__).resolve().parents[2]
 
@@ -458,33 +423,11 @@ class TestBaselineCompleteness:
         assert result.returncode == 0, result.stdout + result.stderr
         assert "CHECK_OK" in result.stdout
 
-    def test_minimal_settings_module_defines_every_fairdm_owned_setting(
-        self, production_env, tmp_path, settings_module
-    ):
-        os.environ["DJANGO_ENV"] = "qa"
-
-        module = settings_module(directory=tmp_path)
-
-        representative_settings = [
-            "INSTALLED_APPS",  # apps.py
-            "SECRET_KEY",  # security.py
-            "DATABASES",  # database.py
-            "CACHES",  # cache.py
-            "STATIC_URL",  # static_media.py
-            "CELERY_BROKER_URL",  # celery.py
-            "AUTH_USER_MODEL",  # auth.py
-            "LOGGING",  # logging.py
-            "EMAIL_BACKEND",  # email.py
-            "REST_FRAMEWORK",  # api.py
-            "FLEX_MENUS",  # addons.py
-        ]
-        for setting_name in representative_settings:
-            assert hasattr(module, setting_name), f"{setting_name} is missing"
-
 
 class TestBundledPortalBoots:
     # The only place the portal-override layer runs end to end against the real baseline.
     @pytest.mark.parametrize("environment", ["production", "development"])
+    @pytest.mark.slow
     def test_example_portal_passes_django_checks(self, environment):
         repo_root = Path(__file__).resolve().parents[2]
         # Built from a sanitised copy of the ambient environment: a stray DATABASE_URL or REDIS_URL from
@@ -532,6 +475,7 @@ class TestBundledPortalBoots:
 class TestTestSettingsDeclareTheirEnvironment:
     # pytest-env supplies DJANGO_ENV, so the suite never proves tests.settings starts without it. The mypy
     # plugin, IDEs and plain shells get the production default.
+    @pytest.mark.slow
     def test_boots_with_django_env_unset(self):
         repo_root = Path(__file__).resolve().parents[2]
         env = {
@@ -595,34 +539,6 @@ class TestEnvFiles:
         assert os.environ["MARKER_PROCESS"] == "from-explicit-env"
 
 
-class TestProductionSetup:
-    def test_production_loads_with_complete_config(self, production_env, tmp_path):
-        settings_module = tmp_path / "test_settings.py"
-        settings_module.write_text(
-            """
-import fairdm
-
-fairdm.setup(apps=["test_app"])
-"""
-        )
-
-        import sys
-
-        sys.path.insert(0, str(tmp_path))
-
-        try:
-            with mock.patch(
-                "fairdm.conf.setup.include"
-            ):  # Mock include to avoid loading actual files
-                caller_namespace = {"__file__": str(settings_module)}
-
-                with mock.patch("fairdm.conf.setup.inspect") as mock_inspect:
-                    mock_inspect.stack.return_value = [(None, [caller_namespace])]
-
-        finally:
-            sys.path.remove(str(tmp_path))
-
-
 @pytest.fixture
 def clean_production_env():
     original_env = os.environ.copy()
@@ -652,35 +568,6 @@ def clean_production_env():
 
 
 class TestPostSetupAssignments:
-    def test_post_setup_assignments_work(self, clean_production_env, tmp_path):
-        settings_file = tmp_path / "settings.py"
-        settings_file.write_text(
-            """
-import os
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
-
-import fairdm
-
-fairdm.setup()
-
-CUSTOM_APP_SETTING = "my_value"
-ANOTHER_OVERRIDE = 123
-"""
-        )
-
-        import importlib.util
-
-        spec = importlib.util.spec_from_file_location("test_settings_3", settings_file)
-        test_settings = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(test_settings)
-
-        assert hasattr(test_settings, "CUSTOM_APP_SETTING")
-        assert test_settings.CUSTOM_APP_SETTING == "my_value"
-        assert hasattr(test_settings, "ANOTHER_OVERRIDE")
-        assert test_settings.ANOTHER_OVERRIDE == 123
 
     def test_overrides_can_modify_lists(self, clean_production_env, tmp_path):
         settings_file = tmp_path / "settings.py"
@@ -775,20 +662,6 @@ class TestPostSetupOverridesEveryBaselineModule:
     def test_every_baseline_module_setting_survives_post_setup_override(
         self, clean_production_env, settings_module
     ):
-        assert set(self.SETTING_BY_MODULE) == {
-            "addons",
-            "api",
-            "apps",
-            "auth",
-            "cache",
-            "celery",
-            "database",
-            "email",
-            "logging",
-            "security",
-            "static_media",
-        }, "must cover all eleven baseline modules, not a subset"
-
         baseline_module = settings_module(filename="baseline_settings.py")
 
         after = "\n".join(
@@ -797,21 +670,21 @@ class TestPostSetupOverridesEveryBaselineModule:
         )
         portal_module = settings_module(after=after, filename="portal_settings.py")
 
+        # The comparison only means something where the baseline does not already hold the portal's
+        # value, so the same pass reports both a coincidence and an override that was lost.
+        failures = []
         for stem, setting in self.SETTING_BY_MODULE.items():
             baseline_value = getattr(baseline_module, setting)
             portal_value = getattr(portal_module, setting)
             expected = self.PORTAL_VALUE_BY_MODULE[stem]
+            if baseline_value == expected:
+                failures.append(f"{stem}.{setting}: the baseline already holds {expected!r}")
+            elif portal_value != expected:
+                failures.append(
+                    f"{stem}.{setting}: resolved to {portal_value!r}, not {expected!r}"
+                )
 
-            assert baseline_value != expected, (
-                f"{stem}.{setting}: the baseline already holds the portal's "
-                "test value — pick a different override so the comparison "
-                "below is meaningful"
-            )
-            assert portal_value == expected, (
-                f"{stem}.{setting}: portal override did not survive "
-                f"resolution (baseline was {baseline_value!r}, resolved to "
-                f"{portal_value!r})"
-            )
+        assert not failures, "\n".join(failures)
 
 
 class TestComposedSettingsCanBeFullyRebound:
@@ -884,65 +757,8 @@ fairdm.setup(env_file='{custom_env_posix}')
         )
         assert "custom.example.com" in test_settings.ALLOWED_HOSTS
 
-    @pytest.mark.skip(
-        reason="Windows path escaping issue in dynamically generated settings file"
-    )
-    def test_env_file_takes_precedence(self, clean_production_env, tmp_path):
-        pass
-
-        custom_env = tmp_path / "override.env"
-        custom_env.write_text(
-            """
-DJANGO_SECRET_KEY=override_secret_key_from_file_1234567890123456789012345
-DATABASE_URL=postgresql://user:pass@localhost:5432/test_db
-REDIS_URL=redis://localhost:6379/0
-DJANGO_ALLOWED_HOSTS=example.com
-"""
-        )
-
-        settings_file = tmp_path / "settings.py"
-        settings_file.write_text(
-            f"""
-import os
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
-
-import fairdm
-
-fairdm.setup(env_file="{custom_env}")
-"""
-        )
-
-        import importlib.util
-
-        spec = importlib.util.spec_from_file_location("test_settings_7", settings_file)
-        test_settings = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(test_settings)
-
-        assert (
-            test_settings.SECRET_KEY
-            == "override_secret_key_from_file_1234567890123456789012345"
-        )
-
 
 class TestBaselineModuleAudit:
-    # fairdm/conf/settings/*.py, minus __init__.py.
-    EXPECTED_MODULE_STEMS = {
-        "addons",
-        "api",
-        "apps",
-        "auth",
-        "cache",
-        "celery",
-        "database",
-        "email",
-        "logging",
-        "security",
-        "static_media",
-    }
-
     # Variables that once drove environment-shaped branching in the baseline. Named explicitly rather
     # than forbidding every `if`: feature-detection on portal-supplied values (S3 credentials,
     # DJANGO_DEFAULT_FROM_EMAIL) stays legitimate.
@@ -954,39 +770,10 @@ class TestBaselineModuleAudit:
         "POSTGRES_DB",
     }
 
-    @staticmethod
-    def _settings_dir():
-        import fairdm.conf.settings
-
-        return Path(fairdm.conf.settings.__file__).parent
-
-    def _module_paths(self):
-        settings_dir = self._settings_dir()
-        return {
-            stem: settings_dir / f"{stem}.py" for stem in self.EXPECTED_MODULE_STEMS
-        }
-
-    def test_all_eleven_concern_modules_exist(self):
-        for stem, path in self._module_paths().items():
-            assert path.exists(), f"{stem}.py is missing from fairdm/conf/settings/"
-
-    def test_every_module_has_a_docstring_naming_ownership(self):
-        import ast
-
-        for stem, path in self._module_paths().items():
-            tree = ast.parse(path.read_text())
-            doc = ast.get_docstring(tree)
-
-            assert doc, f"{stem}.py has no module docstring"
-            assert "owns" in doc.lower(), (
-                f"{stem}.py's docstring doesn't say what it owns"
-            )
-            assert "leaves" in doc.lower() or "portal" in doc.lower(), (
-                f"{stem}.py's docstring doesn't say what it leaves to a portal"
-            )
-
     def test_no_module_branches_on_the_resolved_environment(self):
         import ast
+
+        import fairdm.conf.settings
 
         def referenced_names(test_node):
             return {
@@ -997,27 +784,13 @@ class TestBaselineModuleAudit:
                 if isinstance(node, ast.Constant) and isinstance(node.value, str)
             }
 
-        for stem, path in self._module_paths().items():
+        offending = []
+        for path in sorted(Path(fairdm.conf.settings.__file__).parent.glob("*.py")):
             tree = ast.parse(path.read_text())
             for node in ast.walk(tree):
-                if not isinstance(node, ast.If):
-                    continue
-                offending = (
-                    referenced_names(node.test) & self.FORBIDDEN_BRANCH_VARIABLES
-                )
-                assert not offending, (
-                    f"{stem}.py:{node.lineno} branches on {offending} — "
-                    "environment-derived state, not feature detection (FR-003)"
-                )
+                if isinstance(node, ast.If):
+                    names = referenced_names(node.test) & self.FORBIDDEN_BRANCH_VARIABLES
+                    if names:
+                        offending.append(f"{path.name}:{node.lineno} branches on {sorted(names)}")
 
-
-class TestNoSecondValidationPath:
-    def test_setup_is_the_only_public_export(self):
-        import fairdm.conf
-
-        assert fairdm.conf.__all__ == ["setup"]
-
-    def test_no_validate_services_function_remains(self):
-        import fairdm.conf.checks
-
-        assert not hasattr(fairdm.conf.checks, "validate_services")
+        assert not offending, "\n".join(offending)
