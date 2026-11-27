@@ -32,6 +32,12 @@ The portal claims an unclaimed profile when the email address the profile holds 
 
 Registering a new account does not reach this route. The portal treats an address an unclaimed profile already holds as taken, so signing up with it does not create a second account and does not claim the profile. A person in that position asks an administrator to merge the records, as described below.
 
+### Following a claim link
+
+An administrator who holds the right to change people can generate a claim link on the administration page of an unclaimed person, with the **Generate claim link** action, and send it to the person it belongs to. The link carries a signed token. It stops working after the number of seconds in `CLAIM_TOKEN_MAX_AGE`, seven days by default, and once the profile is claimed.
+
+A visitor who is not signed in is sent to sign in first, and the link is kept for when they return. A signed-in person sees the profile the link names and confirms the claim there. Nothing is claimed by opening the link. An expired or altered link, and a deactivated profile, show an error instead of the profile.
+
 ### Merging into an existing account
 
 Sometimes a person has already registered by the time anyone notices the imported profile, or the same researcher appears twice in the portal. An administrator who holds the right to change people merges the two records. They choose the record to discard and the one to keep. The kept record is marked claimed and active, and the discarded record is deleted.
