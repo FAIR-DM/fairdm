@@ -798,9 +798,9 @@ def stem_for_citation(kind, record):
 class TestCitationFile:
     """The address of each citation format, at ``<record address>cite/<format>/``.
 
-    The kinds differ in how the file is named and who may see the record, so those are checked on
-    every kind with one format. The formats differ in content type, extension and body, so those
-    are checked on one kind with every format.
+    The kinds differ in how the file is named and who may see the record, so those
+    are checked on every kind with one format. The formats differ in content type,
+    extension and body, so those are checked on one kind with every format.
     """
 
     def test_each_kind_gives_the_file_the_name_of_its_record(
@@ -866,7 +866,15 @@ class TestCitationFile:
             == 404
         )
 
-    def test_a_site_with_no_name_gives_no_publisher(self, client, dataset_record):
+    @pytest.fixture
+    def cleared_site_cache(self):
+        """Drop the cached Site afterwards: the request caches the blanked name."""
+        yield
+        Site.objects.clear_cache()
+
+    def test_a_site_with_no_name_gives_no_publisher(
+        self, client, dataset_record, cleared_site_cache
+    ):
         Site.objects.filter(pk=Site.objects.get_current().pk).update(name="")
         Site.objects.clear_cache()
 

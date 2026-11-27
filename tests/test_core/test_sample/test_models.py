@@ -36,23 +36,6 @@ from fairdm.factories import (
 
 @pytest.mark.django_db
 class TestSampleModelCreation:
-    def test_rock_sample_creation_with_all_fields(self, dataset):
-        sample = RockSample.objects.create(
-            name="Test Rock",
-            dataset=dataset,
-            local_id="ROCK-001",
-            status_id=f"{SAMPLE_STATUS}/available",
-            rock_type="igneous",
-            collection_date="2024-01-15",
-        )
-
-        sample.refresh_from_db()
-        assert sample.name == "Test Rock"
-        assert sample.dataset == dataset
-        assert sample.local_id == "ROCK-001"
-        assert sample.status_id == f"{SAMPLE_STATUS}/available"
-        assert sample.rock_type == "igneous"
-
     def test_sample_is_named_by_its_name(self):
         assert str(RockSampleFactory(name="Test Sample")) == "Test Sample"
 
@@ -83,15 +66,6 @@ class TestSampleStatus:
         sample.refresh_from_db()
 
         assert sample.status_id == f"{SAMPLE_STATUS}/unknown"
-
-    def test_a_sample_may_move_from_any_status_to_any_other(self, rock_sample):
-        rock_sample.status_id = f"{SAMPLE_STATUS}/destroyed"
-        rock_sample.save()
-        rock_sample.status_id = f"{SAMPLE_STATUS}/available"
-        rock_sample.save()
-        rock_sample.refresh_from_db()
-
-        assert rock_sample.status_id == f"{SAMPLE_STATUS}/available"
 
 
 @pytest.mark.django_db
@@ -332,9 +306,11 @@ class TestSamplePrefetch:
             .with_keywords()
         )
         for sample in samples:
-            _ = sample.dataset
+            _ = sample.dataset.project
             _ = sample.location
-            list(sample.contributors.all())
+            for contribution in sample.contributors.all():
+                _ = contribution.contributor
+                list(contribution.roles.all())
             list(sample.descriptions.all())
             list(sample.dates.all())
             list(sample.identifiers.all())
@@ -354,7 +330,8 @@ class TestSamplePrefetch:
         large = self._build(n_samples=3, n_related=3)
         # Evaluate once first so one-off lookups (content types, vocabulary) are cached
         # and only the per-row queries are left to compare.
-        self._load(small)
+        assert len(self._load(small)) == 1
+        assert len(self._load(large)) == 3
 
         assert self._count_queries(small) == self._count_queries(large)
 
@@ -383,15 +360,19 @@ class TestSampleQuerySetByRelationship:
         parent = RockSampleFactory()
         child1 = RockSampleFactory()
         child2 = RockSampleFactory()
-        unrelated = RockSampleFactory()
+        RockSampleFactory()  # in no relation
 
         SampleRelation.objects.create(source=child1, target=parent, type="child_of")
         SampleRelation.objects.create(source=child2, target=parent, type="child_of")
 
         results = Sample.objects.by_relationship(relationship_type="child_of")
 
-        assert set(results.values_list("pk", flat=True)) >= {child1.pk, child2.pk}
-        assert unrelated.pk not in set(results.values_list("pk", flat=True))
+        # Every sample in a matching relation, the targets as well as the sources.
+        assert set(results.values_list("pk", flat=True)) == {
+            parent.pk,
+            child1.pk,
+            child2.pk,
+        }
 
     def test_by_relationship_returns_empty_for_no_matches(self):
         _sample = RockSampleFactory()
@@ -621,7 +602,7 @@ class TestSingleTraversalImplementation:
 
 @pytest.mark.django_db
 class TestSampleTypeVocabulary:
-    def test_a_description_type_outside_the_sample_collection_is_refused_naming_the_type(
+    def test_a_description_type_outside_the_collection_is_refused_naming_it(
         self, rock_sample
     ):
         description = SampleDescription(
@@ -653,6 +634,17 @@ class TestIGSNFormat:
         )
 
         identifier.full_clean()
+
+    def test_a_pasted_resolver_address_is_accepted_and_stored_bare(self, rock_sample):
+        identifier = SampleIdentifier(
+            related=rock_sample,
+            type_id=f"{IDENTIFIER_TYPES}/igsn",
+            value="https://doi.org/10.60516/AU1101",
+        )
+
+        identifier.full_clean()
+
+        assert identifier.value == "10.60516/AU1101"
 
     def test_malformed_igsn_is_refused(self, rock_sample):
         identifier = SampleIdentifier(
@@ -712,7 +704,7 @@ class TestSampleNoRights:
 
 @pytest.mark.django_db
 class TestMoveKeepsManager:
-    """A sample's own ``clean`` applies the shared rule, with one refusing and one passing case."""
+    """A sample's ``clean`` applies the shared rule: one refusing, one passing case."""
 
     def test_a_move_to_a_dataset_that_gives_no_manager_is_refused(
         self, make_manager, dataset

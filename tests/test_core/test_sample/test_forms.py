@@ -149,10 +149,15 @@ class TestSampleFormDatasetChoices:
                 model = RockSample
                 fields = ["name", "dataset"]
 
-        with caplog.at_level(logging.WARNING):
+        with caplog.at_level(logging.WARNING, logger="fairdm.core.sample.forms"):
             RockSampleForm()
 
-        assert any(record.levelno == logging.WARNING for record in caplog.records)
+        assert [
+            record
+            for record in caplog.records
+            if record.name == "fairdm.core.sample.forms"
+            and record.levelno == logging.WARNING
+        ]
 
 
 @pytest.mark.django_db

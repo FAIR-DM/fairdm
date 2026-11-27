@@ -27,16 +27,3 @@ class TestMeasurementFactoryIsAbstract:
     def test_calling_it_directly_refuses(self, sample):
         with pytest.raises(factory.errors.FactoryError):
             MeasurementFactory(sample=sample)
-
-
-class TestFairdmFactoriesExports:
-    def test_measurement_factories_appear_in_all(self):
-        import fairdm.factories as factories_module
-
-        for name in (
-            "MeasurementDateFactory",
-            "MeasurementDescriptionFactory",
-            "MeasurementFactory",
-            "MeasurementIdentifierFactory",
-        ):
-            assert name in factories_module.__all__

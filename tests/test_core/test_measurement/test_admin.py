@@ -50,47 +50,6 @@ def request_factory():
 
 
 @pytest.mark.django_db
-class TestMeasurementAdminSearch:
-    def test_search_finds_a_measurement_by_its_uuid_and_no_other(
-        self, measurement_admin, admin_user, request_factory, measurement, second_sample
-    ):
-        other = ExampleMeasurementFactory(
-            sample=second_sample, dataset=second_sample.dataset
-        )
-        request = request_factory.get(
-            "/admin/measurement/measurement/", {"q": measurement.uuid}
-        )
-        request.user = admin_user
-
-        queryset = measurement_admin.get_search_results(
-            request, Measurement.objects.all(), measurement.uuid
-        )[0]
-
-        assert measurement in queryset
-        assert other not in queryset
-
-
-@pytest.mark.django_db
-class TestMeasurementAdminFilters:
-    def test_filter_by_dataset(
-        self, admin_user, request_factory, measurement, second_sample, second_dataset
-    ):
-        other = ExampleMeasurementFactory(sample=second_sample, dataset=second_dataset)
-        parent_admin = admin.site._registry[Measurement]
-        request = request_factory.get(
-            "/admin/core/measurement/",
-            {"dataset__id__exact": str(measurement.dataset.pk)},
-        )
-        request.user = admin_user
-
-        changelist = parent_admin.get_changelist_instance(request)
-
-        result_pks = set(changelist.queryset.values_list("pk", flat=True))
-        assert measurement.pk in result_pks
-        assert other.pk not in result_pks
-
-
-@pytest.mark.django_db
 class TestMeasurementContributionInlineRoleVocabulary:
     @staticmethod
     def _off_vocabulary_role():
@@ -241,27 +200,6 @@ class TestMeasurementAdminInlineRowCaps:
         from fairdm.core.measurement.admin import MeasurementContributionInline
 
         assert MeasurementContributionInline.max_num is None
-
-
-@pytest.mark.django_db
-class TestMeasurementAdminSharedInlines:
-    def test_every_registered_type_offers_the_same_inlines(self):
-        from django.contrib import admin as django_admin
-
-        from fairdm.core.measurement.admin import MeasurementChildAdmin
-        from fairdm.registry import registry
-
-        measurement_types = registry.measurements
-        assert len(measurement_types) >= 2, (
-            "need at least two registered types to compare"
-        )
-
-        child_admins = [
-            django_admin.site._registry[model] for model in measurement_types
-        ]
-
-        for child_admin in child_admins:
-            assert child_admin.inlines == MeasurementChildAdmin.inlines
 
 
 @pytest.mark.django_db

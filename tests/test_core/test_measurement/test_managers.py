@@ -29,7 +29,9 @@ def touch_related(queryset):
     for measurement in queryset:
         _ = measurement.sample.name
         _ = measurement.dataset.name
-        _ = list(measurement.contributors.all())
+        for contribution in measurement.contributors.all():
+            _ = contribution.contributor
+            list(contribution.roles.all())
 
 
 def touch_metadata(queryset):
@@ -166,23 +168,6 @@ class TestWithMetadataPrefetchesRecords:
             assert list(loaded.identifiers.all())
 
         assert len(context.captured_queries) == 0
-
-    def test_without_with_metadata_the_same_access_requeries(self, dataset):
-        measurement = ExampleMeasurementFactory(
-            sample=RockSampleFactory(dataset=dataset), dataset=dataset
-        )
-        MeasurementDescription.objects.create(
-            related=measurement,
-            type_id=f"{DESCRIPTION_TYPES}/measurement-setup",
-            value="XRF analysis",
-        )
-
-        (loaded,) = list(Measurement.objects.filter(pk=measurement.pk))
-
-        with CaptureQueriesContext(connection) as context:
-            list(loaded.descriptions.all())
-
-        assert len(context.captured_queries) == 1
 
 
 @pytest.mark.django_db

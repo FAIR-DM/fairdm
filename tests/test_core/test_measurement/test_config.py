@@ -12,6 +12,7 @@ class TestRegistryAutoGenerateForms:
         config = registry.get_for_model(XRFMeasurement)
         form = config.get_form_class()()
 
+        assert {"name", "sample", "dataset"} <= set(form.fields)
         assert "element" in form.fields
         assert "concentration_ppm" in form.fields
 
@@ -22,6 +23,7 @@ class TestRegistryAutoGenerateFilters:
         config = registry.get_for_model(XRFMeasurement)
         filterset = config.get_filterset_class()()
 
+        assert "sample" in filterset.filters
         assert "element" in filterset.filters
         assert "concentration_ppm" in filterset.filters
 
@@ -33,6 +35,7 @@ class TestRegistryAutoGenerateTables:
         table = config.get_table_class()(XRFMeasurement.objects.none())
 
         column_names = list(table.columns.columns.keys())
+        assert "sample" in column_names
         assert "element" in column_names
         assert "concentration_ppm" in column_names
 

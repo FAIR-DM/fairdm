@@ -31,10 +31,12 @@ from fairdm.core.measurement.models import (
     MeasurementIdentifier,
 )
 from fairdm.core.measurement.plugins import Overview
+from fairdm.core.sample.plugins import Overview as SampleOverview
 from fairdm.core.vocabularies import (
     CONTRIBUTOR_ROLES,
     DATE_TYPES,
     IDENTIFIER_TYPES,
+    SAMPLE_STATUS,
 )
 from fairdm.factories import (
     ContributionFactory,
@@ -252,16 +254,18 @@ class TestOverviewSample:
     def test_a_measurement_in_its_samples_dataset_does_not(self, xrf):
         assert _context(xrf)["other_dataset"] is False
 
-    def test_the_page_loads_the_map_library_only_when_it_draws_a_map(
-        self, released, xrf
+    def test_the_sample_card_carries_the_samples_status_in_its_page_colour(
+        self, released
     ):
         sample = RockSampleFactory(
-            dataset=released, location=GEOSPoint(12.3, 45.6, srid=4326)
+            dataset=released, status=f"{SAMPLE_STATUS}/destroyed"
         )
-        mapped = XRFMeasurementFactory(dataset=released, sample=sample)
+        measurement = XRFMeasurementFactory(dataset=released, sample=sample)
 
-        assert _context(mapped)["has_map"] is True
-        assert _context(xrf)["has_map"] is False
+        status = _context(measurement)["sample_status"]
+
+        assert status["label"] == sample.get_status_label()
+        assert status["variant"] == SampleOverview.status_variants[sample.status_id]
 
 
 @pytest.mark.django_db

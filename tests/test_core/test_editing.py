@@ -355,9 +355,10 @@ class TestRegistration:
 
 @pytest.mark.django_db
 class TestAccess:
-    """One verdict decides every page, so each outcome is checked on the edit page of every kind
-    (the kinds decide who may see a record by different rules) and on one kind where nothing about
-    the kind matters. A grid over every kind and page checks each page is wired to the verdict."""
+    """One verdict decides every page, so each outcome is checked on the edit page of
+    every kind (the kinds decide who may see a record by different rules) and on one
+    kind where nothing about the kind matters. A grid over every kind and page checks
+    each page is wired to the verdict."""
 
     @pytest.mark.parametrize("kind", KINDS)
     @pytest.mark.parametrize("page", PAGES)
@@ -438,7 +439,7 @@ class TestAccess:
         assert case.record.name != "Changed"
 
     @pytest.mark.parametrize("kind", KINDS)
-    def test_a_manager_opens_the_delete_page_and_an_editor_is_refused_and_nothing_is_deleted(
+    def test_a_manager_opens_the_delete_page_and_an_editor_is_refused(
         self, make_case, person_at, kind
     ):
         case = make_case(kind, public=False)
@@ -546,10 +547,11 @@ class TestEditLinks:
         assert response.context["edit"]["details"] == case.url("edit")
         assert case.url("delete") not in hrefs(soup_of(response))
 
+    @pytest.mark.parametrize("kind", ["project", "dataset"])
     def test_a_person_who_may_only_view_is_offered_no_editing_page(
-        self, make_case, person_at
+        self, make_case, person_at, kind
     ):
-        case = make_case("project")
+        case = make_case(kind)
         reader = person_at(case, ContributionLevel.VIEW)
 
         response = browser_as(reader).get(case.own_url)
@@ -1467,15 +1469,9 @@ class TestDeleteRecord:
         assert len(groups) == 3
         assert all(any("(1)" in line for line in lines) for _, lines, _ in groups)
 
-    def test_a_sample_and_a_measurement_list_the_rows_that_go_with_them(
-        self, make_case, person_at
-    ):
-        kind = "sample"
-        case = make_case(kind, public=False)
-        factory = {"sample": SampleDateFactory, "measurement": MeasurementDateFactory}[
-            kind
-        ]
-        row = factory(related=case.record)
+    def test_a_sample_lists_the_rows_that_go_with_it(self, make_case, person_at):
+        case = make_case("sample", public=False)
+        row = SampleDateFactory(related=case.record)
         manager = person_at(case, ContributionLevel.MANAGE)
 
         response = browser_as(manager).get(case.url("delete"))

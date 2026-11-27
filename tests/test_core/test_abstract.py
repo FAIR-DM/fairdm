@@ -79,17 +79,9 @@ class TestGenericModelQuerySet:
             related=dataset2, type_id=f"{DESCRIPTION_TYPES}/methods", value="Methods 1"
         )
 
-        all_ordered = DatasetDescription.objects.in_order()
+        ordered = DatasetDescription.objects.in_order()
 
-        assert len(all_ordered) >= 3
-
-        # Other tests may leave rows behind, so only the items created here are compared.
-        our_items = [
-            d for d in all_ordered if d.value in ["Other 1", "Abstract 1", "Methods 1"]
-        ]
-        actual_types = [d.type_id for d in our_items]
-
-        assert actual_types == [
+        assert [d.type_id for d in ordered] == [
             f"{DESCRIPTION_TYPES}/abstract",
             f"{DESCRIPTION_TYPES}/methods",
             f"{DESCRIPTION_TYPES}/other",
@@ -147,7 +139,7 @@ class TestAddContributor:
 
 @pytest.mark.django_db
 class TestAbstractSummary:
-    """The summary and meta description are read from the abstract description of any record."""
+    """The summary and meta description come from any record's abstract."""
 
     @staticmethod
     def abstract_of(value):

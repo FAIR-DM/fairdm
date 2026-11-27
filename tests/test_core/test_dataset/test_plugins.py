@@ -434,7 +434,7 @@ def _page(client, dataset):
 
 
 def _context(dataset, user=None):
-    """Return the overview's context, built straight from the plugin with no page render."""
+    """Return the overview's context, built from the plugin with no page render."""
     request = RequestFactory().get(
         reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
     )

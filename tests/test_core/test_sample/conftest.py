@@ -3,19 +3,10 @@
 import pytest
 from django.contrib.auth import get_user_model
 
-from fairdm.core.vocabularies import (
-    CONTRIBUTOR_ROLES,
-    DATE_TYPES,
-    DESCRIPTION_TYPES,
-    IDENTIFIER_TYPES,
-)
 from fairdm.factories import (
     DatasetFactory,
     PersonFactory,
     ProjectFactory,
-    SampleDateFactory,
-    SampleDescriptionFactory,
-    SampleIdentifierFactory,
     SampleRelationFactory,
 )
 
@@ -52,19 +43,6 @@ def rock_sample(db, dataset):
 
 
 @pytest.fixture
-def water_sample(db, dataset):
-    from demo.models import WaterSample
-
-    return WaterSample.objects.create(
-        name="Test Water",
-        dataset=dataset,
-        water_source="river",
-        ph_level=7.2,
-        temperature_celsius=20.5,
-    )
-
-
-@pytest.fixture
 def each_registered_sample_type(db, dataset):
     from demo.factories import (
         CustomParentSampleFactory,
@@ -82,19 +60,6 @@ def each_registered_sample_type(db, dataset):
         CustomSampleFactory,
     ]
     return [factory(dataset=dataset) for factory in factories]
-
-
-@pytest.fixture
-def sample_with_all_related(db, rock_sample):
-    SampleDescriptionFactory(
-        related=rock_sample, type_id=f"{DESCRIPTION_TYPES}/sample-collection"
-    )
-    SampleDateFactory(related=rock_sample, type_id=f"{DATE_TYPES}/created")
-    SampleIdentifierFactory(related=rock_sample, type_id=f"{IDENTIFIER_TYPES}/doi")
-    rock_sample.add_contributor(
-        PersonFactory(), with_roles=[f"{CONTRIBUTOR_ROLES}/collection"]
-    )
-    return rock_sample
 
 
 @pytest.fixture

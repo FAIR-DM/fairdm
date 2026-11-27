@@ -439,10 +439,11 @@ class TestMeasurementFilterMixinUsage:
             element="Fe",
             concentration_ppm=25.5,
         )
+        other_dataset = _public_dataset()
         measurement2 = XRFMeasurement.objects.create(
             name="XRF-002",
-            dataset=dataset,
-            sample=sample,
+            dataset=other_dataset,
+            sample=RockSampleFactory(dataset=other_dataset),
             element="Cu",
             concentration_ppm=15.3,
         )
@@ -453,5 +454,4 @@ class TestMeasurementFilterMixinUsage:
             request=_request_for(AnonymousUser()),
         )
         assert filterset.is_valid()
-        assert measurement1 in filterset.qs
-        assert measurement2 in filterset.qs
+        assert list(filterset.qs) == [measurement1]

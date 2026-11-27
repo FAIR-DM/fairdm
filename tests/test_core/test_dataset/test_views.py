@@ -307,7 +307,7 @@ class TestDatasetCreateView:
         response = client.get(reverse("dataset-create"))
         assert response.status_code == 200
 
-    def test_a_valid_post_redirects_to_the_overview_and_credits_the_creator_in_every_role(
+    def test_a_valid_post_redirects_and_credits_the_creator_in_every_role(
         self, client
     ):
         user = UserFactory()
@@ -918,8 +918,9 @@ class TestDatasetCardRendering:
 
     def test_card_states_nothing_at_all_about_an_unpublished_dataset(self, client):
         DatasetFactory(visibility=Visibility.PUBLIC, published=False)
-        text, _ = self._card(client)
-        assert "Published" not in text
+        _, markup = self._card(client)
+        card = BeautifulSoup(markup, "html.parser")
+        assert card.find_all("span", string="Published") == []
 
     def test_an_unpublished_dataset_reports_no_counts(self, client):
         from demo.factories import ExampleMeasurementFactory, RockSampleFactory
@@ -989,9 +990,12 @@ class TestDatasetCardRendering:
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         dataset.keywords.add(keyword)
         text, markup = self._card(client)
+        block = BeautifulSoup(markup, "html.parser").select_one(
+            ".record-card__keywords"
+        )
         assert keyword.display_label() in text
-        assert f'href="?keywords={keyword.pk}"' not in markup
-        assert f">{keyword.display_label()}</a>" not in markup
+        assert block.get_text(strip=True) == keyword.display_label()
+        assert block.find(href=True) is None
 
     def test_card_names_the_licence(self, client):
         DatasetFactory(

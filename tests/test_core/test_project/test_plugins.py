@@ -111,7 +111,7 @@ class TestTheOverviewGuardsAPrivateProjectsVisibility:
         ):
             url = reverse(name, kwargs={"uuid": private_project.uuid})
             response = client.get(url)
-            assert response.status_code in (403, 404), name
+            assert response.status_code == 404, name
 
 
 @pytest.mark.django_db
@@ -588,6 +588,15 @@ class TestOverviewPeople:
         }
         assert people["total"] == len(overview_showcase.leaders) + len(
             overview_showcase.others
+        )
+
+    def test_the_people_card_links_to_the_projects_contributor_list(self):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+
+        context = _context(project)
+
+        assert context["people_url"] == reverse(
+            "project:contribution-list", kwargs={"uuid": project.uuid}
         )
 
     def test_an_organisation_credited_on_the_project_is_listed_like_a_person(
@@ -1195,11 +1204,36 @@ def _member(record, level):
 @pytest.mark.django_db
 class TestOverviewSampleMap:
     def test_a_visitors_map_counts_only_the_published_datasets_samples(self, mapped):
-        sample_map = _context(mapped.project)["sample_map"]
+        context = _context(mapped.project)
+        sample_map = context["sample_map"]
 
+        assert context["has_map"] is True
         assert sample_map["located"] == 2
         assert sample_map["missing"] == 1
         assert sample_map["bounds"] == [7.9, 48.9, 8.1, 49.0]
+
+    def test_no_map_is_drawn_for_a_project_without_samples(self):
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+
+        context = _context(project)
+
+        assert context["sample_map"] is None
+        assert "has_map" not in context
+
+    def test_no_map_is_drawn_while_no_sample_is_located(self):
+        from demo.factories import RockSampleFactory
+
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(
+            project=project, visibility=Visibility.PUBLIC, published=True
+        )
+        RockSampleFactory(dataset=dataset, location=None)
+
+        context = _context(project)
+
+        assert context["sample_map"]["located"] == 0
+        assert context["sample_map"]["bounds"] is None
+        assert "has_map" not in context
 
     def test_a_member_of_the_private_dataset_gets_its_samples_too(self, mapped):
         member = _member(mapped.private, ContributionLevel.VIEW)

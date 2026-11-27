@@ -39,8 +39,8 @@ def _measurement(dataset):
 class TestRecordVisibilityMixin:
     """Both querysets decide by the record's own dataset.
 
-    The mixin is shared, so its rules are checked on samples. A measurement differs only in which
-    dataset decides, which the last test checks.
+    The mixin is shared, so its rules are checked on samples. A measurement differs
+    only in which dataset decides, which the last test checks.
     """
 
     @pytest.fixture

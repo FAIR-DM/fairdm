@@ -133,8 +133,8 @@ def _overview_showcase_built(django_db_setup, django_db_blocker):
 def overview_showcase(_overview_showcase_built, db):
     """A public project holding public, public-unpublished and private datasets.
 
-    The private dataset carries the only soil samples, the only ICP-MS measurements and the only
-    CC0 licence, so anything of theirs on a visitor's page is a leak.
+    The private dataset carries the only soil samples, the only ICP-MS measurements
+    and the only CC0 licence, so anything of theirs on a visitor's page is a leak.
     """
     return _overview_showcase_built
 

@@ -1,4 +1,4 @@
-"""Tests for the sample queryset rules that tests/test_core/test_managers.py does not reach."""
+"""Tests for the sample queryset rules that tests/test_core/test_managers.py misses."""
 
 import pytest
 

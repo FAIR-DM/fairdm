@@ -661,6 +661,25 @@ class TestOverviewStatus:
     def test_a_status_never_recorded_reads_as_unknown(self, rock):
         assert _context(rock)["status"]["value"] == f"{SAMPLE_STATUS}/unknown"
 
+    def test_the_details_card_carries_the_status_and_what_it_means(self, released):
+        destroyed = RockSampleFactory(
+            dataset=released, status=f"{SAMPLE_STATUS}/destroyed"
+        )
+        stored = RockSampleFactory(dataset=released, status=f"{SAMPLE_STATUS}/stored")
+
+        entries = {}
+        for sample in (destroyed, stored):
+            details = _context(sample)["details"]
+            entries[sample.pk] = next(d for d in details if d.get("icon") == "box")
+
+        destroyed_entry = entries[destroyed.pk]
+        assert destroyed_entry["text"] == destroyed.get_status_label()
+        assert (
+            destroyed_entry["note"]
+            == Overview.status_meanings[f"{SAMPLE_STATUS}/destroyed"]
+        )
+        assert entries[stored.pk]["note"] != destroyed_entry["note"]
+
 
 @pytest.mark.django_db
 class TestOverviewCardsAlwaysShown:

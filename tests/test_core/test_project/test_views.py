@@ -104,9 +104,10 @@ class TestProjectListing:
     ):
         # The default order is newest-modified first (bravo, charlie, alpha), which
         # neither name order matches, so an ignored sort fails here.
-        alpha, bravo, charlie = (
+        # Created out of name order, so a sort on the primary key fails as well.
+        charlie, alpha, bravo = (
             ProjectFactory(name=f"{name} Project", visibility=Visibility.PUBLIC)
-            for name in ("Alpha", "Bravo", "Charlie")
+            for name in ("Charlie", "Alpha", "Bravo")
         )
         now = timezone.now()
         for project, age in ((bravo, 1), (charlie, 2), (alpha, 3)):
@@ -123,16 +124,17 @@ class TestProjectListing:
     def test_listing_ordered_by_date_added_sorts_both_ways_whatever_the_default_order(
         self, client
     ):
-        # Modified order (second, third, first) matches neither direction of `added`.
+        # Added in neither creation nor modified order, so a sort on the primary key or
+        # on `modified` fails as well.
         first, second, third = (
             ProjectFactory(visibility=Visibility.PUBLIC) for _ in range(3)
         )
         now = timezone.now()
-        for project, age in ((first, 3), (second, 2), (third, 1)):
+        for project, age in ((second, 3), (third, 2), (first, 1)):
             Project.objects.filter(pk=project.pk).update(
                 added=now - timedelta(days=age)
             )
-        for project, age in ((second, 1), (third, 2), (first, 3)):
+        for project, age in ((third, 1), (first, 2), (second, 3)):
             Project.objects.filter(pk=project.pk).update(
                 modified=now - timedelta(days=age)
             )
@@ -140,8 +142,8 @@ class TestProjectListing:
         oldest_first = client.get(reverse("project-list"), {"o": "added"})
         newest_first = client.get(reverse("project-list"), {"o": "-added"})
 
-        assert list(oldest_first.context["object_list"]) == [first, second, third]
-        assert list(newest_first.context["object_list"]) == [third, second, first]
+        assert list(oldest_first.context["object_list"]) == [second, third, first]
+        assert list(newest_first.context["object_list"]) == [first, third, second]
 
     def test_listing_status_filter_takes_several_statuses_at_once(self, client):
         concept = ProjectFactory(

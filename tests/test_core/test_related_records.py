@@ -1,7 +1,7 @@
 """Tests for the shared related-record row-set declarations.
 
-Every declaration is the same base class naming a model, so each behaviour is checked on one
-declaration, a project's dates.
+Every declaration is the same base class naming a model, so each behaviour is
+checked on one declaration, a project's dates.
 """
 
 import pytest

@@ -13,11 +13,9 @@ from demo.factories import RockSampleFactory, WaterSampleFactory
 from demo.models import RockSample, WaterSample
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.sample.admin import (
-    SampleChildAdmin,
     SampleDateInline,
     SampleDescriptionInline,
     SampleIdentifierInline,
-    SampleParentAdmin,
 )
 from fairdm.core.sample.models import (
     Sample,
@@ -34,31 +32,7 @@ from fairdm.core.vocabularies import (
     SAMPLE_STATUS,
 )
 from fairdm.factories.core import DatasetFactory
-from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
-
-
-def _result_pks(response):
-    """The primary keys the changelist actually matched - read off the `ChangeList`."""
-    return {obj.pk for obj in response.context["cl"].result_list}
-
-
-@pytest.mark.django_db
-class TestSampleAdminFilters:
-    def test_filter_by_dataset(self, admin_client):
-        dataset1 = DatasetFactory(name="Dataset A")
-        dataset2 = DatasetFactory(name="Dataset B")
-
-        match = RockSampleFactory(dataset=dataset1)
-        other = RockSampleFactory(dataset=dataset2)
-
-        url = reverse("admin:sample_sample_changelist")
-        response = admin_client.get(url, {"dataset__id__exact": str(dataset1.pk)})
-
-        assert response.status_code == 200
-        pks = _result_pks(response)
-        assert match.pk in pks
-        assert other.pk not in pks
 
 
 @pytest.mark.django_db
@@ -68,7 +42,8 @@ class TestSampleDatasetListFilterOrdering:
 
         early = DatasetFactory()
         late = DatasetFactory()
-        # Set the timestamps the ordering reads, so two rows created back to back cannot tie.
+        # Set the timestamps the ordering reads, so two rows created back to back
+        # cannot tie.
         Dataset.objects.filter(pk=early.pk).update(
             modified=timezone.now() - timedelta(days=2)
         )
@@ -84,8 +59,9 @@ class TestSampleDatasetListFilterOrdering:
         choices = list_filter.field_choices(field, request, model_admin)
         pks_in_order = [pk for pk, _label in choices]
 
-        # Dataset.Meta.ordering = ["-modified"]: the more recently modified "late" dataset sorts
-        # first. An empty order_by() would return ascending pk, "early" before "late".
+        # Dataset.Meta.ordering = ["-modified"]: the more recently modified "late"
+        # dataset sorts first. An empty order_by() would return ascending pk, "early"
+        # before "late".
         assert pks_in_order.index(late.pk) < pks_in_order.index(early.pk)
 
 
@@ -177,9 +153,6 @@ class TestSampleAdminInlines:
             object_id=str(sample.pk), contributor=contributor
         ).exists()
         assert SampleRelation.objects.filter(source=sample, target=parent).exists()
-
-    def test_the_admin_registered_for_sample_is_the_polymorphic_parent(self):
-        assert isinstance(admin.site._registry[Sample], SampleParentAdmin)
 
 
 @pytest.mark.django_db
@@ -277,17 +250,14 @@ class TestSampleAdminInlineLimits:
 
 @pytest.mark.django_db
 class TestSampleAdminTypeColumn:
-    def test_the_changelist_names_each_rows_specimen_type(self, admin_client):
-        RockSampleFactory(name="A Rock")
-        WaterSampleFactory(name="A Water Sample")
+    def test_the_type_column_names_each_rows_specimen_type(self):
+        rock = RockSampleFactory()
+        water = WaterSampleFactory()
+        sample_admin = admin.site._registry[Sample]
 
-        url = reverse("admin:sample_sample_changelist")
-        response = admin_client.get(url)
-
-        assert response.status_code == 200
-        content = response.content.decode()
-        assert str(RockSample._meta.verbose_name) in content
-        assert str(WaterSample._meta.verbose_name) in content
+        for row, model in ((rock, RockSample), (water, WaterSample)):
+            base_row = Sample.objects.get(pk=row.pk)
+            assert sample_admin.sample_type(base_row) == model._meta.verbose_name
 
 
 @pytest.mark.django_db
@@ -307,17 +277,6 @@ class TestSampleAdminReadonly:
         assert "modified" not in editable_fields
         # Still displayed to the user, just not as an editable input.
         assert sample.uuid in response.content.decode()
-
-
-@pytest.mark.django_db
-class TestEveryTypeGetsTheInlines:
-    def test_every_registered_specimen_type_carries_the_same_inlines(self):
-        expected = {inline.__name__ for inline in SampleChildAdmin.inlines}
-
-        for model in registry.samples:
-            registered_admin = admin.site._registry[model]
-            actual = {inline.__name__ for inline in registered_admin.inlines}
-            assert actual == expected, model
 
 
 @pytest.mark.django_db

@@ -18,8 +18,9 @@ from demo.factories import (
     RockSampleFactory,
 )
 from fairdm.contrib.contributors.choices import ContributionLevel
+from fairdm.core.dataset.models import DatasetDescription
+from fairdm.core.measurement.models import MeasurementDescription
 from fairdm.core.models import Measurement
-from fairdm.core.vocabularies import DESCRIPTION_TYPES
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
@@ -72,23 +73,34 @@ class TestMeasurementLocalId:
 
 @pytest.mark.django_db
 class TestMeasurementVocabularyValidation:
-    """The guard is one mixin shared by description, date and identifier, so one type is tested."""
+    """One mixin guards description, date and identifier, so one is tested."""
 
-    def test_a_type_outside_the_vocabulary_is_refused_by_full_clean(self, measurement):
+    @pytest.fixture
+    def outside_type(self):
+        """A real description type that is outside the measurement collection."""
+        allowed = {c.uri for c in MeasurementDescription.get_type_concepts()}
+        return next(
+            concept
+            for concept in DatasetDescription.get_type_concepts()
+            if concept.uri not in allowed
+        ).uri
+
+    def test_a_type_outside_the_collection_is_refused_by_full_clean(
+        self, measurement, outside_type
+    ):
         description = MeasurementDescriptionFactory.build(
-            related=measurement, type=f"{DESCRIPTION_TYPES}/not-a-real-description-type"
+            related=measurement, type=outside_type
         )
         with pytest.raises(ValidationError) as exc_info:
             description.full_clean()
-        assert "not-a-real-description-type" in str(exc_info.value)
+        assert outside_type in str(exc_info.value)
 
-    def test_a_type_outside_the_vocabulary_is_refused_on_direct_save(self, measurement):
+    def test_a_type_outside_the_collection_is_refused_on_direct_save(
+        self, measurement, outside_type
+    ):
         with pytest.raises(ValidationError) as exc_info:
-            MeasurementDescriptionFactory(
-                related=measurement,
-                type=f"{DESCRIPTION_TYPES}/not-a-real-description-type",
-            )
-        assert "not-a-real-description-type" in str(exc_info.value)
+            MeasurementDescriptionFactory(related=measurement, type=outside_type)
+        assert outside_type in str(exc_info.value)
 
 
 @pytest.mark.django_db
