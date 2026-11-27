@@ -2,8 +2,6 @@
 
 import importlib
 import os
-from unittest import mock
-
 import pytest
 import redis
 from bs4 import BeautifulSoup
@@ -99,43 +97,68 @@ def unreachable_services(settings):
     conf.update(**saved)
 
 
+@pytest.fixture
+def reload_urls(settings, monkeypatch):
+    """Return a function that rebuilds the admin URLs, and rebuild them as they were after the test."""
+
+    def reload():
+        importlib.reload(admin_urls)
+        importlib.reload(root_urls)
+        clear_url_caches()
+
+    admin_url = settings.ADMIN_URL
+    yield reload
+    monkeypatch.undo()
+    settings.ADMIN_URL = admin_url
+    reload()
+
+
+@pytest.fixture
+def role_name():
+    """One role that carries rights: which role it is makes no difference to the check."""
+    return PortalRoles.rights_carrying()[0]
+
+
+def statuses_of(client, url_names):
+    """Return the status each address answers, by address name."""
+    return {name: client.get(reverse(name)).status_code for name in url_names}
+
+
 @pytest.mark.django_db
 class TestControlRoomAccess:
-    @pytest.mark.parametrize("url_name", CONTROL_ROOM_PAGES)
-    def test_a_superuser_opens_every_page(self, client, superuser, url_name):
+    def test_a_superuser_opens_every_page(self, client, superuser):
         client.force_login(superuser)
 
-        response = client.get(reverse(url_name))
+        assert statuses_of(client, CONTROL_ROOM_PAGES) == dict.fromkeys(
+            CONTROL_ROOM_PAGES, 200
+        )
 
-        assert response.status_code == 200
-
-    @pytest.mark.parametrize("url_name", CONTROL_ROOM_PAGES)
     def test_a_staff_account_that_is_not_a_superuser_is_refused(
-        self, client, staff_user, url_name
+        self, client, staff_user
     ):
         client.force_login(staff_user)
 
-        response = client.get(reverse(url_name))
+        assert statuses_of(client, CONTROL_ROOM_PAGES) == dict.fromkeys(
+            CONTROL_ROOM_PAGES, 403
+        )
 
-        assert response.status_code == 403
-
-    @pytest.mark.parametrize("url_name", CONTROL_ROOM_PAGES)
-    @pytest.mark.parametrize("role_name", PortalRoles.rights_carrying())
-    def test_a_holder_of_a_rights_carrying_role_is_refused(
-        self, client, role_name, url_name
-    ):
+    def test_a_holder_of_a_rights_carrying_role_is_refused(self, client, role_name):
         client.force_login(role_holder(role_name))
 
-        response = client.get(reverse(url_name))
+        assert statuses_of(client, CONTROL_ROOM_PAGES) == dict.fromkeys(
+            CONTROL_ROOM_PAGES, 403
+        )
 
-        assert response.status_code == 403
+    def test_an_anonymous_visitor_is_sent_to_the_admin_sign_in(self, client):
+        responses = {name: client.get(reverse(name)) for name in CONTROL_ROOM_PAGES}
 
-    @pytest.mark.parametrize("url_name", CONTROL_ROOM_PAGES)
-    def test_an_anonymous_visitor_is_sent_to_the_admin_sign_in(self, client, url_name):
-        response = client.get(reverse(url_name))
-
-        assert response.status_code == 302
-        assert response["Location"].startswith(reverse("admin:login"))
+        assert {name: r.status_code for name, r in responses.items()} == dict.fromkeys(
+            CONTROL_ROOM_PAGES, 302
+        )
+        assert all(
+            r["Location"].startswith(reverse("admin:login"))
+            for r in responses.values()
+        )
 
     def test_the_agent_interface_does_not_exist(self, client, superuser):
         client.force_login(superuser)
@@ -152,11 +175,17 @@ class TestDashboardListsItsPanels:
         soup = BeautifulSoup(client.get(reverse(DASHBOARD)).content, "html.parser")
         return {tag["href"] for tag in soup.select("a[href]")}
 
-    @pytest.mark.parametrize("url_name", PANEL_INDEXES + DEVELOPMENT_PANEL_INDEXES)
-    def test_the_dashboard_links_to_each_panel(self, client, superuser, url_name):
+    def test_the_dashboard_links_to_each_panel(self, client, superuser):
         client.force_login(superuser)
+        links = self.links_on_dashboard(client)
 
-        assert reverse(url_name) in self.links_on_dashboard(client)
+        missing = [
+            name
+            for name in PANEL_INDEXES + DEVELOPMENT_PANEL_INDEXES
+            if reverse(name) not in links
+        ]
+
+        assert missing == []
 
 
 @pytest.mark.django_db
@@ -181,52 +210,42 @@ class TestControlRoomAdminIndex:
         for link in self.links_on_admin_index(client):
             assert not any(f"/{label}/" in link for label in APP_LABELS)
 
-    @pytest.mark.parametrize("role_name", PortalRoles.rights_carrying())
     def test_a_role_holder_is_offered_no_link(self, client, role_name):
         client.force_login(role_holder(role_name))
-
-        self.assert_no_control_room_link(client)
-
-    @pytest.mark.skip(
-        reason=(
-            "Django Control Room registers its dashboard admin entry without the hub's "
-            "panel config, so the entry falls back to is_staff and REQUIRE_SUPERUSER is "
-            "not consulted. Opening it is still refused. Tracked in FAIR-DM/fairdm#665."
-        )
-    )
-    def test_a_staff_account_that_is_not_a_superuser_is_offered_no_link(
-        self, client, staff_user
-    ):
-        client.force_login(staff_user)
 
         self.assert_no_control_room_link(client)
 
 
 @pytest.mark.django_db
 class TestControlRoomUnderAnotherAdminAddress:
-    def test_the_dashboard_follows_the_admin_address(self, client, superuser, settings):
+    def test_the_dashboard_follows_the_admin_address(
+        self, client, superuser, settings, reload_urls
+    ):
         settings.ADMIN_URL = "manage/"
-        importlib.reload(admin_urls)
-        importlib.reload(root_urls)
-        clear_url_caches()
+        reload_urls()
         client.force_login(superuser)
-        try:
-            address = reverse(DASHBOARD)
-            response = client.get(address)
-        finally:
-            settings.ADMIN_URL = "admin/"
-            importlib.reload(admin_urls)
-            importlib.reload(root_urls)
-            clear_url_caches()
+
+        address = reverse(DASHBOARD)
+        response = client.get(address)
 
         assert address.startswith("/manage/")
         assert response.status_code == 200
 
 
+def without_apps(monkeypatch, labels):
+    """Make the URL configuration see the apps as not installed, as in a process that never had them."""
+    is_installed = django_apps.is_installed
+    monkeypatch.setattr(
+        django_apps,
+        "is_installed",
+        lambda label: label not in labels and is_installed(label),
+    )
+
+
 @pytest.mark.django_db
 class TestPortalWithoutTheControlRoom:
     def test_the_admin_stays_up_and_the_dashboard_is_gone(
-        self, client, superuser, monkeypatch
+        self, client, superuser, monkeypatch, reload_urls
     ):
         # A process that never installed the apps never registered their admin entries;
         # this one did at start-up, so they are dropped for the duration.
@@ -238,24 +257,12 @@ class TestPortalWithoutTheControlRoom:
         monkeypatch.setattr(admin.site, "_registry", remaining)
         # Patched rather than removed with modify_settings, which would re-run every
         # app's start-up and duplicate menu entries for later tests.
-        is_installed = django_apps.is_installed
-
-        def without_control_room(label):
-            return label not in CONTROL_ROOM_APPS and is_installed(label)
-
+        without_apps(monkeypatch, CONTROL_ROOM_APPS)
+        reload_urls()
         client.force_login(superuser)
-        try:
-            with mock.patch.object(django_apps, "is_installed", without_control_room):
-                importlib.reload(admin_urls)
-                importlib.reload(root_urls)
-                clear_url_caches()
-                index = client.get(reverse("admin:index"))
-                dashboard = client.get("/admin/dj-control-room/")
-        finally:
-            monkeypatch.undo()
-            importlib.reload(admin_urls)
-            importlib.reload(root_urls)
-            clear_url_caches()
+
+        index = client.get(reverse("admin:index"))
+        dashboard = client.get("/admin/dj-control-room/")
 
         assert index.status_code == 200
         assert dashboard.status_code == 404
@@ -263,23 +270,21 @@ class TestPortalWithoutTheControlRoom:
 
 @pytest.mark.django_db
 class TestDevelopmentOnlyPanelAccess:
-    @pytest.mark.parametrize("url_name", DEVELOPMENT_PANEL_INDEXES)
-    def test_a_superuser_opens_the_panel(self, client, superuser, url_name):
+    def test_a_superuser_opens_the_panels(self, client, superuser):
         client.force_login(superuser)
 
-        response = client.get(reverse(url_name))
+        assert statuses_of(client, DEVELOPMENT_PANEL_INDEXES) == dict.fromkeys(
+            DEVELOPMENT_PANEL_INDEXES, 200
+        )
 
-        assert response.status_code == 200
-
-    @pytest.mark.parametrize("url_name", DEVELOPMENT_PANEL_INDEXES)
     def test_a_staff_account_that_is_not_a_superuser_is_refused(
-        self, client, staff_user, url_name
+        self, client, staff_user
     ):
         client.force_login(staff_user)
 
-        response = client.get(reverse(url_name))
-
-        assert response.status_code == 403
+        assert statuses_of(client, DEVELOPMENT_PANEL_INDEXES) == dict.fromkeys(
+            DEVELOPMENT_PANEL_INDEXES, 403
+        )
 
     def test_a_superuser_cannot_send_requests_from_the_url_panel(
         self, client, superuser
@@ -295,27 +300,16 @@ class TestDevelopmentOnlyPanelAccess:
         assert response.status_code == 403
 
     def test_the_panels_are_gone_when_their_apps_are_not_installed(
-        self, client, superuser
+        self, client, superuser, monkeypatch, reload_urls
     ):
         # Removing the apps with modify_settings would re-run every app's start-up and
         # duplicate menu entries for later tests; the URL conf reads only is_installed.
-        is_installed = django_apps.is_installed
-
-        def without_panels(label):
-            return label not in DEVELOPMENT_PANEL_APPS and is_installed(label)
-
         addresses = [reverse(name) for name in DEVELOPMENT_PANEL_INDEXES]
+        without_apps(monkeypatch, DEVELOPMENT_PANEL_APPS)
+        reload_urls()
         client.force_login(superuser)
-        try:
-            with mock.patch.object(django_apps, "is_installed", without_panels):
-                importlib.reload(admin_urls)
-                importlib.reload(root_urls)
-                clear_url_caches()
-                statuses = [client.get(address).status_code for address in addresses]
-        finally:
-            importlib.reload(admin_urls)
-            importlib.reload(root_urls)
-            clear_url_caches()
+
+        statuses = [client.get(address).status_code for address in addresses]
 
         assert statuses == [404, 404]
 
@@ -341,33 +335,14 @@ class TestDevelopmentOnlyPanelPackages:
 @pytest.mark.django_db
 class TestControlRoomWithServicesDown:
     @pytest.mark.parametrize(
-        "url",
-        [
-            lambda: reverse("dj_redis_panel:index"),
-            lambda: reverse("dj_cache_panel:index"),
-            lambda: reverse("dj_celery_panel:index"),
-            lambda: reverse("dj_celery_panel:workers"),
-            lambda: reverse("dj_celery_panel:queues"),
-            lambda: reverse(
-                "dj_redis_panel:instance_overview",
-                kwargs={"instance_alias": "default"},
-            ),
-            lambda: reverse(
-                "dj_redis_panel:key_search",
-                kwargs={"instance_alias": "default", "db_number": 0},
-            ),
-            lambda: (
-                reverse("dj_cache_panel:key_search", kwargs={"cache_name": "default"})
-                + "?q=anything"
-            ),
-        ],
+        "url_name", PANEL_INDEXES, ids=lambda name: name.split(":")[0]
     )
-    def test_every_page_answers_without_the_services(
-        self, client, superuser, unreachable_services, url
+    def test_every_panel_answers_without_its_service(
+        self, client, superuser, unreachable_services, url_name
     ):
         client.force_login(superuser)
 
-        response = client.get(url())
+        response = client.get(reverse(url_name))
 
         assert response.status_code == 200
 

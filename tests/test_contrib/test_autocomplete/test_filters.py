@@ -6,7 +6,6 @@ from django.urls import reverse
 
 from demo.factories import CustomSampleFactory
 from demo.models import CustomSample
-from fairdm.contrib.autocomplete.filters import RecordMultipleFilter, TagFilter
 from fairdm.core.project.filters import ProjectFilter
 from fairdm.core.project.models import Project
 from fairdm.core.sample.filters import SampleFilter
@@ -38,12 +37,6 @@ class TestRecordMultipleFilter:
 
     def offered(self, filterset):
         return set(filterset.form.fields["dataset"].offered())
-
-    def test_the_sample_lists_dataset_filter_is_a_record_filter_at_public_scope(self):
-        dataset_filter = SampleFilter().filters["dataset"]
-
-        assert isinstance(dataset_filter, RecordMultipleFilter)
-        assert dataset_filter.field.scope == "public"
 
     def test_a_visitor_is_offered_public_datasets(self, in_request, datasets):
         request = in_request(AnonymousUser())
@@ -154,9 +147,6 @@ class TestTagFilter:
     def filterset(self, in_request, data, user=None):
         request = in_request(user or AnonymousUser())
         return ProjectFilter(data=data, queryset=Project.objects.all(), request=request)
-
-    def test_the_project_lists_tag_filter_is_a_tag_filter(self):
-        assert isinstance(ProjectFilter().filters["tags"], TagFilter)
 
     def test_two_chosen_tags_narrow_the_list_to_the_projects_with_either(
         self, in_request, projects

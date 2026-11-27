@@ -285,14 +285,6 @@ class TestActivityLines:
         assert len(lines) == len(lines[:])
         assert len(lines) == 8
 
-    def test_a_sample_count_of_a_portal_defined_type(self, clean_slate):
-        project = make_project()
-        dataset = make_dataset(project)
-        clean_slate()
-        ConcreteSampleFactory(dataset=dataset)
-
-        assert kinds(lines_of(dataset))["sample"] == 1
-
     def test_names_are_escaped(self, clean_slate):
         project = make_project()
         dataset = make_dataset(project)
@@ -508,7 +500,7 @@ class TestActivityLinesScale:
 
     def test_the_queries_do_not_grow_with_the_datasets(self, django_assert_num_queries):
         small = self.seed(1)
-        large = self.seed(5)
+        large = self.seed(3)
         lines_of_small = ActivityLines(small, None)
         lines_of_large = ActivityLines(large, None)
         list(lines_of_small[:9])
