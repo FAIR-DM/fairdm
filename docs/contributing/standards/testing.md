@@ -143,9 +143,9 @@ code to make a test pass.
 
 | Check | How |
 |---|---|
-| No N+1 queries on list and detail pages | Render with one record and with several, and assert the same query count under `django_assert_num_queries`. Never pin a count that grows with rows, and never time a request. |
+| No N+1 queries on list and detail pages | Evaluate the queryset or render the page once to warm caches, then render with one record and with several and assert the same query count under `django_assert_num_queries`. The only absolute count allowed is a constant 1. Never pin a count that grows with rows, and never time a request. |
 | Migrations are complete | `python manage.py makemigrations --check` is clean after the change. |
-| Every model field has `verbose_name` and `help_text` | One parametrised test over every field of every model. Never one test per field, and never asserting the wording. |
+| Every model field has `verbose_name` and `help_text` | One test that walks every field of every model, collects the fields that lack either and reports them together (section 7). Never one test per field, and never asserting the wording. |
 | Template output for component changes | Render the template, not only the context. A context key can be right while the template never renders it. |
 | Translated strings compare correctly | Compare `str(value)`. A lazy translation proxy can pass or fail `==` for the wrong reason. |
 
@@ -157,9 +157,87 @@ code to make a test pass.
   lower the figure. Do not enable template coverage.
 - A test written only to raise coverage is still bound by section 1.
 
+## 7. How many tests, and at which layer
+
+**One test per code path.** Parametrise only over values that take different branches: one
+representative case plus each boundary. Twelve models through one generic view, four record kinds
+through one shared page, every role through one permission check: one or two cases.
+
+**A sweep is one test.** A check over every template, icon alias, component or field collects
+every failure and reports them together. It never produces one test id per item.
+
+**Test each rule where it is implemented.**
+
+- A form, view, admin, API or page test checks that a rule is wired in, with one case. It does not
+  repeat the rule's own cases.
+- The behaviour of a shared base class, mixin or generic view is tested once, against the base. A
+  concrete class gets its own test only for what it overrides.
+- A browser test is only for behaviour that needs a browser: JavaScript, focus, keyboard, drag,
+  storage, htmx swaps and client-side state. Server-rendered markup is tested with the test
+  client. Computed layout, colour and size are not tested (section 1).
+
+## 8. Tests that earn nothing
+
+A review names each of these as a finding. Do not write them.
+
+- **What Django or a dependency guarantees.** Field options (required, `max_length`, null and
+  blank, choices, default, editable, ordering), cascades, a unique constraint raising
+  `IntegrityError`, `auto_now`, admin `search_fields` and `list_filter` doing their job,
+  `ModelForm` saving, django-filter combining filters.
+- **Configuration literals.** A fixed list of field names, choices, vocabulary members, menu
+  entries, inline classes, widget class names, icon names or CSS classes.
+- **Tests that cannot fail.** `count() >= 0`, `hasattr`, `is not None`, `issubclass` of a class the
+  code defines, `or True`, an assertion inside an `if` guard, a `try`/`except` that ends in
+  `skip`, a substring the page shell already contains.
+- **Tests of the test setup.** Factories returning what they build, fixtures existing.
+- **A regression test for behaviour the suite already tests.** A fixed bug gets its own test only
+  when no behaviour test would have caught it. The test is named for the behaviour, never the issue.
+
+## 9. Deterministic tests
+
+- No `sleep` to separate timestamps: set them explicitly. No fixed wait in a browser test: wait
+  for the state.
+- No `.first()` or slice without `order_by` when the result matters.
+- Random factory data is seeded, and a factory never randomises a field a test depends on, such
+  as an active user or a visibility flag.
+- Anything a test mutates (a registry, settings, a cache, the ContentType cache) is restored by a
+  fixture.
+- No network. Vendor the assets a test needs.
+
+## 10. Fast tests
+
+- Shared setup is class- or module-scoped where the tests only read it.
+- When one value is checked, read the view's context or the plugin's output instead of rendering
+  and parsing a full page.
+- "One and several" means 1 and 3 rows, never 5 and 25.
+- A test that takes over a second, starts a subprocess or needs a browser carries a marker: `slow`
+  for the first two, `e2e` for a browser. Register both under `markers` in the pytest
+  configuration. Verifies between a run's first and last use the fast selection
+  `-m "not e2e and not slow"`, so a test that should be skipped there and is not marked costs
+  time on every one of them.
+
 ## Project additions
 
 <!-- Rules that apply to this repository only. Leave empty when there are none. -->
+
+### Quick suite
+
+This repository has no browser tests, so the `slow` marker is the only one in use. Run the quick
+suite while working:
+
+```bash
+pytest -m "not slow"
+```
+
+It skips every test that takes over a second or starts a subprocess: the migration tests, the
+backup and restore tests and the Docker script tests. The full suite, `pytest`, runs before a
+pull request and in CI.
+
+### Warnings fail
+
+A deprecation warning that django-mvp raises (`MVPDeprecationWarning`) turns into an error
+(`filterwarnings` in `pyproject.toml`), so a deprecated call fails wherever a test reaches it. No
+test asserts that a page emits no deprecation warning. Any other warning is ignored.
 
 ### URL smoke tests
 
@@ -170,4 +248,4 @@ queryset exceptions, middleware and authentication problems, and bad redirects.
 
 ---
 
-**Version**: 1.0.0
+**Version**: 1.1.0
