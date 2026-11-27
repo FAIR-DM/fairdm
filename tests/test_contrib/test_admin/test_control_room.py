@@ -2,6 +2,7 @@
 
 import importlib
 import os
+
 import pytest
 import redis
 from bs4 import BeautifulSoup
@@ -156,8 +157,7 @@ class TestControlRoomAccess:
             CONTROL_ROOM_PAGES, 302
         )
         assert all(
-            r["Location"].startswith(reverse("admin:login"))
-            for r in responses.values()
+            r["Location"].startswith(reverse("admin:login")) for r in responses.values()
         )
 
     def test_the_agent_interface_does_not_exist(self, client, superuser):

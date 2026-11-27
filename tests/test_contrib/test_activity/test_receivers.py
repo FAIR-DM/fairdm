@@ -126,7 +126,9 @@ class TestRecordEdits:
 
         assert wrong == []
 
-    @pytest.mark.parametrize(("record_factory", "related_factory"), RELATED_FACTORIES[::3])
+    @pytest.mark.parametrize(
+        ("record_factory", "related_factory"), RELATED_FACTORIES[::3]
+    )
     def test_deleting_the_record_records_nothing_new(
         self, record_factory, related_factory, clean_slate
     ):
@@ -221,6 +223,4 @@ class TestRecordingNeverFails:
             record.save()
 
         assert Project.objects.get(pk=record.pk).name == "Saved all the same"
-        assert any(
-            r.exc_info and "down" in str(r.exc_info[1]) for r in caplog.records
-        )
+        assert any(r.exc_info and "down" in str(r.exc_info[1]) for r in caplog.records)

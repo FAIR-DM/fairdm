@@ -87,7 +87,9 @@ def test_every_address_refuses_a_caller_over_the_burst_rate(
 ):
     from fairdm.contrib.contributors.services.registries import Ror
 
-    monkeypatch.setattr(Ror, "search", lambda self, term: {"results": [], "more": False})
+    monkeypatch.setattr(
+        Ror, "search", lambda self, term: {"results": [], "more": False}
+    )
     set_rates(autocomplete_anon_burst="1/minute")
 
     not_limited = []
