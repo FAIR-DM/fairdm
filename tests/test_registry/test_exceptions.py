@@ -77,7 +77,6 @@ class TestNotRegisteredError:
 
 
 class TestConfigurationError:
-
     def test_an_ineligible_model_names_both_permitted_bases(self, clean_registry):
         class NotASample(models.Model):
             class Meta:

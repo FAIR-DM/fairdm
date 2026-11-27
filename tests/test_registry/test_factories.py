@@ -56,9 +56,18 @@ def sample_model():
 
 
 class TestAdminFactory:
-    FIELDS = ["name", "description", "collected_at", "status", "is_public", "contributor"]
+    FIELDS = [
+        "name",
+        "description",
+        "collected_at",
+        "status",
+        "is_public",
+        "contributor",
+    ]
 
-    def test_the_generated_class_is_a_model_admin_named_for_the_model(self, sample_model):
+    def test_the_generated_class_is_a_model_admin_named_for_the_model(
+        self, sample_model
+    ):
         admin_class = AdminFactory(sample_model).generate()
 
         assert issubclass(admin_class, admin.ModelAdmin)
@@ -67,7 +76,13 @@ class TestAdminFactory:
     def test_list_display_leaves_out_long_text_and_stops_at_five(self, sample_model):
         admin_class = AdminFactory(sample_model, fields=self.FIELDS).generate()
 
-        assert admin_class.list_display == ["name", "collected_at", "status", "is_public", "contributor"]
+        assert admin_class.list_display == [
+            "name",
+            "collected_at",
+            "status",
+            "is_public",
+            "contributor",
+        ]
 
     def test_search_fields_are_the_text_fields(self, sample_model):
         admin_class = AdminFactory(sample_model, fields=self.FIELDS).generate()
@@ -100,7 +115,6 @@ class SampleModel(models.Model):
 
 @pytest.mark.django_db
 class TestFormFactory:
-
     def test_form_with_specific_fields(self):
         factory = FormFactory(SampleModel, fields=["name", "collected_at"])
 
@@ -110,7 +124,6 @@ class TestFormFactory:
         assert "name" in form.fields
         assert "collected_at" in form.fields
         assert "description" not in form.fields
-
 
     def test_a_field_inherited_from_fields_that_cannot_be_edited_is_left_out(self):
         config = ModelConfiguration(model=RockSample, fields=["rock_type", "uuid"])
@@ -136,7 +149,6 @@ class TestFormFactory:
         with pytest.raises(FieldError, match="non-editable"):
             config.get_form_class()
 
-
     def test_get_widgets_smart_detection(self):
         factory = FormFactory(SampleModel, fields=["collected_at", "status"])
 
@@ -150,14 +162,12 @@ class TestFormFactory:
 
 @pytest.mark.django_db
 class TestTableFactory:
-
     def test_table_with_specific_fields(self):
         factory = TableFactory(SampleModel, fields=["name", "status", "collected_at"])
 
         fields = factory.get_fields()
 
         assert fields == ["name", "status", "collected_at"]
-
 
     def test_a_declared_long_text_field_is_left_out_of_the_generated_table(self):
         # One long value would push the other columns off the page. See docs/developers/explanation/what-registering-a-type-produces.md.
@@ -181,7 +191,6 @@ class TestTableFactory:
             table_class.base_columns
         )
 
-
     def test_table_default_list_fields(self):
         factory = TableFactory(SampleModel)
 
@@ -190,7 +199,6 @@ class TestTableFactory:
 
 @pytest.mark.django_db
 class TestFilterFactory:
-
     def test_filterset_with_specific_fields(self):
         factory = FilterFactory(SampleModel, fields=["status", "collected_at"])
 
@@ -199,14 +207,15 @@ class TestFilterFactory:
         assert "status" in fields
         assert "collected_at" in fields
 
-
     def test_filterset_default_filter_fields(self):
         factory = FilterFactory(SampleModel)
 
         assert "status" in factory.get_fields()
 
     def test_the_generated_filterset_filters_the_listed_fields(self):
-        filterset_class = FilterFactory(SampleModel, fields=["status", "collected_at"]).generate()
+        filterset_class = FilterFactory(
+            SampleModel, fields=["status", "collected_at"]
+        ).generate()
 
         assert issubclass(filterset_class, FilterSet)
         assert set(filterset_class.base_filters) == {"status", "collected_at"}
@@ -424,7 +433,10 @@ class TestSerializerFactory:
 
     @pytest.mark.parametrize(
         ("model", "base"),
-        [(ConcreteSample, BaseSampleSerializer), (ConcreteMeasurement, BaseMeasurementSerializer)],
+        [
+            (ConcreteSample, BaseSampleSerializer),
+            (ConcreteMeasurement, BaseMeasurementSerializer),
+        ],
     )
     def test_it_builds_on_the_base_for_its_kind(self, model, base):
         serializer_class = ModelConfiguration(model=model).get_serializer_class()
@@ -510,5 +522,3 @@ class TestSerializerFactory:
 
         assert "options" in config.resolve_fields("form")
         assert "tags" in config.resolve_fields("form")
-
-

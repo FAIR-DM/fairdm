@@ -52,7 +52,9 @@ class TestRegistration:
 
         assert clean_registry.get_for_model(TestSample).fields == ["test_field"]
 
-    def test_register_without_a_configuration_builds_a_default_one(self, clean_registry):
+    def test_register_without_a_configuration_builds_a_default_one(
+        self, clean_registry
+    ):
         clean_registry.register(TestSample, None)
 
         assert clean_registry.get_for_model(TestSample).model is TestSample
@@ -64,7 +66,9 @@ class TestRegistration:
         with pytest.raises(DuplicateRegistrationError):
             clean_registry.register(TestSample, config)
 
-    def test_a_model_that_is_neither_sample_nor_measurement_is_refused(self, clean_registry):
+    def test_a_model_that_is_neither_sample_nor_measurement_is_refused(
+        self, clean_registry
+    ):
         class NotSampleModel(models.Model):
             name = models.CharField(max_length=100)
 
@@ -100,7 +104,9 @@ class TestLookup:
         with pytest.raises(error):
             clean_registry.get_for_model(label)
 
-    def test_is_registered_is_false_for_unregistered_and_malformed_labels(self, clean_registry):
+    def test_is_registered_is_false_for_unregistered_and_malformed_labels(
+        self, clean_registry
+    ):
         assert clean_registry.is_registered(TestSample) is False
         assert clean_registry.is_registered("invalid_app.unregistered") is False
         assert clean_registry.is_registered("invalid_format") is False
@@ -113,7 +119,10 @@ class TestLookup:
         clean_registry.register(TestSample, sample_config)
         clean_registry.register(TestMeasurement, measurement_config)
 
-        assert set(clean_registry.get_all_configs()) == {sample_config, measurement_config}
+        assert set(clean_registry.get_all_configs()) == {
+            sample_config,
+            measurement_config,
+        }
 
 
 class TestPartition:
@@ -121,8 +130,12 @@ class TestPartition:
         assert clean_registry.samples == []
         assert clean_registry.measurements == []
 
-        clean_registry.register(TestSample, ModelConfiguration(model=TestSample, fields=["test_field"]))
-        clean_registry.register(TestMeasurement, ModelConfiguration(model=TestMeasurement, fields=["value"]))
+        clean_registry.register(
+            TestSample, ModelConfiguration(model=TestSample, fields=["test_field"])
+        )
+        clean_registry.register(
+            TestMeasurement, ModelConfiguration(model=TestMeasurement, fields=["value"])
+        )
 
         assert clean_registry.samples == [TestSample]
         assert clean_registry.measurements == [TestMeasurement]
@@ -142,8 +155,13 @@ class TestComponentAccessors:
         assert first is not second
         assert first.base_fields.keys() == second.base_fields.keys()
 
-    def test_a_model_registered_with_no_field_lists_still_builds_its_components(self, clean_registry, db):
-        clean_registry.register(ConcreteSample, ModelConfiguration(model=ConcreteSample, display_name="Minimal"))
+    def test_a_model_registered_with_no_field_lists_still_builds_its_components(
+        self, clean_registry, db
+    ):
+        clean_registry.register(
+            ConcreteSample,
+            ModelConfiguration(model=ConcreteSample, display_name="Minimal"),
+        )
         config = clean_registry.get_for_model(ConcreteSample)
 
         assert config.get_form_class()._meta.model is ConcreteSample
@@ -180,7 +198,9 @@ class TestDemoRegistrations:
         assert issubclass(config.get_table_class(), Table)
 
     def test_every_registered_model_has_an_admin_add_page_that_loads(self):
-        user = User.objects.create_superuser(email="admin@test.com", password="testpass123")
+        user = User.objects.create_superuser(
+            email="admin@test.com", password="testpass123"
+        )
         client = Client()
         client.force_login(user)
 
