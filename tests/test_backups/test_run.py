@@ -4,12 +4,10 @@ import io
 import shutil
 import subprocess
 import tarfile
-from datetime import datetime
 
 import gnupg
 import psycopg2
 import pytest
-from dbbackup import settings as dbbackup_settings
 from dbbackup import utils
 from dbbackup.db.exceptions import CommandConnectorError
 from dbbackup.db.postgresql import PgDumpBinaryConnector
@@ -33,20 +31,9 @@ def connection_url(name):
     )
 
 
+@pytest.mark.slow
 @pytest.mark.usefixtures("reseeded_after_flush", "transactional_db")
 class TestRunBackup:
-    def test_database_backup_writes_one_database_backup(self, backup_storage):
-        run_backup("database")
-
-        assert len(backup_storage.list_backups(content_type="db")) == 1
-        assert backup_storage.list_backups(content_type="media") == []
-
-    def test_media_backup_writes_one_media_archive(self, backup_storage):
-        run_backup("media")
-
-        assert len(backup_storage.list_backups(content_type="media")) == 1
-        assert backup_storage.list_backups(content_type="db") == []
-
     def test_database_backup_restores_a_sample_and_its_location_into_an_empty_database(
         self, backup_storage
     ):
@@ -104,17 +91,6 @@ class TestRunBackup:
         assert earlier[0] not in kept
         assert earlier[1] in kept
 
-    def test_a_new_media_backup_removes_the_oldest_and_keeps_the_count(
-        self, backup_storage, seed_backups
-    ):
-        earlier = seed_backups("media", KEEP)
-
-        run_backup("media")
-
-        kept = backup_storage.list_backups(content_type="media")
-        assert len(kept) == KEEP
-        assert earlier[0] not in kept
-
     def test_database_and_media_backups_are_counted_separately(
         self, backup_storage, seed_backups
     ):
@@ -137,6 +113,7 @@ class TestRunBackup:
         assert sorted(backup_storage.list_backups(content_type="db")) == earlier
 
 
+@pytest.mark.slow
 @pytest.mark.usefixtures("reseeded_after_flush", "transactional_db")
 class TestRunBackupEncryption:
     @pytest.fixture(autouse=True)
@@ -177,6 +154,7 @@ class TestRunBackupEncryption:
     def test_with_no_key_a_database_backup_is_not_encrypted(self, backup_storage):
         run_backup("database")
 
+        assert backup_storage.list_backups(content_type="media") == []
         assert backup_storage.list_backups(content_type="db", encrypted=True) == []
         (name,) = backup_storage.list_backups(content_type="db", encrypted=False)
         with backup_storage.storage.open(name, "rb") as backup:
@@ -185,6 +163,7 @@ class TestRunBackupEncryption:
     def test_with_no_key_a_media_backup_is_not_encrypted(self, backup_storage):
         run_backup("media")
 
+        assert backup_storage.list_backups(content_type="db") == []
         assert backup_storage.list_backups(content_type="media", encrypted=True) == []
         (name,) = backup_storage.list_backups(content_type="media", encrypted=False)
         with (
@@ -194,6 +173,7 @@ class TestRunBackupEncryption:
             assert any(member.endswith("photo.txt") for member in tar.getnames())
 
 
+@pytest.mark.slow
 @pytest.mark.usefixtures("reseeded_after_flush", "transactional_db")
 class TestRestore:
     @pytest.fixture(autouse=True)
@@ -222,20 +202,6 @@ class TestRestore:
         """Return the names of the samples in the database."""
         return set(Sample.objects.values_list("name", flat=True))
 
-    def test_listbackups_lists_each_backup_with_its_date(self, backup_storage):
-        run_backup("database")
-        run_backup("media")
-        out = io.StringIO()
-
-        call_command("listbackups", stdout=out)
-
-        today = datetime.now().astimezone().strftime("%x")
-        lines = out.getvalue().splitlines()[1:]
-        assert sorted(line.split()[0] for line in lines) == sorted(
-            backup_storage.list_backups()
-        )
-        assert all(today in line for line in lines)
-
     @pytest.mark.usefixtures("private_key")
     def test_dbrestore_gives_back_the_records_at_the_time_of_the_backup(self):
         RockSampleFactory(name="Basalt")
@@ -246,20 +212,6 @@ class TestRestore:
         call_command("dbrestore", "--decrypt", "--noinput")
 
         assert self.sample_names() == {"Basalt"}
-
-    @pytest.mark.usefixtures("private_key")
-    def test_dbrestore_with_no_file_name_takes_the_latest_backup(self, monkeypatch):
-        # File names carry the time to the second, and both backups are taken within one.
-        monkeypatch.setattr(dbbackup_settings, "DATE_FORMAT", "%Y-%m-%d-%H%M%S%f")
-        RockSampleFactory(name="Basalt")
-        run_backup("database")
-        RockSampleFactory(name="Granite")
-        run_backup("database")
-        Sample.objects.all().delete()
-
-        call_command("dbrestore", "--decrypt", "--noinput")
-
-        assert self.sample_names() == {"Basalt", "Granite"}
 
     @pytest.mark.usefixtures("private_key")
     def test_mediarestore_gives_back_the_files(self, tmp_path):

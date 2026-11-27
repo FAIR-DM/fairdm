@@ -286,8 +286,17 @@ python_functions = ["test_*"]
 # demo/tests belongs here: the reference application is shipped, so it either
 # runs on every change and stays green or it is not a suite.
 testpaths = ["tests", "demo/tests"]
-markers = ["slow: Tests that take > 1 second to execute"]
-filterwarnings = ["ignore", "default:::keywords"]
+markers = [
+    "slow: Tests that take over a second or start a subprocess",
+    "e2e: Tests that need a browser",
+]
+# Every warning is ignored except django-mvp's deprecations, which fail the test that
+# triggers them. The last matching entry wins.
+filterwarnings = [
+    "ignore",
+    "default:::keywords",
+    "error::mvp.warnings.MVPDeprecationWarning",
+]
 addopts = [
     "--strict-markers",
     "--reuse-db",
@@ -393,4 +402,8 @@ image = "1.0.0"
 postgis = "17-3.5"
 
 [tool.forge.conformance]
-non-mirror-paths = ["tests/test_templates/", "tests/test_docker/"]
+non-mirror-paths = [
+    "tests/test_templates/",
+    "tests/test_docker/",
+    "tests/test_field_labels.py",
+]

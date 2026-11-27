@@ -44,7 +44,7 @@ def connect(database):
     return connection
 
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def empty_databases():
     """Create two empty databases for ``tests.migration_settings``, and drop them after."""
     names = {
@@ -60,6 +60,16 @@ def empty_databases():
         for name in names.values():
             cursor.execute(f'DROP DATABASE IF EXISTS "{name}" WITH (FORCE)')
     server.close()
+
+
+def has_migrations_table(database):
+    """Return whether ``database`` holds Django's migrations table."""
+    checked = connect(database)
+    with checked.cursor() as cursor:
+        cursor.execute("SELECT to_regclass('django_migrations')")
+        (migrations_table,) = cursor.fetchone()
+    checked.close()
+    return migrations_table is not None
 
 
 def run_migrate(databases, *arguments):
@@ -118,21 +128,31 @@ class TestMigrations:
 
         assert in_german == first_party_apps_missing_a_migration()
 
-    @pytest.mark.slow
-    def test_migrations_apply_to_an_empty_database(self, empty_databases):
-        # A migration that cannot run on the schema its predecessors left breaks every fresh install (#252).
-        result = run_migrate(empty_databases)
 
-        assert result.returncode == 0, (
+# Both tests share one class, so they run on one worker, and `default` is migrated once:
+# the second test reads the first run's result. Django spends most of a run rebuilding
+# model state for every migration, so a shorter run needs fewer migrations, not a faster
+# test.
+@pytest.mark.slow
+class TestMigrationsFromEmpty:
+    @pytest.fixture(scope="class")
+    def first_run(self, empty_databases):
+        """Run ``migrate`` on the empty ``default`` database, once for the class."""
+        return run_migrate(empty_databases)
+
+    def test_migrations_apply_to_an_empty_database(self, first_run):
+        # A migration that cannot run on the schema its predecessors left breaks every
+        # fresh install (#252).
+        assert first_run.returncode == 0, (
             "`manage.py migrate` failed against an empty database:\n"
-            f"{result.stdout}\n{result.stderr}"
+            f"{first_run.stdout}\n{first_run.stderr}"
         )
 
-    @pytest.mark.slow
-    def test_migrations_read_the_database_they_are_migrating(self, empty_databases):
+    def test_migrations_read_the_database_they_are_migrating(
+        self, first_run, empty_databases
+    ):
         # RunPython gets the alias as schema_editor.connection; a query on `default` reads the wrong schema.
-        first = run_migrate(empty_databases)
-        assert first.returncode == 0, f"{first.stdout}\n{first.stderr}"
+        assert first_run.returncode == 0, f"{first_run.stdout}\n{first_run.stderr}"
 
         second = run_migrate(empty_databases, "--database=migration_check")
 
@@ -141,12 +161,9 @@ class TestMigrations:
             "was already migrated, which means a migration read the wrong "
             f"database:\n{second.stdout}\n{second.stderr}"
         )
-        checked = connect(empty_databases["FAIRDM_MIGRATION_CHECK_DATABASE"])
-        with checked.cursor() as cursor:
-            cursor.execute("SELECT to_regclass('django_migrations')")
-            (migrations_table,) = cursor.fetchone()
-        checked.close()
-        assert migrations_table, (
+        assert has_migrations_table(
+            empty_databases["FAIRDM_MIGRATION_CHECK_DATABASE"]
+        ), (
             "migrate reported success but left no schema in migration_check:\n"
             f"{second.stdout}\n{second.stderr}"
         )

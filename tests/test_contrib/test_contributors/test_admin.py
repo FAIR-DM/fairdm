@@ -12,8 +12,8 @@ from django.urls import resolve, reverse
 
 from fairdm.contrib.contributors.models import Affiliation, Organization, Person
 from fairdm.contrib.contributors.views.claiming import ClaimProfileView
-from fairdm.factories import PersonFactory
 from fairdm.core.vocabularies import IDENTIFIER_TYPES
+from fairdm.factories import PersonFactory
 
 
 @pytest.mark.django_db

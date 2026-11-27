@@ -5,6 +5,10 @@ from pathlib import Path
 
 import pytest
 
+from tests.test_docker.conftest import SYSTEM_PATH
+
+pytestmark = pytest.mark.slow
+
 NEXT_VERSION = Path(__file__).resolve().parents[2] / "docker" / "next-version.sh"
 
 
@@ -19,7 +23,7 @@ def repository(tmp_path):
             check=True,
             capture_output=True,
             env={
-                "PATH": "/usr/bin:/bin",
+                "PATH": SYSTEM_PATH,
                 "GIT_AUTHOR_NAME": "test",
                 "GIT_AUTHOR_EMAIL": "test@example.org",
                 "GIT_COMMITTER_NAME": "test",
@@ -43,7 +47,7 @@ def run(directory, bump):
     return subprocess.run(  # noqa: S603
         ["/bin/sh", str(NEXT_VERSION), bump],
         cwd=directory,
-        env={"PATH": "/usr/bin:/bin"},
+        env={"PATH": SYSTEM_PATH},
         capture_output=True,
         text=True,
     )

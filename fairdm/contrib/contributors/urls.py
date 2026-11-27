@@ -11,7 +11,8 @@ from .views.person import PersonListView
 from .views.team import TeamView
 
 # The portal includes this module without a namespace. The claim pages keep the
-# ``contributors`` one that the administration's claim link and the confirmation form reverse.
+# ``contributors`` one that the administration's claim link and the confirmation form
+# reverse.
 _claim_patterns = [
     path("<str:token>/", ClaimProfileView.as_view(), name="claim-profile"),
     path(

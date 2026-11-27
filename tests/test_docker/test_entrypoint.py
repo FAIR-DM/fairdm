@@ -2,6 +2,8 @@
 
 import pytest
 
+pytestmark = pytest.mark.slow
+
 WEB_STEPS = [
     "python manage.py migrate --noinput",
     "python manage.py collectstatic --noinput",

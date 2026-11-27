@@ -7,6 +7,9 @@ from dbbackup import settings as dbbackup_settings
 
 from fairdm.backups.keys import BackupKey
 
+# Every key operation runs ``gpg`` in a subprocess.
+pytestmark = pytest.mark.slow
+
 NOT_KEYS = ["", "not a key", "-----BEGIN PGP PUBLIC KEY BLOCK-----\nnot base64\n"]
 
 

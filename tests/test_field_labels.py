@@ -8,9 +8,10 @@ from django.utils.functional import Promise
 
 TESTS_DIRECTORY = Path(settings.BASE_DIR) / "tests"
 
-# Fields that were added without a label or a help text, by model label. The list holds what is
-# still missing. Adding a field to it hides a defect, so add the label to the field instead and
-# take its entry out: the second test fails for an entry that no longer has a gap.
+# Fields that were added without a label or a help text, by model label. The list holds
+# what is still missing. Adding a field to it hides a defect, so add the label to the
+# field instead and take its entry out: the second test fails for an entry that no
+# longer has a gap.
 KNOWN_GAPS: dict[str, set[str]] = {
     "contributors.ClaimingAuditLog": {
         "details",
@@ -217,11 +218,11 @@ KNOWN_GAPS: dict[str, set[str]] = {
 
 
 def labelled_wrongly():
-    """Return the ``label.field`` of every first-party field missing a lazy label or help text.
+    """Return the first-party fields missing a lazy label or help text.
 
-    A field counts when its own declaration gives both ``verbose_name`` and ``help_text`` as lazy
-    translations. The name Django derives from the field name does not count, and neither does
-    an automatic primary key or a parent link.
+    A field counts when its own declaration gives both ``verbose_name`` and
+    ``help_text`` as lazy translations. The name Django derives from the field name does
+    not count, and neither does an automatic primary key or a parent link.
 
     Returns:
         A dict of model label to the set of field names that lack one or both.
