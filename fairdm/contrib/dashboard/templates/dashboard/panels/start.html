@@ -4,8 +4,7 @@
   Importing asks which dataset first, from a dialog listing the ones the person can edit.
 {% endcomment %}
 {% with s=dash.start %}
-  <section class="dash-start" aria-labelledby="dash-start-heading">
-    <h2 class="ov-panel__title" id="dash-start-heading">{% translate "Start something new" %}</h2>
+  <section class="dash-start" aria-label="{% translate 'Start something new' %}">
     <div class="dash-start__grid">
       <c-mvp.card title="{% translate 'New project' %}" icon="project" href="{{ s.create_project }}" class="dash-start__card record-project">
         <p>{% translate "For a grant, campaign or collaboration that will gather several datasets under one name." %}</p>

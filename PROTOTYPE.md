@@ -133,6 +133,9 @@ holding view access on the record are not counted. Those visits instead update t
   the card's heading. The people the person works with are their own card, not part of This month.
 - The portal's figures card is titled "This month", not the portal's name.
 - A "Pick up where you left off" panel takes the person back to the page they were last on.
+- No "Start something new" heading: the three cards start the page, level with the side column's
+  first card.
+- Latest news lists each day's entries under the day, not beside it.
 
 ## Decided on my own
 

@@ -1967,3 +1967,7 @@ a.dash-count .dash-count__label { color: var(--ov-link); }
 .dash-tool > span { display: flex; flex-direction: column; min-width: 0; }
 .dash-tool__label { font-weight: 560; font-size: 0.875rem; }
 .dash-tool__hint { font-size: 0.75rem; color: var(--ov-muted); }
+
+/* Latest news is narrow: each day's heading sits above its entries rather than beside them. */
+.dash-news .list > .ov-activity__row { display: flex; flex-direction: column; gap: 0.375rem; }
+.dash-news .ov-activity__day { font-weight: 600; color: var(--color-base-content); }
