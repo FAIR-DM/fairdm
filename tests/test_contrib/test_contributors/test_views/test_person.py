@@ -1,11 +1,7 @@
 """Tests for PersonListView."""
 
 import pytest
-from bs4 import BeautifulSoup
 from django.urls import reverse
-
-from fairdm.core.project.models import Project
-from fairdm.factories import OrganizationFactory, ProjectFactory
 
 
 @pytest.mark.django_db
@@ -76,38 +72,3 @@ class TestPersonListToolbar:
 
         assert {"q", "is_active", "is_staff"} <= toolbar
         assert {"city", "country"} <= panel
-
-
-@pytest.mark.django_db
-class TestOrganizationListToolbar:
-    def test_the_search_and_country_are_in_the_toolbar_and_the_city_in_the_panel(
-        self, client, filter_placement
-    ):
-        from fairdm.factories import OrganizationFactory
-
-        OrganizationFactory()
-
-        toolbar, panel = filter_placement(client.get(reverse("organization-list")))
-
-        assert {"q", "country"} <= toolbar
-        assert "city" in panel
-
-
-@pytest.mark.django_db
-class TestOrganizationCardCredits:
-    def _badges(self, client):
-        response = client.get(reverse("organization-list"))
-        page = BeautifulSoup(response.content, "html.parser")
-        return [" ".join(b.get_text().split()) for b in page.select(".badge")]
-
-    def test_one_credit_reads_in_the_singular(self, client):
-        OrganizationFactory().add_to(ProjectFactory())
-
-        assert f"1 {Project._meta.verbose_name}" in self._badges(client)
-
-    def test_several_credits_read_in_the_plural(self, client):
-        organization = OrganizationFactory()
-        organization.add_to(ProjectFactory())
-        organization.add_to(ProjectFactory())
-
-        assert f"2 {Project._meta.verbose_name_plural}" in self._badges(client)

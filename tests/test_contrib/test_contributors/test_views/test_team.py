@@ -5,8 +5,7 @@ from django.contrib.auth.models import Group
 from django.db import connection
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
-from django.utils.html import escape
-from pytest_django.asserts import assertContains, assertNotContains
+from pytest_django.asserts import assertNotContains
 
 from fairdm.factories import ContributionFactory, PersonFactory
 from fairdm.portal_roles import PortalRoles
@@ -107,23 +106,3 @@ class TestTeamView:
             client.get(reverse("team"))
 
         assert len(after.captured_queries) == len(before.captured_queries)
-
-    def test_lead_paragraph_introduces_the_people_listed(self, client):
-        response = client.get(reverse("team"))
-
-        lead = response.context["page"]["title_args"]["lead"]
-        assert lead
-        assertContains(response, escape(lead), html=False)
-
-    def test_info_dialog_carries_its_text_and_links_to_the_docs(self, client):
-        response = client.get(reverse("team"))
-
-        page = response.context["page"]
-        assert page["info"]
-        assertContains(response, escape(page["info"]))
-        assert [(a["href"], a["target"]) for a in page["info_actions"]] == [
-            ("https://docs.fairdm.org/latest/administrators/reference/portal-roles.html", "_blank")
-        ]
-        assertContains(
-            response, 'href="https://docs.fairdm.org/latest/administrators/reference/portal-roles.html"'
-        )

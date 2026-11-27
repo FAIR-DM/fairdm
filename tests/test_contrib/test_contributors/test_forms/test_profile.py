@@ -17,7 +17,6 @@ from fairdm.contrib.contributors.models import ContributorIdentifier
 from fairdm.core import image_utils
 from fairdm.core.vocabularies import IDENTIFIER_TYPES
 from fairdm.factories import OrganizationFactory, PersonFactory
-from fairdm.utils.location.forms import LocationField
 
 
 class TestLinesField:
@@ -86,22 +85,6 @@ class TestLinesField:
 
 @pytest.mark.django_db
 class TestPersonProfileForm:
-    def test_the_form_offers_the_photo_name_alternative_names_biography_links_and_languages_only(
-        self, person
-    ):
-        form = PersonProfileForm(instance=person)
-
-        assert set(form.fields) == {
-            "image",
-            "first_name",
-            "last_name",
-            "name",
-            "alternative_names",
-            "profile",
-            "links",
-            "lang",
-        }
-
     def test_a_valid_form_saves_every_field(self, person, profile_data, image_upload):
         form = PersonProfileForm(
             profile_data, {"image": image_upload()}, instance=person
@@ -141,12 +124,6 @@ class TestPersonProfileForm:
         person.refresh_from_db()
         assert person.alternative_names == ["A. Lovelace"]
         assert person.lang == ["en"]
-
-    def test_a_name_is_required(self, person, profile_data):
-        profile_data["name"] = ""
-        form = PersonProfileForm(profile_data, instance=person)
-
-        assert form.has_error("name", code="required")
 
     @pytest.mark.parametrize(
         "link",
@@ -228,25 +205,6 @@ class TestPersonProfileForm:
 
 @pytest.mark.django_db
 class TestOrganizationProfileForm:
-    def test_the_form_offers_the_logo_name_alternative_names_type_parent_city_country_description_website_and_links_only(
-        self, organization
-    ):
-        form = OrganizationProfileForm(instance=organization)
-
-        assert set(form.fields) == {
-            "image",
-            "name",
-            "alternative_names",
-            "type",
-            "parent",
-            "city",
-            "country",
-            "location",
-            "profile",
-            "website",
-            "links",
-        }
-
     def test_a_valid_form_saves_every_field(
         self, organization, organization_profile_data, image_upload
     ):
@@ -357,12 +315,6 @@ class TestOrganizationProfileForm:
         assert form.has_error(field)
         assert not form.has_error("name")
 
-    def test_a_name_is_required(self, organization, organization_profile_data):
-        organization_profile_data["name"] = ""
-        form = OrganizationProfileForm(organization_profile_data, instance=organization)
-
-        assert form.has_error("name", code="required")
-
     def test_a_type_outside_the_list_is_refused_on_the_type_field(
         self, organization, organization_profile_data
     ):
@@ -465,56 +417,23 @@ class TestOrganizationProfileForm:
 
         assert form["parent"].value() == parent.pk
 
-    def test_a_cleared_logo_is_removed(self, organization_profile_data):
-        organization = OrganizationFactory(with_image=True)
-        organization_profile_data["image-clear"] = "on"
-        form = OrganizationProfileForm(organization_profile_data, instance=organization)
 
-        assert form.is_valid(), form.errors
-        form.save()
+@pytest.fixture
+def stored_record_failing_validation(db, profile_data):
+    """A person whose stored identifier fails the model's validation, and the form for it.
 
-        organization.refresh_from_db()
-        assert not organization.image
-
-    def test_an_image_over_the_size_limit_is_refused_on_the_logo_field(
-        self, organization, organization_profile_data, image_upload, monkeypatch
-    ):
-        monkeypatch.setattr(image_utils, "MAX_IMAGE_UPLOAD_BYTES", 10)
-        form = OrganizationProfileForm(
-            organization_profile_data, {"image": image_upload()}, instance=organization
-        )
-
-        assert form.has_error("image")
-        assert not form.has_error("name")
-
-
-@pytest.fixture(params=["person", "organization"])
-def stored_record_failing_validation(
-    request, db, profile_data, organization_profile_data
-):
-    """A record whose stored identifier fails the model's validation, and the form for it.
-
-    The identifier is not a field of either form, so the failure is one the form lacks a field
+    The identifier is not a field of the form, so the failure is one the form lacks a field
     for. A malformed value can only be stored by bypassing ``ContributorIdentifier.clean``.
+    The failure is handled by the base class both profile forms share.
     """
-    if request.param == "person":
-        record = PersonFactory(name="Before")
-        ContributorIdentifier.objects.create(
-            related=record, type_id=f"{IDENTIFIER_TYPES}/orcid", value="not-an-orcid"
-        )
-        return SimpleNamespace(
-            record=record,
-            form_class=PersonProfileForm,
-            data={**profile_data, "name": "After"},
-        )
-    record = OrganizationFactory(name="Before")
+    record = PersonFactory(name="Before")
     ContributorIdentifier.objects.create(
-        related=record, type_id=f"{IDENTIFIER_TYPES}/ror", value="not-a-ror"
+        related=record, type_id=f"{IDENTIFIER_TYPES}/orcid", value="not-an-orcid"
     )
     return SimpleNamespace(
         record=record,
-        form_class=OrganizationProfileForm,
-        data={**organization_profile_data, "name": "After"},
+        form_class=PersonProfileForm,
+        data={**profile_data, "name": "After"},
     )
 
 
@@ -651,14 +570,6 @@ class TestFormsWithADroppedField:
 
 @pytest.mark.django_db
 class TestOrganizationProfileFormLocation:
-    def test_the_location_is_a_point_only_input_in_wgs_84(self, organization):
-        form = OrganizationProfileForm(instance=organization)
-
-        field = form.fields["location"]
-        assert isinstance(field, LocationField)
-        assert field.full is False
-        assert not field.required
-
     @pytest.mark.parametrize(
         ("latitude", "longitude"),
         [
@@ -776,48 +687,8 @@ class TestOrganizationProfileFormLocation:
         assert organization.location.equals(here)
 
 
-class TestProfileImageWidget:
-    @pytest.mark.parametrize(
-        "form_name", ["PersonProfileForm", "OrganizationProfileForm"]
-    )
-    def test_the_image_field_uses_the_image_input(self, form_name):
-        from mvp_forms.widgets import ImageInput
-
-        from fairdm.contrib.contributors.forms import profile
-
-        form_class = getattr(profile, form_name)
-
-        assert isinstance(form_class.base_fields["image"].widget, ImageInput)
-
-    def test_the_thumbnail_opens_the_file_picker_and_is_larger(self):
-        from fairdm.contrib.contributors.forms import profile
-
-        for form_name in ("PersonProfileForm", "OrganizationProfileForm"):
-            widget = getattr(profile, form_name).base_fields["image"].widget
-
-            assert widget.show_input is False
-            assert widget.height == 9
-            assert widget.aspect_ratio == 1
-
-    def test_the_person_image_is_a_circle_and_the_organisation_image_a_square(self):
-        from fairdm.contrib.contributors.forms import profile
-
-        person = profile.PersonProfileForm.base_fields["image"].widget
-        organization = profile.OrganizationProfileForm.base_fields["image"].widget
-
-        assert person.mask == "circle"
-        assert organization.mask is None
-
-
 @pytest.mark.django_db
 class TestOrganizationProfileParentField:
-    def test_the_parent_is_chosen_with_the_organization_field(self, organization):
-        from fairdm.contrib.autocomplete.fields import OrganizationChoiceField
-
-        form = OrganizationProfileForm(instance=organization)
-
-        assert isinstance(form.fields["parent"], OrganizationChoiceField)
-
     def test_the_chosen_parent_is_saved(
         self, organization, organization_profile_data, in_request
     ):

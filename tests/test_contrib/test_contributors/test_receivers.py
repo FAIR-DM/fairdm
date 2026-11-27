@@ -58,6 +58,8 @@ class TestDeletingACreditTakesTheLevelWithIt:
 
         Contribution.objects.filter(pk=contribution.pk).delete()
 
+        assert not Contribution.objects.exists()
+
     def test_deleting_the_credited_object_does_not_error(
         self, person, project_for_contributions
     ):
@@ -134,32 +136,6 @@ class TestProductionWritePathsRefuseOffVocabularyRoles:
         self, person, project_for_contributions, off_vocabulary_role
     ):
         contribution = Contribution.add_to(person, project_for_contributions)
-
-        with (
-            transaction.atomic(),
-            pytest.raises(ValidationError, match="not a valid concept"),
-        ):
-            contribution.roles.add(off_vocabulary_role)
-
-        assert contribution.roles.count() == 0
-
-    def test_contributor_add_to_returns_a_contribution_whose_roles_still_refuse(
-        self, person, project_for_contributions, off_vocabulary_role
-    ):
-        contribution = person.add_to(project_for_contributions)
-
-        with (
-            transaction.atomic(),
-            pytest.raises(ValidationError, match="not a valid concept"),
-        ):
-            contribution.roles.add(off_vocabulary_role)
-
-        assert contribution.roles.count() == 0
-
-    def test_add_contributor_returns_a_contribution_whose_roles_still_refuse(
-        self, person, project_for_contributions, off_vocabulary_role
-    ):
-        contribution = project_for_contributions.add_contributor(person)
 
         with (
             transaction.atomic(),

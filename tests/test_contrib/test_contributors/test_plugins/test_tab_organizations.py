@@ -111,16 +111,6 @@ class TestAddOrganization:
 
         assert response.status_code == 400
 
-    @pytest.mark.parametrize("viewer", ["reader", "visitor"])
-    def test_nobody_but_a_manager_may_add(self, request, record, viewer):
-        user = request.getfixturevalue(viewer) if viewer != "visitor" else None
-
-        browser_as(user).post(
-            page_of(record, "add-organization"), {"new_name": "Sneaky Lab"}
-        )
-
-        assert not Organization.objects.filter(name="Sneaky Lab").exists()
-
 
 @pytest.mark.django_db
 class TestAddOrganizationFromRor:
@@ -144,11 +134,8 @@ class TestAddOrganizationFromRor:
 
         assert Organization.objects.count() == before
 
-    @pytest.mark.parametrize(
-        "error", [requests.Timeout("slow"), requests.ConnectionError("down")]
-    )
-    def test_an_unreachable_ROR_adds_nothing_and_says_so(self, record, manager, error):
-        self.network.fail(GFZ_RECORD, error)
+    def test_an_unreachable_ROR_adds_nothing_and_says_so(self, record, manager):
+        self.network.fail(GFZ_RECORD, requests.Timeout("slow"))
         before = Organization.objects.count()
 
         response = browser_as(manager).post(

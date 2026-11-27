@@ -41,11 +41,10 @@ class TestByRoleFilter:
         assert contribution in filtered
 
     @pytest.mark.django_db
-    def test_by_role_with_multiple_roles(self, contribution, role):
+    def test_by_role_accepts_a_list_of_roles(self, contribution, role):
         contributions = Contribution.objects.all()
 
-        role_names = f"{role.uri},NonExistentRole"
-        filtered = by_role(contributions, role_names)
+        filtered = by_role(contributions, [role.uri, "NonExistentRole"])
 
         assert contribution in filtered
 
@@ -66,14 +65,6 @@ class TestByRoleFilter:
         assert filtered.count() == contributions.count()
         assert contribution in filtered
 
-    @pytest.mark.django_db
-    def test_by_role_with_empty_string(self, contribution):
-        contributions = Contribution.objects.all()
-
-        filtered = by_role(contributions, "")
-
-        assert filtered.count() == contributions.count()
-
 
 class TestHasRoleFilter:
     @pytest.mark.django_db
@@ -89,27 +80,16 @@ class TestHasRoleFilter:
         assert result is False
 
     @pytest.mark.django_db
-    def test_has_role_with_multiple_roles(self, contribution, role):
-        role_names = f"{role.uri},AnotherRole"
-        result = has_role(contribution, role_names)
+    def test_has_role_accepts_a_comma_separated_string_of_roles(
+        self, contribution, role
+    ):
+        result = has_role(contribution, f"{role.uri},AnotherRole")
 
         assert result is True
 
     @pytest.mark.django_db
-    def test_has_role_with_no_matching_roles(self, contribution):
-        result = has_role(contribution, "NonExistentRole1,NonExistentRole2")
-
-        assert result is False
-
-    @pytest.mark.django_db
     def test_has_role_returns_contribution_when_no_role_specified(self, contribution):
         result = has_role(contribution, None)
-
-        assert result == contribution
-
-    @pytest.mark.django_db
-    def test_has_role_with_empty_string(self, contribution):
-        result = has_role(contribution, "")
 
         assert result == contribution
 

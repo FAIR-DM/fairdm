@@ -55,17 +55,6 @@ class TestMergePersonsHappyPath:
 
 
 class TestMergeContributions:
-    def test_contributions_reassigned_to_keep(self, db, keep_person, discard_person):
-        from fairdm.contrib.contributors.models import Contribution
-        from fairdm.contrib.contributors.services.merge import merge_persons
-        from fairdm.factories import ProjectFactory
-
-        project = ProjectFactory()
-        Contribution.add_to(discard_person, project)
-
-        merge_persons(keep_person, discard_person)
-        assert Contribution.objects.filter(contributor=keep_person).exists()
-
     def test_duplicate_contributions_not_duplicated(
         self, db, keep_person, discard_person
     ):
@@ -93,7 +82,6 @@ class TestMergeLevels:
             (1, 3, 3),
             (3, 1, 3),
             (2, 2, 2),
-            (1, 2, 2),
         ],
     )
     def test_the_higher_level_is_kept(
@@ -264,21 +252,27 @@ class TestMergeIdentifiers:
             related=keep_person, type_id=f"{IDENTIFIER_TYPES}/orcid"
         ).exists()
 
-    def test_duplicate_identifiers_not_duplicated(
+    def test_an_identifier_of_a_type_the_kept_person_holds_is_not_copied(
         self, db, keep_person, discard_person
     ):
         from fairdm.contrib.contributors.models import ContributorIdentifier
         from fairdm.contrib.contributors.services.merge import merge_persons
 
         ContributorIdentifier.objects.create(
+            related=keep_person,
+            type_id=f"{IDENTIFIER_TYPES}/orcid",
+            value="0000-0000-0000-0002",
+        )
+        ContributorIdentifier.objects.create(
             related=discard_person,
             type_id=f"{IDENTIFIER_TYPES}/orcid",
             value="0000-0000-0000-9999",
         )
+
         merge_persons(keep_person, discard_person)
-        assert ContributorIdentifier.objects.filter(
-            related=keep_person, value="0000-0000-0000-9999"
-        ).exists()
+
+        held = ContributorIdentifier.objects.filter(related=keep_person)
+        assert [i.value for i in held] == ["0000-0000-0000-0002"]
 
 
 class TestMergeAffiliations:

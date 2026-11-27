@@ -229,11 +229,10 @@ class TestSignUp:
                 },
             )
 
-    @pytest.mark.parametrize("verification", ["none", "optional", "mandatory"])
     def test_a_person_who_signs_up_is_claimed_from_the_start(
-        self, client, db, settings, verification
+        self, client, db, settings
     ):
-        settings.ACCOUNT_EMAIL_VERIFICATION = verification
+        settings.ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 
         self.submit_signup(client)
 

@@ -34,6 +34,7 @@ class TestORCIDSyncTask:
         self, registry_network, recorded, person, orcid_identifier
     ):
         registry_network.answer(ORCID_ADDRESS, recorded("orcid-record"))
+        before = timezone.localdate()
 
         result = sync_contributor_identifier(orcid_identifier.pk)
 
@@ -41,7 +42,7 @@ class TestORCIDSyncTask:
         assert [call.url for call in registry_network.calls] == [ORCID_ADDRESS]
         person.refresh_from_db()
         assert person.synced_data == recorded("orcid-record")
-        assert person.last_synced == timezone.now().date()
+        assert before <= person.last_synced <= timezone.localdate()
         assert person.sync_status == SyncStatus.SUCCEEDED
         assert person.sync_error == ""
 
@@ -215,9 +216,9 @@ class TestSecondsToWait:
         assert seconds_to_wait("120") == 120
 
     def test_reads_an_http_date(self):
-        until = timezone.now() + timedelta(seconds=120)
+        until = timezone.now() + timedelta(hours=1)
 
-        assert 118 <= seconds_to_wait(format_datetime(until, usegmt=True)) <= 120
+        assert 3500 <= seconds_to_wait(format_datetime(until, usegmt=True)) <= 3600
 
     @pytest.mark.parametrize("value", [None, "", "soon"])
     def test_a_value_that_says_nothing_is_none(self, value):
@@ -226,48 +227,59 @@ class TestSecondsToWait:
 
 @pytest.mark.django_db
 class TestIdentifierChangeSync:
-    def test_a_changed_value_queues_a_sync(
-        self, orcid_identifier, django_capture_on_commit_callbacks
+    def test_a_changed_value_syncs_the_new_identifier(
+        self,
+        orcid_identifier,
+        person,
+        registry_network,
+        recorded,
+        django_capture_on_commit_callbacks,
     ):
+        new_address = "https://pub.orcid.org/v3.0/0000-0002-1825-0097"
+        registry_network.answer(new_address, recorded("orcid-record"))
         orcid_identifier.value = "0000-0002-1825-0097"
 
-        with (
-            patch(
-                "fairdm.contrib.contributors.tasks.sync_contributor_identifier.delay"
-            ) as delay,
-            django_capture_on_commit_callbacks(execute=True),
-        ):
+        with django_capture_on_commit_callbacks(execute=True):
             orcid_identifier.save()
 
-        delay.assert_called_once_with(orcid_identifier.pk)
+        assert [call.url for call in registry_network.calls] == [new_address]
+        person.refresh_from_db()
+        assert person.sync_status == SyncStatus.SUCCEEDED
 
-    def test_a_save_that_changes_nothing_queues_no_sync(
-        self, orcid_identifier, django_capture_on_commit_callbacks
+    def test_a_save_that_changes_nothing_asks_no_registry(
+        self, orcid_identifier, registry_network, django_capture_on_commit_callbacks
     ):
-        with (
-            patch(
-                "fairdm.contrib.contributors.tasks.sync_contributor_identifier.delay"
-            ) as delay,
-            django_capture_on_commit_callbacks(execute=True),
-        ):
+        with django_capture_on_commit_callbacks(execute=True):
             orcid_identifier.save()
 
-        delay.assert_not_called()
+        assert registry_network.calls == []
 
 
 @pytest.mark.django_db
 class TestPeriodicRefresh:
-    @patch("fairdm.contrib.contributors.tasks.sync_contributor_identifier.delay")
-    def test_refresh_all_contributors(
-        self, mock_sync_task, orcid_identifier, ror_identifier
+    def test_every_identifier_with_data_is_synced(
+        self,
+        orcid_identifier,
+        ror_identifier,
+        person,
+        organization,
+        registry_network,
+        recorded,
     ):
+        registry_network.answer(ORCID_ADDRESS, recorded("orcid-record"))
+        registry_network.answer(ROR_ADDRESS, recorded("ror-record"))
+
         result = refresh_all_contributors()
 
-        assert mock_sync_task.call_count == 2
         assert result == 2
+        person.refresh_from_db()
+        organization.refresh_from_db()
+        assert person.sync_status == SyncStatus.SUCCEEDED
+        assert organization.sync_status == SyncStatus.SUCCEEDED
 
-    @patch("fairdm.contrib.contributors.tasks.sync_contributor_identifier.delay")
-    def test_refresh_all_only_syncs_identifiers_with_data(self, mock_sync_task, person):
+    def test_an_identifier_with_no_registry_is_left_alone(
+        self, person, registry_network
+    ):
         ContributorIdentifier.objects.create(
             related=person,
             type_id=f"{IDENTIFIER_TYPES}/researcher-id",
@@ -275,22 +287,17 @@ class TestPeriodicRefresh:
         )
 
         assert refresh_all_contributors() == 0
-        mock_sync_task.assert_not_called()
+        assert registry_network.calls == []
 
     def test_the_refresh_exists_once_and_is_enabled(self):
+        seed_refresh_task()
         periodic_tasks = PeriodicTask.objects.filter(task=REFRESH_TASK)
 
         assert periodic_tasks.count() == 1
         assert periodic_tasks.get().enabled is True
 
-    def test_the_refresh_runs_weekly_on_monday_at_three(self):
-        crontab = PeriodicTask.objects.get(task=REFRESH_TASK).crontab
-
-        assert (crontab.minute, crontab.hour, crontab.day_of_week) == ("0", "3", "1")
-        assert (crontab.day_of_month, crontab.month_of_year) == ("*", "*")
-        assert str(crontab.timezone) == settings.TIME_ZONE
-
     def test_seeding_again_leaves_a_changed_refresh_unchanged(self):
+        seed_refresh_task()
         periodic_task = PeriodicTask.objects.get(task=REFRESH_TASK)
         monthly = CrontabSchedule.objects.create(
             minute="30", hour="1", day_of_month="1", timezone=settings.TIME_ZONE

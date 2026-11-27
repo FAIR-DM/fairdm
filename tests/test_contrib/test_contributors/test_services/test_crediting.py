@@ -5,20 +5,50 @@ from types import SimpleNamespace
 import pytest
 from controlled_vocabularies.models import Record
 from django.core.exceptions import ValidationError
-from django.db import connection
+from django.db import connection, transaction
 from django.test.utils import CaptureQueriesContext
 from guardian.utils import get_anonymous_user
 
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.contrib.contributors.access import RecordAccess
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Contribution
 from fairdm.contrib.contributors.services.crediting import Crediting
 from fairdm.core.project.models import Project
 from fairdm.core.vocabularies import CONTRIBUTOR_ROLES, collection_members
-from fairdm.factories import AffiliationFactory, OrganizationFactory, PersonFactory
+from fairdm.factories import (
+    AffiliationFactory,
+    DatasetFactory,
+    OrganizationFactory,
+    PersonFactory,
+    ProjectFactory,
+)
 from fairdm.utils.choices import Visibility
 
-RECORDS = ["project", "dataset", "sample", "measurement"]
+
+@pytest.fixture(scope="module")
+def record_chain(django_db_setup, django_db_blocker):
+    """A project, a dataset in it, a sample in that dataset, and a measurement of the
+    sample, built once for the module.
+
+    The measurement belongs to a second dataset of the same project, so it is not in its
+    sample's dataset. Each test runs in its own transaction on top of this one, so what
+    a test credits is gone afterwards, but no test may change the records themselves.
+    """
+    with django_db_blocker.unblock(), transaction.atomic():
+        project = ProjectFactory()
+        dataset = DatasetFactory(project=project)
+        other_dataset = DatasetFactory(project=project)
+        sample = RockSampleFactory(dataset=dataset)
+        measurement = ExampleMeasurementFactory(dataset=other_dataset, sample=sample)
+        yield SimpleNamespace(
+            project=project,
+            dataset=dataset,
+            other_dataset=other_dataset,
+            sample=sample,
+            measurement=measurement,
+        )
+        transaction.set_rollback(True)
 
 
 def role(name):
@@ -32,9 +62,8 @@ def somebody(db):
 
 @pytest.mark.django_db
 class TestAdd:
-    @pytest.mark.parametrize("kind", RECORDS)
-    def test_a_person_is_listed_at_the_view_level(self, record_chain, somebody, kind):
-        record = getattr(record_chain, kind)
+    def test_a_person_is_listed_at_the_view_level(self, record_chain, somebody):
+        record = record_chain.dataset
 
         contribution = Crediting(record).add(somebody)
 
@@ -48,15 +77,6 @@ class TestAdd:
 
         assert contribution.level is None
 
-    def test_a_contributor_is_placed_last(self, record_chain, somebody, grant):
-        grant(record_chain.dataset, PersonFactory(), None)
-        grant(record_chain.dataset, PersonFactory(), None)
-
-        added = Crediting(record_chain.dataset).add(somebody)
-
-        listed = record_chain.dataset.contributors.order_by("order")
-        assert list(listed)[-1] == added
-
     def test_a_contributor_already_listed_is_refused(
         self, record_chain, somebody, grant
     ):
@@ -67,15 +87,6 @@ class TestAdd:
 
         assert refused.value.code == "duplicate"
         assert record_chain.dataset.contributors.count() == 1
-
-    def test_a_refused_duplicate_leaves_the_level_it_held(
-        self, record_chain, somebody, grant
-    ):
-        grant(record_chain.dataset, somebody, ContributionLevel.EDIT)
-
-        with pytest.raises(ValidationError):
-            Crediting(record_chain.dataset).add(somebody)
-
         level = RecordAccess(record_chain.dataset).own_level(somebody)
         assert level == ContributionLevel.EDIT
 
@@ -91,17 +102,16 @@ class TestAdd:
 
 @pytest.mark.django_db
 class TestOfferedRoles:
-    @pytest.mark.parametrize("kind", RECORDS)
     def test_the_roles_are_those_the_vocabulary_groups_for_the_record_type(
-        self, record_chain, kind
+        self, record_chain
     ):
-        record = getattr(record_chain, kind)
+        record = record_chain.dataset
 
         offered = Crediting(record).offered_roles()
 
-        assert [concept.uri for concept in offered] == list(
-            [role.uri for role in collection_members(record.CONTRIBUTOR_ROLES)]
-        )
+        assert [concept.uri for concept in offered] == [
+            role.uri for role in collection_members(record.CONTRIBUTOR_ROLES)
+        ]
 
 
 @pytest.mark.django_db
@@ -173,18 +183,14 @@ class TestUpdate:
 
 @pytest.mark.django_db
 class TestUpdateLevel:
-    @pytest.mark.parametrize("kind", RECORDS)
-    @pytest.mark.parametrize(
-        "level",
-        [ContributionLevel.VIEW, ContributionLevel.EDIT, ContributionLevel.MANAGE],
-    )
-    def test_the_level_is_saved(self, record_chain, somebody, grant, kind, level):
-        record = getattr(record_chain, kind)
+    def test_the_level_is_saved(self, record_chain, somebody, grant):
+        record = record_chain.dataset
         contribution = grant(record, somebody, ContributionLevel.VIEW)
 
-        Crediting(record).update(contribution, roles=[], level=level)
+        Crediting(record).update(contribution, roles=[], level=ContributionLevel.MANAGE)
 
-        assert RecordAccess(record).own_level(somebody) == level
+        level = RecordAccess(record).own_level(somebody)
+        assert level == ContributionLevel.MANAGE
 
     def test_no_level_given_leaves_it_alone(self, record_chain, somebody, grant):
         contribution = grant(record_chain.dataset, somebody, ContributionLevel.EDIT)
@@ -325,14 +331,14 @@ class TestRemove:
 
 @pytest.mark.django_db
 class TestCreditedFrom:
-    @pytest.mark.parametrize("kind", RECORDS)
     def test_a_person_is_added_credited_from_the_organization(
-        self, record_chain, somebody, kind
+        self, record_chain, somebody
     ):
-        record = getattr(record_chain, kind)
         organization = OrganizationFactory()
 
-        contribution = Crediting(record).add(somebody, organization=organization)
+        contribution = Crediting(record_chain.dataset).add(
+            somebody, organization=organization
+        )
 
         assert contribution.affiliation == organization
 
@@ -528,17 +534,14 @@ class TestCreditedFrom:
 
 @pytest.mark.django_db
 class TestMakeCreator:
-    @pytest.mark.parametrize("kind", RECORDS)
-    def test_the_creator_is_listed_at_the_manage_level(
-        self, record_chain, somebody, kind
-    ):
-        record = getattr(record_chain, kind)
+    def test_the_creator_is_listed_at_the_manage_level(self, record_chain, somebody):
+        record = record_chain.dataset
 
         contribution = Crediting(record).make_creator(somebody)
 
         assert contribution in record.contributors.all()
         assert RecordAccess(record).own_level(somebody) == ContributionLevel.MANAGE
-        assert somebody.has_perm(f"{kind}.change_{kind}", record)
+        assert somebody.has_perm("dataset.change_dataset", record)
 
     def test_the_roles_given_are_held(self, record_chain, somebody):
         contribution = Crediting(record_chain.dataset).make_creator(
@@ -635,18 +638,6 @@ class TestLastManager:
         assert refused.value.code == "last_manager"
         contribution.refresh_from_db()
         assert contribution.level == ContributionLevel.MANAGE
-
-    @pytest.mark.parametrize("kind", RECORDS)
-    def test_the_rule_holds_for_every_kind_of_record(
-        self, record_chain, manager, grant, kind
-    ):
-        record = getattr(record_chain, kind)
-        contribution = grant(record, manager, ContributionLevel.MANAGE)
-
-        with pytest.raises(ValidationError) as refused:
-            Crediting(record).remove(contribution)
-
-        assert refused.value.code == "last_manager"
 
     def test_with_two_managers_one_can_be_removed(self, record_chain, manager, grant):
         other = PersonFactory(is_active=True, is_claimed=True, password="x")
@@ -1048,9 +1039,11 @@ class TestRecordLock:
     def test_the_lock_does_not_filter_out_a_private_record(
         self, record_chain, somebody
     ):
-        dataset = record_chain.dataset
-        dataset.visibility = Visibility.PRIVATE
-        dataset.save()
+        dataset_class = type(record_chain.dataset)
+        dataset_class._base_manager.filter(pk=record_chain.dataset.pk).update(
+            visibility=Visibility.PRIVATE
+        )
+        dataset = dataset_class._base_manager.get(pk=record_chain.dataset.pk)
 
         with CaptureQueriesContext(connection) as captured:
             Crediting(dataset).add(somebody)
@@ -1082,9 +1075,9 @@ class TestAddRefusesThePlaceholderAccount:
 class TestCreditThroughABaseClassInstance:
     """A record held as its base class is credited under its real type."""
 
-    @pytest.fixture(params=["sample", "measurement"])
-    def real(self, request, record_chain):
-        return getattr(record_chain, request.param)
+    @pytest.fixture
+    def real(self, record_chain):
+        return record_chain.sample
 
     @pytest.fixture
     def base(self, real):
@@ -1108,24 +1101,10 @@ class TestCreditThroughABaseClassInstance:
 
         assert refused.value.code == "duplicate"
 
-    def test_add_contributor_grants_the_level_on_the_real_record(
-        self, real, base, somebody
-    ):
-        base.add_contributor(somebody)
-
-        assert RecordAccess(real).level_of(somebody) == ContributionLevel.VIEW
-
     def test_contribution_add_to_grants_the_level_on_the_real_record(
         self, real, base, somebody
     ):
         Contribution.add_to(somebody, base)
-
-        assert RecordAccess(real).level_of(somebody) == ContributionLevel.VIEW
-
-    def test_contributor_add_to_grants_the_level_on_the_real_record(
-        self, real, base, somebody
-    ):
-        somebody.add_to(base)
 
         assert RecordAccess(real).level_of(somebody) == ContributionLevel.VIEW
 

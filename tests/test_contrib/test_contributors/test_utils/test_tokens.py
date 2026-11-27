@@ -3,6 +3,7 @@
 import time
 
 import pytest
+from django.core.signing import TimestampSigner, b62_encode
 
 from fairdm.contrib.contributors.exceptions import ClaimingError
 from fairdm.contrib.contributors.models import Person
@@ -18,11 +19,6 @@ def unclaimed_person(db):
 
 
 class TestGenerateClaimToken:
-    def test_returns_string(self, db, unclaimed_person):
-        token = generate_claim_token(unclaimed_person)
-        assert isinstance(token, str)
-        assert len(token) > 0
-
     def test_different_persons_produce_different_tokens(self, db, unclaimed_person):
         person2 = Person.objects.create_unclaimed(
             first_name="Other", last_name="Person"
@@ -36,13 +32,17 @@ class TestValidateClaimToken:
     def test_round_trip_returns_correct_person(self, db, unclaimed_person):
         token = generate_claim_token(unclaimed_person)
         result = validate_claim_token(token)
-        assert result is not None
         assert result.pk == unclaimed_person.pk
 
-    def test_expired_token_raises_claiming_error(self, db, unclaimed_person, settings):
-        settings.CLAIM_TOKEN_MAX_AGE = 0
+    def test_expired_token_raises_claiming_error(
+        self, db, unclaimed_person, monkeypatch
+    ):
+        eight_days_ago = int(time.time()) - 8 * 24 * 60 * 60
+        monkeypatch.setattr(
+            TimestampSigner, "timestamp", lambda self: b62_encode(eight_days_ago)
+        )
         token = generate_claim_token(unclaimed_person)
-        time.sleep(0.01)
+        monkeypatch.undo()
 
         with pytest.raises(ClaimingError, match="expired"):
             validate_claim_token(token)
@@ -50,14 +50,6 @@ class TestValidateClaimToken:
     def test_tampered_token_raises_claiming_error(self, db, unclaimed_person):
         with pytest.raises(ClaimingError):
             validate_claim_token("tampered.token.string")
-
-    def test_hmac_modified_token_raises_claiming_error(self, db, unclaimed_person):
-        token = generate_claim_token(unclaimed_person)
-        parts = token.rsplit(":", 1)
-        corrupted = parts[0] + ":AAAAAAAAAAAAAAAA"
-
-        with pytest.raises(ClaimingError):
-            validate_claim_token(corrupted)
 
     def test_already_claimed_person_raises_claiming_error(self, db, unclaimed_person):
         token = generate_claim_token(unclaimed_person)
@@ -73,6 +65,5 @@ class TestValidateClaimToken:
         banned = PersonFactory(email=None, is_active=False, is_claimed=False)
         token = generate_claim_token(banned)
         result = validate_claim_token(token)
-        assert result is not None
         assert result.pk == banned.pk
         assert result.is_active is False

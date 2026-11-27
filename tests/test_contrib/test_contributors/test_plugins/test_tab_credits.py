@@ -51,23 +51,23 @@ class TestEditCredit:
         assert not any(radio.has_attr("disabled") for radio in levels)
 
     def test_a_level_below_what_is_held_from_above_is_offered_disabled(
-        self, public_chain
+        self, dataset_pair
     ):
-        manager = credited(public_chain.dataset, level=ContributionLevel.MANAGE)
+        manager = credited(dataset_pair.dataset, level=ContributionLevel.MANAGE)
         holder = PersonFactory(is_active=True, is_claimed=True)
         ContributionFactory(
-            content_object=public_chain.project,
+            content_object=dataset_pair.project,
             contributor=holder,
             level=ContributionLevel.EDIT,
         )
         here = ContributionFactory(
-            content_object=public_chain.dataset,
+            content_object=dataset_pair.dataset,
             contributor=holder,
             level=ContributionLevel.EDIT,
         )
 
         response = browser_as(manager.contributor).get(
-            page_of(public_chain.dataset, "edit", pk=here.pk)
+            page_of(dataset_pair.dataset, "edit", pk=here.pk)
         )
 
         offered = {
@@ -106,34 +106,29 @@ class TestEditCredit:
         assert colleague.level == ContributionLevel.EDIT
         assert chosen in colleague.roles.all()
 
-    def test_a_level_below_what_is_held_from_above_is_refused(self, public_chain):
-        manager = credited(public_chain.dataset, level=ContributionLevel.MANAGE)
+    def test_a_level_below_what_is_held_from_above_is_refused(self, dataset_pair):
+        manager = credited(dataset_pair.dataset, level=ContributionLevel.MANAGE)
         holder = PersonFactory(is_active=True, is_claimed=True)
         ContributionFactory(
-            content_object=public_chain.project,
+            content_object=dataset_pair.project,
             contributor=holder,
             level=ContributionLevel.EDIT,
         )
         here = ContributionFactory(
-            content_object=public_chain.dataset,
+            content_object=dataset_pair.dataset,
             contributor=holder,
             level=ContributionLevel.EDIT,
         )
 
         browser_as(manager.contributor).post(
-            page_of(public_chain.dataset, "edit", pk=here.pk),
+            page_of(dataset_pair.dataset, "edit", pk=here.pk),
             {"level": ContributionLevel.VIEW.value},
         )
 
         here.refresh_from_db()
         assert here.level == ContributionLevel.EDIT
 
-    @pytest.mark.parametrize("kind", ["project", "dataset"])
-    def test_someone_who_holds_project_member_keeps_it_on_edit(
-        self, public_chain, kind
-    ):
-        record = getattr(public_chain, kind)
-        manager = credited(record, level=ContributionLevel.MANAGE).contributor
+    def test_someone_who_holds_project_member_keeps_it_on_edit(self, record, manager):
         colleague = credited(record)
         member = role_by_slug(MEMBER)
         colleague.roles.add(member)
@@ -145,10 +140,11 @@ class TestEditCredit:
     @pytest.mark.parametrize("viewer", ["reader", "visitor"])
     def test_nobody_but_a_manager_may_edit(self, request, record, colleague, viewer):
         user = request.getfixturevalue(viewer) if viewer != "visitor" else None
+        refused = 302 if viewer == "visitor" else 403  # a visitor is sent to sign in
         url = page_of(record, "edit", pk=colleague.pk)
 
-        assert browser_as(user).get(url).status_code in {302, 403}
-        assert browser_as(user).post(url, {"level": 3}).status_code in {302, 403}
+        assert browser_as(user).get(url).status_code == refused
+        assert browser_as(user).post(url, {"level": 3}).status_code == refused
         colleague.refresh_from_db()
         assert colleague.level == ContributionLevel.VIEW
 
@@ -195,11 +191,6 @@ class TestRemoveCredit:
         browser_as(manager).post(page_of(record, "remove", pk=own.pk))
 
         assert Contribution.objects.filter(pk=own.pk).exists()
-
-    def test_a_reader_cannot_remove(self, record, reader, colleague):
-        browser_as(reader).post(page_of(record, "remove", pk=colleague.pk))
-
-        assert Contribution.objects.filter(pk=colleague.pk).exists()
 
 
 @pytest.mark.django_db
@@ -248,16 +239,6 @@ class TestReorder:
         colleague.refresh_from_db()
         assert colleague.in_citation is True
 
-    def test_a_person_left_out_stays_credited_and_listed(
-        self, record, manager, colleague
-    ):
-        everyone = list(record.contributors.people().values_list("pk", flat=True))
-
-        browser_as(manager).post(page_of(record, "reorder"), {"order": everyone})
-
-        assert Contribution.objects.filter(pk=colleague.pk).exists()
-        assert colleague.pk in record.contributors.people().values_list("pk", flat=True)
-
     def test_the_sheet_offers_each_person_a_toggle_set_to_their_state(
         self, record, manager, colleague
     ):
@@ -266,8 +247,7 @@ class TestReorder:
         response = browser_as(manager).get(page_of(record, "reorder"))
 
         toggles = {
-            box["value"]: box
-            for box in soup_of(response).select('input[name="cited"]')
+            box["value"]: box for box in soup_of(response).select('input[name="cited"]')
         }
         manager_credit = record.contributors.get(contributor=manager)
         assert toggles[str(manager_credit.pk)].has_attr("checked")

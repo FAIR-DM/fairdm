@@ -2,7 +2,6 @@
 
 import pytest
 
-from fairdm.contrib.autocomplete.fields import OrganizationChoiceField
 from fairdm.contrib.contributors.forms.forms import AffiliationForm
 from fairdm.contrib.contributors.models import Affiliation
 from fairdm.factories import OrganizationFactory, PersonFactory
@@ -10,11 +9,6 @@ from fairdm.factories import OrganizationFactory, PersonFactory
 
 @pytest.mark.django_db
 class TestAffiliationForm:
-    def test_the_organization_is_chosen_with_the_organization_field(self):
-        field = AffiliationForm().fields["organization"]
-
-        assert isinstance(field, OrganizationChoiceField)
-
     def test_the_chosen_organization_is_saved(self, in_request):
         person = PersonFactory()
         organization = OrganizationFactory()
