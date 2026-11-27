@@ -9,7 +9,6 @@ from django.core.exceptions import ValidationError
 from django.test import RequestFactory
 from django.urls import reverse
 
-from demo.factories import ExampleMeasurementFactory
 from fairdm.core.measurement.admin import MeasurementChildAdmin, MeasurementParentAdmin
 from fairdm.core.measurement.models import (
     Measurement,
