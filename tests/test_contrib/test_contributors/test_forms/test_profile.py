@@ -417,6 +417,17 @@ class TestOrganizationProfileForm:
 
         assert form["parent"].value() == parent.pk
 
+    def test_an_image_over_the_size_limit_is_refused_on_the_logo_field(
+        self, organization, organization_profile_data, image_upload, monkeypatch
+    ):
+        monkeypatch.setattr(image_utils, "MAX_IMAGE_UPLOAD_BYTES", 10)
+        form = OrganizationProfileForm(
+            organization_profile_data, {"image": image_upload()}, instance=organization
+        )
+
+        assert form.has_error("image")
+        assert not form.has_error("name")
+
 
 @pytest.fixture
 def stored_record_failing_validation(db, profile_data):

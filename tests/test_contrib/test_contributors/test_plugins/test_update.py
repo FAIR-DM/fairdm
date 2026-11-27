@@ -698,11 +698,11 @@ class TestOrganizationUpdate:
         organization = kept_organization.organization
         before = _organization_stored(organization)
 
-        response = signed_in(getattr(kept_organization, who)).post(
-            _update_url(organization), organization_profile_data
-        )
+        client = signed_in(getattr(kept_organization, who))
+        response = client.post(_update_url(organization), organization_profile_data)
 
         assert response.status_code == 403
+        assert client.get(_update_url(organization)).status_code == 403
         assert _organization_stored(organization) == before
 
     def test_a_visitor_is_sent_to_sign_in_and_nothing_is_stored(

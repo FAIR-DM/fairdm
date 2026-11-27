@@ -992,6 +992,17 @@ class TestMergePagePreselection:
 
         assert response.context["form"]["merge_into"].value() == target.pk
 
+    def test_the_merge_page_carries_the_scripts_of_the_target_field(
+        self, admin_client, unclaimed_person
+    ):
+        response = admin_client.get(
+            reverse("admin:contributors_person_merge", args=[unclaimed_person.pk])
+        )
+
+        media = str(response.context["form"].media)
+        assert media
+        assert media in response.content.decode()
+
     def test_the_chosen_person_is_drawn_in_the_field(
         self, admin_client, unclaimed_person
     ):

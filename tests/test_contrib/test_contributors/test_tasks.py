@@ -290,7 +290,6 @@ class TestPeriodicRefresh:
         assert registry_network.calls == []
 
     def test_the_refresh_exists_once_and_is_enabled(self):
-        seed_refresh_task()
         periodic_tasks = PeriodicTask.objects.filter(task=REFRESH_TASK)
 
         assert periodic_tasks.count() == 1
