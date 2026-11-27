@@ -142,3 +142,23 @@
 
 /* Workaround until the row component offers it: the row sheet's art is the contributor's own avatar, which brings its own shape and colour. */
 [data-contrib-row] [data-mvp-sheet-head] span[aria-hidden="true"]:has(.avatar) { background: none; }
+
+/* The sheet's head puts the avatar beside the title and the line under it, centred on
+   both, as the approved design does. The head swaps its title and line separately. */
+.contrib-sheet [data-mvp-sheet-head] > div:has(> h2) {
+  display: grid; grid-template-columns: minmax(0, 1fr); row-gap: 0.125rem;
+}
+.contrib-sheet [data-mvp-sheet-head] > div:has(.contrib-head-art) {
+  grid-template-columns: auto minmax(0, 1fr); column-gap: 0.5rem;
+}
+.contrib-sheet [data-mvp-sheet-head] h2 { display: contents; }
+.contrib-sheet .contrib-head-art { grid-column: 1; grid-row: 1; align-self: center; }
+.contrib-sheet [data-mvp-sheet-head] > div:has([data-mvp-sheet-lead]:not([hidden])) .contrib-head-art {
+  grid-row: 1 / span 2;
+}
+.contrib-sheet [data-mvp-sheet-head] h2 > :not(.contrib-head-art),
+.contrib-sheet [data-mvp-sheet-lead] { grid-column: -2 / -1; }
+.contrib-sheet [data-mvp-sheet-head] h2 > :not(.contrib-head-art) { grid-row: 1; }
+.contrib-sheet [data-mvp-sheet-lead] { grid-row: 2; }
+/* The line under the title is set in the title's typeface, as it is beside the title. */
+.contrib-sheet [data-mvp-sheet-lead] { font-family: var(--font-heading); }

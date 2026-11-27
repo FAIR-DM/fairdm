@@ -1,5 +1,5 @@
 {% load i18n %}
-<c-contributor.tab.sheet>
+<c-contributor.tab.sheet tall>
   <form id="contrib-form" hx-post="{{ action }}" hx-target="#contrib-region" hx-swap="outerHTML">
     <c-mvp.reorder id="contrib-reorder" label="{% translate "People, in order" %}" form name="order" hide_buttons class="contrib-reorder">
       {% for row in people_rows %}
