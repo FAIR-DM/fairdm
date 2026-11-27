@@ -22,5 +22,3 @@ class TestCelery:
         module = settings_module()
 
         assert module.CELERY_TIMEZONE == "Europe/Berlin"
-
-

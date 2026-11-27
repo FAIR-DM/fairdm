@@ -21,7 +21,6 @@ from fairdm.factories.contributors import (
 
 @pytest.mark.django_db
 class TestContributorFactoryCreation:
-
     def test_person_factory_unique_emails(self):
         person1 = PersonFactory()
         person2 = PersonFactory()
@@ -49,7 +48,6 @@ class TestContributorFactoryCreation:
 
         assert person.has_usable_password() is True
         assert person.check_password("s3cret-pass") is True
-
 
     def test_person_factory_no_auto_image(self):
         # A default factory sets no image. Generating one on every call left files under MEDIA_ROOT (#323).

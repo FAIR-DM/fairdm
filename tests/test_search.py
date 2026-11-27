@@ -120,11 +120,15 @@ class TestMatchingFollowsTheList:
         failed = []
         for kind in ("projects", "datasets", "samples", "measurements"):
             record = records[kind]
-            found = urls(panel(client, str(record.uuid)).get(kind, SimpleNamespace(results=[])))
+            found = urls(
+                panel(client, str(record.uuid)).get(kind, SimpleNamespace(results=[]))
+            )
             if found != [record.get_absolute_url()]:
                 failed.append(f"{kind}: {found}")
 
-        assert not failed, "These kinds did not find their record by portal id:\n" + "\n".join(failed)
+        assert not failed, (
+            "These kinds did not find their record by portal id:\n" + "\n".join(failed)
+        )
 
     def test_a_project_is_found_by_an_external_identifier(self):
         project = ProjectFactory(visibility=Visibility.PUBLIC)

@@ -433,7 +433,11 @@ class TestQueryPlan:
         problems = [
             f"{name}: {problem}"
             for name, (queryset, model, whole_table_allowed) in lookups.items()
-            if (problem := self.spatial_index_missing(queryset, model, whole_table_allowed))
+            if (
+                problem := self.spatial_index_missing(
+                    queryset, model, whole_table_allowed
+                )
+            )
         ]
         problems += [
             f"{name} (samples joined): {problem}"

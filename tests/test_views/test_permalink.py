@@ -70,9 +70,14 @@ class TestPermalinkRedirect:
         for kind, record in public_records().items():
             response = client.get(f"/{record.uuid}/")
             if response.status_code != 302 or response.url != record.get_absolute_url():
-                failed.append(f"{kind}: {response.status_code} {getattr(response, 'url', '')}")
+                failed.append(
+                    f"{kind}: {response.status_code} {getattr(response, 'url', '')}"
+                )
 
-        assert not failed, "These records' portal ids did not redirect to their page:\n" + "\n".join(failed)
+        assert not failed, (
+            "These records' portal ids did not redirect to their page:\n"
+            + "\n".join(failed)
+        )
 
     def test_following_the_link_renders_the_page_of_the_record(self, client):
         record = ProjectFactory(visibility=Visibility.PUBLIC)
@@ -180,13 +185,19 @@ class TestPermalinkAccess:
 
 class TestPermalinkAddress:
     def test_the_uuid_each_model_makes_resolves_to_the_permalink_route(self):
-        records = [factory() for factory in (ProjectFactory, PersonFactory, measurement)]
+        records = [
+            factory() for factory in (ProjectFactory, PersonFactory, measurement)
+        ]
 
         failed = []
         for record in records:
             match = resolve(f"/{record.uuid}/")
-            if match.url_name != "permalink" or match.kwargs != {"portal_id": record.uuid}:
-                failed.append(f"{type(record).__name__}: {match.url_name} {match.kwargs}")
+            if match.url_name != "permalink" or match.kwargs != {
+                "portal_id": record.uuid
+            }:
+                failed.append(
+                    f"{type(record).__name__}: {match.url_name} {match.kwargs}"
+                )
 
         assert not failed, "\n".join(failed)
 

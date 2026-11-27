@@ -12,7 +12,6 @@ from fairdm.factories import PersonFactory
 from fairdm.management.commands.create_dev_accounts import DEV_ACCOUNT_PASSWORD
 from fairdm.portal_roles import PortalRoles
 
-
 REGULAR_USER = "regular.user@example.com"
 ADMIN_USER = "admin.user@example.com"
 MEMBER_USER = "member.user@example.com"
@@ -84,8 +83,6 @@ class TestSeedProfilesRefusesOutsideDevelopment:
 @pytest.mark.slow
 @pytest.mark.django_db
 class TestSeedProfilesStates:
-
-
     def test_every_seeded_page_answers_for_a_visitor(self, seeded, client):
         for person in seeded:
             response = client.get(person.get_absolute_url())
@@ -104,7 +101,6 @@ class TestSeedProfilesStates:
 @pytest.mark.slow
 @pytest.mark.django_db
 class TestSeedProfilesOrganizationStates:
-
     def test_one_the_signed_in_user_owns_exists(self, seeded_organizations):
         me = Person.objects.get(email=REGULAR_USER)
 
@@ -118,7 +114,6 @@ class TestSeedProfilesOrganizationStates:
 
         assert owned
         assert all(o.is_managed_by(me) for o in owned)
-
 
     def test_every_seeded_organization_page_answers_for_a_visitor(
         self, seeded_organizations, client
@@ -192,7 +187,6 @@ class TestSeedProfilesKeepersOfTheOwnedOrganization:
         assert affiliation.type == Affiliation.MembershipType.ADMIN
         assert affiliation.end_date is None
 
-
     def test_an_administrator_whose_affiliation_has_ended_was_one_of_it(
         self, owned_organization
     ):
@@ -200,7 +194,6 @@ class TestSeedProfilesKeepersOfTheOwnedOrganization:
 
         assert affiliation.type == Affiliation.MembershipType.ADMIN
         assert affiliation.end_date is not None
-
 
     @pytest.mark.parametrize("email", [ADMIN_USER, MEMBER_USER, FORMER_ADMIN_USER])
     def test_each_account_signs_in_with_the_shared_password(

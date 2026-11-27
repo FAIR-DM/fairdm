@@ -22,7 +22,6 @@ from fairdm.core.sample.models import Sample
 from fairdm.utils.choices import Visibility
 
 
-
 def seed(*options):
     call_command("seed_record_search", *options, verbosity=0)
 
@@ -50,7 +49,6 @@ class TestSeedRecordSearch:
         assert datasets.count() == 2
         assert all(d.visibility == Visibility.PRIVATE for d in datasets)
         assert Dataset.all_objects.accessible_to(regular, 3).count() >= 2
-
 
     def test_a_second_run_adds_nothing(self):
         seed()

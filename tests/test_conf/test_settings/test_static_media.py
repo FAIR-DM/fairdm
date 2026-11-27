@@ -105,4 +105,3 @@ class TestBackupStorageOnS3:
             module.STORAGES["dbbackup"]["BACKEND"]
             == "storages.backends.s3boto3.S3Boto3Storage"
         )
-

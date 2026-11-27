@@ -123,15 +123,14 @@ class TestOutcomeBadge:
 
     def test_each_outcome_is_named_by_a_badge_of_its_own(self, render, soup):
         names = {
-            outcome.value: soup(render("outcome-badge", outcome=outcome.value)).get_text(
-                strip=True
-            )
+            outcome.value: soup(
+                render("outcome-badge", outcome=outcome.value)
+            ).get_text(strip=True)
             for outcome in ImportRow.Outcome
         }
 
         assert all(names.values())
         assert len(set(names.values())) == len(names)
-
 
     @pytest.mark.parametrize("outcome", ["new", "update"])
     def test_a_row_already_written_is_named_in_the_past(self, render, soup, outcome):
@@ -195,7 +194,6 @@ class TestPanel:
             )
         )
         assert page.select_one("section > header #more")
-
 
     def test_a_flush_panel_keeps_its_heading_in_the_header(self, render_markup, soup):
         page = soup(

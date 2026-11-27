@@ -28,5 +28,3 @@ class TestEmail:
 
         assert f"{module.SITE_NAME} <noreply@example.com>" == module.DEFAULT_FROM_EMAIL
         assert f"{module.SITE_NAME} Server <server@example.com>" == module.SERVER_EMAIL
-
-

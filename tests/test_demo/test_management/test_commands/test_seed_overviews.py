@@ -21,7 +21,6 @@ from fairdm.management.commands.create_dev_accounts import (
     EXAMPLE_ACCOUNT_EMAILS,
 )
 
-
 Person = get_user_model()
 
 ACCOUNTS = {
@@ -187,7 +186,6 @@ class TestSeedOverviewsTeams:
 
         assert staff.has_perm("project.change_project", empty)
 
-
     def test_the_regular_user_is_on_the_showcase_projects_team_only(self):
         regular = Person.objects.get(email=ACCOUNTS["regular"])
 
@@ -197,7 +195,6 @@ class TestSeedOverviewsTeams:
             if regular.has_perm("project.change_project", project)
         ]
         assert [project.name for project in teams] == [SHOWCASE]
-
 
     def test_the_second_regular_user_is_on_the_team_of_an_empty_project(self):
         second = Person.objects.get(email="regular.user2@example.com")

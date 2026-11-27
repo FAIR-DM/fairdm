@@ -311,7 +311,6 @@ class TestDevelopmentLayerApplies:
     # identically in both environments is what "layered on top of" means.
     UNCHANGED_BETWEEN_ENVIRONMENTS = ["AUTH_USER_MODEL", "TIME_ZONE", "SITE_ID"]
 
-
     def test_settings_neither_module_names_stay_unchanged(
         self, production_env, tmp_path, settings_module
     ):
@@ -568,7 +567,6 @@ def clean_production_env():
 
 
 class TestPostSetupAssignments:
-
     def test_overrides_can_modify_lists(self, clean_production_env, tmp_path):
         settings_file = tmp_path / "settings.py"
         settings_file.write_text(
@@ -678,7 +676,9 @@ class TestPostSetupOverridesEveryBaselineModule:
             portal_value = getattr(portal_module, setting)
             expected = self.PORTAL_VALUE_BY_MODULE[stem]
             if baseline_value == expected:
-                failures.append(f"{stem}.{setting}: the baseline already holds {expected!r}")
+                failures.append(
+                    f"{stem}.{setting}: the baseline already holds {expected!r}"
+                )
             elif portal_value != expected:
                 failures.append(
                     f"{stem}.{setting}: resolved to {portal_value!r}, not {expected!r}"
@@ -789,8 +789,12 @@ class TestBaselineModuleAudit:
             tree = ast.parse(path.read_text())
             for node in ast.walk(tree):
                 if isinstance(node, ast.If):
-                    names = referenced_names(node.test) & self.FORBIDDEN_BRANCH_VARIABLES
+                    names = (
+                        referenced_names(node.test) & self.FORBIDDEN_BRANCH_VARIABLES
+                    )
                     if names:
-                        offending.append(f"{path.name}:{node.lineno} branches on {sorted(names)}")
+                        offending.append(
+                            f"{path.name}:{node.lineno} branches on {sorted(names)}"
+                        )
 
         assert not offending, "\n".join(offending)

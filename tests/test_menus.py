@@ -82,8 +82,6 @@ class TestAdminGuideLinkVisibility:
         assert child.check(request) is True
 
 
-
-
 @pytest.mark.django_db
 class TestMenuLinks:
     def test_the_menu_links_to_the_team_the_catalogue_and_the_install_page(

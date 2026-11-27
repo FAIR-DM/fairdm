@@ -4,7 +4,6 @@ import os
 
 
 class TestAuth:
-
     def test_authentication_backends_include_allauth_and_the_shared_object_backend(
         self, isolated_env, settings_module
     ):
@@ -26,7 +25,6 @@ class TestAuth:
 
 
 class TestAccountModel:
-
     def test_auth_user_model_resolves_to_the_real_person_class(self, db):
         from django.apps import apps
         from django.conf import settings

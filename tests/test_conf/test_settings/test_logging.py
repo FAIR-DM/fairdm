@@ -5,7 +5,6 @@ from unittest import mock
 
 
 class TestLogging:
-
     def test_sentry_initializes_when_dsn_present(self, isolated_env, settings_module):
         os.environ["DJANGO_ENV"] = "qa"
         os.environ["SENTRY_DSN"] = "https://fake@sentry.io/123456"
@@ -25,5 +24,3 @@ class TestLogging:
             settings_module()
 
         assert not mock_init.called
-
-

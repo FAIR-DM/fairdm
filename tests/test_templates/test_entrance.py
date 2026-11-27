@@ -16,7 +16,6 @@ class TestEntranceLayout:
 
         assert content.count("<h1") == 1
 
-
     def test_pane_names_the_saved_portal(self, client):
         identity = Identity.get_solo()
         identity.name = "PORTAL-MARKER"

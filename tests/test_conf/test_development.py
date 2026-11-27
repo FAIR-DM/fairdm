@@ -19,7 +19,6 @@ class TestDevelopmentDefaults:
         assert "insecure" in module.SECRET_KEY.lower()
         assert "dev" in module.SECRET_KEY.lower()
 
-
     def test_thumbnail_debug_is_a_development_override_not_a_baseline_default(
         self, isolated_env, settings_module
     ):
@@ -31,7 +30,6 @@ class TestDevelopmentDefaults:
 
 
 class TestDevelopmentCookieNames:
-
     def test_development_pairs_no_prefixed_name_with_an_insecure_cookie(
         self, isolated_env, settings_module
     ):
@@ -127,7 +125,6 @@ class TestDevelopmentWithoutRedis:
 
         with override_settings(CACHES=module.CACHES):
             assert ratelimit.consume(request, action="login", key="someone@example.com")
-
 
     def test_a_configured_redis_url_is_used_as_given(
         self, isolated_env, settings_module

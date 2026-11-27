@@ -123,7 +123,6 @@ class TestImportAndPublishGatePermissions:
 
         assert contributor.has_perm("dataset.import_data", dataset)
 
-
     def test_a_contributor_holding_the_object_level_row_is_admitted_to_publish(self):
         contributor = PersonFactory()
         dataset = DatasetFactory()
@@ -154,7 +153,6 @@ class TestReachesEveryRecord:
         person.groups.add(Group.objects.get(name=PortalRoles.COMMUNITY_MANAGER.name))
 
         assert not PortalRoles.reaches_every_record(person, "dataset.change_dataset")
-
 
     def test_a_right_held_through_a_group_the_portal_made_up_does_not(self):
         person = PersonFactory()

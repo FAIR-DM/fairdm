@@ -4,8 +4,6 @@ import os
 
 
 class TestSecurity:
-
-
     def test_baseline_keeps_the_browser_enforced_cookie_name_prefixes(
         self, isolated_env, settings_module
     ):

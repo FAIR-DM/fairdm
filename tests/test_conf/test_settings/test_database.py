@@ -43,7 +43,6 @@ class TestDatabase:
 
 
 class TestDatabaseBackup:
-
     def test_backup_keep_sets_the_count_of_each_kind(
         self, isolated_env, settings_module, monkeypatch
     ):
@@ -84,5 +83,3 @@ class TestDatabaseBackup:
         module = settings_module()
 
         assert module.DBBACKUP_HOSTNAME == "lab-portal"
-
-

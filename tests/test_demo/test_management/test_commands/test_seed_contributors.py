@@ -21,7 +21,6 @@ from fairdm.management.commands.create_dev_accounts import (
 from fairdm.portal_roles import PortalRoles
 from fairdm.utils.choices import Visibility
 
-
 CURATOR = next(a["email"] for a in DEV_ACCOUNTS if a["role"] == "Data Curator")
 
 

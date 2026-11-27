@@ -199,7 +199,6 @@ class TestEnvironmentsThatStopOnABrokenAddon:
 
 
 class TestAddonPartialFailure:
-
     def test_partial_write_does_not_reach_settings_in_development(
         self, production_env, tmp_path, settings_module
     ):

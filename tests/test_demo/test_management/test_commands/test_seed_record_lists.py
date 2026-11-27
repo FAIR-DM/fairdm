@@ -11,7 +11,6 @@ from fairdm.contrib.contributors.models import Contribution
 from fairdm.core.dataset.models import Dataset
 from fairdm.core.project.models import Project
 
-
 REGULAR = "regular.user@example.com"
 
 
@@ -54,5 +53,3 @@ class TestSeedRecordLists:
 
         assert counts() == first
         assert Project.objects.filter(name=MAIN).count() == 1
-
-

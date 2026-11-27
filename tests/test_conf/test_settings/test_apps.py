@@ -31,7 +31,6 @@ class TestInstalledApps:
 
 
 class TestContributorsAppRegistration:
-
     def test_contributors_app_loads_behind_django_contrib_auth(
         self, isolated_env, settings_module
     ):

@@ -24,7 +24,6 @@ def production_module(isolated_env, settings_module):
 
 
 class TestControlRoomApps:
-
     def test_the_hub_comes_after_every_panel(self, production_module):
         apps = production_module.INSTALLED_APPS
 
@@ -33,7 +32,6 @@ class TestControlRoomApps:
 
 
 class TestControlRoomAccess:
-
     def test_the_redis_panel_reads_the_cache_location(self, production_module):
         instances = production_module.DJ_REDIS_PANEL_SETTINGS["INSTANCES"]
 

@@ -35,7 +35,6 @@ class TestOrdinaryMarkdownRenders:
         assert '<a href="https://fairdm.org"' in html
         assert ">FairDM</a>" in html
 
-
     def test_table(self):
         html = markdownify("| A | B |\n| - | - |\n| 1 | 2 |")
 
