@@ -177,15 +177,17 @@ class TestExtraViews:
     def test_the_shipped_contribution_views_address_their_target(self):
         addresses = {
             "add-person": ({}, "/projects/abc/contributors/add-person/"),
+            "add-person-step": ({}, "/projects/abc/contributors/add-person/details/"),
             "add-organization": ({}, "/projects/abc/contributors/add-organization/"),
             "edit": ({"pk": 7}, "/projects/abc/contributors/7/edit/"),
             "remove": ({"pk": 7}, "/projects/abc/contributors/7/remove/"),
-            "move": ({"pk": 7}, "/projects/abc/contributors/7/move/"),
+            "undo": ({}, "/projects/abc/contributors/undo/"),
+            "reorder": ({}, "/projects/abc/contributors/reorder/"),
         }
 
         for name, (kwargs, expected) in addresses.items():
             url = reverse(
-                f"project:contribution-list-contribution-{name}",
+                f"project:contribution-list-{name}",
                 kwargs={"uuid": "abc", **kwargs},
             )
             assert url == expected, name
