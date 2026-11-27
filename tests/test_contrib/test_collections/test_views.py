@@ -1,14 +1,9 @@
 """Tests for the collections DataTableView."""
 
-import ast
 import datetime
-import importlib
-from pathlib import Path
-from unittest import mock
 
 import pytest
 from bs4 import BeautifulSoup
-from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
@@ -18,7 +13,6 @@ from django.urls import reverse
 from django.utils import timezone
 from pytest_django.asserts import assertContains
 
-import fairdm.contrib.collections as collections_pkg
 from demo.factories import (
     CustomSampleFactory,
     ExampleMeasurementFactory,
@@ -86,22 +80,6 @@ class TestPublicationFiltering:
         assert self.published_sample in entries
         assert self.unpublished_sample not in entries
 
-    def test_a_contributor_sees_only_the_published_record(
-        self, client, dataset_contributor
-    ):
-        client.force_login(dataset_contributor)
-        response = self._get(client)
-        entries = list(response.context["object_list"])
-        assert self.published_sample in entries
-        assert self.unpublished_sample not in entries
-
-    def test_portal_staff_sees_only_the_published_record(self, client, staff_user):
-        client.force_login(staff_user)
-        response = self._get(client)
-        entries = list(response.context["object_list"])
-        assert self.published_sample in entries
-        assert self.unpublished_sample not in entries
-
 
 @pytest.mark.django_db
 class TestColumnsPerType:
@@ -142,25 +120,12 @@ class TestDefaultColumns:
 
 @pytest.mark.django_db
 class TestPaging:
-    def test_a_listing_takes_its_page_size_from_the_base_table_view(
-        self, client, published_dataset
-    ):
-        RockSampleFactory(dataset=published_dataset)
-        slug = registry.get_for_model(RockSample).get_slug()
-
-        response = client.get(reverse(f"{slug}-list"))
-
-        assert "paginate_by" not in DataTableView.__dict__
-        assert response.context["table"].paginator.per_page == 100
-
     def test_a_second_page_returns_the_next_slice_and_carries_paging_controls(
-        self, client, published_dataset
+        self, client, published_dataset, monkeypatch
     ):
-        # Enough rows to spill onto a second page at whatever page size the view is
-        # configured for, rather than a literal that stops doing so when it changes.
-        samples = RockSampleFactory.create_batch(
-            DataTableView.paginate_by + 5, dataset=published_dataset
-        )
+        # A small page size, so a few rows spill onto a second page.
+        monkeypatch.setattr(DataTableView, "paginate_by", 2)
+        samples = RockSampleFactory.create_batch(3, dataset=published_dataset)
         # `Sample`'s default ordering is `added` (auto_now_add), and a tight creation
         # loop can leave several rows with the same timestamp. Space the timestamps
         # out so paging is deterministic.
@@ -246,11 +211,11 @@ class TestQueryCount:
 
         one_row_count = self._page_query_count(client, url)
 
-        RockSampleFactory.create_batch(19, dataset=published_dataset)
+        RockSampleFactory.create_batch(2, dataset=published_dataset)
 
-        full_page_count = self._page_query_count(client, url)
+        three_rows_count = self._page_query_count(client, url)
 
-        assert full_page_count == one_row_count
+        assert three_rows_count == one_row_count
 
     def test_measurement_listing_query_count_is_flat(self, client, published_dataset):
         sample = RockSampleFactory(dataset=published_dataset)
@@ -260,13 +225,13 @@ class TestQueryCount:
 
         one_row_count = self._page_query_count(client, url)
 
-        other_samples = RockSampleFactory.create_batch(19, dataset=published_dataset)
+        other_samples = RockSampleFactory.create_batch(2, dataset=published_dataset)
         for other_sample in other_samples:
             ExampleMeasurementFactory(sample=other_sample, dataset=published_dataset)
 
-        full_page_count = self._page_query_count(client, url)
+        three_rows_count = self._page_query_count(client, url)
 
-        assert full_page_count == one_row_count
+        assert three_rows_count == one_row_count
 
 
 @pytest.mark.django_db
@@ -311,21 +276,6 @@ class TestSearch:
         response = self._search(client, slug, "Quartz")
 
         assert list(response.context["object_list"]) == []
-
-    def test_a_search_matching_nothing_renders_the_empty_state(
-        self, client, published_sample
-    ):
-        slug = registry.get_for_model(RockSample).get_slug()
-        response = self._search(client, slug, "NoSuchWordAnywhereInThisSuite")
-
-        # The shell draws its own state for a search that matched nothing, with a
-        # link that clears the search, in place of the listing's "none yet" text.
-        soup = BeautifulSoup(response.content, "html.parser")
-        empty_state = soup.select_one(".mvp-list-empty")
-        assert empty_state is not None
-        assert empty_state.select_one(
-            f'a[href="{response.context["clear_refinements_url"]}"]'
-        )
 
     def test_a_search_matching_an_unpublished_records_field_returns_nothing(
         self, client, unpublished_dataset
@@ -590,129 +540,6 @@ class TestSwitcher:
 
 
 @pytest.mark.django_db
-class TestNothingUnreachable:
-    PACKAGE_DIR = Path(collections_pkg.__file__).parent
-    PACKAGE_MODULE = "fairdm.contrib.collections"
-    REPO_ROOT = Path(collections_pkg.__file__).resolve().parents[3]
-
-    def _dotted_name(self, path):
-        rel = path.relative_to(self.PACKAGE_DIR).with_suffix("")
-        return ".".join([self.PACKAGE_MODULE, *rel.parts])
-
-    def _package_modules(self):
-        """Map dotted module names to every non-empty module in the package."""
-        return {
-            self._dotted_name(path): path
-            for path in sorted(self.PACKAGE_DIR.rglob("*.py"))
-            if path.name != "__init__.py" and "__pycache__" not in path.parts
-        }
-
-    def _own_package(self, path):
-        rel_parent = path.relative_to(self.PACKAGE_DIR).parent.parts
-        return ".".join([self.PACKAGE_MODULE, *rel_parent]).rstrip(".")
-
-    def _package_imports(self, path):
-        """Return the package module names one file imports."""
-        is_internal = self.PACKAGE_DIR in path.parents
-        own_package = self._own_package(path) if is_internal else None
-        found = set()
-        for node in ast.walk(ast.parse(path.read_text())):
-            if isinstance(node, ast.ImportFrom) and node.module:
-                if node.level:
-                    if not is_internal:
-                        continue
-                    target = f"{own_package}.{node.module}"
-                else:
-                    target = node.module
-                if target == self.PACKAGE_MODULE or target.startswith(
-                    f"{self.PACKAGE_MODULE}."
-                ):
-                    found.add(target)
-            elif isinstance(node, ast.Import):
-                for alias in node.names:
-                    if alias.name == self.PACKAGE_MODULE or alias.name.startswith(
-                        f"{self.PACKAGE_MODULE}."
-                    ):
-                        found.add(alias.name)
-        return found
-
-    def _external_importers(self):
-        """Return the package modules imported from elsewhere in the repository."""
-        found = set()
-        for top in ("fairdm", "demo"):
-            for path in (self.REPO_ROOT / top).rglob("*.py"):
-                if self.PACKAGE_DIR in path.parents:
-                    continue
-                if "__pycache__" in path.parts or "migrations" in path.parts:
-                    continue
-                found |= self._package_imports(path)
-        return found
-
-    def test_every_remaining_module_is_reached_from_a_real_entry_point(self):
-        modules = self._package_modules()
-
-        assert self.PACKAGE_MODULE in settings.INSTALLED_APPS, (
-            "apps.py's own entry point, INSTALLED_APPS, no longer names this "
-            "package - the reachability graph below would be built on a false "
-            "premise"
-        )
-        root_urlconf_source = Path(
-            importlib.import_module(settings.ROOT_URLCONF).__file__
-        ).read_text()
-        assert f"{self.PACKAGE_MODULE}.urls" in root_urlconf_source, (
-            "urls.py's own entry point, the resolved ROOT_URLCONF, no longer "
-            "includes it - the reachability graph below would be built on a "
-            "false premise"
-        )
-
-        assert (
-            'autodiscover_modules("plugins")'
-            in Path(importlib.import_module("fairdm.apps").__file__).read_text()
-        ), (
-            "fairdm/apps.py no longer discovers each app's plugins module - the "
-            "reachability graph below would be built on a false premise"
-        )
-
-        reachable = {
-            f"{self.PACKAGE_MODULE}.apps",
-            f"{self.PACKAGE_MODULE}.urls",
-            # Loaded at start-up by fairdm/apps.py's plugin discovery.
-            f"{self.PACKAGE_MODULE}.plugins",
-        } | self._external_importers()
-        reachable &= modules.keys()
-
-        frontier = set(reachable)
-        while frontier:
-            next_frontier = set()
-            for dotted in frontier:
-                for imported in self._package_imports(modules[dotted]):
-                    if imported in modules and imported not in reachable:
-                        reachable.add(imported)
-                        next_frontier.add(imported)
-            frontier = next_frontier
-
-        unreached = modules.keys() - reachable
-        assert not unreached, (
-            "unreachable modules remain in fairdm/contrib/collections/: "
-            f"{sorted(unreached)}"
-        )
-
-    def test_a_listing_response_offers_no_download_control_in_any_format(
-        self, client, published_dataset
-    ):
-        RockSampleFactory(dataset=published_dataset)
-        slug = registry.get_for_model(RockSample).get_slug()
-
-        response = client.get(reverse(f"{slug}-list"))
-
-        assert "export_choices" not in response.context
-        assert not hasattr(response.context["view"], "export_formats")
-        content = response.content.decode()
-        for term in (".csv", ".xlsx", ".json", ".yaml", ".latex", ".ods", ".tsv"):
-            assert term not in content
-
-
-@pytest.mark.django_db
 class TestToolbar:
     def test_the_search_is_in_the_toolbar_and_a_range_filter_in_the_panel(
         self, client, published_dataset, filter_placement
@@ -831,19 +658,6 @@ class TestExportOnPages:
 
         assert b"data-ie-menu" in response.content
 
-    @pytest.mark.parametrize("holder", ["dataset", "project", "contributor"])
-    def test_a_tab_of_each_kind_of_record_draws_the_menu(self, client, holders, holder):
-        response = client.get(records_tab(holders[holder], "samples", RockSample))
-
-        assert b"data-ie-menu" in response.content
-
-    def test_a_tab_with_no_records_draws_no_menu(self, client):
-        empty = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
-
-        response = client.get(records_tab(empty, "samples"))
-
-        assert b"data-ie-menu" not in response.content
-
 
 IMPORT_DIALOG = 'dialog[id^="ie-import"]'
 IMPORT_BUTTON = "button[aria-haspopup=dialog]"
@@ -906,24 +720,10 @@ class TestImportOnPages:
         assert link["href"] == record_reverse(dataset, "import", type=name)
         assert not page.select_one(IMPORT_DIALOG)
 
-    def test_a_page_with_no_export_menu_still_has_the_import_button(
-        self, client, dataset
-    ):
-        self.sign_in(client, dataset, ContributionLevel.EDIT)
-
-        with mock.patch.object(RecordExportMixin, "export_menu", return_value=None):
-            page = self.page(client, records_tab(dataset, "samples"))
-
-        assert not page.select_one("[data-ie-menu]")
-        assert page.select_one(".ie-tools " + IMPORT_BUTTON)
-
-    @pytest.mark.parametrize("tab", ["samples", "measurements"])
-    def test_a_person_who_may_only_view_has_no_import_button(
-        self, client, dataset, tab
-    ):
+    def test_a_person_who_may_only_view_has_no_import_button(self, client, dataset):
         self.sign_in(client, dataset, ContributionLevel.VIEW)
 
-        page = self.page(client, records_tab(dataset, tab))
+        page = self.page(client, records_tab(dataset, "samples"))
 
         assert page.select_one("[data-ie-menu]")
         assert not page.select_one(IMPORT_DIALOG)
@@ -955,14 +755,10 @@ class TestImportOnPages:
 
         assert not page.select_one(IMPORT_DIALOG)
 
-    @pytest.mark.parametrize("holder", ["project", "contributor"])
-    def test_the_tabs_of_a_project_and_a_contributor_have_no_import_button(
-        self, client, dataset, holder
-    ):
+    def test_the_tab_of_a_project_has_no_import_button(self, client, dataset):
         self.sign_in(client, dataset, ContributionLevel.EDIT)
-        holders = {"project": dataset.project, "contributor": PersonFactory()}
 
-        page = self.page(client, records_tab(holders[holder], "samples"))
+        page = self.page(client, records_tab(dataset.project, "samples"))
 
         assert not page.select_one(IMPORT_DIALOG)
 

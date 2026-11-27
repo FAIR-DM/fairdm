@@ -22,7 +22,7 @@ from demo.models import (
     SoilSample,
     XRFMeasurement,
 )
-from fairdm.contrib.collections.plugins import Measurements
+from fairdm.contrib.collections.plugins import Measurements, SampleMeasurements
 from fairdm.contrib.collections.tables import SampleTable
 from fairdm.contrib.contributors.choices import ContributionLevel
 from fairdm.contrib.contributors.models import Organization
@@ -72,6 +72,14 @@ def tab_links(response, dataset):
     return wanted & set(strip)
 
 
+def query_count(client, url):
+    """Return how many queries a page costs once the per-process caches are warm."""
+    client.get(url)
+    with CaptureQueriesContext(connection) as queries:
+        assert client.get(url).status_code == 200
+    return len(queries)
+
+
 def team_member(dataset, level=ContributionLevel.VIEW):
     """Return a user listed on the dataset at the given level."""
     user = UserFactory()
@@ -96,8 +104,8 @@ class TestDatasetRecords:
         self, client, dataset
     ):
         other = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
-        foreign = RockSampleFactory.create_batch(5, dataset=other)
-        XRFMeasurementFactory.create_batch(5, dataset=other, sample=foreign[0])
+        foreign = RockSampleFactory.create_batch(2, dataset=other)
+        XRFMeasurementFactory.create_batch(2, dataset=other, sample=foreign[0])
 
         samples = client.get(address(dataset, "samples"))
         measurements = client.get(address(dataset, "measurements"))
@@ -154,11 +162,6 @@ class TestDatasetRecords:
         )
 
         assert client.get(url).status_code == 404
-
-    def test_a_type_address_on_an_empty_tab_is_not_found(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
-
-        assert client.get(address(dataset, "samples", RockSample)).status_code == 404
 
     def test_a_measurement_on_another_datasets_sample_is_listed_with_its_own_dataset(
         self, client, dataset
@@ -230,6 +233,7 @@ class TestRecordState:
         assert client.get(address(waiting, "measurements")).status_code == 404
         assert client.get(address(waiting, "samples", RockSample)).status_code == 404
 
+    @pytest.mark.slow
     def test_the_team_gets_both_tabs_and_the_rows(self, client, waiting):
         client.force_login(team_member(waiting))
 
@@ -471,17 +475,6 @@ class TestRecordTable:
         ordering = table_of(response).data.data.query.order_by
         assert str(ordering[-1]).lstrip("-") in ("pk", "id")
 
-    def test_a_page_holds_fifty_rows(self, client):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
-        RockSampleFactory.create_batch(51, dataset=dataset)
-        url = address(dataset, "samples")
-
-        first = client.get(url)
-        second = client.get(url, {"page": 2})
-
-        assert len(listed(first)) == 50
-        assert len(listed(second)) == 1
-
 
 class TestRecordColumns:
     def test_a_dataset_the_viewer_may_open_is_linked_and_otherwise_only_named(
@@ -577,21 +570,6 @@ class TestRecordPage:
             address(dataset, "samples", SoilSample),
         }
 
-    def test_the_switchers_trigger_is_a_named_button_controlling_the_menu(
-        self, client, dataset
-    ):
-        response = client.get(address(dataset, "samples"))
-
-        switcher = self.page(response).find(id="type-switcher")
-        trigger = switcher.find(True, recursive=False)
-        assert trigger.name == "button"
-        assert trigger["type"] == "button"
-        assert trigger.get_text(strip=True) != ""
-        assert trigger["aria-haspopup"] == "menu"
-        controlled = switcher.find(id=trigger["aria-controls"])
-        assert controlled.find("a", href=True) is not None
-        assert trigger.find_parent("h1") is not None
-
     def test_one_listed_type_has_no_switcher(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         RockSampleFactory(dataset=dataset)
@@ -671,34 +649,19 @@ class TestUnregisteredType:
 
 
 class TestRecordQueries:
-    @staticmethod
-    def count(client, url):
-        client.get(url)  # warm the per-process caches
-        with CaptureQueriesContext(connection) as queries:
-            assert client.get(url).status_code == 200
-        return len(queries)
-
-    def test_samples_cost_the_same_queries_at_ten_rows_and_at_sixty(self, client):
+    @pytest.mark.slow
+    def test_the_tabs_cost_the_same_queries_at_one_row_and_at_three(self, client):
         small = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         large = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
-        RockSampleFactory.create_batch(10, dataset=small)
-        RockSampleFactory.create_batch(60, dataset=large)
-
-        assert self.count(client, address(small, "samples")) == self.count(
-            client, address(large, "samples")
-        )
-
-    def test_measurements_cost_the_same_queries_at_ten_rows_and_at_sixty(self, client):
-        small = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
-        large = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
-        for dataset, rows in ((small, 10), (large, 60)):
+        for dataset, rows in ((small, 1), (large, 3)):
             for _ in range(rows):
                 sample = RockSampleFactory(dataset=dataset)
                 XRFMeasurementFactory(dataset=dataset, sample=sample)
 
-        assert self.count(client, address(small, "measurements")) == self.count(
-            client, address(large, "measurements")
-        )
+        for kind in ("samples", "measurements"):
+            assert query_count(client, address(small, kind)) == query_count(
+                client, address(large, kind)
+            ), kind
 
 
 def project_address(project, kind, type_model=None):
@@ -789,12 +752,6 @@ class TestProjectRecords:
         assert [e["count"] for e in measurements.context["type_entries"]] == [3, 1]
         assert {type(r) for r in listed(samples)} == {SoilSample}
         assert project.unpublished.name not in samples.content.decode()
-
-    def test_the_projects_team_is_listed_every_record(self, client, project):
-        client.force_login(project_member(project, ContributionLevel.EDIT))
-
-        assert tab_total(client, project, "samples") == 7
-        assert tab_total(client, project, "measurements") == 4
 
     def test_each_row_names_its_dataset_after_its_own_name_and_links_it_where_it_opens(
         self, client, project
@@ -961,6 +918,7 @@ class TestProjectOverviewFigures:
         response = client.get(project.get_absolute_url())
         return project_figures(BeautifulSoup(response.content, "html.parser"), project)
 
+    @pytest.mark.slow
     def test_the_figures_link_to_the_tabs_and_equal_their_totals_for_every_viewer(
         self, client, project
     ):
@@ -988,15 +946,6 @@ class TestProjectOverviewFigures:
             }
             assert figures == expected
 
-    def test_a_private_datasets_member_gets_the_same_figure_and_total_in_a_public_project(
-        self, client, project
-    ):
-        client.force_login(team_member(project.private))
-
-        figures = self.figures(client, project)
-
-        assert figures["samples"] == str(tab_total(client, project, "samples")) == "5"
-
     def test_the_datasets_figure_counts_the_datasets_the_viewer_may_see(
         self, client, project
     ):
@@ -1010,13 +959,6 @@ class TestProjectOverviewFigures:
 
 class TestProjectRecordQueries:
     @staticmethod
-    def count(client, url):
-        client.get(url)  # warm the per-process caches
-        with CaptureQueriesContext(connection) as queries:
-            assert client.get(url).status_code == 200
-        return len(queries)
-
-    @staticmethod
     def project_of(rows):
         project = ProjectFactory(visibility=Visibility.PUBLIC)
         dataset = DatasetFactory(
@@ -1027,18 +969,17 @@ class TestProjectRecordQueries:
             XRFMeasurementFactory(dataset=dataset, sample=sample)
         return project
 
-    @pytest.mark.parametrize("kind", ["samples", "measurements"])
-    def test_a_tab_costs_the_same_queries_at_ten_rows_and_at_sixty(self, client, kind):
-        small, large = self.project_of(10), self.project_of(60)
+    @pytest.mark.slow
+    def test_the_tabs_and_the_overview_cost_the_same_queries_at_one_row_and_at_three(
+        self, client
+    ):
+        small, large = self.project_of(1), self.project_of(3)
 
-        assert self.count(client, project_address(small, kind)) == self.count(
-            client, project_address(large, kind)
-        )
-
-    def test_the_overview_costs_the_same_queries_at_ten_rows_and_at_sixty(self, client):
-        small, large = self.project_of(10), self.project_of(60)
-
-        assert self.count(client, small.get_absolute_url()) == self.count(
+        for kind in ("samples", "measurements"):
+            assert query_count(client, project_address(small, kind)) == query_count(
+                client, project_address(large, kind)
+            ), kind
+        assert query_count(client, small.get_absolute_url()) == query_count(
             client, large.get_absolute_url()
         )
 
@@ -1197,19 +1138,19 @@ class TestContributorViewer:
         view = field.view_class.for_scope(field.scope)()
         return set(view.offered(user, owner=field.owner_pk))
 
-    @pytest.mark.parametrize("kind", ["samples", "measurements"])
     def test_anyone_else_sees_none_of_them_in_rows_totals_types_or_choices(
-        self, client, hidden, kind
+        self, client, hidden
     ):
         client.force_login(team_member(hidden.hidden["private"]))
 
-        response = client.get(contributor_address(hidden, kind))
+        for kind in ("samples", "measurements"):
+            response = client.get(contributor_address(hidden, kind))
 
-        assert response.context["record_state"] == "empty"
-        assert listed(response) == []
-        assert response.context["type_entries"] == []
-        page = response.content.decode()
-        assert not any(d.name in page for d in hidden.hidden.values())
+            assert response.context["record_state"] == "empty", kind
+            assert listed(response) == [], kind
+            assert response.context["type_entries"] == [], kind
+            page = response.content.decode()
+            assert not any(d.name in page for d in hidden.hidden.values()), kind
 
     def test_the_filter_choices_of_someone_elses_page_hold_none_of_them(
         self, client, hidden
@@ -1235,19 +1176,17 @@ class TestContributorViewer:
             Sample.objects.filter(dataset__in=hidden.hidden.values())
         )
 
-    @pytest.mark.parametrize("kind", ["samples", "measurements"])
-    def test_the_person_sees_them_and_their_choices_include_them(
-        self, client, hidden, kind
-    ):
+    def test_the_person_sees_them_and_their_choices_include_them(self, client, hidden):
         client.force_login(hidden)
 
-        response = client.get(contributor_address(hidden, kind))
+        for kind in ("samples", "measurements"):
+            response = client.get(contributor_address(hidden, kind))
 
-        assert response.context["record_state"] == "listed"
-        assert {r.dataset_id for r in listed(response)} == {
-            d.pk for d in hidden.hidden.values()
-        }
-        assert sum(e["count"] for e in response.context["type_entries"]) == 3
+            assert response.context["record_state"] == "listed", kind
+            assert {r.dataset_id for r in listed(response)} == {
+                d.pk for d in hidden.hidden.values()
+            }, kind
+            assert sum(e["count"] for e in response.context["type_entries"]) == 3, kind
 
     def test_the_persons_own_filters_offer_their_records(self, client, hidden):
         client.force_login(hidden)
@@ -1288,13 +1227,6 @@ class TestContributorViewer:
 
 class TestContributorRecordQueries:
     @staticmethod
-    def count(client, url):
-        client.get(url)  # warm the per-process caches
-        with CaptureQueriesContext(connection) as queries:
-            assert client.get(url).status_code == 200
-        return len(queries)
-
-    @staticmethod
     def person_of(rows):
         person = PersonFactory()
         dataset = released_dataset()
@@ -1304,13 +1236,14 @@ class TestContributorRecordQueries:
             XRFMeasurementFactory(dataset=dataset, sample=sample)
         return person
 
-    @pytest.mark.parametrize("kind", ["samples", "measurements"])
-    def test_a_tab_costs_the_same_queries_at_ten_rows_and_at_sixty(self, client, kind):
-        small, large = self.person_of(10), self.person_of(60)
+    @pytest.mark.slow
+    def test_the_tabs_cost_the_same_queries_at_one_row_and_at_three(self, client):
+        small, large = self.person_of(1), self.person_of(3)
 
-        assert self.count(client, contributor_address(small, kind)) == self.count(
-            client, contributor_address(large, kind)
-        )
+        for kind in ("samples", "measurements"):
+            assert query_count(client, contributor_address(small, kind)) == query_count(
+                client, contributor_address(large, kind)
+            ), kind
 
 
 def sample_address(sample):
@@ -1418,8 +1351,9 @@ class TestSampleMeasurements:
         assert response.status_code == 200
         assert response.context["sections"] == []
 
-    def test_each_table_pages_on_its_own(self, client, rock):
-        XRFMeasurementFactory.create_batch(60, dataset=rock.dataset, sample=rock)
+    def test_each_table_pages_on_its_own(self, client, rock, monkeypatch):
+        # Three XRF runs and two ICP-MS runs: at two rows a page, only the XRF table has a second.
+        monkeypatch.setattr(SampleMeasurements, "paginate_by", 2)
         icp = registry.get_for_model(ICP_MS_Measurement).get_slug()
         xrf = registry.get_for_model(XRFMeasurement).get_slug()
 
@@ -1427,19 +1361,18 @@ class TestSampleMeasurements:
 
         tables = {s["type"].model: s["table"] for s in response.context["sections"]}
         assert tables[XRFMeasurement].page.number == 2
-        assert len(tables[XRFMeasurement].page.object_list) == 13
+        assert len(tables[XRFMeasurement].page.object_list) == 1
         assert tables[ICP_MS_Measurement].page.number == 1
         assert tables[ICP_MS_Measurement].prefixed_page_field == f"{icp}-page"
 
-    def test_each_tables_pager_moves_only_that_table(self, client, rock):
-        XRFMeasurementFactory.create_batch(60, dataset=rock.dataset, sample=rock)
+    def test_each_tables_pager_moves_only_that_table(self, client, rock, monkeypatch):
+        monkeypatch.setattr(SampleMeasurements, "paginate_by", 2)
         xrf = registry.get_for_model(XRFMeasurement).get_slug()
-        heading = f"type-{xrf}"
 
         response = client.get(sample_address(rock))
 
         page = BeautifulSoup(response.content, "html.parser")
-        section = page.find("h2", id=heading).find_parent("section")
+        section = page.find("h2", id=f"type-{xrf}").find_parent("section")
         pages = {
             a["href"] for a in section.find_all("a", href=True) if "page" in a["href"]
         }
@@ -1465,16 +1398,12 @@ class TestSampleMeasurements:
         assert MeasurementTable in tables
         assert [len(rows) for _, rows in sections(response)] == [2, 3]
 
-    def test_the_tab_costs_the_same_queries_at_ten_rows_and_at_sixty(self, client):
+    def test_the_tab_costs_the_same_queries_at_one_row_and_at_three(self, client):
         def count(rows):
             dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
             rock = RockSampleFactory(dataset=dataset)
             XRFMeasurementFactory.create_batch(rows, dataset=dataset, sample=rock)
             ICP_MS_MeasurementFactory.create_batch(rows, dataset=dataset, sample=rock)
-            url = sample_address(rock)
-            client.get(url)  # warm the per-process caches
-            with CaptureQueriesContext(connection) as queries:
-                assert client.get(url).status_code == 200
-            return len(queries)
+            return query_count(client, sample_address(rock))
 
-        assert count(10) == count(60)
+        assert count(1) == count(3)

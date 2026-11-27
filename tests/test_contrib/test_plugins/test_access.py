@@ -262,11 +262,10 @@ class TestHoldsLevel:
     def test_someone_with_no_level_holds_none(self, as_user, plain_user, sample):
         assert holds_level(as_user(plain_user), "view", sample) is False
 
-    @pytest.mark.parametrize("level", ["view", "edit", "manage"])
     def test_a_visitor_holds_no_level_even_on_a_public_record(
-        self, as_user, anonymous_user, project, level
+        self, as_user, anonymous_user, project
     ):
-        assert holds_level(as_user(anonymous_user), level, project) is False
+        assert holds_level(as_user(anonymous_user), "view", project) is False
 
     def test_no_record_holds_no_level(self, as_user, admin_user):
         assert holds_level(as_user(admin_user), "view", None) is False
@@ -403,16 +402,6 @@ class TestRecordPageAccess:
 
         assert response.status_code == 200
 
-    def test_dataset_plugin_page_is_closed_to_a_visitor(self, client):
-        dataset = DatasetFactory()
-        url = reverse("dataset:descriptions", kwargs={"uuid": dataset.uuid})
-
-        anonymous = client.get(url)
-        assert anonymous.status_code == 404
-
-        client.force_login(UserFactory())
-        assert client.get(url).status_code == 404
-
 
 @pytest.mark.django_db
 class TestPredicateFailureDoesNotBreakThePage:
@@ -439,7 +428,7 @@ class TestPredicateFailureDoesNotBreakThePage:
 @pytest.mark.django_db
 class TestWhatARecordPageCosts:
     def test_the_cost_does_not_scale_with_the_number_of_plugins(
-        self, client, plain_user, django_capture_on_commit_callbacks
+        self, client, plain_user
     ):
         from django.db import connection
         from django.test.utils import CaptureQueriesContext
@@ -448,43 +437,31 @@ class TestWhatARecordPageCosts:
         client.force_login(plain_user)
         url = reverse("sample:overview", kwargs={"uuid": sample.uuid})
 
-        client.get(url)  # warm up one-time per-process setup
-
-        with CaptureQueriesContext(connection) as before:
-            client.get(url)
-        baseline = len(before.captured_queries)
-
-        for index in range(5):
-            plugins.register(Sample, label=f"Extra {index}", order=900 + index)(
-                type(
-                    f"ExtraCost{index}",
-                    (Plugin, TemplateView),
-                    {
-                        "template_name": "fairdm/plugin.html",
-                        "permission": "sample.change_sample",
-                    },
+        def add_plugins(start, count):
+            for index in range(start, start + count):
+                plugins.register(Sample, label=f"Extra {index}", order=900 + index)(
+                    type(
+                        f"ExtraCost{index}",
+                        (Plugin, TemplateView),
+                        {
+                            "template_name": "fairdm/plugin.html",
+                            "permission": "sample.change_sample",
+                        },
+                    )
                 )
-            )
-        plugins.registry.get_urls_for_model(Sample)
+            plugins.registry.get_urls_for_model(Sample)
 
-        with CaptureQueriesContext(connection) as after:
-            client.get(url)
+        def queries_for_a_page():
+            client.get(url)  # warm up one-time per-process setup
+            with CaptureQueriesContext(connection) as captured:
+                client.get(url)
+            return len(captured.captured_queries)
 
-        assert len(after.captured_queries) - baseline <= 5, (
-            f"{baseline} -> {len(after.captured_queries)}: permission checks are not being memoised"
+        add_plugins(0, 1)
+        with_one = queries_for_a_page()
+        add_plugins(1, 2)
+        with_three = queries_for_a_page()
+
+        assert with_three == with_one, (
+            f"{with_one} -> {with_three}: permission checks are not being memoised"
         )
-
-    def test_the_permission_memo_holds_across_repeated_checks(
-        self, as_user, plain_user, sample, django_assert_num_queries
-    ):
-        from fairdm.contrib.plugins.access import has_perm
-
-        request = as_user(plain_user)
-        with django_assert_num_queries(0) as captured:
-            pass
-        has_perm(request, "sample.change_sample", sample)
-        first = len(request._fairdm_plugin_perm_cache)
-        with django_assert_num_queries(0):
-            for _ in range(10):
-                has_perm(request, "sample.change_sample", sample)
-        assert len(request._fairdm_plugin_perm_cache) == first

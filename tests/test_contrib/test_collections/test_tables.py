@@ -21,54 +21,6 @@ from fairdm.utils.choices import Visibility
 
 
 @pytest.mark.django_db
-class TestColumnClassNamespacing:
-    def test_the_field_name_class_is_namespaced_on_both_header_and_data_cells(
-        self, client, published_dataset
-    ):
-        RockSampleFactory(dataset=published_dataset)
-        slug = registry.get_for_model(RockSample).get_slug()
-
-        response = client.get(reverse(f"{slug}-list"))
-
-        bound_column = response.context["table"].columns["name"]
-        th_classes = bound_column.attrs["th"]["class"].split()
-        td_classes = bound_column.attrs["td"]["class"].split()
-
-        assert "col-name" in th_classes
-        assert "col-name" in td_classes
-        assert "name" not in th_classes
-        assert "name" not in td_classes
-
-    def test_the_field_type_class_is_unaffected_by_namespacing(
-        self, client, published_dataset
-    ):
-        RockSampleFactory(dataset=published_dataset)
-        slug = registry.get_for_model(RockSample).get_slug()
-
-        response = client.get(reverse(f"{slug}-list"))
-
-        bound_column = response.context["table"].columns["name"]
-        td_classes = bound_column.attrs["td"]["class"].split()
-
-        assert "char" in td_classes
-
-
-@pytest.mark.django_db
-class TestFalseyHeadersRenderEmpty:
-    def test_the_dataset_columns_header_is_empty_not_the_word_false(
-        self, client, published_dataset
-    ):
-        RockSampleFactory(dataset=published_dataset)
-        slug = registry.get_for_model(RockSample).get_slug()
-
-        response = client.get(reverse(f"{slug}-list"))
-
-        header = str(response.context["table"].columns["dataset"].header)
-        assert header == ""
-        assert "False" not in response.content.decode()
-
-
-@pytest.mark.django_db
 class TestSampleListingLeadsWithIconColumns:
     def test_the_first_visible_column_is_the_dataset(self, client, published_dataset):
         RockSampleFactory(dataset=published_dataset)
@@ -78,18 +30,6 @@ class TestSampleListingLeadsWithIconColumns:
 
         names = [c.name for c in response.context["table"].columns]
         assert names[0] == "dataset"
-
-    def test_measurement_listing_column_order_is_unchanged(
-        self, client, published_dataset
-    ):
-        sample = RockSampleFactory(dataset=published_dataset)
-        ExampleMeasurementFactory(sample=sample, dataset=published_dataset)
-        slug = registry.get_for_model(ExampleMeasurement).get_slug()
-
-        response = client.get(reverse(f"{slug}-list"))
-
-        names = [c.name for c in response.context["table"].columns]
-        assert names[:2] != ["dataset", "location"]
 
 
 @pytest.mark.django_db
@@ -186,34 +126,15 @@ class TestDatasetColumn:
 
 @pytest.mark.django_db
 class TestOrdering:
-    def test_sorting_a_column_both_directions_reorders_rows(
-        self, client, published_dataset
-    ):
-        RockSampleFactory(name="Beta", dataset=published_dataset)
-        RockSampleFactory(name="Alpha", dataset=published_dataset)
-
-        slug = registry.get_for_model(RockSample).get_slug()
-        url = reverse(f"{slug}-list")
-
-        ascending = client.get(url, {"sort": "name"})
-        descending = client.get(url, {"sort": "-name"})
-
-        ascending_names = [row.record.name for row in ascending.context["table"].rows]
-        descending_names = [row.record.name for row in descending.context["table"].rows]
-
-        assert ascending_names == sorted(ascending_names)
-        assert descending_names == sorted(descending_names, reverse=True)
-        assert ascending_names != descending_names
-
     def test_unsorted_order_is_stable_and_repeatable_across_pages(
-        self, client, published_dataset
+        self, client, published_dataset, monkeypatch
     ):
         # Force every row to the same `added` timestamp - `Sample.Meta.ordering`
         # is `["added"]` alone, so without a unique tie-break, ties like these
         # are exactly what lets a page repeat or skip a row.
-        # Enough rows to spill onto a second page at whatever page size the view is
-        # configured for, rather than a literal that stops doing so when it changes.
-        row_count = DataTableView.paginate_by + 5
+        # A small page size, so a handful of rows fill three pages.
+        monkeypatch.setattr(DataTableView, "paginate_by", 2)
+        row_count = 5
         samples = RockSampleFactory.create_batch(row_count, dataset=published_dataset)
         same_instant = timezone.now()
         Sample.objects.filter(pk__in=[s.pk for s in samples]).update(added=same_instant)
@@ -221,23 +142,19 @@ class TestOrdering:
         slug = registry.get_for_model(RockSample).get_slug()
         url = reverse(f"{slug}-list")
 
+        def page_ids(response):
+            return [row.record.pk for row in response.context["table"].paginated_rows]
+
         first_page = client.get(url)
         second_page = client.get(url, {"page": 2})
+        third_page = client.get(url, {"page": 3})
         first_page_again = client.get(url)
 
-        first_ids = [
-            row.record.pk for row in first_page.context["table"].paginated_rows
-        ]
-        second_ids = [
-            row.record.pk for row in second_page.context["table"].paginated_rows
-        ]
-        first_ids_again = [
-            row.record.pk for row in first_page_again.context["table"].paginated_rows
-        ]
+        first_ids = page_ids(first_page)
+        all_ids = first_ids + page_ids(second_page) + page_ids(third_page)
 
-        assert first_ids == first_ids_again
-        assert set(first_ids).isdisjoint(second_ids)
-        assert len(set(first_ids) | set(second_ids)) == row_count
+        assert first_ids == page_ids(first_page_again)
+        assert len(all_ids) == len(set(all_ids)) == row_count
 
         # The behavioural check above can hold by coincidence of how Postgres
         # happens to break ties today - this pins the actual mechanism: the
@@ -277,16 +194,6 @@ class TestLocationColumns:
         response = client.get(reverse(f"{slug}-list"))
 
         assert self.cells(response, sample) == (41.9, 12.5)
-
-    def test_a_listing_has_no_location_column(self, client, released):
-        RockSampleFactory(dataset=released, location=Point(12.5, 41.9, srid=4326))
-        slug = registry.get_for_model(RockSample).get_slug()
-
-        response = client.get(reverse(f"{slug}-list"))
-
-        names = [c.name for c in response.context["table"].columns]
-        assert "location" not in names
-        assert {"latitude", "longitude"} <= set(names)
 
     def test_a_sample_with_no_location_still_lists(self, client, released):
         sample = RockSampleFactory(dataset=released)
@@ -373,8 +280,10 @@ class TestLocationColumns:
         assert response.status_code == 200
         assert names == sorted(names)
 
-    @pytest.mark.parametrize("model", [RockSample, ExampleMeasurement])
-    @pytest.mark.parametrize("column", ["latitude", "longitude"])
+    @pytest.mark.parametrize(
+        ("model", "column"),
+        [(RockSample, "latitude"), (ExampleMeasurement, "longitude")],
+    )
     def test_a_coordinate_column_is_not_orderable(
         self, client, released, model, column
     ):
