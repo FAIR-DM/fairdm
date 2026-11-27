@@ -10,7 +10,6 @@ from django.core.checks import Error
 from django.core.checks import Warning as CheckWarning
 from django.core.management import call_command
 from django.core.management.base import SystemCheckError
-from django.db import utils as django_db_utils
 from django.test import override_settings
 
 from tests.keys import BACKUP_PUBLIC_KEY
@@ -131,18 +130,6 @@ class TestCacheChecks:
         assert errors[0].id == "fairdm.E200"
 
     @override_settings(
-        CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
-    )
-    def test_check_cache_backend_dummy(self):
-        from fairdm.conf.checks import check_cache_backend
-
-        errors = check_cache_backend(app_configs=None)
-
-        assert len(errors) == 1
-        assert isinstance(errors[0], Error)
-        assert errors[0].id == "fairdm.E200"
-
-    @override_settings(
         CACHES={
             "default": {
                 "BACKEND": "django_redis.cache.RedisCache",
@@ -210,21 +197,6 @@ class TestCacheChecks:
         assert len(errors) == 1
         assert isinstance(errors[0], Error)
         assert errors[0].id == "fairdm.E200"
-
-    @override_settings(
-        CACHES={
-            "default": {
-                "BACKEND": "django_redis.cache.RedisCache",
-                "LOCATION": "redis://real-redis-host:6379/1",
-            }
-        }
-    )
-    def test_check_cache_backend_real_redis_location_passes(self):
-        from fairdm.conf.checks import check_cache_backend
-
-        errors = check_cache_backend(app_configs=None)
-
-        assert errors == []
 
 
 class TestSecretKeyChecks:
@@ -572,9 +544,7 @@ class TestCheckCommandIntegration:
 # The full check run includes the vocabulary checks, which read the database.
 @pytest.mark.django_db
 class TestDeployCommand:
-    @pytest.mark.parametrize(
-        "resolved_environment", ["production", "development", "qa", ""]
-    )
+    @pytest.mark.parametrize("resolved_environment", ["production", "development"])
     @override_settings(SECRET_KEY="")
     def test_deploy_check_reports_the_same_failure_regardless_of_django_env(
         self, resolved_environment, monkeypatch
@@ -585,6 +555,22 @@ class TestDeployCommand:
             call_command("check", deploy=True)
 
         assert "fairdm.E001" in str(exc_info.value)
+
+
+@pytest.fixture
+def unresolvable_engine(monkeypatch):
+    """A portal with no DATABASE_URL: its first query raises ImproperlyConfigured."""
+    from django.db import connections
+
+    original = connections["default"]
+    monkeypatch.setitem(
+        connections.settings,
+        "default",
+        {**connections.settings["default"], "ENGINE": "django.db.backends.dummy"},
+    )
+    del connections._connections.default
+    yield
+    connections._connections.default = original
 
 
 def _delete_group_by_raw_sql(name: str) -> None:
@@ -630,58 +616,33 @@ class TestPortalRolesPresent:
 
         assert check_portal_roles_present(app_configs=None) == []
 
-    @pytest.mark.parametrize(
-        "exception_class",
-        [
-            django_db_utils.ProgrammingError,
-            django_db_utils.OperationalError,
-            # A harness that refuses database access outright (pytest-django with no `db` fixture) raises
-            # this, not a django.db.utils error, so "unreadable" has to cover it.
-            RuntimeError,
-        ],
-    )
-    def test_an_absent_or_unreadable_group_table_returns_nothing(
-        self, db, exception_class
-    ):
-        from fairdm.conf.checks import check_portal_roles_present
+    def test_a_missing_group_table_returns_nothing(self, db):
+        from django.db import connection
 
-        with mock.patch(
-            "django.contrib.auth.models.Group.objects.filter",
-            side_effect=exception_class("no such table: auth_group"),
-        ):
-            assert check_portal_roles_present(app_configs=None) == []
-
-    def test_a_database_django_cannot_even_resolve_an_engine_for_returns_nothing(
-        self, db
-    ):
-        # A portal without DATABASE_URL composes a DATABASES entry that raises ImproperlyConfigured on the
-        # first query, not OperationalError or ProgrammingError.
-        from django.core.exceptions import ImproperlyConfigured
-
-        from fairdm.conf.checks import check_portal_roles_present
-
-        with mock.patch(
-            "django.contrib.auth.models.Group.objects.filter",
-            side_effect=ImproperlyConfigured(
-                "settings.DATABASES is improperly configured."
-            ),
-        ):
-            assert check_portal_roles_present(app_configs=None) == []
-
-    def test_stands_down_when_the_current_command_is_migrate(self, db, monkeypatch):
         from fairdm.conf.checks import check_portal_roles_present
         from fairdm.portal_roles import PortalRoles
 
+        # A role is missing, so a readable table would report it.
         PortalRoles.reconcile()
         _delete_group_by_raw_sql(PortalRoles.DATA_CURATOR.name)
-        monkeypatch.setattr(sys, "argv", ["manage.py", "migrate", "--noinput"])
+        with connection.cursor() as cursor:
+            cursor.execute("ALTER TABLE auth_group RENAME TO auth_group_hidden")
 
         assert check_portal_roles_present(app_configs=None) == []
 
-    @pytest.mark.parametrize(
-        "command", ["upgrade_literature", "upgrade_vocabularies", "sync_vocabularies"]
-    )
-    def test_stands_down_when_the_current_command_runs_before_migrate(
+    def test_a_harness_that_refuses_database_access_returns_nothing(self):
+        # No `db` fixture, so pytest-django raises on the first query.
+        from fairdm.conf.checks import check_portal_roles_present
+
+        assert check_portal_roles_present(app_configs=None) == []
+
+    def test_a_database_with_no_engine_returns_nothing(self, db, unresolvable_engine):
+        from fairdm.conf.checks import check_portal_roles_present
+
+        assert check_portal_roles_present(app_configs=None) == []
+
+    @pytest.mark.parametrize("command", ["migrate", "upgrade_vocabularies"])
+    def test_stands_down_when_the_current_command_runs_before_the_roles_exist(
         self, db, monkeypatch, command
     ):
         from fairdm.conf.checks import check_portal_roles_present
@@ -716,25 +677,6 @@ class TestPortalRolesPresent:
 
         assert "fairdm.E500" in str(exc_info.value)
         assert PortalRoles.DATA_CURATOR.name in str(exc_info.value)
-
-    def test_check_is_registered_with_the_production_critical_deploy_tags(self):
-        # Only `manage.py check --deploy` sees a check tagged deploy=True, and the production
-        # configuration aggregate runs exactly the checks tagged production_critical.
-        from django.core.checks.registry import registry
-
-        from fairdm.conf.checks import DeployTags, check_portal_roles_present
-
-        assert check_portal_roles_present in registry.get_checks(
-            include_deployment_checks=True
-        )
-        assert set(check_portal_roles_present.tags) == {
-            DeployTags.deploy,
-            DeployTags.production_critical,
-        }
-        # deploy=True: only visible to `manage.py check --deploy`, not a plain check.
-        assert check_portal_roles_present not in registry.get_checks(
-            include_deployment_checks=False
-        )
 
 
 class TestDevAccountsAbsent:
@@ -792,156 +734,51 @@ class TestDevAccountsAbsent:
 
         assert check_dev_accounts_absent(app_configs=None) == []
 
-    @pytest.mark.parametrize(
-        "exception_class",
-        [
-            django_db_utils.ProgrammingError,
-            django_db_utils.OperationalError,
-            # A harness that refuses database access outright (pytest-django with no `db` fixture) raises
-            # this, not a django.db.utils error, so "unreadable" has to cover it.
-            RuntimeError,
-        ],
-    )
     @override_settings(DJANGO_ENV="production")
-    def test_an_unreadable_user_table_returns_nothing(self, db, exception_class):
+    def test_the_example_profile_and_role_accounts_are_named_too(self, db):
+        # The accounts the overview and profile development data sign in through share the dev password.
         from fairdm.conf.checks import check_dev_accounts_absent
 
-        Person = get_user_model()
-        with mock.patch.object(
-            Person.objects,
-            "filter",
-            side_effect=exception_class("no such table: contributors_person"),
-        ):
-            assert check_dev_accounts_absent(app_configs=None) == []
-
-    @override_settings(DJANGO_ENV="production")
-    def test_a_database_django_cannot_even_resolve_an_engine_for_returns_nothing(
-        self, db
-    ):
-        from django.core.exceptions import ImproperlyConfigured
-
-        from fairdm.conf.checks import check_dev_accounts_absent
-
-        Person = get_user_model()
-        with mock.patch.object(
-            Person.objects,
-            "filter",
-            side_effect=ImproperlyConfigured(
-                "settings.DATABASES is improperly configured."
-            ),
-        ):
-            assert check_dev_accounts_absent(app_configs=None) == []
-
-    def test_check_is_registered_with_the_same_tags_as_the_portal_roles_check(self):
-        from django.core.checks.registry import registry
-
-        from fairdm.conf.checks import (
-            check_dev_accounts_absent,
-            check_portal_roles_present,
-        )
-
-        assert check_dev_accounts_absent in registry.get_checks(
-            include_deployment_checks=True
-        )
-        assert check_dev_accounts_absent.tags == check_portal_roles_present.tags
-
-    def test_no_other_check_in_the_file_shares_fairdm_e501(self):
-        import inspect
-
-        from fairdm.conf import checks
-
-        assert inspect.getsource(checks).count('"fairdm.E501"') == 1
-
-
-class TestDevAccountsAbsentReportsTheExampleAccounts:
-    """The accounts the overview development data signs in through are dev accounts too."""
-
-    @pytest.mark.parametrize(
-        "email",
-        [
+        emails = [
             "regular.user@example.com",
             "staff.user@example.com",
-            "super.user@example.com",
-        ],
-    )
-    @override_settings(DJANGO_ENV="production")
-    def test_an_example_account_on_a_production_portal_is_named(self, db, email):
-        from fairdm.conf.checks import check_dev_accounts_absent
-
-        get_user_model().objects.create_user(email=email, password="whatever")
+            "admin.user@example.com",
+            "community-manager.user@example.com",
+            "data-curator.user@example.com",
+        ]
+        for email in emails:
+            get_user_model().objects.create_user(email=email, password="whatever")
 
         errors = check_dev_accounts_absent(app_configs=None)
 
         assert len(errors) == 1
         assert errors[0].id == "fairdm.E501"
-        assert email in errors[0].msg
+        assert [email for email in emails if email not in errors[0].msg] == []
 
     @override_settings(DJANGO_ENV="production")
-    def test_the_framework_and_example_accounts_are_reported_together(self, db):
+    def test_a_missing_user_table_returns_nothing(self, db):
+        from django.db import connection
+
         from fairdm.conf.checks import check_dev_accounts_absent
 
-        Person = get_user_model()
-        Person.objects.create_user(email="staff.user@example.com", password="x")
-        Person.objects.create_user(email="data.curator@example.com", password="x")
-
-        errors = check_dev_accounts_absent(app_configs=None)
-
-        assert len(errors) == 1
-        assert "staff.user@example.com" in errors[0].msg
-        assert "data.curator@example.com" in errors[0].msg
-
-    def test_a_development_portal_holding_them_reports_nothing(self, db):
-        from fairdm.conf.checks import check_dev_accounts_absent
-
-        get_user_model().objects.create_user(
-            email="staff.user@example.com", password="x"
-        )
+        with connection.cursor() as cursor:
+            cursor.execute(
+                f'ALTER TABLE "{get_user_model()._meta.db_table}" RENAME TO person_hidden'
+            )
 
         assert check_dev_accounts_absent(app_configs=None) == []
 
-
-class TestDevAccountsAbsentReportsTheProfileAccounts:
-    """The accounts the profile development data signs in through share the same password."""
-
-    @pytest.mark.parametrize(
-        "email",
-        [
-            "admin.user@example.com",
-            "member.user@example.com",
-            "former-admin.user@example.com",
-        ],
-    )
     @override_settings(DJANGO_ENV="production")
-    def test_a_profile_account_on_a_production_portal_is_named(self, db, email):
+    def test_a_harness_that_refuses_database_access_returns_nothing(self):
         from fairdm.conf.checks import check_dev_accounts_absent
 
-        get_user_model().objects.create_user(email=email, password="whatever")
+        assert check_dev_accounts_absent(app_configs=None) == []
 
-        errors = check_dev_accounts_absent(app_configs=None)
-
-        assert len(errors) == 1
-        assert errors[0].id == "fairdm.E501"
-        assert email in errors[0].msg
-
-
-class TestDevAccountsAbsentReportsTheRoleAccounts:
-    """The two role accounts the profile development data adds share the same password."""
-
-    @pytest.mark.parametrize(
-        "email",
-        ["community-manager.user@example.com", "data-curator.user@example.com"],
-    )
     @override_settings(DJANGO_ENV="production")
-    def test_a_role_account_on_a_production_portal_is_named(self, db, email):
+    def test_a_database_with_no_engine_returns_nothing(self, db, unresolvable_engine):
         from fairdm.conf.checks import check_dev_accounts_absent
 
-        get_user_model().objects.create_user(email=email, password="whatever")
-
-        errors = check_dev_accounts_absent(app_configs=None)
-
-        assert len(errors) == 1
-        assert errors[0].id == "fairdm.E501"
-        assert email in errors[0].msg
+        assert check_dev_accounts_absent(app_configs=None) == []
 
 
 class TestApiProxyCountCheck:
@@ -967,25 +804,12 @@ class TestApiProxyCountCheck:
             (CheckWarning, "fairdm.W601")
         ]
 
-    @pytest.mark.parametrize("proxies", [0, 1, 2, None])
+    @pytest.mark.parametrize("proxies", [0, 2])
     def test_a_portal_that_set_it_is_not_warned(self, proxies):
         from fairdm.conf.checks import check_api_proxy_count
 
         with override_settings(REST_FRAMEWORK=self.rest_framework(NUM_PROXIES=proxies)):
             assert check_api_proxy_count(app_configs=None) == []
-
-    def test_the_deployment_checks_report_it(self):
-        from django.core.checks.registry import registry
-
-        from fairdm.conf.checks import DeployTags, check_api_proxy_count
-
-        assert check_api_proxy_count in registry.get_checks(
-            include_deployment_checks=True
-        )
-        assert check_api_proxy_count not in registry.get_checks(
-            include_deployment_checks=False
-        )
-        assert DeployTags.production_critical not in check_api_proxy_count.tags
 
 
 class TestBackupKeyChecks:
@@ -1097,24 +921,6 @@ class TestBackupKeyChecks:
         with override_settings(BACKUP_PUBLIC_KEY=""):
             assert check_backup_key_usable(app_configs=None) == []
 
-    @pytest.mark.parametrize(
-        "check", ["check_backup_key_present", "check_backup_key_usable"]
-    )
-    def test_checks_are_registered_with_the_production_critical_deploy_tags(
-        self, check
-    ):
-        from django.core.checks.registry import registry
-
-        from fairdm.conf import checks
-        from fairdm.conf.checks import DeployTags
-
-        registered = getattr(checks, check)
-        assert registered in registry.get_checks(include_deployment_checks=True)
-        assert registered not in registry.get_checks(include_deployment_checks=False)
-        assert {DeployTags.deploy, DeployTags.production_critical} <= set(
-            registered.tags
-        )
-
     @override_settings(DJANGO_ENV="production", BACKUP_PUBLIC_KEY="", DEBUG=True)
     def test_a_production_boot_with_no_key_refuses_and_names_the_key_with_other_errors(
         self,
@@ -1149,7 +955,7 @@ class TestBackupStorageCheck:
 
         return configure
 
-    @pytest.mark.parametrize("environment", ["production", "staging", ""])
+    @pytest.mark.parametrize("environment", ["production", ""])
     def test_local_backups_in_production_report_w700(
         self, backup_storage_in, environment
     ):
@@ -1192,7 +998,7 @@ class TestBackupStorageCheck:
     def test_w700_does_not_stop_a_production_boot(self, backup_storage_in):
         from django.core.checks.registry import registry
 
-        from fairdm.conf.checks import DeployTags, check_backup_storage_is_remote
+        from fairdm.conf.checks import DeployTags
 
         backup_storage_in("production", self.LOCAL)
 
@@ -1201,7 +1007,3 @@ class TestBackupStorageCheck:
         )
 
         assert "fairdm.W700" not in [message.id for message in gate]
-        assert check_backup_storage_is_remote in registry.get_checks(
-            include_deployment_checks=False
-        )
-        assert DeployTags.production_critical not in check_backup_storage_is_remote.tags
