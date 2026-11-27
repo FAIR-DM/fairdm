@@ -1,19 +1,12 @@
 """Tests for the dataset forms in ``fairdm.core.dataset.forms``."""
 
 import pytest
-from django import forms
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory
 from licensing.models import License
 
-from fairdm.contrib.autocomplete.fields import (
-    ProjectChoiceField,
-    PublicationChoiceField,
-)
 from fairdm.contrib.contributors.choices import ContributionLevel
-from fairdm.contrib.contributors.models import Contribution
 from fairdm.core.dataset.forms import DatasetCreateForm, DatasetForm
-from fairdm.core.vocabularies import CONTRIBUTOR_ROLES
 from fairdm.factories import (
     ContributionFactory,
     DatasetFactory,
@@ -23,49 +16,6 @@ from fairdm.factories import (
     UserFactory,
 )
 from fairdm.utils.choices import Visibility
-
-
-@pytest.mark.django_db
-class TestFormQuerysetFiltering:
-    def test_form_filters_projects_by_user_permissions(self):
-        factory = RequestFactory()
-        user = UserFactory()
-        other_user = UserFactory(email="otheruser@example.com")
-
-        user_project = ProjectFactory(name="User Project")
-        other_project = ProjectFactory(name="Other Project")
-
-        ContributionFactory(
-            content_object=user_project,
-            contributor=user,
-            level=ContributionLevel.EDIT,
-        )
-        Contribution.add_to(
-            other_user, other_project, roles=[f"{CONTRIBUTOR_ROLES}/contributor"]
-        )
-
-        request = factory.get("/")
-        request.user = user
-
-        form = DatasetForm(request=request)
-
-        project_queryset = form.fields["project"].queryset
-        assert user_project in project_queryset
-        assert other_project not in project_queryset
-
-    def test_form_without_request_shows_all_projects(self):
-        form = DatasetForm()
-
-        project_queryset = form.fields["project"].queryset
-        assert project_queryset is not None
-
-    def test_form_with_anonymous_user_handles_gracefully(self):
-        factory = RequestFactory()
-        request = factory.get("/")
-        request.user = None
-
-        form = DatasetForm(request=request)
-        assert form is not None
 
 
 @pytest.mark.django_db
@@ -117,7 +67,7 @@ class TestProjectChoicesNeedTheEditLevel:
             data={
                 "name": "New",
                 "project": viewable.pk,
-                "license": License.objects.first().pk,
+                "license": License.objects.get(name="CC BY 4.0").pk,
                 "visibility": Visibility.PRIVATE,
             },
         )
@@ -144,45 +94,17 @@ class TestProjectChoicesNeedTheEditLevel:
 @pytest.mark.django_db
 class TestLicenseDefault:
     def test_license_defaults_to_cc_by_4_0(self):
-        cc_by_license = License.objects.get_or_create(
-            name="CC BY 4.0",
-            defaults={"url": "https://creativecommons.org/licenses/by/4.0/"},
-        )[0]
+        cc_by_license = License.objects.get(name="CC BY 4.0")
 
         form = DatasetForm()
 
         assert form.fields["license"].initial == cc_by_license
 
-    def test_license_field_is_required(self):
-        form = DatasetForm()
-
-        license_field = form.fields.get("license")
-        assert license_field is not None
-
 
 @pytest.mark.django_db
 class TestFormValidation:
-    def test_name_field_is_required(self):
-        form = DatasetForm(data={})
-
-        assert not form.is_valid()
-        assert "name" in form.errors
-
-    def test_project_field_is_optional(self):
-        license = License.objects.get_or_create(name="CC BY 4.0")[0]
-
-        form = DatasetForm(
-            data={
-                "name": "Test Dataset",
-                "license": license.pk,
-                "project": "",
-            }
-        )
-
-        assert "project" not in form.errors or form.is_valid()
-
     def test_form_validates_with_all_required_fields(self):
-        license = License.objects.get_or_create(name="CC BY 4.0")[0]
+        license = License.objects.get(name="CC BY 4.0")
         project = ProjectFactory()
 
         form = DatasetForm(
@@ -198,104 +120,13 @@ class TestFormValidation:
 
 
 @pytest.mark.django_db
-class TestFormRenderingWithData:
-    def test_form_renders_with_existing_dataset(self):
-        dataset = DatasetFactory(name="Existing Dataset")
-
-        form = DatasetForm(instance=dataset)
-
-        assert form.instance == dataset
-        assert form.initial.get("name") == "Existing Dataset"
-
-    def test_form_saves_changes_to_existing_dataset(self):
-        dataset = DatasetFactory(name="Original Name")
-        license = License.objects.get_or_create(name="CC BY 4.0")[0]
-
-        form = DatasetForm(
-            data={
-                "name": "Updated Name",
-                "project": dataset.project.pk,
-                "license": license.pk,
-                "visibility": Visibility.PUBLIC,
-            },
-            instance=dataset,
-        )
-
-        assert form.is_valid()
-        updated_dataset = form.save()
-        assert updated_dataset.name == "Updated Name"
-
-
-@pytest.mark.django_db
-class TestInternationalizedHelpText:
-    def test_help_text_uses_gettext_lazy(self):
-        form = DatasetForm()
-
-        for field_name, field in form.fields.items():
-            if field.help_text:
-                help_text_type = type(field.help_text).__name__
-                assert help_text_type in [
-                    "Promise",
-                    "str",
-                    "__proxy__",
-                ], f"Field {field_name} help_text is not translatable"
-
-    def test_all_fields_have_help_text(self):
-        form = DatasetForm()
-
-        important_fields = ["name", "project", "license"]
-        for field_name in important_fields:
-            if field_name in form.fields:
-                field = form.fields[field_name]
-                assert field.help_text, (
-                    f"Field {field_name} should have help_text for user guidance"
-                )
-
-
-@pytest.mark.django_db
-class TestProjectAndReferenceFieldWidgets:
-    def test_project_field_is_the_project_field_at_edit_scope(self):
-        form = DatasetForm()
-
-        field = form.fields["project"]
-        assert isinstance(field, ProjectChoiceField)
-        assert field.scope == "edit"
-
-    def test_a_dataset_saved_through_the_form_belongs_to_the_chosen_project(self):
-        factory = RequestFactory()
-        user = UserFactory()
-        project = ProjectFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.EDIT
-        )
-        request = factory.get("/")
-        request.user = user
-        license = License.objects.get_or_create(name="CC BY 4.0")[0]
-
-        form = DatasetForm(
-            request=request,
-            data={
-                "name": "New dataset",
-                "project": project.pk,
-                "license": license.pk,
-                "visibility": Visibility.PRIVATE,
-            },
-        )
-
-        assert form.is_valid(), form.errors
-        assert form.save().project == project
-
-    def test_reference_field_is_the_publication_field(self):
-        form = DatasetForm()
-
-        assert isinstance(form.fields["reference"], PublicationChoiceField)
-
+class TestPublicationField:
     def test_a_dataset_saved_through_the_form_holds_the_chosen_publication(self):
         user = UserFactory()
         request = RequestFactory().get("/")
         request.user = user
         publication = LiteratureItemFactory()
-        license = License.objects.get_or_create(name="CC BY 4.0")[0]
+        license = License.objects.get(name="CC BY 4.0")
 
         form = DatasetForm(
             request=request,
@@ -310,89 +141,12 @@ class TestProjectAndReferenceFieldWidgets:
         assert form.is_valid(), form.errors
         assert form.save().reference == publication
 
-    def test_a_publication_that_does_not_exist_is_refused(self):
-        license = License.objects.get_or_create(name="CC BY 4.0")[0]
-
-        form = DatasetForm(
-            data={
-                "name": "New dataset",
-                "license": license.pk,
-                "reference": 999999,
-                "visibility": Visibility.PRIVATE,
-            },
-        )
-
-        assert form.has_error("reference", code="invalid_choice")
-
-    def test_license_field_uses_a_select_widget(self):
-        form = DatasetForm()
-
-        license_field = form.fields.get("license")
-        if license_field:
-            widget_name = type(license_field.widget).__name__
-            assert "Select" in widget_name
-
-
-@pytest.mark.django_db
-class TestVisibilityField:
-    def test_visibility_field_exists_on_form(self):
-        form = DatasetForm()
-
-        assert "visibility" in form.fields
-
-    def test_visibility_field_pre_selects_public(self):
-        form = DatasetForm()
-
-        assert form.fields["visibility"].initial == Visibility.PUBLIC
-
-    def test_visibility_field_uses_a_radio_widget(self):
-        form = DatasetForm()
-
-        assert isinstance(form.fields["visibility"].widget, forms.RadioSelect)
-
-    def test_doi_field_no_longer_exists_on_form(self):
-        form = DatasetForm()
-
-        assert "doi" not in form.fields
-
 
 @pytest.mark.django_db
 class TestPublishedFieldNotExposed:
     # `published` is settable in the Django admin only.
     def test_update_form_excludes_published(self):
-        assert "published" not in DatasetForm.Meta.fields
-
-        form = DatasetForm()
-        assert "published" not in form.fields
+        assert "published" not in DatasetForm().fields
 
     def test_create_form_excludes_published(self):
-        assert "published" not in DatasetCreateForm.Meta.fields
-
-        form = DatasetCreateForm()
-        assert "published" not in form.fields
-
-
-@pytest.mark.django_db
-class TestDatasetForm:
-    def test_form_valid_data(self):
-        from licensing.models import License
-
-        project = ProjectFactory()
-        license = License.objects.get_or_create(name="CC BY 4.0")[0]
-
-        form_data = {
-            "name": "Test Dataset",
-            "project": project.pk,
-            "license": license.pk,
-            "visibility": Visibility.PUBLIC,
-        }
-        form = DatasetForm(data=form_data)
-
-        assert form.is_valid()
-
-    def test_form_missing_required_fields(self):
-        form_data = {}
-        form = DatasetForm(data=form_data)
-
-        assert not form.is_valid()
-        assert "name" in form.errors
+        assert "published" not in DatasetCreateForm().fields

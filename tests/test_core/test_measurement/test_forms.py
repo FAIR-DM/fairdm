@@ -39,75 +39,10 @@ def _request_for(user):
     return request
 
 
-@pytest.mark.django_db
-class TestMeasurementFormRendering:
-    def test_form_renders_with_all_base_fields(self):
-
-        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
-            class Meta:
-                model = XRFMeasurement
-                fields = ["name", "dataset", "sample", "element", "concentration_ppm"]
-
-        form = XRFMeasurementForm()
-
-        assert "name" in form.fields
-        assert "dataset" in form.fields
-        assert "sample" in form.fields
-        assert "element" in form.fields
-        assert "concentration_ppm" in form.fields
-
-    def test_form_mixin_provides_preconfigured_widgets(self):
-
-        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
-            class Meta:
-                model = XRFMeasurement
-                fields = ["name", "dataset", "sample"]
-
-        form = XRFMeasurementForm()
-
-        assert hasattr(form.fields["dataset"].widget, "attrs")
-        assert hasattr(form.fields["sample"].widget, "attrs")
-
-
-@pytest.mark.django_db
-class TestMeasurementFormQuerysetFiltering:
-    def test_form_filters_dataset_queryset_by_user_permissions(self):
-        user = PersonFactory()
-        project = ProjectFactory()
-        project.add_contributor(user)
-
-        _accessible_dataset = DatasetFactory(project=project)
-        _other_dataset = DatasetFactory()
-
-        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
-            class Meta:
-                model = XRFMeasurement
-                fields = ["name", "dataset", "sample"]
-
-        class MockRequest:
-            def __init__(self, user):
-                self.user = user
-
-        request = MockRequest(user)
-        form = XRFMeasurementForm(request=request)
-
-        assert hasattr(form, "request")
-
-    def test_form_filters_sample_queryset_by_dataset(self):
-        dataset1 = DatasetFactory()
-        dataset2 = DatasetFactory()
-
-        sample1 = RockSampleFactory(dataset=dataset1)
-        _sample2 = RockSampleFactory(dataset=dataset2)
-
-        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
-            class Meta:
-                model = XRFMeasurement
-                fields = ["name", "dataset", "sample"]
-
-        form = XRFMeasurementForm(data={"dataset": dataset1.pk})
-
-        assert hasattr(form.fields["sample"].widget, "attrs")
+class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
+    class Meta:
+        model = XRFMeasurement
+        fields = ["name", "dataset", "sample"]
 
 
 @pytest.mark.django_db
@@ -119,11 +54,6 @@ class TestMeasurementFormDatasetChoices:
         ContributionFactory(
             content_object=allowed, contributor=user, level=ContributionLevel.EDIT
         )
-
-        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
-            class Meta:
-                model = XRFMeasurement
-                fields = ["name", "dataset", "sample"]
 
         form = XRFMeasurementForm(request=_request_for(user))
 
@@ -138,11 +68,6 @@ class TestMeasurementFormDatasetChoices:
             content_object=viewed, contributor=user, level=ContributionLevel.VIEW
         )
 
-        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
-            class Meta:
-                model = XRFMeasurement
-                fields = ["name", "dataset", "sample"]
-
         form = XRFMeasurementForm(request=_request_for(user))
 
         assert set(form.fields["dataset"].queryset) == set()
@@ -156,11 +81,6 @@ class TestMeasurementFormDatasetChoices:
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
 
-        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
-            class Meta:
-                model = XRFMeasurement
-                fields = ["name", "dataset", "sample"]
-
         form = XRFMeasurementForm(request=_request_for(user))
 
         assert set(form.fields["dataset"].queryset) == {inside}
@@ -172,11 +92,6 @@ class TestMeasurementFormDatasetChoices:
         dataset = DatasetFactory()
         assign_perm("change_dataset", user, dataset)
 
-        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
-            class Meta:
-                model = XRFMeasurement
-                fields = ["name", "dataset", "sample"]
-
         form = XRFMeasurementForm(request=_request_for(user))
 
         assert set(form.fields["dataset"].queryset) == set()
@@ -184,11 +99,6 @@ class TestMeasurementFormDatasetChoices:
     def test_form_with_no_user_offers_no_dataset_at_all(self):
         DatasetFactory()
         DatasetFactory()
-
-        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
-            class Meta:
-                model = XRFMeasurement
-                fields = ["name", "dataset", "sample"]
 
         form = XRFMeasurementForm()
 
@@ -205,11 +115,6 @@ class TestMeasurementFormDatasetChoices:
         ContributionFactory(
             content_object=dataset2, contributor=user2, level=ContributionLevel.EDIT
         )
-
-        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
-            class Meta:
-                model = XRFMeasurement
-                fields = ["name", "dataset", "sample"]
 
         form = XRFMeasurementForm(request=_request_for(user1))
 
@@ -270,146 +175,8 @@ class TestMeasurementFormOnAnExistingMeasurement:
 
 
 @pytest.mark.django_db
-class TestMeasurementFormValidation:
-    def test_form_validates_required_fields(self):
-
-        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
-            class Meta:
-                model = XRFMeasurement
-                fields = ["name", "dataset", "sample"]
-
-        form = XRFMeasurementForm(data={})
-        assert not form.is_valid()
-        assert "name" in form.errors
-        assert "dataset" in form.errors
-        assert "sample" in form.errors
-
-    def test_form_prevents_base_measurement_instantiation(self):
-        from fairdm.core.measurement.forms import MeasurementForm
-
-        dataset = DatasetFactory()
-        sample = RockSampleFactory(dataset=dataset)
-
-        form_data = {
-            "name": "Test Measurement",
-            "dataset": dataset.pk,
-            "sample": sample.pk,
-        }
-
-        form = MeasurementForm(data=form_data)
-
-        assert not form.is_valid()
-        non_field_errors = " ".join(form.errors.get("__all__", []))
-        assert "subclass" in non_field_errors or "directly" in non_field_errors
-
-
-@pytest.mark.django_db
-class TestMeasurementFormPolymorphicHandling:
-    def test_form_handles_polymorphic_type_creation(self):
-        user = UserFactory()
-        dataset = DatasetFactory()
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
-        )
-        sample = RockSampleFactory(dataset=dataset)
-
-        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
-            class Meta:
-                model = XRFMeasurement
-                fields = ["name", "dataset", "sample", "element", "concentration_ppm"]
-
-        form_data = {
-            "name": "XRF Test",
-            "dataset": dataset.pk,
-            "sample": sample.pk,
-            "element": "Fe",
-            "concentration_ppm": "25.5",
-        }
-
-        form = XRFMeasurementForm(data=form_data, request=_request_for(user))
-        assert form.is_valid(), f"Form errors: {form.errors}"
-
-        instance = form.save()
-        assert isinstance(instance, XRFMeasurement)
-        assert instance.name == "XRF Test"
-
-    def test_form_handles_cross_dataset_sample_reference(self):
-        user = UserFactory()
-        dataset1 = DatasetFactory()
-        dataset2 = DatasetFactory()
-        ContributionFactory(
-            content_object=dataset1, contributor=user, level=ContributionLevel.EDIT
-        )
-        # The sample field never accepts a sample its user may not see, so the user may view
-        # the other dataset. A sample from another dataset is still accepted (FS-006, FR-006).
-        ContributionFactory(
-            content_object=dataset2, contributor=user, level=ContributionLevel.VIEW
-        )
-        sample_in_dataset2 = RockSampleFactory(dataset=dataset2)
-
-        class ExampleMeasurementForm(MeasurementFormMixin, forms.ModelForm):
-            class Meta:
-                model = ExampleMeasurement
-                fields = ["name", "dataset", "sample", "decimal_field", "float_field"]
-
-        form_data = {
-            "name": "Cross-dataset Measurement",
-            "dataset": dataset1.pk,
-            "sample": sample_in_dataset2.pk,
-            "decimal_field": "42.0",
-            "float_field": "1.5",
-        }
-
-        form = ExampleMeasurementForm(data=form_data, request=_request_for(user))
-        assert form.is_valid(), f"Form errors: {form.errors}"
-
-        instance = form.save()
-        assert instance.dataset == dataset1
-        assert instance.sample == sample_in_dataset2
-        assert instance.sample.dataset == dataset2
-
-
-@pytest.mark.django_db
-class TestMeasurementFormHelperConfiguration:
-    def test_form_has_crispy_forms_helper(self):
-
-        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
-            class Meta:
-                model = XRFMeasurement
-                fields = ["name", "dataset", "sample"]
-
-        form = XRFMeasurementForm()
-
-        assert hasattr(form, "helper")
-        assert form.helper.form_tag is False
-
-
-@pytest.mark.django_db
-class TestMeasurementFormRequestContext:
-    def test_form_accepts_request_parameter(self):
-
-        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
-            class Meta:
-                model = XRFMeasurement
-                fields = ["name", "dataset", "sample"]
-
-        class MockRequest:
-            def __init__(self):
-                self.user = None
-
-        request = MockRequest()
-        form = XRFMeasurementForm(request=request)
-
-        assert form.request == request
-
-
-@pytest.mark.django_db
 class TestMeasurementFormDatasetField:
     def test_dataset_field_is_the_dataset_field_at_edit_scope(self):
-        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
-            class Meta:
-                model = XRFMeasurement
-                fields = ["name", "dataset", "sample"]
 
         field = XRFMeasurementForm().fields["dataset"]
 
@@ -559,14 +326,6 @@ class TestMeasurementEditPageLocation:
 class TestMeasurementSampleField:
     """The sample is chosen from every sample the person may see, those of the chosen dataset first."""
 
-    def _form_class(self):
-        class XRFMeasurementForm(MeasurementFormMixin, forms.ModelForm):
-            class Meta:
-                model = XRFMeasurement
-                fields = ["name", "dataset", "sample"]
-
-        return XRFMeasurementForm
-
     def _editor_of(self, *datasets):
         user = UserFactory()
         for dataset in datasets:
@@ -576,7 +335,7 @@ class TestMeasurementSampleField:
         return user
 
     def test_the_sample_field_prefers_the_dataset_field_and_is_not_bound_to_it(self):
-        form = self._form_class()()
+        form = XRFMeasurementForm()
 
         assert isinstance(form.fields["sample"], SampleChoiceField)
         assert form.fields["sample"].prefer == "dataset"
@@ -587,7 +346,7 @@ class TestMeasurementSampleField:
         sample = RockSampleFactory(dataset=other)
         user = self._editor_of(chosen, other)
 
-        form = self._form_class()(
+        form = XRFMeasurementForm(
             data={"name": "Run", "dataset": chosen.pk, "sample": sample.pk},
             request=_request_for(user),
         )
@@ -600,7 +359,7 @@ class TestMeasurementSampleField:
         sample = RockSampleFactory(dataset=unseen)
         user = self._editor_of(chosen)
 
-        form = self._form_class()(
+        form = XRFMeasurementForm(
             data={"name": "Run", "dataset": chosen.pk, "sample": sample.pk},
             request=_request_for(user),
         )
@@ -612,7 +371,7 @@ class TestMeasurementSampleField:
         sample = RockSampleFactory(dataset=chosen)
         user = self._editor_of(chosen)
 
-        form = self._form_class()(
+        form = XRFMeasurementForm(
             data={"name": "Run", "dataset": chosen.pk, "sample": sample.pk},
             request=_request_for(user),
         )

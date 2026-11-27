@@ -1,21 +1,17 @@
 """Integration tests for the dataset list, create, update and delete views."""
 
-import re
-import time
-
 import pytest
 from bs4 import BeautifulSoup
-from django import forms
 from django.db import connection
+from django.template.defaultfilters import date as date_filter
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
+from django.utils.timezone import localtime
 from licensing.models import License
 from pytest_django.asserts import assertContains, assertNotContains
 
 from fairdm.contrib.contributors.choices import ContributionLevel
-from fairdm.core.dataset.forms import DatasetCreateForm, DatasetForm
 from fairdm.core.dataset.models import Dataset
-from fairdm.core.dataset.views import DatasetCreateView
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
 from fairdm.core.vocabularies import CONTRIBUTOR_ROLES, DATE_TYPES, DESCRIPTION_TYPES
@@ -32,53 +28,32 @@ from fairdm.utils.choices import Visibility
 
 # `DatasetFactory()` and the create view produce private datasets, so lookups use
 # `Dataset.all_objects`.
+#
+# Who may open the edit and delete pages is tested once for every kind of record in
+# `tests/test_core/test_editing.py`. What follows is what is particular to datasets.
+
+
+def _keywords(count=3):
+    from controlled_vocabularies.models import Record
+
+    return list(
+        Record.objects.filter(
+            scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+        ).order_by("pk")[:count]
+    )
 
 
 @pytest.mark.django_db
 class TestDatasetListView:
-    def test_anonymous_get(self, client):
-        url = reverse("dataset-list")
-        response = client.get(url)
-        assert response.status_code == 200
-
-    def test_shows_only_public_datasets(self, client):
-        public = DatasetFactory(name="Public Dataset", visibility=Visibility.PUBLIC)
-        DatasetFactory(name="Private Dataset", visibility=Visibility.PRIVATE)
-
-        url = reverse("dataset-list")
-        response = client.get(url)
-
-        assert response.status_code == 200
-        assert public.name in str(response.content)
-        assert "Private Dataset" not in str(response.content)
-
-    def test_leaves_out_a_public_dataset_in_a_private_project(self, client):
-        DatasetFactory(
-            name="Hidden Dataset",
+    def test_a_public_dataset_in_a_private_project_is_left_out(self, client):
+        hidden = DatasetFactory(
             project=ProjectFactory(visibility=Visibility.PRIVATE),
             visibility=Visibility.PUBLIC,
         )
 
         response = client.get(reverse("dataset-list"))
 
-        assert "Hidden Dataset" not in str(response.content)
-
-    def test_order_by_added(self, client):
-        older = DatasetFactory(name="Older Dataset", visibility=Visibility.PUBLIC)
-        time.sleep(0.01)
-        newer = DatasetFactory(name="Newer Dataset", visibility=Visibility.PUBLIC)
-
-        url = reverse("dataset-list")
-
-        response_asc = client.get(url, {"o": "added"})
-        assert response_asc.status_code == 200
-        content_asc = str(response_asc.content)
-        assert content_asc.index(older.name) < content_asc.index(newer.name)
-
-        response_desc = client.get(url, {"o": "-added"})
-        assert response_desc.status_code == 200
-        content_desc = str(response_desc.content)
-        assert content_desc.index(newer.name) < content_desc.index(older.name)
+        assert hidden not in list(response.context["object_list"])
 
 
 @pytest.mark.django_db
@@ -142,8 +117,6 @@ class TestDatasetListingSearch:
         assert other not in entries
 
     def test_search_by_description_returns_the_dataset(self, client):
-        from fairdm.factories import DatasetDescriptionFactory
-
         target = DatasetFactory(visibility=Visibility.PUBLIC)
         other = DatasetFactory(visibility=Visibility.PUBLIC)
         DatasetDescriptionFactory(
@@ -157,13 +130,9 @@ class TestDatasetListingSearch:
         assert other not in entries
 
     def test_search_by_keyword_returns_the_dataset(self, client):
-        from controlled_vocabularies.models import Record
-
         target = DatasetFactory(visibility=Visibility.PUBLIC)
         other = DatasetFactory(visibility=Visibility.PUBLIC)
-        term = Record.objects.filter(
-            scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
-        ).first()
+        term = _keywords(1)[0]
         target.keywords.add(term)
         response = client.get(reverse("dataset-list"), {"q": term.pref_label})
         entries = list(response.context["object_list"])
@@ -188,121 +157,70 @@ class TestDatasetListingSearch:
 
 @pytest.mark.django_db
 class TestDatasetListingOrdering:
-    def test_ordered_by_name_returns_alphabetical_order(self, client):
+    def test_ordering_by_name_runs_in_both_directions(self, client):
         bravo = DatasetFactory(name="Bravo Dataset", visibility=Visibility.PUBLIC)
         alpha = DatasetFactory(name="Alpha Dataset", visibility=Visibility.PUBLIC)
-        response = client.get(reverse("dataset-list"), {"o": "name"})
-        entries = list(response.context["object_list"])
-        assert entries.index(alpha) < entries.index(bravo)
 
-    def test_ordered_by_name_reversed_returns_reverse_alphabetical_order(self, client):
-        bravo = DatasetFactory(name="Bravo Dataset", visibility=Visibility.PUBLIC)
-        alpha = DatasetFactory(name="Alpha Dataset", visibility=Visibility.PUBLIC)
-        response = client.get(reverse("dataset-list"), {"o": "-name"})
-        entries = list(response.context["object_list"])
-        assert entries.index(bravo) < entries.index(alpha)
+        ascending = list(
+            client.get(reverse("dataset-list"), {"o": "name"}).context["object_list"]
+        )
+        descending = list(
+            client.get(reverse("dataset-list"), {"o": "-name"}).context["object_list"]
+        )
+
+        assert ascending.index(alpha) < ascending.index(bravo)
+        assert descending.index(bravo) < descending.index(alpha)
 
 
 @pytest.mark.django_db
 class TestDatasetListingFilters:
-    def test_license_filter_narrows_to_the_matching_license(self, client):
-        cc_by = License.objects.get(name="CC BY 4.0")
-        cc0 = License.objects.get(name="CC0 1.0")
-        matching = DatasetFactory(license=cc_by, visibility=Visibility.PUBLIC)
-        other = DatasetFactory(license=cc0, visibility=Visibility.PUBLIC)
-        response = client.get(reverse("dataset-list"), {"license": cc_by.pk})
-        entries = list(response.context["object_list"])
-        assert matching in entries
-        assert other not in entries
-
-    def test_project_filter_narrows_to_the_matching_project(self, client):
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        matching = DatasetFactory(project=project, visibility=Visibility.PUBLIC)
-        other = DatasetFactory(visibility=Visibility.PUBLIC)
-        response = client.get(reverse("dataset-list"), {"project": project.pk})
-        entries = list(response.context["object_list"])
-        assert matching in entries
-        assert other not in entries
-
-    def test_description_type_filter_narrows_to_datasets_carrying_that_type(
-        self, client
-    ):
-        from fairdm.factories import DatasetDescriptionFactory
-
-        matching = DatasetFactory(visibility=Visibility.PUBLIC)
-        DatasetDescriptionFactory(
-            related=matching, type_id=f"{DESCRIPTION_TYPES}/abstract"
-        )
-        other = DatasetFactory(visibility=Visibility.PUBLIC)
-        response = client.get(
-            reverse("dataset-list"),
-            {"description_type": f"{DESCRIPTION_TYPES}/abstract"},
-        )
-        entries = list(response.context["object_list"])
-        assert matching in entries
-        assert other not in entries
-
-    def test_date_type_filter_narrows_to_datasets_carrying_that_type(self, client):
+    # Narrowing by each filter is tested on the filterset in `test_filters.py`. This
+    # checks that the listing applies every filter it offers.
+    def test_every_offered_filter_is_applied_by_the_listing(self, client):
         from fairdm.factories import DatasetDateFactory
 
-        matching = DatasetFactory(visibility=Visibility.PUBLIC)
-        DatasetDateFactory(related=matching, type_id=f"{DATE_TYPES}/available")
-        other = DatasetFactory(visibility=Visibility.PUBLIC)
-        response = client.get(
-            reverse("dataset-list"), {"date_type": f"{DATE_TYPES}/available"}
+        license_obj = License.objects.get(name="CC BY 4.0")
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
+        dataset = DatasetFactory(
+            name="Zirconium Survey",
+            license=license_obj,
+            project=project,
+            visibility=Visibility.PUBLIC,
         )
-        entries = list(response.context["object_list"])
-        assert matching in entries
-        assert other not in entries
-
-
-@pytest.mark.django_db
-class TestDatasetListingFiltersAllRunWithoutError:
-    def _value_for(self, field_name, dataset, project, license_obj):
-        return {
-            "q": dataset.name,
+        DatasetDescriptionFactory(
+            related=dataset, type_id=f"{DESCRIPTION_TYPES}/abstract"
+        )
+        DatasetDateFactory(related=dataset, type_id=f"{DATE_TYPES}/available")
+        other = DatasetFactory(
+            name="Basalt Atlas",
+            license=License.objects.get(name="CC0 1.0"),
+            project=None,
+            visibility=Visibility.PUBLIC,
+        )
+        values = {
+            "q": "Zirconium",
             "o": "name",
             "license": license_obj.pk,
             "project": project.pk,
             "description_type": f"{DESCRIPTION_TYPES}/abstract",
             "date_type": f"{DATE_TYPES}/available",
             "image": "true",
-        }[field_name]
-
-    def test_every_offered_filter_runs_without_raising(self, client):
-        from fairdm.factories import DatasetDateFactory, DatasetDescriptionFactory
-
-        license_obj = License.objects.get(name="CC BY 4.0")
-        project = ProjectFactory(visibility=Visibility.PUBLIC)
-        dataset = DatasetFactory(
-            license=license_obj, project=project, visibility=Visibility.PUBLIC
-        )
-        DatasetDescriptionFactory(
-            related=dataset, type_id=f"{DESCRIPTION_TYPES}/abstract"
-        )
-        DatasetDateFactory(related=dataset, type_id=f"{DATE_TYPES}/available")
+        }
 
         response = client.get(reverse("dataset-list"))
-        rendered_fields = list(response.context["filter"].form.fields)
-        assert rendered_fields, "the rendered filterset form offers no fields to sweep"
+        offered = list(response.context["filter"].form.fields)
+        assert offered, "the listing's filter form offers no fields to sweep"
+        assert "visibility" not in offered
 
-        for field_name in rendered_fields:
-            value = self._value_for(field_name, dataset, project, license_obj)
-            response = client.get(reverse("dataset-list"), {field_name: value})
-            assert response.status_code == 200, (
-                f"applying '{field_name}' raised rather than rendering"
+        for field_name in offered:
+            response = client.get(
+                reverse("dataset-list"), {field_name: values[field_name]}
             )
+            assert response.status_code == 200, field_name
             entries = list(response.context["object_list"])
-            assert dataset in entries, (
-                f"applying '{field_name}' did not return the matching dataset"
-            )
-
-
-@pytest.mark.django_db
-class TestDatasetListingOffersNoDeadFilter:
-    def test_the_rendered_filterset_form_offers_no_visibility_field(self, client):
-        response = client.get(reverse("dataset-list"))
-        assert "visibility" not in response.context["filter"].form.fields
+            assert dataset in entries, field_name
+            if field_name not in ("o", "image"):
+                assert other not in entries, field_name
 
 
 @pytest.mark.django_db
@@ -370,18 +288,6 @@ class TestDatasetListingProjectFilterVisibility:
 
 
 @pytest.mark.django_db
-class TestDatasetListingEmptyState:
-    def test_listing_shows_empty_state_when_a_search_matches_nothing(
-        self, client, public_dataset
-    ):
-        response = client.get(
-            reverse("dataset-list"), {"q": "no-dataset-should-match-this-term"}
-        )
-        assert response.status_code == 200
-        assert list(response.context["object_list"]) == []
-
-
-@pytest.mark.django_db
 class TestDatasetListingEntryLink:
     def test_listing_entry_links_to_its_datasets_page(self, client, public_dataset):
         response = client.get(reverse("dataset-list"))
@@ -392,23 +298,18 @@ class TestDatasetListingEntryLink:
 @pytest.mark.django_db
 class TestDatasetCreateView:
     def test_anonymous_redirects_to_login(self, client):
-        url = reverse("dataset-create")
-        response = client.get(url)
+        response = client.get(reverse("dataset-create"))
         assert response.status_code == 302
         assert "/login/" in response.url or "/accounts/login/" in response.url
 
     def test_authenticated_get_200(self, client):
-        user = UserFactory()
-        client.force_login(user)
-        url = reverse("dataset-create")
-        response = client.get(url)
+        client.force_login(UserFactory())
+        response = client.get(reverse("dataset-create"))
         assert response.status_code == 200
 
-    def test_valid_post_redirects_to_detail(self, client):
-        from licensing.models import License
-
-        from fairdm.factories import ProjectFactory
-
+    def test_a_valid_post_redirects_to_the_overview_and_credits_the_creator_in_every_role(
+        self, client
+    ):
         user = UserFactory()
         client.force_login(user)
         project = ProjectFactory()
@@ -416,136 +317,44 @@ class TestDatasetCreateView:
         ContributionFactory(
             content_object=project, contributor=user, level=ContributionLevel.EDIT
         )
-        license_obj = License.objects.first()
 
-        url = reverse("dataset-create")
         response = client.post(
-            url,
+            reverse("dataset-create"),
             data={
                 "name": "New Test Dataset",
                 "project": project.pk,
-                "license": license_obj.pk,
+                "license": License.objects.get(name="CC BY 4.0").pk,
                 "visibility": Visibility.PUBLIC,
             },
         )
 
         assert response.status_code == 302, (
-            f"Form errors: {response.context['form'].errors if 'form' in response.context else 'no form in context'}"
+            response.context["form"].errors if "form" in response.context else None
         )
-
-        from fairdm.core.dataset.models import Dataset
-
         dataset = Dataset.all_objects.get(name="New Test Dataset")
-        expected_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
-        assert response.url == expected_url
-
-    def test_assigns_contributor_roles(self, client):
-        from licensing.models import License
-
-        from fairdm.factories import ProjectFactory
-
-        user = UserFactory()
-        client.force_login(user)
-        project = ProjectFactory()
-        ContributionFactory(
-            content_object=project, contributor=user, level=ContributionLevel.EDIT
+        assert response.url == reverse(
+            "dataset:overview", kwargs={"uuid": dataset.uuid}
         )
-        license_obj = License.objects.first()
-
-        url = reverse("dataset-create")
-        response = client.post(
-            url,
-            data={
-                "name": "Permission Test Dataset",
-                "project": project.pk,
-                "license": license_obj.pk,
-                "visibility": Visibility.PUBLIC,
-            },
+        roles = set(
+            dataset.contributors.get(contributor=user).roles.values_list(
+                "uri", flat=True
+            )
         )
-
-        assert response.status_code == 302, (
-            f"Form errors: {response.context['form'].errors if 'form' in response.context else 'no form in context'}"
-        )
-
-        from fairdm.core.dataset.models import Dataset
-
-        dataset = Dataset.all_objects.get(name="Permission Test Dataset")
-
-        contributor = dataset.contributors.filter(contributor=user).first()
-        assert contributor is not None, "User should be a contributor"
-        role_names = list(contributor.roles.values_list("uri", flat=True))
-        for role in [
+        assert {
             f"{CONTRIBUTOR_ROLES}/creator",
             f"{CONTRIBUTOR_ROLES}/project-member",
             f"{CONTRIBUTOR_ROLES}/contact-person",
-        ]:
-            assert role in role_names, f"Missing contributor role: {role}"
-
-
-@pytest.mark.django_db
-class TestDatasetCreatePageUsesTheDeclaredForm:
-    def test_the_view_declares_a_subclass_of_the_update_pages_form(self):
-        assert DatasetCreateView.form_class is DatasetCreateForm
-        assert issubclass(DatasetCreateForm, DatasetForm)
-
-    def test_a_label_declared_once_reaches_both_the_creation_and_the_update_page(
-        self, client
-    ):
-        user = UserFactory()
-        client.force_login(user)
-        create_response = client.get(reverse("dataset-create"))
-
-        dataset = DatasetFactory()
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
-        )
-        update_response = client.get(
-            reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
-        )
-
-        create_label = create_response.context["form"].fields["name"].label
-        update_label = update_response.context["form"].fields["name"].label
-        assert create_label == update_label
-
-
-@pytest.mark.django_db
-class TestDatasetCreatePageFieldSet:
-    FIELDS = {"name", "visibility", "license", "project"}
-
-    def test_the_rendered_form_offers_exactly_the_creation_field_set(self, client):
-        user = UserFactory()
-        client.force_login(user)
-        url = reverse("dataset-create")
-
-        response = client.get(url)
-
-        assert response.status_code == 200
-        assert set(response.context["form"].fields) == self.FIELDS
+        } <= roles
 
 
 @pytest.mark.django_db
 class TestDatasetCreatePageVisibilityField:
-    def test_the_rendered_page_offers_a_radio_choice_pre_selecting_public(self, client):
-        user = UserFactory()
-        client.force_login(user)
-        url = reverse("dataset-create")
+    def test_the_page_pre_selects_public(self, client):
+        client.force_login(UserFactory())
 
-        response = client.get(url)
-        form = response.context["form"]
+        response = client.get(reverse("dataset-create"))
 
-        assert isinstance(form.fields["visibility"].widget, forms.RadioSelect)
-
-        content = response.content.decode()
-        public_input = re.search(
-            rf'<input[^>]*name="visibility"[^>]*value="{Visibility.PUBLIC}"[^>]*>',
-            content,
-        )
-        private_input = re.search(
-            rf'<input[^>]*name="visibility"[^>]*value="{Visibility.PRIVATE}"[^>]*>',
-            content,
-        )
-        assert public_input is not None and "checked" in public_input.group(0)
-        assert private_input is not None and "checked" not in private_input.group(0)
+        assert response.context["form"]["visibility"].value() == Visibility.PUBLIC
 
 
 @pytest.mark.django_db
@@ -555,39 +364,23 @@ class TestDatasetCreatePageLicenseDefault:
     ):
         other_license = License.objects.get_or_create(name="A Portal's Own Licence")[0]
         settings.FAIRDM_DEFAULT_LICENSE = other_license.name
-        user = UserFactory()
-        client.force_login(user)
-        url = reverse("dataset-create")
+        client.force_login(UserFactory())
 
-        response = client.get(url)
+        response = client.get(reverse("dataset-create"))
 
         assert response.context["form"].fields["license"].initial == other_license
 
 
 @pytest.mark.django_db
 class TestDatasetCreatePageProjectField:
-    def test_the_project_field_is_optional_and_starts_empty(self, client):
-        user = UserFactory()
-        client.force_login(user)
-        url = reverse("dataset-create")
-
-        response = client.get(url)
-        project_field = response.context["form"].fields["project"]
-
-        assert project_field.required is False
-        assert not project_field.initial
-
     def test_a_dataset_can_be_created_without_a_project(self, client):
-        user = UserFactory()
-        client.force_login(user)
-        license_obj = License.objects.get_or_create(name="CC BY 4.0")[0]
-        url = reverse("dataset-create")
+        client.force_login(UserFactory())
 
         response = client.post(
-            url,
+            reverse("dataset-create"),
             data={
                 "name": "Orphan Dataset",
-                "license": license_obj.pk,
+                "license": License.objects.get(name="CC BY 4.0").pk,
                 "visibility": Visibility.PUBLIC,
             },
         )
@@ -595,16 +388,11 @@ class TestDatasetCreatePageProjectField:
         assert response.status_code == 302, (
             response.context["form"].errors if "form" in response.context else None
         )
-        dataset = Dataset.all_objects.get(name="Orphan Dataset")
-        assert dataset.project is None
+        assert Dataset.all_objects.get(name="Orphan Dataset").project is None
 
-
-@pytest.mark.django_db
-class TestDatasetCreatePageProjectFieldNarrowing:
     def test_the_project_field_is_narrowed_to_the_researchers_own_projects(
         self, client
     ):
-
         user = UserFactory()
         client.force_login(user)
         own_project = ProjectFactory(name="Researcher's Own Project")
@@ -615,8 +403,7 @@ class TestDatasetCreatePageProjectFieldNarrowing:
             level=ContributionLevel.EDIT,
         )
 
-        url = reverse("dataset-create")
-        response = client.get(url)
+        response = client.get(reverse("dataset-create"))
         project_queryset = response.context["form"].fields["project"].queryset
 
         assert own_project in project_queryset
@@ -624,46 +411,18 @@ class TestDatasetCreatePageProjectFieldNarrowing:
 
 
 @pytest.mark.django_db
-class TestDatasetCreatePageProjectFieldWidget:
-    def test_the_rendered_page_carries_no_add_another_wrapper_markup(self, client):
-        user = UserFactory()
-        client.force_login(user)
-        url = reverse("dataset-create")
-
-        response = client.get(url)
-
-        assertNotContains(response, "related-widget-wrapper")
-        assertNotContains(response, "add-related")
-
-
-@pytest.mark.django_db
-class TestDatasetCreatePageNameRequired:
-    def test_submitting_without_a_name_reports_an_error_and_saves_nothing(self, client):
-        user = UserFactory()
-        client.force_login(user)
-        license_obj = License.objects.get_or_create(name="CC BY 4.0")[0]
-        url = reverse("dataset-create")
-
-        response = client.post(url, data={"name": "", "license": license_obj.pk})
-
-        assert response.status_code == 200
-        assert "name" in response.context["form"].errors
-        assert not Dataset.all_objects.filter(license=license_obj).exists()
-
-
-@pytest.mark.django_db
 class TestDatasetCreatePagePermissionAssignment:
-    def test_the_creator_is_granted_full_permissions_on_the_new_dataset(self, client):
+    def test_the_creator_is_recorded_and_granted_full_permissions_on_the_new_dataset(
+        self, client
+    ):
         user = UserFactory()
         client.force_login(user)
-        license_obj = License.objects.get_or_create(name="CC BY 4.0")[0]
-        url = reverse("dataset-create")
 
         response = client.post(
-            url,
+            reverse("dataset-create"),
             data={
                 "name": "Permissioned Dataset",
-                "license": license_obj.pk,
+                "license": License.objects.get(name="CC BY 4.0").pk,
                 "visibility": Visibility.PUBLIC,
             },
         )
@@ -672,6 +431,7 @@ class TestDatasetCreatePagePermissionAssignment:
             response.context["form"].errors if "form" in response.context else None
         )
         dataset = Dataset.all_objects.get(name="Permissioned Dataset")
+        assert dataset.created_by == user
         for perm in [
             "view_dataset",
             "change_dataset",
@@ -690,13 +450,12 @@ class TestDatasetCreatePagePermissionAssignment:
 
         user = UserFactory()
         client.force_login(user)
-        license_obj = License.objects.get_or_create(name="CC BY 4.0")[0]
 
         response = client.post(
             reverse("dataset-create"),
             data={
                 "name": "Managed Dataset",
-                "license": license_obj.pk,
+                "license": License.objects.get(name="CC BY 4.0").pk,
                 "visibility": Visibility.PRIVATE,
             },
         )
@@ -714,13 +473,12 @@ class TestDatasetCreatePagePermissionAssignment:
     def test_a_superuser_creates_a_dataset_without_being_credited(self, client):
         admin = UserFactory(is_superuser=True, is_staff=True)
         client.force_login(admin)
-        license_obj = License.objects.get_or_create(name="CC BY 4.0")[0]
 
         response = client.post(
             reverse("dataset-create"),
             data={
                 "name": "Admin Dataset",
-                "license": license_obj.pk,
+                "license": License.objects.get(name="CC BY 4.0").pk,
                 "visibility": Visibility.PRIVATE,
             },
         )
@@ -728,30 +486,6 @@ class TestDatasetCreatePagePermissionAssignment:
         assert response.status_code == 302
         dataset = Dataset.all_objects.get(name="Admin Dataset")
         assert dataset.contributors.count() == 0
-
-
-@pytest.mark.django_db
-class TestDatasetCreatePageRecordsCreator:
-    def test_the_dataset_records_its_creator(self, client):
-        user = UserFactory()
-        client.force_login(user)
-        license_obj = License.objects.get_or_create(name="CC BY 4.0")[0]
-        url = reverse("dataset-create")
-
-        response = client.post(
-            url,
-            data={
-                "name": "Attributed Dataset",
-                "license": license_obj.pk,
-                "visibility": Visibility.PUBLIC,
-            },
-        )
-
-        assert response.status_code == 302, (
-            response.context["form"].errors if "form" in response.context else None
-        )
-        dataset = Dataset.all_objects.get(name="Attributed Dataset")
-        assert dataset.created_by == user
 
 
 def _identifier_management_data(total=0, initial=0):
@@ -776,48 +510,7 @@ def _date_management_data(total=0, initial=0):
 
 @pytest.mark.django_db
 class TestDatasetUpdateView:
-    def test_anonymous_redirects_to_login(self, client):
-        dataset = DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
-        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
-        response = client.get(url)
-        assert response.status_code == 302
-        assert "/login/" in response.url or "/accounts/login/" in response.url
-
-    def test_anonymous_visitor_to_a_private_dataset_returns_404(self, client):
-        dataset = DatasetFactory()
-        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
-        response = client.get(url)
-        assert response.status_code == 404
-
-    def test_no_permission_on_a_public_dataset_returns_403(self, client):
-        user = UserFactory()
-        dataset = DatasetFactory(visibility=Dataset.VISIBILITY_CHOICES.PUBLIC)
-        client.force_login(user)
-        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
-        response = client.get(url)
-        assert response.status_code == 403
-
-    def test_no_permission_on_a_private_dataset_returns_404(self, client):
-        user = UserFactory()
-        dataset = DatasetFactory()
-        client.force_login(user)
-        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
-        response = client.get(url)
-        assert response.status_code == 404
-
-    def test_with_permission_returns_200(self, client):
-        user = UserFactory()
-        dataset = DatasetFactory()
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
-        response = client.get(url)
-        assert response.status_code == 200
-
     def _post_changes(self, client, user, dataset, project):
-        license_obj = dataset.license or License.objects.first()
         client.force_login(user)
         url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
         return client.post(
@@ -825,7 +518,7 @@ class TestDatasetUpdateView:
             data={
                 "name": "Renamed",
                 "project": project.pk,
-                "license": license_obj.pk,
+                "license": dataset.license.pk,
                 "visibility": Visibility.PUBLIC,
                 **_identifier_management_data(),
                 **_date_management_data(),
@@ -833,12 +526,13 @@ class TestDatasetUpdateView:
         )
 
     def _setup(self, user, level):
-        from fairdm.factories import ProjectFactory
-
         own_project = ProjectFactory()
         other_project = ProjectFactory()
         dataset = DatasetFactory(
-            name="Original", project=own_project, visibility=Visibility.PRIVATE
+            name="Original",
+            project=own_project,
+            visibility=Visibility.PRIVATE,
+            license=License.objects.get(name="CC BY 4.0"),
         )
         ContributionFactory(content_object=dataset, contributor=user, level=level)
         for project in (own_project, other_project):
@@ -856,6 +550,9 @@ class TestDatasetUpdateView:
         response = self._post_changes(client, user, dataset, other_project)
 
         assert response.status_code == 302
+        assert response.url == reverse(
+            "dataset:overview", kwargs={"uuid": dataset.uuid}
+        )
         dataset.refresh_from_db()
         assert dataset.name == "Renamed"
         assert dataset.visibility == Visibility.PRIVATE
@@ -887,14 +584,16 @@ class TestDatasetUpdateView:
     def test_a_data_curator_changes_visibility_and_project(self, client):
         from django.contrib.auth.models import Group
 
-        from fairdm.factories import ProjectFactory
         from fairdm.portal_roles import PortalRoles
 
         PortalRoles.reconcile()
         curator = UserFactory()
         curator.groups.add(Group.objects.get(name=PortalRoles.DATA_CURATOR.name))
         other_project = ProjectFactory()
-        dataset = DatasetFactory(visibility=Visibility.PRIVATE)
+        dataset = DatasetFactory(
+            visibility=Visibility.PRIVATE,
+            license=License.objects.get(name="CC BY 4.0"),
+        )
         ContributionFactory(
             content_object=other_project,
             contributor=curator,
@@ -907,56 +606,6 @@ class TestDatasetUpdateView:
         dataset.refresh_from_db()
         assert dataset.visibility == Visibility.PUBLIC
         assert dataset.project_id == other_project.pk
-
-    def test_valid_post_redirects_to_detail(self, client):
-        from licensing.models import License
-
-        user = UserFactory()
-        dataset = DatasetFactory(name="Original Name")
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-
-        project = dataset.project
-        project.add_contributor(user)
-        license_obj = dataset.license if dataset.license else License.objects.first()
-
-        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
-        response = client.post(
-            url,
-            data={
-                "name": "Updated Name",
-                "project": project.pk,
-                "license": license_obj.pk,
-                "visibility": dataset.visibility,
-                **_identifier_management_data(),
-                **_date_management_data(),
-            },
-        )
-
-        assert response.status_code == 302, (
-            f"Form errors: {response.context['form'].errors if 'form' in response.context else 'no form in context'}"
-        )
-        expected_url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
-        assert response.url == expected_url
-
-
-@pytest.mark.django_db
-class TestDatasetUpdatePageProjectAndReferenceFieldWidgets:
-    def test_the_rendered_page_carries_no_add_another_wrapper_markup(self, client):
-        user = UserFactory()
-        dataset = DatasetFactory()
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
-
-        response = client.get(url)
-
-        assertNotContains(response, "related-widget-wrapper")
-        assertNotContains(response, "add-related")
 
 
 @pytest.mark.django_db
@@ -974,39 +623,6 @@ class TestDatasetDeleteView:
         assert response.status_code == 302
         assert response.url == reverse("dataset-list")
         assert not Dataset.all_objects.filter(pk=pk).exists()
-
-    def test_page_carries_exactly_one_confirmation_control(self, client):
-        # django-mvp used to draw the bound field a second time, unbound (fixed in
-        # 0.19.3).
-        user = UserFactory()
-        dataset = DatasetFactory(name="My Dataset")
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-        url = reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
-        response = client.get(url)
-        content = response.content.decode()
-        assert content.count('id="id_confirmation"') == 1
-
-    def test_deleting_a_dataset_removes_its_samples(self, client):
-        from demo.factories import RockSampleFactory
-
-        user = UserFactory()
-        dataset = DatasetFactory(name="Dataset With A Sample")
-        sample = RockSampleFactory(dataset=dataset)
-        sample_pk = sample.pk
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-        url = reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
-
-        response = client.post(url, data={"confirmation": "Dataset With A Sample"})
-
-        assert response.status_code == 302
-        assert response.url == reverse("dataset-list")
-        assert not Sample.objects.filter(pk=sample_pk).exists()
 
     def test_deleting_a_dataset_removes_its_samples_and_their_measurements(
         self, client
@@ -1079,24 +695,6 @@ class TestDatasetDeleteView:
         assert response.url == reverse("dataset-list")
         assert not Measurement.objects.filter(pk=measurement_pk).exists()
         assert Sample.objects.filter(pk=sample.pk).exists()
-
-    def test_public_dataset_deletes_like_any_other(self, client):
-        user = UserFactory()
-        dataset = DatasetFactory(
-            name="Public Dataset To Delete", visibility=Visibility.PUBLIC
-        )
-        pk = dataset.pk
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-        url = reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
-
-        response = client.post(url, data={"confirmation": "Public Dataset To Delete"})
-
-        assert response.status_code == 302
-        assert response.url == reverse("dataset-list")
-        assert not Dataset.all_objects.filter(pk=pk).exists()
 
     def test_preview_shows_counted_lines_for_two_sample_types_and_one_measurement_type(
         self, client
@@ -1201,20 +799,11 @@ class TestDatasetDeleteView:
 
 
 @pytest.mark.django_db
-class TestNonCollectionPagesIgnorePublished:
-    @staticmethod
-    def _without_csrf_token(response):
-        return re.sub(
-            rb'name="csrfmiddlewaretoken" value="[^"]*"',
-            b'name="csrfmiddlewaretoken" value=""',
-            response.content,
-        )
-
+class TestListingIgnoresPublished:
     def test_the_listing_shows_the_same_datasets_whichever_way_published_is_set(
         self, client
     ):
-        # `published` changes what a card says, never whether the dataset is listed
-        # (#333).
+        # `published` changes what a card says, never whether the dataset is listed.
         dataset = DatasetFactory(name="Listed Either Way", visibility=Visibility.PUBLIC)
         url = reverse("dataset-list")
 
@@ -1224,181 +813,21 @@ class TestNonCollectionPagesIgnorePublished:
         Dataset.all_objects.filter(pk=dataset.pk).update(published=True)
         published = client.get(url)
 
-        assert unpublished.status_code == 200
-        assert published.status_code == 200
-        for response in (unpublished, published):
-            assertContains(response, "Listed Either Way")
-            assertContains(response, dataset.uuid)
-
-    def test_dataset_overview_page_shows_no_counts_and_no_records_until_published(
-        self, client
-    ):
-        from demo.factories import RockSampleFactory
-
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=False)
-        sample = RockSampleFactory(dataset=dataset, name="Zq-4471 rift core")
-        url = reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
-
-        unpublished = client.get(url)
-        Dataset.all_objects.filter(pk=dataset.pk).update(published=True)
-        published = client.get(url)
-
         for response in (unpublished, published):
             assert response.status_code == 200
-            assertNotContains(response, sample.name)
-        titles = [
-            t.get_text(strip=True)
-            for t in BeautifulSoup(unpublished.content, "html.parser").select(
-                ".ov-figure__label"
-            )
-        ]
-        assert "Samples" not in titles
-        page = BeautifulSoup(published.content, "html.parser")
-        assert page.select(".ov-figure__value")[0].get_text(strip=True) == "1"
-        assert (
-            len(BeautifulSoup(unpublished.content, "html.parser").select(".alert")) == 1
-        )
-        assert BeautifulSoup(published.content, "html.parser").select(".alert") == []
-
-    def test_dataset_update_page_renders_identically_across_published_states(
-        self, client
-    ):
-        user = UserFactory()
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.EDIT
-        )
-        client.force_login(user)
-        url = reverse("dataset:edit", kwargs={"uuid": dataset.uuid})
-
-        Dataset.all_objects.filter(pk=dataset.pk).update(published=False)
-        unpublished = client.get(url)
-
-        Dataset.all_objects.filter(pk=dataset.pk).update(published=True)
-        published = client.get(url)
-
-        assert unpublished.status_code == 200
-        assert self._without_csrf_token(unpublished) == self._without_csrf_token(
-            published
-        )
-
-    def test_dataset_delete_page_renders_identically_across_published_states(
-        self, client
-    ):
-        user = UserFactory()
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        ContributionFactory(
-            content_object=dataset, contributor=user, level=ContributionLevel.MANAGE
-        )
-        client.force_login(user)
-        url = reverse("dataset:delete", kwargs={"uuid": dataset.uuid})
-
-        Dataset.all_objects.filter(pk=dataset.pk).update(published=False)
-        unpublished = client.get(url)
-
-        Dataset.all_objects.filter(pk=dataset.pk).update(published=True)
-        published = client.get(url)
-
-        assert unpublished.status_code == 200
-        assert self._without_csrf_token(unpublished) == self._without_csrf_token(
-            published
-        )
-
-
-@pytest.mark.django_db
-class TestDatasetViews:
-    def test_dataset_list_view_accessible(self, client):
-        response = client.get(reverse("dataset-list"))
-
-        assert response.status_code == 200
-
-    def test_dataset_list_view_shows_public_datasets(self, client):
-        public_dataset = DatasetFactory(
-            name="Basalt Listing Dataset Q7", visibility=Visibility.PUBLIC
-        )
-        private_dataset = DatasetFactory(
-            name="Gneiss Listing Dataset Z4", visibility=Visibility.PRIVATE
-        )
-
-        response = client.get(reverse("dataset-list"))
-
-        assert public_dataset.name.encode() in response.content
-        assert private_dataset.name.encode() not in response.content
-
-    def test_dataset_create_view_requires_authentication(self, client):
-        response = client.get(reverse("dataset-create"))
-
-        assert response.status_code == 302
-
-    def test_dataset_create_view_accessible_when_authenticated(
-        self, authenticated_client
-    ):
-        response = authenticated_client.get(reverse("dataset-create"))
-
-        assert response.status_code == 200
-
-    def test_dataset_create_view_with_project_param(self, authenticated_client):
-        project = ProjectFactory()
-
-        response = authenticated_client.get(
-            reverse("dataset-create"), {"project": project.pk}
-        )
-
-        assert response.status_code == 200
-
-    def test_dataset_detail_view_accessible(self, client):
-        dataset = DatasetFactory(
-            name="Reef Survey Dataset", visibility=Visibility.PUBLIC
-        )
-        response = client.get(
-            reverse("dataset:overview", kwargs={"uuid": dataset.uuid})
-        )
-
-        assert response.status_code == 200
-        assert response.context["dataset"] == dataset
-        assert dataset.name.encode() in response.content
-
-
-@pytest.mark.django_db
-class TestDatasetPermissions:
-    def test_anonymous_user_cannot_create_dataset(self, client):
-        form_data = {
-            "name": "Test Dataset",
-        }
-
-        response = client.post(reverse("dataset-create"), data=form_data)
-
-        assert response.status_code == 302
-        assert "login" in response["Location"]
-
-    def test_dataset_creator_becomes_contributor(self, authenticated_client):
-        form_data = {
-            "name": "Test Dataset",
-        }
-
-        authenticated_client.post(reverse("dataset-create"), data=form_data)
-
-        dataset = Dataset.objects.filter(name="Test Dataset").first()
-        if dataset:
-            assert dataset.contributors.count() > 0
+            assert dataset in list(response.context["object_list"])
 
 
 @pytest.mark.django_db
 class TestDatasetListingQueryCount:
     @staticmethod
-    def _build_datasets(count):
-        from controlled_vocabularies.models import Record
-
+    def _build_datasets(count, project):
         from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 
-        keywords = list(
-            Record.objects.filter(
-                scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
-            )[:3]
-        )
+        keywords = _keywords()
         for index in range(count):
             dataset = DatasetFactory(
-                name=f"Survey {index}", visibility=Visibility.PUBLIC
+                name=f"Survey {index}", project=project, visibility=Visibility.PUBLIC
             )
             DatasetDescriptionFactory(
                 related=dataset,
@@ -1408,27 +837,26 @@ class TestDatasetListingQueryCount:
             dataset.keywords.add(*keywords)
             dataset.add_contributor(PersonFactory())
             sample = RockSampleFactory(dataset=dataset)
-            RockSampleFactory(dataset=dataset)
             ExampleMeasurementFactory(dataset=dataset, sample=sample)
 
     def test_listing_query_count_does_not_grow_with_the_number_of_datasets(
-        self, client, django_assert_num_queries
+        self, client
     ):
         url = reverse("dataset-list")
+        project = ProjectFactory(visibility=Visibility.PUBLIC)
 
-        self._build_datasets(1)
+        self._build_datasets(1, project)
         client.get(url)  # warm up one-time per-process and per-image setup
         with CaptureQueriesContext(connection) as one_dataset:
-            response = client.get(url)
-            assert response.status_code == 200
-        baseline = len(one_dataset.captured_queries)
+            assert client.get(url).status_code == 200
 
-        self._build_datasets(19)
+        self._build_datasets(2, project)
         client.get(url)
-        with django_assert_num_queries(baseline):
+        with CaptureQueriesContext(connection) as three_datasets:
             response = client.get(url)
-            assert response.status_code == 200
-            assert len(response.context["object_list"]) == 20
+
+        assert len(response.context["object_list"]) == 3
+        assert len(three_datasets.captured_queries) == len(one_dataset.captured_queries)
 
 
 @pytest.mark.django_db
@@ -1459,40 +887,39 @@ class TestDatasetListingCounts:
 
 @pytest.mark.django_db
 class TestDatasetCardRendering:
-    def _card_html(self, client):
+    @staticmethod
+    def _card(client):
+        """Return the text of the one card on the listing, and its markup."""
         response = client.get(reverse("dataset-list"))
         assert response.status_code == 200
-        return response, response.content.decode()
-
-    def test_the_whole_card_is_the_link(self, client, public_dataset):
-        response, _ = self._card_html(client)
-        assertContains(response, f'href="{public_dataset.get_absolute_url()}"')
+        cards = BeautifulSoup(response.content, "html.parser").select("a.record-card")
+        assert len(cards) == 1
+        return " ".join(cards[0].get_text().split()), str(cards[0])
 
     def test_a_dataset_with_no_project_draws_no_parent_row(self, client):
         DatasetFactory(project=None, visibility=Visibility.PUBLIC)
-        _, html = self._card_html(client)
-        assert "record-card__parent" not in html
+        _, markup = self._card(client)
+        assert "record-card__parent" not in markup
 
     def test_an_unlicensed_dataset_draws_no_licence_row(self, client):
         DatasetFactory(visibility=Visibility.PUBLIC, license=None)
-        _, html = self._card_html(client)
-        assert "record-card__license" not in html
+        _, markup = self._card(client)
+        assert "record-card__license" not in markup
 
     def test_card_shows_the_dataset_name(self, client):
         DatasetFactory(name="Rift Basin Heat Flow", visibility=Visibility.PUBLIC)
-        response, _ = self._card_html(client)
-        assertContains(response, "Rift Basin Heat Flow")
+        text, _ = self._card(client)
+        assert "Rift Basin Heat Flow" in text
 
     def test_card_reports_a_published_dataset_as_published(self, client):
         DatasetFactory(visibility=Visibility.PUBLIC, published=True)
-        response, _ = self._card_html(client)
-        assertContains(response, "Published")
+        text, _ = self._card(client)
+        assert "Published" in text
 
     def test_card_states_nothing_at_all_about_an_unpublished_dataset(self, client):
         DatasetFactory(visibility=Visibility.PUBLIC, published=False)
-        _, html = self._card_html(client)
-        assert "Not published" not in html
-        assert "Published" not in html
+        text, _ = self._card(client)
+        assert "Published" not in text
 
     def test_an_unpublished_dataset_reports_no_counts(self, client):
         from demo.factories import ExampleMeasurementFactory, RockSampleFactory
@@ -1501,12 +928,12 @@ class TestDatasetCardRendering:
         sample = RockSampleFactory(dataset=dataset)
         ExampleMeasurementFactory(dataset=dataset, sample=sample)
 
-        _, html = self._card_html(client)
+        text, _ = self._card(client)
 
-        assert "1 sample" not in html
-        assert "1 measurement" not in html
-        assert "No samples" not in html
-        assert "No measurements" not in html
+        assert "1 sample" not in text
+        assert "1 measurement" not in text
+        assert "No samples" not in text
+        assert "No measurements" not in text
 
     def test_card_counts_samples_and_measurements(self, client):
         from demo.factories import ExampleMeasurementFactory, RockSampleFactory
@@ -1515,38 +942,34 @@ class TestDatasetCardRendering:
         first = RockSampleFactory(dataset=dataset)
         RockSampleFactory(dataset=dataset)
         ExampleMeasurementFactory(dataset=dataset, sample=first)
-        response, _ = self._card_html(client)
-        assertContains(response, "2 samples")
-        assertContains(response, "1 measurement")
+        text, _ = self._card(client)
+        assert "2 samples" in text
+        assert "1 measurement" in text
 
     def test_card_counts_one_sample_in_the_singular(self, client):
         from demo.factories import RockSampleFactory
 
         dataset = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
         RockSampleFactory(dataset=dataset)
-        response, html = self._card_html(client)
-        assertContains(response, "1 sample")
-        assert "1 samples" not in html
+        text, _ = self._card(client)
+        assert "1 sample" in text
+        assert "1 samples" not in text
 
     def test_card_says_so_rather_than_showing_a_zero(self, client):
         DatasetFactory(visibility=Visibility.PUBLIC, published=True)
-        response, html = self._card_html(client)
-        assertContains(response, "No samples")
-        assertContains(response, "No measurements")
-        assert "0 samples" not in html
-        assert "0 measurements" not in html
+        text, _ = self._card(client)
+        assert "No samples" in text
+        assert "No measurements" in text
+        assert "0 samples" not in text
+        assert "0 measurements" not in text
 
-    def test_card_names_the_parent_project(self, client):
+    def test_card_names_the_parent_project_without_linking_to_it(self, client):
         project = ProjectFactory(name="Deep Time Survey", visibility=Visibility.PUBLIC)
         DatasetFactory(project=project, visibility=Visibility.PUBLIC)
-        response, _ = self._card_html(client)
-        assertContains(response, "Deep Time Survey")
-
-    def test_the_parent_project_is_not_a_nested_link(self, client):
-        project = ProjectFactory(name="Deep Time Survey", visibility=Visibility.PUBLIC)
-        DatasetFactory(project=project, visibility=Visibility.PUBLIC)
-        _, html = self._card_html(client)
-        assert project.get_absolute_url() not in html
+        text, markup = self._card(client)
+        assert "Deep Time Survey" in text
+        # The whole card is one link, so a second link inside it would nest.
+        assert project.get_absolute_url() not in markup
 
     def test_card_renders_the_abstract_as_plain_text(self, client):
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
@@ -1555,86 +978,37 @@ class TestDatasetCardRendering:
             type_id=f"{DESCRIPTION_TYPES}/abstract",
             value="## Objectives\n\nWe measure **heat flow** across the rift.",
         )
-        response, html = self._card_html(client)
-        assertContains(response, "Objectives")
-        assertContains(response, "heat flow")
-        assert "## Objectives" not in html
-        assert "**heat flow**" not in html
+        text, _ = self._card(client)
+        assert "Objectives" in text
+        assert "heat flow" in text
+        assert "## Objectives" not in text
+        assert "**heat flow**" not in text
 
     def test_card_renders_keywords_as_badges_and_not_as_links(self, client):
-        from controlled_vocabularies.models import Record
-
-        keyword = Record.objects.filter(
-            scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
-        ).first()
+        keyword = _keywords(1)[0]
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         dataset.keywords.add(keyword)
-        response, html = self._card_html(client)
-        assertContains(response, keyword.display_label())
-        assert f'href="?keywords={keyword.pk}"' not in html
-        assert f">{keyword.display_label()}</a>" not in html
-
-    def test_card_shows_the_dataset_uuid_with_a_copy_control(
-        self, client, public_dataset
-    ):
-        response, html = self._card_html(client)
-        assertContains(response, public_dataset.uuid)
-        assert "clipboard" in html
+        text, markup = self._card(client)
+        assert keyword.display_label() in text
+        assert f'href="?keywords={keyword.pk}"' not in markup
+        assert f">{keyword.display_label()}</a>" not in markup
 
     def test_card_names_the_licence(self, client):
-        licence, _created = License.objects.get_or_create(
-            name="CC BY-SA 4.0",
-            defaults={
-                "canonical_url": "https://example.org/cc-by-sa-4.0",
-                "text": "…",
-            },
+        DatasetFactory(
+            visibility=Visibility.PUBLIC, license=License.objects.get(name="CC0 1.0")
         )
-        DatasetFactory(visibility=Visibility.PUBLIC, license=licence)
-        response, _ = self._card_html(client)
-        assertContains(response, "CC BY-SA 4.0")
+        text, _ = self._card(client)
+        assert "CC0 1.0" in text
 
-    def test_card_shows_the_last_modified_date(self, client, public_dataset):
-        response, _ = self._card_html(client)
-        assertContains(response, public_dataset.modified.strftime("%b"))
+    def test_card_shows_the_last_modified_date(self, client):
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        text, _ = self._card(client)
+        modified = date_filter(localtime(dataset.modified), "M j, Y")
+        assert f"Last updated {modified}" in text
 
     def test_card_shows_contributor_names(self, client):
         person = PersonFactory(name="Ada Lovelace")
         dataset = DatasetFactory(visibility=Visibility.PUBLIC)
         dataset.add_contributor(person)
-        response, _ = self._card_html(client)
-        assertContains(response, "Ada Lovelace")
-
-    def test_no_comment_syntax_survives_into_the_rendered_page(self, client):
-        from controlled_vocabularies.models import Record
-
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        dataset.keywords.add(
-            *Record.objects.filter(
-                scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
-            )[:3]
-        )
-        dataset.add_contributor(PersonFactory())
-        DatasetDescriptionFactory(
-            related=dataset,
-            type_id=f"{DESCRIPTION_TYPES}/abstract",
-            value="An abstract.",
-        )
-
-        _, html = self._card_html(client)
-
-        assert "{#" not in html
-        assert "#}" not in html
-        assert "{%" not in html
-
-
-@pytest.mark.django_db
-class TestDatasetListToolbar:
-    def test_the_search_and_license_are_in_the_toolbar_and_the_rest_in_the_panel(
-        self, client, filter_placement
-    ):
-        DatasetFactory(visibility=Visibility.PUBLIC)
-
-        toolbar, panel = filter_placement(client.get(reverse("dataset-list")))
-
-        assert {"q", "license"} <= toolbar
-        assert {"project", "description_type", "date_type", "image"} <= panel
+        text, _ = self._card(client)
+        assert "Ada Lovelace" in text

@@ -18,7 +18,6 @@ from fairdm.factories import (
     SampleIdentifierFactory,
     SampleRelationFactory,
 )
-from fairdm.registry import registry
 
 User = get_user_model()
 
@@ -108,12 +107,3 @@ def sample_hierarchy_chain(db, dataset):
     SampleRelationFactory(source=parent, target=grandparent, type="child_of")
     SampleRelationFactory(source=child, target=parent, type="child_of")
     return grandparent, parent, child
-
-
-@pytest.fixture
-def clean_registry():
-    original_registry = registry._registry.copy()
-
-    yield
-
-    registry._registry = original_registry

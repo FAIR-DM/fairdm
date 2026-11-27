@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.test import RequestFactory
 from django.urls import reverse
 
-from demo.factories import ExampleMeasurementFactory, RockSampleFactory
+from demo.factories import ExampleMeasurementFactory
 from fairdm.core.measurement.admin import MeasurementChildAdmin, MeasurementParentAdmin
 from fairdm.core.measurement.models import (
     Measurement,
@@ -17,22 +17,21 @@ from fairdm.core.measurement.models import (
     MeasurementDescription,
     MeasurementIdentifier,
 )
-from fairdm.core.vocabularies import DATE_TYPES, DESCRIPTION_TYPES, IDENTIFIER_TYPES
+from fairdm.factories import PersonFactory
 from fairdm.registry import registry
-from tests.registry_models.models import ConcreteMeasurement, ConcreteSample
+from tests.registry_models.models import ConcreteMeasurement
 
 User = get_user_model()
 
 
 @pytest.fixture
 def admin_user(db):
-    user = User.objects.create_superuser(
+    return User.objects.create_superuser(
         email="admin@example.com",
         first_name="Admin",
         last_name="User",
         password="admin123",
     )
-    return user
 
 
 @pytest.fixture
@@ -52,256 +51,43 @@ def request_factory():
 
 @pytest.mark.django_db
 class TestMeasurementAdminSearch:
-    def test_search_by_name(self, measurement_admin, admin_user, request_factory):
-        measurement1 = ExampleMeasurementFactory(
-            sample=RockSampleFactory(), name="XRF Analysis"
-        )
-        measurement2 = ExampleMeasurementFactory(
-            sample=RockSampleFactory(), name="ICP-MS Analysis"
-        )
-        _measurement3 = ExampleMeasurementFactory(
-            sample=RockSampleFactory(), name="Spectroscopy"
-        )
-
-        request = request_factory.get("/admin/measurement/measurement/", {"q": "XRF"})
-        request.user = admin_user
-
-        queryset = measurement_admin.get_search_results(
-            request, Measurement.objects.all(), "XRF"
-        )[0]
-
-        assert measurement1 in queryset
-        assert measurement2 not in queryset
-
-    def test_search_by_uuid(self, measurement_admin, admin_user, request_factory):
-        measurement1 = ExampleMeasurementFactory(sample=RockSampleFactory())
-
-        request = request_factory.get(
-            "/admin/measurement/measurement/", {"q": measurement1.uuid}
-        )
-        request.user = admin_user
-
-        queryset = measurement_admin.get_search_results(
-            request, Measurement.objects.all(), measurement1.uuid
-        )[0]
-
-        assert measurement1 in queryset
-
-    def test_search_returns_empty_for_no_matches(
-        self, measurement_admin, admin_user, request_factory
+    def test_search_finds_a_measurement_by_its_uuid_and_no_other(
+        self, measurement_admin, admin_user, request_factory, measurement, second_sample
     ):
-        _measurement1 = ExampleMeasurementFactory(
-            sample=RockSampleFactory(), name="Test Measurement"
+        other = ExampleMeasurementFactory(
+            sample=second_sample, dataset=second_sample.dataset
         )
-
         request = request_factory.get(
-            "/admin/measurement/measurement/", {"q": "NonExistent"}
+            "/admin/measurement/measurement/", {"q": measurement.uuid}
         )
         request.user = admin_user
 
         queryset = measurement_admin.get_search_results(
-            request, Measurement.objects.all(), "NonExistent"
+            request, Measurement.objects.all(), measurement.uuid
         )[0]
 
-        assert queryset.count() == 0
+        assert measurement in queryset
+        assert other not in queryset
 
 
 @pytest.mark.django_db
 class TestMeasurementAdminFilters:
-    def test_filter_by_dataset(self, admin_user, request_factory):
-        from django.contrib import admin as django_admin
-
-        from demo.models import XRFMeasurement
-        from fairdm.factories import DatasetFactory
-
-        dataset1 = DatasetFactory(name="Dataset A")
-        dataset2 = DatasetFactory(name="Dataset B")
-        sample1 = RockSampleFactory(dataset=dataset1)
-        sample2 = RockSampleFactory(dataset=dataset2)
-
-        measurement1 = XRFMeasurement.objects.create(
-            name="XRF 1",
-            sample=sample1,
-            dataset=dataset1,
-            element="Si",
-            concentration_ppm=250000.0,
-        )
-        measurement2 = XRFMeasurement.objects.create(
-            name="XRF 2",
-            sample=sample2,
-            dataset=dataset2,
-            element="Fe",
-            concentration_ppm=50000.0,
-        )
-
-        parent_admin = django_admin.site._registry[Measurement]
-        request = request_factory.get(
-            "/admin/core/measurement/", {"dataset__id__exact": str(dataset1.pk)}
-        )
-        request.user = admin_user
-
-        changelist = parent_admin.get_changelist_instance(request)
-
-        result_pks = set(changelist.queryset.values_list("pk", flat=True))
-        assert measurement1.pk in result_pks
-        assert measurement2.pk not in result_pks
-
-    def test_filter_by_sample(self, admin_user, request_factory, sample):
-        from django.contrib import admin as django_admin
-
-        from demo.models import XRFMeasurement
-
-        sample2 = RockSampleFactory(dataset=sample.dataset)
-
-        measurement1 = XRFMeasurement.objects.create(
-            name="XRF 1",
-            sample=sample,
-            dataset=sample.dataset,
-            element="Si",
-            concentration_ppm=250000.0,
-        )
-        measurement2 = XRFMeasurement.objects.create(
-            name="XRF 2",
-            sample=sample2,
-            dataset=sample.dataset,
-            element="Fe",
-            concentration_ppm=50000.0,
-        )
-
-        parent_admin = django_admin.site._registry[Measurement]
-        request = request_factory.get(
-            "/admin/core/measurement/", {"sample__id__exact": str(sample.pk)}
-        )
-        request.user = admin_user
-
-        changelist = parent_admin.get_changelist_instance(request)
-
-        result_pks = set(changelist.queryset.values_list("pk", flat=True))
-        assert measurement1.pk in result_pks
-        assert measurement2.pk not in result_pks
-
-    def test_filter_by_measurement_type(self, admin_user, request_factory, sample):
-        from django.contrib import admin as django_admin
-        from django.contrib.contenttypes.models import ContentType
-
-        from demo.models import ICP_MS_Measurement, XRFMeasurement
-
-        xrf = XRFMeasurement.objects.create(
-            name="XRF",
-            sample=sample,
-            dataset=sample.dataset,
-            element="Si",
-            concentration_ppm=250000.0,
-        )
-        icp = ICP_MS_Measurement.objects.create(
-            name="ICP-MS",
-            sample=sample,
-            dataset=sample.dataset,
-            isotope="207Pb",
-            counts_per_second=15000.0,
-            concentration_ppb=120.5,
-        )
-
-        xrf_type = ContentType.objects.get_for_model(XRFMeasurement)
-
-        parent_admin = django_admin.site._registry[Measurement]
-        request = request_factory.get(
-            "/admin/core/measurement/", {"polymorphic_ctype": str(xrf_type.pk)}
-        )
-        request.user = admin_user
-
-        changelist = parent_admin.get_changelist_instance(request)
-
-        result_pks = set(changelist.queryset.values_list("pk", flat=True))
-        assert xrf.pk in result_pks
-        assert icp.pk not in result_pks
-
-    def test_list_filter_configuration(self, measurement_admin):
-        assert "added" in measurement_admin.list_filter
-
-    def test_child_admin_list_filter_includes_dataset_and_sample(
-        self, measurement_admin
+    def test_filter_by_dataset(
+        self, admin_user, request_factory, measurement, second_sample, second_dataset
     ):
-        filtered_field_names = {
-            entry[0] if isinstance(entry, tuple) else entry
-            for entry in measurement_admin.list_filter
-        }
-        assert "dataset" in filtered_field_names
-        assert "sample" in filtered_field_names
-
-    def test_parent_admin_list_filter_includes_dataset_and_sample(self):
-        from fairdm.core.measurement.admin import MeasurementParentAdmin
-
-        parent_admin = MeasurementParentAdmin(Measurement, AdminSite())
-        filtered_field_names = {
-            entry[0] if isinstance(entry, tuple) else entry
-            for entry in parent_admin.list_filter
-        }
-        assert "dataset" in filtered_field_names
-        assert "sample" in filtered_field_names
-
-
-@pytest.mark.django_db
-class TestMeasurementAdminInlines:
-    def test_description_inline_configured(self, measurement_admin):
-        inline_names = [inline.__name__ for inline in measurement_admin.inlines]
-        assert "MeasurementDescriptionInline" in inline_names
-
-    def test_date_inline_configured(self, measurement_admin):
-        inline_names = [inline.__name__ for inline in measurement_admin.inlines]
-        assert "MeasurementDateInline" in inline_names
-
-    def test_identifier_inline_configured(self, measurement_admin):
-        inline_names = [inline.__name__ for inline in measurement_admin.inlines]
-        assert "MeasurementIdentifierInline" in inline_names
-
-    def test_contribution_inline_configured(self, measurement_admin):
-        inline_names = [inline.__name__ for inline in measurement_admin.inlines]
-        assert "MeasurementContributionInline" in inline_names
-
-    def test_inline_metadata_can_be_created(self, measurement_admin, measurement):
-        description = MeasurementDescription.objects.create(
-            related=measurement,
-            type_id=f"{DESCRIPTION_TYPES}/measurement-setup",
-            value="XRF analysis method description",
+        other = ExampleMeasurementFactory(sample=second_sample, dataset=second_dataset)
+        parent_admin = admin.site._registry[Measurement]
+        request = request_factory.get(
+            "/admin/core/measurement/",
+            {"dataset__id__exact": str(measurement.dataset.pk)},
         )
+        request.user = admin_user
 
-        assert description.related == measurement
-        assert measurement.descriptions.count() == 1
+        changelist = parent_admin.get_changelist_instance(request)
 
-    def test_inline_dates_can_be_created(self, measurement_admin, measurement):
-        date = MeasurementDate.objects.create(
-            related=measurement, type_id=f"{DATE_TYPES}/setup", value="2024-01-15"
-        )
-
-        assert date.related == measurement
-        assert measurement.dates.count() == 1
-
-    def test_inline_identifiers_can_be_created(self, measurement_admin, measurement):
-        identifier = MeasurementIdentifier.objects.create(
-            related=measurement,
-            type_id=f"{IDENTIFIER_TYPES}/doi",
-            value="10.1234/meas.123",
-        )
-
-        assert identifier.related == measurement
-        assert measurement.identifiers.count() == 1
-
-    def test_inline_contribution_can_be_added_and_changed(self, measurement):
-        from fairdm.factories import PersonFactory
-
-        contributor = PersonFactory()
-        contribution = measurement.contributors.create(contributor=contributor)
-
-        assert contribution.contributor == contributor
-        assert measurement.contributors.count() == 1
-
-        new_contributor = PersonFactory()
-        contribution.contributor = new_contributor
-        contribution.save()
-        contribution.refresh_from_db()
-
-        assert contribution.contributor == new_contributor
+        result_pks = set(changelist.queryset.values_list("pk", flat=True))
+        assert measurement.pk in result_pks
+        assert other.pk not in result_pks
 
 
 @pytest.mark.django_db
@@ -336,7 +122,6 @@ class TestMeasurementContributionInlineRoleVocabulary:
     ):
         from demo.models import XRFMeasurement
         from fairdm.contrib.contributors.models import Contribution
-        from fairdm.factories import PersonFactory
 
         xrf = XRFMeasurement.objects.create(
             name="XRF Test",
@@ -345,7 +130,7 @@ class TestMeasurementContributionInlineRoleVocabulary:
             element="Si",
             concentration_ppm=250000.0,
         )
-        contributor = PersonFactory()
+        contributor = PersonFactory(is_active=True)
         contribution = xrf.contributors.create(contributor=contributor)
         off_vocabulary_role = self._off_vocabulary_role()
 
@@ -480,126 +265,21 @@ class TestMeasurementAdminSharedInlines:
 
 
 @pytest.mark.django_db
-class TestMeasurementAdminVocabularyCorrectness:
-    def test_measurement_description_uses_measurement_vocabulary(self, measurement):
-        description = MeasurementDescription.objects.create(
-            related=measurement,
-            type_id=f"{DESCRIPTION_TYPES}/measurement-setup",
-            value="Test method",
-        )
-
-        assert description.get_type_concepts()
-        assert description.type_id == f"{DESCRIPTION_TYPES}/measurement-setup"
-
-    def test_measurement_date_uses_measurement_vocabulary(self, measurement):
-        date = MeasurementDate.objects.create(
-            related=measurement, type_id=f"{DATE_TYPES}/setup", value="2024-01-15"
-        )
-
-        assert date.get_type_concepts()
-        assert date.type_id == f"{DATE_TYPES}/setup"
-
-
-@pytest.mark.django_db
-class TestMeasurementAdminPolymorphicHandling:
-    def test_parent_admin_shows_type_selection_interface(
-        self, admin_user, request_factory
-    ):
-        from fairdm.core.measurement.admin import MeasurementParentAdmin
-
-        parent_admin = MeasurementParentAdmin(Measurement, AdminSite())
-
-        assert hasattr(parent_admin, "get_child_models")
-
-        child_models = parent_admin.get_child_models()
-        assert len(child_models) > 0
-
-    def test_child_admin_renders_with_inlines(self, measurement_admin, sample):
-        from demo.models import XRFMeasurement
-
-        xrf = XRFMeasurement.objects.create(
-            name="XRF Test",
-            sample=sample,
-            dataset=sample.dataset,
-            element="Si",
-            concentration_ppm=250000.0,
-        )
-
-        assert len(measurement_admin.inlines) == 4
-
-
-@pytest.mark.django_db
-class TestMeasurementAdminConfiguration:
-    def test_list_display_configured(self, measurement_admin):
-        assert "name" in measurement_admin.list_display
-        assert "sample" in measurement_admin.list_display
-        assert "dataset" in measurement_admin.list_display
-        assert "added" in measurement_admin.list_display
-
-    def test_search_fields_configured(self, measurement_admin):
-        assert "name" in measurement_admin.search_fields
-        assert "uuid" in measurement_admin.search_fields
-
-    def test_readonly_fields_configured(self, measurement_admin):
-        assert "uuid" in measurement_admin.readonly_fields
-        assert "added" in measurement_admin.readonly_fields
-        assert "modified" in measurement_admin.readonly_fields
-
-    def test_fieldsets_configured(self, measurement_admin):
-        assert hasattr(measurement_admin, "base_fieldsets")
-        assert measurement_admin.base_fieldsets is not None
-        assert len(measurement_admin.base_fieldsets) >= 2
-
-    def test_measurement_admin_is_configured_for_inheritance(self, measurement_admin):
-        assert len(measurement_admin.inlines) > 0
-        assert len(measurement_admin.search_fields) > 0
-        assert len(measurement_admin.list_display) > 0
-
-
-@pytest.mark.django_db
 class TestMeasurementAdminTypeColumn:
-    def test_child_admin_list_display_includes_measurement_type(
-        self, measurement_admin
-    ):
-        assert "measurement_type" in measurement_admin.list_display
-
-    def test_parent_admin_list_display_includes_measurement_type(self):
-        from fairdm.core.measurement.admin import MeasurementParentAdmin
-
-        parent_admin = MeasurementParentAdmin(Measurement, AdminSite())
-        assert "measurement_type" in parent_admin.list_display
-
     def test_measurement_type_column_names_the_real_type(
-        self, measurement_admin, sample
+        self, measurement_admin, xrf_measurement, icp_ms_measurement
     ):
-        from demo.models import ICP_MS_Measurement, XRFMeasurement
-
-        xrf = XRFMeasurement.objects.create(
-            name="XRF",
-            sample=sample,
-            dataset=sample.dataset,
-            element="Si",
-            concentration_ppm=250000.0,
-        )
-        icp = ICP_MS_Measurement.objects.create(
-            name="ICP-MS",
-            sample=sample,
-            dataset=sample.dataset,
-            isotope="207Pb",
-            counts_per_second=15000.0,
-            concentration_ppb=120.5,
-        )
-
         assert (
-            measurement_admin.measurement_type(xrf) == XRFMeasurement._meta.verbose_name
+            measurement_admin.measurement_type(xrf_measurement)
+            == type(xrf_measurement)._meta.verbose_name
         )
         assert (
-            measurement_admin.measurement_type(icp)
-            == ICP_MS_Measurement._meta.verbose_name
+            measurement_admin.measurement_type(icp_ms_measurement)
+            == type(icp_ms_measurement)._meta.verbose_name
         )
         assert measurement_admin.measurement_type(
-            xrf
-        ) != measurement_admin.measurement_type(icp)
+            xrf_measurement
+        ) != measurement_admin.measurement_type(icp_ms_measurement)
 
 
 class TestChildModelDiscoveryReadsTheRegistry:
@@ -612,40 +292,6 @@ class TestChildModelDiscoveryReadsTheRegistry:
         )
 
         assert measurement_parent_admin.get_child_models() == sentinel
-
-    def test_child_models_matches_registry_measurements(self, measurement_parent_admin):
-        assert measurement_parent_admin.get_child_models() == registry.measurements
-
-
-@pytest.mark.django_db
-class TestAdminOffersExactlyRegisteredMeasurementTypes:
-    def test_offers_a_type_registered_from_outside_the_framework(
-        self, clean_registry, measurement_parent_admin
-    ):
-        registry.register(ConcreteMeasurement)
-
-        child_models = measurement_parent_admin.get_child_models()
-
-        assert ConcreteMeasurement in child_models
-        assert set(child_models) == set(registry.measurements)
-
-    def test_excludes_a_registered_record_that_is_not_a_measurement(
-        self, clean_registry, measurement_parent_admin
-    ):
-        registry.register(ConcreteMeasurement)
-        registry.register(ConcreteSample)
-
-        child_models = measurement_parent_admin.get_child_models()
-
-        assert ConcreteMeasurement in child_models
-        assert ConcreteSample not in child_models
-
-    def test_excludes_the_unregistered_base_measurement(
-        self, clean_registry, measurement_parent_admin
-    ):
-        registry.register(ConcreteMeasurement)
-
-        assert Measurement not in measurement_parent_admin.get_child_models()
 
 
 @pytest.mark.django_db

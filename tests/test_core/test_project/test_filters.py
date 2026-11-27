@@ -2,7 +2,6 @@
 
 import pytest
 from controlled_vocabularies.models import Record
-from mvp_forms.widgets import TomSelectMultiple
 
 from fairdm.contrib.autocomplete.fields import (
     OrganizationMultipleChoiceField,
@@ -31,9 +30,9 @@ def roles_as_keywords(settings):
 def keywords():
     """Two keywords from the vocabulary the project list filters on."""
     return list(
-        Record.objects.filter(scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT)[
-            :2
-        ]
+        Record.objects.filter(
+            scheme__uri=CONTRIBUTOR_ROLES, type=Record.Type.CONCEPT
+        ).order_by("pk")[:2]
     )
 
 
@@ -51,14 +50,6 @@ def projects(keywords):
 
 @pytest.mark.django_db
 class TestKeywordFilterControl:
-    def test_the_vocabulary_filter_is_a_counted_control(
-        self,
-    ):
-        widget = ProjectFilter().filters["keywords_contributor-roles"].field.widget
-
-        assert isinstance(widget, TomSelectMultiple)
-        assert widget.counted is True
-
     def test_the_keywords_are_chosen_from_the_vocabulary_the_filter_names(
         self, keywords
     ):

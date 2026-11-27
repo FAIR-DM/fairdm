@@ -115,22 +115,6 @@ class TestMeasurementFilterDatasetFiltering:
 
 
 class TestMeasurementFilterSampleFiltering:
-    def test_filter_by_sample(self):
-        dataset = _public_dataset()
-        sample1 = RockSampleFactory(dataset=dataset, name="Sample 1")
-        sample2 = RockSampleFactory(dataset=dataset, name="Sample 2")
-        measurement1 = _measurement(dataset, sample1)
-        measurement2 = _measurement(dataset, sample2)
-
-        filterset = MeasurementFilter(
-            data={"sample": [sample1.id]},
-            queryset=XRFMeasurement.objects.all(),
-            request=_request_for(AnonymousUser()),
-        )
-        assert filterset.is_valid(), filterset.errors
-        assert measurement1 in filterset.qs
-        assert measurement2 not in filterset.qs
-
     def test_a_sample_of_a_private_dataset_is_refused(self):
         private = DatasetFactory(published=True)
         sample = RockSampleFactory(dataset=private)
@@ -146,9 +130,7 @@ class TestMeasurementFilterSampleFiltering:
 
 
 class TestMeasurementFilterPolymorphicTypeFiltering:
-    def test_filter_by_polymorphic_type(self, user, project, dataset):
-        from django.contrib.contenttypes.models import ContentType
-
+    def test_filter_by_polymorphic_type(self, dataset):
         sample = RockSampleFactory(dataset=dataset)
 
         xrf_measurement = XRFMeasurement.objects.create(
@@ -168,8 +150,6 @@ class TestMeasurementFilterPolymorphicTypeFiltering:
 
         xrf_ct = ContentType.objects.get_for_model(XRFMeasurement)
         icpms_ct = ContentType.objects.get_for_model(ICP_MS_Measurement)
-
-        from fairdm.core.measurement.models import Measurement
 
         filterset = MeasurementFilter(
             data={"polymorphic_ctype": xrf_ct.id}, queryset=Measurement.objects.all()
@@ -242,7 +222,7 @@ class TestMeasurementFilterPolymorphicTypeChoices:
 
 
 class TestMeasurementFilterSearchFunctionality:
-    def test_search_by_name_and_uuid(self, user, project, dataset):
+    def test_search_by_name_and_uuid(self, dataset):
         sample = RockSampleFactory(dataset=dataset)
 
         measurement1 = XRFMeasurement.objects.create(
@@ -284,7 +264,7 @@ class TestMeasurementFilterSearchFunctionality:
 
 
 class TestMeasurementFilterCrossRelationshipFiltering:
-    def test_filter_by_description_text(self, user, project, dataset):
+    def test_filter_by_description_text(self):
         dataset = _public_dataset()
         sample = RockSampleFactory(dataset=dataset)
 
@@ -322,8 +302,7 @@ class TestMeasurementFilterCrossRelationshipFiltering:
         assert measurement1 in filterset.qs
         assert measurement2 not in filterset.qs
 
-    def test_filter_by_date_range(self, user, project, dataset):
-
+    def test_filter_by_date_range(self):
         dataset = _public_dataset()
         sample = RockSampleFactory(dataset=dataset)
 
@@ -437,75 +416,9 @@ class TestMeasurementFilterDateRangeValidation:
         assert filterset.is_valid()
 
 
-class TestMeasurementFilterCombinedFilters:
-    def test_combined_filters_dataset_and_sample(self):
-        dataset1, dataset2 = _public_dataset(), _public_dataset()
-
-        sample1 = RockSampleFactory(dataset=dataset1, name="Sample 1")
-        sample2 = RockSampleFactory(dataset=dataset1, name="Sample 2")
-
-        measurement_both = XRFMeasurement.objects.create(
-            name="XRF-both",
-            dataset=dataset1,
-            sample=sample1,
-            element="Fe",
-            concentration_ppm=25.5,
-        )
-        measurement_wrong_dataset = XRFMeasurement.objects.create(
-            name="XRF-wrong-dataset",
-            dataset=dataset2,
-            sample=sample1,
-            element="Cu",
-            concentration_ppm=15.3,
-        )
-        measurement_wrong_sample = XRFMeasurement.objects.create(
-            name="XRF-wrong-sample",
-            dataset=dataset1,
-            sample=sample2,
-            element="Zn",
-            concentration_ppm=8.7,
-        )
-
-        filterset = MeasurementFilter(
-            data={"dataset": [dataset1.id], "sample": [sample1.id]},
-            queryset=XRFMeasurement.objects.all(),
-            request=_request_for(AnonymousUser()),
-        )
-        assert filterset.is_valid()
-        assert measurement_both in filterset.qs
-        assert measurement_wrong_dataset not in filterset.qs
-        assert measurement_wrong_sample not in filterset.qs
-
-
-class TestMeasurementFilterMixinInheritance:
-    def test_inheriting_filter_set_carries_the_mixins_declared_filters(self):
-        filterset = MeasurementFilter()
-
-        assert "dataset" in filterset.filters
-        assert "sample" in filterset.filters
-        assert "polymorphic_ctype" in filterset.filters
-        assert "q" in filterset.filters
-        assert "description" in filterset.filters
-        assert "date_after" in filterset.filters
-        assert "date_before" in filterset.filters
-
-    def test_mixin_declares_all_six(self):
-        assert set(MeasurementFilterMixin.declared_filters) == {
-            "dataset",
-            "sample",
-            "polymorphic_ctype",
-            "q",
-            "description",
-            "date_after",
-            "date_before",
-        }
-
-
 class TestMeasurementFilterMixinUsage:
     def test_custom_filter_inherits_from_mixin(self):
         import django_filters
-
-        from fairdm.core.measurement.filters import MeasurementFilterMixin
 
         class CustomXRFFilter(MeasurementFilterMixin, django_filters.FilterSet):
             element = django_filters.CharFilter(

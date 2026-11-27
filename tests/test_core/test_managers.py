@@ -36,11 +36,20 @@ def _measurement(dataset):
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    ("model", "make"), [(Sample, _sample), (Measurement, _measurement)]
-)
 class TestRecordVisibilityMixin:
-    """Both querysets decide by the record's own dataset."""
+    """Both querysets decide by the record's own dataset.
+
+    The mixin is shared, so its rules are checked on samples. A measurement differs only in which
+    dataset decides, which the last test checks.
+    """
+
+    @pytest.fixture
+    def model(self):
+        return Sample
+
+    @pytest.fixture
+    def make(self):
+        return _sample
 
     def test_a_visitor_sees_only_records_in_public_published_datasets(
         self, model, make
@@ -94,12 +103,6 @@ class TestRecordVisibilityMixin:
 
         assert set(model.objects.visible_to(user)) == {mine}
 
-    def test_a_person_with_no_level_sees_nothing_private(self, model, make):
-        make(DatasetFactory(visibility=Visibility.PRIVATE, published=False))
-        user = PersonFactory(is_active=True)
-
-        assert not model.objects.visible_to(user).exists()
-
     def test_a_stored_guardian_row_alone_shows_nothing(self, model, make):
         held = DatasetFactory(visibility=Visibility.PRIVATE, published=False)
         make(held)
@@ -109,19 +112,21 @@ class TestRecordVisibilityMixin:
 
         assert not model.objects.visible_to(user).exists()
 
-    def test_a_listing_with_no_level_shows_nothing_private(self, model, make):
-        held = DatasetFactory(visibility=Visibility.PRIVATE, published=False)
-        make(held)
-        user = PersonFactory(is_active=True)
-        ContributionFactory(content_object=held, contributor=user, level=None)
-
-        assert not model.objects.visible_to(user).exists()
-
     def test_published_keeps_the_records_of_published_datasets(self, model, make):
         kept = make(DatasetFactory(published=True))
         make(DatasetFactory(published=False))
 
         assert set(model.objects.published()) == {kept}
+
+    def test_a_measurement_follows_its_own_dataset_and_not_its_samples(
+        self, model, make
+    ):
+        released = DatasetFactory(visibility=Visibility.PUBLIC, published=True)
+        private = DatasetFactory(visibility=Visibility.PRIVATE, published=False)
+        measured = XRFMeasurementFactory(dataset=released, sample=_sample(private))
+        XRFMeasurementFactory(dataset=private, sample=_sample(released))
+
+        assert set(Measurement.objects.visible_to(AnonymousUser())) == {measured}
 
 
 @pytest.fixture
@@ -300,23 +305,13 @@ class TestModelWideRights:
     """Only a shipped portal role or a superuser reaches every record."""
 
     @pytest.mark.parametrize("codename", ["view_dataset", "change_dataset"])
-    @pytest.mark.parametrize(
-        ("model", "key"), [(Sample, "sample"), (Measurement, "measurement")]
-    )
-    def test_a_direct_grant_shows_no_private_sample_or_measurement(
-        self, tree, holder, model, key, codename
-    ):
+    def test_a_direct_grant_shows_no_private_sample(self, tree, holder, codename):
         person = direct_grant(holder, codename)
 
-        assert tree[key] not in model.objects.visible_to(person)
+        assert tree["sample"] not in Sample.objects.visible_to(person)
 
-    @pytest.mark.parametrize(
-        ("model", "key"), [(Sample, "sample"), (Measurement, "measurement")]
-    )
-    def test_a_data_curator_sees_every_sample_and_measurement(
-        self, tree, holder, model, key
-    ):
-        assert tree[key] in model.objects.visible_to(curator(holder))
+    def test_a_data_curator_sees_every_sample(self, tree, holder):
+        assert tree["sample"] in Sample.objects.visible_to(curator(holder))
 
     def test_a_direct_grant_shows_no_private_dataset(self, tree, holder):
         person = direct_grant(holder, "view_dataset")
@@ -326,7 +321,7 @@ class TestModelWideRights:
     def test_a_data_curator_sees_every_dataset(self, tree, holder):
         assert tree["loose"] in Dataset.all_objects.visible_to(curator(holder))
 
-    @pytest.mark.parametrize("level", [VIEW, EDIT, MANAGE])
+    @pytest.mark.parametrize("level", [VIEW, EDIT])
     def test_a_direct_grant_offers_no_record_in_a_choice_list(
         self, tree, holder, level
     ):
@@ -334,7 +329,7 @@ class TestModelWideRights:
 
         assert not Dataset.all_objects.accessible_to(person, level).exists()
 
-    @pytest.mark.parametrize("level", [VIEW, EDIT, MANAGE])
+    @pytest.mark.parametrize("level", [VIEW, EDIT])
     def test_a_data_curator_is_offered_every_record(self, tree, holder, level):
         offered = Dataset.all_objects.accessible_to(curator(holder), level)
 

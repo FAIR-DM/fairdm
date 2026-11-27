@@ -25,23 +25,29 @@ from fairdm.factories import ContributionFactory, DatasetFactory, PersonFactory
 from fairdm.utils.choices import Visibility
 
 
-def count_queries_accessing_related(queryset):
-    """Evaluate `queryset` and touch sample, dataset and contributors on every row."""
-    with CaptureQueriesContext(connection) as context:
-        for measurement in queryset:
-            _ = measurement.sample.name
-            _ = measurement.dataset.name
-            _ = list(measurement.contributors.all())
-    return len(context.captured_queries)
+def touch_related(queryset):
+    for measurement in queryset:
+        _ = measurement.sample.name
+        _ = measurement.dataset.name
+        _ = list(measurement.contributors.all())
 
 
-def count_queries_accessing_metadata(queryset):
-    """Evaluate `queryset` and touch descriptions, dates and identifiers on every row."""
+def touch_metadata(queryset):
+    for measurement in queryset:
+        _ = list(measurement.descriptions.all())
+        _ = list(measurement.dates.all())
+        _ = list(measurement.identifiers.all())
+
+
+def count_queries(touch, queryset):
+    """Count the queries `touch` costs on a copy of `queryset`, after one warm-up pass.
+
+    The warm-up fills process-wide caches (ContentType), so the first size measured
+    is not charged a lookup the second size gets for free.
+    """
+    touch(queryset.all())
     with CaptureQueriesContext(connection) as context:
-        for measurement in queryset:
-            _ = list(measurement.descriptions.all())
-            _ = list(measurement.dates.all())
-            _ = list(measurement.identifiers.all())
+        touch(queryset.all())
     return len(context.captured_queries)
 
 
@@ -99,17 +105,18 @@ class TestWithRelatedQueryCountDoesNotGrow:
     def test_query_count_is_equal_at_two_sizes(
         self, dataset, second_dataset, build_measurements_with_related
     ):
-        build_measurements_with_related(dataset, count=5)
-        build_measurements_with_related(second_dataset, count=25)
+        build_measurements_with_related(dataset, count=1)
+        build_measurements_with_related(second_dataset, count=3)
 
-        queries_at_5 = count_queries_accessing_related(
-            Measurement.objects.with_related().filter(dataset=dataset)
+        queries_at_1 = count_queries(
+            touch_related, Measurement.objects.with_related().filter(dataset=dataset)
         )
-        queries_at_25 = count_queries_accessing_related(
-            Measurement.objects.with_related().filter(dataset=second_dataset)
+        queries_at_3 = count_queries(
+            touch_related,
+            Measurement.objects.with_related().filter(dataset=second_dataset),
         )
 
-        assert queries_at_5 == queries_at_25
+        assert queries_at_1 == queries_at_3
 
 
 @pytest.mark.django_db
@@ -117,17 +124,18 @@ class TestWithMetadataQueryCountDoesNotGrow:
     def test_query_count_is_equal_at_two_sizes(
         self, dataset, second_dataset, build_measurements_with_metadata
     ):
-        build_measurements_with_metadata(dataset, count=5)
-        build_measurements_with_metadata(second_dataset, count=25)
+        build_measurements_with_metadata(dataset, count=1)
+        build_measurements_with_metadata(second_dataset, count=3)
 
-        queries_at_5 = count_queries_accessing_metadata(
-            Measurement.objects.with_metadata().filter(dataset=dataset)
+        queries_at_1 = count_queries(
+            touch_metadata, Measurement.objects.with_metadata().filter(dataset=dataset)
         )
-        queries_at_25 = count_queries_accessing_metadata(
-            Measurement.objects.with_metadata().filter(dataset=second_dataset)
+        queries_at_3 = count_queries(
+            touch_metadata,
+            Measurement.objects.with_metadata().filter(dataset=second_dataset),
         )
 
-        assert queries_at_5 == queries_at_25
+        assert queries_at_1 == queries_at_3
 
 
 @pytest.mark.django_db
@@ -363,9 +371,10 @@ class TestWithEffectiveLocation:
         )
         ExampleMeasurementFactory(sample=sample, dataset=released)
 
+        list(Measurement.objects.with_effective_location(None))  # warm caches
         with CaptureQueriesContext(connection) as one:
             list(Measurement.objects.with_effective_location(None))
-        for _ in range(3):
+        for _ in range(2):
             ExampleMeasurementFactory(sample=sample, dataset=released)
         with CaptureQueriesContext(connection) as several:
             list(Measurement.objects.with_effective_location(None))

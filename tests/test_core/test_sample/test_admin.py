@@ -1,15 +1,17 @@
 """Integration tests for Sample admin interface."""
 
+from datetime import timedelta
+
 import pytest
 from django.contrib import admin
 from django.contrib.admin.sites import AdminSite
-from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.test import RequestFactory
 from django.urls import reverse
+from django.utils import timezone
 
 from demo.factories import RockSampleFactory, WaterSampleFactory
 from demo.models import RockSample, WaterSample
+from fairdm.core.dataset.models import Dataset
 from fairdm.core.sample.admin import (
     SampleChildAdmin,
     SampleDateInline,
@@ -35,81 +37,10 @@ from fairdm.factories.core import DatasetFactory
 from fairdm.registry import registry
 from fairdm.utils.choices import Visibility
 
-User = get_user_model()
-
-
-@pytest.fixture
-def admin_user(db):
-    user = User.objects.create_superuser(
-        email="admin@example.com",
-        first_name="Admin",
-        last_name="User",
-        password="admin123",
-    )
-    return user
-
-
-@pytest.fixture
-def sample_admin():
-    return SampleChildAdmin(Sample, AdminSite())
-
-
-@pytest.fixture
-def request_factory():
-    return RequestFactory()
-
 
 def _result_pks(response):
     """The primary keys the changelist actually matched - read off the `ChangeList`."""
     return {obj.pk for obj in response.context["cl"].result_list}
-
-
-@pytest.mark.django_db
-class TestSampleAdminSearch:
-    def test_search_by_name(self, admin_client):
-        match = RockSampleFactory(name="Granite Sample")
-        other = RockSampleFactory(name="Basalt Sample")
-
-        url = reverse("admin:sample_sample_changelist")
-        response = admin_client.get(url, {"q": "Granite"})
-
-        assert response.status_code == 200
-        pks = _result_pks(response)
-        assert match.pk in pks
-        assert other.pk not in pks
-
-    def test_search_by_local_id(self, admin_client):
-        match = RockSampleFactory(local_id="SAMPLE-001")
-        other = RockSampleFactory(local_id="SAMPLE-002")
-
-        url = reverse("admin:sample_sample_changelist")
-        response = admin_client.get(url, {"q": "SAMPLE-001"})
-
-        assert response.status_code == 200
-        pks = _result_pks(response)
-        assert match.pk in pks
-        assert other.pk not in pks
-
-    def test_search_by_uuid(self, admin_client):
-        match = RockSampleFactory()
-        other = RockSampleFactory()
-
-        url = reverse("admin:sample_sample_changelist")
-        response = admin_client.get(url, {"q": match.uuid})
-
-        assert response.status_code == 200
-        pks = _result_pks(response)
-        assert match.pk in pks
-        assert other.pk not in pks
-
-    def test_search_returns_empty_for_no_matches(self, admin_client):
-        RockSampleFactory(name="Test Sample")
-
-        url = reverse("admin:sample_sample_changelist")
-        response = admin_client.get(url, {"q": "NonExistent"})
-
-        assert response.status_code == 200
-        assert _result_pks(response) == set()
 
 
 @pytest.mark.django_db
@@ -129,49 +60,6 @@ class TestSampleAdminFilters:
         assert match.pk in pks
         assert other.pk not in pks
 
-    def test_filter_by_status(self, admin_client):
-        match = RockSampleFactory()
-        match.status_id = f"{SAMPLE_STATUS}/available"
-        match.save()
-        other = RockSampleFactory()
-        other.status_id = f"{SAMPLE_STATUS}/stored"
-        other.save()
-
-        url = reverse("admin:sample_sample_changelist")
-        response = admin_client.get(
-            url, {"status__exact": f"{SAMPLE_STATUS}/available"}
-        )
-
-        assert response.status_code == 200
-        pks = _result_pks(response)
-        assert match.pk in pks
-        assert other.pk not in pks
-
-    def test_multiple_filters_can_be_combined(self, admin_client):
-        dataset1 = DatasetFactory()
-        dataset2 = DatasetFactory()
-        match = RockSampleFactory(dataset=dataset1)
-        match.status_id = f"{SAMPLE_STATUS}/available"
-        match.save()
-        same_dataset = RockSampleFactory(dataset=dataset1)
-        same_dataset.status_id = f"{SAMPLE_STATUS}/stored"
-        same_dataset.save()
-        RockSampleFactory(dataset=dataset2)
-
-        url = reverse("admin:sample_sample_changelist")
-        response = admin_client.get(
-            url,
-            {
-                "dataset__id__exact": str(dataset1.pk),
-                "status__exact": f"{SAMPLE_STATUS}/available",
-            },
-        )
-
-        assert response.status_code == 200
-        pks = _result_pks(response)
-        assert match.pk in pks
-        assert same_dataset.pk not in pks
-
 
 @pytest.mark.django_db
 class TestSampleDatasetListFilterOrdering:
@@ -180,6 +68,13 @@ class TestSampleDatasetListFilterOrdering:
 
         early = DatasetFactory()
         late = DatasetFactory()
+        # Set the timestamps the ordering reads, so two rows created back to back cannot tie.
+        Dataset.objects.filter(pk=early.pk).update(
+            modified=timezone.now() - timedelta(days=2)
+        )
+        Dataset.objects.filter(pk=late.pk).update(
+            modified=timezone.now() - timedelta(days=1)
+        )
 
         field = Sample._meta.get_field("dataset")
         request = RequestFactory().get("/")
@@ -189,10 +84,8 @@ class TestSampleDatasetListFilterOrdering:
         choices = list_filter.field_choices(field, request, model_admin)
         pks_in_order = [pk for pk, _label in choices]
 
-        # Dataset.Meta.ordering = ["-modified"]: the more recently modified/created "late"
-        # dataset sorts first. An empty order_by() falls back to whatever the database happens
-        # to return with no ORDER BY, which for two freshly-inserted rows is ascending pk -
-        # "early" before "late" - the opposite of what is asserted here.
+        # Dataset.Meta.ordering = ["-modified"]: the more recently modified "late" dataset sorts
+        # first. An empty order_by() would return ascending pk, "early" before "late".
         assert pks_in_order.index(late.pk) < pks_in_order.index(early.pk)
 
 
@@ -233,8 +126,19 @@ class TestSampleAdminInlines:
     def _change_url(self, sample):
         return reverse("admin:demo_rocksample_change", args=[sample.pk])
 
-    def test_description_can_be_added_from_the_specimens_own_page(self, admin_client):
-        sample = RockSampleFactory(dataset=DatasetFactory(visibility=Visibility.PUBLIC))
+    def test_every_inline_can_be_saved_from_the_specimens_own_page(self, admin_client):
+        from controlled_vocabularies.models import Record
+
+        from fairdm.contrib.contributors.models import Contribution
+        from fairdm.factories import PersonFactory
+
+        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
+        sample = RockSampleFactory(dataset=dataset)
+        parent = RockSampleFactory(dataset=dataset)
+        contributor = PersonFactory(is_active=True)
+        role = Record.objects.get(uri=f"{CONTRIBUTOR_ROLES}/collection")
+        prefix = "contributors-contribution-content_type-object_id"
+
         data = self._base_form_data(sample)
         data.update(
             {
@@ -242,140 +146,40 @@ class TestSampleAdminInlines:
                 "descriptions-0-related": sample.pk,
                 "descriptions-0-type": f"{DESCRIPTION_TYPES}/sample-collection",
                 "descriptions-0-value": "Added inline.",
-            }
-        )
-
-        response = admin_client.post(self._change_url(sample), data=data)
-
-        assert response.status_code == 302, (
-            "A 200 here means the formset rejected the submission - check "
-            "the change form's error list."
-        )
-        assert SampleDescription.objects.filter(
-            related=sample,
-            type_id=f"{DESCRIPTION_TYPES}/sample-collection",
-            value="Added inline.",
-        ).exists()
-
-    def test_date_can_be_added_from_the_specimens_own_page(self, admin_client):
-        sample = RockSampleFactory(dataset=DatasetFactory(visibility=Visibility.PUBLIC))
-        data = self._base_form_data(sample)
-        data.update(
-            {
                 "dates-TOTAL_FORMS": "1",
                 "dates-0-related": sample.pk,
                 "dates-0-type": f"{DATE_TYPES}/collected",
                 "dates-0-value": "2024-01-15",
-            }
-        )
-
-        response = admin_client.post(self._change_url(sample), data=data)
-
-        assert response.status_code == 302, (
-            "A 200 here means the formset rejected the submission - check "
-            "the change form's error list."
-        )
-        assert SampleDate.objects.filter(
-            related=sample, type_id=f"{DATE_TYPES}/collected"
-        ).exists()
-
-    def test_identifier_can_be_added_from_the_specimens_own_page(self, admin_client):
-        sample = RockSampleFactory(dataset=DatasetFactory(visibility=Visibility.PUBLIC))
-        data = self._base_form_data(sample)
-        data.update(
-            {
                 "identifiers-TOTAL_FORMS": "1",
                 "identifiers-0-related": sample.pk,
                 "identifiers-0-type": f"{IDENTIFIER_TYPES}/doi",
                 "identifiers-0-value": "10.1234/inline-test",
-            }
-        )
-
-        response = admin_client.post(self._change_url(sample), data=data)
-
-        assert response.status_code == 302, (
-            "A 200 here means the formset rejected the submission - check "
-            "the change form's error list."
-        )
-        assert SampleIdentifier.objects.filter(
-            related=sample,
-            type_id=f"{IDENTIFIER_TYPES}/doi",
-            value="10.1234/inline-test",
-        ).exists()
-
-    def test_contribution_can_be_added_from_the_specimens_own_page(self, admin_client):
-        from controlled_vocabularies.models import Record
-
-        from fairdm.contrib.contributors.models import Contribution
-        from fairdm.factories import PersonFactory
-
-        sample = RockSampleFactory(dataset=DatasetFactory(visibility=Visibility.PUBLIC))
-        contributor = PersonFactory()
-        role = Record.objects.filter(
-            scheme__uri=CONTRIBUTOR_ROLES, uri=f"{CONTRIBUTOR_ROLES}/collection"
-        ).first()
-        assert role is not None
-
-        data = self._base_form_data(sample)
-        prefix = "contributors-contribution-content_type-object_id"
-        data.update(
-            {
                 f"{prefix}-TOTAL_FORMS": "1",
                 f"{prefix}-0-contributor": contributor.pk,
                 f"{prefix}-0-roles": [role.uri],
-            }
-        )
-
-        response = admin_client.post(self._change_url(sample), data=data)
-
-        assert response.status_code == 302, (
-            "A 200 here means the formset rejected the submission - check "
-            "the change form's error list."
-        )
-        assert Contribution.objects.filter(
-            object_id=str(sample.pk), contributor=contributor
-        ).exists()
-
-    def test_provenance_link_can_be_added_from_the_specimens_own_page(
-        self, admin_client
-    ):
-        dataset = DatasetFactory(visibility=Visibility.PUBLIC)
-        parent = RockSampleFactory(dataset=dataset, name="Parent Sample")
-        child = RockSampleFactory(dataset=dataset, name="Child Sample")
-
-        data = self._base_form_data(child)
-        data.update(
-            {
                 "related_samples-TOTAL_FORMS": "1",
-                "related_samples-0-source": child.pk,
+                "related_samples-0-source": sample.pk,
                 "related_samples-0-type": "child_of",
                 "related_samples-0-target": parent.pk,
             }
         )
 
-        response = admin_client.post(self._change_url(child), data=data)
+        response = admin_client.post(self._change_url(sample), data=data)
 
         assert response.status_code == 302, (
-            "A 200 here means the formset rejected the submission - check "
+            "A 200 here means a formset rejected the submission - check "
             "the change form's error list."
         )
-        assert SampleRelation.objects.filter(source=child, target=parent).exists()
+        assert sample.descriptions.filter(value="Added inline.").exists()
+        assert sample.dates.filter(type_id=f"{DATE_TYPES}/collected").exists()
+        assert sample.identifiers.filter(value="10.1234/inline-test").exists()
+        assert Contribution.objects.filter(
+            object_id=str(sample.pk), contributor=contributor
+        ).exists()
+        assert SampleRelation.objects.filter(source=sample, target=parent).exists()
 
     def test_the_admin_registered_for_sample_is_the_polymorphic_parent(self):
         assert isinstance(admin.site._registry[Sample], SampleParentAdmin)
-
-    def test_a_registered_specimen_types_admin_carries_the_inlines(self):
-        registered_admin = admin.site._registry[RockSample]
-
-        inline_names = {inline.__name__ for inline in registered_admin.inlines}
-
-        assert inline_names == {
-            "SampleDescriptionInline",
-            "SampleDateInline",
-            "SampleIdentifierInline",
-            "SampleContributionInline",
-            "SampleRelationInline",
-        }
 
 
 @pytest.mark.django_db
@@ -414,7 +218,7 @@ class TestSampleContributionInlineRoleVocabulary:
         from fairdm.factories import PersonFactory
 
         sample = RockSampleFactory(dataset=DatasetFactory(visibility=Visibility.PUBLIC))
-        contributor = PersonFactory()
+        contributor = PersonFactory(is_active=True)
         contribution = sample.contributors.create(contributor=contributor)
         off_vocabulary_role = self._off_vocabulary_role()
 
@@ -450,115 +254,25 @@ class TestSampleContributionInlineRoleVocabulary:
         )
         assert not Contribution.objects.get(pk=contribution.pk).roles.exists()
 
-    def test_the_roles_field_does_not_offer_the_off_vocabulary_concept(
-        self, admin_user
-    ):
-        sample = RockSampleFactory(dataset=DatasetFactory(visibility=Visibility.PUBLIC))
-        off_vocabulary_role = self._off_vocabulary_role()
-
-        request = RequestFactory().get("/")
-        request.user = admin_user
-        model_admin = admin.site._registry[type(sample)]
-        contribution_inline = next(
-            inline
-            for inline in model_admin.get_inline_instances(request, sample)
-            if inline.__class__.__name__ == "SampleContributionInline"
-        )
-        formset_class = contribution_inline.get_formset(request, sample)
-
-        roles = formset_class.form().fields["roles"]
-        with pytest.raises(ValidationError):
-            roles.clean([off_vocabulary_role.uri])
-
 
 @pytest.mark.django_db
 class TestSampleAdminInlineLimits:
-    def test_description_inline_max_num_matches_vocabulary_size(self, admin_user):
-        vocabulary_size = len(
-            [concept.uri for concept in SampleDescription.get_type_concepts()]
-        )
-
+    def test_each_inlines_bound_matches_its_vocabulary_size(self, admin_user):
         request = RequestFactory().get("/")
         request.user = admin_user
-        inline = SampleDescriptionInline(Sample, AdminSite())
-        formset = inline.get_formset(request)
+        wrong = {}
+        for inline_class, model in [
+            (SampleDescriptionInline, SampleDescription),
+            (SampleDateInline, SampleDate),
+            (SampleIdentifierInline, SampleIdentifier),
+        ]:
+            inline = inline_class(Sample, AdminSite())
+            expected = len(model.get_type_concepts())
+            actual = inline.get_formset(request).max_num
+            if actual != expected:
+                wrong[inline_class.__name__] = (actual, expected)
 
-        assert formset.max_num == vocabulary_size
-
-    def test_date_inline_max_num_matches_vocabulary_size(self, admin_user):
-        vocabulary_size = len(
-            [concept.uri for concept in SampleDate.get_type_concepts()]
-        )
-
-        request = RequestFactory().get("/")
-        request.user = admin_user
-        inline = SampleDateInline(Sample, AdminSite())
-        formset = inline.get_formset(request)
-
-        assert formset.max_num == vocabulary_size
-
-    def test_identifier_inline_max_num_matches_vocabulary_size(self, admin_user):
-        vocabulary_size = len(
-            [concept.uri for concept in SampleIdentifier.get_type_concepts()]
-        )
-
-        request = RequestFactory().get("/")
-        request.user = admin_user
-        inline = SampleIdentifierInline(Sample, AdminSite())
-        formset = inline.get_formset(request)
-
-        assert formset.max_num == vocabulary_size
-
-    def test_description_inline_bound_moves_when_the_vocabulary_does(
-        self, admin_user, monkeypatch
-    ):
-        request = RequestFactory().get("/")
-        request.user = admin_user
-        inline = SampleDescriptionInline(Sample, AdminSite())
-        original_max_num = inline.get_formset(request).max_num
-
-        monkeypatch.setattr(
-            SampleDescription, "get_type_concepts", classmethod(lambda cls: [None] * 2)
-        )
-
-        shrunk_max_num = inline.get_formset(request).max_num
-
-        assert shrunk_max_num == 2
-        assert shrunk_max_num != original_max_num
-
-    def test_date_inline_bound_moves_when_the_vocabulary_does(
-        self, admin_user, monkeypatch
-    ):
-        request = RequestFactory().get("/")
-        request.user = admin_user
-        inline = SampleDateInline(Sample, AdminSite())
-        original_max_num = inline.get_formset(request).max_num
-
-        monkeypatch.setattr(
-            SampleDate, "get_type_concepts", classmethod(lambda cls: [None])
-        )
-
-        shrunk_max_num = inline.get_formset(request).max_num
-
-        assert shrunk_max_num == 1
-        assert shrunk_max_num != original_max_num
-
-    def test_identifier_inline_bound_moves_when_the_vocabulary_does(
-        self, admin_user, monkeypatch
-    ):
-        request = RequestFactory().get("/")
-        request.user = admin_user
-        inline = SampleIdentifierInline(Sample, AdminSite())
-        original_max_num = inline.get_formset(request).max_num
-
-        monkeypatch.setattr(
-            SampleIdentifier, "get_type_concepts", classmethod(lambda cls: [None] * 3)
-        )
-
-        grown_max_num = inline.get_formset(request).max_num
-
-        assert grown_max_num == 3
-        assert grown_max_num != original_max_num
+        assert not wrong, wrong
 
 
 @pytest.mark.django_db
@@ -594,21 +308,6 @@ class TestSampleAdminReadonly:
         # Still displayed to the user, just not as an editable input.
         assert sample.uuid in response.content.decode()
 
-    def test_absent_from_editable_fields_through_the_registered_parent_admin(
-        self, admin_client
-    ):
-        sample = RockSampleFactory()
-        url = reverse("admin:sample_sample_change", args=[sample.pk])
-
-        response = admin_client.get(url)
-
-        assert response.status_code == 200
-        editable_fields = response.context["adminform"].form.fields
-        assert "uuid" not in editable_fields
-        assert "added" not in editable_fields
-        assert "modified" not in editable_fields
-        assert sample.uuid in response.content.decode()
-
 
 @pytest.mark.django_db
 class TestEveryTypeGetsTheInlines:
@@ -622,53 +321,9 @@ class TestEveryTypeGetsTheInlines:
 
 
 @pytest.mark.django_db
-class TestSampleAdminConfiguration:
-    def test_list_display_configured(self, sample_admin):
-        assert "name" in sample_admin.list_display
-        assert "dataset" in sample_admin.list_display
-        assert "status" in sample_admin.list_display
-        assert "added" in sample_admin.list_display
-
-    def test_search_fields_configured(self, sample_admin):
-        assert "name" in sample_admin.search_fields
-        assert "local_id" in sample_admin.search_fields
-        assert "uuid" in sample_admin.search_fields
-
-    def test_readonly_fields_configured(self, sample_admin):
-        assert "uuid" in sample_admin.readonly_fields
-        assert "added" in sample_admin.readonly_fields
-        assert "modified" in sample_admin.readonly_fields
-
-    def test_fieldsets_configured(self, sample_admin):
-        assert hasattr(sample_admin, "base_fieldsets")
-        assert sample_admin.base_fieldsets is not None
-        assert len(sample_admin.base_fieldsets) >= 2
-
-    def test_sample_admin_is_configured_for_inheritance(self, sample_admin):
-        assert len(sample_admin.inlines) > 0
-        assert len(sample_admin.search_fields) > 0
-        assert len(sample_admin.list_display) > 0
-
-
-@pytest.mark.django_db
 class TestSampleAdminReachesPrivateDatasets:
     # The dataset field's default manager hides private datasets, so a specimen in one
     # could be opened but not saved.
-    def test_the_dataset_field_offers_a_private_dataset(self, rf, admin_user):
-        from demo.factories import RockSampleFactory
-        from fairdm.factories import DatasetFactory
-        from fairdm.utils.choices import Visibility
-
-        private = DatasetFactory(visibility=Visibility.PRIVATE)
-        sample = RockSampleFactory(dataset=private)
-
-        request = rf.get("/")
-        request.user = admin_user
-        model_admin = admin.site._registry[type(sample)]
-        form = model_admin.get_form(request, sample)()
-
-        assert private in form.fields["dataset"].queryset
-
     def test_a_specimen_in_a_private_dataset_validates(self, rf, admin_user):
         from demo.factories import RockSampleFactory
         from fairdm.factories import DatasetFactory

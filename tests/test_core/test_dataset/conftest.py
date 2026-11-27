@@ -3,16 +3,7 @@
 import pytest
 
 from fairdm.contrib.contributors.choices import ContributionLevel
-from fairdm.core.vocabularies import DATE_TYPES, DESCRIPTION_TYPES
-from fairdm.factories import (
-    ContributionFactory,
-    DatasetDateFactory,
-    DatasetDescriptionFactory,
-    DatasetFactory,
-    DatasetIdentifierFactory,
-    DatasetLiteratureRelationFactory,
-    UserFactory,
-)
+from fairdm.factories import ContributionFactory, DatasetFactory, UserFactory
 from fairdm.utils.choices import Visibility
 
 
@@ -27,17 +18,6 @@ def private_dataset(db):
 
 
 @pytest.fixture
-def dataset_with_full_metadata(db):
-    dataset = DatasetFactory()
-    DatasetDescriptionFactory(related=dataset, type_id=f"{DESCRIPTION_TYPES}/abstract")
-    DatasetDateFactory(related=dataset, type_id=f"{DATE_TYPES}/available")
-    DatasetIdentifierFactory(related=dataset)
-    DatasetLiteratureRelationFactory(dataset=dataset)
-    ContributionFactory(content_object=dataset)
-    return dataset
-
-
-@pytest.fixture
 def user_with_change_permission(db):
     user = UserFactory()
     user.dataset = DatasetFactory()
@@ -45,16 +25,6 @@ def user_with_change_permission(db):
     # all five.
     ContributionFactory(
         content_object=user.dataset, contributor=user, level=ContributionLevel.EDIT
-    )
-    return user
-
-
-@pytest.fixture
-def user_with_delete_permission(db):
-    user = UserFactory()
-    user.dataset = DatasetFactory()
-    ContributionFactory(
-        content_object=user.dataset, contributor=user, level=ContributionLevel.MANAGE
     )
     return user
 

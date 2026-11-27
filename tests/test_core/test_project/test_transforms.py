@@ -97,9 +97,7 @@ class TestToDatacite:
         left_out = PersonFactory()
         kept = PersonFactory()
         for person in (kept, left_out):
-            project.add_contributor(
-                person, with_roles=[f"{CONTRIBUTOR_ROLES}/creator"]
-            )
+            project.add_contributor(person, with_roles=[f"{CONTRIBUTOR_ROLES}/creator"])
         project.contributors.filter(contributor=left_out).update(in_citation=False)
 
         data = to_datacite(project)

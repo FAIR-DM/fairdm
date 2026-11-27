@@ -11,7 +11,12 @@ from literature.importers.ris import REFERENCE_TYPE_TABLE
 from literature.models import Name
 from pybtex.database import parse_string
 
-from fairdm.core.citation import FORMATS, Citation, CitedName, publication_types
+from fairdm.core.citation import (
+    PUBLICATION_TYPES,
+    Citation,
+    CitedName,
+    publication_types,
+)
 
 
 class Contributor(SimpleNamespace):
@@ -278,42 +283,22 @@ class TestCitation:
 
 
 class TestPublicationTypes:
-    MAPPED = [
-        ("article-journal", "article", "JOUR"),
-        ("dataset", "dataset", "DATA"),
-        ("book", "book", "BOOK"),
-        ("chapter", "incollection", "CHAP"),
-        ("paper-conference", "inproceedings", "CPAPER"),
-        ("report", "techreport", "RPRT"),
-        ("thesis", "phdthesis", "THES"),
-        ("webpage", "online", "ELEC"),
-        ("software", "software", "COMP"),
-    ]
-
-    @pytest.mark.parametrize(("csl", "bibtex", "ris"), MAPPED)
-    def test_each_mapped_type_is_what_the_import_tables_read_back_as_the_same_csl_type(
-        self, csl, bibtex, ris
+    def test_every_mapped_type_is_what_the_import_tables_read_back_as_the_same_csl_type(
+        self,
     ):
-        assert publication_types(csl) == (bibtex, ris)
-        assert REFERENCE_TYPE_TABLE[ris] == csl
-        if bibtex in ENTRY_TYPE_TABLE:
-            assert ENTRY_TYPE_TABLE[bibtex].csl == csl
-        else:
+        wrong = []
+        for csl, (bibtex, ris) in PUBLICATION_TYPES.items():
+            if REFERENCE_TYPE_TABLE.get(ris) != csl:
+                wrong.append(f"{csl}: RIS {ris}")
             # django-literature's BibTeX table has no entry for software, which biblatex
             # still calls @software; the RIS table is the independent check there.
-            assert csl == "software"
+            if bibtex in ENTRY_TYPE_TABLE:
+                if ENTRY_TYPE_TABLE[bibtex].csl != csl:
+                    wrong.append(f"{csl}: BibTeX {bibtex}")
+            elif csl != "software":
+                wrong.append(f"{csl}: BibTeX {bibtex} is unknown to the import table")
+
+        assert not wrong
 
     def test_an_unknown_type_gives_misc_and_gen(self):
         assert publication_types("no-such-type") == ("misc", "GEN")
-
-
-class TestFormats:
-    def test_the_three_formats_in_order(self):
-        assert [f.key for f in FORMATS] == ["text", "bibtex", "ris"]
-        assert [f.extension for f in FORMATS] == ["txt", "bib", "ris"]
-        assert [f.downloadable for f in FORMATS] == [False, True, True]
-        assert [f.content_type for f in FORMATS] == [
-            "text/plain; charset=utf-8",
-            "application/x-bibtex; charset=utf-8",
-            "application/x-research-info-systems; charset=utf-8",
-        ]

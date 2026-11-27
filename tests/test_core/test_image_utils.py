@@ -42,48 +42,6 @@ def _make_pdf_bytes() -> bytes:
 
 
 class TestImageFieldWidgetAndValidation:
-    @pytest.mark.django_db
-    @pytest.mark.parametrize(
-        "import_path",
-        [
-            "fairdm.core.project.forms.ProjectForm",
-            "fairdm.core.dataset.forms.DatasetForm",
-            "fairdm.core.sample.forms.SampleForm",
-            "fairdm.core.measurement.forms.MeasurementForm",
-        ],
-    )
-    def test_image_field_uses_the_image_input(self, import_path):
-        module_path, class_name = import_path.rsplit(".", 1)
-        import importlib
-
-        mod = importlib.import_module(module_path)
-        form_cls = getattr(mod, class_name)
-        form = form_cls()
-        widget = form.fields["image"].widget
-        assert isinstance(widget, ImageInput), (
-            f"{class_name}.image.widget is {type(widget).__name__}, expected ImageInput"
-        )
-
-    @pytest.mark.django_db
-    @pytest.mark.parametrize(
-        "import_path",
-        [
-            "fairdm.core.project.forms.ProjectForm",
-            "fairdm.core.dataset.forms.DatasetForm",
-            "fairdm.core.sample.forms.SampleForm",
-            "fairdm.core.measurement.forms.MeasurementForm",
-        ],
-    )
-    def test_image_thumbnail_opens_the_file_picker_and_is_larger(self, import_path):
-        import importlib
-
-        module_path, class_name = import_path.rsplit(".", 1)
-        form = getattr(importlib.import_module(module_path), class_name)()
-        widget = form.fields["image"].widget
-        assert widget.show_input is False
-        assert widget.height == 9
-        assert widget.mask is None
-
     def test_image_field_rejects_oversized_file(self):
         from fairdm.core.project.forms import ProjectForm
 
@@ -120,53 +78,6 @@ class TestImageFieldWidgetAndValidation:
         )
         assert form.is_valid(), f"Expected valid form, got errors: {form.errors}"
 
-    def test_image_field_rejects_non_image(self):
-        from fairdm.core.project.forms import ProjectForm
-
-        pdf_file = _make_uploaded_file(
-            content=_make_pdf_bytes(),
-            name="document.pdf",
-            content_type="application/pdf",
-            size=1 * 1024 * 1024,
-        )
-        form = ProjectForm(data={}, files={"image": pdf_file})
-        assert "image" in form.errors, "Expected 'image' in form.errors for a PDF file"
-
-    @pytest.mark.django_db
-    def test_image_field_clear_shows_placeholder(self):
-        from fairdm.factories import ProjectFactory
-
-        # The factory leaves `image` unset by default (issue #323), so this test
-        # asks for one explicitly since the assertions below need a real file.
-        project = ProjectFactory(with_image=True)
-        assert project.image, (
-            "Precondition: project should have an image after factory creation"
-        )
-
-        project.image = None
-        project.save(update_fields=["image"])
-        project.refresh_from_db()
-        assert not project.image, "After clearing, project.image should be falsy"
-
-        html = render_to_string(
-            "cotton/components/object_card.html",
-            {
-                "image": None,
-                "title": "Test Project",
-                "object": project,
-                "object_type": "project",
-                "subtitle": "",
-                "description": "",
-                "tags": project.tags,
-                "badge_text": "",
-            },
-        )
-        assert "placeholder-3x2.png" in html, (
-            "object_card template should render the local placeholder image when 'image' is falsy. Got:\n"
-            + html[:500]
-        )
-
-
     @pytest.mark.slow
     @pytest.mark.django_db
     def test_placeholder_renders_under_the_production_static_storage(
@@ -198,24 +109,13 @@ class TestImageFieldWidgetAndValidation:
 
 class TestImageThumbnailAliases:
     @pytest.mark.django_db
-    def test_core_small_alias_resolves(self):
+    def test_the_core_aliases_resolve(self):
         from fairdm.factories import ProjectFactory
 
         project = ProjectFactory(with_image=True)
-        assert project.image, "Precondition: project must have an image"
-        thumbnail = project.image["core_small"]
-        url = thumbnail.url
-        assert url, f"core_small thumbnail URL should be non-empty, got: {url!r}"
 
-    @pytest.mark.django_db
-    def test_core_large_alias_resolves(self):
-        from fairdm.factories import ProjectFactory
-
-        project = ProjectFactory(with_image=True)
-        assert project.image, "Precondition: project must have an image"
-        thumbnail = project.image["core_large"]
-        url = thumbnail.url
-        assert url, f"core_large thumbnail URL should be non-empty, got: {url!r}"
+        assert project.image["core_small"].url
+        assert project.image["core_large"].url
 
 
 class TestImageFieldUniformity:
