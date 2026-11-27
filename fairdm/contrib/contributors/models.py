@@ -1927,8 +1927,8 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         verbose_name=_("in the citation"),
         help_text=_(
             "Whether the person is named in the record's citation and in the creator "
-            "lists of its metadata. When off, they are still credited and listed on the "
-            "record. An organization is always named."
+            "lists of its metadata. When off, they are still credited and listed on "
+            "the record. An organization is always named."
         ),
         default=True,
         db_default=True,
