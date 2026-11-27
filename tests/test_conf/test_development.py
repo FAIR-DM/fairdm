@@ -19,6 +19,15 @@ class TestDevelopmentDefaults:
         assert "insecure" in module.SECRET_KEY.lower()
         assert "dev" in module.SECRET_KEY.lower()
 
+    def test_development_serves_any_host_and_the_baseline_none(
+        self, isolated_env, settings_module
+    ):
+        os.environ["DJANGO_ENV"] = "qa"
+        assert settings_module().ALLOWED_HOSTS == []
+
+        os.environ["DJANGO_ENV"] = "development"
+        assert settings_module().ALLOWED_HOSTS == ["*"]
+
     def test_thumbnail_debug_is_a_development_override_not_a_baseline_default(
         self, isolated_env, settings_module
     ):

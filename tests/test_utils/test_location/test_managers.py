@@ -4,13 +4,14 @@ import re
 
 import pytest
 from django.contrib.auth.models import AnonymousUser
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.measure import D
 from django.db import connection
 
 from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.contrib.contributors.choices import ContributionLevel
-from fairdm.contrib.contributors.models import Organization
+from fairdm.contrib.contributors.models import Contributor, Organization
 from fairdm.core.measurement.models import Measurement
 from fairdm.core.sample.models import Sample
 from fairdm.factories import (
@@ -393,7 +394,27 @@ class TestQueryPlan:
                 for i, sample in enumerate(samples)
             ]
         )
+        # Organization is a multi-table child of Contributor with an index of its own.
+        contributors = Contributor.objects.bulk_create(
+            [
+                Contributor(
+                    name=f"o{i}",
+                    polymorphic_ctype=ContentType.objects.get_for_model(Organization),
+                )
+                for i in range(self.COUNT)
+            ]
+        )
         with connection.cursor() as cursor:
+            cursor.executemany(
+                f"INSERT INTO {Organization._meta.db_table} "
+                "(contributor_ptr_id, location) VALUES (%s, ST_GeomFromEWKT(%s))",
+                [
+                    (contributor.pk, self.place(i).ewkt)
+                    for i, contributor in enumerate(contributors)
+                ],
+            )
+            for model in (Sample, Measurement, Organization, Contributor):
+                cursor.execute(f"ANALYZE {model._meta.db_table}")
             cursor.execute("SET LOCAL enable_seqscan = off")
 
     @staticmethod
@@ -401,9 +422,11 @@ class TestQueryPlan:
         """Return what is wrong with the plan, or "" when it reads a spatial index."""
         plan = queryset.explain()
         table = model._meta.db_table
-        if not re.search(
-            rf"Index Scan (?:using|on) \S*location\S*(?: on {table})?\s", plan
-        ):
+        index_scan = re.search(rf"Index Scan using \S*location\S* on {table}\s", plan)
+        bitmap_scan = f"Bitmap Heap Scan on {table} " in plan and re.search(
+            r"Bitmap Index Scan on \S*location", plan
+        )
+        if not (index_scan or bitmap_scan):
             return f"{table} is not read through a location index:\n{plan}"
         if not whole_table_allowed and f"Seq Scan on {table} " in plan:
             return f"{table} is read whole:\n{plan}"
@@ -415,6 +438,16 @@ class TestQueryPlan:
             "samples within a distance": (
                 Sample.objects.within_distance(self.CENTRE, D(km=500)),
                 Sample,
+                False,
+            ),
+            "organizations inside an area": (
+                Organization.objects.inside(self.AREA),
+                Organization,
+                False,
+            ),
+            "organizations within a distance": (
+                Organization.objects.within_distance(self.CENTRE, D(km=500)),
+                Organization,
                 False,
             ),
             # The measurements a sample places are joined on their sample, and the
@@ -441,10 +474,13 @@ class TestQueryPlan:
                 )
             )
         ]
+        # The distance lookup on measurements joins the samples through their dataset
+        # and applies the distance as a filter, so only the area lookup is expected
+        # to read the samples through their own location index.
         problems += [
             f"{name} (samples joined): {problem}"
             for name, (queryset, _, _) in lookups.items()
-            if name.startswith("measurements")
+            if name == "measurements inside an area"
             if (problem := self.spatial_index_missing(queryset, Sample))
         ]
 

@@ -9,7 +9,6 @@ import pytest
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.test import Client
-from django_tables2 import Table
 
 import fairdm
 from demo.models import CustomSample, RockSample, WaterSample
@@ -195,7 +194,6 @@ class TestDemoRegistrations:
         # components are those classes and not generated ones.
         assert config.get_filterset_class() is CustomSampleFilter
         assert config.get_table_class() is CustomSampleTable
-        assert issubclass(config.get_table_class(), Table)
 
     @pytest.mark.slow
     def test_every_registered_model_has_an_admin_add_page_that_loads(self):

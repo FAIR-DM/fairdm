@@ -548,9 +548,9 @@ class TestDeployCommand:
     @pytest.mark.parametrize("resolved_environment", ["production", "development"])
     @override_settings(SECRET_KEY="")
     def test_deploy_check_reports_the_same_failure_regardless_of_django_env(
-        self, resolved_environment, monkeypatch
+        self, resolved_environment, settings
     ):
-        monkeypatch.setenv("DJANGO_ENV", resolved_environment)
+        settings.DJANGO_ENV = resolved_environment
 
         with pytest.raises(SystemCheckError) as exc_info:
             call_command("check", deploy=True)
@@ -568,6 +568,28 @@ def unresolvable_engine(monkeypatch):
         connections.settings,
         "default",
         {**connections.settings["default"], "ENGINE": "django.db.backends.dummy"},
+    )
+    del connections._connections.default
+    yield
+    connections._connections.default = original
+
+
+@pytest.fixture
+def unreachable_database(monkeypatch):
+    """A portal whose database server refuses connections: a query raises OperationalError."""
+    from django.db import connections
+
+    original = connections["default"]
+    default = connections.settings["default"]
+    monkeypatch.setitem(
+        connections.settings,
+        "default",
+        {
+            **default,
+            "HOST": "127.0.0.1",
+            "PORT": "1",
+            "OPTIONS": {**default.get("OPTIONS", {}), "connect_timeout": 2},
+        },
     )
     del connections._connections.default
     yield
@@ -638,6 +660,13 @@ class TestPortalRolesPresent:
         assert check_portal_roles_present(app_configs=None) == []
 
     def test_a_database_with_no_engine_returns_nothing(self, db, unresolvable_engine):
+        from fairdm.conf.checks import check_portal_roles_present
+
+        assert check_portal_roles_present(app_configs=None) == []
+
+    def test_a_database_that_cannot_be_reached_returns_nothing(
+        self, db, unreachable_database
+    ):
         from fairdm.conf.checks import check_portal_roles_present
 
         assert check_portal_roles_present(app_configs=None) == []
@@ -781,6 +810,14 @@ class TestDevAccountsAbsent:
 
         assert check_dev_accounts_absent(app_configs=None) == []
 
+    @override_settings(DJANGO_ENV="production")
+    def test_a_database_that_cannot_be_reached_returns_nothing(
+        self, db, unreachable_database
+    ):
+        from fairdm.conf.checks import check_dev_accounts_absent
+
+        assert check_dev_accounts_absent(app_configs=None) == []
+
 
 class TestApiProxyCountCheck:
     """A portal that has not said how many proxies stand in front of it is warned."""
@@ -805,12 +842,52 @@ class TestApiProxyCountCheck:
             (CheckWarning, "fairdm.W601")
         ]
 
-    @pytest.mark.parametrize("proxies", [0, 2])
+    @pytest.mark.parametrize("proxies", [0, None])
     def test_a_portal_that_set_it_is_not_warned(self, proxies):
         from fairdm.conf.checks import check_api_proxy_count
 
         with override_settings(REST_FRAMEWORK=self.rest_framework(NUM_PROXIES=proxies)):
             assert check_api_proxy_count(app_configs=None) == []
+
+    def test_the_warning_is_part_of_the_deployment_checks(self):
+        from django.core.checks import Tags
+        from django.core.checks.registry import registry
+
+        with override_settings(REST_FRAMEWORK=self.rest_framework()):
+            found = registry.run_checks(
+                tags=[Tags.security], include_deployment_checks=True
+            )
+
+        assert "fairdm.W601" in [message.id for message in found]
+
+
+class TestProductionGate:
+    @override_settings(DJANGO_ENV="production", BACKUP_PUBLIC_KEY="not a key")
+    def test_each_of_these_stops_a_production_boot(self, db):
+        # A missing role, a development account and a backup key that cannot encrypt.
+        from django.core.checks.registry import registry
+
+        from fairdm.conf.checks import DeployTags
+        from fairdm.management.commands.create_dev_accounts import DEV_ACCOUNTS
+        from fairdm.portal_roles import PortalRoles
+
+        PortalRoles.reconcile()
+        _delete_group_by_raw_sql(PortalRoles.DATA_CURATOR.name)
+        account = DEV_ACCOUNTS[0]
+        get_user_model().objects.create_user(
+            email=account["email"],
+            password="whatever",
+            first_name=account["first_name"],
+            last_name=account["last_name"],
+        )
+
+        gate = registry.run_checks(
+            tags=[DeployTags.production_critical], include_deployment_checks=True
+        )
+
+        assert {"fairdm.E500", "fairdm.E501", "fairdm.E701"} <= {
+            message.id for message in gate
+        }
 
 
 class TestBackupKeyChecks:

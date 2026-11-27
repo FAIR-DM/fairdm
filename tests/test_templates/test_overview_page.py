@@ -372,7 +372,7 @@ RECORDS = {
 
 @pytest.mark.django_db
 class TestPermalinkOnEveryOverviewPage:
-    @pytest.fixture(params=["project", "person"])
+    @pytest.fixture(params=["project", "person", "organization"])
     def shown(self, request, client):
         """A record of one kind, its absolute permalink and its overview page."""
         record = RECORDS[request.param]()

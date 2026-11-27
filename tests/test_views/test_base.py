@@ -97,8 +97,10 @@ class TestFairDMBaseViews:
             request = rf.get("/")
             request.user = person or AnonymousUser()
             response = view.as_view()(request, **kwargs)
-            if response.status_code != 200 or "meta" not in response.context_data:
+            if response.status_code != 200:
                 failed.append(f"{name}: status {response.status_code}")
+            elif "meta" not in response.context_data:
+                failed.append(f"{name}: no meta in the context")
 
         assert not failed, "\n".join(failed)
 

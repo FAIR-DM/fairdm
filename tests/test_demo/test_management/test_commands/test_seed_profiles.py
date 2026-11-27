@@ -28,11 +28,6 @@ def _seeded_people():
     return list(Person.objects.filter(config__seed="profiles"))
 
 
-def _is_non_latin(name):
-    """Whether the name holds a character outside the Latin scripts."""
-    return any(ord(character) > 0x24F for character in name)
-
-
 def _seeded_organizations():
     return list(Organization.objects.filter(config__seed="profiles"))
 

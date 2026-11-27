@@ -77,12 +77,6 @@ def overviews_seeded(django_db_setup, django_db_blocker, tmp_path_factory):
         transaction.set_rollback(True)
 
 
-@pytest.fixture
-def seeded_media(overviews_seeded, settings):
-    """Serve the seeded images: every test otherwise gets an empty media root of its own."""
-    settings.MEDIA_ROOT = overviews_seeded
-
-
 @pytest.mark.django_db
 class TestSeedOverviewsRefusesOutsideDevelopment:
     @override_settings(DJANGO_ENV="production")

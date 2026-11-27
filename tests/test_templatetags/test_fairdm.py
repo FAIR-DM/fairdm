@@ -103,6 +103,7 @@ class TestDockTags:
         links = [a["href"] for a in dock.find_all("a", href=True)]
 
         assert any(link.startswith(reverse("account_login")) for link in links)
+        assert "Profile" not in dock.get_text()
 
     def test_the_project_list_makes_projects_current(self, client):
         assert self.current(client, reverse("project-list")) == ["Projects"]

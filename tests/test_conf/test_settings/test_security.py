@@ -15,6 +15,24 @@ class TestSecurity:
         assert module.CSRF_COOKIE_NAME.startswith("__Secure-")
         assert module.SESSION_COOKIE_NAME.startswith("__Secure-")
 
+    def test_baseline_is_secure_with_nothing_set(self, isolated_env, settings_module):
+        # The settings a portal gets from the baseline when it sets none of the
+        # switches, so a change that put one behind a switch fails here.
+        os.environ["DJANGO_ENV"] = "qa"
+        names = [
+            "SECURE_SSL_REDIRECT",
+            "SESSION_COOKIE_SECURE",
+            "CSRF_COOKIE_SECURE",
+            "SECURE_HSTS_INCLUDE_SUBDOMAINS",
+            "SECURE_CONTENT_TYPE_NOSNIFF",
+        ]
+
+        module = settings_module()
+
+        assert {name: getattr(module, name) for name in names} == dict.fromkeys(
+            names, True
+        )
+
 
 class TestAllowedHostsComposition:
     # Only truthy entries compose, so an unset domain gives [] rather than [""]. Otherwise the

@@ -35,7 +35,6 @@ def counts():
     }
 
 
-@pytest.mark.slow
 @pytest.mark.django_db
 class TestSeedRecordLists:
     @override_settings(DJANGO_ENV="production")
@@ -45,6 +44,7 @@ class TestSeedRecordLists:
 
         assert not Project.objects.filter(name=MAIN).exists()
 
+    @pytest.mark.slow
     def test_run_twice_it_creates_each_record_once(self):
         seed()
         first = counts()

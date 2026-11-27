@@ -2,10 +2,22 @@
 
 import pytest
 
+from demo.factories import ExampleMeasurementFactory, RockSampleFactory
 from fairdm.core.dataset.models import DatasetDescription
 from fairdm.core.project.models import ProjectDescription
 from fairdm.core.vocabularies import DESCRIPTION_TYPES
-from fairdm.factories import DatasetFactory, ProjectFactory
+from fairdm.factories import (
+    DatasetDateFactory,
+    DatasetDescriptionFactory,
+    DatasetFactory,
+    MeasurementDateFactory,
+    MeasurementDescriptionFactory,
+    ProjectDateFactory,
+    ProjectDescriptionFactory,
+    ProjectFactory,
+    SampleDateFactory,
+    SampleDescriptionFactory,
+)
 
 
 @pytest.mark.django_db
@@ -62,6 +74,55 @@ class TestFactoryVocabularyValidation:
 
         for dtype in desc_types:
             assert dtype in vocab_values
+
+
+@pytest.mark.django_db
+class TestEveryCoreFactoryBuildsItsVocabularyRecords:
+    """Each core factory carries its own descriptions and dates hooks."""
+
+    BUILDERS = {
+        "project": (
+            ProjectFactory,
+            dict,
+            {"descriptions": ProjectDescriptionFactory, "dates": ProjectDateFactory},
+        ),
+        "dataset": (
+            DatasetFactory,
+            dict,
+            {"descriptions": DatasetDescriptionFactory, "dates": DatasetDateFactory},
+        ),
+        "sample": (
+            RockSampleFactory,
+            dict,
+            {"descriptions": SampleDescriptionFactory, "dates": SampleDateFactory},
+        ),
+        "measurement": (
+            ExampleMeasurementFactory,
+            lambda: {"sample": RockSampleFactory()},
+            {
+                "descriptions": MeasurementDescriptionFactory,
+                "dates": MeasurementDateFactory,
+            },
+        ),
+    }
+
+    def test_each_hook_creates_the_records_asked_for_and_refuses_an_unknown_type(self):
+        failures = []
+        for kind, (factory, extra, hooks) in self.BUILDERS.items():
+            for hook, record_factory in hooks.items():
+                model = record_factory._meta.model
+                record = factory(**extra(), **{hook: 1})
+                if model.objects.filter(related=record).count() != 1:
+                    failures.append(f"{kind} {hook}: one record was not created")
+                try:
+                    factory(**extra(), **{hook: 1, f"{hook}__types": ["InvalidType"]})
+                except ValueError as error:
+                    if "InvalidType" not in str(error):
+                        failures.append(f"{kind} {hook}: the error does not name it")
+                else:
+                    failures.append(f"{kind} {hook}: an unknown type was accepted")
+
+        assert not failures, "\n".join(failures)
 
 
 @pytest.mark.django_db
