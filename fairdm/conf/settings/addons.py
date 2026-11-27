@@ -39,6 +39,9 @@ FLEX_MENUS = {
 }
 
 MVP_CONFIG = {
+    # The name in page titles and of the installed app. Without it django-mvp reads the
+    # `Site` record, which a new portal leaves as `example.com`.
+    "site_name": SITE_NAME,  # noqa: F821 - SITE_NAME is defined in apps.py
     # `c-mvp.avatar :for="contributor"` draws the contributor's photo or logo.
     "brand": {
         "avatar_resolver": "fairdm.contrib.contributors.utils.helpers.avatar_url",
@@ -60,6 +63,10 @@ MVP_CONFIG = {
         # toggle.
         "navbar": {"end": [], "mobile": {"site_name": True}},
     },
+    # Installable as an app. The colour is the `fairdm` theme's header, and the images
+    # are `fairdm/static/brand/pwa/`, drawn from `brand/icon.svg` by
+    # `manage.py mvp_pwa_icons`.
+    "pwa": {"theme_color": "#F3F6F8"},
 }
 
 # Addresses a person who has not agreed to a required document can still reach. Without this

@@ -59,4 +59,13 @@ Every badge is a pill, whichever theme is chosen. An outline badge, which is how
 
 To replace the logo, add your own `brand/logo.svg`, `brand/logo_dark.svg`, `brand/icon.svg`, `brand/icon_dark.svg` and `brand/favicon.svg` to the portal's static files.
 
+The installed app's icons are drawn from `brand/icon.svg` but are separate files, so redraw them after replacing it. Put them in the portal's static files, then run:
+
+```bash
+pip install resvg-py
+python manage.py mvp_pwa_icons
+```
+
+The command writes `brand/pwa/` into the first entry of `STATICFILES_DIRS`. After changing the theme's header colour, set `MVP_CONFIG["pwa"]["theme_color"]` to match and run the command again.
+
 `MVP_CONFIG` is described in [Settings](../reference/settings.md), and the theme keys in django-mvp's documentation. To override a FairDM setting in general, see [How to override a FairDM setting](override-a-fairdm-setting.md). Why a portal is configured this way is explained in [How FairDM configures a portal](../../explanation/how-fairdm-configures-a-portal.md), and the styling stack in [The technology stack](../../explanation/the-technology-stack.md).
