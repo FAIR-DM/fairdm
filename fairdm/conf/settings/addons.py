@@ -63,8 +63,9 @@ MVP_CONFIG = {
         # toggle.
         "navbar": {"end": [], "mobile": {"site_name": True}},
     },
-    # Installable as an app. The colour is the `fairdm` theme's header, and the images are
-    # `fairdm/static/brand/pwa/`, drawn from `brand/icon.svg` by `manage.py mvp_pwa_icons`.
+    # Installable as an app. The colour is the `fairdm` theme's header, and the images
+    # are `fairdm/static/brand/pwa/`, drawn from `brand/icon.svg` by
+    # `manage.py mvp_pwa_icons`.
     "pwa": {"theme_color": "#F3F6F8"},
 }
 

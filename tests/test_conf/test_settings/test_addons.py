@@ -1,10 +1,12 @@
 """The application-shell settings in ``fairdm/conf/settings/addons.py``."""
 
+import json
 from urllib.parse import urlsplit
 
 import pytest
 from bs4 import BeautifulSoup
 from django.conf import settings
+from django.contrib.staticfiles import finders
 from django.urls import reverse
 from waffle import get_waffle_sample_model, sample_is_active
 
@@ -47,3 +49,25 @@ class TestSidebarFooterControls:
 
         assert sidebar is not None
         assert sidebar.find(attrs={"data-toggle-theme": True}) is not None
+
+
+@pytest.mark.django_db
+class TestInstallableApp:
+    def test_the_app_is_named_after_the_portal(self, client):
+        manifest = json.loads(client.get(reverse("mvp-pwa-manifest")).content)
+
+        assert manifest["name"] == settings.SITE_NAME
+
+    def test_every_image_the_app_names_is_in_the_static_files(self):
+        missing = [
+            name
+            for name in (
+                "brand/pwa/icon-192.png",
+                "brand/pwa/icon-512.png",
+                "brand/pwa/icon-maskable-512.png",
+                "brand/pwa/apple-touch-icon.png",
+            )
+            if finders.find(name) is None
+        ]
+
+        assert missing == []
