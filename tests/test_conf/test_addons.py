@@ -36,60 +36,23 @@ def addon_env():
     os.environ.update(original_env)
 
 
-@pytest.fixture
-def production_addon_env():
-    # Mutating os.environ without restoring it leaks configuration into later tests that expect it missing.
-    original_env = os.environ.copy()
-
-    os.environ.clear()
-    os.environ.update(
-        {
-            "DJANGO_ENV": "production",
-            "DJANGO_SECRET_KEY": "a" * 60,
-            "DJANGO_SITE_DOMAIN": "example.com",
-            "DJANGO_SITE_NAME": "Prod Portal",
-            "DJANGO_ALLOWED_HOSTS": "example.com",
-            "DATABASE_URL": "postgresql://user:pass@localhost:5432/prod_db",
-            "REDIS_URL": "redis://localhost:6379/0",
-        }
-    )
-
-    yield
-
-    os.environ.clear()
-    os.environ.update(original_env)
-
-
 class TestAddonDiscovery:
-    def test_addon_with_setup_module_is_loaded(self, addon_env, tmp_path):
-        settings_file = tmp_path / "settings.py"
-        settings_file.write_text(
-            """
-import os
-import sys
-from pathlib import Path
+    def test_addon_with_setup_module_is_loaded(
+        self, production_env, tmp_path, settings_module
+    ):
+        os.environ["DJANGO_ENV"] = "development"
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
-
-import fairdm
-
-fairdm.setup(addons=["tests.test_conf.dummy_addon"])
-"""
+        module = settings_module(
+            setup_call="fairdm.setup(addons=['tests.test_conf.dummy_addon'])",
+            directory=tmp_path,
         )
 
-        import importlib.util
-
-        spec = importlib.util.spec_from_file_location("test_settings", settings_file)
-        if spec and spec.loader:
-            test_settings = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(test_settings)
-
-            assert hasattr(test_settings, "DUMMY_ADDON_INSTALLED")
-            assert test_settings.DUMMY_ADDON_INSTALLED is True
-            assert hasattr(test_settings, "DUMMY_ADDON_VERSION")
-            assert test_settings.DUMMY_ADDON_VERSION == "1.0.0"
-
-            assert "tests.test_conf.dummy_addon" in test_settings.INSTALLED_APPS
+        assert module.DUMMY_ADDON_INSTALLED is True
+        assert module.DUMMY_ADDON_VERSION == "1.0.0"
+        # The addon's settings are added to the composed ones, not substituted for them.
+        assert "tests.test_conf.dummy_addon" in module.INSTALLED_APPS
+        assert "django.contrib.auth" in module.INSTALLED_APPS
+        assert "dummy_addon" in module.LOGGING["loggers"]
 
     def test_addon_without_setup_module_logs_warning(
         self, production_env, tmp_path, settings_module
@@ -235,134 +198,7 @@ class TestEnvironmentsThatStopOnABrokenAddon:
             settings_module(setup_call=f"fairdm.setup(addons=['{addon}'])")
 
 
-class TestAddonValidation:
-    def test_broken_addon_fails_fast_in_production(
-        self, production_addon_env, tmp_path
-    ):
-        addon_dir = tmp_path / "broken_prod_addon"
-        addon_dir.mkdir()
-        (addon_dir / "__init__.py").write_text(
-            '__fdm_setup_module__ = "broken_prod_addon.nonexistent"'
-        )
-
-        settings_file = tmp_path / "settings.py"
-        settings_file.write_text(
-            f"""
-import os
-import sys
-from pathlib import Path
-
-sys.path.insert(0, "{tmp_path}")
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
-
-import fairdm
-
-fairdm.setup(addons=["broken_prod_addon"])
-"""
-        )
-
-        import importlib.util
-
-        spec = importlib.util.spec_from_file_location("test_settings_4", settings_file)
-        if spec and spec.loader:
-            test_settings = importlib.util.module_from_spec(spec)
-
-            with pytest.raises(ImproperlyConfigured) as exc_info:
-                spec.loader.exec_module(test_settings)
-
-            assert "broken_prod_addon" in str(exc_info.value)
-
-    def test_addon_can_modify_installed_apps(self, addon_env, tmp_path):
-        settings_file = tmp_path / "settings.py"
-        settings_file.write_text(
-            """
-import os
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
-
-import fairdm
-
-fairdm.setup(addons=["tests.test_conf.dummy_addon"])
-"""
-        )
-
-        import importlib.util
-
-        spec = importlib.util.spec_from_file_location("test_settings_5", settings_file)
-        if spec and spec.loader:
-            test_settings = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(test_settings)
-
-            assert "tests.test_conf.dummy_addon" in test_settings.INSTALLED_APPS
-
-
-class TestAddonIntegration:
-    def test_multiple_addons_can_be_loaded(self, addon_env, tmp_path):
-        settings_file = tmp_path / "settings.py"
-        settings_file.write_text(
-            """
-import os
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
-
-import fairdm
-
-fairdm.setup(addons=["tests.test_conf.dummy_addon"])
-"""
-        )
-
-        import importlib.util
-
-        spec = importlib.util.spec_from_file_location("test_settings_6", settings_file)
-        if spec and spec.loader:
-            test_settings = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(test_settings)
-
-            assert hasattr(test_settings, "DUMMY_ADDON_INSTALLED")
-
-    def test_addon_settings_take_precedence(self, addon_env, tmp_path):
-        settings_file = tmp_path / "settings.py"
-        settings_file.write_text(
-            """
-import os
-import sys
-from pathlib import Path
-
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
-
-import fairdm
-
-fairdm.setup(addons=["tests.test_conf.dummy_addon"])
-"""
-        )
-
-        import importlib.util
-
-        spec = importlib.util.spec_from_file_location("test_settings_7", settings_file)
-        if spec and spec.loader:
-            test_settings = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(test_settings)
-
-            assert "dummy_addon" in test_settings.LOGGING["loggers"]
-
-
 class TestAddonPartialFailure:
-    def test_partial_write_does_not_reach_settings_in_production(
-        self, production_addon_env, tmp_path, settings_module
-    ):
-        with pytest.raises(ImproperlyConfigured) as exc_info:
-            settings_module(
-                setup_call=(
-                    "fairdm.setup(addons=['tests.test_conf.broken_execution_addon'])"
-                ),
-                directory=tmp_path,
-            )
-
-        assert "broken_execution_addon" in str(exc_info.value)
 
     def test_partial_write_does_not_reach_settings_in_development(
         self, production_env, tmp_path, settings_module

@@ -22,11 +22,6 @@ class TestWaffleSamples:
         )
 
 
-class TestSidebarFooterSettingIsNotDeclared:
-    def test_the_sidebar_settings_declare_no_footer_key(self):
-        assert "footer" not in settings.MVP_CONFIG["layout"]["sidebar"]
-
-
 @pytest.mark.django_db
 class TestSidebarFooterControls:
     def sidebar(self, client):

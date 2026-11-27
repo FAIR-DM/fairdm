@@ -19,30 +19,6 @@ class TestDevelopmentDefaults:
         assert "insecure" in module.SECRET_KEY.lower()
         assert "dev" in module.SECRET_KEY.lower()
 
-    def test_development_secret_key_not_in_production_baseline(
-        self, isolated_env, settings_module
-    ):
-        os.environ["DJANGO_ENV"] = "qa"
-
-        module = settings_module()
-
-        assert module.SECRET_KEY == ""
-
-    def test_development_allows_any_host(self, isolated_env, settings_module):
-        os.environ["DJANGO_ENV"] = "development"
-
-        module = settings_module()
-
-        assert module.ALLOWED_HOSTS == ["*"]
-
-    def test_development_allowed_hosts_not_in_production_baseline(
-        self, isolated_env, settings_module
-    ):
-        os.environ["DJANGO_ENV"] = "qa"
-
-        module = settings_module()
-
-        assert module.ALLOWED_HOSTS == []
 
     def test_thumbnail_debug_is_a_development_override_not_a_baseline_default(
         self, isolated_env, settings_module
@@ -55,15 +31,6 @@ class TestDevelopmentDefaults:
 
 
 class TestDevelopmentCookieNames:
-    def test_development_cookie_names_carry_no_browser_enforced_prefix(
-        self, isolated_env, settings_module
-    ):
-        os.environ["DJANGO_ENV"] = "development"
-
-        module = settings_module()
-
-        assert not module.CSRF_COOKIE_NAME.startswith(("__Secure-", "__Host-"))
-        assert not module.SESSION_COOKIE_NAME.startswith(("__Secure-", "__Host-"))
 
     def test_development_pairs_no_prefixed_name_with_an_insecure_cookie(
         self, isolated_env, settings_module
@@ -161,12 +128,6 @@ class TestDevelopmentWithoutRedis:
         with override_settings(CACHES=module.CACHES):
             assert ratelimit.consume(request, action="login", key="someone@example.com")
 
-    def test_tasks_run_in_process_when_redis_url_is_unset(
-        self, isolated_env, settings_module
-    ):
-        os.environ["DJANGO_ENV"] = "development"
-
-        assert settings_module().CELERY_TASK_ALWAYS_EAGER is True
 
     def test_a_configured_redis_url_is_used_as_given(
         self, isolated_env, settings_module

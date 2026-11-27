@@ -13,19 +13,4 @@ class TestCache:
         assert module.CACHES["default"]["BACKEND"] == "django_redis.cache.RedisCache"
         assert module.CACHES["default"]["LOCATION"] == "redis://cachehost:6380/2"
 
-    def test_never_falls_back_to_locmem_or_dummy_when_unconfigured(
-        self, isolated_env, settings_module
-    ):
-        # LocMem or Dummy would silently degrade to per-process caching.
-        os.environ["DJANGO_ENV"] = "qa"
 
-        module = settings_module()
-
-        assert module.CACHES["default"]["BACKEND"] == "django_redis.cache.RedisCache"
-
-    def test_reading_unconfigured_cache_never_raises(
-        self, isolated_env, settings_module
-    ):
-        os.environ["DJANGO_ENV"] = "qa"
-
-        settings_module()

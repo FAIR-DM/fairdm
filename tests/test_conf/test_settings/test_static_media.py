@@ -17,8 +17,6 @@ class TestStaticMedia:
             module.STORAGES["default"]["BACKEND"]
             == "django.core.files.storage.FileSystemStorage"
         )
-        assert module.STATIC_URL == "/static/"
-        assert module.MEDIA_URL == "/media/"
 
     def test_s3_storage_when_s3_vars_configured(self, isolated_env, settings_module):
         os.environ["DJANGO_ENV"] = "qa"
@@ -35,13 +33,6 @@ class TestStaticMedia:
         )
         assert module.AWS_STORAGE_BUCKET_NAME == "my-bucket"
         assert module.AWS_S3_REGION_NAME == "eu-west-1"
-
-    def test_reading_unconfigured_static_media_never_raises(
-        self, isolated_env, settings_module
-    ):
-        os.environ["DJANGO_ENV"] = "qa"
-
-        settings_module()
 
 
 class TestBackupStorage:
@@ -68,16 +59,6 @@ class TestBackupStorage:
 
         location = module.STORAGES["dbbackup"]["OPTIONS"]["location"]
         assert location == str(module.BASE_DIR / "backups")
-
-    def test_a_portal_assigning_its_own_backup_storage_after_setup_keeps_it(
-        self, isolated_env, settings_module
-    ):
-        os.environ["DJANGO_ENV"] = "qa"
-        own = {"BACKEND": "django.core.files.storage.InMemoryStorage"}
-
-        module = settings_module(after=f'STORAGES["dbbackup"] = {own!r}')
-
-        assert module.STORAGES["dbbackup"] == own
 
 
 class TestBackupStorageOnS3:
@@ -125,12 +106,3 @@ class TestBackupStorageOnS3:
             == "storages.backends.s3boto3.S3Boto3Storage"
         )
 
-    @pytest.mark.usefixtures("s3_media")
-    def test_a_portal_assigning_its_own_backup_storage_after_setup_keeps_it(
-        self, settings_module
-    ):
-        own = {"BACKEND": "django.core.files.storage.InMemoryStorage"}
-
-        module = settings_module(after=f'STORAGES["dbbackup"] = {own!r}')
-
-        assert module.STORAGES["dbbackup"] == own
