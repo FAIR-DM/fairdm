@@ -79,9 +79,9 @@ def _permission_strings(group):
 
 
 def _resolvable_permissions(role):
-    """The subset of a role's declared permissions that exist as real ``Permission`` rows
-    right now. A role may declare a permission no model has created yet, and ``reconcile()``
-    must tolerate that rather than raise."""
+    """The subset of a role's declared permissions that exist as real ``Permission``
+    rows right now. A role may declare a permission no model has created yet, and
+    ``reconcile()`` must tolerate that rather than raise."""
     resolvable = set()
     for permission_name in PortalRoles.permissions_of(role):
         app_label, codename = permission_name.split(".", 1)

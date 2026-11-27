@@ -576,7 +576,7 @@ def unresolvable_engine(monkeypatch):
 
 @pytest.fixture
 def unreachable_database(monkeypatch):
-    """A portal whose database server refuses connections: a query raises OperationalError."""
+    """A portal whose database refuses connections: a query raises OperationalError."""
     from django.db import connections
 
     original = connections["default"]
