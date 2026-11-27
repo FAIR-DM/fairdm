@@ -257,6 +257,7 @@ class RecordAccess:
         found = [
             (people[pk], ContributionLevel(level), source)
             for pk, (level, source) in best.items()
+            if pk in people
         ]
         return sorted(found, key=lambda entry: str(entry[0]))
 

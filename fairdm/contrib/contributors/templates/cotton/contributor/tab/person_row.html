@@ -1,0 +1,29 @@
+{# @description One person on a record's Contributors tab: avatar, name, affiliation and roles, with Edit, Reorder and Remove for someone who may change the record. Reads row, can_change, urls and people_rows from the page. #}
+{% load i18n %}
+{% with credit=row.credit person=row.person %}
+<c-mvp.list.row id="contrib-person-{{ credit.pk }}"
+                label="{{ person.name }}"
+                lead="{% if credit.affiliation %}{{ credit.affiliation.name }}{% endif %}"
+                face_class="contrib-face"
+                data-contrib-row>
+  <c-slot name="art"><c-contributor.avatar :contributor="person" size="md" /></c-slot>
+  <c-contributor.item :contributor="credit" size="md" secondary="{% if not credit.affiliation %}—{% endif %}" class="list-col-grow" />
+  {% if can_change %}
+    <c-slot name="actions">
+      <c-mvp.list.row.action text="{% translate "Edit" %}" icon="edit" main
+                             label="{% blocktranslate with name=person.name %}Edit {{ name }}{% endblocktranslate %}"
+                             hx-get="{{ row.edit_url }}"
+                             hx-target="#contrib-sheet-slot" hx-swap="innerHTML" />
+      {% if people_rows|length > 1 %}
+        <c-mvp.list.row.action text="{% translate "Reorder" %}" icon="drag"
+                               hx-get="{{ urls.reorder }}"
+                               hx-target="#contrib-sheet-slot" hx-swap="innerHTML" />
+      {% endif %}
+      <c-mvp.list.row.action text="{% translate "Remove" %}" icon="trash" danger leaves
+                             label="{% blocktranslate with name=person.name %}Remove {{ name }}{% endblocktranslate %}"
+                             hx-post="{{ row.remove_url }}"
+                             hx-target="#contrib-region" hx-swap="outerHTML" />
+    </c-slot>
+  {% endif %}
+</c-mvp.list.row>
+{% endwith %}

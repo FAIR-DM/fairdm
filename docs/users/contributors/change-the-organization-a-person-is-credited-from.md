@@ -12,9 +12,9 @@ The choice is kept with this record only. It does not follow the person's profil
 
 1. Open the record's page and choose its **Contributors** tab.
 2. Choose **Edit** beside the person.
-3. Under "Their affiliation for this" and the record's kind, choose one of:
-    - One of the person's own affiliations. Their primary one is selected to begin with, and the others, past and present, are marked "Also current" or "Earlier, until" and a date.
-    - **Another organization**. Start typing its name in the box and choose a suggestion from the portal. A name the portal does not have yet makes a new organization.
+3. Under **Select their affiliation**, choose one of:
+    - One of the person's own affiliations, listed first under "From their profile", with the current one marked.
+    - Any other organization in the portal. Type in the box to find it.
     - **No affiliation**, to credit the person on their own.
 4. Choose **Save**.
 

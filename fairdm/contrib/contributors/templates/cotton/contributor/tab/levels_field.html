@@ -1,0 +1,19 @@
+{# @description The access level to give a person on a record, as radios. A level below what they hold from a record above is disabled. Reads levels, current_level and level_source_kind from the page. #}
+{% load i18n %}
+<fieldset class="contrib-fieldset" aria-describedby="contrib-levels-help">
+  <legend class="contrib-label">{% translate "Select their access" %}</legend>
+  <p class="contrib-help" id="contrib-levels-help">
+    {% if level_source_kind %}{% blocktranslate with source=level_source_kind %}They hold access from the {{ source }}, which cannot be lowered here.{% endblocktranslate %}{% else %}{% blocktranslate %}What they may do on this {{ kind }}.{% endblocktranslate %}{% endif %}
+  </p>
+  <div class="contrib-options" role="radiogroup" aria-labelledby="contrib-levels-help">
+    {% for level in levels %}
+      <label class="contrib-option">
+        <input type="radio" class="radio radio-sm radio-primary" name="level" value="{{ level.value }}"{% if level.value == current_level %} checked{% endif %}{% if level.disabled %} disabled{% endif %}>
+        <span class="contrib-pick-text">
+          <span class="contrib-pick-name">{{ level.label }}</span>
+          <span class="contrib-pick-sub">{{ level.hint }}</span>
+        </span>
+      </label>
+    {% endfor %}
+  </div>
+</fieldset>

@@ -1,0 +1,14 @@
+{# @description What a search of the portal's people found, one pick each, or why nothing was found; then the typed name or ORCID iD as a New row when it can be added. Reads found, step_url, query, identifier, problem, listed_already, new_row and kind from the page. #}
+{% load i18n %}
+{% if found %}
+  <ul class="contrib-picks" aria-label="{% translate "People found" %}">
+    {% for person in found %}
+      <c-contributor.tab.pick url="{{ step_url }}?person={{ person.uuid }}" name="{{ person.name }}" sub="{% if person.primary_affiliation %}{{ person.primary_affiliation.organization.name }}{% endif %}">
+        <c-slot name="avatar"><c-contributor.avatar :contributor="person" size="sm" /></c-slot>
+      </c-contributor.tab.pick>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="contrib-none">{% if listed_already %}{% blocktranslate %}The person with that ORCID iD is already on this {{ kind }}.{% endblocktranslate %}{% elif identifier and problem == "limited" %}{% translate "You have searched a lot just now. Try again in a minute." %}{% elif identifier and problem == "unavailable" %}{% translate "ORCID could not be reached." %}{% elif identifier and not new_row %}{% translate "ORCID has no public record under that iD." %}{% elif identifier %}{% translate "Nobody with that ORCID iD is in the portal." %}{% elif query %}{% blocktranslate %}Nobody called “{{ query }}” is in the portal.{% endblocktranslate %}{% else %}{% translate "Everyone in the portal is already on this record." %}{% endif %}</p>
+{% endif %}
+{% if new_row %}<c-contributor.tab.new-row />{% endif %}

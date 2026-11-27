@@ -1,0 +1,43 @@
+{# @description Edit a person: their affiliation on the record, their access and their roles. The submit button is in the sheet's foot. Reads action, kind, theirs, others, current_affiliation, levels and the roles from the page. #}
+{% load i18n %}
+<div id="contrib-sheet-step" class="contrib-step">
+  <form id="contrib-form" class="contrib-fields"
+        hx-post="{{ action }}" hx-target="#contrib-region" hx-swap="outerHTML">
+
+    <fieldset class="contrib-fieldset" x-data="{ q: '' }">
+      <legend class="contrib-label">{% blocktranslate %}Select their affiliation on this {{ kind }}{% endblocktranslate %}</legend>
+      <label class="input input-sm contrib-search">
+        <c-icon name="search" aria-hidden="true" />
+        <input type="search" x-model="q" autocomplete="off"
+               placeholder="{% translate "Find an organization" %}"
+               aria-label="{% translate "Find an organization" %}">
+      </label>
+      <div class="contrib-options" role="radiogroup" aria-label="{% translate "Affiliation" %}">
+        {% if theirs %}
+          <p class="contrib-group" x-show="!q">{% translate "From their profile" %}</p>
+          {% for org, current in theirs %}
+            <label class="contrib-option" data-name="{{ org.name|lower }}" x-show="!q || $el.dataset.name.includes(q.toLowerCase())">
+              <input type="radio" class="radio radio-sm radio-primary" name="affiliation" value="{{ org.pk }}" {% if org.pk == current_affiliation %}checked{% endif %}>
+              <span class="contrib-option-name">{{ org.name }}</span>
+              {% if current %}<span class="badge badge-sm badge-soft badge-neutral flex-none" data-contrib-current>{% translate "Current" %}</span>{% endif %}
+            </label>
+          {% endfor %}
+          <p class="contrib-group" x-show="!q">{% translate "Other organizations" %}</p>
+        {% endif %}
+        {% for org in others %}
+          <label class="contrib-option" data-name="{{ org.name|lower }}" x-show="!q || $el.dataset.name.includes(q.toLowerCase())">
+            <input type="radio" class="radio radio-sm radio-primary" name="affiliation" value="{{ org.pk }}" {% if org.pk == current_affiliation %}checked{% endif %}>
+            <span class="contrib-option-name">{{ org.name }}</span>
+          </label>
+        {% endfor %}
+        <label class="contrib-option" x-show="!q">
+          <input type="radio" class="radio radio-sm" name="affiliation" value="" {% if not current_affiliation %}checked{% endif %}>
+          <span class="contrib-option-name">{% translate "No affiliation" %}</span>
+        </label>
+      </div>
+    </fieldset>
+
+    <c-contributor.tab.roles-field />
+    <c-contributor.tab.levels-field />
+  </form>
+</div>

@@ -278,8 +278,9 @@ def contributor_population(db):
 def credited_world(db):
     """A person credited on public and private records of every kind.
 
-    Each private record has its own mate, credited there under a role held nowhere else, so a
-    test can tell a role or a collaborator that is known only through a private record.
+    Each private record has its own mate, credited there under a role held nowhere else,
+    so a test can tell a role or a collaborator that is known only through a private
+    record.
     """
     person = PersonFactory(
         email="credited@example.com",
@@ -400,7 +401,8 @@ def organization_profile_data():
 
 @pytest.fixture
 def record_chain(db):
-    """A project, a dataset in it, a sample in that dataset, and a measurement of the sample.
+    """A project, a dataset in it, a sample in that dataset, and a measurement of the
+    sample.
 
     The measurement belongs to a second dataset of the same project, so it is not in its
     sample's dataset.
@@ -450,18 +452,33 @@ class FakeResponse:
 
 
 class RegistryNetwork:
-    """Stands in for ``requests.get``: answers the addresses it was told about, records each call.
+    """Stands in for ``requests.get``: answers the addresses it was told about, records
+    each call.
 
     A request to an address it was not told about fails the test.
     """
 
     def __init__(self):
         self.answers = {}
+        self.conditional = {}
         self.calls = []
 
-    def answer(self, address, body, status=200, headers=None):
-        """Answer a request to the address with a status, a decoded body and headers."""
-        self.answers[address] = FakeResponse(status, body, headers)
+    def answer(self, address, body, status=200, headers=None, when=None):
+        """Answer a request to the address with a status, a decoded body and headers.
+
+        Args:
+            address: The address requested.
+            body: The decoded body.
+            status: The status code.
+            headers: The response headers.
+            when: Parameters the request must carry for this answer, each value
+                matching. An answer with ``when`` is preferred over one without.
+        """
+        response = FakeResponse(status, body, headers)
+        if when:
+            self.conditional.setdefault(address, []).append((when, response))
+        else:
+            self.answers[address] = response
 
     def fail(self, address, error):
         """Raise the error when the address is requested, as a dead network would."""
@@ -477,9 +494,16 @@ class RegistryNetwork:
                 extra=extra,
             )
         )
-        if url not in self.answers:
+        outcome = next(
+            (
+                response
+                for when, response in self.conditional.get(url, [])
+                if all((params or {}).get(key) == value for key, value in when.items())
+            ),
+            self.answers.get(url),
+        )
+        if outcome is None:
             raise AssertionError(f"Unexpected request to {url}")
-        outcome = self.answers[url]
         if isinstance(outcome, Exception):
             raise outcome
         return outcome

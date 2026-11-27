@@ -1,0 +1,13 @@
+{# @description The sheet every step of the Contributors tab opens in: the step's body, and the step's foot buttons below it. Reads sheet_id, sheet_title, sheet_lead and foot from the page. Open at the full height of the screen when given tall. #}
+<c-vars tall="" />
+{% if tall %}
+<c-mvp.sheet id="{{ sheet_id }}" title="{{ sheet_title }}" lead="{{ sheet_lead }}" full class="contrib-sheet">
+  {{ slot }}
+  <c-slot name="actions"><c-contributor.tab.foot /></c-slot>
+</c-mvp.sheet>
+{% else %}
+<c-mvp.sheet id="{{ sheet_id }}" title="{{ sheet_title }}" lead="{{ sheet_lead }}" class="contrib-sheet">
+  {{ slot }}
+  <c-slot name="actions"><c-contributor.tab.foot /></c-slot>
+</c-mvp.sheet>
+{% endif %}

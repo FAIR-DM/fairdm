@@ -1,0 +1,34 @@
+{# @description One organization on a record's Contributors tab: avatar, name and roles, with Edit roles, and Remove when no credited person is affiliated through it. Reads row and can_change from the page. #}
+{% load i18n %}
+{% with credit=row.credit organization=row.organization %}
+<c-mvp.list.row id="contrib-org-{{ organization.pk }}"
+                label="{{ organization.name }}"
+                face_class="contrib-face"
+                data-contrib-row
+                data-contrib-affiliation="{{ row.people|yesno:'yes,no' }}">
+  <c-slot name="art"><c-contributor.avatar :contributor="organization" size="md" /></c-slot>
+  <c-contributor.avatar :contributor="organization" size="md" />
+  <div class="list-col-grow contrib-body">
+    <c-contributor.name :contributor="organization" class="font-semibold" />
+    {% if row.badges %}
+      <ul class="contrib-roles" aria-label="{% translate "Roles" %}">
+        {% for badge in row.badges %}<li class="badge badge-sm badge-soft badge-primary">{{ badge }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+  </div>
+  {% if can_change %}
+    <c-slot name="actions">
+      <c-mvp.list.row.action text="{% translate "Edit roles" %}" icon="edit" main
+                             label="{% blocktranslate with name=organization.name %}Edit the roles of {{ name }}{% endblocktranslate %}"
+                             hx-get="{{ row.edit_url }}"
+                             hx-target="#contrib-sheet-slot" hx-swap="innerHTML" />
+      {% if credit and not row.people %}
+        <c-mvp.list.row.action text="{% translate "Remove" %}" icon="trash" danger leaves
+                               label="{% blocktranslate with name=organization.name %}Remove {{ name }}{% endblocktranslate %}"
+                               hx-post="{{ row.remove_url }}"
+                               hx-target="#contrib-region" hx-swap="outerHTML" />
+      {% endif %}
+    </c-slot>
+  {% endif %}
+</c-mvp.list.row>
+{% endwith %}

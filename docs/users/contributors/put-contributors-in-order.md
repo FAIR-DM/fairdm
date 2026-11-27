@@ -6,20 +6,18 @@ The order of the contributors is the order the record names them in, its citatio
 
 You need to manage the record, which means holding the **Can manage** level on it or on the record above it.
 
-People and organizations keep separate lists. A person moves only among the people, and an organization only among the organizations, so moving one never changes the other list.
-
 ## Steps
 
 1. Open the record's page and choose its **Contributors** tab.
-2. If you have searched, choose **Show everyone**. The move controls are left out while a search narrows the list, because the list shown is not the whole list.
-3. For a person, choose the up arrow beside them to move them earlier, or the down arrow to move them later. For an organization, open the menu on its card and choose **Move earlier** or **Move later**.
-4. Repeat until the list is in the order you want.
+2. Choose **Reorder** on any person's row. It is offered when there is more than one person.
+3. Drag a person by their handle to where they belong. With the keyboard, focus the handle and use the arrow keys.
+4. Choose **Save order**.
 
-The first in a list cannot move earlier and the last cannot move later. Their controls are switched off.
+Organizations are shown in the order the people they are credited from lead the record, then those credited on their own, and are not reordered by hand.
 
 ## The result
 
-Each move happens at once, and the page returns to the contributor you moved. The new order is the order shown on the Contributors tab, on the record's **People** card and in its citation.
+The sheet closes and the new order is the order shown on the Contributors tab, on the record's **People** card and in its citation.
 
 A contributor you add later is placed last in their own list. Removing a contributor, or changing their roles, level or organization, leaves everyone else where they were.
 

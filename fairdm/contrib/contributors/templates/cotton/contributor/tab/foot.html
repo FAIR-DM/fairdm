@@ -1,0 +1,21 @@
+{# @description A sheet's foot: Back on a later step, small, on the left, and the step's main button filling the rest, with a right arrow when it leads on to another step. There is no Cancel: tapping outside, dragging down or the close button in the head closes the sheet. Reads foot and oob from the page. #}
+{% load i18n %}
+<div id="contrib-sheet-actions" class="flex items-center gap-2"{% if oob %} hx-swap-oob="true"{% endif %}>
+  {% if foot.back %}
+    <button type="button" class="btn btn-ghost" hx-get="{{ foot.back }}" hx-target="#contrib-sheet-step" hx-swap="outerHTML" data-contrib-back>
+      <c-icon name="chevron-left" aria-hidden="true" /> {% translate "Back" %}
+    </button>
+  {% endif %}
+  {% if foot.next %}
+    <button type="button" class="btn btn-primary min-w-0 flex-1" hx-get="{{ foot.next }}"{% if foot.next_include %} hx-include="{{ foot.next_include }}"{% endif %} hx-target="#contrib-sheet-step" hx-swap="outerHTML" data-contrib-submit data-contrib-skip>
+      <span class="truncate">{{ foot.next_text }}</span>
+      <c-icon name="arrow-right" aria-hidden="true" />
+    </button>
+  {% elif foot.submit %}
+    <button type="submit" class="btn btn-primary min-w-0 flex-1" form="{{ foot.form|default:"contrib-form" }}" data-contrib-submit>
+      {% if foot.icon %}<c-icon name="{{ foot.icon }}" aria-hidden="true" />{% endif %}
+      <span class="truncate">{{ foot.submit }}</span>
+      {% if foot.arrow %}<c-icon name="arrow-right" aria-hidden="true" />{% endif %}
+    </button>
+  {% endif %}
+</div>

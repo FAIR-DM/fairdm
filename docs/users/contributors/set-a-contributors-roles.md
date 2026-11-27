@@ -9,13 +9,13 @@ You need to manage the record, which means holding the **Can manage** level on i
 ## Steps
 
 1. Open the record's page and choose its **Contributors** tab.
-2. Choose **Edit** beside the person, or open the menu on the organization's card and choose **Edit roles**.
-3. Under "What they did on" the record's kind, tick every role that applies. Untick a role to take it away. A contributor does not need a role, and one with none is listed without one.
+2. Choose **Edit** beside the person, or **Edit roles** on the organization's row.
+3. Under **Select roles**, tick every role that applies. Untick a role to take it away. On a project or a dataset, Project Member is ticked and cannot be unticked. Beside the roles, **What each role means** opens [Contributor roles](../../reference/contributor-roles.md).
 4. Choose **Save**.
 
 ## The result
 
-You arrive back on the Contributors tab, which reads the contributor's name followed by "was saved." The roles appear as badges beside the contributor.
+The sheet closes, a notice says the contributor was saved, and the roles appear beside the contributor.
 
 Roles are credit. They never change what the person may do on the record, and changing them leaves their level as it was. The same screen sets a person's organization and level, and everything on it is saved together, so a refusal on one part saves nothing.
 

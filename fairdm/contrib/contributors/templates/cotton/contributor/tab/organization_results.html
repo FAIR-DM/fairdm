@@ -1,0 +1,14 @@
+{# @description What a search of the portal's organizations found, one pick each, or why nothing was found; then the typed name as a New row. Reads found, step_url, query and new_row from the page. #}
+{% load i18n %}
+{% if found %}
+  <ul class="contrib-picks" aria-label="{% translate "Organizations found" %}">
+    {% for organization in found %}
+      <c-contributor.tab.pick url="{{ step_url }}?organization={{ organization.uuid }}" name="{{ organization.name }}" sub="{% if organization.city or organization.country %}{{ organization.city }}{% if organization.city and organization.country %}, {% endif %}{{ organization.country.name }}{% endif %}">
+        <c-slot name="avatar"><c-contributor.avatar :contributor="organization" size="sm" /></c-slot>
+      </c-contributor.tab.pick>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="contrib-none">{% if query %}{% blocktranslate %}No organization called “{{ query }}” is in the portal.{% endblocktranslate %}{% else %}{% translate "Every organization in the portal is already on this record." %}{% endif %}</p>
+{% endif %}
+{% if new_row %}<c-contributor.tab.new-row />{% endif %}

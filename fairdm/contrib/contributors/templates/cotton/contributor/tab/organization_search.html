@@ -1,0 +1,21 @@
+{# @description The search step of Add an organization: drawn inside the sheet when it opens, and again when Back returns to it. Reads query and request from the page. #}
+{% load i18n %}
+<div id="contrib-sheet-step" class="contrib-step">
+  <div class="sticky top-0 z-10 bg-base-100 pb-1">
+    <label class="input contrib-search">
+      <c-icon name="search" aria-hidden="true" />
+      <input type="search"
+             name="q"
+             value="{{ query }}"
+             autocomplete="off"
+             placeholder="{% translate "Search organizations" %}"
+             aria-label="{% translate "Search organizations" %}"
+             hx-get="{{ request.path }}"
+             hx-trigger="input changed delay:250ms, search"
+             hx-target="#contrib-organization-results"
+             hx-swap="innerHTML"
+             data-contrib-autofocus>
+    </label>
+  </div>
+  <div id="contrib-organization-results"><c-contributor.tab.organization-results /></div>
+</div>

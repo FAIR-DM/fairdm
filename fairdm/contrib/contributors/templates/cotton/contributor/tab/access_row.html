@@ -1,0 +1,9 @@
+{# @description One person who holds access to the record from a record above, drawn like a row of the people list with no actions. Reads entry from the page. #}
+{% load i18n %}
+<c-mvp.list.row id="contrib-above-{{ entry.person.pk }}" label="{{ entry.person.name }}" face_class="contrib-face" data-contrib-row data-contrib-above>
+  <c-contributor.avatar :contributor="entry.person" size="md" />
+  <div class="list-col-grow contrib-body">
+    <c-contributor.name :contributor="entry.person" class="font-semibold" />
+    <span class="contrib-pick-sub">{% blocktranslate with level=entry.label kind=entry.source_kind %}{{ level }} access from the {{ kind }}{% endblocktranslate %}</span>
+  </div>
+</c-mvp.list.row>
