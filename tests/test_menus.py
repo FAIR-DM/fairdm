@@ -129,8 +129,7 @@ class TestLiteratureMenuItem:
 
 @pytest.mark.django_db
 class TestInstallTheAppMenuItem:
-    def test_the_resources_heading_leads_to_the_install_page(self, client):
+    def test_the_menu_leads_to_the_install_page(self, client):
         content = client.get(reverse("team")).content.decode()
 
-        assert "Resources" in content
         assert f'href="{reverse("mvp-pwa-install")}"' in content
