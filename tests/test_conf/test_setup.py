@@ -668,8 +668,9 @@ class TestPostSetupOverridesEveryBaselineModule:
         )
         portal_module = settings_module(after=after, filename="portal_settings.py")
 
-        # The comparison only means something where the baseline does not already hold the portal's
-        # value, so the same pass reports both a coincidence and an override that was lost.
+        # The comparison only means something where the baseline does not already
+        # hold the portal's value, so the same pass reports both a coincidence and
+        # an override that was lost.
         failures = []
         for stem, setting in self.SETTING_BY_MODULE.items():
             baseline_value = getattr(baseline_module, setting)

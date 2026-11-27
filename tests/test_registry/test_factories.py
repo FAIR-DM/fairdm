@@ -418,7 +418,8 @@ class TestSerializerFactory:
 
     @pytest.fixture
     def kind(self):
-        # Every kind goes through the same builder, so the field rules are asserted for one.
+        # Every kind goes through the same builder, so the field rules are asserted
+        # for one.
         return ConcreteSample, BaseSampleSerializer, "rock_type"
 
     @staticmethod

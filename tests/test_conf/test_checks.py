@@ -737,7 +737,8 @@ class TestDevAccountsAbsent:
 
     @override_settings(DJANGO_ENV="production")
     def test_the_example_profile_and_role_accounts_are_named_too(self, db):
-        # The accounts the overview and profile development data sign in through share the dev password.
+        # The accounts the overview and profile development data sign in through
+        # share the dev password.
         from fairdm.conf.checks import check_dev_accounts_absent
 
         emails = [
@@ -763,9 +764,8 @@ class TestDevAccountsAbsent:
         from fairdm.conf.checks import check_dev_accounts_absent
 
         with connection.cursor() as cursor:
-            cursor.execute(
-                f'ALTER TABLE "{get_user_model()._meta.db_table}" RENAME TO person_hidden'
-            )
+            table = get_user_model()._meta.db_table
+            cursor.execute(f'ALTER TABLE "{table}" RENAME TO person_hidden')
 
         assert check_dev_accounts_absent(app_configs=None) == []
 

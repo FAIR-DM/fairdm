@@ -7,7 +7,8 @@ from fairdm.conf.environment import env
 
 class TestEnv:
     def test_security_critical_variables_have_no_working_default(self, isolated_env):
-        # Reading an unset variable never refuses a boot. The production-critical checks do that.
+        # Reading an unset variable never refuses a boot. The production-critical
+        # checks do that.
         unset = {
             "DJANGO_SECRET_KEY": "",
             "DJANGO_SITE_DOMAIN": "",
@@ -30,6 +31,7 @@ class TestNoSecurityDefaults:
 
         module = settings_module()
 
-        # An empty value, never the insecure key FairDM's source once published or a localhost domain.
+        # An empty value, never the insecure key FairDM's source once published or
+        # a localhost domain.
         assert module.SECRET_KEY == ""
         assert module.SITE_DOMAIN == ""

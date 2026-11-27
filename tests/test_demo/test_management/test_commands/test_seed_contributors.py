@@ -56,7 +56,8 @@ class TestSeedContributorsRefusesOutsideDevelopment:
 def contributors_seeded(django_db_setup, django_db_blocker):
     """Run the command once for a test class: it is the slowest part of these tests.
 
-    The tests that read the seeded record share it. The class rolls back to where it started.
+    The tests that read the seeded record share it. The class rolls back to where
+    it started.
     """
     with django_db_blocker.unblock(), transaction.atomic():
         seed()

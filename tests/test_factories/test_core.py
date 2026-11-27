@@ -1,4 +1,4 @@
-"""Tests for the rules the core FairDM factories keep for a portal that builds its records with them."""
+"""Tests for the rules the core factories keep for a portal that builds records with them."""
 
 import pytest
 

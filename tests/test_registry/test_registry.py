@@ -1,8 +1,8 @@
 """Tests for fairdm/registry/registry.py.
 
-What a configuration builds for a model (forms, tables, filters, serializers, admin) is tested in
-test_config.py. These tests cover registration, lookup and the partition into samples and
-measurements.
+What a configuration builds for a model (forms, tables, filters, serializers,
+admin) is tested in test_config.py. These tests cover registration, lookup and the
+partition into samples and measurements.
 """
 
 import pytest
@@ -75,8 +75,8 @@ class TestRegistration:
             class Meta:
                 app_label = "test_app"
 
-        # Eligibility is the registry's decision, so building the configuration is legal and
-        # registering it is what fails.
+        # Eligibility is the registry's decision, so building the configuration is
+        # legal and registering it is what fails.
         config = ModelConfiguration(model=NotSampleModel, fields=["name"])
         with pytest.raises(ConfigurationError):
             clean_registry.register(NotSampleModel, config)
@@ -147,8 +147,8 @@ class TestComponentAccessors:
         clean_registry.register(TestSample)
         config = clean_registry.get_for_model(TestSample)
 
-        # Nothing is cached, so an override of the accessor is honoured on every call and not
-        # only the first.
+        # Nothing is cached, so an override of the accessor is honoured on every
+        # call and not only the first.
         first = config.get_form_class()
         second = config.get_form_class()
 
@@ -191,8 +191,8 @@ class TestDemoRegistrations:
 
         config = registry.get_for_model(CustomSample)
 
-        # CustomSample names its own filterset and table, so the resolved components are those
-        # classes and not generated ones.
+        # CustomSample names its own filterset and table, so the resolved
+        # components are those classes and not generated ones.
         assert config.get_filterset_class() is CustomSampleFilter
         assert config.get_table_class() is CustomSampleTable
         assert issubclass(config.get_table_class(), Table)

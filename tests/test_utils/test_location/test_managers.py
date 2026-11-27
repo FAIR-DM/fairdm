@@ -362,8 +362,9 @@ class TestMeasurementLookups:
 class TestQueryPlan:
     """SC-005 and FR-020: the area and distance lookups read a spatial index, not the whole table."""
 
-    # With sequential scans switched off the planner takes an index whenever the query can use one, so
-    # the plan answers "can the lookup use the index" and not "did the table statistics favour it".
+    # With sequential scans switched off the planner takes an index whenever the
+    # query can use one, so the plan answers "can the lookup use the index" and
+    # not "did the table statistics favour it".
     COUNT = 100
     AREA = (0, 0, 10, 10)
     CENTRE = at(5.0, 5.0)
@@ -397,7 +398,7 @@ class TestQueryPlan:
 
     @staticmethod
     def spatial_index_missing(queryset, model, whole_table_allowed=False):
-        """Return what is wrong with the plan, or an empty string when it reads a spatial index."""
+        """Return what is wrong with the plan, or "" when it reads a spatial index."""
         plan = queryset.explain()
         table = model._meta.db_table
         if not re.search(
@@ -416,8 +417,9 @@ class TestQueryPlan:
                 Sample,
                 False,
             ),
-            # The measurements a sample places are joined on their sample, and the planner may read the
-            # measurement table whole for that branch. The samples are never read whole.
+            # The measurements a sample places are joined on their sample, and the
+            # planner may read the measurement table whole for that branch. The
+            # samples are never read whole.
             "measurements inside an area": (
                 Measurement.objects.inside(self.AREA),
                 Measurement,

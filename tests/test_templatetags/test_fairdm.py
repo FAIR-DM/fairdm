@@ -93,7 +93,7 @@ class TestDockTags:
 
     @pytest.fixture(autouse=True)
     def english(self):
-        """Pin the language the labels are compared in, as another test may leave one active."""
+        """Pin the language the labels are compared in: another test may leave one on."""
         with translation.override("en"):
             yield
 
