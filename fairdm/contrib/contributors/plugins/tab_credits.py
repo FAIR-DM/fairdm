@@ -216,7 +216,9 @@ class UndoRemove(ContributorsBase):
 
 
 class Reorder(ContributorsBase):
-    """The Reorder sheet: drag people into the order the record credits them in."""
+    """The Reorder sheet: drag people into the order the record credits them in, and
+    switch each in or out of the record's citation.
+    """
 
     name = "reorder"
     url_path = "reorder"
@@ -234,10 +236,16 @@ class Reorder(ContributorsBase):
         )
 
     def post(self, request, *args, **kwargs):
-        """Save the order the people were given in."""
+        """Save the order the people were given in and who the citation names.
+
+        Everyone the form lists and does not mark as cited is left out of the citation.
+        """
         people = Contribution.objects.for_entity(self.base_object).people()
         try:
             save_order(people, request.POST.getlist("order"), field="order")
         except InvalidOrder:
             return HttpResponseBadRequest()
+        cited = [int(pk) for pk in request.POST.getlist("cited") if pk.isdigit()]
+        people.filter(pk__in=cited).update(in_citation=True)
+        people.exclude(pk__in=cited).update(in_citation=False)
         return self.region_response(toast={"text": _("New order saved.")})

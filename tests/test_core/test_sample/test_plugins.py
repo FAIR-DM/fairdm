@@ -811,6 +811,20 @@ class TestOverviewCitationFormats:
         )
         return sample
 
+    def test_a_collector_left_out_of_the_citation_is_named_in_no_format(
+        self, client, rock
+    ):
+        sample = self.collect(rock)
+        sample.contributors.filter(contributor__person__last_name="Oliveira").update(
+            in_citation=False
+        )
+
+        formats = self.formats_of(client, sample)
+
+        for value in formats.values():
+            assert "Keller" in value
+            assert "Oliveira" not in value
+
     def formats_of(self, client, sample):
         citation = _page(client, sample).context["citation"]
         return {entry["key"]: entry["value"] for entry in citation["formats"]}

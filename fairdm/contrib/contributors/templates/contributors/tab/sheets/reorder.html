@@ -7,6 +7,12 @@
           <span class="flex w-full items-center gap-2">
             <c-contributor.avatar :contributor="row.person" size="sm" />
             <span class="min-w-0 truncate">{{ row.person.name }}</span>
+            <label class="swap btn btn-ghost btn-sm btn-square ms-auto flex-none text-lg" title="{% translate "Appears in the citation" %}">
+              <input type="checkbox" name="cited" value="{{ row.credit.pk }}" {% if row.cited %}checked{% endif %}
+                     aria-label="{% blocktranslate with name=row.person.name %}Cite {{ name }}{% endblocktranslate %}">
+              <span class="swap-on"><c-icon name="view" aria-hidden="true" /></span>
+              <span class="swap-off text-base-content/60"><c-icon name="hide" aria-hidden="true" /></span>
+            </label>
           </span>
         </c-mvp.reorder.row>
       {% endfor %}

@@ -1864,6 +1864,8 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         affiliation: The organisation a person is credited from on this record, or None.
             It is kept with the record and does not follow the person's profile.
         level: What a person may do on the credited object. Empty for an organisation.
+        in_citation: Whether a person is named in the record's formal citation and in the
+            creator lists of its metadata. Off, they are credited and listed but left out.
     """
 
     objects = ContributionManager()
@@ -1918,6 +1920,17 @@ class Contribution(LifecycleModelMixin, OrderedModel):
         choices=ContributionLevel.choices,
         null=True,
         blank=True,
+    )
+
+    in_citation = models.BooleanField(
+        verbose_name=_("in the citation"),
+        help_text=_(
+            "Whether the person is named in the record's citation and in the creator lists "
+            "of its metadata. When off, they are still credited and listed on the record. "
+            "An organization is always named."
+        ),
+        default=True,
+        db_default=True,
     )
 
     class Meta:

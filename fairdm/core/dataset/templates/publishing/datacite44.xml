@@ -17,7 +17,7 @@
     <title xml:lang="en">{{ dataset.title }}</title>
   </titles>
 
-  <creators>{% for c in dataset.contributors.all|by_role:"https://w3id.org/fairdm/vocabularies/contributor-roles/creator" %}{% with c.contributor as contributor %}
+  <creators>{% for c in dataset.contributors.cited|by_role:"https://w3id.org/fairdm/vocabularies/contributor-roles/creator" %}{% with c.contributor as contributor %}
     <creator>
       <creatorName nameType="{% if contributor.type == "person" %}Personal{% else %}Organizational{% endif %}">{{ contributor.name }}</creatorName>
       {% include "publishing/datacite/contributor.xml" %}

@@ -241,7 +241,9 @@ class Overview(TypedOverviewPlugin):
             else gettext("an unpublished sample"),
         }
         authors = self.get_contributors_with_role(
-            entries, f"{CONTRIBUTOR_ROLES}/measurement-collection"
+            entries,
+            f"{CONTRIBUTOR_ROLES}/measurement-collection",
+            cited_only=True,
         )
         year = getattr(setup, "year", None) or measurement.added.year
         link = doi["link"] if doi else get_permalink(measurement, self.request)

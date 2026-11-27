@@ -253,7 +253,7 @@ class Overview(TypedOverviewPlugin):
         igsn = next((i for i in identifiers if i["type"].uri == IGSN), None)
         collected = dates.get(f"{DATE_TYPES}/collected")
         authors = self.get_contributors_with_role(
-            entries, f"{CONTRIBUTOR_ROLES}/collection"
+            entries, f"{CONTRIBUTOR_ROLES}/collection", cited_only=True
         )
         year = getattr(collected, "year", None) or sample.added.year
         title = f"{sample.name} [{type(sample)._meta.verbose_name}]"

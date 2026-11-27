@@ -114,7 +114,7 @@ The tab is one page, `contributors/tab/page.html`, whose body is the Cotton comp
 | `CreditOrganization` | `credit-organization` | GET, POST | Gives an organization that is only someone's affiliation roles of its own |
 | `RemoveCredit` | `remove` | POST | Removes a contributor and answers with an Undo |
 | `UndoRemove` | `undo` | POST | Puts a removed contributor back from the signed token in `undo`, valid for five minutes |
-| `Reorder` | `reorder` | GET, POST | Saves the order of the people |
+| `Reorder` | `reorder` | GET, POST | Saves the order of the people and which of them the citation names (`Contribution.in_citation`) |
 
 Addresses resolve with the plugin `reverse`, and an extra view's name is prefixed with the plugin's:
 

@@ -412,7 +412,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         creators = [
             c.contributor
             for c in self.get_contributions()
-            if CREATOR in self.get_role_uris(c)
+            if CREATOR in self.get_role_uris(c) and c.in_citation
         ]
         start = {d.type_id: d.value for d in project.dates.all()}.get(PROJECT_START)
         year = as_date(start).year if as_date(start) else project.added.year

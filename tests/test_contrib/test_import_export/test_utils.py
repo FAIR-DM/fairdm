@@ -59,6 +59,20 @@ def dataset():
 class TestBuildMetadata:
     """A dataset's metadata renders, credits its contributors and describes it."""
 
+    def test_a_person_left_out_of_the_citation_is_not_a_creator(self, dataset):
+        kept = PersonFactory()
+        left_out = PersonFactory()
+        for person in (kept, left_out):
+            Contribution.add_to(person, dataset, roles=[f"{CONTRIBUTOR_ROLES}/creator"])
+        Contribution.objects.filter(contributor=left_out).update(in_citation=False)
+
+        names = [
+            e.text
+            for e in metadata(dataset).findall("d:creators/d:creator/d:creatorName", NS)
+        ]
+
+        assert names == [kept.name]
+
     def test_a_described_and_credited_dataset_renders(self, dataset):
         person = PersonFactory()
         organization = OrganizationFactory()

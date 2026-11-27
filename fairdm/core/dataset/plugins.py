@@ -433,8 +433,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
         """Gather the dataset's creators, and whether anyone is credited as its contact person.
 
         Returns:
-            The creators, whether a contact person is credited, and how many contributions the
-            dataset has.
+            The creators, each with whether the citation names them, whether a contact person
+            is credited, and how many contributions the dataset has.
         """
         contributions = self.get_contributions()
         creators, has_contact = [], False
@@ -445,6 +445,7 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
                     {
                         "contributor": contribution.contributor,
                         "roles": [r.display_label() for r in contribution.roles.all()],
+                        "cited": contribution.in_citation,
                     }
                 )
             has_contact = has_contact or CONTACT_PERSON in roles
@@ -645,7 +646,9 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
                 "from_reference": True,
                 **self.get_cited_details(work, text),
             }
-        creators = [entry["contributor"] for entry in page["team"]["creators"]]
+        creators = [
+            entry["contributor"] for entry in page["team"]["creators"] if entry["cited"]
+        ]
         when = as_date(page["dates"]["published"] or page["dates"]["available"])
         year = when.year if when else dataset.added.year
         doi = next(
@@ -708,6 +711,8 @@ class Overview(PrivateRecordNotFoundMixin, RecordOverviewPlugin):
             data["keywords"] = keywords
         creators = []
         for entry in page["team"]["creators"]:
+            if not entry["cited"]:
+                continue
             person = entry["contributor"]
             if isinstance(person, Person):
                 creators.append(
