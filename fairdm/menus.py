@@ -133,5 +133,12 @@ AppMenu.extend(
                 ),
             ],
         ),
+        # django-mvp serves the page only while `MVP_CONFIG["pwa"]` is set, and the menu leaves
+        # the entry out when it is not.
+        MenuItem(
+            name=_("Install this app"),
+            view_name="mvp-pwa-install",
+            extra_context={"icon": "install"},
+        ),
     ],
 )
