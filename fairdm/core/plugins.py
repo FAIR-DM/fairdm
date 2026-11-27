@@ -218,7 +218,7 @@ class RecordOverviewPlugin(OverviewPlugin):
         return [
             entry["contributor"]
             for entry in entries
-            if role in entry["roles"] and (entry["cited"] or not cited_only)
+            if role in entry["roles"] and (not cited_only or entry["cited"])
         ]
 
     def get_credits(self) -> list[dict[str, Any]]:

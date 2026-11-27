@@ -47,7 +47,7 @@ The `credited_from` refusal carries the people in `params["people"]`, so a page 
 
 A record names its people in one order and its organizations in another. `Crediting.move` and the tab's reorder sheet change the people's order, and the sheet saves it in one write. It swaps `order` with the neighbour of the same kind on the same record. Credits that share an order value are told apart by their creation order, so a move gives the same result every time. `add` places a contributor last. `update` and `remove` leave the others' order as it is.
 
-`Contribution.objects.for_entity(record).people()` and `.organizations()` read the two lists, each ordered by `order` then `pk`. `RecordOverviewPlugin.get_contributions()` returns the two lists one after the other, people first. `get_credits()` follows that order and gives a person credited with no organization an `affiliation` of `None`.
+`Contribution.objects.for_entity(record).people()` and `.organizations()` read the two lists, each ordered by `order` then `pk`. `RecordOverviewPlugin.get_contributions()` returns the two lists one after the other, people first. `get_credits()` follows that order and gives a person credited with no organization an `affiliation` of `None`. `Contribution.in_citation` is false for a person the Reorder sheet leaves out of the citation, and `Contribution.objects.cited()` leaves those credits out. The citations, their downloads and the creator lists of a record's metadata read it.
 
 ### The last manager
 
