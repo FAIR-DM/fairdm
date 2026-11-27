@@ -22,13 +22,13 @@
     {% if c.newcomers %}
       <div class="dash-faces">
         <h3 class="dash-subhead">{% translate "New members" %}</h3>
-        <c-contributor.stack :contributors="c.newcomers" max="6" total="{{ c.newcomer_count }}" more_url="{{ c.people_url }}" />
+        <c-contributor.stack :contributors="c.newcomers" max="6" size="md" total="{{ c.newcomer_count }}" more_url="{{ c.people_url }}" />
       </div>
     {% endif %}
     {% if c.collaborators %}
       <div class="dash-faces">
         <h3 class="dash-subhead">{% translate "People you work with" %}</h3>
-        <c-contributor.stack :contributors="c.collaborators" max="6" />
+        <c-contributor.stack :contributors="c.collaborators" max="6" size="md" />
       </div>
     {% endif %}
 

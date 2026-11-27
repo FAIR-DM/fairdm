@@ -7,8 +7,8 @@
   with the person and their headline figures, then a wide column of their own work and a side
   column of the community around it. Below `lg` the columns stack, work first.
 
-  The wide column runs from what to do next to what has happened: start something new, the
-  getting-started list for someone new, what needs them, one panel for each portal role they
+  The wide column runs from what to do next to what has happened: the getting-started list for
+  someone new, start something new, what needs them, one panel for each portal role they
   hold, their datasets and projects, and how their public data is being used. The side column
   holds the community, their organizations and the tools.
 
@@ -66,8 +66,8 @@
   <div class="ov record-portal dash">
     <div class="ov-body">
       <div class="ov-main">
-        {% include "dashboard/panels/start.html" %}
         {% include "dashboard/panels/getting_started.html" %}
+        {% include "dashboard/panels/start.html" %}
         {% include "dashboard/panels/attention.html" %}
         {% for kind, panel in dash.roles %}
           {% include "dashboard/panels/role_"|add:kind|add:".html" %}

@@ -28,14 +28,11 @@
     </div>
     <div class="dash-admin__roles">
       <h3 class="dash-subhead">{% translate "Portal roles" %}</h3>
-      <ul class="ov-rows">
+      <ul class="dash-roles">
         {% for role in panel.roles %}
-          <li class="record-portal">
-            <span class="ov-mark" aria-hidden="true"><c-icon name="permissions" only /></span>
-            <div class="ov-row__main">
-              {% if role.url %}<a href="{{ role.url }}" class="ov-row__title">{{ role.label }}</a>{% else %}<span class="ov-row__title">{{ role.label }}</span>{% endif %}
-            </div>
-            <div class="ov-row__end"><strong>{{ role.count }}</strong> {% blocktranslate count counter=role.count %}person{% plural %}people{% endblocktranslate %}</div>
+          <li>
+            {% if role.url %}<a href="{{ role.url }}" class="ov-link">{{ role.label }}</a>{% else %}<span>{{ role.label }}</span>{% endif %}
+            <span class="dash-roles__n"><strong>{{ role.count }}</strong> {% blocktranslate count counter=role.count %}person{% plural %}people{% endblocktranslate %}</span>
           </li>
         {% endfor %}
       </ul>

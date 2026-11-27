@@ -67,30 +67,30 @@ def readiness(dataset):
     )
     overview = dataset.get_absolute_url()
     items = [
-        (_("An abstract describes the data"), ABSTRACT in described, True,
+        (_("An abstract describes the data"), _("an abstract"), ABSTRACT in described, True,
          url("dataset:descriptions", uuid=dataset.uuid)),
-        (_("The methods are described"), METHODS in described, True,
+        (_("The methods are described"), _("the methods"), METHODS in described, True,
          url("dataset:descriptions", uuid=dataset.uuid)),
-        (_("At least one creator is credited"),
-         Contribution.objects.filter(dataset=dataset, roles=CREATOR).exists(), True,
+        (_("At least one creator is credited"), _("a creator"),
+         Contribution.objects.filter(dataset=dataset, roles__uri=CREATOR).exists(), True,
          url("dataset:contribution-list", uuid=dataset.uuid)),
-        (_("A licence is chosen"), dataset.license_id is not None, True,
+        (_("A licence is chosen"), _("a licence"), dataset.license_id is not None, True,
          url("dataset:edit", uuid=dataset.uuid)),
-        (_("It holds samples or measurements"),
+        (_("It holds samples or measurements"), _("its data"),
          Sample.objects.filter(dataset=dataset).exists()
          or Measurement.objects.filter(dataset=dataset).exists(), True,
          url("dataset:imports", uuid=dataset.uuid)),
-        (_("The collection period is recorded"),
+        (_("The collection period is recorded"), _("the collection period"),
          DatasetDate.objects.filter(related=dataset, type_id=DatasetDate.START_TYPE).exists(),
          True, url("dataset:key-dates", uuid=dataset.uuid)),
-        (_("Keywords make it findable"), dataset.keywords.exists(), False,
+        (_("Keywords make it findable"), _("keywords"), dataset.keywords.exists(), False,
          url("dataset:keywords", uuid=dataset.uuid)),
-        (_("The dataset is public"), dataset.visibility == Visibility.PUBLIC, False,
+        (_("The dataset is public"), _("to be public"), dataset.visibility == Visibility.PUBLIC, False,
          url("dataset:edit", uuid=dataset.uuid)),
     ]
     rows = [
-        {"label": label, "done": done, "required": required, "url": link or overview}
-        for label, done, required, link in items
+        {"label": label, "short": short, "done": done, "required": required, "url": link or overview}
+        for label, short, done, required, link in items
     ]
     done = sum(1 for row in rows if row["done"])
     return {
@@ -100,6 +100,22 @@ def readiness(dataset):
         "percent": round(100 * done / len(rows)),
         "required_missing": [r for r in rows if r["required"] and not r["done"]],
     }
+
+
+def still_needs(missing):
+    """Name what a dataset still needs, the first two by name and the rest as a count."""
+    names = [str(m["short"]) for m in missing]
+    if not names:
+        return ""
+    if len(names) == 1:
+        return _("Still needs %(first)s") % {"first": names[0]}
+    if len(names) == 2:
+        return _("Still needs %(first)s and %(second)s") % {"first": names[0], "second": names[1]}
+    return ngettext(
+        "Still needs %(first)s, %(second)s and %(n)s more",
+        "Still needs %(first)s, %(second)s and %(n)s more",
+        len(names) - 2,
+    ) % {"first": names[0], "second": names[1], "n": len(names) - 2}
 
 
 # ------------------------------------------------------------------------------------ scope
@@ -127,7 +143,8 @@ def holds(person, role):
 
 
 def header(person, scope, use):
-    orcid = person.orcid()
+    identifier = person.orcid()
+    orcid = identifier.value if identifier else ""
     affiliation = person.primary_affiliation()
     returning = scope.datasets.exists() or scope.projects.exists()
     name = person.first_name or person.get_full_name() or person.email
@@ -285,11 +302,7 @@ def attention(person, scope):
                 "kind": "readiness",
                 "icon": "dataset",
                 "label": _("Finish describing %(name)s") % {"name": dataset.name},
-                "sub": ngettext(
-                    "Still needed: %(first)s",
-                    "%(n)s things still needed, first: %(first)s",
-                    len(missing),
-                ) % {"n": len(missing), "first": missing[0]["label"].lower()},
+                "sub": still_needs(missing),
                 "url": missing[0]["url"],
                 "ring": ready,
             })
@@ -647,7 +660,6 @@ def tools(person):
     return {
         "tokens_url": url("account_api_tokens"),
         "docs_url": url("api:api-docs"),
-        "guide_url": "/docs/",
         "control_room_url": url("admin:dj_control_room_djcontrolroomdashboard_changelist") if person.is_superuser else "",
         "account_url": url("account-center"),
     }

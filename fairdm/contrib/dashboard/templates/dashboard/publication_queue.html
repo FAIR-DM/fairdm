@@ -16,7 +16,7 @@
                 <a href="{{ row.dataset.get_absolute_url }}" class="ov-row__title">{{ row.dataset.name }}</a>
                 <div class="ov-row__meta">
                   {% if row.ready.required_missing %}
-                    <span>{% blocktranslate with first=row.ready.required_missing.0.label|lower count counter=row.ready.required_missing|length %}Missing: {{ first }}{% plural %}{{ counter }} missing, first: {{ first }}{% endblocktranslate %}</span>
+                    <span>{{ row.still_needs }}</span>
                   {% else %}
                     <span class="ov-state ov-state--published">{% translate "Ready to publish" %}</span>
                   {% endif %}

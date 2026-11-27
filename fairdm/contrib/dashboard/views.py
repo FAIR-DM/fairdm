@@ -9,7 +9,7 @@ from django.views import View
 
 from fairdm.contrib.activity.lines import group_days
 from fairdm.contrib.dashboard.models import DashboardState
-from fairdm.contrib.dashboard.panels import PortalActivity, everyone_datasets, readiness
+from fairdm.contrib.dashboard.panels import PortalActivity, everyone_datasets, readiness, still_needs
 from fairdm.core.dataset.models import Dataset
 from fairdm.portal_roles import PortalRoles
 from fairdm.utils.choices import Visibility
@@ -54,7 +54,10 @@ class PublicationQueueView(LoginRequiredMixin, UserPassesTestMixin, FairDMTempla
         except InvalidPage as error:
             raise Http404(_("That page of the queue does not exist.")) from error
         context["page_obj"] = page
-        context["rows"] = [{"dataset": d, "ready": readiness(d)} for d in page.object_list]
+        context["rows"] = [
+            {"dataset": d, "ready": (ready := readiness(d)), "still_needs": still_needs(ready["required_missing"])}
+            for d in page.object_list
+        ]
         return context
 
 
